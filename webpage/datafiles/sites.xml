@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kml
+  xmlns="http://earth.google.com/kml/2.1"
+  xmlns:py="http://genshi.edgewall.org/"
+  >
+  <Folder>
+    <Placemark py:for="site in sites">
+      <name py:content="site.name" />
+      <description py:content="str(site) + site.comment" />
+      <Point>
+        <coordinates py:content="'%s,%s' % (site.lon,site.lat)" />
+      </Point>
+    </Placemark>
+  </Folder>
+</kml>

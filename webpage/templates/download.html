@@ -1,0 +1,46 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Upload</title>
+</head>
+<body>
+	${navigation}
+    <div class="error" py:content="error" />
+    <h1>Download</h1>
+	<div>download&raquo;
+		<span py:content="Markup(curdir.replace('/','&raquo;'))" />
+	</div> 
+	<ul id="Inhalt">
+		<!--<li><h2>directories</h2></li>-->
+		<li py:if="curdir">
+			<a href=".">..</a>
+		</li>
+		<li py:for="d in directories">
+			<a href="${d.href}" py:content="d.name"/>
+		</li>
+	</ul>
+    <div class="rightpane">
+    	<h2>files</h2>
+    	<ul>
+    		<li py:for="f in files">
+    			<a href="${f.href}" py:content="f.basename" />
+    		</li>
+    	</ul> 
+    </div>
+    
+	<h2>Upload</h2>
+	<div>
+	    <form method="post" enctype="multipart/form-data" action="">
+	    	file:
+	    	<input type="file" name="datafile"  />
+	    	new file name:
+	    	<input type="text" name="newname" size="20" />
+	    	<input type="submit"  />
+	    </form>
+    </div>
+
+</body>
+</html>

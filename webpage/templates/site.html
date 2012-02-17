@@ -1,0 +1,65 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Sites</title>
+	<style>
+	input { width: 100%;}
+	select { width: 100%;}
+	
+	</style>
+</head>
+<body>
+	${navigation}
+	<h1>Sites</h1>
+	<ul id="Inhalt">
+		<li py:for="s in sites">
+			<a href="${'/site/%s' % s.id}" py:content="s.name"/>
+		</li>
+	</ul>
+    <div class="rightpane"> 
+		<form action="/site/saveitem" method="post">
+			<div py:if="actualsite">
+				<h2 py:content="'%s' % actualsite" />
+
+				<table style="width: 100%">
+					<tr>
+						<td style="width: 7em">ID:</td>
+						<td><input type="text" name="id" value="${actualsite.id}" /></td>
+					</tr>
+					<tr>
+						<td style="width: 7em">L&auml;nge:</td>
+						<td><input type="text" name="lon" value="${actualsite.lon}" /></td>
+					</tr>
+					<tr>
+						<td>Breite:</td>
+						<td><input type="text" name="lat" value="${actualsite.lat}" /></td>
+					</tr>
+					<tr>
+						<td>H&ouml;he:</td>
+						<td><input type="text" name="height" value="${actualsite.height}" /></td>
+					</tr>
+					<tr>
+						<td>Name:</td>
+						<td><input type="text" name="name" value="${actualsite.name}" /></td>
+					</tr>
+					<tr>
+						<td>Sonstiges</td>
+						<td>
+							<textarea name="comment" 
+									  style="width: 100%;" 
+									  rows="10"
+									  py:content="actualsite.comment" />
+						</td>
+					</tr>
+				</table>
+			</div>
+			<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
+			<input type="submit" name="new" value="Neu" style="width: 10em;"/>
+		</form>				
+	</div>
+	<!--img py:if="image" src="data:image/png;base64,${image}" /> -->
+</body>
+</html>

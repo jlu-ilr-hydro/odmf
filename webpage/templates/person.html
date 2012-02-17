@@ -1,0 +1,87 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Personen</title>
+	<style>
+	input { width: 100%;}
+	select { width: 100%;}
+	td.left { width: 7em;}
+	</style>
+</head>
+<body>
+	${navigation}
+    <div class="error" py:content="error" />
+	<h1>Personen</h1>
+	<ul id="Inhalt">
+		<li py:for="pp in persons">
+			<a href="${'/user/%s' % pp.username}" py:content="pp"/>
+		</li>
+	</ul>
+    <div class="rightpane"> 
+		<form action="/user/saveitem" method="post">
+			<h2>Eintrag ändern</h2>
+			<table style="width: 100%" py:if="active_person">
+				<tr>
+					<td class="left">Username:</td>
+					<td><input type="text" name="username" value="${active_person.username}" /></td>
+				</tr>
+				<tr>
+					<td class="left">Vorname:</td>
+					<td><input type="text" name="firstname" value="${active_person.firstname}" /></td>
+				</tr>
+				<tr>
+					<td>Nachname:</td>
+					<td><input type="text" name="surname" value="${active_person.surname}" /></td>
+				</tr>
+				<tr>
+					<td>Email:</td>
+					<td><input type="text" name="email" value="${active_person.email}" /></td>
+				</tr>
+				<tr>
+					<td>Auto:</td>
+					<td>
+						<select name="car_available">
+							<option py:for="i,s in enumerate('Kein Auto,Auto vorhanden,Auto bedingt vorhanden'.split(','))"
+									py:attrs="markoption(i==active_person.car_available)"
+									py:content="s"
+									value="${i}" />
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>Telefon:</td>
+					<td><input type="text" name="telephone" value="${active_person.telephone}" /></td>
+				</tr>
+				<tr>
+					<td>Handy:</td>
+					<td><input type="text" name="mobile" value="${active_person.mobile}" /></td>
+				</tr>
+				<tr>
+					<td>Betreut von:</td>
+					<td>
+						<select name="supervisor">
+							<option py:for="p in supervisors"
+									py:attrs="markoption(p is active_person.supervisor)"
+									py:content="p"
+									value="${p.username}" />
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>Sonstiges</td>
+					<td>
+						<textarea name="comment" 
+								  style="width: 100%;"
+								  rows="10" 
+								  py:content="active_person.comment" />
+					</td>
+				</tr>
+			</table>
+			<input type="submit" name="save" value="Speichern" style="width: 7em;"/>
+		</form>
+	</div>
+</body>
+</html>

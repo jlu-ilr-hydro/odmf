@@ -1,0 +1,116 @@
+/* The standard CSS for doxygen */
+
+body, table, div, p, dl {
+	font-family: Lucida Grande, Verdana, Geneva, Arial, sans-serif;
+	font-size: 16px;
+}
+body {margin-left: 0.5em;}
+table {
+	border-collapse: collapse;
+}
+
+/* @group Heading Levels */
+
+
+h1 {
+	font-size: 140%;
+	font-weight: bold;
+	border-radius: 10px;
+	padding: 5px 10px 5px 10px;
+	color: #FFFFFF;
+	background-color: #002080;
+}
+
+h2 {
+	border-bottom: solid 3px #002080;
+	border-radius: 10px;
+    padding: 2px 10px 2px 10px;
+    background-color: #E8F0FF;
+	font-size: 110%;
+	color: #002080;
+	font-style: italic;
+	font-weight: normal; 
+}
+
+h3 {
+	font-size: 100%;
+	border-bottom: solid 2px #002080;
+    border-top: solid 2px #002080
+}
+
+/* @group Link Styling */
+
+a {
+	color: #3D578C;
+	font-weight: normal;
+	text-decoration: none;
+}
+
+.contents a:visited {
+	color: #4665A2;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+
+body {
+	background: white;
+	color: black;
+        margin: 10px;
+}
+
+div.center {
+	text-align: center;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding: 0px;
+}
+div.navigate {
+    color: #002080;
+    border-top: solid 2px #002080;
+    border-bottom: solid 2px #002080;
+    background: white;
+    font-weight: bold;
+    font-style: italic;
+    text-align: center;
+}
+div.error {
+    background-color: red; 
+    color: white; 
+    font-family: monospace;
+    font-weight: bold;
+    white-space: pre;
+ }
+
+#Inhalt {
+    float: left;
+    width: 12em;
+    border: dotted 1px #002080;
+    border-radius: 5px;
+    color: #002080;
+    background-color: #E8F0FF;
+    font-size: 90%;
+    margin: 0.5em 0.5em 0.5em 0.5em;
+    padding: 1em;
+    background: white;
+}
+ul#Inhalt li{
+    list-style: none;
+}
+div.rightpane {
+	margin-left: 15em;
+}   
+tr.underline {border-bottom: 1px solid #002080;}
+td.right {text-align: right;}
+td.top {vertical-align: top;}
+
+hr {
+    background-color: #002080
+}
+
+textarea {
+	font-family: sans-serif;
+	font-size: small;
+}
