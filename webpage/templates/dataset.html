@@ -1,0 +1,107 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>${title}</title>
+	<style>
+	input { width: 100%;}
+	select { width: 100%;}
+	
+	</style>
+</head>
+<body>
+	${navigation}
+    <div class="error" py:content="error" />
+	
+	<h1>Datasets</h1>
+	<ul id="Inhalt">
+		<li py:for="ds in datasets">
+			<a href="${'/dataset/%s' % ds.id}" py:content="ds.name"/>
+		</li>
+	</ul>
+    <div class="rightpane"> 
+		<form action="/dataset/saveitem" method="post">
+			<div py:if="activedataset">
+				<h2 py:content="'%s' % activedataset" />
+
+				<table style="width: 100%">
+					<tr>
+						<td style="width: 7em">ID:</td>
+						<td><input type="text" name="id" value="${activedataset.id}" /></td>
+					</tr>
+					<tr>
+						<td>Name:</td>
+						<td><input type="text" name="name" value="${activedataset.name}" /></td>
+					</tr>
+					<tr>
+						<td style="width: 7em">Von (Datum/Zeit):</td>
+						<td><input type="text" name="start" value="${activedataset.start}" /></td>
+					</tr>
+					<tr>
+						<td>Bis (Datum/Zeit):</td>
+						<td><input type="text" name="lat" value="${activedataset.end}" /></td>
+					</tr>
+					<tr>
+						<td>Gemessen von:</td>
+						<td>
+							<select name="measured_by">
+								<option py:for="p in persons"
+										py:attrs="markoption(p is activedataset.measured_by)"
+										py:content="p"
+										value="${p.username}" />
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>Messgröße:</td>
+						<td>
+							<select name="valuetype">
+								<option py:for="vt in valuetype"
+										py:attrs="markoption(vt is activedataset.valuetype)"
+										py:content="vt"
+										value="${vt.id}" />
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>Ort:</td>
+						<td>
+							<select name="site">
+								<option py:for="s in sites"
+										py:attrs="markoption(s is activedataset.site)"
+										py:content="s"
+										value="${s.id}" />
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>Datengruppe:</td>
+						<td>
+							<select name="group">
+								<option py:for="group in datagroups"
+										py:attrs="markoption(group is activedataset.group)"
+										py:content="group"
+										value="${group.id}" />
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>Kommentare</td>
+						<td>
+							<textarea name="comment" 
+									  style="width: 100%;" 
+									  rows="10"
+									  py:content="activedataset.comment" />
+						</td>
+					</tr>
+				</table>
+			</div>
+			<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
+			<input type="submit" name="new" value="Neu" style="width: 10em;"/>
+		</form>				
+	</div>
+
+</body>
+</html>
