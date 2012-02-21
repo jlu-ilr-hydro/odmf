@@ -7,8 +7,5 @@
 <pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
 <path>/schwingbach</path>
 </pydev_pathproperty>
-<pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
-<path>C:\Python27\Lib\site-packages\sqlalchemy-0.7.5-py2.7-win32.egg</path>
-<path>C:\Python27\Lib\site-packages\Genshi-0.6-py2.7-win32.egg</path>
-</pydev_pathproperty>
+
 </pydev_project>

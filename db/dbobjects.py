@@ -7,6 +7,7 @@ import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from base import Base,Session,engine,metadata
 from sqlalchemy.schema import ForeignKey
+from datetime import datetime,timedelta
 
 def newid(cls,session=None):
     "Creates a new id for all mapped classes with an field called id, which is of integer type"
@@ -118,7 +119,7 @@ class Dataset(Base):
     start=sql.Column(sql.DateTime, nullable = True)
     end=sql.Column(sql.DateTime, nullable = True)
     _source = sql.Column("source",sql.String, sql.ForeignKey('datasource.id'))
-    source = orm.relationship("DataSource",backref='datasets')
+    source = orm.relationship("DataSource")
     _site=sql.Column("site",sql.Integer, sql.ForeignKey('site.id'))
     site = orm.relationship("Site",backref='datasets')
     _valuetype=sql.Column("valuetype",sql.Integer,sql.ForeignKey('valuetype.id'))
@@ -135,6 +136,30 @@ class Dataset(Base):
     comment=sql.Column(sql.String)
     def __str__(self):
         return self.name
+    def maxrecordid(self):
+        session = self.session()
+        return session.query(sql.func.max(Record.id)).select_from(Record).filter_by(dataset=self.id).scalar()
+        
+    def addrecord(self,Id=None,value=None,time=None):
+        value=float(value)
+        session = self.session()
+        if Id is None:
+            maxid = self.maxrecordid()
+            Id=maxid+1
+        if time is None:
+            time = datetime.now()
+        if not (self.start <= time <= self.end):
+            raise RuntimeError('RECORD does not fit DATASET: You tried to insert a record for date %s ' +
+                               'to dataset %s, which allows only records between %s and %s' 
+                               % (time,self,self.start,self.end))
+        result = Record(id=Id,time=time,value=value,dataset=self)
+        session.add(result)
+        
+
+            
+            
+        
+            
 
 class Record(Base):
     __tablename__= 'record'
@@ -143,6 +168,8 @@ class Record(Base):
     dataset=orm.relationship("Dataset", backref= orm.backref('records',lazy='dynamic'),lazy='joined')
     time=sql.Column(sql.DateTime)
     value=sql.Column(sql.Float)
+        
+        
     def __str__(self):
         return "%s[%i] = %g %s" % (self.dataset.name,self.id,
                                       self.value,self.dataset.valuetype.unit)
