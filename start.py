@@ -15,7 +15,7 @@ print "autoreload =",autoreload
 import db
 db.Dataset.metadata.create_all(db.engine)
 p=db.Person()              
-users={}
+users={'admin':'SB0:VK1'}
 for p in db.Session().query(db.Person):
     if p.telephone:
         pw = p.telephone.split()[-1]

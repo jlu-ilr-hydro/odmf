@@ -138,7 +138,7 @@ class Dataset(Base):
     filename=sql.Column(sql.String, nullable=True)
     start=sql.Column(sql.DateTime, nullable = True)
     end=sql.Column(sql.DateTime, nullable = True)
-    _source = sql.Column("source",sql.String, sql.ForeignKey('datasource.id'))
+    _source = sql.Column("source",sql.Integer, sql.ForeignKey('datasource.id'))
     source = orm.relationship("DataSource")
     _site=sql.Column("site",sql.Integer, sql.ForeignKey('site.id'))
     site = orm.relationship("Site",backref='datasets')
@@ -210,8 +210,8 @@ class Image(Base):
     site=orm.relationship("Site", backref='images')
     _by=sql.Column("by",sql.ForeignKey('person.username'))
     by=orm.relationship("Person",backref='images')
-    image=sql.Column(sql.BLOB)
-    thumbnail = sql.Column(sql.BLOB)
+    image=sql.Column(sql.LargeBinary)
+    thumbnail = sql.Column(sql.LargeBinary)
 
 class Log(Base):
     __tablename__='log'
@@ -227,10 +227,11 @@ class Job(Base):
     name=sql.Column(sql.String)
     description = sql.Column(sql.String)
     due=sql.Column(sql.DateTime)
-    author=sql.Column('author',sql.String,sql.ForeignKey('person.username'))
-    #author = orm.relationship("Person")
-    responsible =sql.Column('responsible',sql.String,sql.ForeignKey('person.username'))
-    #responsible = orm.relationship("Person")
+    _author=sql.Column('author',sql.String,sql.ForeignKey('person.username'))
+    author = orm.relationship("Person",primaryjoin='Job.author==Person.username')
+    _responsible =sql.Column('responsible',sql.String,sql.ForeignKey('person.username'))
+    responsible = orm.relationship("Person",primaryjoin='Job.responsible==Person.username',
+                                    backref='jobs')
     done = sql.Column(sql.Boolean,default=0)
     nextreminder = sql.Column(sql.DateTime)
     

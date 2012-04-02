@@ -4,9 +4,6 @@ import lib as web
 import db
 from traceback import format_exc as traceback
 from base64 import b64encode
-#import matplotlib
-#matplotlib.use('Agg')
-import plotmap
 from webpage.upload import DownloadPage
 from datetime import datetime
 class PersonPage:
@@ -16,7 +13,7 @@ class PersonPage:
     def default(self,act_user='new'):
         session = db.Session()
         persons = session.query(db.Person)
-        supervisors = persons.filter(db.Person.can_supervise>0)
+        supervisors = persons.filter(db.Person.can_supervise==True)
         error=''
         if act_user == 'new':
             p_act = db.Person(username='<Benutzername>')
@@ -49,10 +46,10 @@ class PersonPage:
             p_act.comment=kwargs.get('comment')
             session.commit()
         raise web.HTTPRedirect('./' + username)
+    
 
 class SitePage:
     exposed=True  
-    sitemap=plotmap.Map(web.abspath('media/basemap150dpi.jpg'))
     @web.expose
     @web.output('site.html')
     def default(self,actualsite_id=None):
@@ -229,7 +226,37 @@ class JobPage:
                 error=traceback()
                 job=None
         return web.render(job=job,error=error,db=db,session=session)
-        
+    @web.expose
+    @web.output('empty.html')
+    def saveitem(self,**kwargs):
+        try:
+            id=web.conv(int,kwargs.get('id'),'')
+        except:
+            return web.render(error=traceback(),title='Dataset #%s' % kwargs.get('id'))
+        if 'save' in kwargs:
+            try:
+                session = db.Session()        
+                ds = session.query(db.Dataset).get(int(id))
+                if not ds:
+                    ds=db.Dataset(id=id)
+                if kwargs.get('start'):
+                    ds.start=datetime.strptime(kwargs['start'],'%d.%m.%Y')
+                if kwargs.get('end'):
+                    ds.end=datetime.strptime(kwargs['end'],'%d.%m.%Y')
+                ds.filename = kwargs.get('filename')
+                ds.name=kwargs.get('name')
+                ds.comment=kwargs.get('comment')
+                ds.measured_by = session.query(db.Person).get(kwargs.get('measured_by'))
+                ds.valuetype = session.query(db.ValueType).get(kwargs.get('valuetype'))
+                ds.quality = session.query(db.Quality).get(kwargs.get('quality'))
+                ds.site = session.query(db.Site).get(kwargs.get('site'))
+                session.commit()
+            except:
+                return web.render(error=traceback(),title='Dataset #%s' % id)
+        elif 'new' in kwargs:
+            id='new'
+        raise web.HTTPRedirect('./%s' % id)
+    
                 
         
         
@@ -239,8 +266,6 @@ class Root(object):
     user=PersonPage()
     valuetype=VTPage()
     dataset=DatasetPage()
-    bgmap=plotmap.BackgroundMap(web.abspath('media/basemap150dpi.jpg'))
-    bgmap.expose=True
     download=DownloadPage()
     job = JobPage()
     
@@ -257,10 +282,5 @@ class Root(object):
 
         
 if __name__=='__main__':
-    
     web.start_server(Root(), autoreload=False, port=8081)
-            
-            
-            
-        
-        
+
