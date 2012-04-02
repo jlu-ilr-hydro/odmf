@@ -1,0 +1,39 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Karte</title>
+	<script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false" ></script>
+	<script type="text/javascript">
+	  function initialize() {
+	    var latlng = new google.maps.LatLng(50.49, 8.55);
+	    var myOptions = {
+	      zoom: 15,
+	      center: latlng,
+	      mapTypeId: google.maps.MapTypeId.ROADMAP
+	    };
+	    var siteLayer = new google.maps.KmlLayer('http://fb09-c2.agrar.uni-giessen.de:8081/site/kml');
+
+	    var map = new google.maps.Map(document.getElementById("map_canvas"),myOptions);
+	    siteLayer.setMap(map);
+	  }
+	
+	</script>
+
+	<style type="text/css">
+	  #map_canvas { height: 100%; width: 100%; }
+
+	</style>	
+</head>
+<body onload="initialize()">
+	${navigation()}
+	<h1>Lage der Messpunkte</h1>
+	<h2>Studienlandschaft Schwingbach</h2>
+    <div class="error" py:content="error" />
+    <div>
+		<div id="map_canvas"></div>			
+    </div>
+</body>
+</html>

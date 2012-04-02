@@ -1,0 +1,92 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+	<link href="/media/jquery-ui-1.8.18.custom.css" rel="stylesheet" type="text/css"/>
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<script type="text/javascript"
+  		src="/media/ASCIIMathML.js">
+	</script>
+	<script type="text/javascript">
+		define("%o","\u2030")
+	</script>
+    <script src="/media/jquery-1.7.1.min.js" type="text/javascript" />
+    <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" />
+    <script>
+        $(function() {$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });});
+    </script>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>ValueTypes</title>
+</head>
+<!--
+	session
+	db
+	job
+-->
+<body>
+	${navigation()}
+    <div class="error" py:content="error" />
+	<h1>Jobs</h1>
+	<ul id="Inhalt" >
+		<li>
+			<h3 py:content="job.responsible" />
+		</li>			
+		<li>
+			<a href="/job/new"><b>Neu...</b></a>			
+		</li>
+		<li py:for="j in session.query(db.Job).filter_by(done=0)">
+			<a href="${'/job/%s' % j.id}" py:content="j"/>
+		</li>
+	</ul>
+    <div class="rightpane"> 
+		<pre><script>mathcolor="Black"</script></pre>
+		<form action="/job/saveitem" method="post">
+			<div py:if="job">
+				<h2 py:content="job" />
+
+				<table style="width: 100%">
+					<tr >
+						<td style="width: 7em">ID:</td>
+						<td><input type="text" name="id" value="${job.id}" /></td>
+					</tr>
+					<tr>
+						<td>Name:</td>
+						<td><input type="text" name="name" value="${job.name}" /></td>
+					</tr>
+					<tr>
+						<td>Fällig:</td>
+						<td><input type="text" name="due" value="${job.due}" class="datepicker" /></td>
+					</tr>
+					<tr>
+						<td>Verantwortlich:</td>
+						<td>
+							<select name="responsible">
+								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
+								<option py:for="p in session.query(db.Person)"
+										py:attrs="markoption(p is job.responsible)"
+										py:content="p"
+										value="${p.username}" />
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>Erledigt:</td>
+						<td><input type="checkbox" name="done" /> </td>
+					</tr>
+					<tr>
+						<td>Sonstiges</td>
+						<td>
+							<textarea name="comment" 
+									  rows="2" style="width: 100%;"
+									  py:content="job.description" />
+						</td>
+					</tr>
+				</table>
+			</div>
+			<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
+		</form>
+	</div>
+
+</body>
+</html>
