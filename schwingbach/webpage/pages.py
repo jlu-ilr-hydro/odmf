@@ -4,8 +4,8 @@ import lib as web
 import db
 from traceback import format_exc as traceback
 from base64 import b64encode
-import matplotlib
-matplotlib.use('Agg')
+#import matplotlib
+#matplotlib.use('Agg')
 import plotmap
 from webpage.upload import DownloadPage
 from datetime import datetime
@@ -66,10 +66,8 @@ class SitePage:
         else:
             try:
                 actualsite=session.query(db.Site).get(int(actualsite_id))
-                #image=b64encode(self.sitemap.draw([actualsite]))
             except:
                 error=traceback()
-                #image=b64encode(self.sitemap.draw(sites.all()))
                 actualsite=None
         
         return web.render(sites=sites,actualsite=actualsite,error=error,image='')    

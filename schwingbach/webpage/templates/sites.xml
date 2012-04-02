@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kml
+  xmlns="http://www.opengis.net/kml/2.2"
+  xmlns:py="http://genshi.edgewall.org/"
+  >
+  <Document>
+    <Style id="actual">
+      <IconStyle>
+        <Icon>
+          <href>http://maps.google.com/mapfiles/kml/paddle/red-stars.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Style id="normal">
+      <IconStyle>
+        <Icon>
+          <href>http://maps.google.com/mapfiles/kml/paddle/wht-blank.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Placemark py:for="s in sites">
+      <name py:content="'%(name)s [%(count)i]' % dict(name=s.name, id=s.id, count=len(s.datasets))"/>
+      <styleURL>#normal</styleURL>
+      <description>
+      	<![CDATA[
+      		${Markup(descriptor(s))}
+      	]]>
+      	</description>
+      <Point>
+        <coordinates py:content="'%g,%g' % (s.lon,s.lat)">
+          LONG,LAT
+        </coordinates>
+      </Point>
+    </Placemark>
+  </Document>
+</kml>
