@@ -3,20 +3,73 @@
 
 <head>
 	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<script type="text/javascript"
+  		src="/media/ASCIIMathML.js">
+	</script>
+	<script type="text/javascript">
+		define("%o","\u2030")
+	</script>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>Sites</title>
-	<style>
-	input { width: 100%;}
-	select { width: 100%;}
-	
-	</style>
+	<title>ValueTypes</title>
 </head>
 <body>
-	${navigation}
-	<h1>Sites</h1>
-	<div py:for="vt in valuetypes">
-		<h3 py:content="vt" />
-		<p>
-			${vt.comment}
-		</p>
+	${navigation()}
+    <div class="error" py:content="error" />
+
+	<h1>Gr&ouml;ßen</h1>
+		<ul id="Inhalt" >
+		<li>
+			<a href="/valuetype/new"><b>Neu...</b></a>			
+		</li>
+		<li py:for="v in valuetypes">
+			<a href="${'/valuetype/%s' % v.id}" py:content="v"/>
+		</li>
+	</ul>
+    <div class="rightpane"> 
+		<pre><script>mathcolor="Black"</script></pre>
+		<form action="/valuetype/saveitem" method="post">
+			<div py:if="actualvaluetype">
+				<h2 py:content="actualvaluetype" />
+
+				<table style="width: 100%">
+					<tr>
+						<td style="width: 7em">ID:</td>
+						<td><input type="text" name="id" value="${actualvaluetype.id}" /></td>
+					</tr>
+					<tr>
+						<td>Name:</td>
+						<td><input type="text" name="name" value="${actualvaluetype.name}" /></td>
+					</tr>
+					<tr>
+						<td>Einheit:</td>
+						<td><input type="text" name="unit" value="${actualvaluetype.unit}" /></td>
+					</tr>
+					<tr>
+						<td>Sonstiges</td>
+						<td>
+							<textarea name="comment" 
+									  rows="2" style="width: 100%;"
+									  py:content="actualvaluetype.comment" />
+						</td>
+					</tr>
+				</table>
+			</div>
+			<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
+		</form>
+		<div py:if="actualvaluetype">
+			<h2>Datensätze</h2>
+			<ul>
+				<li py:for="ds in actualvaluetype.datasets">
+					<a href="/dataset/${ds.id}" 
+					py:content="'%s (%s-%s)' % (ds,formatdate(ds.start),formatdate(ds.end))" />
+				</li>
+				<li>
+					<a href="/dataset/new?vt_id=${actualvaluetype.id}"
+					py:content="'Neuen Datensatz hinzufügen...'" style="font-style: italic;" />
+				</li>
+			</ul>
+		</div>		
 	</div>
+
+</body>
+</html>

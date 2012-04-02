@@ -13,7 +13,7 @@ import cherrypy
 
 import threading
 
-
+from datetime import datetime
 
 from genshi.core import Stream
 from genshi.output import encode, get_serializer
@@ -30,13 +30,9 @@ def abspath(fn):
     normpath = op.normpath(fn)
     return op.join(basepath,normpath)
 
-#users = {'philipp' : 'ifz,b225', 'emanuel' : 'ifz,b225', 'caro' : 'ifz,b225'}
 
 config =  { '/': {
                     'tools.staticdir.root' : abspath('.'),
-                    #'tools.digest_auth.on': True,
-                    #'tools.digest_auth.realm':'IconILR',
-                    #'tools.digest_auth.users':users,
                   },
             '/media': {
                        'tools.staticdir.on': True,
@@ -82,18 +78,18 @@ def output(filename, method='xhtml', encoding='utf-8', **options):
 
 expose = cherrypy.expose
 HTTPRedirect = cherrypy.HTTPRedirect
-navigation = Markup('''
-        <img src="/media/icon.jpg" style="float: right"/>
+def navigation():
+    return Markup('''
+        <!--<img src="/media/icon.jpg" style="float: right"/>-->
         <div class="navigate" >
-         | <a href="/">home</a>
-         | <a href="/user">users</a>
+         | <a href="/map">map</a> 
          | <a href="/site">sites</a>
          | <a href="/valuetype">value types</a> 
          | <a href="/dataset">data sets</a> 
-         | <a href="/quality">quality</a> 
-         | <a href="/map">map</a> 
-         |
-    </div>''')
+         | <a href="/user">users</a>
+         | <a href="/download">download</a>
+         | login: %s 
+    </div>''' % user())
 def attrcheck(kw,condition):
     if condition:
         return {kw:kw}
@@ -101,14 +97,34 @@ def attrcheck(kw,condition):
         return {kw:None}
 def markoption(condition):
     return attrcheck('selected',condition)
-        
 
+def formatdate(t):
+    try:
+        return t.strftime('%d.%m.%Y')
+    except:
+        return None
+def formattime(t):
+    try:
+        return t.strftime('%H:%M:%S')
+    except:
+        return None
+def parsedate(s):
+    return datetime.strptime(s,'%d.%m.%Y') 
+
+def user():
+    return cherrypy.request.login
+ 
+    
 class Renderer(object):
     def __init__(self):
         self.functions = {'attrcheck' : attrcheck,
-               'navigation' : navigation,
-               'markoption' : markoption,
-               }
+                          'navigation' : navigation,
+                          'markoption' : markoption,
+                          'formatdate' : formatdate,
+                          'formattime' : formattime,
+                          'user' : user
+                          
+                          }
     def __call__(self,*args,**kwargs):
         """Function to render the given data to the template specified via the
         ``@output`` decorator.

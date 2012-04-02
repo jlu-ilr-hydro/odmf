@@ -99,12 +99,35 @@ div.error {
 ul#Inhalt li{
     list-style: none;
 }
+div.navi {
+	float: left;
+	width: 8em;
+	color:#FFF;
+	background-color: #002080;
+	font-size: 90%;
+	text-align: right;
+}
+div.navi a {
+	font-weight: normal;
+	font-size: 90%;
+	color:#FFF;
+	background-color: #002080;
+	text-align: right;
+}
+div.navi a:hover {
+	font-weight: bold;
+}
 div.rightpane {
 	margin-left: 15em;
 }   
 tr.underline {border-bottom: 1px solid #002080;}
 td.right {text-align: right;}
 td.top {vertical-align: top;}
+td.highlight 
+{
+    background-color: #E8F0FF; 
+    font-weight: bold;
+}
 
 hr {
     background-color: #002080
