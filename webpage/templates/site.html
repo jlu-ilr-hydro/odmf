@@ -4,22 +4,28 @@
 <head>
 	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
 	<title>Sites</title>
-	<style>
-	input { width: 100%;}
-	select { width: 100%;}
-	
-	</style>
+	<style type="text/css">
+  	  input { width: 100%;}
+	  select { width: 100%;}
+
+	</style>	
 </head>
-<body>
-	${navigation}
+<body onload="initialize()">
+	${navigation()}
 	<h1>Sites</h1>
-	<ul id="Inhalt">
+
+	<ul id="Inhalt" >
+		<li>
+			<a href="/site/new"><b>Neu...</b></a>			
+		</li>
 		<li py:for="s in sites">
-			<a href="${'/site/%s' % s.id}" py:content="s.name"/>
+			<a href="${'/site/%s' % s.id}" py:content="'#%03i %s' % (s.id,s.name)"/>
+
 		</li>
 	</ul>
-    <div class="rightpane"> 
+    <div class="rightpane" > 
 		<form action="/site/saveitem" method="post">
 			<div py:if="actualsite">
 				<h2 py:content="'%s' % actualsite" />
@@ -57,9 +63,20 @@
 				</table>
 			</div>
 			<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
-			<input type="submit" name="new" value="Neu" style="width: 10em;"/>
-		</form>				
+		</form>
+		<div py:if="actualsite">
+			<h2>Datensätze</h2>
+			<ul>
+				<li py:for="ds in actualsite.datasets">
+					<a href="/dataset/${ds.id}" 
+					py:content="'%s (%s-%s)' % (ds,formatdate(ds.start),formatdate(ds.end))" />
+				</li>
+				<li>
+					<a href="/dataset/new?site_id=${actualsite.id}"
+					py:content="'Neuen Datensatz hinzufügen...'" style="font-style: italic;" />
+				</li>
+			</ul>
+		</div>
 	</div>
-	<!--img py:if="image" src="data:image/png;base64,${image}" /> -->
 </body>
 </html>

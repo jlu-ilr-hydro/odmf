@@ -2,30 +2,49 @@
       xmlns:py="http://genshi.edgewall.org/">
 
 <head>
+	
+	<link href="/media/jquery-ui-1.8.18.custom.css" rel="stylesheet" type="text/css"/>
 	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>${title}</title>
+    <script src="/media/jquery-1.7.1.min.js" type="text/javascript" />
+    <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" />
+    <script>
+        $(function() {$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });});
+    </script>
+
 	<style>
 	input { width: 100%;}
 	select { width: 100%;}
 	
 	</style>
 </head>
+<!--
+	Input variables:
+	error - string
+	activedataset - Dataset
+	session
+	db - module 
+-->
 <body>
-	${navigation}
+	${navigation()}
     <div class="error" py:content="error" />
 	
-	<h1>Datasets</h1>
+	<h1>Datensätze</h1>
+
 	<ul id="Inhalt">
-		<li py:for="ds in datasets">
+		<li>
+			<a href="/dataset/new"><b>Neu...</b></a>			
+		</li>
+		<li py:for="ds in session.query(db.Dataset)">
 			<a href="${'/dataset/%s' % ds.id}" py:content="ds.name"/>
 		</li>
 	</ul>
-    <div class="rightpane"> 
+    <div class="rightpane" > 
 		<form action="/dataset/saveitem" method="post">
-			<div py:if="activedataset">
-				<h2 py:content="'%s' % activedataset" />
 
+			<div py:if="activedataset">
+				<h2 py:content="activedataset.name if activedataset.name else 'Neuer Datensatz'" />
 				<table style="width: 100%">
 					<tr>
 						<td style="width: 7em">ID:</td>
@@ -36,18 +55,17 @@
 						<td><input type="text" name="name" value="${activedataset.name}" /></td>
 					</tr>
 					<tr>
-						<td style="width: 7em">Von (Datum/Zeit):</td>
-						<td><input type="text" name="start" value="${activedataset.start}" /></td>
+						<td>Anzahl der gespeicherten Werte</td>
+						<td py:content="activedataset.records.count() if activedataset.name else 'Nicht gespeichert'" 
+							class="highlight"/>
 					</tr>
-					<tr>
-						<td>Bis (Datum/Zeit):</td>
-						<td><input type="text" name="lat" value="${activedataset.end}" /></td>
-					</tr>
+
 					<tr>
 						<td>Gemessen von:</td>
 						<td>
 							<select name="measured_by">
-								<option py:for="p in persons"
+								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
+								<option py:for="p in session.query(db.Person)"
 										py:attrs="markoption(p is activedataset.measured_by)"
 										py:content="p"
 										value="${p.username}" />
@@ -58,7 +76,8 @@
 						<td>Messgröße:</td>
 						<td>
 							<select name="valuetype">
-								<option py:for="vt in valuetype"
+								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
+								<option py:for="vt in session.query(db.ValueType)"
 										py:attrs="markoption(vt is activedataset.valuetype)"
 										py:content="vt"
 										value="${vt.id}" />
@@ -69,7 +88,8 @@
 						<td>Ort:</td>
 						<td>
 							<select name="site">
-								<option py:for="s in sites"
+								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
+								<option py:for="s in session.query(db.Site)"
 										py:attrs="markoption(s is activedataset.site)"
 										py:content="s"
 										value="${s.id}" />
@@ -77,19 +97,56 @@
 						</td>
 					</tr>
 					<tr>
+						<td>Qualität:</td>
+						<td>
+							<select name="quality">
+								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
+								<option py:for="q in session.query(db.Quality)"
+										py:attrs="markoption(q is activedataset.quality)"
+										py:content="q"
+										value="${q.id}" />
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td style="width: 7em">Von (Datum):</td>
+						<td><input type="text" class="datepicker" name="start" value="${formatdate(activedataset.start)}" /></td>
+					</tr>
+					<tr>
+						<td>Bis (Datum):</td>
+						<td><input type="text" class="datepicker" name="end" value="${formatdate(activedataset.end)}" /></td>
+					</tr>
+					<!--<tr>
+						<td>Datenquelle:</td>
+						<td>
+							<select name="source">
+								<option value=""><i>&lt;Bitte auswählen&gt;</i></option>
+								<option py:for="datasource in session.query(db.DataSource)"
+										py:attrs="markoption(datasource is activedataset.source)"
+										py:content="datasource"
+										value="${datasource.id}" />
+							</select>
+						</td>
+					</tr>-->
+					<!--<tr>
 						<td>Datengruppe:</td>
 						<td>
 							<select name="group">
-								<option py:for="group in datagroups"
+								<option value=""><i>&lt;Keine Gruppe&gt;</i></option>
+								<option py:for="group in activedataset.potential_groups(session)"
 										py:attrs="markoption(group is activedataset.group)"
 										py:content="group"
 										value="${group.id}" />
 							</select>
 						</td>
-					</tr>
+					</tr>-->
 					<tr>
 						<td>Kommentare</td>
 						<td>
+							<p>
+								Zurzeit ist die Datenbank noch im Aufbau. Deshalb muss im Kommentar noch einiges zu den Metadaten
+								mit aufgenommen werden, z.B. welches Instrument benutzt wurde, ob die Daten hergeleitet wurden etc.
+							</p>
 							<textarea name="comment" 
 									  style="width: 100%;" 
 									  rows="10"
@@ -99,8 +156,16 @@
 				</table>
 			</div>
 			<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
-			<input type="submit" name="new" value="Neu" style="width: 10em;"/>
+			
 		</form>				
+	</div>
+	<hl />
+	<div>
+		<a href="/datafiles/daten-vorlage.xls" style="float:left;">
+			<img src="/media/excel-icon.gif" />
+		</a>
+		Die Excel-Vorlage zum übermitteln der Daten kann 
+		<a href="/datafiles/daten-vorlage.xls">hier heruntergeladen </a> werden
 	</div>
 
 </body>

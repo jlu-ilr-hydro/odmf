@@ -1,29 +1,35 @@
 # -*- coding: utf-8 -*-
 
-import lib
+import lib as web
 import db
 from traceback import format_exc as traceback
 from base64 import b64encode
+import matplotlib
+matplotlib.use('Agg')
 import plotmap
 from webpage.upload import DownloadPage
+from datetime import datetime
 class PersonPage:
     exposed=True  
-    @lib.expose
-    @lib.output('person.html')    
-    def default(self,act_user=''):
+    @web.expose
+    @web.output('person.html')    
+    def default(self,act_user='new'):
         session = db.Session()
         persons = session.query(db.Person)
         supervisors = persons.filter(db.Person.can_supervise>0)
         error=''
-        try:
-            p_act = session.query(db.Person).get(act_user)
-        except:
-            p_act=None
-            error=traceback()   
-        return lib.render(persons=persons,active_person=p_act,
+        if act_user == 'new':
+            p_act = db.Person(username='<Benutzername>')
+        else:
+            try:
+                p_act = session.query(db.Person).get(act_user)
+            except:
+                p_act=None
+                error=traceback()   
+        return web.render(persons=persons,active_person=p_act,
                           supervisors=supervisors,error=error)
 
-    @lib.expose
+    @web.expose
     def saveitem(self,**kwargs):
         username=kwargs.get('username')
         if 'save' in kwargs and username:
@@ -31,6 +37,7 @@ class PersonPage:
             p_act = session.query(db.Person).filter_by(username=username).first()
             if not p_act:
                 p_act=db.Person(username=username)
+                session.add(p_act)
             p_act.email=kwargs.get('email')
             p_act.firstname=kwargs.get('firstname')
             p_act.surname=kwargs.get('surname')
@@ -41,16 +48,16 @@ class PersonPage:
             p_act.mobile=kwargs.get('mobile')
             p_act.comment=kwargs.get('comment')
             session.commit()
-        raise lib.HTTPRedirect('./' + username)
+        raise web.HTTPRedirect('./' + username)
 
 class SitePage:
     exposed=True  
-    sitemap=plotmap.Map(lib.abspath('media/basemap150dpi.jpg'))
-    @lib.expose
-    @lib.output('site.html')
+    sitemap=plotmap.Map(web.abspath('media/basemap150dpi.jpg'))
+    @web.expose
+    @web.output('site.html')
     def default(self,actualsite_id=None):
         session=db.Session()
-        sites=session.query(db.Site).order_by(db.Site.name)
+        sites=session.query(db.Site).order_by(db.sql.desc(db.Site.lat))
         error=''
         if actualsite_id=='new':
             actualsite=db.Site(id=db.newid(db.Site,session),
@@ -65,60 +72,195 @@ class SitePage:
                 #image=b64encode(self.sitemap.draw(sites.all()))
                 actualsite=None
         
-        return lib.render(sites=sites,actualsite=actualsite,error=error,image='')    
-    @lib.expose
-    @lib.output('empty.html')
+        return web.render(sites=sites,actualsite=actualsite,error=error,image='')    
+    @web.expose
+    @web.output('empty.html')
     def saveitem(self,**kwargs):
         try:
-            siteid=lib.conv(int,kwargs.get('id'),'')
+            siteid=web.conv(int,kwargs.get('id'),'')
         except:
-            return lib.render(error=traceback(),title='site #%s' % kwargs.get('id'))
+            return web.render(error=traceback(),title='site #%s' % kwargs.get('id'))
         if 'save' in kwargs:
             try:
                 session = db.Session()        
                 site = session.query(db.Site).get(int(siteid))
                 if not site:
                     site=db.Site(id=id)
-                site.lon=lib.conv(float,kwargs.get('lon'))
-                site.lat=lib.conv(float,kwargs.get('lat'))
+                    session.add(site)
+                site.lon=web.conv(float,kwargs.get('lon'))
+                site.lat=web.conv(float,kwargs.get('lat'))
                 site.name=kwargs.get('name')
-                site.height=lib.conv(float,kwargs.get('height'))
+                site.height=web.conv(float,kwargs.get('height'))
                 site.comment=kwargs.get('comment')
                 session.commit()
             except:
-                return lib.render(error=traceback(),title='site #%s' % siteid)
-        elif 'new' in kwargs:
-            siteid='new'
-        raise lib.HTTPRedirect('./%s' % siteid)
+                return web.render(error=traceback(),title='site #%s' % siteid)
+        raise web.HTTPRedirect('./%s' % siteid)
 
-    @lib.expose
-    @lib.mimetype('application/vnd.google-earth.kml+xml')
-    @lib.output('sites.xml', 'xml')
+    @web.expose
+    @web.mimetype('application/vnd.google-earth.kml+xml')
+    @web.output('sites.xml', 'xml')
     def kml(self,sitefilter=None):
         session = db.Session()
         query = session.query(db.Site)
         if filter:
             query = query.filter(sitefilter)
-        return lib.render(sites=query)
+        return web.render(sites=query,actid=0,descriptor=self.kml_description)
+    def kml_description(self,site):
+        text=[site.comment,
+               '<a href="http://fb09-c2.agrar.uni-giessen.de:8081/site/%s">edit...</a>' % site.id]
+        for ds in site.datasets:
+            content=dict(id=ds.id,name=ds.name,start=web.formatdate(ds.start),end=web.formatdate(ds.end),vt=ds.valuetype)
+            text.append('<li><a href="http://fb09-c2.agrar.uni-giessen.de:8081/dataset/%(id)s">%(name)s, %(vt)s (%(start)s-%(end)s)</a></li>' % content)
+        return '<br />'.join(text)
+    
+
+class VTPage:
+    exposed=True
+    
+    @web.expose
+    @web.output('valuetype.html')
+    def default(self,vt_id='new'):
+        session=db.Session()
+        valuetypes=session.query(db.ValueType).order_by(db.ValueType.id)
+        error=''
+        if vt_id=='new':
+            vt=db.ValueType(id=db.newid(db.ValueType,session),
+                            name='<Name>')
+        else:
+            try:
+                vt=session.query(db.ValueType).get(int(vt_id))
+                #image=b64encode(self.sitemap.draw([actualsite]))
+            except:
+                error=traceback()
+                #image=b64encode(self.sitemap.draw(sites.all()))
+                vt=None
         
+        return web.render(valuetypes=valuetypes,actualvaluetype=vt,error=error)    
+    
+    @web.expose
+    @web.output('empty.html')
+    def saveitem(self,**kwargs):
+        try:
+            id=web.conv(int,kwargs.get('id'),'')
+        except:
+            return web.render(error=traceback(),title='valuetype #%s' % kwargs.get('id'))
+        if 'save' in kwargs:
+            try:
+                session = db.Session()        
+                vt = session.query(db.ValueType).get(int(id))
+                if not vt:
+                    vt=db.ValueType(id=id)
+                    session.add(vt)
+                vt.name=kwargs.get('name')
+                vt.unit=kwargs.get('unit')
+                vt.comment=kwargs.get('comment')
+                session.commit()
+            except:
+                return web.render(error=traceback(),title='valuetype #%s' % id)
+        raise web.HTTPRedirect('./%s' % id)
+
+
+
+class DatasetPage:
+    exposed=True
+    @web.expose
+    @web.output('dataset.html')
+    def default(self,id='new',site_id=None,vt_id=None,user=None):
+        session=db.Session()
+        error=''
+        try:
+            if id=='new':
+                site = session.query(db.Site).get(site_id) if site_id else None
+                valuetype = session.query(db.ValueType).get(vt_id) if vt_id else None
+                user = session.query(db.Person).get(user) if user else None
+                active = db.Dataset(id=db.newid(db.Dataset,session),
+                                    site=site,valuetype=valuetype, measured_by = user)
+            else:
+                active = session.query(db.Dataset).get(id)
+                
+        except:
+            return web.render(error=traceback(),title='Schwingbach-Datensatz (Fehler)',
+                              session=session,db=db,activedataset=None)
+        return web.render(activedataset=active,session=session,
+                          error=error,db=db,title='Schwingbach-Datensatz #' + str(id))
+    @web.expose
+    @web.output('empty.html')
+    def saveitem(self,**kwargs):
+        try:
+            id=web.conv(int,kwargs.get('id'),'')
+        except:
+            return web.render(error=traceback(),title='Dataset #%s' % kwargs.get('id'))
+        if 'save' in kwargs:
+            try:
+                session = db.Session()        
+                ds = session.query(db.Dataset).get(int(id))
+                if not ds:
+                    ds=db.Dataset(id=id)
+                if kwargs.get('start'):
+                    ds.start=datetime.strptime(kwargs['start'],'%d.%m.%Y')
+                if kwargs.get('end'):
+                    ds.end=datetime.strptime(kwargs['end'],'%d.%m.%Y')
+                ds.filename = kwargs.get('filename')
+                ds.name=kwargs.get('name')
+                ds.comment=kwargs.get('comment')
+                ds.measured_by = session.query(db.Person).get(kwargs.get('measured_by'))
+                ds.valuetype = session.query(db.ValueType).get(kwargs.get('valuetype'))
+                ds.quality = session.query(db.Quality).get(kwargs.get('quality'))
+                ds.site = session.query(db.Site).get(kwargs.get('site'))
+                session.commit()
+            except:
+                return web.render(error=traceback(),title='Dataset #%s' % id)
+        elif 'new' in kwargs:
+            id='new'
+        raise web.HTTPRedirect('./%s' % id)
+
+class JobPage:
+    exposed=True
+    @web.expose
+    @web.output('job.html')
+    def default(self,jobid='new',user=None):
+        session=db.Session()
+        error=''
+        if jobid=='new':
+            job = db.Job(id=db.newid(db.Job,session),name='<Name>')
+        else:
+            try:
+                job = session.query(db.Job).get(int(jobid))
+            except:
+                error=traceback()
+                job=None
+        return web.render(job=job,error=error,db=db,session=session)
+        
+                
+        
+        
+    
 class Root(object):
     site=SitePage()
     user=PersonPage()
-    bgmap=plotmap.BackgroundMap(lib.abspath('media/basemap150dpi.jpg'))
+    valuetype=VTPage()
+    dataset=DatasetPage()
+    bgmap=plotmap.BackgroundMap(web.abspath('media/basemap150dpi.jpg'))
     bgmap.expose=True
-    from upload import DownloadPage
     download=DownloadPage()
+    job = JobPage()
     
-    @lib.expose
-    @lib.output('empty.html')
+    @web.expose
+    @web.output('empty.html')
     def index(self):
-        return lib.render(title='Schwingbach - Home',error='')
+        return self.map()
+    @web.expose
+    @web.output('map.html')
+    def map(self,error='',vt_id=[],user=[]):
+        
+        return web.render(error=error)
     
 
         
 if __name__=='__main__':
     
-    lib.start_server(Root(), autoreload=False, port=8081)
+    web.start_server(Root(), autoreload=False, port=8081)
             
             
             

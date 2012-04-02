@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 '''
 Created on 15.02.2012
 
@@ -37,11 +39,12 @@ class DownloadPage(object):
         error=''
         directories=[]
         for fn in os.listdir(path):
-            abspath = op.join(path,fn)
-            if op.isdir(abspath):
-                directories.append(Path(abspath))
-            elif op.isfile(abspath):
-                files.append(Path(abspath))    
+            if not fn.startswith('.'):
+                abspath = op.join(path,fn)
+                if op.isdir(abspath):
+                    directories.append(Path(abspath))
+                elif op.isfile(abspath):
+                    files.append(Path(abspath))    
 
         if datafile:
             if not op.exists(path):
@@ -63,7 +66,6 @@ class DownloadPage(object):
                         fout.write(data)
                 except:
                     error=traceback()
-                fout.close()
         return lib.render(error=error,files=files,directories=directories,curdir=directory)
     
     
