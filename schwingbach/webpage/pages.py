@@ -12,19 +12,21 @@ class PersonPage:
     @web.output('person.html')    
     def default(self,act_user='new'):
         session = db.Session()
-        persons = session.query(db.Person)
+        persons = session.query(db.Person).order_by(db.sql.desc(db.Person.can_supervise),db.Person.surname)
         supervisors = persons.filter(db.Person.can_supervise==True)
         error=''
+        jobs=[]
         if act_user == 'new':
             p_act = db.Person(username='<Benutzername>')
         else:
             try:
                 p_act = session.query(db.Person).get(act_user)
+                jobs=p_act.jobs.order_by(db.sql.asc(db.Job.done),db.sql.asc(db.Job.due))
             except:
                 p_act=None
                 error=traceback()   
         return web.render(persons=persons,active_person=p_act,
-                          supervisors=supervisors,error=error)
+                          supervisors=supervisors,error=error,jobs=jobs)
 
     @web.expose
     def saveitem(self,**kwargs):
@@ -46,6 +48,7 @@ class PersonPage:
             p_act.comment=kwargs.get('comment')
             session.commit()
         raise web.HTTPRedirect('./' + username)
+    
     
 
 class SitePage:

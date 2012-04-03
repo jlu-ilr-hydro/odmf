@@ -231,17 +231,19 @@ class Job(Base):
     author = orm.relationship("Person",primaryjoin='Job._author==Person.username')
     _responsible =sql.Column('responsible',sql.String,sql.ForeignKey('person.username'))
     responsible = orm.relationship("Person",primaryjoin='Job._responsible==Person.username',
-                                    backref='jobs')
+                                    backref=orm.backref('jobs',lazy='dynamic'))
     done = sql.Column(sql.Boolean,default=False)
     nextreminder = sql.Column(sql.DateTime)
     def __str__(self):
         return "%s: %s %s" % (self.responsible,self.name,' (Done)' if self.done else '')
+    def __repr__(self):
+        return "<Job(id=%s,name=%s,resp=%s,done=%s)>" % (self.id,self.name,self.responsible,self.done)
 
     @property
     def color(self):
         if self.done:
-            return '#800'
-        dt = (datetime.now()-self.due).days
+            return '#FFF'
+        dt = (self.due-datetime.now()).days
         if dt<0:
             return '#F00'
         elif dt==0:
