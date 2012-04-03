@@ -228,13 +228,15 @@ class Job(Base):
     description = sql.Column(sql.String)
     due=sql.Column(sql.DateTime)
     _author=sql.Column('author',sql.String,sql.ForeignKey('person.username'))
-    author = orm.relationship("Person",primaryjoin='Job.author==Person.username')
+    author = orm.relationship("Person",primaryjoin='Job._author==Person.username')
     _responsible =sql.Column('responsible',sql.String,sql.ForeignKey('person.username'))
-    responsible = orm.relationship("Person",primaryjoin='Job.responsible==Person.username',
+    responsible = orm.relationship("Person",primaryjoin='Job._responsible==Person.username',
                                     backref='jobs')
-    done = sql.Column(sql.Boolean,default=0)
+    done = sql.Column(sql.Boolean,default=False)
     nextreminder = sql.Column(sql.DateTime)
-    
+    def __str__(self):
+        return "%s: %s %s" % (self.responsible,self.name,' (Done)' if self.done else '')
+
     @property
     def color(self):
         if self.done:

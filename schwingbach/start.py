@@ -33,6 +33,7 @@ lib.config['/site/kml']={'tools.digest_auth.on': False}
 lib.config['/valuetype']=digest
 lib.config['/download']=digest
 lib.config['/dataset']=digest
+lib.config['/job']=digest
 
 
 

@@ -232,27 +232,25 @@ class JobPage:
         try:
             id=web.conv(int,kwargs.get('id'),'')
         except:
-            return web.render(error=traceback(),title='Dataset #%s' % kwargs.get('id'))
+            return web.render(error=str(kwargs) + '\n' + traceback(),title='Job %s' % kwargs.get('id'))
         if 'save' in kwargs:
             try:
                 session = db.Session()        
-                ds = session.query(db.Dataset).get(int(id))
-                if not ds:
-                    ds=db.Dataset(id=id)
-                if kwargs.get('start'):
-                    ds.start=datetime.strptime(kwargs['start'],'%d.%m.%Y')
-                if kwargs.get('end'):
-                    ds.end=datetime.strptime(kwargs['end'],'%d.%m.%Y')
-                ds.filename = kwargs.get('filename')
-                ds.name=kwargs.get('name')
-                ds.comment=kwargs.get('comment')
-                ds.measured_by = session.query(db.Person).get(kwargs.get('measured_by'))
-                ds.valuetype = session.query(db.ValueType).get(kwargs.get('valuetype'))
-                ds.quality = session.query(db.Quality).get(kwargs.get('quality'))
-                ds.site = session.query(db.Site).get(kwargs.get('site'))
+                job = session.query(db.Job).get(id)
+                if not job:
+                    job=db.Job(id=id)
+                if kwargs.get('due'):
+                    job.due=datetime.strptime(kwargs['due'],'%d.%m.%Y')
+                job.filename = kwargs.get('filename')
+                job.name=kwargs.get('name')
+                job.description=kwargs.get('description')
+                job.responsible = session.query(db.Person).get(kwargs.get('responsible'))
+                job.author = session.query(db.Person).get(web.user())
+                job.done = bool('done' in kwargs)
+                job.nextreminder = job.due
                 session.commit()
             except:
-                return web.render(error=traceback(),title='Dataset #%s' % id)
+                return web.render(error=('\n'.join('%s: %s' % it for it in kwargs.iteritems())) + '\n' + traceback(),title='Job #%s' % id)
         elif 'new' in kwargs:
             id='new'
         raise web.HTTPRedirect('./%s' % id)
