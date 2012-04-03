@@ -83,8 +83,18 @@
 					</td>
 				</tr>
 			</table>
-			<input type="submit" name="save" value="Speichern" style="width: 7em;"/>
+			<input py:if="active_person.username == user() or user()=='admin'" 
+			type="submit" name="save" value="Speichern" style="width: 7em;"/>
 		</form>
+	</div>
+	<div>
+		<h2>Jobs</h2>
+		<ul>
+			<li py:for="job in jobs">
+				<a href="/job/${job.id}" py:content="'%-12s: %s' % (formatdate(job.due),job.name)"
+				   style="background-color: ${job.color}" />
+			</li>
+		</ul>
 	</div>
 	<div py:if="active_person">
 		<h2>Datensätze</h2>

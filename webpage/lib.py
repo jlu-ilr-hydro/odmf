@@ -87,6 +87,7 @@ def navigation():
          | <a href="/valuetype">value types</a> 
          | <a href="/dataset">data sets</a> 
          | <a href="/user">users</a>
+         | <a href="/job">jobs</a>
          | <a href="/download">download</a>
          | login: %s 
     </div>''' % user())
