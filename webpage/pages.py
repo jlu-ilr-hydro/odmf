@@ -17,7 +17,7 @@ class PersonPage:
         error=''
         jobs=[]
         if act_user == 'new':
-            p_act = db.Person(username='<Benutzername>')
+            p_act = db.Person()
         else:
             try:
                 p_act = session.query(db.Person).get(act_user)
@@ -221,7 +221,10 @@ class JobPage:
         session=db.Session()
         error=''
         if jobid=='new':
-            job = db.Job(id=db.newid(db.Job,session),name='<Name>')
+            job = db.Job(id=db.newid(db.Job,session),name='<Job-Beschreibung>')
+            if user:
+                p_user = session.query(db.Person).get(user)
+                job.responsible = p_user
         else:
             try:
                 job = session.query(db.Job).get(int(jobid))
