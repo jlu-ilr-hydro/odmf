@@ -88,7 +88,7 @@ class Person(Base):
     supervisor=orm.relationship('Person',remote_side=[username])
     telephone=sql.Column(sql.String)
     comment=sql.Column(sql.String)
-    can_supervise=sql.Column(sql.Boolean, default=0)
+    can_supervise=sql.Column(sql.Boolean, default=False)
     mobile=sql.Column(sql.String)
     car_available=sql.Column(sql.Integer,default=0)
     def __str__(self):

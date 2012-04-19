@@ -83,13 +83,16 @@
 					</td>
 				</tr>
 			</table>
-			<input py:if="active_person.username == user() or user()=='admin'" 
+			<input py:if="active_person.username == user() or user()=='admin' or not active_person.username" 
 			type="submit" name="save" value="Speichern" style="width: 7em;"/>
 		</form>
 	</div>
 	<div>
 		<h2>Jobs</h2>
 		<ul>
+			<li>
+				<a href="/job?user=${active_person.username}" style="font-style: italic;">Neuen Job hinzufügen...</a>
+			</li>
 			<li py:for="job in jobs">
 				<a href="/job/${job.id}" py:content="'%-12s: %s' % (formatdate(job.due),job.name)"
 				   style="background-color: ${job.color}" />
