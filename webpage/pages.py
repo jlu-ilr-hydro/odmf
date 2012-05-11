@@ -105,11 +105,14 @@ class SitePage:
             query = query.filter(sitefilter)
         return web.render(sites=query,actid=0,descriptor=self.kml_description)
     def kml_description(self,site):
-        text=[site.comment,
-               '<a href="http://fb09-c2.agrar.uni-giessen.de:8081/site/%s">edit...</a>' % site.id]
+        host = "http://fb09-pasig.umwelt.uni-giessen.de:8081"
+        text=[ site.comment,
+               u'<a href="%s/site/%s">edit...</a>' % (host,site.id)]
+        if site.height:
+            text.insert(0,'%0.1f m NN' % site.height)
         for ds in site.datasets:
-            content=dict(id=ds.id,name=ds.name,start=web.formatdate(ds.start),end=web.formatdate(ds.end),vt=ds.valuetype)
-            text.append('<li><a href="http://fb09-c2.agrar.uni-giessen.de:8081/dataset/%(id)s">%(name)s, %(vt)s (%(start)s-%(end)s)</a></li>' % content)
+            content=dict(id=ds.id,name=ds.name,start=web.formatdate(ds.start),end=web.formatdate(ds.end),vt=ds.valuetype,host=host)
+            text.append('<li><a href="%(host)s/dataset/%(id)s">%(name)s, %(vt)s (%(start)s-%(end)s)</a></li>' % content)
         return '<br />'.join(text)
     
 
@@ -120,10 +123,11 @@ class VTPage:
     @web.output('valuetype.html')
     def default(self,vt_id='new'):
         session=db.Session()
-        valuetypes=session.query(db.ValueType).order_by(db.ValueType.id)
+        valuetypes=session.query(db.ValueType).order_by(db.ValueType.id).all()
         error=''
         if vt_id=='new':
-            vt=db.ValueType(id=db.newid(db.ValueType,session),
+            id = db.newid(db.ValueType,session)
+            vt=db.ValueType(id=id,
                             name='<Name>')
         else:
             try:
