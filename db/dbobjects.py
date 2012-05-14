@@ -220,6 +220,8 @@ class Log(Base):
     _user=sql.Column('user',sql.String,sql.ForeignKey('person.username'))
     user = orm.relationship("Person")
     message = sql.Column(sql.String)
+    _site = sql.Column('site',sql.Integer,sql.ForeignKey('site.id'))
+    site = orm.relationship("Site", backref=orm.backref('logs',lazy='dynamic'))
 
 class Job(Base):
     __tablename__='job'
