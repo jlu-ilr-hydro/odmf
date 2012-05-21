@@ -222,6 +222,8 @@ class Log(Base):
     message = sql.Column(sql.String)
     _site = sql.Column('site',sql.Integer,sql.ForeignKey('site.id'))
     site = orm.relationship("Site", backref=orm.backref('logs',lazy='dynamic'))
+    def __str__(self):
+        return "%s, %s: %s" % (self.user,self.time,self.message)
 
 class Job(Base):
     __tablename__='job'

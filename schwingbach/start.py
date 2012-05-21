@@ -24,8 +24,8 @@ for p in db.Session().query(db.Person):
     users[p.username]=pw
 
 digest = {'tools.digest_auth.on': True,
-                        'tools.digest_auth.realm':'ilr',
-                        'tools.digest_auth.users':users,
+          'tools.digest_auth.realm':'ilr',
+          'tools.digest_auth.users':users,
                     }
 lib.config['/user']=digest
 lib.config['/site']=digest
@@ -34,6 +34,7 @@ lib.config['/valuetype']=digest
 lib.config['/download']=digest
 lib.config['/dataset']=digest
 lib.config['/job']=digest
+lib.config['/log']=digest
 
 
 

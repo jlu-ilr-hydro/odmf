@@ -56,7 +56,7 @@ loader = TemplateLoader(abspath('templates'),
                             auto_reload=True)
 
 
-def output(filename, method='xhtml', encoding='utf-8', **options):
+def output(filename, method='html', encoding='utf-8', **options):
     """Decorator for exposed methods to specify what template they should use
     for rendering, and which serialization method and options should be
     applied.
@@ -84,6 +84,7 @@ def navigation():
         <div class="navigate" >
          | <a href="/map">map</a> 
          | <a href="/site">sites</a>
+         | <a href="/log">log</a>
          | <a href="/valuetype">value types</a> 
          | <a href="/dataset">data sets</a> 
          | <a href="/user">users</a>

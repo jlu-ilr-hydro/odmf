@@ -54,10 +54,10 @@
 					<tr>
 						<td>Sonstiges</td>
 						<td>
-							<textarea name="comment" 
-									  style="width: 100%;" 
-									  rows="10"
-									  py:content="actualsite.comment" />
+						<textarea name="comment" 
+								  style="width: 100%;"
+								  rows="10" >
+								  ${actualsite.comment}</textarea>
 						</td>
 					</tr>
 				</table>
@@ -65,6 +65,32 @@
 			<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
 		</form>
 		<div py:if="actualsite">
+			<h2>Log-Einträge</h2>
+			<ul>
+				<li py:for="log in actualsite.logs">
+					<a href="/log/${log.id}" py:content="'%s, %s: %s' % (formatdate(log.time),log.user,log.message)" />
+				</li>
+				<li>
+					<form method="POST" action="/site/addmsg">
+						<table>
+							<tr>
+								<td>
+									Neuer Eintrag:					
+								</td>
+								<td style="width: 30em;">
+									<input name="message" />
+								</td>
+								<td>
+									<input type="submit" />
+								</td>
+								<td style="visibility: collapse">
+									<input name="site" value="${actualsite.id}" />
+								</td>
+							</tr>
+						</table>
+					</form>
+				</li>
+			</ul>
 			<h2>Datensätze</h2>
 			<ul>
 				<li py:for="ds in actualsite.datasets">

@@ -25,8 +25,10 @@ class PersonPage:
             except:
                 p_act=None
                 error=traceback()   
-        return web.render(persons=persons,active_person=p_act,
-                          supervisors=supervisors,error=error,jobs=jobs)
+        result = web.render('person.html',persons=persons,active_person=p_act,
+                          supervisors=supervisors,error=error,jobs=jobs).render('html',doctype='html')
+        session.close()
+        return result
 
     @web.expose
     def saveitem(self,**kwargs):
@@ -47,14 +49,11 @@ class PersonPage:
             p_act.mobile=kwargs.get('mobile')
             p_act.comment=kwargs.get('comment')
             session.commit()
+            session.close()
         raise web.HTTPRedirect('./' + username)
-    
-    
-
 class SitePage:
     exposed=True  
     @web.expose
-    @web.output('site.html')
     def default(self,actualsite_id=None):
         session=db.Session()
         sites=session.query(db.Site).order_by(db.sql.desc(db.Site.lat))
@@ -70,9 +69,11 @@ class SitePage:
                 error=traceback()
                 actualsite=None
         
-        return web.render(sites=sites,actualsite=actualsite,error=error,image='')    
+        result = web.render('site.html',sites=sites,actualsite=actualsite,error=error,image=''
+                            ).render('html',doctype='html')
+        session.close()
+        return result    
     @web.expose
-    @web.output('empty.html')
     def saveitem(self,**kwargs):
         try:
             siteid=web.conv(int,kwargs.get('id'),'')
@@ -91,19 +92,40 @@ class SitePage:
                 site.height=web.conv(float,kwargs.get('height'))
                 site.comment=kwargs.get('comment')
                 session.commit()
+                session.close()
+
             except:
-                return web.render(error=traceback(),title='site #%s' % siteid)
+                return web.render('empty.html',error=traceback(),title='site #%s' % siteid
+                                  ).render('html',doctype='html')
         raise web.HTTPRedirect('./%s' % siteid)
+    @web.expose
+    def addmsg(self,site,message):
+        session = db.Session()
+        error=''
+        id = db.newid(db.Log, session)
+        user = web.user()
+        log = db.Log(id=id,message=message,time=datetime.today())
+        if user:
+            log.user = session.query(db.Person).get(user)
+        if site:
+            log.site = session.query(db.Site).get(int(site))
+        session.add(log)
+        session.commit()
+        session.close()
+        raise web.HTTPRedirect('./' + str(site))
+        
 
     @web.expose
     @web.mimetype('application/vnd.google-earth.kml+xml')
-    @web.output('sites.xml', 'xml')
     def kml(self,sitefilter=None):
         session = db.Session()
         query = session.query(db.Site)
         if filter:
             query = query.filter(sitefilter)
-        return web.render(sites=query,actid=0,descriptor=self.kml_description)
+        result = web.render(sites=query,actid=0,descriptor=self.kml_description).render('xml',doctype='xml')
+        session.close()
+        return result    
+
     def kml_description(self,site):
         host = "http://fb09-pasig.umwelt.uni-giessen.de:8081"
         text=[ site.comment,
@@ -114,13 +136,10 @@ class SitePage:
             content=dict(id=ds.id,name=ds.name,start=web.formatdate(ds.start),end=web.formatdate(ds.end),vt=ds.valuetype,host=host)
             text.append('<li><a href="%(host)s/dataset/%(id)s">%(name)s, %(vt)s (%(start)s-%(end)s)</a></li>' % content)
         return '<br />'.join(text)
-    
-
 class VTPage:
     exposed=True
     
     @web.expose
-    @web.output('valuetype.html')
     def default(self,vt_id='new'):
         session=db.Session()
         valuetypes=session.query(db.ValueType).order_by(db.ValueType.id).all()
@@ -138,10 +157,12 @@ class VTPage:
                 #image=b64encode(self.sitemap.draw(sites.all()))
                 vt=None
         
-        return web.render(valuetypes=valuetypes,actualvaluetype=vt,error=error)    
+        result = web.render('valuetype.html',valuetypes=valuetypes,actualvaluetype=vt,error=error).render('html',doctype='html')
+        session.close()
+        return result    
+    
     
     @web.expose
-    @web.output('empty.html')
     def saveitem(self,**kwargs):
         try:
             id=web.conv(int,kwargs.get('id'),'')
@@ -158,16 +179,14 @@ class VTPage:
                 vt.unit=kwargs.get('unit')
                 vt.comment=kwargs.get('comment')
                 session.commit()
+                session.close()
             except:
-                return web.render(error=traceback(),title='valuetype #%s' % id)
+                return web.render('empty.html',error=traceback(),title='valuetype #%s' % id
+                                  ).render('html',doctype='html')
         raise web.HTTPRedirect('./%s' % id)
-
-
-
 class DatasetPage:
     exposed=True
     @web.expose
-    @web.output('dataset.html')
     def default(self,id='new',site_id=None,vt_id=None,user=None):
         session=db.Session()
         error=''
@@ -182,17 +201,21 @@ class DatasetPage:
                 active = session.query(db.Dataset).get(id)
                 
         except:
-            return web.render(error=traceback(),title='Schwingbach-Datensatz (Fehler)',
-                              session=session,db=db,activedataset=None)
-        return web.render(activedataset=active,session=session,
-                          error=error,db=db,title='Schwingbach-Datensatz #' + str(id))
+            return web.render('dataset.html',error=traceback(),title='Schwingbach-Datensatz (Fehler)',
+                              session=session,db=db,activedataset=None).render('html',doctype='html')
+        result= web.render('dataset.html',activedataset=active,session=session,
+                          error=error,db=db,title='Schwingbach-Datensatz #' + str(id)
+                          ).render('html',doctype='html')
+        session.close()
+        return result    
+
     @web.expose
-    @web.output('empty.html')
     def saveitem(self,**kwargs):
         try:
             id=web.conv(int,kwargs.get('id'),'')
         except:
-            return web.render(error=traceback(),title='Dataset #%s' % kwargs.get('id'))
+            return web.render(error=traceback(),title='Dataset #%s' % kwargs.get('id')
+                              ).render('html',doctype='html')
         if 'save' in kwargs:
             try:
                 session = db.Session()        
@@ -211,16 +234,16 @@ class DatasetPage:
                 ds.quality = session.query(db.Quality).get(kwargs.get('quality'))
                 ds.site = session.query(db.Site).get(kwargs.get('site'))
                 session.commit()
+                session.close()
             except:
-                return web.render(error=traceback(),title='Dataset #%s' % id)
+                return web.render('empty.html',error=traceback(),title='Dataset #%s' % id
+                                  ).render('html',doctype='html')
         elif 'new' in kwargs:
             id='new'
         raise web.HTTPRedirect('./%s' % id)
-
 class JobPage:
     exposed=True
     @web.expose
-    @web.output('job.html')
     def default(self,jobid='new',user=None):
         session=db.Session()
         error=''
@@ -235,14 +258,18 @@ class JobPage:
             except:
                 error=traceback()
                 job=None
-        return web.render(job=job,error=error,db=db,session=session)
+        result = web.render('job.html',job=job,error=error,db=db,session=session
+                            ).render('html',doctype='html')
+        session.close()
+        return result    
+        
     @web.expose
-    @web.output('empty.html')
     def saveitem(self,**kwargs):
         try:
             id=web.conv(int,kwargs.get('id'),'')
         except:
-            return web.render(error=str(kwargs) + '\n' + traceback(),title='Job %s' % kwargs.get('id'))
+            return web.render(error=str(kwargs) + '\n' + traceback(),title='Job %s' % kwargs.get('id')
+                              ).render('html',doctype='html')
         if 'save' in kwargs:
             try:
                 session = db.Session()        
@@ -259,13 +286,65 @@ class JobPage:
                 job.done = bool('done' in kwargs)
                 job.nextreminder = job.due
                 session.commit()
+                session.close()
             except:
-                return web.render(error=('\n'.join('%s: %s' % it for it in kwargs.iteritems())) + '\n' + traceback(),title='Job #%s' % id)
+                return web.render('empty.html',error=('\n'.join('%s: %s' % it for it in kwargs.iteritems())) + '\n' + traceback(),
+                                  title='Job #%s' % id
+                                  ).render('html',doctype='html')
         elif 'new' in kwargs:
             id='new'
         raise web.HTTPRedirect('./%s' % id)
-    
-                
+class LogPage:
+    expose=True
+    @web.expose
+    def default(self,logid="new"):
+        session=db.Session()
+        error=''
+        if logid=='new':
+            log = db.Log(id=db.newid(db.Log,session),message='<Log-Beschreibung>',time=datetime.today())
+            user = web.user()
+            if user:
+                log.user = session.query(db.Person).get(user)
+        else:
+            try:
+                log = session.query(db.Log).get(int(logid))
+            except:
+                error=traceback()
+                log=None
+        result = web.render('log.html',actuallog=log,error=error,db=db,session=session
+                            ).render('html',doctype='html')
+        session.close()
+        return result    
+    @web.expose
+    def saveitem(self,**kwargs):
+        try:
+            id=web.conv(int,kwargs.get('id'),'')
+        except:
+            return web.render(error=str(kwargs) + '\n' + traceback(),title='Job %s' % kwargs.get('id')
+                              ).render('html',doctype='html')
+        if 'save' in kwargs:
+            try:
+                session = db.Session()        
+                log = session.query(db.Log).get(id)
+                if not log:
+                    log=db.Log(id=id)
+                if kwargs.get('date'):
+                    log.time=datetime.strptime(kwargs['date'],'%d.%m.%Y')
+                log.message=kwargs.get('message')
+                log.user = session.query(db.Person).get(kwargs.get('user'))
+                log.site = session.query(db.Site).get(kwargs.get('site'))
+                session.commit()
+                session.close()
+            except:
+                return web.render('empty.html',error=('\n'.join('%s: %s' % it for it in kwargs.iteritems())) + '\n' + traceback(),
+                                  title='Log #%s' % id
+                                  ).render('html',doctype='html')
+        elif 'new' in kwargs:
+            id='new'
+        raise web.HTTPRedirect('./%s' % id)
+
+            
+                           
         
         
     
@@ -276,6 +355,7 @@ class Root(object):
     dataset=DatasetPage()
     download=DownloadPage()
     job = JobPage()
+    log = LogPage()
     
     @web.expose
     @web.output('empty.html')
@@ -289,6 +369,6 @@ class Root(object):
     
 
         
-if __name__=='__main__':
-    web.start_server(Root(), autoreload=False, port=8081)
+#if __name__=='__main__':
+#    web.start_server(Root(), autoreload=False, port=8081)
 

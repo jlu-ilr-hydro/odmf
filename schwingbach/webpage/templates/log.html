@@ -1,0 +1,87 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <link href="/media/jquery-ui-1.8.18.custom.css" rel="stylesheet" type="text/css"/>
+	<script src="/media/jquery-1.7.1.min.js" type="text/javascript" />
+  <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" />
+  <script>
+      $(function() {$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });});
+  </script>
+
+	<title>Log</title>
+	<style type="text/css">
+  	  input { width: 100%;}
+	  select { width: 100%;}
+
+	</style>	
+</head>
+<body onload="initialize()">
+	${navigation()}
+	<h1>Logbook</h1>
+
+	<ul id="Inhalt" >
+		<li>
+			<a href="/log/new"><b>Neu...</b></a>			
+		</li>
+		<li py:for="l in session.query(db.Log).order_by(db.sql.desc(db.Log.time))">
+			<a href="${'/log/%s' % l.id}" py:content="'%s %s' % (formatdate(l.time),l.user)"/>
+
+		</li>
+	</ul>
+    <div class="rightpane" > 
+		<form action="/log/saveitem" method="post">
+			<div py:if="actuallog">
+				<h2 py:content="'%s, %s' % (formatdate(actuallog.time),actuallog.user)" />
+
+				<table style="width: 100%">
+					<tr>
+						<td>Id</td>
+						<td><input name="id" value="${actuallog.id}"/></td>
+					</tr>
+					<tr>
+						<td>Wer?</td>
+						<td>
+							<select name="user">
+								<option py:for="p in session.query(db.Person)"
+										py:attrs="markoption(p is actuallog.user)"
+										py:content="p"
+										value="${p.username}" />
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>Wann?</td>
+						<td>
+							<input name="date" class="datepicker" value="${formatdate(actuallog.time)}"/>
+						</td>
+					</tr>
+					<tr>
+						<td>Wo?</td>
+						<td>
+							<select name="site">
+								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
+								<option py:for="s in session.query(db.Site)"
+										py:attrs="markoption(s is actuallog.site)"
+										py:content="s"
+										value="${s.id}" />
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>Was?</td>
+						<td>
+							<textarea name="message" 
+									  style="width: 100%;"
+									  rows="10" >${actuallog.message}</textarea>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
+		</form>
+	</div>
+</body>
+</html>
