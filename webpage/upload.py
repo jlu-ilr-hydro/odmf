@@ -32,7 +32,6 @@ class Path(object):
 class DownloadPage(object):
     exposed=True  
     @lib.expose
-    @lib.output('download.html')    
     def default(self,directory='',error='',datafile=None,newname=None, **kwargs):
         path = op.join(datapath,directory)
         files=[]
@@ -66,7 +65,9 @@ class DownloadPage(object):
                         fout.write(data)
                 except:
                     error=traceback()
-        return lib.render(error=error,files=files,directories=directories,curdir=directory)
+        return lib.render('download.html',error=error,files=files,directories=directories,
+                          curdir=directory
+                          ).render('html',doctype='html')
     
     
     
