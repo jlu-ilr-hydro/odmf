@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import lib as web
+import sys
 import db
 from traceback import format_exc as traceback
 from base64 import b64encode
@@ -76,15 +77,15 @@ class SitePage:
     @web.expose
     def saveitem(self,**kwargs):
         try:
-            siteid=web.conv(int,kwargs.get('id'),'')
+            id=web.conv(int,kwargs.get('id'),'')
         except:
             return web.render(error=traceback(),title='site #%s' % kwargs.get('id'))
         if 'save' in kwargs:
             try:
                 session = db.Session()        
-                site = session.query(db.Site).get(int(siteid))
+                site = session.query(db.Site).get(int(id))
                 if not site:
-                    site=db.Site(id=id)
+                    site=db.Site(id=int(id))
                     session.add(site)
                 site.lon=web.conv(float,kwargs.get('lon'))
                 site.lat=web.conv(float,kwargs.get('lat'))
@@ -95,9 +96,11 @@ class SitePage:
                 session.close()
 
             except:
-                return web.render('empty.html',error=traceback(),title='site #%s' % siteid
+                error=traceback()
+                sys.stderr.write(error+'\n')
+                return web.render('empty.html',error=error,title='site #%s' % id
                                   ).render('html',doctype='html')
-        raise web.HTTPRedirect('./%s' % siteid)
+        raise web.HTTPRedirect('./%s' % id)
     @web.expose
     def addmsg(self,site,message):
         session = db.Session()
