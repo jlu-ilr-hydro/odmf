@@ -191,6 +191,8 @@ class Record(Base):
     dataset=orm.relationship("Dataset", backref= orm.backref('records',lazy='dynamic'),lazy='joined')
     time=sql.Column(sql.DateTime)
     value=sql.Column(sql.Float)
+    sample=sql.Column(sql.String)
+    comment = sql.Column(sql.String)
         
         
     def __str__(self):
