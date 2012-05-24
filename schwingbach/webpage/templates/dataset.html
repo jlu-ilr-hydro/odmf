@@ -54,9 +54,16 @@
 						<td><input type="text" name="name" value="${activedataset.name}" /></td>
 					</tr>
 					<tr>
-						<td>Anzahl der gespeicherten Werte</td>
-						<td py:content="activedataset.records.count() if activedataset.name else 'Nicht gespeichert'" 
-							class="highlight"/>
+						<td>Werte:</td>
+						<td py:if="activedataset.records.count()" 
+							class="highlight"
+							py:content="Markup(u'%0.4g &plusmn; %0.4g %s, n=%i' % (session.query(db.sql.func.avg(db.Record.value)).filter(db.Record.dataset==activedataset).scalar(), 
+																				  session.query(db.sql.func.stddev(db.Record.value)).filter(db.Record.dataset==activedataset).scalar(),
+																				  activedataset.valuetype.unit,
+																				  activedataset.records.count())
+											)" 
+						/>
+							
 					</tr>
 
 					<tr>
@@ -148,8 +155,8 @@
 							</p>
 							<textarea name="comment" 
 								  style="width: 100%;"
-								  rows="10" >
-								  ${activedataset.comment}</textarea>
+								  rows="10" 
+								  py:content="activedataset.comment" />
 						</td>
 					</tr>
 				</table>

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import lib as web
-import sys
 import db
 from traceback import format_exc as traceback
 from base64 import b64encode
@@ -77,15 +76,15 @@ class SitePage:
     @web.expose
     def saveitem(self,**kwargs):
         try:
-            id=web.conv(int,kwargs.get('id'),'')
+            siteid=web.conv(int,kwargs.get('id'),'')
         except:
             return web.render(error=traceback(),title='site #%s' % kwargs.get('id'))
         if 'save' in kwargs:
             try:
                 session = db.Session()        
-                site = session.query(db.Site).get(int(id))
+                site = session.query(db.Site).get(int(siteid))
                 if not site:
-                    site=db.Site(id=int(id))
+                    site=db.Site(id=int(siteid))
                     session.add(site)
                 site.lon=web.conv(float,kwargs.get('lon'))
                 site.lat=web.conv(float,kwargs.get('lat'))
@@ -96,11 +95,9 @@ class SitePage:
                 session.close()
 
             except:
-                error=traceback()
-                sys.stderr.write(error+'\n')
-                return web.render('empty.html',error=error,title='site #%s' % id
+                return web.render('empty.html',error=traceback(),title='site #%s' % siteid
                                   ).render('html',doctype='html')
-        raise web.HTTPRedirect('./%s' % id)
+        raise web.HTTPRedirect('./%s' % siteid)
     @web.expose
     def addmsg(self,site,message):
         session = db.Session()
@@ -362,17 +359,12 @@ class Root(object):
     log = LogPage()
     
     @web.expose
-    @web.output('empty.html')
     def index(self):
         return self.map()
     @web.expose
-    @web.output('map.html')
-    def map(self,error='',vt_id=[],user=[]):
-        
-        return web.render(error=error)
-    
+    def map(self,error=''):
+        return web.render('map.html',error=error).render('html',doctype='html')
 
-        
 #if __name__=='__main__':
 #    web.start_server(Root(), autoreload=False, port=8081)
 

@@ -5,7 +5,8 @@
 	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Karte</title>
-	<script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false" ></script>
+	<!--
+	<script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false" />
 	<script type="text/javascript">
 	  function initialize() {
 	    var latlng = new google.maps.LatLng(50.49, 8.55);
@@ -26,6 +27,7 @@
 	  #map_canvas { height: 100%; width: 100%; }
 
 	</style>	
+	-->
 </head>
 <body onload="initialize()">
 	${navigation()}
@@ -33,7 +35,15 @@
 	<h2>Studienlandschaft Schwingbach</h2>
     <div class="error" py:content="error" />
     <div>
-		<div id="map_canvas"></div>			
+		<iframe style="height: 700px; width: 100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" 
+				src="http://www.google.de/maps?f=q&amp;source=s_q&amp;hl=de&amp;geocode=&amp;q=http:%2F%2Ffb09-pasig.umwelt.uni-giessen.de:8081%2Fsite%2Fkml&amp;aq=&amp;sll=51.151786,10.415039&amp;sspn=24.013055,64.907227&amp;ie=UTF8&amp;t=m&amp;ll=50.500762,8.568478&amp;spn=0.054594,0.120335&amp;z=13&amp;output=embed">
+		</iframe>
+		<br />
+		<small>
+			<a href="http://www.google.de/maps?f=q&amp;source=embed&amp;hl=de&amp;geocode=&amp;q=http:%2F%2Ffb09-pasig.umwelt.uni-giessen.de:8081%2Fsite%2Fkml&amp;aq=&amp;sll=51.151786,10.415039&amp;sspn=24.013055,64.907227&amp;ie=UTF8&amp;t=m&amp;ll=50.500762,8.568478&amp;spn=0.054594,0.120335&amp;z=13" 
+			   style="color:#0000FF;text-align:left" >Größere Kartenansicht</a>
+		</small>
+		<!--<div id="map_canvas" />-->
     </div>
 </body>
 </html>
