@@ -133,6 +133,9 @@ class SitePage:
                u'<a href="%s/site/%s">edit...</a>' % (host,site.id)]
         if site.height:
             text.insert(0,'%0.1f m NN' % site.height)
+        for log in site.logs:
+            content=dict(date=web.formatdate(log.time),user=log.user,msg=log.message,host=host,id=log.id)
+            text.append('<li><a href="%(host)s/log/%(id)s">%(date)s, %(user)s: %(msg)s</a></li>' % content)
         for ds in site.datasets:
             content=dict(id=ds.id,name=ds.name,start=web.formatdate(ds.start),end=web.formatdate(ds.end),vt=ds.valuetype,host=host)
             text.append('<li><a href="%(host)s/dataset/%(id)s">%(name)s, %(vt)s (%(start)s-%(end)s)</a></li>' % content)
