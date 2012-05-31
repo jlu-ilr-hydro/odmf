@@ -80,7 +80,6 @@ expose = cherrypy.expose
 HTTPRedirect = cherrypy.HTTPRedirect
 def navigation():
     return Markup('''
-        <!--<img src="/media/icon.jpg" style="float: right"/>-->
         <div class="navigate" >
          | <a href="/map">map</a> 
          | <a href="/site">sites</a>
@@ -91,7 +90,13 @@ def navigation():
          | <a href="/job">jobs</a>
          | <a href="/download">download</a>
          | login: %s 
-    </div>''' % user())
+    </div>
+    <div class="topimage">
+		<img src="/media/Aue.jpg" />
+		<img src="/media/KleebachSchwingbach.jpg" />
+		<img src="/media/Quellgebiet.jpg" />
+	</div>
+    ''' % user())
 def attrcheck(kw,condition):
     if condition:
         return {kw:kw}

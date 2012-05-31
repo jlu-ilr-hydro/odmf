@@ -23,9 +23,18 @@ class Path(object):
         if op.isdir(self.absolute):
             self.href=self.href.replace('datafiles','download')
         self.name = op.relpath(self.absolute,datapath).replace('\\','/')
-        self.basename=op.basename(abspath)
+        self.basename=op.basename(self.absolute)
     def __str__(self):
         return self.name
+    def formatsize(self):
+        size = op.getsize(self.absolute)
+        unit = 0
+        units = "B KB MB GB".split()
+        while size>1024 and unit<3:
+            size = size/1024.
+            unit +=1
+        return "%0.1f %s" % (size,units[unit])
+         
     def __cmp__(self,other):
         return cmp(str(self),str(other))
 
@@ -44,7 +53,8 @@ class DownloadPage(object):
                     directories.append(Path(abspath))
                 elif op.isfile(abspath):
                     files.append(Path(abspath))    
-
+        files.sort()
+        directories.sort()
         if datafile:
             if not op.exists(path):
                 os.makedirs(path)
