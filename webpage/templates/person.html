@@ -12,6 +12,7 @@
 	</style>
 </head>
 <body>
+
 	${navigation()}
     <div class="error" py:content="error" />
 	<h1>Personen</h1>
@@ -78,8 +79,8 @@
 					<td>
 						<textarea name="comment" 
 								  style="width: 100%;"
-								  rows="10" >
-								  ${active_person.comment}</textarea>
+								  rows="10" 
+								  py:content="active_person.comment"/>
 					</td>
 				</tr>
 			</table>
