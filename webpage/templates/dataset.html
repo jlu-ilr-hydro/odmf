@@ -35,7 +35,7 @@
 		<li>
 			<a href="/dataset/new"><b>Neu...</b></a>			
 		</li>
-		<li py:for="ds in session.query(db.Dataset)">
+		<li py:for="ds in datasets.order_by(db.Dataset.id)">
 			<a href="${'/dataset/%s' % ds.id}" py:content="ds.name"/>
 		</li>
 	</ul>
@@ -45,9 +45,9 @@
 			<div py:if="activedataset">
 				<h2 py:content="activedataset.name if activedataset.name else 'Neuer Datensatz'" />
 				<table style="width: 100%">
-					<tr>
+					<tr visible="0">
 						<td style="width: 7em">ID:</td>
-						<td><input type="text" name="id" value="${activedataset.id}" /></td>
+						<td><input type="text" name="id" value="${activedataset.id}" readonly="readonly" class="readonly"/></td>
 					</tr>
 					<tr>
 						<td>Name:</td>
@@ -67,7 +67,7 @@
 					</tr>
 
 					<tr>
-						<td>Gemessen von:</td>
+						<td><a href="${'/user/%s' % (activedataset.measured_by.username if activedataset.measured_by else '')}"> Gemessen von:</a></td>
 						<td>
 							<select name="measured_by">
 								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
@@ -79,11 +79,11 @@
 						</td>
 					</tr>
 					<tr>
-						<td>Messgröße:</td>
+						<td><a href="${'/valuetype/%s' % (activedataset.valuetype.id if activedataset.valuetype else '')}">Messgröße:</a></td>
 						<td>
 							<select name="valuetype">
 								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
-								<option py:for="vt in session.query(db.ValueType)"
+								<option py:for="vt in session.query(db.ValueType).order_by(db.ValueType.name)"
 										py:attrs="markoption(vt is activedataset.valuetype)"
 										py:content="vt"
 										value="${vt.id}" />
@@ -91,11 +91,11 @@
 						</td>
 					</tr>
 					<tr>
-						<td>Ort:</td>
+						<td><a href="${'/site/%s' % (activedataset.site.id if activedataset.site else '')}">Ort:</a></td>
 						<td>
 							<select name="site">
 								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
-								<option py:for="s in session.query(db.Site)"
+								<option py:for="s in session.query(db.Site).order_by(db.Site.name)"
 										py:attrs="markoption(s is activedataset.site)"
 										py:content="s"
 										value="${s.id}" />

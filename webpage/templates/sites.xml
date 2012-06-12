@@ -27,7 +27,7 @@
       	]]>
       	</description>
       <Point>
-        <coordinates py:content="'%g,%g' % (s.lon,s.lat)">
+        <coordinates py:content="'%s,%s' % (s.lon,s.lat)">
           LONG,LAT
         </coordinates>
       </Point>
