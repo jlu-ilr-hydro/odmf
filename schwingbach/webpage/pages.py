@@ -56,7 +56,7 @@ class SitePage:
     @web.expose
     def default(self,actualsite_id=None):
         session=db.Session()
-        sites=session.query(db.Site).order_by(db.sql.desc(db.Site.lat))
+        sites=session.query(db.Site).order_by(db.Site.name)
         error=''
         if actualsite_id=='new':
             actualsite=db.Site(id=db.newid(db.Site,session),
@@ -122,12 +122,12 @@ class SitePage:
         query = session.query(db.Site)
         if filter:
             query = query.filter(sitefilter)
-        stream = web.render('sites.xml',sites=query,actid=0,descriptor=self.kml_description)
+        stream = web.render('sites.xml',sites=query,actid=0,descriptor=SitePage.kml_description)
         result = stream.render('xml')
         session.close()
         return result    
-
-    def kml_description(self,site):
+    @classmethod
+    def kml_description(cls,site):
         host = "http://fb09-pasig.umwelt.uni-giessen.de:8081"
         text=[ site.comment,
                u'<a href="%s/site/%s">edit...</a>' % (host,site.id)]
@@ -195,26 +195,63 @@ class DatasetPage:
     @web.expose
     def default(self,id='new',site_id=None,vt_id=None,user=None):
         session=db.Session()
+        datasets = session.query(db.Dataset)
         error=''
         try:
+            site = session.query(db.Site).get(site_id) if site_id else None
+            valuetype = session.query(db.ValueType).get(vt_id) if vt_id else None
+            user = session.query(db.Person).get(user) if user else None
             if id=='new':
-                site = session.query(db.Site).get(site_id) if site_id else None
-                valuetype = session.query(db.ValueType).get(vt_id) if vt_id else None
-                user = session.query(db.Person).get(user) if user else None
                 active = db.Dataset(id=db.newid(db.Dataset,session),
                                     site=site,valuetype=valuetype, measured_by = user)
             else:
                 active = session.query(db.Dataset).get(id)
+            if site:
+                datasets=datasets.filter_by(site=site)
+            if valuetype:
+                datasets=datasets.filter_by(valuetype=valuetype)
+            if user:
+                datasets=datasets.filter_by(measured_by=user)
+        
+            result= web.render('dataset.html',activedataset=active,session=session,
+                              error=error,datasets=datasets,db=db,title='Schwingbach-Datensatz #' + str(id)
+                              ).render('html',doctype='html')
                 
         except:
-            return web.render('dataset.html',error=traceback(),title='Schwingbach-Datensatz (Fehler)',
-                              session=session,db=db,activedataset=None).render('html',doctype='html')
-        result= web.render('dataset.html',activedataset=active,session=session,
-                          error=error,db=db,title='Schwingbach-Datensatz #' + str(id)
-                          ).render('html',doctype='html')
+            result = web.render('dataset.html',error=traceback(),title='Schwingbach-Datensatz (Fehler)',
+                              session=session,datasets=datasets,db=db,activedataset=None).render('html',doctype='html')
         session.close()
         return result    
+    @web.expose
+    def kml(self,valuetypeid=None,user=None):
+        session=db.Session()
+        datasets = session.query(db.Dataset)
+        try:
+            if valuetypeid:
+                vt = session.query(db.ValueType).get(int(valuetypeid))
+                if vt:
+                    datasets = datasets.filter(db.Dataset.valuetype==vt)
+                else:
+                    raise RuntimeError("Cannot find valuetype %s" % valuetypeid)
+            if user:
+                p = session.query(db.Persion).get(user)
+                if p:
+                    datasets = datasets.filter(db.Dataset.measured_by==p)
+                else:
+                    raise RuntimeError("Cannot find user %s" % user)
+            sites=[d.site for d in datasets]
+            web.setmime('application/vnd.google-earth.kml+xml')
+            result = web.render('sites.xml',sites=sites,actid=0,descriptor=SitePage.kml_description).render('xml')
+        except:
+            error = traceback()
+            web.setmime('text/html')
 
+            result = web.render('dataset.html',error=error,datasets=datasets,session=session,db=db,activedataset=None,title="Schwangbach-Datenbank (Fehler)").render('html',doctype='html')
+            
+                    
+                
+        session.close()
+        return result
     @web.expose
     def saveitem(self,**kwargs):
         try:

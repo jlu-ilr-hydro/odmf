@@ -51,6 +51,9 @@ def mimetype(type):
         return wrapper
     return decorate
 
+def setmime(type):
+    cherrypy.response.headers['Content-Type'] = type
+    
     
 loader = TemplateLoader(abspath('templates'),
                             auto_reload=True)

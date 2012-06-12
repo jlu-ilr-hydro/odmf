@@ -39,7 +39,7 @@
 				<table style="width: 100%">
 					<tr>
 						<td>Id</td>
-						<td><input name="id" value="${actuallog.id}"/></td>
+						<td><input name="id" value="${actuallog.id}" readonly="readonly" class="readonly"/></td>
 					</tr>
 					<tr>
 						<td>Wer?</td>
@@ -59,11 +59,11 @@
 						</td>
 					</tr>
 					<tr>
-						<td>Wo?</td>
+						<td><a href="${'/site/%s' % (actuallog.site.id if actuallog.site else '')}">Wo?</a></td>
 						<td>
 							<select name="site">
 								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
-								<option py:for="s in session.query(db.Site)"
+								<option py:for="s in session.query(db.Site).order_by(db.Site.name)"
 										py:attrs="markoption(s is actuallog.site)"
 										py:content="s"
 										value="${s.id}" />
@@ -71,11 +71,15 @@
 						</td>
 					</tr>
 					<tr>
+						<td />
+						<td py:content="actuallog.site.comment if actuallog.site else ''" />
+					</tr>
+					<tr>
 						<td>Was?</td>
 						<td>
 							<textarea name="message" 
 									  style="width: 100%;"
-									  rows="10" >${actuallog.message}</textarea>
+									  rows="10" py:content="actuallog.message" />
 						</td>
 					</tr>
 				</table>
