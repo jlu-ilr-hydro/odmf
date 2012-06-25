@@ -9,7 +9,6 @@ import sqlalchemy.orm as orm
 from base import Base,Session,engine,metadata
 from sqlalchemy.schema import ForeignKey
 from datetime import datetime,timedelta
-
 def newid(cls,session=None):
     "Creates a new id for all mapped classes with an field called id, which is of integer type"
     if not session:
@@ -20,7 +19,15 @@ def newid(cls,session=None):
     else:
         return 1
 
-
+#class InstrumentAtSite(Base):
+#    
+#    __tablename__ = 'instrument_at_site'
+#    instrument=sql.Column('instrument_id',sql.Integer,sql.ForeignKey('instrument.id'),primary_key=True)
+#    site=sql.Column('site_id',sql.Integer,sql.ForeignKey('Site.id'),primary_key=True)
+#    installdate = sql.Column(sql.DateTime,nullable=True)
+#    removedate = sql.Column(sql.DateTime,nullable=True)
+#    comment = sql.Column(sql.String)
+    
 class Site(Base):
     "All locations in the database. The coordiante system is always geographic with WGS84/ETRS"
     __tablename__ = 'site'
@@ -36,47 +43,14 @@ class Site(Base):
         return "%s (#%i,%0.3f%s,%0.3f%s)" % (self.name,self.id,abs(self.lon),E,abs(self.lat),N)
     
 
-class DataSource(Base):
-    """Data can either come directly from an instrument, or derived from another 
-    dataset using a Calculation. If none of this fits, like for external or legacy 
-    data sources, a generic datasource can be used, too.   
-    """
-    __tablename__ = 'datasource'
-    id = sql.Column(sql.Integer,primary_key=True)
-    name=sql.Column(sql.String,nullable=False)
-    sourcetype=sql.Column(sql.String,nullable=False)
-    __mapper_args__ = {'polymorphic_on': sourcetype}
-    comment=sql.Column(sql.String,nullable=True)
 
-input_dataset = sql.Table('input_datasets', metadata, 
-                 sql.Column('calculation',sql.Integer,sql.ForeignKey('calculation.id')),
-                 sql.Column('source',sql.Integer,sql.ForeignKey('dataset.id'))
-                 )
-
-class Calculation(DataSource):
-    """A calculation is a datasource derived from one or more existing sources
-    using a calculation mehod. The description should enable users to replicate
-    this calculation, formula, used parameters and all input datasources are 
-    given. If the method used is published, please give a full reference.
-    """
-    __tablename__= 'calculation'
-    __mapper_args__ = {'polymorphic_identity': 'calculation'}
-    id = sql.Column(sql.Integer,sql.ForeignKey("datasource.id"),primary_key=True)
-    description = sql.Column(sql.String)
-    reference = sql.Column(sql.String)
-    latex = sql.Column(sql.String)
-    input = orm.relationship("Dataset", secondary=input_dataset)
-
-class Instrument(DataSource):
+class Instrument(Base):
     __tablename__= 'instrument'
-    #__mapper_args__ = {'polymorphic_identity': 'instrument'}
-    id = sql.Column(sql.Integer,sql.ForeignKey("datasource.id"),primary_key=True)
-    vendor=sql.Column(sql.String)
-    vendorid=sql.Column(sql.String)
-    shop=sql.Column(sql.String)
-    purchasedate=sql.Column(sql.DateTime)
-    _responsible=sql.Column('responsible',sql.String,sql.ForeignKey('person.username'))
-    responsible=orm.relationship('Person')
+    id = sql.Column(sql.Integer,
+                    #sql.ForeignKey("datasource.id"),
+                    primary_key=True)
+    name=sql.Column(sql.String)
+    comment=sql.Column(sql.String)
 
 class Person(Base):
     __tablename__= 'person'
@@ -138,8 +112,8 @@ class Dataset(Base):
     filename=sql.Column(sql.String, nullable=True)
     start=sql.Column(sql.DateTime, nullable = True)
     end=sql.Column(sql.DateTime, nullable = True)
-    _source = sql.Column("source",sql.Integer, sql.ForeignKey('datasource.id'))
-    source = orm.relationship("DataSource")
+    #_source = sql.Column("source",sql.Integer, sql.ForeignKey('datasource.id'))
+    #source = orm.relationship("DataSource")
     _site=sql.Column("site",sql.Integer, sql.ForeignKey('site.id'))
     site = orm.relationship("Site",backref='datasets')
     _valuetype=sql.Column("valuetype",sql.Integer,sql.ForeignKey('valuetype.id'))
@@ -151,6 +125,8 @@ class Dataset(Base):
     quality = orm.relationship("Quality")
     _group = sql.Column("group",sql.Integer,sql.ForeignKey('datagroup.id'),nullable=True)
     group = orm.relationship("DataGroup",backref='datasets')
+    #_instrument = sql.Column("instrument",sql.Integer,sql.ForeignKey('instrument.id'),nullable=True)
+    #instrument = orm.relationship("Instrument",backref='datasets')
     comment=sql.Column(sql.String)
     def __str__(self):
         return str(self.name)
@@ -269,25 +245,47 @@ class Job(Base):
             
             # Import the email modules we'll need
             from email.mime.text import MIMEText
-            
+            msgtemplate = u"""
+Liebe/r %(you)s,
+
+am %(due)s sollte "%(job)s" erledigt werden und Du bist dafür eingetragen.
+Falls etwas unklar ist, bitte nachfragen. Wenn Du die Aufgabe schon erledigt hast
+gehe bitte auf http://fb09-pasig.umwelt.uni-giessen.de:8081/job/%(id)s 
+und hake den Job ab.
+
+Danke und Schöne Grüße
+
+%(me)s
+
+P.S.: Diese Nachricht wurde automatisch im Namen des Job-Erstellers generiert
+
+Dear %(you)s,
+
+the task "%(job)s" in the Schwingbach area was due at %(due)s, and you have been assigned
+for it. If you have any questions regarding this task, co not hesitate to ask. If you have already 
+finished the tasked, please mark it as done at http://fb09-pasig.umwelt.uni-giessen.de:8081/job/%(id)s.
+
+Thank you,
+
+with kind regards
+
+%(me)s
+
+This mail has been generated automatically from the Schwingbach database 
+            """
+            msgdata = dict(id=self.id,you=self.responsible.firstname,due=self.due,job=self.name,descr=self.description,
+                                me=self.author.firstname)
+            msg = msgtemplate % msgdata
+ 
             # Create a text/plain message
-            msg = MIMEText(unicode('Liebe/r %(you)s\n' +
-                           'am %(due)s sollte %(job)s erledigt werden und Du bist dafür eingetragen. ' +
-                           'Falls etwas unklar ist, bitte nachfragen. Wenn Du die Aufgabe schon erledigt hast' +
-                           'gehe bitte auf http://fb09-c2.agrar.uni-giessen.de:8081/job/%(id)s' +
-                           'und hake den Job ab.\n\n' +
-                           'Danke und Schöne Grüße\n\n' +
-                           '%(me)\n\nP.S.: Diese Nachricht wurde automatisch im Namen des Job-Erstellers generiert' % 
-                           dict(id=self.id,you=self.responsible.firstname,due=self.due,job=self.name,descr=self.description,
-                                me=self.author.firstname),
-                           'utf-8','ignore'))
+            msg = MIMEText(msg.encode('utf-8'),'plain','utf-8')
             
             me = self.author.email
             you = self.responsible.email
             msg['Subject'] = 'Automatic reminder for Schwingbach-Job %s' % self.name
             msg['From'] = me
             msg['To'] = you
-            
+            print "Send %s reminder to %s from %s" % (self.name,self.responsible,self.author)
             # Send the message via our own SMTP server, but don't include the
             # envelope header.
             s = smtplib.SMTP('mailout.uni-giessen.de')
