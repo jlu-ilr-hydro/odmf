@@ -54,7 +54,7 @@ class PersonPage:
 class SitePage:
     exposed=True  
     @web.expose
-    def default(self,actualsite_id=None):
+    def default(self,actualsite_id='1'):
         session=db.Session()
         sites=session.query(db.Site).order_by(db.Site.name)
         error=''
@@ -389,7 +389,9 @@ class LogPage:
             
                            
         
-        
+class MapPage(object):
+    def index(self,valuetype=None,user=None,allsites=None):
+        pass     
     
 class Root(object):
     site=SitePage()

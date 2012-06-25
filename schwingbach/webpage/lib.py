@@ -108,7 +108,9 @@ def attrcheck(kw,condition):
 def markoption(condition):
     return attrcheck('selected',condition)
 
-def formatdate(t):
+def formatdate(t=None):
+    if not t:
+        return datetime.today().strftime('%d.%m.%Y')
     try:
         return t.strftime('%d.%m.%Y')
     except:
