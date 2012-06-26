@@ -29,11 +29,11 @@
 </head>
 <body onload="initialize()">
 	${navigation()}
-	<h1>Sites</h1>
-    <div  > 
+    <div> 
 		<div>
-			<form>
-				<select onchange="location.href=this.options[this.selectedIndex].value">
+			<form>Select a site:
+				<select onchange="location.href=this.options[this.selectedIndex].value"
+						style="width: 20em;">
 					<option py:for="s in sites"
 									value="${'/site/%i' % s.id}"
 									py:attrs="markoption(s is actualsite)"
@@ -41,51 +41,18 @@
 				</select>
 			</form>
 		</div>
-		<form action="/site/saveitem" method="post">
-			<div py:if="actualsite">
-				<h2 py:content="'%s' % actualsite" />
-
-				<table style="width: 100%">
-					<tr>
-						<td style="width: 7em">ID:</td>
-						<td><input type="text" name="id" value="${actualsite.id}" readonly="readonly" class="readonly"/></td>
-					</tr>
-					<tr>
-						<td style="width: 7em">L&auml;nge:</td>
-						<td><input type="text" name="lon" value="${actualsite.lon}" /></td>
-					</tr>
-					<tr>
-						<td>Breite:</td>
-						<td><input type="text" name="lat" value="${actualsite.lat}" /></td>
-					</tr>
-					<tr>
-						<td>H&ouml;he:</td>
-						<td><input type="text" name="height" value="${actualsite.height}" /></td>
-					</tr>
-					<tr>
-						<td>Name:</td>
-						<td><input type="text" name="name" value="${actualsite.name}" /></td>
-					</tr>
-					<tr>
-						<td>Sonstiges</td>
-						<td>
-						<textarea name="comment" 
-								  style="width: 100%;"
-								  rows="10" >${actualsite.comment}</textarea>
-						</td>
-					</tr>
-				</table>
-			</div>
-			<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
-		</form>
 		<div py:if="actualsite">
+			<h1 py:content="'Actual site #%i' % actualsite.id" />
+			<p py:content="actualsite" />
+			<p py:content="actualsite.comment" />
 			<h2>Messages for this site</h2>
 			<p>
 				Please report briefly any actions you have performed on this site, or if you observed something unusual.
 			</p>
 			<ul>
 				<li>
-					<div class="msghint" id="msghint" /> 
+					<a href="/log/new?siteid=${actualsite.id}" style="font-style: italic;">New message...</a>
+					<!--<div class="msghint" id="msghint" /> 
 					<form method="POST" action="/site/addmsg" name="msgform">
 							<input type="submit" value="New message:" />
 							<input name="message" id="msg" size="50"/>
@@ -99,20 +66,26 @@
 									<input name="site" value="${actualsite.id}" />
 								</span>
 					</form>
+					-->
 				</li>
 				<li py:for="log in actualsite.logs">
 					<a href="/log/${log.id}" py:content="'%s, %s: %s' % (formatdate(log.time),log.user,log.message)" />
 				</li>
 			</ul>
-			<h2>Datensätze</h2>
+			<h2>Installed instruments</h2>
 			<ul>
+				<li py:for="inst in actualsite.instruments"
+					py:content="'%s: %s (%s)' % (formatdate(inst.installdate),inst.instrument.name,inst.instrument.sourcetype)" />
+			</ul>
+			<h2>Available datasets</h2>
+			<ul>
+				<li>
+					<a href="/dataset/new?site_id=${actualsite.id}"
+					py:content="'Add new dataset...'" style="font-style: italic;" />
+				</li>
 				<li py:for="ds in actualsite.datasets">
 					<a href="/dataset/${ds.id}?site_id=${actualsite.id}" 
 					py:content="'%s (%s-%s)' % (ds,formatdate(ds.start),formatdate(ds.end))" />
-				</li>
-				<li>
-					<a href="/dataset/new?site_id=${actualsite.id}"
-					py:content="'Neuen Datensatz hinzufügen...'" style="font-style: italic;" />
 				</li>
 			</ul>
 		</div>

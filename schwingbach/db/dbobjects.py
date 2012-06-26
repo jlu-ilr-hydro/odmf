@@ -19,15 +19,6 @@ def newid(cls,session=None):
     else:
         return 1
 
-#class InstrumentAtSite(Base):
-#    
-#    __tablename__ = 'instrument_at_site'
-#    instrument=sql.Column('instrument_id',sql.Integer,sql.ForeignKey('instrument.id'),primary_key=True)
-#    site=sql.Column('site_id',sql.Integer,sql.ForeignKey('Site.id'),primary_key=True)
-#    installdate = sql.Column(sql.DateTime,nullable=True)
-#    removedate = sql.Column(sql.DateTime,nullable=True)
-#    comment = sql.Column(sql.String)
-    
 class Site(Base):
     "All locations in the database. The coordiante system is always geographic with WGS84/ETRS"
     __tablename__ = 'site'
@@ -44,13 +35,47 @@ class Site(Base):
     
 
 
-class Instrument(Base):
-    __tablename__= 'instrument'
+class Datasource(Base):
+    __tablename__= 'datasource'
     id = sql.Column(sql.Integer,
-                    #sql.ForeignKey("datasource.id"),
                     primary_key=True)
     name=sql.Column(sql.String)
+    sourcetype=sql.Column(sql.String)
     comment=sql.Column(sql.String)
+    def __str__(self):
+        return '%s (%s)' % (self.name,self.sourcetype)
+
+class Installation(Base):
+    """Defines the installation of an instrument (Datasource) at a site for a timespan
+    """
+    __tablename__ = 'installation'
+    _instrument=sql.Column('datasource_id',sql.Integer,sql.ForeignKey('datasource.id'),primary_key=True)
+    _site=sql.Column('site_id',sql.Integer,sql.ForeignKey('site.id'),primary_key=True)
+    id=sql.Column('installation_id',sql.Integer,primary_key=True)
+    installdate = sql.Column(sql.DateTime,nullable=True)
+    removedate = sql.Column(sql.DateTime,nullable=True)
+    comment = sql.Column(sql.String)
+    instrument = orm.relationship('Datasource',
+                                  backref=orm.backref('sites',order_by=installdate.desc),
+                                  primaryjoin="Datasource.id==Installation._instrument")
+    site=orm.relationship('Site',backref=orm.backref('instruments',order_by=installdate.desc),
+                          primaryjoin="Site.id==Installation._site")
+    def __init__(self,site,instrument,id,installdate=None,comment=''):
+        self.site=site
+        self.instrument=instrument
+        self.id=id
+        self.comment=comment
+        self.installdate=installdate
+    @property
+    def active(self):
+        today = datetime.today()
+        return self.installdate<=today and (self.removedate is None or self.removedate>today)
+    def __str__(self):
+        fmt = "Installation of %(instrument)s at %(site)s"
+        return fmt % dict(instrument=self.instrument,site=self.site) 
+    def __repr__(self):
+        return "<Installation(site=%i,instrument=%i,id=%i)>" % (self.site.id,self.instrument.id,self.id)
+    
 
 class Person(Base):
     __tablename__= 'person'

@@ -340,7 +340,7 @@ class JobPage:
 class LogPage:
     expose=True
     @web.expose
-    def default(self,logid="new"):
+    def default(self,logid="new",siteid=None):
         session=db.Session()
         error=''
         if logid=='new':
@@ -348,6 +348,9 @@ class LogPage:
             user = web.user()
             if user:
                 log.user = session.query(db.Person).get(user)
+            if siteid:
+                log.site = session.query(db.Site).get(int(siteid))
+            log.time=datetime.today()
         else:
             try:
                 log = session.query(db.Log).get(int(logid))
