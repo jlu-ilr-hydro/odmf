@@ -10,10 +10,6 @@
   <script>
       $(function() {$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });});
       
-      function setmsg(text,label) {
-      	document.msgform.msg.value = text;
-      	document.getElementById('msghint').innerHTML = label;
-      }
   </script>
 
 	<title>Sites</title>
@@ -52,21 +48,6 @@
 			<ul>
 				<li>
 					<a href="/log/new?siteid=${actualsite.id}" style="font-style: italic;">New message...</a>
-					<!--<div class="msghint" id="msghint" /> 
-					<form method="POST" action="/site/addmsg" name="msgform">
-							<input type="submit" value="New message:" />
-							<input name="message" id="msg" size="50"/>
-							<input class="datepicker" name="msgdate" value="${formatdate()}" /><br />
-							<input type="button" name="msgbutton1" value="sample taken"
- 										 onclick="setmsg('sample taken','Report time and water level/discharge (if applicable) to your message');" />
-							<input type="button" name="msgbutton2" value="logger exchange"
-										onclick="setmsg('logger exchange','Report time and water level/discharge (if applicable) to your message');" />
-
-								<span style="visibility: collapse">
-									<input name="site" value="${actualsite.id}" />
-								</span>
-					</form>
-					-->
 				</li>
 				<li py:for="log in actualsite.logs">
 					<a href="/log/${log.id}" py:content="'%s, %s: %s' % (formatdate(log.time),log.user,log.message)" />

@@ -6,6 +6,7 @@ from traceback import format_exc as traceback
 from base64 import b64encode
 from webpage.upload import DownloadPage
 from datetime import datetime
+import json
 class PersonPage:
     exposed=True  
     @web.expose
@@ -98,23 +99,15 @@ class SitePage:
                 return web.render('empty.html',error=traceback(),title='site #%s' % siteid
                                   ).render('html',doctype='html')
         raise web.HTTPRedirect('./%s' % siteid)
-    @web.expose
-    def addmsg(self,site,message):
-        session = db.Session()
-        error=''
-        id = db.newid(db.Log, session)
-        user = web.user()
-        log = db.Log(id=id,message=message,time=datetime.today())
-        if user:
-            log.user = session.query(db.Person).get(user)
-        if site:
-            log.site = session.query(db.Site).get(int(site))
-        session.add(log)
-        session.commit()
-        session.close()
-        raise web.HTTPRedirect('./' + str(site))
         
-
+    @web.expose
+    @web.mimetype('application/json')
+    def json(self):
+        session=db.Session()
+        sites=dict((s.id,str(s)) for s in session.query(db.Site))
+        res = json.dumps(sites,indent=4)
+        return res
+        
     @web.expose
     @web.mimetype('application/vnd.google-earth.kml+xml')
     def kml(self,sitefilter=None):
