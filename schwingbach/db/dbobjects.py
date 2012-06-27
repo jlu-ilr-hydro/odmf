@@ -31,7 +31,10 @@ class Site(Base):
     def __str__(self):
         E='E' if self.lon>0 else 'W'
         N='N' if self.lat>0 else 'S'
-        return "%s (#%i,%0.3f%s,%0.3f%s)" % (self.name,self.id,abs(self.lon),E,abs(self.lat),N)
+        coord ='%0.6f%s,%0.6f%s' % (abs(self.lon),E,abs(self.lat),N)
+        if self.height:
+            coord+=',%0.3f m a.s.l' % self.height
+        return "#%i (%s) - %s" % (self.id,coord,self.name)
     
 
 

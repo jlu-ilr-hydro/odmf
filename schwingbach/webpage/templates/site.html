@@ -8,7 +8,31 @@
 	<script src="/media/jquery-1.7.1.min.js" type="text/javascript" />
   <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" />
   <script>
-      $(function() {$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });});
+      function popSelect() {
+      	$.getJSON('/site/json',[],function(data){
+	  		var html=''
+	  		$.each(data,function(index,item){
+	  			if (item.id != ${actualsite.id}) { 
+	  				html += '<option value="/site/' + item.id + '">' +    item.text + '</option>'
+	  			} else {
+	  				html += '<option value="/site/' + item.id + '" selected="selected">' +    item.text + '</option>'
+	  			}
+	  		});
+	  		$('#siteselect').html(html)
+	  	});
+      }
+      function startedit(id) {
+      	if ($('#editarea').html()=='') {
+      		$('#editarea').load('/site/edit',{siteid : id});
+      	} else {
+      		$('#editarea').html('');
+      	}
+      }
+      $(function() {
+      	$('.datepicker').datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
+      	popSelect();   	
+      });
+      
       
   </script>
 
@@ -29,11 +53,9 @@
 		<div>
 			<form>Select a site:
 				<select onchange="location.href=this.options[this.selectedIndex].value"
+						
+						id="siteselect"
 						style="width: 20em;">
-					<option py:for="s in sites"
-									value="${'/site/%i' % s.id}"
-									py:attrs="markoption(s is actualsite)"
-									py:content="s" /> 
 				</select>
 			</form>
 		</div>
@@ -41,6 +63,12 @@
 			<h1 py:content="'Actual site #%i' % actualsite.id" />
 			<p py:content="actualsite" />
 			<p py:content="actualsite.comment" />
+			<p>
+				<input type="button" onclick="startedit(${actualsite.id})" value="Edit..." />
+				<input type="button" onclick="startedit('new')" value="New..." />
+	
+			</p>
+			<div id="editarea" />
 			<h2>Messages for this site</h2>
 			<p>
 				Please report briefly any actions you have performed on this site, or if you observed something unusual.

@@ -7,6 +7,7 @@ from base64 import b64encode
 from webpage.upload import DownloadPage
 from datetime import datetime
 import json
+from cStringIO import StringIO
 class PersonPage:
     exposed=True  
     @web.expose
@@ -52,13 +53,26 @@ class PersonPage:
             session.commit()
             session.close()
         raise web.HTTPRedirect('./' + username)
+    @web.expose
+    def json(self,supervisors=False):
+        web.setmime('application/json')
+        session = db.Session()
+        persons = session.query(db.Person).order_by(db.sql.desc(db.Person.can_supervise),db.Person.surname)
+        if supervisors:
+            persons = persons.filter(db.Person.can_supervise==True)
+        io= StringIO()
+        io.write('[\n')
+        for p in persons:
+            io.write('{"username":%s, "text":%s}\n' % (p.username,p))
+        io.write(']\n')
+        return io.getvalue()
+
+        
 class SitePage:
     exposed=True  
     @web.expose
-    def default(self,actualsite_id='1'):
+    def default(self,actualsite_id='1',error=''):
         session=db.Session()
-        sites=session.query(db.Site).order_by(db.Site.name)
-        error=''
         if actualsite_id=='new':
             actualsite=db.Site(id=db.newid(db.Site,session),
                                lon=8.55,lat=50.5,
@@ -70,7 +84,7 @@ class SitePage:
                 error=traceback()
                 actualsite=None
         
-        result = web.render('site.html',sites=sites,actualsite=actualsite,error=error,image=''
+        result = web.render('site.html',actualsite=actualsite,error=error,image=''
                             ).render('html',doctype='html')
         session.close()
         return result    
@@ -99,19 +113,64 @@ class SitePage:
                 return web.render('empty.html',error=traceback(),title='site #%s' % siteid
                                   ).render('html',doctype='html')
         raise web.HTTPRedirect('./%s' % siteid)
-        
     @web.expose
-    @web.mimetype('application/json')
+    def edit(self,siteid='new'):
+        session=db.Session()
+        if siteid=='new':        
+            actualsite=db.Site(id=db.newid(db.Site,session),
+                               lon=8.55,lat=50.5,
+                               name='<enter site name>')
+        else:
+            try:
+                actualsite=session.query(db.Site).get(int(siteid))
+                
+            except:
+                error=traceback()
+                actualsite=None
+        if actualsite:
+            result=web.render('newsite.html',actualsite=actualsite).render('xml')
+        else:        
+            result= web.Markup('<div class="error">%s</div>' % error)
+        session.close()
+        return result
+    @web.expose
+    def instrument(self,installationid=None,siteid=None,action='add',date=None,instrumentid=None):
+        session=db.Session()
+        error=''
+        try:
+            date=web.parsedate(date)
+            site = session.query(db.Site).get(int(siteid))
+            instrument = session.query(db.Instrument).get(int(instrumentid))
+            if installationid:
+                inst = session.query(db.Installation).get(int(installationid))
+            else:
+                instid = session.query(db.Installation)\
+                        .filter(db.Installation.instrument==instrument,db.Installation.site==site)\
+                        .order_by(db.sql.desc(db.Installation.id)).first().id
+                inst = db.Installation(site, instrument, instid+1, date)
+                session.add(inst)
+            if action!='add' and inst:
+                inst.removedate = date
+        except:
+            error=traceback()
+        raise web.HTTPRedirect('/site/%s?error=%s' % (siteid,error))
+        
+        
+
+                  
+    @web.expose
     def json(self):
         session=db.Session()
-        sites=dict((s.id,str(s)) for s in session.query(db.Site))
+        web.setmime('application/json')
+        sites=[{'id':s.id,'text':str(s)} for s in session.query(db.Site).order_by(db.Site.id)]
         res = json.dumps(sites,indent=4)
         return res
         
     @web.expose
-    @web.mimetype('application/vnd.google-earth.kml+xml')
     def kml(self,sitefilter=None):
         session = db.Session()
+        web.setmime('application/vnd.google-earth.kml+xml')
+        
         query = session.query(db.Site)
         if filter:
             query = query.filter(sitefilter)
