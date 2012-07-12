@@ -46,6 +46,9 @@ class Base(object):
     @classmethod
     def query(cls,session):
         return session.query(cls)
+    @classmethod
+    def get(cls,session,id):
+        return session.query(cls).get(id)
         
 
 Base = declarative_base(cls=Base)
