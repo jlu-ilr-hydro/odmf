@@ -1,0 +1,39 @@
+<xml xmlns:py="http://genshi.edgewall.org/" >
+<form action="/site/saveitem" method="post">
+	<div>
+		<h2 py:content="'Edit %s' % actualsite" />
+
+		<table style="width: 100%">
+			<tr>
+				<td style="width: 7em">ID:</td>
+				<td><input type="text" name="id" value="${actualsite.id}" readonly="readonly" class="readonly"/></td>
+			</tr>
+			<tr>
+				<td style="width: 7em">L&auml;nge:</td>
+				<td><input type="text" name="lon" value="${actualsite.lon}" /></td>
+			</tr>
+			<tr>
+				<td>Breite:</td>
+				<td><input type="text" name="lat" value="${actualsite.lat}" /></td>
+			</tr>
+			<tr>
+				<td>H&ouml;he:</td>
+				<td><input type="text" name="height" value="${actualsite.height}" /></td>
+			</tr>
+			<tr>
+				<td>Name:</td>
+				<td><input type="text" name="name" value="${actualsite.name}" /></td>
+			</tr>
+			<tr>
+				<td>Sonstiges</td>
+				<td>
+				<textarea name="comment" 
+						  style="width: 100%;"
+						  rows="10" >${actualsite.comment}</textarea>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
+</form>
+</xml>
