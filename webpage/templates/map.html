@@ -1,49 +1,67 @@
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:py="http://genshi.edgewall.org/">
+<html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
 	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>Karte</title>
-	<!--
-	<script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false" />
+
+	<title>Map</title>
+	
+	<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+	
+	<script type="text/javascript" src="/media/jquery-1.7.1.min.js"></script> 
+	
 	<script type="text/javascript">
-	  function initialize() {
+		function initalize() {
+			$('#navigation').load('/navigation');
 	    var latlng = new google.maps.LatLng(50.49, 8.55);
 	    var myOptions = {
 	      zoom: 15,
 	      center: latlng,
-	      mapTypeId: google.maps.MapTypeId.ROADMAP
+	      mapTypeId: google.maps.MapTypeId.HYBRID
 	    };
-	    var siteLayer = new google.maps.KmlLayer('http://fb09-pasig.umwelt.uni-giessen.de:8081/site/kml');
+	    
+	    var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 
-	    var map = new google.maps.Map(document.getElementById("map_canvas"),myOptions);
-	    siteLayer.setMap(map);
-	  }
-	
+	    $.getJSON('/map/sites',[],function(data) {
+	    	$.each(data,function(index,item){
+	    		var image = new google.maps.MarkerImage('/media/mapicons/' + item.icon,
+					      new google.maps.Size(24, 24),
+					      new google.maps.Point(0,0),
+					      new google.maps.Point(0, 24));
+		    	var marker = new google.maps.Marker({
+					      position: new google.maps.LatLng(item.lat,item.lon),
+	      				title:item.name,
+	      				map:map,
+	      				icon:image,
+	  			});
+	  			google.maps.event.addListener(marker,'click',function() {
+							//alert(item.name)
+						  $('#infotext').load('/map/sitedescription',{siteid:item.id});												
+	  			});
+	    	});
+	    });
+	    
+	   
+		}
 	</script>
-	-->
 
 	<style type="text/css">
 	  #map_canvas { height: 100%; width: 100%; }
 	</style>	
 	
 </head>
-<body onload="initialize()">
-	${navigation()}
-	<h1>Lage der Messpunkte</h1>
-	<h2>Studienlandschaft Schwingbach</h2>
-    <div class="error" py:content="error" />
-    <div>
-		<iframe style="height: 700px; width: 100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" 
-				src="http://www.google.de/maps?f=q&amp;source=s_q&amp;hl=de&amp;geocode=&amp;q=http:%2F%2Ffb09-pasig.umwelt.uni-giessen.de:8081%2Fsite%2Fkml&amp;aq=&amp;sll=51.151786,10.415039&amp;sspn=24.013055,64.907227&amp;ie=UTF8&amp;t=m&amp;ll=50.500762,8.568478&amp;spn=0.054594,0.120335&amp;z=13&amp;output=embed">
-		</iframe>
-		<br />
-		<small>
-			<a href="http://www.google.de/maps?f=q&amp;source=embed&amp;hl=de&amp;geocode=&amp;q=http:%2F%2Ffb09-pasig.umwelt.uni-giessen.de:8081%2Fsite%2Fkml&amp;aq=&amp;sll=51.151786,10.415039&amp;sspn=24.013055,64.907227&amp;ie=UTF8&amp;t=m&amp;ll=50.500762,8.568478&amp;spn=0.054594,0.120335&amp;z=13" 
-			   style="color:#0000FF;text-align:left" >Größere Kartenansicht</a>
-		</small>
-		<!--<div id="map_canvas" />-->
-    </div>
+<body onload="initalize()">
+	<div id="navigation" >Navigation</div>
+	<h1>Site map</h1>
+	<table style="height: 90%; width: 100%;">
+		<tr>
+			<td width="25%" id="infotext" valign="top">
+				<h3>No site selected</h3>
+			</td>
+			<td>
+				<div id="map_canvas" style="width:100%; height:100%;" >Map</div>	
+			</td>
+		</tr>
+	</table>
 </body>
 </html>

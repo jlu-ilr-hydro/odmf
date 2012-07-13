@@ -14,15 +14,16 @@ autoreload= not 'noreload' in sys.argv
 print "autoreload =",autoreload
 import db
 db.Dataset.metadata.create_all(db.engine)
+session=db.Session()
 p=db.Person()              
 users={'admin':'SB0:VK1'}
-for p in db.Session().query(db.Person):
+for p in session.query(db.Person):
     if p.telephone:
         pw = p.telephone.split()[-1]
     else:
         pw='VB1:SB0'
     users[p.username]=pw
-
+session.close()
 digest = {'tools.digest_auth.on': True,
           'tools.digest_auth.realm':'ilr',
           'tools.digest_auth.users':users,

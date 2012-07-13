@@ -1,0 +1,47 @@
+<xml xmlns:py="http://genshi.edgewall.org/" >
+<h3>
+	<a href="/site/${site.id}">
+		<img src="/media/mapicons/${site.icon if site.icon else 'unknown.png'}" /> 
+		#${site.id} (${site.name})
+	</a>
+</h3>
+<div py:content="site.comment" />
+<div py:if="site.height" py:content="'%0.1f m NN' % site.height" />
+<div>
+	<a href="/site/${site.id}">edit...</a>
+</div>
+
+<div>
+	<h3>Instruments:</h3>
+	<ul>
+		<li py:for="inst in site.instruments" 
+				py:if="inst.active"
+				py:content="'since %s: %s' % (formatdate(inst.installdate),inst.instrument)" /> 
+	</ul>
+</div>
+<div>
+	<h3>Logbook:</h3>
+	<ul>
+		<li>
+			<a href="/log/new?siteid=${site.id}" style="font-style: italic;">New message...</a>
+		</li>
+		<li py:for="log in site.logs">
+			<a href="/log/${log.id}">${formatdate(log.time)}, ${log.user}: ${log.message}</a>
+		</li>
+	</ul>
+</div>
+
+<div>
+	<h3>Datasets:</h3>
+	<ul>
+		<li>
+			<a href="/dataset/new?site_id=${site.id}"
+					style="font-style: italic;" >Add new dataset...</a>
+		</li>
+		<li py:for="ds in site.datasets">
+			<a href="/dataset/${ds.id}">${ds.name}</a>, ${ds.valuetype} (${formatdate(ds.start)}-${formatdate(ds.end)})
+		</li>
+	</ul>
+</div>
+
+</xml>
