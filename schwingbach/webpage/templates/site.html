@@ -5,21 +5,46 @@
 	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <link href="/media/jquery-ui-1.8.18.custom.css" rel="stylesheet" type="text/css"/>
-	<script src="/media/jquery-1.7.1.min.js" type="text/javascript" />
+	<script src="/media/jquery-1.7.1.min.js" type="text/javascript"/>
   <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" />
   <script>
       function popSelect() {
       	$.getJSON('/site/json',[],function(data){
-	  		var html=''
+	  		var html='';
 	  		$.each(data,function(index,item){
 	  			if (item.id != ${actualsite.id}) { 
-	  				html += '<option value="/site/' + item.id + '">' +    item.text + '</option>'
+	  				html += '<option value="/site/' + item.id + '">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
 	  			} else {
-	  				html += '<option value="/site/' + item.id + '" selected="selected">' +    item.text + '</option>'
+	  				html += '<option value="/site/' + item.id + '" selected="selected">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
 	  			}
 	  		});
-	  		$('#siteselect').html(html)
+	  		$('#siteselect').html(html);
 	  	});
+      }
+      function popInstruments() {
+      	$.getJSON('/site/getinstruments',[],function(data){
+	      	var html='<option value="">Please select...</option>';
+  	    	$.each(data, function(index,item){
+  	    		html += '<option value="' + item.id + '">' + item.name + '</option>';
+  	    	});
+	      	$('#instruments').html(html);
+      	});
+      }
+      function addinstrument() {
+      	data = {instrumentid:$('#instruments').val(),
+      					date:escape($('#installationdate').val()),
+      					siteid:${actualsite.id}
+      				};
+      	return '/site/addinstrument?' + $.param(data);
+      }
+      function removeinstrument(installationid) {
+      	data = {instrumentid:$('#instruments').val(),
+      					date:escape($('#installationdate').val()),
+      					siteid:${actualsite.id},
+      					installationid:installationid
+      				};
+      	return '/site/removeinstrument?' + $.param(data);
+      	
       }
       function startedit(id) {
       	if ($('#editarea').html()=='') {
@@ -31,6 +56,7 @@
       $(function() {
       	$('.datepicker').datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
       	popSelect();   	
+      	popInstruments();
       });
       
       
@@ -43,7 +69,18 @@
   	   	font-weight: bold;
   	   	color: red;
   	   }
-	  select { width: 100%;}
+  	   a.highlightonhover {
+  	   	background-color: #fff;
+  	   	height: 36px;
+  	   }
+  	   a.highlightonhover:hover {
+  	   	background-color: #f00;
+  	   	height: 36px;
+  	   }
+	  select { width: 20em;}
+	  .removed {
+	  	color: grey;
+	  }
 
 	</style>	
 </head>
@@ -53,14 +90,13 @@
 		<div>
 			<form>Select a site:
 				<select onchange="location.href=this.options[this.selectedIndex].value"
-						
 						id="siteselect"
 						style="width: 20em;">
 				</select>
 			</form>
 		</div>
 		<div py:if="actualsite">
-			<h1 py:content="'Actual site #%i' % actualsite.id" />
+			<h1><img src="/media/mapicons/${actualsite.icon}" /> Actual site #${actualsite.id}</h1>
 			<p py:content="actualsite" />
 			<p py:content="actualsite.comment" />
 			<p>
@@ -83,8 +119,21 @@
 			</ul>
 			<h2>Installed instruments</h2>
 			<ul>
-				<li py:for="inst in actualsite.instruments"
-					py:content="'%s: %s (%s)' % (formatdate(inst.installdate),inst.instrument.name,inst.instrument.sourcetype)" />
+				<li>
+						<input type="button" value="Add:" 
+							onclick="location.href=addinstrument()" />
+						<select id="instruments" >
+							<option value="">Please select...</option>
+						</select>
+						<input class="datepicker" id="installationdate" value="${formatdate()}" /> 
+				</li>
+				<li py:for="inst in actualsite.instruments" >
+					<span py:if="inst.active" 
+								py:content="'since %s: %s (%s)' % (formatdate(inst.installdate),inst.instrument.name,inst.instrument.sourcetype)" />
+					<span py:if="not inst.active" class="removed"
+								py:content="'until %s: %s (%s)' % (formatdate(inst.removedate),inst.instrument.name,inst.instrument.sourcetype)" />
+					<button py:if="inst.active" onclick="location.href=removeinstrument(${inst.id})">Remove...</button>
+				</li>
 			</ul>
 			<h2>Available datasets</h2>
 			<ul>

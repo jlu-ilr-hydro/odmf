@@ -33,9 +33,10 @@
     
 	<h2>Upload</h2>
 	<div>
-	    <form method="post" enctype="multipart/form-data" action="">
+	    <form method="post" enctype="multipart/form-data" action="/download/upload">
 	    	file:
 	    	<input type="file" name="datafile"  /><br />
+	    	<input name="dir" style="visibility: collapse;" value="${curdir}" />
 	    	<!--new file name:
 	    	<input type="text" name="newname" size="20" />-->
 	    	<input type="submit"  />

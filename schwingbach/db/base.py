@@ -9,7 +9,7 @@ Created on 13.02.2012
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
-
+from cStringIO import StringIO
 import os.path as op
 
 def abspath(fn):

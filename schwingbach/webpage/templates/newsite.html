@@ -9,20 +9,33 @@
 				<td><input type="text" name="id" value="${actualsite.id}" readonly="readonly" class="readonly"/></td>
 			</tr>
 			<tr>
-				<td style="width: 7em">L&auml;nge:</td>
-				<td><input type="text" name="lon" value="${actualsite.lon}" /></td>
+				<td style="width: 7em">Longitude:</td>
+				<td><input type="text" name="lon" value="${actualsite.lon}" />°</td>
 			</tr>
 			<tr>
-				<td>Breite:</td>
-				<td><input type="text" name="lat" value="${actualsite.lat}" /></td>
+				<td>Latitude:</td>
+				<td><input type="text" name="lat" value="${actualsite.lat}" />°</td>
 			</tr>
 			<tr>
-				<td>H&ouml;he:</td>
-				<td><input type="text" name="height" value="${actualsite.height}" /></td>
+				<td>Height:</td>
+				<td><input type="text" name="height" value="${actualsite.height}" /> m NN</td>
 			</tr>
 			<tr>
 				<td>Name:</td>
 				<td><input type="text" name="name" value="${actualsite.name}" /></td>
+			</tr>
+			<tr height="36px">
+				<td>
+					Icon: <img src="/media/mapicons/${actualsite.icon if actualsite.icon else 'unknown.png'}" id="currenticon" />
+					
+				</td>
+				<td>
+					<a py:for="icon in icons" class="highlightonhover"
+						 onclick="$('#currenticon').attr('src','/media/mapicons/${icon}');$('#iconfile').val('${icon}');" >
+						 <img src="/media/mapicons/${icon}" />
+					</a>
+					<input name="icon" style="visibility: collapse;" id="iconfile"/>						 
+				</td>
 			</tr>
 			<tr>
 				<td>Sonstiges</td>

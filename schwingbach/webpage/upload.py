@@ -6,24 +6,25 @@ Created on 15.02.2012
 @author: philkraf
 '''
 
-import lib
+import lib as web
 from os import path as op
 import os
 from traceback import format_exc as traceback
 from genshi import escape
 
-datapath=lib.abspath('datafiles')
-home = lib.abspath('.')
+datapath=web.abspath('datafiles')
+home = web.abspath('.')
 
 
 class Path(object):
     def __init__(self,abspath):
         self.absolute = op.realpath(abspath)
-        self.href = '/' + op.relpath(self.absolute, home).replace('\\','/')
-        if op.isdir(self.absolute):
-            self.href=self.href.replace('datafiles','download')
         self.name = op.relpath(self.absolute,datapath).replace('\\','/')
         self.basename=op.basename(self.absolute)
+        if op.isdir(self.absolute):
+            self.href='/download?dir=%s' % self.name
+        else:
+            self.href = '/' + op.relpath(self.absolute,home).replace('\\','/')
     def __str__(self):
         return self.name
     def formatsize(self):
@@ -40,28 +41,35 @@ class Path(object):
 
 class DownloadPage(object):
     exposed=True  
-    @lib.expose
-    def default(self,directory='',error='',datafile=None,newname=None, **kwargs):
-        path = op.join(datapath,directory)
+    @web.expose
+    def index(self,dir='',error='',**kwargs):
+        path = op.join(datapath,dir)
+        relpath = op.relpath(path, datapath)
         files=[]
         error=''
         directories=[]
-        for fn in os.listdir(path):
-            if not fn.startswith('.'):
-                abspath = op.join(path,fn)
-                if op.isdir(abspath):
-                    directories.append(Path(abspath))
-                elif op.isfile(abspath):
-                    files.append(Path(abspath))    
-        files.sort()
-        directories.sort()
+        if op.isdir(path):            
+            for fn in os.listdir(path):
+                if not fn.startswith('.'):
+                    abspath = op.join(path,fn)
+                    if op.isdir(abspath):
+                        directories.append(Path(abspath))
+                    elif op.isfile(abspath):
+                        files.append(Path(abspath))    
+            files.sort()
+            directories.sort()
+        else:
+            error='%s is not a valid directory'
+        return web.render('download.html',error=error,files=files,directories=directories,
+                      curdir=relpath).render('html',doctype='html')
+    @web.expose
+    def upload(self,dir,datafile):
+        error=''
         if datafile:
+            path=op.realpath(op.join(datapath,dir))
             if not op.exists(path):
                 os.makedirs(path)
-            if newname:
-                fn = os.path.join(path,newname)
-            else:
-                fn = os.path.join(path,str(datafile.filename))
+            fn = os.path.join(path,str(datafile.filename))
             if op.exists(fn):
                 short=op.relpath(fn, datapath)
                 error="'%s' exists already, please use another filename or another directory" % short
@@ -75,16 +83,15 @@ class DownloadPage(object):
                         fout.write(data)
                 except:
                     error=traceback()
-        return lib.render('download.html',error=error,files=files,directories=directories,
-                          curdir=directory
-                          ).render('html',doctype='html')
-    
+        url = '/download?dir='+escape(dir)
+        if error: url+='&error='+escape(error)
+        raise web.HTTPRedirect(url)
     
     
 if __name__=='__main__':
     class Root:
         download=DownloadPage()
-    lib.start_server(Root(), autoreload=False, port=8081)
+    web.start_server(Root(), autoreload=False, port=8081)
 
         
         

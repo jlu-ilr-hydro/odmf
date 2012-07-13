@@ -12,7 +12,7 @@ from os import path as op
 import cherrypy
 
 import threading
-
+import json
 from datetime import datetime
 
 from genshi.core import Stream
@@ -21,7 +21,16 @@ from genshi.template import Context, TemplateLoader
 from genshi.core import Markup
 
 
-#import webpage
+def jsonhandler(obj):
+    if hasattr(obj,'__jdict__'):
+        return obj.__jdict__()
+    elif hasattr(obj,'isoformat'):
+        return obj.isoformat()
+    else:
+        return obj 
+
+def as_json(iterable):
+    return json.dumps(list(iterable),sort_keys=True,indent=4,default=jsonhandler)
 
 
 def abspath(fn):
@@ -38,6 +47,12 @@ config =  { '/': {
                        'tools.staticdir.on': True,
                        'tools.staticdir.dir': 'media'
                        },
+           '/html': {
+                       'tools.staticdir.on': True,
+                       'tools.staticdir.dir': 'templates',
+                       'tools.caching.on' : False,
+                       },
+
            '/datafiles' : {
                        'tools.staticdir.on': True,
                        'tools.staticdir.dir': 'datafiles'
@@ -94,11 +109,6 @@ def navigation():
          | <a href="/download">download</a>
          | login: %s 
     </div>
-    <div class="topimage">
-		<img src="/media/Aue.jpg" />
-		<img src="/media/KleebachSchwingbach.jpg" />
-		<img src="/media/Quellgebiet.jpg" />
-	</div>
     ''' % user())
 def attrcheck(kw,condition):
     if condition:
