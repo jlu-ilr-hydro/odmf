@@ -81,11 +81,14 @@ class SitePage:
     def getinstruments(self):
         web.setmime('application/json')
         session=db.Session()
-        instr = '\n  '.join(['{"id":%i,"name":"%s"}' % (instr.id,instr.name) for instr in session.query(db.Datasource)])
-        return '[\n' + instr + '\n]'
+        res=web.as_json(session.query(db.Datasource))
+        session.close()
+        return res
     
     @web.expose
     def addinstrument(self,siteid,instrumentid,date=None):
+        if not instrumentid:
+            raise web.HTTPRedirect('/instrument/new')
         session=db.Session()
         error=''
         try:
@@ -106,7 +109,7 @@ class SitePage:
             error=traceback()
         finally:
             session.close()
-        raise web.HTTPRedirect('/site/%s?error=%s' % (siteid,escape(error)))
+        return error
     @web.expose
     def removeinstrument(self,siteid,instrumentid,installationid,date=None):
         session=db.Session()
@@ -130,7 +133,7 @@ class SitePage:
             session.rollback()
         finally:
             session.close()
-        raise web.HTTPRedirect('/site/%s?error=%s' % (siteid,error))
+        return error
     @web.expose
     def json(self):
         session=db.Session()

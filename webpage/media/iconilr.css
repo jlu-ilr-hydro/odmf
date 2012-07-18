@@ -129,6 +129,15 @@ td.highlight
     font-weight: bold;
 }
 
+li.plus {
+	list-style-image: url(/media/plus-small.png);
+	font-style: italic;
+}
+li.minus {
+	list-style-image: url(/media/minus-small.png);
+	font-style: italic;
+}
+
 hr {
     background-color: #002080
 }

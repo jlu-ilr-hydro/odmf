@@ -11,6 +11,85 @@
     <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
     <script>
         $(function() {$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });});
+    		function popSelect() {
+    			vt = $('#vtselect').val()
+    			user = $('#userselect').val()
+    			site = $('#siteselect').val()
+    			date = $('#dateselect').val()
+	    			$.getJSON('/dataset/attrjson',
+	    								{ attribute:'valuetype',
+	    								  user:user,
+	    								  site:site,
+	    								  date:date
+	    								},
+	    								function(data){
+	    									var html='<option value="">Please select...</option>';
+	    									$.each(data,function(index,item){
+	    										html+='<option value="'+item.id+'">'+item.name+'</option>';
+	    									});
+	    									$('#vtselect').html(html).val(vt);
+	    								}
+	    			);
+	    					
+		  			$.getJSON('/dataset/attrjson',
+	    								{ attribute:'measured_by',
+	    									valuetype:vt,
+	    								  site:site,
+	    								  date:date
+	    								},
+	    								function(data){
+	    									var html='<option value="">Please select...</option>';
+	    									$.each(data,function(index,item){
+	    										html+='<option value="'+item.username+'">'+item.firstname+' '+item.surname+'</option>';
+	    									});
+	    									$('#userselect').html(html).val(user);
+	    								}
+	    			);		
+
+	    			$.getJSON('/dataset/attrjson',
+	    								{ attribute:'site',
+	    									valuetype:vt,
+	    								  user:user,
+	    								  date:date
+	    								},
+	    								function(data){
+	    									var html='<option value="">Please select...</option>';
+	    									$.each(data,function(index,item){
+	    										html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
+	    									});
+	    									$('#siteselect').html(html).val(site);
+	    								}
+	    			);	
+	    			$.getJSON('/dataset/json',
+	    								{ valuetype: vt,
+	    									user:user,
+	    									site:site,
+	    									date:date,
+	    								},
+	    								function(data){
+	    									var html='';
+	    									//$.each(data,function(index,item){html+='<li><a href="/dataset/'+item.id+'">'+item.name+'</a></li>'});
+	    									$.each(data,function(index,item){html+='<li><a onclick="editdataset('+item.id+')">'+item.name+'</a></li>'});
+	    									$('#dslist').html(html);
+	    								}
+	    				
+	    			);
+	    			
+
+    			
+    		}
+    		function clearfilter() {
+    			$('.filter').val('')
+    			$('#dateselect').val('')
+    			popSelect();
+    		}
+    		function editdataset(dsid) {
+    			$('#dsedit').load('/dataset/edit',{id:dsid});
+    		}
+    		$(function() {
+    				$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
+	    			popSelect();
+	   		});
     </script>
 
 	<style>
@@ -30,6 +109,7 @@
     <div class="error" py:content="error" />
 	
 	<h1>Data sets</h1>
+	<a href="/dataset">Go to list...</a>
 
     <div > 
 		<form action="/dataset/saveitem" method="post">
@@ -46,7 +126,7 @@
 						<td><input type="text" name="name" value="${activedataset.name}" /></td>
 					</tr>
 					<tr>
-						<td>Werte:</td>
+						<td>Values:</td>
 						<td py:if="activedataset.records.count()" 
 							class="highlight"
 							py:content="Markup(u'%0.4g &plusmn; %0.4g %s, n=%i' % (session.query(db.sql.func.avg(db.Record.value)).filter(db.Record.dataset==activedataset).scalar(), 
@@ -59,10 +139,10 @@
 					</tr>
 
 					<tr>
-						<td><a href="${'/user/%s' % (activedataset.measured_by.username if activedataset.measured_by else '')}"> Gemessen von:</a></td>
+						<td><a href="${'/user/%s' % (activedataset.measured_by.username if activedataset.measured_by else '')}"> Measured by:</a></td>
 						<td>
 							<select name="measured_by">
-								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
+								<option value=""><i>Please select...</i></option>
 								<option py:for="p in session.query(db.Person)"
 										py:attrs="markoption(p is activedataset.measured_by)"
 										py:content="p"
@@ -71,10 +151,10 @@
 						</td>
 					</tr>
 					<tr>
-						<td><a href="${'/valuetype/%s' % (activedataset.valuetype.id if activedataset.valuetype else '')}">Messgröße:</a></td>
+						<td><a href="${'/valuetype/%s' % (activedataset.valuetype.id if activedataset.valuetype else '')}">Value:</a></td>
 						<td>
 							<select name="valuetype">
-								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
+								<option value=""><i>Please select...</i></option>
 								<option py:for="vt in session.query(db.ValueType).order_by(db.ValueType.name)"
 										py:attrs="markoption(vt is activedataset.valuetype)"
 										py:content="vt"
@@ -83,10 +163,10 @@
 						</td>
 					</tr>
 					<tr>
-						<td><a href="${'/site/%s' % (activedataset.site.id if activedataset.site else '')}">Ort:</a></td>
+						<td><a href="${'/site/%s' % (activedataset.site.id if activedataset.site else '')}">Site:</a></td>
 						<td>
 							<select name="site">
-								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
+								<option value=""><i>Please select...</i></option>
 								<option py:for="s in session.query(db.Site).order_by(db.Site.id)"
 										py:attrs="markoption(s is activedataset.site)"
 										py:content="s"
@@ -95,10 +175,10 @@
 						</td>
 					</tr>
 					<tr>
-						<td>Qualität:</td>
+						<td>Quality:</td>
 						<td>
 							<select name="quality">
-								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
+								<option value=""><i>Please select...</i></option>
 								<option py:for="q in session.query(db.Quality)"
 										py:attrs="markoption(q is activedataset.quality)"
 										py:content="q"
@@ -107,25 +187,25 @@
 						</td>
 					</tr>
 					<tr>
-						<td style="width: 7em">Von (Datum):</td>
+						<td style="width: 7em">From (date):</td>
 						<td><input type="text" class="datepicker" name="start" value="${formatdate(activedataset.start)}" /></td>
 					</tr>
 					<tr>
-						<td>Bis (Datum):</td>
+						<td>Until (Datum):</td>
 						<td><input type="text" class="datepicker" name="end" value="${formatdate(activedataset.end)}" /></td>
 					</tr>
-					<!--<tr>
-						<td>Datenquelle:</td>
+					<tr>
+						<td>Data source (eg. instrument):</td>
 						<td>
 							<select name="source">
-								<option value=""><i>&lt;Bitte auswählen&gt;</i></option>
-								<option py:for="datasource in session.query(db.DataSource)"
+								<option value=""><i>Please select...</i></option>
+								<option py:for="datasource in session.query(db.Datasource)"
 										py:attrs="markoption(datasource is activedataset.source)"
 										py:content="datasource"
 										value="${datasource.id}" />
 							</select>
 						</td>
-					</tr>-->
+					</tr>
 					<!--<tr>
 						<td>Datengruppe:</td>
 						<td>
@@ -139,11 +219,11 @@
 						</td>
 					</tr>-->
 					<tr>
-						<td>Kommentare</td>
+						<td>Comments</td>
 						<td>
 							<p>
-								Zurzeit ist die Datenbank noch im Aufbau. Deshalb muss im Kommentar noch einiges zu den Metadaten
-								mit aufgenommen werden, z.B. welches Instrument benutzt wurde, ob die Daten hergeleitet wurden etc.
+								The database is still under construction. Please insert instrument type and other meta data
+								in the comment.
 							</p>
 							<textarea name="comment" 
 								  style="width: 100%;"
@@ -153,7 +233,7 @@
 					</tr>
 				</table>
 			</div>
-			<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
+			<input type="submit" name="save"  style="width: 10em;"/>						
 			
 		</form>				
 	</div>
@@ -162,8 +242,8 @@
 		<a href="/datafiles/daten-vorlage.xls" style="float:left;">
 			<img src="/media/excel-icon.gif" />
 		</a>
-		Die Excel-Vorlage zum übermitteln der Daten kann 
-		<a href="/datafiles/daten-vorlage.xls">hier heruntergeladen </a> werden
+		Download the excel template  
+		<a href="/datafiles/daten-vorlage.xls">here</a>.
 	</div>
 
 </body>

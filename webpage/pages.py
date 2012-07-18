@@ -2,6 +2,7 @@
 
 import lib as web
 import db
+import sys
 from traceback import format_exc as traceback
 from datetime import datetime
 from genshi import escape
@@ -9,7 +10,7 @@ from genshi import escape
 from webpage.upload import DownloadPage
 from webpage.map import MapPage
 from webpage.site import SitePage
-
+from webpage.datasetpage import DatasetPage
 class PersonPage:
     exposed=True  
     @web.expose
@@ -123,118 +124,60 @@ class VTPage:
         dump=web.as_json(session.query(db.ValueType))
         session.close()
         return dump
-    
-class DatasetPage:
+class DatasourcePage:
     exposed=True
+    
     @web.expose
-    def default(self,id='new',site_id=None,vt_id=None,user=None):
+    def default(self,id='new'):
         session=db.Session()
-        datasets = session.query(db.Dataset)
+        instruments=session.query(db.Datasource).order_by(db.Datasource.id)
         error=''
-        try:
-            site = session.query(db.Site).get(site_id) if site_id else None
-            valuetype = session.query(db.ValueType).get(vt_id) if vt_id else None
-            user = session.query(db.Person).get(user) if user else None
-            if id=='new':
-                active = db.Dataset(id=db.newid(db.Dataset,session),
-                                    site=site,valuetype=valuetype, measured_by = user)
-            else:
-                active = session.query(db.Dataset).get(id)
-            if site:
-                datasets=datasets.filter_by(site=site)
-            if valuetype:
-                datasets=datasets.filter_by(valuetype=valuetype)
-            if user:
-                datasets=datasets.filter_by(measured_by=user)
+        if id=='new':
+            newid = db.newid(db.Datasource,session)
+            inst=db.Datasource(id=newid,
+                               name='<Name>')
+        else:
+            try:
+                inst=session.query(db.Datasource).get(int(id))
+            except:
+                error=traceback()
+                inst=None
         
-            result= web.render('dataset.html',activedataset=active,session=session,
-                              error=error,datasets=datasets,db=db,title='Schwingbach-Datensatz #' + str(id)
-                              ).render('html',doctype='html')
-                
-        except:
-            result = web.render('dataset.html',error=traceback(),title='Schwingbach-Datensatz (Fehler)',
-                              session=session,datasets=datasets,db=db,activedataset=None).render('html',doctype='html')
+        result = web.render('instrument.html',instruments=instruments,actualinstrument=inst,error=error).render('html',doctype='html')
         session.close()
         return result    
+    
+    
     @web.expose
     def saveitem(self,**kwargs):
-
         try:
             id=web.conv(int,kwargs.get('id'),'')
         except:
-            return web.render(error=traceback(),title='Dataset #%s' % kwargs.get('id')
-                              ).render('html',doctype='html')
+            return web.render(error=traceback(),title='Datasource #%s' % kwargs.get('id'))
         if 'save' in kwargs:
             try:
                 session = db.Session()        
-                ds = session.query(db.Dataset).get(int(id))
-                if not ds:
-                    ds=db.Dataset(id=id)
-                if kwargs.get('start'):
-                    ds.start=datetime.strptime(kwargs['start'],'%d.%m.%Y')
-                if kwargs.get('end'):
-                    ds.end=datetime.strptime(kwargs['end'],'%d.%m.%Y')
-                ds.filename = kwargs.get('filename')
-                ds.name=kwargs.get('name')
-                ds.comment=kwargs.get('comment')
-                ds.measured_by = session.query(db.Person).get(kwargs.get('measured_by'))
-                ds.valuetype = session.query(db.ValueType).get(kwargs.get('valuetype'))
-                ds.quality = session.query(db.Quality).get(kwargs.get('quality'))
-                ds.site = session.query(db.Site).get(kwargs.get('site'))
-                ds.source = session.query(db.Datasource).get(kwargs.get('source'))
+                inst = session.query(db.Datasource).get(int(id))
+                if not inst:
+                    inst=db.Datasource(id=id)
+                    session.add(inst)
+                inst.name=kwargs.get('name')
+                inst.sourcetype=kwargs.get('sourcetype')
+                inst.comment=kwargs.get('comment')
                 session.commit()
                 session.close()
             except:
-                return web.render('empty.html',error=traceback(),title='Dataset #%s' % id
+                return web.render('empty.html',error=traceback(),title='valuetype #%s' % id
                                   ).render('html',doctype='html')
-        elif 'new' in kwargs:
-            id='new'
         raise web.HTTPRedirect('./%s' % id)
-    def subset(self,session,valuetype=None,user=None,site=None,date=None):
+    @web.expose
+    def json(self):
+        session=db.Session()
         web.setmime('application/json')
-        datasets=session.query(db.Dataset)
-        if user:
-            user=session.query(db.Person).get(user)
-            datasets=datasets.filter_by(measured_by=user)
-        if site:
-            site=session.query(db.Site).get(int(site))
-            datasets=datasets.filter_by(site=site)
-        if date:
-            date=web.parsedate(date)
-            datasets=datasets.filter(db.Dataset.start<=date,db.Dataset.end>=date)
-        if valuetype:
-            vt=session.query(db.ValueType).get(int(valuetype))
-            datasets=datasets.filter_by(valuetype=vt)
-        return datasets
-    @web.expose
-    def attrjson(self,attribute,valuetype=None,user=None,site=None,date=None):
-        if not hasattr(db.Dataset,attribute):
-            raise AttributeError("Dataset has no attribute '%s'" % attribute)
-        session=db.Session()
-        datasets = self.subset(session,valuetype,user,site,date)
-        items = set(getattr(ds, attribute) for ds in datasets)
-        res = web.as_json(sorted(items))
-        session.close()
-        return res
-        
-        
-    @web.expose
-    def json(self,valuetype=None,user=None,site=None,date=None):
-        session=db.Session()
-        dump = web.as_json(self.subset(session, valuetype, user, site, date))
+        dump=web.as_json(session.query(db.Datasource))
         session.close()
         return dump
-    @web.expose
-    def edit(self,id):
-        session=db.Session()
-        if id=='new':
-            active = db.Dataset(id=db.newid(db.Dataset,session))
-        else:
-            active = session.query(db.Dataset).get(id)
-        result= web.render('datasetedit.xml',activedataset=active,session=session,db=db).render('html')
-        session.close()
-        return result
-
+    
     
 class JobPage:
     exposed=True
@@ -370,6 +313,7 @@ class Root(object):
     job = JobPage()
     log = LogPage()
     map=MapPage()
+    instrument=DatasourcePage()
     @web.expose
     def index(self):
         return self.map.index()

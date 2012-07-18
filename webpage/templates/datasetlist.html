@@ -67,8 +67,7 @@
 	    								},
 	    								function(data){
 	    									var html='';
-	    									//$.each(data,function(index,item){html+='<li><a href="/dataset/'+item.id+'">'+item.name+'</a></li>'});
-	    									$.each(data,function(index,item){html+='<li><a onclick="editdataset('+item.id+')">'+item.name+'</a></li>'});
+	    									$.each(data,function(index,item){html+='<li><a href="/dataset/'+item.id+'">'+item.name+'</a></li>'});
 	    									$('#dslist').html(html);
 	    								}
 	    				
@@ -81,9 +80,6 @@
     			$('.filter').val('')
     			$('#dateselect').val('')
     			popSelect();
-    		}
-    		function editdataset(dsid) {
-    			$('#dsedit').load('/dataset/edit',{id:dsid});
     		}
     		$(function() {
     				$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
@@ -102,6 +98,7 @@
 	
 	<h1>Datasets</h1>
 	<div>
+		<h2>Filter:</h2>
 		value type:
 		<select id="vtselect" onchange="popSelect();" class="filter">
 			<option value="">Please select...</option>
@@ -120,24 +117,14 @@
 		<input type="button" onclick="clearfilter();" value="clear filter" />
 
 	</div>
-	<table style="width:100%;vertical-align: top;">
-		<tr>
-			<td style="width: 30em;" valign="top";>
-				<ul>
-					<li>
-						<a onclick="editdataset('new');">New dataset...</a>
-					</li>
-				</ul>
-				<ul id="dslist">
-				</ul>
-				
-			</td>
-			<td id="dsedit" valign="top";>
-				<h2>
-					Edit dataset
-				</h2>
-			</td>
-		</tr>
-	</table>
+	<h2>List:</h2>
+	<ul>
+		<li>
+			<a href="/dataset/new">New dataset...</a>
+		</li>
+	</ul>
+	<ul id="dslist">
+	</ul>
+			
 	</body>
 </html>

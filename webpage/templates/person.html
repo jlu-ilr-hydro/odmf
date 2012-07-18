@@ -90,8 +90,10 @@
 	<div>
 		<h2>Jobs</h2>
 		<ul>
-			<li>
-				<a href="/job?user=${active_person.username}" style="font-style: italic;">Neuen Job hinzufügen...</a>
+			<li class="plus">
+				<a href="/job?user=${active_person.username}" >
+						 Add new job...
+					</a>
 			</li>
 			<li py:for="job in jobs">
 				<a href="/job/${job.id}" py:content="'%-12s: %s' % (formatdate(job.due),job.name)"
@@ -100,15 +102,13 @@
 		</ul>
 	</div>
 	<div py:if="active_person">
-		<h2>Datensätze</h2>
+		<h2>Datasets</h2>
 		<ul>
 			<li py:for="ds in active_person.datasets">
 				<a href="/dataset/${ds.id}" 
 				py:content="'%s (%s-%s)' % (ds,formatdate(ds.start),formatdate(ds.end))" />
 			</li>
-			<li>
-				<a href="/dataset/new?user=${active_person.username}"
-				py:content="'Neuen Datensatz hinzufügen...'" style="font-style: italic;" />
+			<li class="plus"><a href="/dataset/new?user=${active_person.username}">Add new dataset...</a>
 			</li>
 		</ul>
 	</div>		

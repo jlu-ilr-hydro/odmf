@@ -76,10 +76,10 @@ class Installation(Base):
     removedate = sql.Column(sql.DateTime,nullable=True)
     comment = sql.Column(sql.String)
     instrument = orm.relationship('Datasource',
-                                  backref=orm.backref('sites',order_by=installdate.desc),
+                                  backref=orm.backref('sites',order_by=installdate.desc,lazy='dynamic'),
                                   primaryjoin="Datasource.id==Installation._instrument")
-    site=orm.relationship('Site',backref=orm.backref('instruments',order_by=installdate.desc),
-                          primaryjoin="Site.id==Installation._site")
+    site=orm.relationship('Site',backref=orm.backref('instruments',order_by=installdate.desc,lazy='dynamic'),
+                          primaryjoin="Site.id==Installation._site",)
     def __init__(self,site,instrument,id,installdate=None,comment=''):
         self.site=site
         self.instrument=instrument
