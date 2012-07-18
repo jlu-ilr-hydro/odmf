@@ -103,6 +103,7 @@ def navigation():
          | <a href="/site">sites</a>
          | <a href="/log">log</a>
          | <a href="/valuetype">value types</a> 
+         | <a href="/instrument">instruments</a>
          | <a href="/dataset">data sets</a> 
          | <a href="/user">users</a>
          | <a href="/job">jobs</a>

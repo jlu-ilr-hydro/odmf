@@ -1,0 +1,146 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Instruments</title>
+  <link href="/media/jquery-ui-1.8.18.custom.css" rel="stylesheet" type="text/css"/>
+	<script src="/media/jquery-1.7.1.min.js" type="text/javascript"></script>
+  <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript"></script>
+
+	<script>
+      function popSelect() {
+      	$.getJSON('/site/json',[],function(data){
+	      	var html='<option value=""><i>Please select...</i></option>';
+		  		$.each(data,function(index,item){
+		  				html += '<option value="' + item.id + '">#' + item.id + ' ('+ item.name + ')' + '</option>';
+		  		});
+		  		$('#siteselect').html(html);
+		  	});
+      }
+      $(function() {
+      	$('.datepicker').datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
+      	popSelect();   	
+      });
+      function addinstrument() {
+	      	data = {siteid:$('#siteselect').val(),
+	      					date:escape($('#installationdate').val()),
+	      					instrumentid:${actualinstrument.id}
+	      				};
+      		$.post('/site/addinstrument',data,function (data,textStatus,jqHXR){
+      			if (data=='') {
+	      			location.reload();
+	      		} else {
+	      			$('.error').html(data);
+	      		}          			
+      		});
+      }
+      function removeinstrument(installationid,siteid) {
+      	data = {instrumentid:${actualinstrument.id},
+      					date:escape($('#installationdate').val()),
+      					siteid:siteid,
+      					installationid:installationid
+      				};
+      	$.post('/site/removeinstrument',data, function(data,textStatus,jqHXR) {
+      			if (data=='') {
+	      			location.reload();
+	      		} else {
+	      			$('.error').html(data);
+	      		}          			
+      	});    	
+      }
+
+
+	</script>
+	<style>
+	  .removed {
+	  	color: grey;
+	  }
+	  .imgbutton {
+	  	width: 32px;
+	  	height: 24px;
+	  }
+
+	</style>
+</head>
+<body>
+	${navigation()}
+    <div class="error" py:content="error" />
+	<div class="error" />
+	<h1>Data sources and instruments</h1>
+		<ul id="Inhalt" >
+		<li>
+			<a href="/instrument/new"><b>New instrument...</b></a>			
+		</li>
+		<li py:for="inst in instruments">
+			<a href="${'/instrument/%s' % inst.id}" py:content="inst"/>
+		</li>
+	</ul>
+    <div class="rightpane"> 
+		<form action="/instrument/saveitem" method="post">
+			<div py:if="actualinstrument">
+				<h2 py:content="actualinstrument" />
+
+				<table style="width: 100%">
+					<tr>
+						<td style="width: 7em">ID:</td>
+						<td><input type="text" name="id" value="${actualinstrument.id}" readonly="readonly" class="readonly"/></td>
+					</tr>
+					<tr>
+						<td>Name:</td>
+						<td><input type="text" name="name" value="${actualinstrument.name}" /></td>
+					</tr>
+					<tr>
+						<td>Sourcetype:</td>
+						<td><input type="text" name="sourcetype" value="${actualinstrument.sourcetype}" /></td>
+					</tr>
+					<tr>
+						<td>Comment:</td>
+						<td>
+							<textarea name="comment" 
+									  rows="2" style="width: 100%;"
+									  py:content="actualinstrument.comment"/>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<input type="submit" name="save" style="width: 10em;"/>						
+		</form>
+	</div>
+	<div>
+		<h2>Installations</h2>
+		<ul>
+				<li>
+						<button onclick="addinstrument()" class="imgbutton">
+							<img src="/media/plus-small.png" alt="Add"/>
+						</button>
+						<input class="datepicker" id="installationdate" value="${formatdate()}" /> 
+						<select id="siteselect" >
+							<option value="">Please select...</option>
+						</select>
+				</li>
+				<li py:for="inst in actualinstrument.sites" >
+					<button py:if="inst.active" onclick="removeinstrument(${inst.id},${inst.site.id})" class="imgbutton">
+						<img src="/media/minus-small.png" alt="Remove"/>
+					</button>
+					<span py:if="inst.active" 
+								py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
+					<span py:if="not inst.active" class="removed"
+								py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
+				</li>
+			</ul>
+	</div>
+	<div>
+			<h2>Datasets</h2>
+			<ul>
+				<li py:for="ds in actualinstrument.datasets">
+					<a href="/dataset/${ds.id}" 
+					py:content="'%s (%s-%s)' % (ds,formatdate(ds.start),formatdate(ds.end))" />
+				</li>
+			</ul>
+
+	</div>
+
+</body>
+</html>

@@ -3,12 +3,6 @@
 
 <head>
 	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
-	<!--<script type="text/javascript"
-  		src="/media/ASCIIMathML.js">
-	</script>-->
-	<!--<script type="text/javascript">
-		define("%o","\u2030")
-	</script>-->
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>ValueTypes</title>
 </head>
@@ -16,7 +10,7 @@
 	${navigation()}
     <div class="error" py:content="error" />
 
-	<h1>Gr&ouml;ßen</h1>
+	<h1>Value types</h1>
 		<ul id="Inhalt" >
 		<li>
 			<a href="/valuetype/new"><b>Neu...</b></a>			
@@ -40,11 +34,11 @@
 						<td><input type="text" name="name" value="${actualvaluetype.name}" /></td>
 					</tr>
 					<tr>
-						<td>Einheit:</td>
+						<td>Unit:</td>
 						<td><input type="text" name="unit" value="${actualvaluetype.unit}" /></td>
 					</tr>
 					<tr>
-						<td>Sonstiges</td>
+						<td>Comment:</td>
 						<td>
 							<textarea name="comment" 
 									  rows="2" style="width: 100%;"
@@ -56,7 +50,7 @@
 			<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
 		</form>
 		<div py:if="actualvaluetype">
-			<h2>Datensätze</h2>
+			<h2>Datasets</h2>
 			<ul>
 				<li py:for="ds in actualvaluetype.datasets">
 					<a href="/dataset/${ds.id}" 

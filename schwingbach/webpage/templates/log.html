@@ -20,8 +20,6 @@
 
 	<title>Log</title>
 	<style type="text/css">
-  	  input { width: 100%;}
-	  select { width: 100%;}
   	   .msghint {
   	   	font-weight: bold;
   	   	color: red;
@@ -43,7 +41,7 @@
 					<td><input name="id" value="${actuallog.id}" readonly="readonly" class="readonly"/></td>
 				</tr>
 				<tr>
-					<td>Wer?</td>
+					<td><a href="/user/${actuallog.user}">Who?</a></td>
 					<td>
 						<select name="user">
 							<option py:for="p in session.query(db.Person)"
@@ -54,13 +52,13 @@
 					</td>
 				</tr>
 				<tr>
-					<td>Wann?</td>
+					<td>When?</td>
 					<td>
 						<input name="date" class="datepicker" value="${formatdate(actuallog.time)}"/>
 					</td>
 				</tr>
 				<tr>
-					<td><a href="${'/site/%s' % (actuallog.site.id if actuallog.site else '')}">Wo?</a></td>
+					<td><a href="${'/site/%s' % (actuallog.site.id if actuallog.site else '')}">Where?</a></td>
 					<td>
 						<select name="site">
 							<option value=""><i> &lt;Bitte wählen&gt;</i></option>
@@ -76,14 +74,19 @@
 					<td py:content="actuallog.site.comment if actuallog.site else ''" />
 				</tr>
 				<tr>
-					<td>Hinweis</td>
+					<td>Note!</td>
 					<td>
 						<div class="msghint" id="msghint" /> 
 					</td>
 				</tr>
 				<tr>
-					<td>Was?</td>
+					<td>What?</td>
 					<td>
+						<input type="button" name="msgbutton1" value="sample taken"
+							 onclick="setmsg('sample taken','Report time and water level/discharge (if applicable) to your message');" />
+						<input type="button" name="msgbutton2" value="logger exchange"
+							onclick="setmsg('logger exchange','Report time and water level/discharge (if applicable) to your message');" />
+						<br />
 						<textarea name="message" id="message"
 								  style="width: 100%;"
 								  rows="10" py:content="actuallog.message" />
@@ -92,10 +95,6 @@
 				<tr>
 					<td />
 					<td>
-						<input type="button" name="msgbutton1" value="sample taken"
-							 onclick="setmsg('sample taken','Report time and water level/discharge (if applicable) to your message');" />
-						<input type="button" name="msgbutton2" value="logger exchange"
-							onclick="setmsg('logger exchange','Report time and water level/discharge (if applicable) to your message');" />
 
 					</td>
 				</tr>
