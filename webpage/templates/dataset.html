@@ -115,12 +115,9 @@
 		<form action="/dataset/saveitem" method="post">
 
 			<div py:if="activedataset">
-				<h2 py:content="activedataset.name if activedataset.name else 'Neuer Datensatz'" />
+				<h2 py:content="'#%i %s (%s-%s)' % (activedataset.id,activedataset.name,formatdate(activedataset.start),formatdate(activedataset.end))" />
+				<input type="text" name="id" value="${activedataset.id}" style="display: none;" />
 				<table style="width: 100%">
-					<tr visible="0">
-						<td style="width: 7em">ID:</td>
-						<td><input type="text" name="id" value="${activedataset.id}" readonly="readonly" class="readonly"/></td>
-					</tr>
 					<tr>
 						<td>Name:</td>
 						<td><input type="text" name="name" value="${activedataset.name}" /></td>

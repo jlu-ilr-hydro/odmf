@@ -30,7 +30,12 @@
 			<table style="width: 100%" py:if="active_person">
 				<tr>
 					<td class="left">Username:</td>
-					<td><input type="text" name="username" value="${active_person.username}" /></td>
+					<td>
+					<!--TODO: Make username textbox readonly, except for new -->
+						<input type="text" name="username" 
+							   value="${active_person.username}" 
+							   />
+					</td>
 				</tr>
 				<tr>
 					<td class="left">Vorname:</td>

@@ -27,7 +27,7 @@
 				<table style="width: 100%">
 					<tr>
 						<td style="width: 7em">ID:</td>
-						<td><input type="text" name="id" value="${actualvaluetype.id}" /></td>
+						<td><input type="text" name="id" value="${actualvaluetype.id}" readonly="readonly"/></td>
 					</tr>
 					<tr>
 						<td>Name:</td>
@@ -54,7 +54,7 @@
 			<ul>
 				<li py:for="ds in actualvaluetype.datasets">
 					<a href="/dataset/${ds.id}" 
-					py:content="'%s (%s-%s)' % (ds,formatdate(ds.start),formatdate(ds.end))" />
+					py:content="'%s #%i(%s-%s)' % (ds,ds.id,formatdate(ds.start),formatdate(ds.end))" />
 				</li>
 				<li>
 					<a href="/dataset/new?vt_id=${actualvaluetype.id}"
