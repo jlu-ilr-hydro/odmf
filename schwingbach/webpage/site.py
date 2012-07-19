@@ -49,6 +49,7 @@ class SitePage:
                 site.lat=web.conv(float,kwargs.get('lat'))
                 site.name=kwargs.get('name')
                 site.height=web.conv(float,kwargs.get('height'))
+                site.icon = kwargs.get('icon')
                 site.comment=kwargs.get('comment')
                 session.commit()
                 session.close()

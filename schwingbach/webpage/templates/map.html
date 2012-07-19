@@ -26,7 +26,14 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 
 	    $.getJSON('/map/sites',[],function(data) {
 	    	$.each(data,function(index,item){
-	    		var image = new google.maps.MarkerImage('/media/mapicons/' + item.icon,
+				//if (item.icon==null || item.icon=='') {
+				if (!item.icon) {
+					icon='unknown.png';
+				} else {
+					icon = item.icon;
+				}
+				
+	    		var image = new google.maps.MarkerImage('/media/mapicons/' + icon,
 					      new google.maps.Size(24, 24),
 					      new google.maps.Point(0,0),
 					      new google.maps.Point(0, 24));
