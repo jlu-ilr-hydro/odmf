@@ -1,3 +1,4 @@
+#!/usr/bin/python
 '''
 Created on 23.05.2012
 
@@ -9,18 +10,22 @@ import sys
 from datetime import datetime,timedelta
 import db
 import xlrd
+from traceback import format_exc as traceback
 
 t0 = datetime(1899,12,30)
 
 def get_time(date,time):
-    if time == '':
+    if not time:
         time = 0.0
     return t0 + timedelta(date+time)
 
 def row_to_record(row,dataset,id):
     rec=db.Record(id=id,dataset=dataset)
     rec.time = get_time(row[0].value,row[1].value)
-    rec.value = row[2].value
+    try:
+        rec.value = float(row[2].value)
+    except ValueError, TypeError:
+        rec.value = None
     if row[3].value:
         rec.sample = row[3].value
     comment=(', '.join([unicode(c.value) for c in row[4:] if c.value])).strip()
@@ -43,9 +48,15 @@ def readvalues(xlsfilename):
         return None
     id = 1
     for row in range(16,sheet.nrows):
-        rec = row_to_record(sheet.row(row),ds,id)
-        session.add(rec)
-        id += 1
+        try:
+            rec = row_to_record(sheet.row(row),ds,id)
+            session.add(rec)
+            id += 1
+        except:
+            sys.stderr.write('Line %i: ' % (id+16))
+            sys.stderr.write(traceback()+'\n')
+            exit()
+    print "%i records saved to dataset #%i %s" % (id-1,ds.id, ds.name)
     session.commit()
     session.close()
     

@@ -86,7 +86,7 @@ div.error {
 
 #Inhalt {
     float: left;
-    width: 12em;
+    width: 20em;
     border: dotted 1px #002080;
     border-radius: 5px;
     color: #002080;
@@ -118,7 +118,7 @@ div.navi a:hover {
 	font-weight: bold;
 }
 div.rightpane {
-	margin-left: 15em;
+	margin-left: 21em;
 }   
 tr.underline {border-bottom: 1px solid #002080;}
 td.right {text-align: right;}
@@ -154,7 +154,7 @@ textarea {
 		   padding: 0px 0px 0px 0px; 
 		   margin: 0px 0px 0px 0px;			
 }
-input.readonly {
+input[type=text][readonly] {
 	color: grey; 
 	border: none;
 }
