@@ -102,5 +102,27 @@
 		</div>
 		<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
 	</form>
+	<div>
+		<h2>Log book of last 30 days</h2>
+		<form method="get" action="">
+			Log book until
+			<input name="lastlogdate" type="text" class="datepicker" value="${formatdate()}" />
+			for
+			<select name="days">
+				<option value="1">1</option>
+				<option value="7">7</option>
+				<option value="10">10</option>
+				<option value="30" selected="selected">30</option>
+				<option value="90">90</option>
+			</select>
+			days
+			<input type="submit" />
+		</form>
+		<ul>
+			<li py:for="log in loglist">
+				<a href="/log/${log.id}">${'%s: %s - %s' % (log.user,formatdate(log.time),log.message)}</a>,
+			</li> 
+		</ul>
+	</div>
 </body>
 </html>

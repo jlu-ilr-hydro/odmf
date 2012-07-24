@@ -4,7 +4,7 @@ import lib as web
 import db
 import sys
 from traceback import format_exc as traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 from genshi import escape
 
 from webpage.upload import DownloadPage
@@ -235,7 +235,7 @@ class JobPage:
 class LogPage:
     exposed=True
     @web.expose
-    def default(self,logid="new",siteid=None):
+    def default(self,logid="new",siteid=None,lastlogdate=None,days=None):
         session=db.Session()
         error=''
         if logid=='new':
@@ -252,7 +252,14 @@ class LogPage:
             except:
                 error=traceback()
                 log=None
-        result = web.render('log.html',actuallog=log,error=error,db=db,session=session
+        if lastlogdate:
+            until=web.parsedate(lastlogdate)
+        else:
+            until = datetime.today()
+        days = web.conv(int,days, 30)
+        loglist = session.query(db.Log).filter(db.Log.time<=until,db.Log.time>=until-timedelta(days=days)).order_by(db.sql.desc(db.Log.time))
+
+        result = web.render('log.html',actuallog=log,error=error,db=db,session=session,loglist=loglist,
                             ).render('html',doctype='html')
         session.close()
         return result    
