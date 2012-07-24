@@ -103,17 +103,6 @@ class Installation(Base):
                      removedate = self.removedate,
                      comment = self.comment)
     
-#
-#class Instrument(DataSource):
-#    __tablename__= 'instrument'
-#    #__mapper_args__ = {'polymorphic_identity': 'instrument'}
-#    id = sql.Column(sql.Integer,sql.ForeignKey("datasource.id"),primary_key=True)
-#    vendor=sql.Column(sql.String)
-#    vendorid=sql.Column(sql.String)
-#    shop=sql.Column(sql.String)
-#    purchasedate=sql.Column(sql.DateTime)
-#    _responsible=sql.Column('responsible',sql.String,sql.ForeignKey('person.username'))
-#    responsible=orm.relationship('Person')
 
 class Person(Base):
     __tablename__= 'person'
