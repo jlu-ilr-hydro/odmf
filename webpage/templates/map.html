@@ -23,6 +23,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 	    };
 	    
 	    var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+	    var markers = []
 
 	    $.getJSON('/map/sites',[],function(data) {
 	    	$.each(data,function(index,item){
@@ -43,6 +44,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 	      				map:map,
 	      				icon:image,
 	  			});
+	  			markers.push(marker)
 	  			google.maps.event.addListener(marker,'click',function() {
 							//alert(item.name)
 						  $('#infotext').load('/map/sitedescription',{siteid:item.id});												

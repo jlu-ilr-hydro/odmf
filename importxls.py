@@ -16,7 +16,10 @@ t0 = datetime(1899,12,30)
 
 def get_time(date,time):
     if not time:
-        time = 0.0
+        return t0 + timedelta(date)
+    else:
+        time%=1.0
+        date=round(date)
     return t0 + timedelta(date+time)
 
 def row_to_record(row,dataset,id):

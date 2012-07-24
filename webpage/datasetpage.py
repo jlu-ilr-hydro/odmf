@@ -8,13 +8,14 @@ import db
 from traceback import format_exc as traceback
 from datetime import datetime
 from genshi import escape
+from cStringIO import StringIO
 
 class DatasetPage:
     exposed=True
     @web.expose
     def index(self):
-        text = file(web.abspath('templates/datasetlist.html')).read()
-        return text.replace('${navigation()}', web.navigation())
+        text = file(web.abspath('templates/datasetlist.html'))
+        return text
     @web.expose
     def default(self,id='new',site_id=None,vt_id=None,user=None):
         session=db.Session()
@@ -127,4 +128,49 @@ class DatasetPage:
         result= web.render('datasetedit.xml',activedataset=active,session=session,db=db).render('html')
         session.close()
         return result
+    
+    @web.expose
+    def plot(self,id,start=None,end=None,marker='',line='-',color='k'):
+        web.setmime('image/png')
+        session=db.Session()
+        ds = session.query(db.Dataset).get(int(id))
+        if start:
+            start=web.parsedate(start)
+        else:
+            start=ds.start
+        if end:
+            end=web.parsedate(end)
+        else:
+            end=ds.end
+        records = ds.records.filter(db.Record.time>=start, db.Record.time<=end)
+        records=records.filter(db.Record.value!=None)
+        reccount = records.count()
+        print reccount,"Records"
+        t0 = datetime(1,1,1)
+        date2num = lambda t: (t-t0).total_seconds()/86400 + 1.0
+        def r2c(records):
+            for r in records:
+                yield complex(r.value,date2num(r.time))
+                
+        import numpy as np       
+        ts = np.fromiter(r2c(records),dtype=complex,count=records.count())
+        import matplotlib
+        matplotlib.use('Agg',warn=False)
+        import pylab as plt
+        
+        fig=plt.figure()
+        ax=fig.gca()
+        ax.plot_date(ts.imag,ts.real,color+marker+line)
+        loc=ax.xaxis.get_major_locator()
+        loc.maxticks.update({0:5,1:6,3:7,4:9,5:9,6:9})
+        loc.interval_multiples=True
+        io = StringIO()
+        ax.grid()
+        plt.ylabel(str(ds.valuetype))
+        plt.title(ds.site)
+        fig.savefig(io,dpi=100)
+        return io.getvalue()
+        
+        
+        
 
