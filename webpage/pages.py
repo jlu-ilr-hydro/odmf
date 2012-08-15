@@ -291,19 +291,30 @@ class LogPage:
             id='new'
         raise web.HTTPRedirect('./%s' % id)
     @web.expose
-    def json(self,siteid=None,user=None,old=None,new=None):
+    def json(self,siteid=None,user=None,old=None,new=None,days=None):
         session=db.Session()
-        logs = session.query(db.Log)
+        web.setmime('application/json')
+
+        logs = session.query(db.Log).order_by(db.sql.desc(db.Log.time))
         if siteid:
             logs=logs.filter_by(_site=int(siteid))
         if user:
             logs=logs.filter_by(_user=user)
-        if old:
-            old = web.parsedate(old)
-            logs=logs.filter(db.Log.time>=old)
         if new:
             new = web.parsedate(new)
             logs=logs.filter(db.Log.time<=new)
+        if old:
+            old = web.parsedate(old)
+            logs=logs.filter(db.Log.time>=old)
+        elif days:
+            days = int(days)
+            if new:
+                old = new - timedelta(days=days)
+            else:
+                old = datetime.today() - timedelta(days=days)
+            logs=logs.filter(db.Log.time>=old)
+           
+            
         res = web.as_json(logs)
         session.close()
         return res

@@ -166,7 +166,7 @@ class DatasetPage:
         loc.interval_multiples=True
         io = StringIO()
         ax.grid()
-        plt.ylabel(str(ds.valuetype))
+        plt.ylabel('%s [%s]' % (ds.valuetype.name,ds.valuetype.unit))
         plt.title(ds.site)
         fig.savefig(io,dpi=100)
         return io.getvalue()
