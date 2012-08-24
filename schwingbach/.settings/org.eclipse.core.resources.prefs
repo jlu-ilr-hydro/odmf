@@ -1,4 +1,5 @@
 eclipse.preferences.version=1
+encoding//dataimport/importclimate.py=utf-8
 encoding//db/__init__.py=utf-8
 encoding//db/base.py=utf-8
 encoding//db/dataset.py=utf-8
@@ -9,7 +10,6 @@ encoding//webpage/pages.py=utf-8
 encoding//webpage/plotmap.py=utf-8
 encoding//webpage/site.py=utf-8
 encoding//webpage/upload.py=utf-8
-encoding/importclimate.py=utf-8
 encoding/projection.py=utf-8
 encoding/site2xls.py=utf-8
 encoding/sitesfromshp.py=utf-8

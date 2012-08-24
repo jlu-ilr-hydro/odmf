@@ -32,7 +32,10 @@ class Base(object):
     def __repr__(self):
         def reprs():
             for col in self.__table__.c:
-                yield col.name, str(getattr(self, col.name))
+                try:
+                    yield col.name, str(getattr(self, col.name))
+                except:
+                    pass
 
         def formats(seq):
             for key, value in seq:
