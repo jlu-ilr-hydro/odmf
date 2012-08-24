@@ -17,11 +17,19 @@
 		var parts = isostr.match(/\d+/g);
 		return parts[2] + '.' + parts[1] + '.' + parts[0];
 	}
+  function toggle(id) {
+  	var obj = $('#'+id) 
+  	if (obj.css('display')=='none') {
+  		obj.css('display','inline');
+  	} else {
+  		obj.css('display','none');
+  	}
+  }
 
 	function listlogs() {
 		until=$('#lastlogdate').val();
 		days=$('#days').val();
-		$.getJSON('/log/json',{new:until, days:days}, function(data) {
+		$.getJSON('/log/json',{until:until, days:days}, function(data) {
 			html='';
 			templ='<li><a href="#href#">#text#</a></li>';
 			$.each(data,function(index,item) {
@@ -33,6 +41,13 @@
 			});
 			$('#loglist').html(html);
 		});
+	}
+	function pastelogs() {
+		var text = $('#pastebin').val();
+		$.post('/log/fromclipboard',{paste: text},function(data,textStatus,jqHXR) {
+			$('#pasteerror').html(data);
+			listlogs();
+		})
 	}
 	$(function() {
 		$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
@@ -53,7 +68,17 @@
 <body onload="initialize()">
 	${navigation()}
 	<h1>Logbook</h1>
-
+	<button onclick="toggle('pastediv');">Paste logs</button>
+	<div id="pastediv" style="display: none">
+		<div>
+			Paste logs from Excel here. The text from the clipboard needs to have the following structure:<br/>
+			<code>Message|SiteID|Date</code> (| means tab)<br />
+			<div id="pasteerror" class="error"></div>
+			<textarea id="pastebin" rows="10" cols="50">Message	12	02.08.2012</textarea><br />
+			
+			<button onclick="pastelogs()">Create Logs</button>
+		</div>
+	</div>
 	<form action="/log/saveitem" method="post">
 		<div py:if="actuallog">
 			<h2 py:content="'%s, %s' % (formatdate(actuallog.time),actuallog.user)" />
@@ -122,7 +147,7 @@
 	<div>
 		<h2>Log book</h2>
 		Log book until
-		<input id="lastlogdate" type="text" class="datepicker" value="${formatdate()}" onchange="listlogs();"/>
+		<input id="lastlogdate" type="text" class="datepicker" onchange="listlogs();"/>
 		for
 		<select id="days" onchange="listlogs();">
 			<option value="1">1</option>

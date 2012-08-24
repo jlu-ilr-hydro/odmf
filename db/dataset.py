@@ -84,8 +84,8 @@ class Dataset(Base):
     source = orm.relationship("Datasource",backref="datasets")
     _group = sql.Column("group",sql.Integer,sql.ForeignKey('datagroup.id'),nullable=True)
     group = orm.relationship("DataGroup",backref='datasets')
-    #_instrument = sql.Column("instrument",sql.Integer,sql.ForeignKey('instrument.id'),nullable=True)
-    #instrument = orm.relationship("Instrument",backref='datasets')
+    calibration_offset = sql.Column(sql.Float,nullable=False,default=0.0)
+    calibration_slope = sql.Column(sql.Float,nullable=False,default=1.0)
     comment=sql.Column(sql.String)
     def __str__(self):
         return str(self.name)

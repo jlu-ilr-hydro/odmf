@@ -132,7 +132,16 @@ def formattime(t):
     except:
         return None
 def parsedate(s):
-    return datetime.strptime(s,'%d.%m.%Y') 
+    res=None
+    formats = '%d.%m.%Y %H:%M:%S','%d.%m.%Y %H:%M','%d.%m.%Y','%Y/%m/%dT%H:%M:%S'
+    for fmt in formats:
+        try:
+            res=datetime.strptime(s,fmt)
+        except ValueError:
+            pass
+    if res is None:
+        raise ValueError('%s is not a valid date/time format')
+    return res 
 
 def user():
     return cherrypy.request.login
