@@ -109,6 +109,7 @@ class DatasetPage:
         if not hasattr(db.Dataset,attribute):
             raise AttributeError("Dataset has no attribute '%s'" % attribute)
         session=db.Session()
+        res=''
         try:
             datasets = self.subset(session,valuetype,user,site,date)
             items = set(getattr(ds, attribute) for ds in datasets)
@@ -116,7 +117,6 @@ class DatasetPage:
             session.close()
         finally:
             session.close()
-            res=''
         return res
         
         
