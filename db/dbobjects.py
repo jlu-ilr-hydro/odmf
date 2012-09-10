@@ -10,6 +10,7 @@ from base import Base,Session
 from sqlalchemy.schema import ForeignKey
 from datetime import datetime
 from cherrypy.lib.reprconf import as_dict
+from projection import LLtoUTM, dd_to_dms
 def newid(cls,session=None):
     "Creates a new id for all mapped classes with an field called id, which is of integer type"
     if not session:
@@ -48,6 +49,16 @@ class Site(Base):
     def __cmp__(self,other):
         return cmp(self.id,other.id)
     
+    def as_UTM(self):
+        """Returns a tuple (x,y) as UTM/WGS84 of the site position
+        If withzone is True it returns the name of the UTM zone as a third argument
+        """
+        return LLtoUTM(23, self.lat, self.lon)
+    
+    def as_coordinatetext(self):
+        lat = dd_to_dms(self.lat)
+        lon = dd_to_dms(self.lon)
+        return (u"%i° %i' %0.2f''N - " % lat) + (u"%i° %i' %0.2f''E" % lon)          
 
 
 class Datasource(Base):

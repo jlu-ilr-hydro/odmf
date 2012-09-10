@@ -14,12 +14,11 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 	
 	<script type="text/javascript">
 		function initalize() {
-			$('#navigation').load('/navigation');
 	    var latlng = new google.maps.LatLng(50.49, 8.55);
 	    var myOptions = {
-	      zoom: 15,
+	      zoom: 14,
 	      center: latlng,
-	      mapTypeId: google.maps.MapTypeId.HYBRID
+	      mapTypeId: google.maps.MapTypeId.ROADMAP
 	    };
 	    
 	    var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
@@ -51,6 +50,9 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 	  			});
 	    	});
 	    });
+	    $(function() {
+	    	$('#navigation').load('/navigation');
+	    });
 	    
 	   
 		}
@@ -63,16 +65,18 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 </head>
 <body onload="initalize()">
 	<div id="navigation" >Navigation</div>
-	<h1>Site map</h1>
-	<table style="height: 90%; width: 100%;">
-		<tr>
-			<td width="25%" id="infotext" valign="top">
-				<h3>No site selected</h3>
-			</td>
-			<td>
-				<div id="map_canvas" style="width:100%; height:100%;" >Map</div>	
-			</td>
-		</tr>
-	</table>
+	<div class="content">
+		<h1>Site map</h1>
+		<table style="height: 90%; width: 100%;">
+			<tr>
+				<td width="25%" id="infotext" valign="top">
+					<h3>No site selected</h3>
+				</td>
+				<td>
+					<div id="map_canvas" style="width:100%; height:100%;" >Map</div>	
+				</td>
+			</tr>
+		</table>
+	</div>
 </body>
 </html>

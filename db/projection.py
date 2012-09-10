@@ -211,6 +211,16 @@ def UTMtoLL(ReferenceEllipsoid, northing, easting, zone):
     Long = LongOrigin + Long * _rad2deg
     return (Lat, Long)
 
+def dd_to_dms(dd):
+    "Converts decimal degrees to degree minute second"
+    d = int(dd)
+    m = int(60*(dd-d))
+    s = 3600 * (dd - d - m/60.)
+    return d,m,s
+def dms_to_dd(d,m,s):
+    return d + m/60. + s/3600.
+
+
 if __name__ == '__main__':
     (z, e, n) = LLtoUTM(23, 40 + (6 + 18.3591/60)/60, -(88 + (13 + 9.52349/60)/60))
     print z, e, n

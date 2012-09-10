@@ -12,8 +12,11 @@ from datetime import datetime
 from genshi import escape
 from glob import glob
 import os.path as op
+from auth import users, require, member_of, has_level, group
+from cStringIO import StringIO
 class SitePage:
     exposed=True  
+    @require(member_of(group.guest))
     @web.expose
     def default(self,actualsite_id='1',error=''):
         session=db.Session()
@@ -32,6 +35,8 @@ class SitePage:
                             ).render('html',doctype='html')
         session.close()
         return result    
+    
+    @require(member_of(group.editor))
     @web.expose
     def saveitem(self,**kwargs):
         try:
@@ -58,6 +63,8 @@ class SitePage:
                 return web.render('empty.html',error=traceback(),title='site #%s' % siteid
                                   ).render('html',doctype='html')
         raise web.HTTPRedirect('./%s' % siteid)
+    
+    @require(member_of(group.editor))
     @web.expose
     def edit(self,siteid='new'):
         session=db.Session()
@@ -86,6 +93,7 @@ class SitePage:
         session.close()
         return res
     
+    @require(member_of(group.editor))
     @web.expose
     def addinstrument(self,siteid,instrumentid,date=None):
         if not instrumentid:
@@ -111,6 +119,7 @@ class SitePage:
         finally:
             session.close()
         return error
+    @require(member_of(group.editor))
     @web.expose
     def removeinstrument(self,siteid,instrumentid,installationid,date=None):
         session=db.Session()
@@ -174,5 +183,21 @@ class SitePage:
     def geticons(self):
         path = web.abspath('media/mapicons')
         return [op.basename(p) for p in glob(op.join(path,'*.png'))]
+    
+    @web.expose
+    def sites_csv(self):
+        web.setmime('text/csv')
+        session = db.Session()
+        query = session.query(db.Site).order_by(db.Site.id)
+        st = StringIO()
+        st.write(u'"ID","long","lat","x_proj","y_proj","height","name","comment"\n'.encode('latin1'))
+        for s in query:
+            c = s.comment.replace('\r','').replace('\n',' / ')
+            h = '%0.3f' % s.height if s.height else ''
+            Z,x,y = s.as_UTM()
+            st.write((u'%s,%f,%f,%0.1f,%0.1f,%s,"%s","%s"\n' % (s.id, s.lon,s.lat,x,y,h,s.name,c)).encode('latin1'))
+        session.close()
+        return st.getvalue()
+        
         
         

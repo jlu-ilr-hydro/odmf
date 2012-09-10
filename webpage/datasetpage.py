@@ -9,13 +9,16 @@ from traceback import format_exc as traceback
 from datetime import datetime
 from genshi import escape
 from cStringIO import StringIO
-
+from auth import users, require, member_of, has_level, group
+import codecs
 class DatasetPage:
     exposed=True
     @web.expose
     def index(self):
         text = file(web.abspath('templates/datasetlist.html'))
         return text
+
+    @require(member_of(group.guest))
     @web.expose
     def default(self,id='new',site_id=None,vt_id=None,user=None):
         session=db.Session()
@@ -47,6 +50,8 @@ class DatasetPage:
         finally:
             session.close()
         return result    
+    
+    @require(member_of(group.editor))
     @web.expose
     def saveitem(self,**kwargs):
 
@@ -100,6 +105,8 @@ class DatasetPage:
             vt=session.query(db.ValueType).get(int(valuetype))
             datasets=datasets.filter_by(valuetype=vt)
         return datasets
+    
+    
     @web.expose
     def attrjson(self,attribute,valuetype=None,user=None,site=None,date=None):
         """TODO: This function is not very well scalable. If the number of datasets grows,
@@ -128,6 +135,31 @@ class DatasetPage:
         finally:
             session.close()
         return dump
+    
+    @require(member_of(group.logger))
+    @web.expose
+    def records_csv(self,dataset):
+        web.setmime('text/csv')
+        session = db.Session()
+        ds = session.query(db.Dataset).get(dataset)
+        st = StringIO()
+        st.write(codecs.BOM_UTF8)
+        st.write((u'"Dataset","ID","time","%s","site","comment"\n' % (ds.valuetype)).encode('utf-8'))
+        query = session.query(db.Record).filter_by(dataset=ds)                 
+        for r in query:
+            d=dict(c=r.comment.replace('\r','').replace('\n',' / '),
+                 v=r.calibrated,
+                 time = web.formatdate(r.time)+' '+web.formattime(r.time),
+                 id=r.id,
+                 ds=ds.id,
+                 s=ds.site.id)
+
+            st.write((u'%(ds)i,%(id)i,%(time)s,%(v)f,%(s)i,"%(c)s"\n' % d).encode('utf-8'))
+        session.close()
+        return st.getvalue()
+        
+    
+    @require(member_of(group.guest))
     @web.expose
     def edit(self,id):
         session=db.Session()
@@ -141,6 +173,7 @@ class DatasetPage:
             session.close()
         return result
     
+    @require(member_of(group.guest))
     @web.expose
     def plot(self,id,start=None,end=None,marker='',line='-',color='k'):
         web.setmime('image/png')

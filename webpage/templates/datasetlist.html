@@ -164,50 +164,51 @@
 </head>
 <body onload="initialize();">
 	<div id="navigation" >Navigation</div>
-	<h1>Datasets</h1>
-	<div>
-		<h2>Filter:</h2>
-		value type:
-		<select id="vtselect" onchange="popSelect();" class="filter">
-			<option value="">Please select...</option>
-		</select>
-		site:
-		<select id="siteselect"  onchange="popSelect();" class="filter">
-			<option value="">Please select...</option>
-		</select>
-		user:
-		<select id="userselect"  onchange="popSelect();" class="filter">
-			<option value="">Please select...</option>
-		</select>
-		date:
-		<input id="dateselect" type="text" class="datepicker" value=""  
-					onchange="popSelect();" class="filter"/>
-		<button onclick="setFilter();">apply filter</button>
-		<button onclick="clearFilter();">clear filter</button>
-
-	</div>
-	<table style="width: 100%;">
-		<tr>
-			<td width="90%">
-				<div>
-						<h2>List:</h2>
-						<ul>
-							<li>
-								<a href="/dataset/new">New dataset...</a>
-							</li>
-						</ul>
-						<ul id="dslist">
-						</ul>
-					</div>				
-			</td>
-			<td>
-				<div id="map_canvas" style="width: 100%; height=100%; background-color: #BFF;">
-					Map<br />Map<br />Map<br />Map<br />	
-				</div>
-			</td>
-		</tr>
-	</table>
+	<div class="content">
+		<h1>Datasets</h1>
+		<div>
+			<h2>Filter:</h2>
+			value type:
+			<select id="vtselect" onchange="popSelect();" class="filter">
+				<option value="">Please select...</option>
+			</select>
+			site:
+			<select id="siteselect"  onchange="popSelect();" class="filter">
+				<option value="">Please select...</option>
+			</select>
+			user:
+			<select id="userselect"  onchange="popSelect();" class="filter">
+				<option value="">Please select...</option>
+			</select>
+			date:
+			<input id="dateselect" type="text" class="datepicker" value=""  
+						onchange="popSelect();" class="filter"/>
+			<button onclick="setFilter();">apply filter</button>
+			<button onclick="clearFilter();">clear filter</button>
 	
-			
+		</div>
+		<table style="width: 100%;">
+			<tr>
+				<td width="90%">
+					<div>
+							<h2>List:</h2>
+							<ul>
+								<li>
+									<a href="/dataset/new">New dataset...</a>
+								</li>
+							</ul>
+							<ul id="dslist">
+							</ul>
+						</div>				
+				</td>
+				<td>
+					<div id="map_canvas" style="width: 100%; height=100%; background-color: #BFF;">
+						Map<br />Map<br />Map<br />Map<br />	
+					</div>
+				</td>
+			</tr>
+		</table>
+	
+	</div>			
 	</body>
 </html>

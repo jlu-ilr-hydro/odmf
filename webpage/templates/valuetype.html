@@ -8,61 +8,84 @@
 </head>
 <body>
 	${navigation()}
-    <div class="error" py:content="error" />
-
-	<h1>Value types</h1>
-		<ul id="Inhalt" >
-		<li>
-			<a href="/valuetype/new"><b>Neu...</b></a>			
-		</li>
-		<li py:for="v in valuetypes">
-			<a href="${'/valuetype/%s' % v.id}" py:content="v"/>
-		</li>
-	</ul>
-    <div class="rightpane"> 
-		<form action="/valuetype/saveitem" method="post">
-			<div py:if="actualvaluetype">
-				<h2 py:content="actualvaluetype" />
-
-				<table style="width: 100%">
-					<tr>
-						<td style="width: 7em">ID:</td>
-						<td><input type="text" name="id" value="${actualvaluetype.id}" readonly="readonly"/></td>
-					</tr>
-					<tr>
-						<td>Name:</td>
-						<td><input type="text" name="name" value="${actualvaluetype.name}" /></td>
-					</tr>
-					<tr>
-						<td>Unit:</td>
-						<td><input type="text" name="unit" value="${actualvaluetype.unit}" /></td>
-					</tr>
-					<tr>
-						<td>Comment:</td>
-						<td>
-							<textarea name="comment" 
-									  rows="2" style="width: 100%;"
-									  py:content="actualvaluetype.comment"/>
-						</td>
-					</tr>
-				</table>
+	<div class="content">
+	  <div class="error" py:content="error" />
+	
+		<h1>Value types</h1>
+			<ul id="Inhalt" >
+			<li>
+				<a href="/valuetype/new"><b>Neu...</b></a>			
+			</li>
+			<li py:for="v in valuetypes">
+				<a href="${'/valuetype/%s' % v.id}" py:content="v"/>
+			</li>
+		</ul>
+	    <div class="rightpane"> 
+			<form action="/valuetype/saveitem" method="post" py:if="is_member('editor')">
+				<div py:if="actualvaluetype">
+					<h2 py:content="actualvaluetype" />
+	
+					<table style="width: 100%">
+						<tr>
+							<td style="width: 7em">ID:</td>
+							<td><input type="text" name="id" value="${actualvaluetype.id}" readonly="readonly"/></td>
+						</tr>
+						<tr>
+							<td>Name:</td>
+							<td><input type="text" name="name" value="${actualvaluetype.name}" /></td>
+						</tr>
+						<tr>
+							<td>Unit:</td>
+							<td><input type="text" name="unit" value="${actualvaluetype.unit}" /></td>
+						</tr>
+						<tr>
+							<td>Comment:</td>
+							<td>
+								<textarea name="comment" 
+										  rows="2" style="width: 100%;"
+										  py:content="actualvaluetype.comment"/>
+							</td>
+						</tr>
+					</table>
+				</div>
+				<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
+			</form>
+			<div py:if="not is_member('editor') and actualvaluetype">
+					<h2 py:content="actualvaluetype" />
+	
+					<table style="width: 100%">
+						<tr>
+							<td style="width: 7em">ID:</td>
+							<td py:content="actualvaluetype.id" />
+						</tr>
+						<tr>
+							<td>Name:</td>
+							<td py:content="actualvaluetype.name" />
+						</tr>
+						<tr>
+							<td>Unit:</td>
+							<td py:content="actualvaluetype.unit" />
+						</tr>
+						<tr>
+							<td>Comment:</td>
+							<td py:content="actualvaluetype.comment" />
+						</tr>
+					</table>
 			</div>
-			<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
-		</form>
-		<div py:if="actualvaluetype">
-			<h2>Datasets</h2>
-			<ul>
-				<li py:for="ds in actualvaluetype.datasets">
-					<a href="/dataset/${ds.id}" 
-					py:content="'%s #%i(%s-%s)' % (ds,ds.id,formatdate(ds.start),formatdate(ds.end))" />
-				</li>
-				<li>
-					<a href="/dataset/new?vt_id=${actualvaluetype.id}"
-					py:content="'Neuen Datensatz hinzufügen...'" style="font-style: italic;" />
-				</li>
-			</ul>
-		</div>		
+			<div py:if="actualvaluetype">
+				<h2>Datasets</h2>
+				<ul>
+					<li py:for="ds in actualvaluetype.datasets">
+						<a href="/dataset/${ds.id}" 
+						py:content="'%s #%i(%s-%s)' % (ds,ds.id,formatdate(ds.start),formatdate(ds.end))" />
+					</li>
+					<li>
+						<a href="/dataset/new?vt_id=${actualvaluetype.id}"
+						py:content="'Neuen Datensatz hinzufügen...'" style="font-style: italic;" />
+					</li>
+				</ul>
+			</div>		
+		</div>
 	</div>
-
 </body>
 </html>

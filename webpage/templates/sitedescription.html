@@ -22,7 +22,7 @@
 <div>
 	<h3>Logbook:</h3>
 	<ul>
-		<li>
+		<li py:if="is_member('logger')">
 			<a href="/log/new?siteid=${site.id}" style="font-style: italic;">New message...</a>
 		</li>
 		<li py:for="log in site.logs">
@@ -34,7 +34,7 @@
 <div>
 	<h3>Datasets:</h3>
 	<ul>
-		<li>
+		<li py:if="is_member('editor')">
 			<a href="/dataset/new?site_id=${site.id}"
 					style="font-style: italic;" >Add new dataset...</a>
 		</li>

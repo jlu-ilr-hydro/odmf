@@ -10,7 +10,6 @@ from __future__ import division
 from os import path as op
 
 import cherrypy
-
 import threading
 import json
 from datetime import datetime
@@ -20,6 +19,8 @@ from genshi.output import encode, get_serializer
 from genshi.template import Context, TemplateLoader
 from genshi.core import Markup
 
+import collections
+import auth
 
 def jsonhandler(obj):
     if hasattr(obj,'__jdict__'):
@@ -40,12 +41,15 @@ def abspath(fn):
     return op.join(basepath,normpath)
 
 
+
 config =  { '/': {
                     'tools.staticdir.root' : abspath('.'),
+                    
                   },
             '/media': {
                        'tools.staticdir.on': True,
-                       'tools.staticdir.dir': 'media'
+                       'tools.staticdir.dir': 'media',
+                       'tools.caching.on' : True,
                        },
            '/html': {
                        'tools.staticdir.on': True,
@@ -74,43 +78,11 @@ loader = TemplateLoader(abspath('templates'),
                             auto_reload=True)
 
 
-def output(filename, method='html', encoding='utf-8', **options):
-    """Decorator for exposed methods to specify what template they should use
-    for rendering, and which serialization method and options should be
-    applied.
-    """
-    def decorate(func):
-        def wrapper(*args, **kwargs):
-            cherrypy.thread_data.template = loader.load(filename)
-            opt = options.copy()
-            if method == 'html':
-                opt.setdefault('doctype', 'html')
-            serializer = get_serializer(method, **opt)
-            stream = func(*args, **kwargs)
-            if not isinstance(stream, Stream):
-                return stream
-            return encode(serializer(stream), method=serializer,
-                          encoding=encoding)
-        return wrapper
-    return decorate
 
 expose = cherrypy.expose
 HTTPRedirect = cherrypy.HTTPRedirect
 def navigation():
-    return Markup('''
-        <div class="navigate" >
-         | <a href="/map">map</a> 
-         | <a href="/site">sites</a>
-         | <a href="/log">log</a>
-         | <a href="/valuetype">value types</a> 
-         | <a href="/instrument">instruments</a>
-         | <a href="/dataset">data sets</a> 
-         | <a href="/user">users</a>
-         | <a href="/job">jobs</a>
-         | <a href="/download">download</a>
-         | login: %s 
-    </div>
-    ''' % user())
+    return Markup(render('navigation.html').render('xml'))
 def attrcheck(kw,condition):
     if condition:
         return {kw:kw}
@@ -145,7 +117,7 @@ def parsedate(s):
 
 def user():
     return cherrypy.request.login
- 
+    
     
 class Renderer(object):
     def __init__(self):
@@ -154,8 +126,10 @@ class Renderer(object):
                           'markoption' : markoption,
                           'formatdate' : formatdate,
                           'formattime' : formattime,
-                          'user' : user
-                          
+                          'user' : user,
+                          'users': auth.users,
+                          'is_member': auth.is_member,
+                          'bool2js' : lambda b : str(b).lower()
                           }
     def __call__(self,*args,**kwargs):
         """Function to render the given data to the template specified via the
@@ -191,8 +165,7 @@ class httpServer(threading.Thread):
         self.daemon = True
         self.start()
 
-def user():
-    return cherrypy.request.login
+       
 
 def conv(cls,s,default=None):
     try:

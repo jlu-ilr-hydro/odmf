@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import lib as web
+from auth import users, require, member_of, has_level, group
 import db
 import sys
 from traceback import format_exc as traceback
@@ -12,9 +13,9 @@ from webpage.map import MapPage
 from webpage.site import SitePage
 from webpage.datasetpage import DatasetPage
 class PersonPage:
-    exposed=True  
+    exposed=True
+    @require(member_of(group.guest))  
     @web.expose
-    @web.output('person.html')    
     def default(self,act_user='new'):
         session = db.Session()
         persons = session.query(db.Person).order_by(db.sql.desc(db.Person.can_supervise),db.Person.surname)
@@ -34,7 +35,7 @@ class PersonPage:
                           supervisors=supervisors,error=error,jobs=jobs).render('html',doctype='html')
         session.close()
         return result
-
+    @require(member_of(group.supervisor))
     @web.expose
     def saveitem(self,**kwargs):
         username=kwargs.get('username')
@@ -56,7 +57,7 @@ class PersonPage:
             session.commit()
             session.close()
         raise web.HTTPRedirect('./' + username)
-
+    
     @web.expose
     def json(self,supervisors=False):
         session=db.Session()
@@ -71,7 +72,7 @@ class PersonPage:
         
 class VTPage:
     exposed=True
-    
+    @require(member_of(group.guest))
     @web.expose
     def default(self,vt_id='new'):
         session=db.Session()
@@ -94,7 +95,7 @@ class VTPage:
         session.close()
         return result    
     
-    
+    @require(member_of(group.editor))
     @web.expose
     def saveitem(self,**kwargs):
         try:
@@ -127,6 +128,7 @@ class VTPage:
 class DatasourcePage:
     exposed=True
     
+    @require(member_of(group.guest))
     @web.expose
     def default(self,id='new'):
         session=db.Session()
@@ -147,7 +149,7 @@ class DatasourcePage:
         session.close()
         return result    
     
-    
+    @require(member_of(group.editor))
     @web.expose
     def saveitem(self,**kwargs):
         try:
@@ -181,6 +183,7 @@ class DatasourcePage:
     
 class JobPage:
     exposed=True
+    @require(member_of(group.logger))
     @web.expose
     def default(self,jobid='new',user=None):
         session=db.Session()
@@ -200,7 +203,8 @@ class JobPage:
                             ).render('html',doctype='html')
         session.close()
         return result    
-        
+    
+    @require(member_of(group.editor))    
     @web.expose
     def saveitem(self,**kwargs):
         try:
@@ -234,6 +238,7 @@ class JobPage:
         raise web.HTTPRedirect('./%s' % id)
 class LogPage:
     exposed=True
+    @require(member_of(group.guest))
     @web.expose
     def default(self,logid="new",siteid=None,lastlogdate=None,days=None):
         session=db.Session()
@@ -263,6 +268,8 @@ class LogPage:
                             ).render('html',doctype='html')
         session.close()
         return result    
+    
+    @require(member_of(group.logger))
     @web.expose
     def saveitem(self,**kwargs):
         try:
@@ -290,6 +297,7 @@ class LogPage:
         elif 'new' in kwargs:
             id='new'
         raise web.HTTPRedirect('./%s' % id)
+    
     @web.expose
     def json(self,siteid=None,user=None,old=None,until=None,days=None):
         session=db.Session()
@@ -318,6 +326,8 @@ class LogPage:
         res = web.as_json(logs)
         session.close()
         return res
+    
+    @require(member_of(group.logger))
     @web.expose
     def fromclipboard(self,paste):
         web.setmime('text/html')
@@ -364,9 +374,18 @@ class LogPage:
             session.add_all(logs)
             session.commit()
                            
-        
+    
+            
+            
+                    
 
 class Root(object):
+    _cp_config = {'tools.sessions.on': True,
+                  'tools.sessions.timeout':7*24*60, # One Week
+                  'tools.sessions.storage_type':'file',
+                  'tools.sessions.storage_path':web.abspath('sessions'), 
+                  'tools.auth.on': True}
+
     site=SitePage()
     user=PersonPage()
     valuetype=VTPage()
@@ -382,6 +401,22 @@ class Root(object):
     @web.expose
     def navigation(self):
         return web.navigation()
+    @web.expose
+    def login(self,frompage='/',username=None,password=None,error='',logout=None):
+        if logout:
+            users.logout()
+            raise web.HTTPRedirect(frompage or '/')
+        elif username and password:
+            error=users.login(username, password)
+            if error:
+                return web.render('login.html',error=error,frompage=frompage).render('html',doctype='html')
+            else:
+                raise web.HTTPRedirect(frompage or '/')
+        else:
+            return web.render('login.html',error=error,frompage=frompage).render('html',doctype='html')
+    
+
+
         
 
 #if __name__=='__main__':
