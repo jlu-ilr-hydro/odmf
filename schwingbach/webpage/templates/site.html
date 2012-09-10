@@ -103,9 +103,11 @@
 </head>
 <body onload="initialize()">
 	${navigation()}
-	<div class="error" id="errordiv" />
-    <div> 
-		<div>
+  <div class="content"> 
+		<div class="error" id="errordiv" />
+		<h1 py:if="actualsite"><img src="/media/mapicons/${actualsite.icon}" /> Actual site #${actualsite.id}</h1>
+		<h1 py:if="not actualsite">New site</h1>
+		<div class="box" style="padding:5px; margin:5px;">
 			<form>Select a site:
 				<select onchange="location.href=this.options[this.selectedIndex].value"
 						id="siteselect"
@@ -114,10 +116,10 @@
 			</form>
 		</div>
 		<div py:if="actualsite">
-			<h1><img src="/media/mapicons/${actualsite.icon}" /> Actual site #${actualsite.id}</h1>
 			<p py:content="actualsite" />
 			<p py:content="actualsite.comment" />
-			<p>
+			<p py:content="actualsite.as_coordinatetext() + ', UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
+			<p py:if="is_member('editor')">
 				<input type="button" onclick="startedit(${actualsite.id})" value="Edit..." />
 				<input type="button" onclick="startedit('new')" value="New..." />
 	
@@ -128,7 +130,7 @@
 				Please report briefly any actions you have performed on this site, or if you observed something unusual.
 			</p>
 			<ul>
-				<li>
+				<li py:if="is_member('logger')">
 					<a href="/log/new?siteid=${actualsite.id}" style="font-style: italic;">New message...</a>
 				</li>
 				<li py:for="log in actualsite.logs">
@@ -137,7 +139,7 @@
 			</ul>
 			<h2>Installed instruments</h2>
 			<ul>
-				<li>
+				<li py:if="is_member('editor')" >
 						<button onclick="addinstrument()" class="imgbutton">
 							<img src="/media/plus-small.png" alt="Add"/>
 						</button>
@@ -147,18 +149,18 @@
 						</select>
 				</li>
 				<li py:for="inst in actualsite.instruments" >
-					<button py:if="inst.active" onclick="removeinstrument(${inst.id},${inst.instrument.id})" class="imgbutton">
-						<img src="/media/minus-small.png" alt="Remove"/>
-					</button>
 					<span py:if="inst.active" 
 								py:content="'since %s: %s (%s)' % (formatdate(inst.installdate),inst.instrument.name,inst.instrument.sourcetype)" />
 					<span py:if="not inst.active" class="removed"
 								py:content="'until %s: %s (%s)' % (formatdate(inst.removedate),inst.instrument.name,inst.instrument.sourcetype)" />
+					<a href="javascript:removeinstrument(${inst.id},${inst.site.id})" 
+						 py:if="is_member('editor')" 
+						 style="font-size: small;font-style: italic;">(remove...)</a>
 				</li>
 			</ul>
 			<h2>Available datasets</h2>
 			<ul>
-				<li class="plus">
+				<li py:if="is_member('editor')" class="plus">
 					<a href="/dataset/new?site_id=${actualsite.id}"
 							style="font-style: italic;" >
 						 
@@ -171,6 +173,14 @@
 				</li>
 			</ul>
 		</div>
-	</div>
+		<a href="sites.csv" style="float:left;">
+			<img src="/media/excel-icon.gif" />
+		</a>
+		<div class="box">
+			You can <a href="sites.csv">download</a> all sites as a csv-file for import to Excel <a href="sites.csv">here</a>.<br/>
+			Note: This works only if you are using English language settings in Windows. 
+		</div>
+</div>
+	
 </body>
 </html>

@@ -11,7 +11,7 @@ from os import path as op
 import os
 from traceback import format_exc as traceback
 from genshi import escape
-
+from auth import group, require, member_of
 datapath=web.abspath('datafiles')
 home = web.abspath('.')
 
@@ -41,6 +41,7 @@ class Path(object):
 
 class DownloadPage(object):
     exposed=True  
+    @require(member_of(group.guest))
     @web.expose
     def index(self,dir='',error='',**kwargs):
         path = op.join(datapath,dir)
@@ -62,6 +63,7 @@ class DownloadPage(object):
             error='%s is not a valid directory'
         return web.render('download.html',error=error,files=files,directories=directories,
                       curdir=relpath).render('html',doctype='html')
+    @require(member_of(group.editor))
     @web.expose
     def upload(self,dir,datafile):
         error=''

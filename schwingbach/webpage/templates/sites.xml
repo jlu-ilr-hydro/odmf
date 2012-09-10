@@ -19,7 +19,7 @@
       </IconStyle>
     </Style>
     <Placemark py:for="s in sites">
-      <name py:content="'%(name)s [%(count)i]' % dict(name=s.name, id=s.id, count=len(s.datasets))"/>
+      <name py:content="'#%(id)i %(name)s [%(count)i]' % dict(name=s.name, id=s.id, count=len(s.datasets))"/>
       <styleURL>#normal</styleURL>
       <description>
       	<![CDATA[

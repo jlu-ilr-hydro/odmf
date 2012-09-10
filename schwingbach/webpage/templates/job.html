@@ -25,69 +25,70 @@
 -->
 <body>
 	${navigation()}
-    <div class="error" py:content="error" />
-	<h1>Jobs</h1>
-	<ul id="Inhalt" >
-		<li>
-			<h3> 
-				<a href="/user/${job.responsible.username if job and job.responsible else 'new'}" py:content="job.responsible" />
-			</h3>
-		</li>			
-		<li>
-			<a href="/job/new"><b>Neu...</b></a>			
-		</li>
-		<li py:for="j in session.query(db.Job).filter_by(done=False)">
-			<a href="${'/job/%s' % j.id}" py:content="j"/>
-		</li>
-	</ul>
-    <div class="rightpane"> 
-		<pre><script>mathcolor="Black"</script></pre>
-		<form action="/job/saveitem" method="post">
-			<div py:if="job">
-				<h2 py:content="job" />
-
-				<table style="width: 100%">
-					<tr >
-						<td style="width: 7em">ID:</td>
-						<td><input type="text" name="id" value="${job.id}" readonly="readonly"/></td>
-					</tr>
-					<tr>
-						<td>Name:</td>
-						<td><input type="text" name="name" value="${job.name}" /></td>
-					</tr>
-					<tr>
-						<td>Fällig:</td>
-						<td><input type="text" name="due" value="${formatdate(job.due)}" class="datepicker" /></td>
-					</tr>
-					<tr>
-						<td>Verantwortlich:</td>
-						<td>
-							<select name="responsible">
-								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
-								<option py:for="p in session.query(db.Person)"
-										py:attrs="markoption(p is job.responsible)"
-										py:content="p"
-										value="${p.username}" />
-							</select>
-						</td>
-					</tr>
-					<tr>
-						<td>Erledigt:</td>
-						<td><input type="checkbox" name="done" py:attrs="attrcheck('checked',job.done)" /> </td>
-					</tr>
-					<tr>
-						<td>Sonstiges</td>
-						<td>
-							<textarea name="description" 
-									  rows="2" style="width: 100%;"
-									  >${job.description}</textarea>
-						</td>
-					</tr>
-				</table>
-			</div>
-			<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
-		</form>
+	<div class="content">
+	  <div class="error" py:content="error" />
+		<h1>Jobs</h1>
+		<ul id="Inhalt" >
+			<li>
+				<h3> 
+					<a href="/user/${job.responsible.username if job and job.responsible else 'new'}" py:content="job.responsible" />
+				</h3>
+			</li>			
+			<li>
+				<a href="/job/new"><b>Neu...</b></a>			
+			</li>
+			<li py:for="j in session.query(db.Job).filter_by(done=False)">
+				<a href="${'/job/%s' % j.id}" py:content="j"/>
+			</li>
+		</ul>
+	    <div class="rightpane"> 
+			<pre><script>mathcolor="Black"</script></pre>
+			<form action="/job/saveitem" method="post">
+				<div py:if="job">
+					<h2 py:content="job" />
+	
+					<table style="width: 100%">
+						<tr >
+							<td style="width: 7em">ID:</td>
+							<td><input type="text" name="id" value="${job.id}" readonly="readonly"/></td>
+						</tr>
+						<tr>
+							<td>Name:</td>
+							<td><input type="text" name="name" value="${job.name}" /></td>
+						</tr>
+						<tr>
+							<td>Fällig:</td>
+							<td><input type="text" name="due" value="${formatdate(job.due)}" class="datepicker" /></td>
+						</tr>
+						<tr>
+							<td>Verantwortlich:</td>
+							<td>
+								<select name="responsible">
+									<option value=""><i> &lt;Bitte wählen&gt;</i></option>
+									<option py:for="p in session.query(db.Person)"
+											py:attrs="markoption(p is job.responsible)"
+											py:content="p"
+											value="${p.username}" />
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td>Erledigt:</td>
+							<td><input type="checkbox" name="done" py:attrs="attrcheck('checked',job.done)" /> </td>
+						</tr>
+						<tr>
+							<td>Sonstiges</td>
+							<td>
+								<textarea name="description" 
+										  rows="2" style="width: 100%;"
+										  >${job.description}</textarea>
+							</td>
+						</tr>
+					</table>
+				</div>
+				<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
+			</form>
+		</div>
 	</div>
-
 </body>
 </html>

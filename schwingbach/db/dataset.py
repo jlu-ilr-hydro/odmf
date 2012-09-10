@@ -124,7 +124,6 @@ class Dataset(Base):
         q=q.filter_by(valuetype = self.valuetype)
         q=q.filter_by(site = self.site)
         return q
-        
 
             
             
@@ -141,10 +140,12 @@ class Record(Base):
     sample=sql.Column(sql.String)
     comment = sql.Column(sql.String)
         
-        
+    @property
+    def calibrated(self):
+        return self.dataset.calibration_slope * self.value + self.dataset.calibration_offset   
     def __str__(self):
         return "%s[%i] = %g %s" % (self.dataset.name,self.id,
-                                      self.value,self.dataset.valuetype.unit)
+                                   self.value,self.dataset.valuetype.unit)
     @classmethod
     def query(cls,session):
         return session.query(cls).select_from(Dataset).join(Dataset.records)

@@ -1,0 +1,19 @@
+<xml xmlns:py="http://genshi.edgewall.org/" >
+	<div class="navigate" >
+			<a href="http://www.uni-giessen.de/cms/zielgruppen/herzlich-willkommen/view?set_language=de" style="text-decoration:none;">
+				<img src="http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/sidepanels/instlogo.jpg/image_preview" />
+			</a>
+		<ul>
+			<li>login: <a href="javascript:window.location='/login?frompage='+window.location.pathname;">${users.current}</a></li> 
+			<li><a href="/map">map</a></li>
+			<li><a href="/site">sites</a></li>
+			<li><a href="/log">log</a></li>
+			<li><a href="/dataset">data sets</a> </li>
+			<li><a href="/valuetype">value types</a></li> 
+			<li><a href="/instrument">instruments</a></li>
+			<li py:if="is_member('editor')"><a href="/user">users</a></li>
+			<li py:if="is_member('editor')"><a href="/job">jobs</a></li>
+			<li><a href="/download">download</a></li>
+		</ul>
+  </div>
+</xml>

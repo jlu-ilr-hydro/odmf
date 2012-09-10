@@ -66,81 +66,103 @@
 </head>
 <body>
 	${navigation()}
-    <div class="error" py:content="error" />
-	<div class="error" />
-	<h1>Data sources and instruments</h1>
-		<ul id="Inhalt" >
-		<li>
-			<a href="/instrument/new"><b>New instrument...</b></a>			
-		</li>
-		<li py:for="inst in instruments">
-			<a href="${'/instrument/%s' % inst.id}" py:content="inst"/>
-		</li>
-	</ul>
-    <div class="rightpane"> 
-		<form action="/instrument/saveitem" method="post">
-			<div py:if="actualinstrument">
-				<h2 py:content="actualinstrument" />
-
+	<div class="content">
+	  <div class="error" py:content="error" />
+		<h1>Data sources and instruments</h1>
+			<ul id="Inhalt" >
+			<li>
+				<a href="/instrument/new"><b>New instrument...</b></a>			
+			</li>
+			<li py:for="inst in instruments">
+				<a href="${'/instrument/%s' % inst.id}" py:content="inst"/>
+			</li>
+		</ul>
+	    <div class="rightpane"> 
+			<form action="/instrument/saveitem" method="post" py:if="is_member('editor')">
+				<div py:if="actualinstrument">
+					<h2 py:content="actualinstrument" />
+	
+					<table style="width: 100%">
+						<tr>
+							<td style="width: 7em">ID:</td>
+							<td><input type="text" name="id" value="${actualinstrument.id}" readonly="readonly" class="readonly"/></td>
+						</tr>
+						<tr>
+							<td>Name:</td>
+							<td><input type="text" name="name" value="${actualinstrument.name}" /></td>
+						</tr>
+						<tr>
+							<td>Sourcetype:</td>
+							<td><input type="text" name="sourcetype" value="${actualinstrument.sourcetype}" /></td>
+						</tr>
+						<tr>
+							<td>Comment:</td>
+							<td>
+								<textarea name="comment" 
+										  rows="2" style="width: 100%;"
+										  py:content="actualinstrument.comment"/>
+							</td>
+						</tr>
+					</table>
+				</div>
+				<input type="submit" name="save" style="width: 10em;"/>						
+			</form>
+			<div py:if="not is_member('editor')" >
 				<table style="width: 100%">
 					<tr>
 						<td style="width: 7em">ID:</td>
-						<td><input type="text" name="id" value="${actualinstrument.id}" readonly="readonly" class="readonly"/></td>
+						<td py:content="actualinstrument.id" />
 					</tr>
 					<tr>
 						<td>Name:</td>
-						<td><input type="text" name="name" value="${actualinstrument.name}" /></td>
+						<td py:content="actualinstrument.name" />
 					</tr>
 					<tr>
 						<td>Sourcetype:</td>
-						<td><input type="text" name="sourcetype" value="${actualinstrument.sourcetype}" /></td>
+						<td py:content="actualinstrument.sourcetype" />
 					</tr>
 					<tr>
 						<td>Comment:</td>
-						<td>
-							<textarea name="comment" 
-									  rows="2" style="width: 100%;"
-									  py:content="actualinstrument.comment"/>
-						</td>
+						<td py:content="actualinstrument.comment" />
+	
 					</tr>
 				</table>
+				
 			</div>
-			<input type="submit" name="save" style="width: 10em;"/>						
-		</form>
-	</div>
-	<div>
-		<h2>Installations</h2>
-		<ul>
-				<li>
-						<button onclick="addinstrument()" class="imgbutton">
-							<img src="/media/plus-small.png" alt="Add"/>
-						</button>
-						<input class="datepicker" id="installationdate" value="${formatdate()}" /> 
-						<select id="siteselect" >
-							<option value="">Please select...</option>
-						</select>
-				</li>
-				<li py:for="inst in actualinstrument.sites" >
-					<button py:if="inst.active" onclick="removeinstrument(${inst.id},${inst.site.id})" class="imgbutton">
-						<img src="/media/minus-small.png" alt="Remove"/>
-					</button>
-					<span py:if="inst.active" 
-								py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
-					<span py:if="not inst.active" class="removed"
-								py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
-				</li>
-			</ul>
-	</div>
-	<div>
-			<h2>Datasets</h2>
+		</div>
+		<div>
+			<h2>Installations</h2>
 			<ul>
-				<li py:for="ds in actualinstrument.datasets">
-					<a href="/dataset/${ds.id}" 
-					py:content="'%s (%s-%s)' % (ds,formatdate(ds.start),formatdate(ds.end))" />
-				</li>
-			</ul>
-
+					<li py:if="is_member('editor')">
+							<button py:if="is_member('editor')" onclick="addinstrument()" class="imgbutton">
+								<img src="/media/plus-small.png" alt="Add"/>
+							</button>
+							<input class="datepicker" id="installationdate" value="${formatdate()}" /> 
+							<select id="siteselect" >
+								<option value="">Please select...</option>
+							</select>
+					</li>
+					<li py:for="inst in actualinstrument.sites" >
+						<span py:if="inst.active" 
+									py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
+						<span py:if="not inst.active" class="removed"
+									py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" /> 
+						<a href="javascript:removeinstrument(${inst.id},${inst.site.id})" 
+							 py:if="is_member('editor')" 
+							 style="font-size: small;font-style: italic;">(remove...)</a>
+					</li>
+				</ul>
+		</div>
+		<div>
+				<h2>Datasets</h2>
+				<ul>
+					<li py:for="ds in actualinstrument.datasets">
+						<a href="/dataset/${ds.id}" 
+						py:content="'%s (%s-%s)' % (ds,formatdate(ds.start),formatdate(ds.end))" />
+					</li>
+				</ul>
+	
+		</div>
 	</div>
-
 </body>
 </html>

@@ -8,6 +8,7 @@
 </head>
 <body>
 	${navigation()}
+	<div class="content">
     <div class="error" py:content="error" />
     <h1>Download</h1>
 	<div>download&raquo;
@@ -30,9 +31,9 @@
     		</li>
     	</ul> 
     </div>
-    
+  <div py:if="is_member('logger')">
 	<h2>Upload</h2>
-	<div>
+		<div>
 	    <form method="post" enctype="multipart/form-data" action="/download/upload">
 	    	file:
 	    	<input type="file" name="datafile"  /><br />
@@ -42,6 +43,7 @@
 	    	<input type="submit"  />
 	    </form>
     </div>
-
+   </div>
+</div> <!--content-->
 </body>
 </html>
