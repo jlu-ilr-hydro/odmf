@@ -5,8 +5,9 @@
 	<div class="navigate" >
 		<div style="background-image: url(/media/schwingbach.jpg);height:626px;width:243px;" >
 			<img src="/media/schwingbachlogo.png"/>
+			${users.current}
 			<ul>
-				<li>login: <a href="javascript:window.location='/login?frompage='+window.location.pathname;">${users.current}</a></li> 
+				<li><a href="javascript:window.location='/login?frompage='+window.location.pathname;">login</a></li> 
 				<li><a href="/map">map</a></li>
 				<li><a href="/log">log</a></li>
 				<li><a href="/site">sites</a></li>
