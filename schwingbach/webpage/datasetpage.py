@@ -188,7 +188,6 @@ class DatasetPage:
                 end=web.parsedate(end)
             else:
                 end=ds.end
-            calib = (ds.calibration_offset,ds.calibration_slope)
             records = ds.records.filter(db.Record.time>=start, db.Record.time<=end)
             records=records.filter(db.Record.value!=None)
             reccount = records.count()
@@ -197,7 +196,7 @@ class DatasetPage:
             date2num = lambda t: (t-t0).total_seconds()/86400 + 1.0
             def r2c(records):
                 for r in records:
-                    yield complex(r.value * calib[1] + calib[0],date2num(r.time))
+                    yield complex(r.calibrated,date2num(r.time))
                     
             import numpy as np       
             ts = np.fromiter(r2c(records),dtype=complex,count=records.count())
@@ -210,7 +209,7 @@ class DatasetPage:
             ax.plot_date(ts.imag,ts.real,color+marker+line)
             loc=ax.xaxis.get_major_locator()
             loc.maxticks.update({0:5,1:6,3:7,4:9,5:9,6:9})
-            loc.interval_multiples=True
+            #loc.interval_multiples=True
             io = StringIO()
             ax.grid()
             plt.ylabel('%s [%s]' % (ds.valuetype.name,ds.valuetype.unit))
