@@ -147,14 +147,14 @@ class DatasetPage:
         st.write((u'"Dataset","ID","time","%s","site","comment"\n' % (ds.valuetype)).encode('utf-8'))
         query = session.query(db.Record).filter_by(dataset=ds)                 
         for r in query:
-            d=dict(c=r.comment.replace('\r','').replace('\n',' / '),
+            d=dict(c=str(r.comment).replace('\r','').replace('\n',' / '),
                  v=r.calibrated,
                  time = web.formatdate(r.time)+' '+web.formattime(r.time),
                  id=r.id,
                  ds=ds.id,
                  s=ds.site.id)
 
-            st.write((u'%(ds)i,%(id)i,%(time)s,%(v)f,%(s)i,"%(c)s"\n' % d).encode('utf-8'))
+            st.write((u'%(ds)i,%(id)i,%(time)s,%(v)s,%(s)i,"%(c)s"\n' % d).encode('utf-8'))
         session.close()
         return st.getvalue()
         

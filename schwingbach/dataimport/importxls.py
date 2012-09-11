@@ -18,15 +18,18 @@ def get_time(date,time):
     if not time:
         return t0 + timedelta(date)
     else:
-        time%=1.0
-        date=round(date)
+        if time>1.000001:
+            time=time-int(time)
+        date=int(date)
     return t0 + timedelta(date+time)
 
-def row_to_record(row,dataset,id):
+def row_to_record(row,dataset,id,rangeok=[-1e308,1e308]):
     rec=db.Record(id=id,dataset=dataset)
     rec.time = get_time(row[0].value,row[1].value)
     try:
         rec.value = float(row[2].value)
+        if rec.value>max(rangeok) or rec.value<min(rangeok):
+            rec.value=None
     except ValueError, TypeError:
         rec.value = None
     if row[3].value:
@@ -38,7 +41,7 @@ def row_to_record(row,dataset,id):
         
                 
 
-def readvalues(xlsfilename):
+def readvalues(xlsfilename,killoldrecords=False,rangeok=[-1e308,1e308]):
     wb = xlrd.open_workbook(xlsfilename)
     sheet = wb.sheet_by_index(0)
     
@@ -49,10 +52,15 @@ def readvalues(xlsfilename):
     if not ds:
         sys.stderr.write('Dataset %i not found in database. File %s is not imported\n' % (id,xlsfilename))
         return None
+    if killoldrecords:
+        records = ds.records
+        count=records.delete()
+        print count,"records deleted from dataset",ds.id
+        session.commit()
     id = 1
     for row in range(16,sheet.nrows):
         try:
-            rec = row_to_record(sheet.row(row),ds,id)
+            rec = row_to_record(sheet.row(row),ds,id,rangeok)
             session.add(rec)
             id += 1
         except:

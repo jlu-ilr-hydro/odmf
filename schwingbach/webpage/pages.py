@@ -240,7 +240,7 @@ class LogPage:
     exposed=True
     @require(member_of(group.guest))
     @web.expose
-    def default(self,logid="new",siteid=None,lastlogdate=None,days=None):
+    def default(self,logid=None,siteid=None,lastlogdate=None,days=None):
         session=db.Session()
         error=''
         if logid=='new':
@@ -251,6 +251,8 @@ class LogPage:
             if siteid:
                 log.site = session.query(db.Site).get(int(siteid))
             log.time=datetime.today()
+        elif logid is None:
+            log=session.query(db.Log).order_by(db.sql.desc(db.Log.time)).first()
         else:
             try:
                 log = session.query(db.Log).get(int(logid))
@@ -263,7 +265,6 @@ class LogPage:
             until = datetime.today()
         days = web.conv(int,days, 30)
         loglist = session.query(db.Log).filter(db.Log.time<=until,db.Log.time>=until-timedelta(days=days)).order_by(db.sql.desc(db.Log.time))
-
         result = web.render('log.html',actuallog=log,error=error,db=db,session=session,loglist=loglist,
                             ).render('html',doctype='html')
         session.close()
@@ -297,6 +298,16 @@ class LogPage:
         elif 'new' in kwargs:
             id='new'
         raise web.HTTPRedirect('./%s' % id)
+    @require(member_of(group.admin))
+    @web.expose
+    def remove(self,id):
+        session = db.Session()
+        log = session.query(db.Log).get(id)
+        if log:
+            session.delete(log)
+            session.commit()
+        raise web.HTTPRedirect('/log')
+    
     
     @web.expose
     def json(self,siteid=None,user=None,old=None,until=None,days=None):

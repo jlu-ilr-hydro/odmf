@@ -1,8 +1,13 @@
 /* The standard CSS for doxygen */
-
+html {
+	padding: 0px;
+	margin: 0px;
+}
 body, table, div, p, dl {
 	font-family: Lucida Grande, Verdana, Geneva, Arial, sans-serif;
 	font-size: 16px;
+	padding: 0px;
+	margin: 0px;
 }
 table {
 	border-collapse: collapse;
@@ -15,11 +20,14 @@ h1 {
 	font-size: 140%;
 	font-weight: bold;
 	/*border-radius: 10px;*/
-	padding: 5px 10px 5px 10px;
-	margin-left: -1em;
+	padding-left: 10px;
+	padding-top: 10px;
+	margin-left: -20px;
+	margin-top: 0px;
 	margin-right: -5px;
 	color: #FFFFFF;
 	background-color: #32739d;
+	height: 45px;
 }
 
 h2 {
@@ -81,18 +89,18 @@ div.navigate {
     padding-top:0px;
     margin: 0px 0px 0px 0px;
     width: 243px;
-    border-right: solid 1px white;
 }
 div.navigate li {
 	list-style: none;
 }
 div.navigate a {
-	color: #E8F0FF;
+	color: white;
+	font-weight: bold;
+	padding: 0px 5px 0px 5px;
 }
 div.navigate a:hover {
-	background-color: #E8F0FF;
+	background-color: white;
 	color: #32739d;
-	padding: 0px 5px 0px 5px;
 	border-radius: 10px;
 }
 div.content {
