@@ -142,7 +142,10 @@ class Record(Base):
         
     @property
     def calibrated(self):
-        return self.dataset.calibration_slope * self.value + self.dataset.calibration_offset   
+        if not self.value is None:
+            return self.dataset.calibration_slope * self.value + self.dataset.calibration_offset
+        else:
+            return None   
     def __str__(self):
         return "%s[%i] = %g %s" % (self.dataset.name,self.id,
                                    self.value,self.dataset.valuetype.unit)

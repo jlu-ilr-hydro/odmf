@@ -107,7 +107,7 @@
 				</div>
 				<input type="submit" name="save" style="width: 10em;"/>						
 			</form>
-			<div py:if="not is_member('editor')" >
+			<div py:if="not is_member('editor')" class="rightpane">
 				<table style="width: 100%">
 					<tr>
 						<td style="width: 7em">ID:</td>
@@ -130,7 +130,7 @@
 				
 			</div>
 		</div>
-		<div>
+		<div class="rightpane">
 			<h2>Installations</h2>
 			<ul>
 					<li py:if="is_member('editor')">
@@ -153,7 +153,7 @@
 					</li>
 				</ul>
 		</div>
-		<div>
+		<div class="rightpane">
 				<h2>Datasets</h2>
 				<ul>
 					<li py:for="ds in actualinstrument.datasets">

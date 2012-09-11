@@ -93,10 +93,10 @@
 				<input type="submit" name="save" value="Speichern" style="width: 7em;"/>
 			</form>
 		</div>
-		<div>
+		<div class="rightpane">
 			<h2>Jobs</h2>
 			<ul>
-				<li class="plus">
+				<li>
 					<a href="/job?user=${active_person.username}" >
 							 Add new job...
 						</a>
@@ -107,7 +107,7 @@
 				</li>
 			</ul>
 		</div>
-		<div py:if="active_person">
+		<div py:if="active_person" class="rightpane">
 			<h2>Datasets</h2>
 			<ul>
 				<li py:for="ds in active_person.datasets">

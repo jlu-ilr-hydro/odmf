@@ -48,6 +48,12 @@
 			listlogs();
 		})
 	}
+	function remove(id) {
+		check = confirm('Do you really want to delete this log?');
+		if (check) {
+			location.href = '/log/remove?id=' + id;
+		}
+	}
 	$(function() {
 		$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
 		listlogs(null,30);
@@ -68,107 +74,109 @@
 	${navigation()}
 	<div class="content">
 		<h1>Logbook</h1>
-		<button onclick="toggle('pastediv');">Paste logs</button>
-		<div id="pastediv" style="display: none">
-			<div>
-				Paste logs from Excel here. The text from the clipboard needs to have the following structure:<br/>
-				<code>Message|SiteID|Date</code> (| means tab)<br />
-				<div id="pasteerror" class="error"></div>
-				<textarea id="pastebin" rows="10" cols="50">Message	12	02.08.2012</textarea><br />
-				
-				<button onclick="pastelogs()">Create Logs</button>
-			</div>
+		<div py:if="actuallog">
+			<h2>
+				<span py:content="formatdate(actuallog.time)" />
+				(<a href="/user/${actuallog.user.username}" py:content="actuallog.user" />)
+			</h2>
+			<ul style="list-style: none;">
+				<li>
+					Message: <span style="font-style: italic; font-weight: bold;" py:content="actuallog.message" />	
+				</li>
+				<li py:if="actuallog.site">
+					Site: <a href="/site/${actuallog.site.id}" py:content="actuallog.site" />						
+				</li>
+				<li py:if="not actuallog.site">
+					Site: <span class="warning">Not set</span>						
+				</li>
+			</ul>					
 		</div>
-		<form action="/log/saveitem" method="post" py:if="is_member('logger')">
-			<div py:if="actuallog">
-				<h2 py:content="'%s, %s' % (formatdate(actuallog.time),actuallog.user)" />
-	
-				<table style="width: 100%">
-					<tr>
-						<td>Id</td>
-						<td><input name="id" value="${actuallog.id}" readonly="readonly" class="readonly"/></td>
-					</tr>
-					<tr>
-						<td><a href="/user/${actuallog.user}">Who?</a></td>
-						<td>
-							<select name="user">
-								<option py:for="p in session.query(db.Person)"
-										py:attrs="markoption(p is actuallog.user)"
-										py:content="p"
-										value="${p.username}" />
-							</select>
-						</td>
-					</tr>
-					<tr>
-						<td>When?</td>
-						<td>
-							<input name="date" class="datepicker" value="${formatdate(actuallog.time)}"/>
-						</td>
-					</tr>
-					<tr>
-						<td><a href="${'/site/%s' % (actuallog.site.id if actuallog.site else '')}">Where?</a></td>
-						<td>
-							<select name="site">
-								<option value=""><i> &lt;Bitte wählen&gt;</i></option>
-								<option py:for="s in session.query(db.Site).order_by(db.Site.id)"
-										py:attrs="markoption(s is actuallog.site)"
-										py:content="s"
-										value="${s.id}" />
-							</select>
-						</td>
-					</tr>
-					<tr>
-						<td />
-						<td py:content="actuallog.site.comment if actuallog.site else ''" />
-					</tr>
-					<tr>
-						<td>Note!</td>
-						<td>
-							<div class="msghint" id="msghint" /> 
-						</td>
-					</tr>
-					<tr>
-						<td>What?</td>
-						<td>
-							<input type="button" name="msgbutton1" value="sample taken"
-								 onclick="setmsg('sample taken','Report time and water level/discharge (if applicable) to your message');" />
-							<input type="button" name="msgbutton2" value="logger exchange"
-								onclick="setmsg('logger exchange','Report time and water level/discharge (if applicable) to your message');" />
-							<br />
-							<textarea name="message" id="message"
-									  style="width: 100%;"
-									  rows="10" py:content="actuallog.message" />
-						</td>
-					</tr>
-				</table>
-			</div>
-			<input py:if="is_member('logger')" type="submit" name="save" value="Speichern" style="width: 10em;"/>
+		<a href="javascript:toggle('logform')" py:if="is_member('logger')">Edit...</a>
+		<form id="logform" action="/log/saveitem" method="post" py:if="is_member('logger')" style="display:${'none' if actuallog.site else 'block'};">
+			<table style="width: 100%">
+				<tr>
+					<td>Id</td>
+					<td><input name="id" value="${actuallog.id}" readonly="readonly" class="readonly"/></td>
+				</tr>
+				<tr>
+					<td><a href="/user/${actuallog.user}">Who?</a></td>
+					<td>
+						<select name="user">
+							<option py:for="p in session.query(db.Person)"
+									py:attrs="markoption(p is actuallog.user)"
+									py:content="p"
+									value="${p.username}" />
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>When?</td>
+					<td>
+						<input name="date" class="datepicker" value="${formatdate(actuallog.time)}"/>
+					</td>
+				</tr>
+				<tr>
+					<td><a href="${'/site/%s' % (actuallog.site.id if actuallog.site else '')}">Where?</a></td>
+					<td>
+						<select name="site">
+							<option value=""><i>&lt;Please select...&gt;</i></option>
+							<option py:for="s in session.query(db.Site).order_by(db.Site.id)"
+									py:attrs="markoption(s is actuallog.site)"
+									py:content="s"
+									value="${s.id}" />
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td />
+					<td py:content="actuallog.site.comment if actuallog.site else ''" />
+				</tr>
+				<tr>
+					<td>Note!</td>
+					<td>
+						<div class="msghint" id="msghint" /> 
+					</td>
+				</tr>
+				<tr>
+					<td>What?</td>
+					<td>
+						<input type="button" name="msgbutton1" value="sample taken"
+							 onclick="setmsg('sample taken','Report time and water level/discharge (if applicable) to your message');" />
+						<input type="button" name="msgbutton2" value="logger exchange"
+							onclick="setmsg('logger exchange','Report time and water level/discharge (if applicable) to your message');" />
+						<br />
+						<textarea name="message" id="message"
+								  style="width: 100%;"
+								  rows="10" py:content="actuallog.message" />
+					</td>
+				</tr>
+			</table>
+		<input py:if="is_member('logger')" type="submit" name="save" value="Save..." style="width: 10em;"/>
+			
 		</form>
-		<div py:if="actuallog and not is_member('logger')">
-				<h2 py:content="'%s, %s' % (formatdate(actuallog.time),actuallog.user)" />
-				<table style="width: 100%">
-					<tr>
-						<td>Id</td>
-						<td py:content="actuallog.id"/>
-					</tr>
-					<tr>
-						<td><a href="/user/${actuallog.user}">Who?</a></td>
-						<td py:content="actuallog.user" />
-					</tr>
-					<tr>
-						<td>When?</td>
-						<td py:content="formatdate(actuallog.time)" />
-					</tr>
-					<tr>
-						<td><a href="${'/site/%s' % (actuallog.site.id if actuallog.site else '')}">Where?</a></td>
-						<td py:content="actuallog.site" />
-					</tr>
-					<tr>
-						<td>What?</td>
-						<td py:content="actuallog.message" />
-					</tr>
-				</table>
-		</div>
+
+		<ul>
+			<li style="list-style-image:url(/media/minus-small.png);" py:if="is_member('admin') and actuallog" >
+				<a href="javascript:remove(${actuallog.id})">Remove log...</a>
+			</li>
+			<li style="list-style-image:url(/media/plus-small.png);" py:if="is_member('logger')" >
+				<a href="/log/new">New log...</a>
+			</li>
+			<li style="list-style-image:url(/media/plus-small.png);" py:if="is_member('logger')" >
+				<a href="javascript:toggle('pastediv');">Paste logs</a>
+				<div id="pastediv" style="display: none">
+					<div>
+						Paste logs from Excel here. The text from the clipboard needs to have the following structure:<br/>
+						<code>Message|SiteID|Date</code> (| means tab)<br />
+						<div id="pasteerror" class="error"></div>
+						<textarea id="pastebin" rows="10" cols="50">Message	12	02.08.2012</textarea><br />
+						
+						<button onclick="pastelogs()">Create Logs</button>
+					</div>
+				</div>
+			</li>
+		</ul>
+
 		<div>
 			<h2>Log book</h2>
 			Log book until
