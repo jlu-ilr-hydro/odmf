@@ -30,8 +30,8 @@
     			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" />
     		</li>
     	</ul> 
-    </div>
-  <div py:if="is_member('logger')">
+	</div>
+	<div py:if="is_member('logger')" class="rightpane">
 	<h2>Upload</h2>
 		<div>
 	    <form method="post" enctype="multipart/form-data" action="/download/upload">
