@@ -104,9 +104,13 @@
 <body onload="initialize()">
 	${navigation()}
   <div class="content"> 
+			<h1>
+					<span py:if="actualsite"><img src="/media/mapicons/${actualsite.icon}" /> Actual site #${actualsite.id}</span>
+					<span py:if="not actualsite">New site</span>
+			</h1>
+
 		<div class="error" id="errordiv" />
-		<h1 py:if="actualsite"><img src="/media/mapicons/${actualsite.icon}" /> Actual site #${actualsite.id}</h1>
-		<h1 py:if="not actualsite">New site</h1>
+		
 		<div class="box" style="padding:5px; margin:5px;">
 			<form>Select a site:
 				<select onchange="location.href=this.options[this.selectedIndex].value"

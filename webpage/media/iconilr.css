@@ -59,6 +59,8 @@ a:hover {
 
 body {
   background-color: #32739d;
+  padding: 0px 0px 0px 0px;
+  margin: 0px 0px 0px 0px;
 	color: black;
 }
 
@@ -77,7 +79,9 @@ div.navigate {
     padding-right: 10px;
     padding-left: 0px;
     padding-top:0px;
-    width: 156px;
+    margin: 0px 0px 0px 0px;
+    width: 243px;
+    border-right: solid 1px white;
 }
 div.navigate li {
 	list-style: none;
@@ -86,12 +90,16 @@ div.navigate a {
 	color: #E8F0FF;
 }
 div.navigate a:hover {
-	background-color: #4665A2;
+	background-color: #E8F0FF;
+	color: #32739d;
+	padding: 0px 5px 0px 5px;
+	border-radius: 10px;
 }
 div.content {
 	background-color: white;
 	color: black;
-	margin-left: 157px;
+	margin-left: 254px;
+	margin-top: 0px;
 	padding-left: 1em;
 	padding-top: 0px;
 	padding-bottom: 10px;
@@ -131,24 +139,6 @@ div.content {
 }
 ul#Inhalt li{
     list-style: none;
-}
-div.navi {
-	float: left;
-	width: 8em;
-	color:#FFF;
-	background-color: #32739d;
-	font-size: 90%;
-	text-align: right;
-}
-div.navi a {
-	font-weight: normal;
-	font-size: 90%;
-	color:#FFF;
-	background-color: #32739d;
-	text-align: right;
-}
-div.navi a:hover {
-	font-weight: bold;
 }
 div.rightpane {
 	margin-left: 21em;

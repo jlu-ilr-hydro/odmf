@@ -17,10 +17,10 @@
         });
         function toggle(id) {
         	var obj = $('#'+id) 
-        	if (obj.css('visibility')=='collapse') {
-        		obj.css('visibility','visible');
+        	if (obj.css('display')=='none') {
+        		obj.css('display','block');
         	} else {
-        		obj.css('visibility','collapse');
+        		obj.css('display','none');
         	}
         }
         function plotds(id) {	
@@ -71,7 +71,7 @@
 				<br />
 				<button onclick="toggle('edit')" >Edit dataset...</button>
 					
-				<div id="edit" style="visibility: collapse;">
+				<div id="edit" style="display:none;">
 					<form action="/dataset/saveitem" method="post" py:if="is_member('editor')">
 					<input type="text" name="id" value="${activedataset.id}" style="display: none;" />
 					<table style="width: 100%">
@@ -229,8 +229,10 @@
 				</div>
 			</div>
 	
-			<h2 style="clear: left;">Plot</h2>
-			From:
+			<h2>Plot</h2>
+			<button onclick="plotds(${activedataset.id});">Plot</button>
+
+			from:
 			<input type="text" class="datepicker" id="plotstart" value="${formatdate(activedataset.start)}"/>
 			until:
 			<input type="text" class="datepicker" id="plotend" value="${formatdate(activedataset.end)}"/>
@@ -264,7 +266,6 @@
 	
 			</select>
 	
-			<button onclick="plotds(${activedataset.id});">Plot</button>
 			<div>
 				<img id="plot" alt=""/>
 			</div>
