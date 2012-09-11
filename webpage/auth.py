@@ -136,7 +136,7 @@ class Users(collections.Mapping):
 
 users = Users()
 def is_member(group):
-    return users.current.is_member(group)
+    return bool(users.current) and users.current.is_member(group)
 def require(*conditions):
     """A decorator that appends conditions to the auth.require config
     variable."""

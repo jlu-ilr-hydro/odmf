@@ -38,8 +38,8 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 					      new google.maps.Point(0,0),
 					      new google.maps.Point(0, 24));
 		    	var marker = new google.maps.Marker({
-					      position: new google.maps.LatLng(item.lat,item.lon),
-	      				title:item.name,
+						position: new google.maps.LatLng(item.lat,item.lon),
+	      				title:'#' + item.id + '(' + item.name + ')',
 	      				map:map,
 	      				icon:image,
 	  			});
