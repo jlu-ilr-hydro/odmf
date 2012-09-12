@@ -46,7 +46,7 @@ def readvalues(xlsfilename,killoldrecords=False,rangeok=[-1e308,1e308]):
     sheet = wb.sheet_by_index(0)
     
     id = int(sheet.cell_value(3,1))
-    
+    error=False
     session = db.Session()
     ds = session.query(db.Dataset).get(id)
     if not ds:
@@ -64,11 +64,15 @@ def readvalues(xlsfilename,killoldrecords=False,rangeok=[-1e308,1e308]):
             session.add(rec)
             id += 1
         except:
+            sys.stderr.write(traceback())
             sys.stderr.write('Line %i: ' % (id+16))
-            sys.stderr.write(traceback()+'\n')
-            exit()
+            error = True
+            break
     print "%i records saved to dataset #%i %s" % (id-1,ds.id, ds.name)
-    session.commit()
+    if not error:
+        session.commit()
+    else:
+        session.commit()
     session.close()
     
 if __name__ == '__main__':
