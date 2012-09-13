@@ -67,6 +67,9 @@
   	   	font-weight: bold;
   	   	color: red;
   	   }
+  	   .loglist {
+  	   	list-style-image: url(/media/shimmer/brush_24.png);
+  	   }
 
 	</style>	
 </head>
@@ -79,6 +82,7 @@
 				<span py:content="formatdate(actuallog.time)" />
 				(<a href="/user/${actuallog.user.username}" py:content="actuallog.user" />)
 			</h2>
+			<img src="/media/shimmer/brush_32.png" style="float: left; margin-top: 10px;"/>
 			<ul style="list-style: none;">
 				<li>
 					Message: <span style="font-style: italic; font-weight: bold;" py:content="actuallog.message" />	
@@ -178,8 +182,8 @@
 		</ul>
 
 		<div>
-			<h2>Log book</h2>
-			Log book until
+			<h1>History</h1>
+			Show Logbook until
 			<input id="lastlogdate" type="text" class="datepicker" onchange="listlogs();"/>
 			for
 			<select id="days" onchange="listlogs();">
@@ -191,7 +195,7 @@
 			</select>
 			days
 			<button onclick="listlogs();">go</button>
-			<ul id="loglist">
+			<ul id="loglist" class="loglist">
 			</ul>
 		</div>
 	</div>

@@ -6,8 +6,6 @@ html {
 body, table, div, p, dl {
 	font-family: Lucida Grande, Verdana, Geneva, Arial, sans-serif;
 	font-size: 16px;
-	padding: 0px;
-	margin: 0px;
 }
 table {
 	border-collapse: collapse;

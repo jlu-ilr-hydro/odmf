@@ -51,7 +51,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 	    	});
 	    });
 	    $(function() {
-	    	$('#navigation').load('/navigation');
+	    	//$('#navigation').load('/navigation');
 	    });
 	    
 	   
@@ -64,7 +64,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 	
 </head>
 <body onload="initalize()">
-	<div id="navigation" >Navigation</div>
+	${navigation()}
 	<div class="content">
 		<h1>Site map</h1>
 		<table style="height: 90%; width: 100%;">
