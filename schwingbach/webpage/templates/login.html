@@ -6,6 +6,18 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Login</title>
 </head>
+<style>
+	div.space {
+		margin-top: 10px;
+		margin-bottom: 5px;
+	}
+	div.short {
+		width: 40em;
+	}
+	input {
+		width: 100%;
+	}
+</style>
 <body>
 	${navigation()}
 	<div class="content">
@@ -13,31 +25,71 @@
 		<div class="error" py:content="error" />
 		<h3>Current user: ${users.current}</h3>
 		<form method="post" action="/login">
-			<div style="margin:auto;">
+			<div>
 				<input type="hidden" name="frompage" id="frompage" value="${frompage}"/>
-				<table>
+				<table class="short">
 					<tr>
-						<td>User name:</td>
-						<td>
+						<td style="width: 10em;">User name:</td>
+						<td style="width: 25em;">
 							<datalist id="users">
 								<option py:for="u in users" value="${u}" py:content="u" />					
 							</datalist>			
-							<input type="text" name="username" list="users" />
+							<input type="text" name="username" list="users"/>
+						</td>
+						<td style="width: 5em;">
+							<input type="submit" value="Log in"/>					
 						</td>
 					</tr>
 					<tr>
 						<td>Password:</td>
 						<td><input type="password" name="password" /></td>
+						<td>
+							<input type="submit" value="Log out" name="logout" />					
+						</td>
 					</tr>
 				</table>
-				<div class="warning">
+				<div class="warning space short">
 					The password will be transmitted without encryption and is stored as plain text on the server.
 					Use a specific password for this website!
 				</div>
-				<input type="submit" value="Log in"/>
-				<input type="submit" value="Log out" name="logout" />
+				<div class="space short">
+					The password for the guest login is the name of the river, that gave the study area its name. With
+					lower case letters!
+				</div>
+				<div class="space">
+					<h1>Impressum</h1>
+					<img src="/media/schwingbachlogo.png" alt="logo"/>
+					<a href="http://www.uni-giessen.de/cms/ilr">
+						<img src="http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/sidepanels/instlogo.jpg/image_preview" />
+					</a>
+
+					<div class="space">
+						This page is used as a database frontend for the "Studienlandschaft Schwingbach". <br/>
+						All data presented is property of the
+						<ul>
+							<li><a href="http://www.uni-giessen.de/cms/ilr">Institute of Landscape Ecology and Ressourcemanagement (ILR)</a> </li>
+							<li>at the <a href="http://www.uni-giessen.de/cms/fbz/zentren/ifz">Research Centre for BioSystems, Land Use and Nutrition (IFZ)</a></li> 
+							<li>of the <a href="www.uni-giessen.de">Justus-Liebig University of Gie&szlig;en</a>.</li>
+						</ul>
+					</div>
+					<h2>
+						Data usage
+					</h2>
+					<div class="space">
+						The database contains raw and unpublished data, 
+						any usage beyond pure curiosity, especially the publication of data and derived products is not allowed without prior permission. 
+					</div>
+					<h2>
+						References
+					</h2>
+					<div class="space">
+						Most graphical elements and the user interface are own work. Some icons, especially for downloads etc. are creative commons. 
+						The applying copyright notice can be found <a href="/media/shimmer/shimmer-icons-readme.html">here</a>.
+					</div>
+				</div>
 			</div>
 		</form>
 	</div>
+
 </body>
 </html>

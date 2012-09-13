@@ -4,46 +4,50 @@
 <head>
 	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>Upload</title>
+	<title>Download</title>
 </head>
 <body>
 	${navigation()}
 	<div class="content">
-    <div class="error" py:content="error" />
     <h1>Download</h1>
-	<div>download&raquo;
-		<span py:content="Markup(curdir.replace('/','&raquo;'))" />
-	</div> 
-	<ul id="Inhalt">
-		<!--<li><h2>directories</h2></li>-->
-		<li py:if="curdir">
-			<a href=".">..</a>
-		</li>
-		<li py:for="d in directories">
-			<a href="${d.href}" py:content="d.name"/>
-		</li>
-	</ul>
-    <div class="rightpane">
-    	<h2>files</h2>
-    	<ul>
+    <div class="error" py:content="error" />
+		<div class="box">
+			<span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
+		</div>
+    <div>
+    	<ul style="list-style-image: url(/media/shimmer/folder_32.png); vertical-align:middle;">
+    		<li py:for="f in directories">
+    			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" />
+    		</li>
+    	</ul> 
+    	<ul style="list-style-image: url(/media/shimmer/document_32.png);">
     		<li py:for="f in files">
     			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" />
     		</li>
     	</ul> 
-	</div>
-	<div py:if="is_member('logger')" class="rightpane">
-	<h2>Upload</h2>
-		<div>
-	    <form method="post" enctype="multipart/form-data" action="/download/upload">
-	    	file:
-	    	<input type="file" name="datafile"  /><br />
-	    	<input name="dir" style="visibility: collapse;" value="${curdir}" />
-	    	<!--new file name:
-	    	<input type="text" name="newname" size="20" />-->
-	    	<input type="submit"  />
-	    </form>
-    </div>
-   </div>
-</div> <!--content-->
+		</div>
+		<div py:if="is_member('logger')">
+			<h1>Upload...</h1>
+			<div>
+				<img src="/media/shimmer/document_add_48.png" />
+		    <form method="post" enctype="multipart/form-data" action="/download/upload" style="display: inline;">
+		    	file:
+		    	<input type="file" name="datafile" />
+		    	<input name="dir" type="hidden" value="${curdir}" />
+		    	<input type="submit"  value="Upload file"/>
+		    </form>
+				
+			</div>
+			<div >
+				<img src="/media/shimmer/folder_add_48.png"/>
+				<form method="post" action="/download/newfolder" style="display: inline;">
+						New folder name:
+						<input type="text" name="newfolder" />
+			    	<input name="dir" type="hidden" value="${curdir}" />
+						<input type="submit" value="Create folder"/>
+				</form>
+			</div>
+	  </div>
+	</div> <!--content-->
 </body>
 </html>

@@ -15,8 +15,8 @@ class DatasetPage:
     exposed=True
     @web.expose
     def index(self):
-        text = file(web.abspath('templates/datasetlist.html'))
-        return text
+        text = file(web.abspath('templates/datasetlist.html')).read()
+        return text.replace('${navigation()}',web.navigation())
 
     @require(member_of(group.guest))
     @web.expose

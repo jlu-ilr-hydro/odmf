@@ -62,6 +62,9 @@
 	    									$('#siteselect').html(html).val(site);
 	    								}
 	    			);
+	    			if (vt | user | site | date) {
+	    				setFilter();
+	    			}
 	    			//addMarkers();
     		}
     		function setFilter() {
@@ -76,7 +79,7 @@
 	    									var html='';
 	    									$.each(data,function(index,item){
 	    										html+='<li><a href="/dataset/'+
-	    													item.id+'">'+item.name+
+	    													item.id+'">'+'#'+item.id+' - '+item.name+
 	    													'</a></li>'
 	    										});
 	    									$('#dslist').html(html);
@@ -145,13 +148,13 @@
 
 				    map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 				    //$('#map_canvas').html('MAPMAP');
-	    			popSelect();
 						//addMarkers();
     			
     		}
     		$(function() {
-  					$('#navigation').load('/navigation');
+  					//$('#navigation').load('/navigation');
     				$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
+	    			popSelect();
 
 	   		});
         
@@ -162,8 +165,8 @@
 		</style>
 
 </head>
-<body onload="initialize();">
-	<div id="navigation" >Navigation</div>
+<body>
+	${navigation()}
 	<div class="content">
 		<h1>Datasets</h1>
 		<div>
@@ -187,27 +190,16 @@
 			<button onclick="clearFilter();">clear filter</button>
 	
 		</div>
-		<table style="width: 100%;">
-			<tr>
-				<td width="90%">
-					<div>
-							<h2>List:</h2>
-							<ul>
-								<li>
-									<a href="/dataset/new">New dataset...</a>
-								</li>
-							</ul>
-							<ul id="dslist">
-							</ul>
-						</div>				
-				</td>
-				<td>
-					<div id="map_canvas" style="width: 100%; height=100%; background-color: #BFF;">
-						Map<br />Map<br />Map<br />Map<br />	
-					</div>
-				</td>
-			</tr>
-		</table>
+		<div>
+			<h2>List:</h2>
+			<ul style="list-style-image: url(/media/shimmer/document_add_24.png)">
+				<li>
+					<a href="/dataset/new">New dataset...</a>
+				</li>
+			</ul>
+			<ul id="dslist" style="list-style-image: url(/media/shimmer/document_24.png)">
+			</ul>
+		</div>				
 	
 	</div>			
 	</body>
