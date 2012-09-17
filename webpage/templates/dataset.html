@@ -39,7 +39,12 @@
 
 	<style>
 		/*input { width: 100%;}
-		select { width: 100%;}*/	
+		select { width: 100%;}*/
+		.bold {
+			font-weight: bold;
+		}
+		
+			
 	</style>
 </head>
 <!--
@@ -59,18 +64,30 @@
 	  <div py:if="activedataset"> 
 			<div>
 				<h2 py:content="'#%i %s (%s-%s)' % (activedataset.id,activedataset.name,formatdate(activedataset.start),formatdate(activedataset.end))" />
-				Values:
-				<span py:if="activedataset.records.count()" 
-								class="highlight"
-								py:content="Markup(u'%0.4g &plusmn; %0.4g %s, n=%i' % (session.query(db.sql.func.avg(db.Record.value)).filter(db.Record.dataset==activedataset).scalar(), 
-																					  session.query(db.sql.func.stddev(db.Record.value)).filter(db.Record.dataset==activedataset).scalar(),
-																					  activedataset.valuetype.unit,
-																					  activedataset.records.count())
-												)" 
-							/>
-				<br />
+				<table>
+					<tr>
+						<td class="bold">measured by: </td><td>${activedataset.measured_by}</td>
+					</tr><tr>
+						<td class="bold">Values: </td>
+						<td>
+							<span py:if="activedataset.records.count()" 
+										class="highlight"
+										py:content="Markup(u'%0.4g &plusmn; %0.4g %s, n=%i' % (session.query(db.sql.func.avg(db.Record.value)).filter(db.Record.dataset==activedataset).scalar(), 
+																							  session.query(db.sql.func.stddev(db.Record.value)).filter(db.Record.dataset==activedataset).scalar(),
+																							  activedataset.valuetype.unit,
+																							  activedataset.records.count())
+														)" 
+									/>
+						</td>
+					</tr><tr>
+						<td class="bold">Comment:</td>
+						<td>
+							<div py:content="activedataset.comment" style="white-space: pre-line;"/>
+						</td>
+					</tr>
+				</table>
 				<button onclick="toggle('edit')" >Edit dataset...</button>
-					
+				
 				<div id="edit" style="display:none;">
 					<form action="/dataset/saveitem" method="post" py:if="is_member('editor')">
 					<input type="text" name="id" value="${activedataset.id}" style="display: none;" />
@@ -275,7 +292,7 @@
 		<div py:if="is_member('logger')" >
 			<h2>Im- and Export</h2>
 			<ul>
-				<li>
+				<li py:if="activedataset">
 				<button onclick="window.location='/dataset/records.csv?dataset=${activedataset.id}';">Export as CSV</button>
 					Get Values as csv-file. Open with Excel if English language settings are chosen in Windows.				
 				</li>
