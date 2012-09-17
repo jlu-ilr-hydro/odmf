@@ -9,11 +9,23 @@ from datetime import datetime, timedelta
 from collections import namedtuple
 import sys
 import os
+from traceback import format_exc as traceback
 PressureRecord = namedtuple("Record", 'id date T d') 
-
+def removedataset(*args):
+    "Removes the dataset ids"
+    session=db.Session()
+    datasets = [session.query(db.Dataset).get(int(a)) for a in args]
+    for ds in datasets:
+        name = str(ds)
+        reccount=ds.records.delete()
+        session.commit()
+        session.delete(ds)
+        session.commit()
+        print "Deleted %s and %i records" % (name,reccount)
+        
 class PressureImport(object):
     "Base class for the import of raw data from Water level/ Temp. loggers"
-
+    commitinterval=5000
     def loadvalues(self):
         raise NotImplemented('Use a derived class')
     def query(self,cls):
@@ -25,25 +37,43 @@ class PressureImport(object):
             raise ValueError("No results present, you need to execute loadvalues first")
         vtD = self.query(db.ValueType).get(1)
         vtT = self.query(db.ValueType).get(8)
+        raw = self.query(db.Quality).get(0)
         idD = db.newid(db.Dataset,self.session)
         idT =idD+1
         dsD = db.Dataset(id=idD,measured_by=self.user,valuetype=vtD,site=self.site,
-                         filename=self.filename,comment=comment,source=self.inst)
+                         filename=self.filename,comment=comment,source=self.inst,quality=raw)
         dsD.name = self.name + '-d'
         dsD.comment = 'Contains the uncalibrated water level above the sensor. Please change the valuetype after calibration.'
         dsT = db.Dataset(id=idT,measured_by=self.user,valuetype=vtT,site=self.site,
-                         filename=self.filename,comment=comment,source=self.inst)
+                         filename=self.filename,comment=comment,source=self.inst,quality=raw)
         dsT.name = self.name + '-T'
         dsT.start = dsD.start = self.result[0].date
         dsT.end = dsD.end = self.result[-1].date
-        
-        for r in self.result:
-            if self.startdate and r.date>self.startdate:
+        self.datasets=[dsD,dsT]
+    def submit(self,verbose=False):
+        dsD,dsT = self.datasets
+        for i,r in enumerate(self.result):
+            if (not self.startdate) or r.date>self.startdate:
                 Drec = db.Record(id=r.id,time=r.date,value=r.d,dataset=dsD)
                 Trec = db.Record(id=r.id,time=r.date,value=r.T,dataset=dsT)
                 self.session.add(Drec)
                 self.session.add(Trec)
-    
+            if i % self.commitinterval == 0 and i:
+                self.session.commit()
+                if verbose:
+                    print "commit records %6i -%6i" % (i-self.commitinterval,i)
+                    sys.stdout.flush()
+        self.session.close()
+
+
+    def __call__(self,comment=''):
+        print self.statistics()
+        print "Load in session..."
+        sys.stdout.flush()
+        self.createdatasets(comment)
+        print 'New Datasets:\n' + '\n'.join(['#%i - %s' % (ds.id,ds.name) for ds in self.datasets])
+        sys.stdout.flush()
+        self.submit(True)
     def statistics(self):
         n = len(self.result)
         if not n:
@@ -61,9 +91,6 @@ class PressureImport(object):
         str = "%s for site #%i from %s\n%s" % (type(self),self.site.id,self.filename,self.user)
         str +='\n%6i Errors\n%6i Records' % (len(self.errors),len(self.result))
         return str
-    def commit(self):
-        self.session.commit()
-        self.session.close()
         
     def __init__(self,filename,user,siteid,instrumentid=None,startdate=None):
         self.filename=filename
@@ -75,6 +102,7 @@ class PressureImport(object):
         self.startdate = startdate
         self.result=[]
         self.errors=[]
+        self.datasets=[]
 
 class OdysseyCSVImport(PressureImport):
     """Imports Pressure/Temperature data from an Odyssey logger in the CSV format including 12 lines of metadata.
@@ -166,18 +194,19 @@ class OdysseyPRNImport(PressureImport):
         for i,line in enumerate(fin):
             try:
                 columns = line.split(',')
-                rec = PressureRecord(id=i+1,
-                             date=self.float2date(float(columns[0])),
-                             T=float(columns[4]),
-                             d=float(columns[6])*1e-3
-                            )
-                if rec.date.year<2000:
-                    rec.date=rec.date.replace(year=thisyear)
+                date = self.float2date(float(columns[0]))
+                if date.year<2000:
+                    date=date.replace(year=thisyear)
                     changedatecount+=1
+                rec = PressureRecord(id=i+1,
+                             date=date,
+                             T=float(columns[2]),
+                             d=float(columns[4])*1e-3
+                            )
                 if rec.d>0:
                     result.append(rec)
             except Exception as e:
-                errors.append('%s:%i - Error\n' % (i,e.message))
+                errors.append('%s:%i - Error\n' % (traceback(),i))
         if changedatecount:
             errors.insert(0,'Changed year to this year for %i records' % changedatecount)
         return result,errors

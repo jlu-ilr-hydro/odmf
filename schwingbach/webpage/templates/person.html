@@ -22,7 +22,7 @@
 				<a href="/user/new"><b>Neu...</b></a>			
 			</li>
 			<li py:for="pp in persons">
-				<a href="${'/user/%s' % pp.username}" py:content="pp"/>
+				<a href="${'/user/%s' % pp.username}" py:content="pp" style="font-weight: ${'bold' if pp is active_person else 'normal'}"/>
 			</li>
 		</ul>
 	    <div class="rightpane"> 
@@ -96,7 +96,7 @@
 		<div class="rightpane">
 			<h2>Jobs</h2>
 			<ul>
-				<li>
+				<li class="plus">
 					<a href="/job?user=${active_person.username}" >
 							 Add new job...
 						</a>
@@ -110,11 +110,11 @@
 		<div py:if="active_person" class="rightpane">
 			<h2>Datasets</h2>
 			<ul>
+				<li class="plus"><a href="/dataset/new?user=${active_person.username}">Add new dataset...</a>
+				</li>
 				<li py:for="ds in active_person.datasets">
 					<a href="/dataset/${ds.id}" 
 					py:content="'%s (%s-%s)' % (ds,formatdate(ds.start),formatdate(ds.end))" />
-				</li>
-				<li class="plus"><a href="/dataset/new?user=${active_person.username}">Add new dataset...</a>
 				</li>
 			</ul>
 		</div>		

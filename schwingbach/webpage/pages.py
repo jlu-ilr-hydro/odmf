@@ -16,12 +16,13 @@ class PersonPage:
     exposed=True
     @require(member_of(group.guest))  
     @web.expose
-    def default(self,act_user='new'):
+    def default(self,act_user=None):
         session = db.Session()
         persons = session.query(db.Person).order_by(db.sql.desc(db.Person.can_supervise),db.Person.surname)
         supervisors = persons.filter(db.Person.can_supervise==True)
         error=''
         jobs=[]
+        act_user = act_user or users.current.name
         if act_user == 'new':
             p_act = db.Person()
         else:

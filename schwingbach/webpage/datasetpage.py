@@ -39,7 +39,6 @@ class DatasetPage:
                 datasets=datasets.filter_by(valuetype=valuetype)
             if user:
                 datasets=datasets.filter_by(measured_by=user)
-        
             result= web.render('dataset.html',activedataset=active,session=session,
                               error=error,datasets=datasets,db=db,title='Schwingbach-Datensatz #' + str(id)
                               ).render('html',doctype='html')
@@ -104,7 +103,7 @@ class DatasetPage:
         if valuetype:
             vt=session.query(db.ValueType).get(int(valuetype))
             datasets=datasets.filter_by(valuetype=vt)
-        return datasets
+        return datasets.order_by(db.Dataset.id)
     
     
     @web.expose
