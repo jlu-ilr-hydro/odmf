@@ -131,6 +131,9 @@ div.content {
 		border-radius: 10px;
     padding: 2px;
 }
+.toggle {
+	display: none;
+}
 #Inhalt {
     float: left;
     width: 20em;
