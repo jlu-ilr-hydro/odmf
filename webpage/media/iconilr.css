@@ -44,6 +44,7 @@ h3 {
 	font-size: 100%;
 	border-bottom: solid 2px #32739d;
   border-top: solid 2px #32739d
+  margin: 2px;
 }
 
 /* @group Link Styling */

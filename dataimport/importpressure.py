@@ -191,6 +191,7 @@ class OdysseyPRNImport(PressureImport):
         errors=[]
         changedatecount = 0
         thisyear = datetime.now().year
+        id=0
         for i,line in enumerate(fin):
             try:
                 columns = line.split(',')
@@ -198,13 +199,15 @@ class OdysseyPRNImport(PressureImport):
                 if date.year<2000:
                     date=date.replace(year=thisyear)
                     changedatecount+=1
-                rec = PressureRecord(id=i+1,
-                             date=date,
-                             T=float(columns[2]),
-                             d=float(columns[4])*1e-3
-                            )
-                if rec.d>0:
-                    result.append(rec)
+                if date>=self.startdate: 
+                    id+=1
+                    rec = PressureRecord(id=id,
+                                 date=date,
+                                 T=float(columns[2]),
+                                 d=float(columns[4])*1e-3
+                                )
+                    if rec.d>0:
+                        result.append(rec)
             except Exception as e:
                 errors.append('%s:%i - Error\n' % (traceback(),i))
         if changedatecount:

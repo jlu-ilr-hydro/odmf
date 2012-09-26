@@ -49,7 +49,7 @@ config =  { '/': {
             '/media': {
                        'tools.staticdir.on': True,
                        'tools.staticdir.dir': 'media',
-                       'tools.caching.on' : True,
+                       'tools.caching.on' : False,
                        },
            '/html': {
                        'tools.staticdir.on': True,
@@ -103,6 +103,14 @@ def formattime(t):
         return t.strftime('%H:%M:%S')
     except:
         return None
+def formatdatetime(t=None):
+    if not t:
+        t=datetime.now()
+    try:
+        return t.strftime('%d.%m.%Y %H:%M:%S')
+    except:
+        return None
+    
 def parsedate(s):
     res=None
     formats = '%d.%m.%Y %H:%M:%S','%d.%m.%Y %H:%M','%d.%m.%Y','%Y/%m/%dT%H:%M:%S'
@@ -126,6 +134,7 @@ class Renderer(object):
                           'markoption' : markoption,
                           'formatdate' : formatdate,
                           'formattime' : formattime,
+                          'formatdatetime' : formatdatetime,
                           'user' : user,
                           'users': auth.users,
                           'is_member': auth.is_member,

@@ -1,27 +1,29 @@
 <xml xmlns:py="http://genshi.edgewall.org/" >
-<h3>
+<h2>
 	<a href="/site/${site.id}">
 		<img src="/media/mapicons/${site.icon if site.icon else 'unknown.png'}" /> 
 		#${site.id} (${site.name})
 	</a>
-</h3>
+</h2>
 <div py:content="site.comment" />
 <div py:if="site.height" py:content="'%0.1f m NN' % site.height" />
 <div>
 	<a href="/site/${site.id}">edit...</a>
 </div>
-
 <div>
-	<h3>Instruments:</h3>
-	<ul>
+	<a py:for="img in site.images" href="/picture/${img.id}"><img src="/thumbnail/${img.id}" /></a>
+</div>
+<div>
+	<h3><a href="javascript:toggle('instruments')">Instruments:</a></h3>
+	<ul id="instruments" class="toggle">
 		<li py:for="inst in site.instruments" 
 				py:if="inst.active"
 				py:content="'since %s: %s' % (formatdate(inst.installdate),inst.instrument)" /> 
 	</ul>
 </div>
 <div>
-	<h3>Logbook:</h3>
-	<ul>
+	<h3><a href="javascript:toggle('logbook')">Logbook:</a></h3>
+	<ul id="logbook" class="toggle">
 		<li py:if="is_member('logger')">
 			<a href="/log/new?siteid=${site.id}" style="font-style: italic;">New message...</a>
 		</li>
@@ -32,14 +34,14 @@
 </div>
 
 <div>
-	<h3>Datasets:</h3>
-	<ul>
+	<h3><a href="javascript:toggle('datasets')">Datasets:</a></h3>
+	<ul id="datasets" class="toggle">
 		<li py:if="is_member('editor')">
 			<a href="/dataset/new?site_id=${site.id}"
 					style="font-style: italic;" >Add new dataset...</a>
 		</li>
 		<li py:for="ds in site.datasets">
-			<a href="/dataset/${ds.id}">${ds.name}</a>, ${ds.valuetype} (${formatdate(ds.start)}-${formatdate(ds.end)})
+			<a href="/dataset/${ds.id}">${ds}</a>
 		</li>
 	</ul>
 </div>

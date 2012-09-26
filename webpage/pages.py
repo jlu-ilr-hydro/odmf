@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import lib as web
-from auth import users, require, member_of, has_level, group
+from auth import users, require, member_of, has_level, group, expose_for
 import db
 import sys
 from traceback import format_exc as traceback
@@ -14,8 +14,8 @@ from webpage.site import SitePage
 from webpage.datasetpage import DatasetPage
 class PersonPage:
     exposed=True
-    @require(member_of(group.guest))  
-    @web.expose
+    
+    @expose_for(group.guest)
     def default(self,act_user=None):
         session = db.Session()
         persons = session.query(db.Person).order_by(db.sql.desc(db.Person.can_supervise),db.Person.surname)
@@ -36,8 +36,7 @@ class PersonPage:
                           supervisors=supervisors,error=error,jobs=jobs).render('html',doctype='html')
         session.close()
         return result
-    @require(member_of(group.supervisor))
-    @web.expose
+    @expose_for(group.supervisor)
     def saveitem(self,**kwargs):
         username=kwargs.get('username')
         if 'save' in kwargs and username:
@@ -59,7 +58,7 @@ class PersonPage:
             session.close()
         raise web.HTTPRedirect('./' + username)
     
-    @web.expose
+    @expose_for()
     def json(self,supervisors=False):
         session=db.Session()
         web.setmime('application/json')
@@ -73,8 +72,7 @@ class PersonPage:
         
 class VTPage:
     exposed=True
-    @require(member_of(group.guest))
-    @web.expose
+    @expose_for(group.guest)
     def default(self,vt_id='new'):
         session=db.Session()
         valuetypes=session.query(db.ValueType).order_by(db.ValueType.id).all()
@@ -96,8 +94,7 @@ class VTPage:
         session.close()
         return result    
     
-    @require(member_of(group.editor))
-    @web.expose
+    @expose_for(group.editor)
     def saveitem(self,**kwargs):
         try:
             id=web.conv(int,kwargs.get('id'),'')
@@ -119,7 +116,7 @@ class VTPage:
                 return web.render('empty.html',error=traceback(),title='valuetype #%s' % id
                                   ).render('html',doctype='html')
         raise web.HTTPRedirect('./%s' % id)
-    @web.expose
+    
     def json(self):
         session=db.Session()
         web.setmime('application/json')
@@ -129,8 +126,7 @@ class VTPage:
 class DatasourcePage:
     exposed=True
     
-    @require(member_of(group.guest))
-    @web.expose
+    @expose_for(group.guest)
     def default(self,id='new'):
         session=db.Session()
         instruments=session.query(db.Datasource).order_by(db.Datasource.id)
@@ -150,8 +146,7 @@ class DatasourcePage:
         session.close()
         return result    
     
-    @require(member_of(group.editor))
-    @web.expose
+    @expose_for(group.editor) 
     def saveitem(self,**kwargs):
         try:
             id=web.conv(int,kwargs.get('id'),'')
@@ -173,7 +168,7 @@ class DatasourcePage:
                 return web.render('empty.html',error=traceback(),title='valuetype #%s' % id
                                   ).render('html',doctype='html')
         raise web.HTTPRedirect('./%s' % id)
-    @web.expose
+    @expose_for()
     def json(self):
         session=db.Session()
         web.setmime('application/json')
@@ -184,8 +179,8 @@ class DatasourcePage:
     
 class JobPage:
     exposed=True
-    @require(member_of(group.logger))
-    @web.expose
+    
+    @expose_for(group.logger)
     def default(self,jobid='new',user=None):
         session=db.Session()
         error=''
@@ -205,8 +200,7 @@ class JobPage:
         session.close()
         return result    
     
-    @require(member_of(group.editor))    
-    @web.expose
+    @expose_for(group.editor)    
     def saveitem(self,**kwargs):
         try:
             id=web.conv(int,kwargs.get('id'),'')
@@ -239,8 +233,7 @@ class JobPage:
         raise web.HTTPRedirect('./%s' % id)
 class LogPage:
     exposed=True
-    @require(member_of(group.guest))
-    @web.expose
+    @expose_for(group.guest)
     def default(self,logid=None,siteid=None,lastlogdate=None,days=None):
         session=db.Session()
         error=''
@@ -271,8 +264,7 @@ class LogPage:
         session.close()
         return result    
     
-    @require(member_of(group.logger))
-    @web.expose
+    @expose_for(group.logger)
     def saveitem(self,**kwargs):
         try:
             id=web.conv(int,kwargs.get('id'),'')
@@ -299,8 +291,7 @@ class LogPage:
         elif 'new' in kwargs:
             id='new'
         raise web.HTTPRedirect('./%s' % id)
-    @require(member_of(group.admin))
-    @web.expose
+    @expose_for(group.admin)
     def remove(self,id):
         session = db.Session()
         log = session.query(db.Log).get(id)
@@ -310,7 +301,7 @@ class LogPage:
         raise web.HTTPRedirect('/log')
     
     
-    @web.expose
+    @expose_for()
     def json(self,siteid=None,user=None,old=None,until=None,days=None):
         session=db.Session()
         web.setmime('application/json')
@@ -339,8 +330,7 @@ class LogPage:
         session.close()
         return res
     
-    @require(member_of(group.logger))
-    @web.expose
+    @expose_for(group.logger)
     def fromclipboard(self,paste):
         web.setmime('text/html')
         lines=paste.splitlines()
@@ -389,7 +379,15 @@ class LogPage:
     
             
             
-                    
+class HeapyPage(object):
+    exposed=True
+    def __init__(self,hp):
+        self.hp=hp
+    @expose_for(group.admin)
+    def index(self):
+        web.setmime('text/plain')
+        h = self.hp.heap()
+        return str(h)                 
 
 class Root(object):
     _cp_config = {'tools.sessions.on': True,
@@ -407,13 +405,29 @@ class Root(object):
     log = LogPage()
     map=MapPage()
     instrument=DatasourcePage()
-    @web.expose
+    @expose_for()
     def index(self):
         return self.map.index()
-    @web.expose
+    @expose_for()
     def navigation(self):
         return web.navigation()
-    @web.expose
+    @expose_for()
+    def picture(self,id):
+        session=db.Session()
+        img=db.Image.get(session,int(id))
+        web.setmime(img.mime)
+        res = img.image
+        session.close()
+        return res
+    @expose_for()
+    def thumbnail(self,id):
+        session=db.Session()
+        img=db.Image.get(session,int(id))
+        web.setmime(img.mime)
+        res = img.thumbnail
+        session.close()
+        return res
+    @expose_for()
     def login(self,frompage='/',username=None,password=None,error='',logout=None):
         if logout:
             users.logout()
@@ -426,6 +440,12 @@ class Root(object):
                 raise web.HTTPRedirect(frompage or '/')
         else:
             return web.render('login.html',error=error,frompage=frompage).render('html',doctype='html')
+    @expose_for(group.admin)
+    def showjson(self,**kwargs):
+        web.setmime('application/json')
+        import json
+        return json.dumps(kwargs,indent=4)
+        
     
 
 

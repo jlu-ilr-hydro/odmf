@@ -5,13 +5,14 @@ Created on 12.07.2012
 '''
 import lib as web
 import db
-
+from datasetpage import DatasetPage
 class MapPage(object):
     exposed=True
     @web.expose
     def index(self):
         res = file(web.abspath('templates/map.html')).read()
         return res.replace('${navigation()}',web.navigation())  
+    
     @web.expose
     def sites(self):
         session=db.Session()

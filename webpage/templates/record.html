@@ -1,0 +1,40 @@
+<xml version="1.0" encoding="UTF-8" xmlns:py="http://genshi.edgewall.org/" >
+	<!--Variables to set: actionname='action',action='/path/to/action?datasetid=1&recordid=1&frompage='/path/to/currentpage' and records. -->
+	<style>
+		tr.record {	border-bottom: solid 1px black;}
+		td.record { border: thin dotted #32739D;
+								padding-left: 0.5em; 
+								padding-right: 0.5em; 
+								text-align: right;
+							}
+	</style>
+	<script>
+		function action(dsid,rid) {
+			$.post('${action}',{datasetid:dsid,recordid:rid}, function() {
+				location.reload();
+			});
+		}
+	</script>
+	<div>
+		<table>
+			<thead class="box">
+				<tr class="record box" >
+					<th>ID</th><th>time</th><th>value</th><th></th><th>comment</th><th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr py:for="rec in records">
+					<td class="record" py:content="rec.id" />
+					<td class="record" py:content="formatdatetime(rec.time)" />
+					<td class="record" py:content="'%g' % rec.value if rec.value else 'N/A'" />
+					<td class="record" py:content="rec.dataset.valuetype.unit" />
+					<td class="record" py:content="rec.comment" />
+					<td class="record">
+						<button onclick="action(${rec.dataset.id},${rec.id});"
+										py:content="actionname" /> 
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</xml>

@@ -16,7 +16,20 @@
    inkscape:version="0.48.2 r9819"
    sodipodi:docname="mapicons.svg">
   <defs
-     id="defs4" />
+     id="defs4">
+    <filter
+       inkscape:collect="always"
+       id="filter4424"
+       x="-0.12033778"
+       width="1.2406756"
+       y="-0.11966412"
+       height="1.2393282">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="1.6646561"
+         id="feGaussianBlur4426" />
+    </filter>
+  </defs>
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -24,14 +37,14 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.6"
-     inkscape:cx="76.206887"
-     inkscape:cy="38.988036"
+     inkscape:zoom="3.959798"
+     inkscape:cx="26.21565"
+     inkscape:cy="-6.5408774"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1378"
-     inkscape:window-height="878"
+     inkscape:window-width="1858"
+     inkscape:window-height="1058"
      inkscape:window-x="54"
      inkscape:window-y="-8"
      inkscape:window-maximized="1" />
@@ -43,7 +56,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -52,12 +65,13 @@
      inkscape:groupmode="layer"
      id="layer1">
     <path
-       style="fill:#d7eef4;fill-opacity:1;stroke:#000000;stroke-width:0.99999994000000003;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       d="M 12.4375 1028.4062 C 6.0862254 1028.4062 0.9375 1033.555 0.9375 1039.9062 C 0.9375 1042.4331 1.7747814 1044.7586 3.15625 1046.6562 L 0.53125 1051.8125 L 5.75 1049.2188 C 7.6400112 1050.5815 9.9294401 1051.4062 12.4375 1051.4062 C 18.788775 1051.4062 23.9375 1046.2575 23.9375 1039.9062 C 23.9375 1033.555 18.788775 1028.4062 12.4375 1028.4062 z "
+       style="fill:#d7eef4;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       d="m 12.4375,1028.4062 c -6.3512746,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.8372814,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.8900112,1.3627 4.1794401,2.1874 6.6875,2.1874 6.351275,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.148725,-11.5 -11.5,-11.5 z"
        id="path2985"
        inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
        inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
+       inkscape:export-ydpi="86.292137"
+       inkscape:connector-curvature="0" />
     <path
        style="fill:#c87137;fill-opacity:1;stroke:#000000;stroke-width:0.99999994000000003;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        d="M 0.96875 1039.375 C 0.96078066 1039.5507 0.9375 1039.7286 0.9375 1039.9062 C 0.9375 1042.4332 1.7747814 1044.7586 3.15625 1046.6562 L 0.53125 1051.8125 L 5.75 1049.2188 C 7.6400112 1050.5814 9.9294401 1051.4062 12.4375 1051.4062 C 18.788775 1051.4062 23.9375 1046.2576 23.9375 1039.9062 C 23.9375 1039.7286 23.914219 1039.5507 23.90625 1039.375 L 0.96875 1039.375 z "
@@ -322,6 +336,11 @@
        inkscape:export-xdpi="86.292137"
        inkscape:export-ydpi="86.292137" />
     <path
+       style="fill:#ff0000;fill-opacity:1;filter:url(#filter4424)"
+       d="m 118.4375,1022.4375 c -11.38895,0.8917 -18.683544,14.6459 -14.28125,24.6875 -2.62299,3.3652 -5.737226,10.8588 0.375,12.4688 4.44488,1.5243 7.42242,-6.1343 11.5625,-2.7813 13.96739,4.8608 27.92138,-13.6566 19.4375,-25.75 -3.40877,-5.9328 -10.30181,-9.3367 -17.09375,-8.625 z"
+       id="path3902"
+       inkscape:connector-curvature="0" />
+    <path
        id="path3929"
        d="m 120.4375,1028.4062 c -6.35127,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.83728,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.89001,1.3627 4.17944,2.1874 6.6875,2.1874 6.35128,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.14872,-11.5 -11.5,-11.5 z"
        style="fill:#d7eef4;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
@@ -511,7 +530,7 @@
        inkscape:export-xdpi="86.292137"
        inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\unknown.png"
        inkscape:connector-curvature="0"
-       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.99999994000000003;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       style="fill:#ffffff;fill-opacity:0.50196081;stroke:#000000;stroke-width:0.99999994000000003;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        d="m 148.4375,1028.4062 c -6.35127,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.83728,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.89001,1.3627 4.17944,2.1874 6.6875,2.1874 6.35128,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.14872,-11.5 -11.5,-11.5 z"
        id="path3036" />
     <text

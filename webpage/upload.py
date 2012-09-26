@@ -58,7 +58,7 @@ class Path(object):
         return os.listdir(self.absolute)
 class DownloadPage(object):
     exposed=True  
-    @require(member_of(group.guest))
+    @require(member_of(group.logger))
     @web.expose
     def index(self,dir='',error='',**kwargs):
         path = Path(op.join(datapath,dir))

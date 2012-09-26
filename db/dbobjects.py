@@ -32,12 +32,7 @@ class Site(Base):
     comment = sql.Column(sql.String)
     icon = sql.Column(sql.String(30))
     def __str__(self):
-        E='E' if self.lon>0 else 'W'
-        N='N' if self.lat>0 else 'S'
-        coord ='%0.6f%s,%0.6f%s' % (abs(self.lon),E,abs(self.lat),N)
-        if self.height:
-            coord+=',%0.3f m a.s.l' % self.height
-        return "#%i (%s) - %s" % (self.id,coord,self.name)
+        return "#%i - %s" % (self.id,self.name)
     def __jdict__(self):
         return dict(id=self.id,
                 lat=self.lat,
@@ -152,11 +147,35 @@ class Image(Base):
     time=sql.Column(sql.DateTime)
     mime=sql.Column(sql.String)
     _site=sql.Column("site",sql.Integer, sql.ForeignKey('site.id'))
-    site=orm.relationship("Site", backref='images')
+    site=orm.relationship("Site", backref=orm.backref('images',lazy='dynamic',order_by=sql.desc(time)))
     _by=sql.Column("by",sql.ForeignKey('person.username'))
-    by=orm.relationship("Person",backref='images')
+    by=orm.relationship("Person",backref=orm.backref('images',lazy='dynamic',order_by=sql.desc(time)))
     image=sql.Column(sql.LargeBinary)
     thumbnail = sql.Column(sql.LargeBinary)
+    imageheight = 1024
+    thumbnailheight = 72
+    def __PIL_to_stream(self,img,height,format):
+        from PIL import Image as pil
+        from cStringIO import StringIO
+        lores = img.resize((height * img.size[0] // img.size[1], height), pil.ANTIALIAS)
+        buffer = StringIO()
+        lores.save(buffer,format)
+        return buffer
+    def __str__(self):
+        return "Image at site #%i by %s from %s" % (self.site.id,self.by,self.time)
+    def __repr__(self):
+        return "<db.Image(site=%i,by=%s,time=%s)>" % (self.site.id,self.by,self.time) 
+    def __init__(self,site=None,time=None,by=None,format='jpeg',imagefile=file):
+        from PIL import Image as pil
+        img = pil.open(imagefile)
+        self.mime = 'image/' + format
+        self.image= self.__PIL_to_stream(img, self.imageheight, format).getvalue()
+        self.thumbnail = self.__PIL_to_stream(img, self.thumbnailheight, format).getvalue()
+        self.by=by
+        self.time=time
+        self.site=site
+        
+        
 
 class Log(Base):
     __tablename__='log'
@@ -166,7 +185,7 @@ class Log(Base):
     user = orm.relationship("Person")
     message = sql.Column(sql.String)
     _site = sql.Column('site',sql.Integer,sql.ForeignKey('site.id'))
-    site = orm.relationship("Site", backref=orm.backref('logs',lazy='dynamic'))
+    site = orm.relationship("Site", backref=orm.backref('logs',lazy='dynamic',order_by=sql.desc(time)))
     def __str__(self):
         return "%s, %s: %s" % (self.user,self.time,self.message)
     def __cmp__(self,other):

@@ -1,6 +1,6 @@
 <xml xmlns:py="http://genshi.edgewall.org/" >
 	<a style="float:right;" href="http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
-		<img src="http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/sidepanels/instlogo.jpg/image_preview" />
+		<img src="/media/ilrlogo.jpg" />
 	</a>
 	<div class="navigate" >
 		<div style="background-image: url(/media/schwingbach.jpg);height:626px;width:243px;" >
@@ -14,7 +14,7 @@
 				<li><a href="/dataset">data sets</a> </li>
 				<li><a href="/valuetype">value types</a></li> 
 				<li><a href="/instrument">instruments</a></li>
-				<li><a href="/download">download</a></li>
+				<li py:if="is_member('logger')"><a href="/download">download</a></li>
 				<li py:if="is_member('editor')"><a href="/user">users</a></li>
 				<li py:if="is_member('editor')"><a href="/job">jobs</a></li>
 			</ul>

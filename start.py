@@ -7,10 +7,18 @@ Created on 12.02.2012
 '''
 
 
-from webpage import Root
+from webpage import Root, HeapyPage
 from webpage import lib
 import sys
 autoreload= not 'noreload' in sys.argv
 print "autoreload =",autoreload
 
-lib.start_server(Root(), autoreload=autoreload, port=8081)
+root=Root()
+
+if 'heapy' in sys.argv:
+    print "Load heapy"
+    from guppy import hpy
+    hp=hpy()
+    hp.setrelheap()
+    root.heapy = HeapyPage(hp)
+lib.start_server(root, autoreload=autoreload, port=8081)

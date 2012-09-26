@@ -1,7 +1,6 @@
 <xml xmlns:py="http://genshi.edgewall.org/" >
 <form action="/site/saveitem" method="post">
 	<div>
-		<h2 py:content="'Edit %s' % actualsite" />
 
 		<table style="width: 100%">
 			<tr>
@@ -27,14 +26,18 @@
 			<tr height="36px">
 				<td>
 					Icon: <img src="/media/mapicons/${actualsite.icon if actualsite.icon else 'unknown.png'}" id="currenticon" />
-					
 				</td>
 				<td>
+					<img py:for="icon in icons" 
+							 class="highlightonhover" 
+							 src="/media/mapicons/${icon}" 
+							 onclick="$('#currenticon').attr('src','/media/mapicons/${icon}');$('#iconfile').val('${icon}');"/>
+					<!--
 					<a py:for="icon in icons" class="highlightonhover"
-						 onclick="$('#currenticon').attr('src','/media/mapicons/${icon}');$('#iconfile').val('${icon}');" >
+						 onclick="iconClick(${icon});" >
 						 <img src="/media/mapicons/${icon}" />
-					</a>
-					<input name="icon" style="visibility: collapse;" id="iconfile"/>						 
+					</a>-->
+					<input name="icon" type="hidden" id="iconfile"/>						 
 				</td>
 			</tr>
 			<tr>
