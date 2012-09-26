@@ -130,8 +130,8 @@
 				
 			</div>
 		</div>
-		<div class="rightpane">
-			<h2>Installations</h2>
+		<div>
+			<h1>Installations</h1>
 			<ul>
 					<li py:if="is_member('editor')">
 							<button py:if="is_member('editor')" onclick="addinstrument()" class="imgbutton">
@@ -143,8 +143,9 @@
 							</select>
 					</li>
 					<li py:for="inst in actualinstrument.sites" >
-						<span py:if="inst.active" 
-									py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
+						<a  href="/site/${inst.site.id}"
+								py:if="inst.active" 
+								py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
 						<span py:if="not inst.active" class="removed"
 									py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" /> 
 						<a href="javascript:removeinstrument(${inst.id},${inst.site.id})" 
@@ -153,8 +154,8 @@
 					</li>
 				</ul>
 		</div>
-		<div class="rightpane">
-				<h2>Datasets</h2>
+		<div>
+				<h1>Datasets</h1>
 				<ul>
 					<li py:for="ds in actualinstrument.datasets">
 						<a href="/dataset/${ds.id}" 

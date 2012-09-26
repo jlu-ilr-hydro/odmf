@@ -16,12 +16,7 @@
         	});
         });
         function toggle(id) {
-        	var obj = $('#'+id) 
-        	if (obj.css('display')=='none') {
-        		obj.css('display','block');
-        	} else {
-        		obj.css('display','none');
-        	}
+        	$('#' + id).slideToggle('fast');
         }
         function plotds(id) {	
         	var url = '/dataset/plot'
@@ -31,8 +26,7 @@
 					        	+ '&amp;' + 'marker=' + $('#markerpicker').val()
 					        	+ '&amp;' + 'line=' + $('#linepicker').val()
 					        	+ '&amp;' + 'color=' + $('#colorpicker').val();
-        	
-					$('#plot').attr('src',url);
+					$('#plotimg').attr('src',url);
         }
 
     </script>
@@ -42,6 +36,9 @@
 		select { width: 100%;}*/
 		.bold {
 			font-weight: bold;
+		}
+		a.toggle {
+			display: block; 			
 		}
 		
 			
@@ -61,32 +58,50 @@
 		<h1>Data sets</h1>
 		<a href="/dataset">Go to list...</a>
 	
-	  <div py:if="activedataset"> 
+	  <div py:if="activedataset" py:with="mean,std,n=activedataset.statistics()"> 
 			<div>
 				<h2 py:content="'#%i %s (%s-%s)' % (activedataset.id,activedataset.name,formatdate(activedataset.start),formatdate(activedataset.end))" />
 				<table>
 					<tr>
-						<td class="bold">measured by: </td><td>${activedataset.measured_by}</td>
-					</tr><tr>
-						<td class="bold">Values: </td>
-						<td>
-							<span py:if="activedataset.records.count()" 
-										class="highlight"
-										py:content="Markup(u'%0.4g &plusmn; %0.4g %s, n=%i' % (session.query(db.sql.func.avg(db.Record.value)).filter(db.Record.dataset==activedataset).scalar(), 
-																							  session.query(db.sql.func.stddev(db.Record.value)).filter(db.Record.dataset==activedataset).scalar(),
-																							  activedataset.valuetype.unit,
-																							  activedataset.records.count())
-														)" 
-									/>
+						<td class="bold">${activedataset.valuetype.name}:</td>
+						<td py:if="activedataset.records.count()" >
+										${'%0.4g' % mean} &plusmn; ${'%0.4g' % std} ${activedataset.valuetype.unit}, n=${n}
 						</td>
-					</tr><tr>
+					</tr>
+					<tr>
+						<td class="bold">Site:</td>
+						<td>
+							<a href="/site/${activedataset.site.id}" py:content="activedataset.site" />
+						</td>
+					</tr>
+					<tr>
+						<td class="bold">Measured by:</td>
+						<td>
+							<a href="${'/user/%s' % (activedataset.measured_by.username if activedataset.measured_by else '')}">
+								${activedataset.measured_by}
+							</a>
+						</td> 
+					</tr>
+					<tr>
+						<td class="bold">Quality:</td>
+						<td py:content="activedataset.quality" />
+					</tr>
+					<tr>
+						<td class="bold">Data source:</td>
+						<td py:content="activedataset.source" />
+					</tr>
+					<tr py:if="activedataset.quality.id>=3">
+						<td class="bold">Calibration: </td>
+						<td py:content="'v\' = %g * v + %g' % (activedataset.calibration_slope,activedataset.calibration_offset)" />
+					</tr>
+					<tr>
 						<td class="bold">Comment:</td>
 						<td>
 							<div py:content="activedataset.comment" style="white-space: pre-line;"/>
 						</td>
 					</tr>
 				</table>
-				<button onclick="toggle('edit')" >Edit dataset...</button>
+				<h2><a class="toggle" href="javascript:toggle('edit')" py:if="is_member('editor')"><img src="/media/expand_lblue.png"/>Edit dataset...</a></h2>
 				
 				<div id="edit" style="display:none;">
 					<form action="/dataset/saveitem" method="post" py:if="is_member('editor')">
@@ -165,7 +180,7 @@
 							</td>
 						</tr>
 						<tr>
-							<td>Calibration: </td>
+							<td><a href="/dataset/calibration?targetid=${activedataset.id}">Calibrate</a>: </td>
 							<td>
 								v' = <input type="text" value="${activedataset.calibration_slope}" name="calibration_slope" size="5" style="text-align: right;" />
 								* v + <input type="text" value="${activedataset.calibration_offset}" name="calibration_offset" size="5" style="text-align: right;"/>
@@ -199,96 +214,78 @@
 					</table>
 					<input type="submit" name="save"  style="width: 10em;"/>						
 					</form>
-					<div py:if="not is_member('editor')">
-						<table style="width: 100%">
-							<tr>
-								<td>Name:</td>
-								<td py:content="activedataset.name" />
-							</tr>
-							<tr>
-								<td><a href="${'/user/%s' % (activedataset.measured_by.username if activedataset.measured_by else '')}"> Measured by:</a></td>
-								<td py:content="activedataset.measured_by" />
-							</tr>
-							<tr>
-								<td><a href="${'/valuetype/%s' % (activedataset.valuetype.id if activedataset.valuetype else '')}">Value:</a></td>
-								<td py:content="activedataset.valuetype" />
-							</tr>
-							<tr>
-								<td><a href="${'/site/%s' % (activedataset.site.id if activedataset.site else '')}">Site:</a></td>
-								<td py:content="activedataset.site" />
-							</tr>
-							<tr>
-								<td>Quality:</td>
-								<td py:content="activedataset.quality" />
-							</tr>
-							<tr>
-								<td style="width: 7em">From (date):</td>
-								<td py:content="formatdate(activedataset.start)" />
-							</tr>
-							<tr>
-								<td>Until (Datum):</td>
-								<td py:content="formatdate(activedataset.end)" />
-							</tr>
-							<tr>
-								<td>Data source (eg. instrument):</td>
-								<td py:content="activedataset.source" />
-							</tr>
-							<tr>
-								<td>Calibration: </td>
-								<td py:content="'v\' = %g * v + %g' % (activedataset.calibration_slope,activedataset.calibration_offset)" />
-							</tr>
-							<tr>
-								<td>Comments:</td>
-								<td py:content="activedataset.comment" />
-							</tr>
-						</table>
-					</div>				
 				</div>
 			</div>
+			<h2><a class="toggle" href="javascript:toggle('plot')" py:if="is_member('logger')"><img src="/media/expand_lblue.png"/>Plot...</a></h2>
+			<div id="plot" style="display: none;">
+				<button onclick="plotds(${activedataset.id});">Plot</button>
 	
-			<h2>Plot</h2>
-			<button onclick="plotds(${activedataset.id});">Plot</button>
-
-			from:
-			<input type="text" class="datepicker" id="plotstart" value="${formatdate(activedataset.start)}"/>
-			until:
-			<input type="text" class="datepicker" id="plotend" value="${formatdate(activedataset.end)}"/>
-			marker:
-			<select id="markerpicker">
-				<option value="">none</option>
-				<option value="x">x</option>
-				<option value="o">o</option>
-				<option value=".">.</option>
-				<option value="|">x</option>
-				<option value="+">+</option>
-				<option value="*">*</option>
-			</select>
-			line:
-			<select id="linepicker">
-				<option value="-">-</option>
-				<option value="">none</option>
-				<option value=":">:</option>
-				<option value="--">--</option>
-				<option value="-.">-.</option>
-			</select>
-			color:
-			<select id="colorpicker">
-				<option value="k" style="background-color: #000;">k</option>
-				<option value="b" style="background-color: #00F;">b</option>
-				<option value="g" style="background-color: #0F0;">g</option>
-				<option value="r" style="background-color: #F00;">r</option>
-				<option value="y" style="background-color: #FF0;">y</option>
-				<option value="c" style="background-color: #0FF;">c</option>
-				<option value="m" style="background-color: #F0F;">m</option>
-	
-			</select>
-	
-			<div>
-				<img id="plot" alt=""/>
+				from:
+				<input type="text" class="datepicker" id="plotstart" value="${formatdate(activedataset.start)}"/>
+				until:
+				<input type="text" class="datepicker" id="plotend" value="${formatdate(activedataset.end)}"/>
+				marker:
+				<select id="markerpicker">
+					<option value="">none</option>
+					<option value="x">x</option>
+					<option value="o">o</option>
+					<option value=".">.</option>
+					<option value="|">x</option>
+					<option value="+">+</option>
+					<option value="*">*</option>
+				</select>
+				line:
+				<select id="linepicker">
+					<option value="-">-</option>
+					<option value="">none</option>
+					<option value=":">:</option>
+					<option value="--">--</option>
+					<option value="-.">-.</option>
+				</select>
+				color:
+				<select id="colorpicker">
+					<option value="k" style="background-color: #000;">k</option>
+					<option value="b" style="background-color: #00F;">b</option>
+					<option value="g" style="background-color: #0F0;">g</option>
+					<option value="r" style="background-color: #F00;">r</option>
+					<option value="y" style="background-color: #FF0;">y</option>
+					<option value="c" style="background-color: #0FF;">c</option>
+					<option value="m" style="background-color: #F0F;">m</option>
+		
+				</select>
+		
+				<div>
+					<img id="plotimg" alt="" src=""/>
+				</div>
 			</div>
-			
+			<h2><a py:if="is_member('editor')" class="toggle" href="javascript:toggle('split')"><img src="/media/expand_lblue.png"/>Split dataset...</a></h2>
+			<div py:if="is_member('editor')" id="split" style="display: none;">
+				<script>
+					function loadsplitrecords() {
+						var threshold = $('#splitthreshold').val();
+						$('#splitrecords').load('/dataset/findsplitpoints',
+																			{datasetid:${activedataset.id},threshold:threshold});
+					}
+				</script>
+				Threshold:<input id="splitthreshold" type="text" value="${'%0.3g' % std}" style="text-align: right;" />${activedataset.valuetype.unit}
+				<input type="button" onclick="loadsplitrecords();" value="Find"/>
+				<div id="splitrecords" />
+			</div>
 		</div>
-		<hr />
+		<h2><a href="javascript:toggle('similar')"><img src="/media/expand_lblue.png"/>Similar datasets</a></h2>
+		<div id="similar" style="display: none;">		
+			<div py:for="dsname in datasets" >
+				<h3>${dsname}</h3>
+				<div id="${dsname.replace(' ','_')}">
+					<ul style="list-style-image: url(/media/shimmer/document_16.png)">
+						<li py:for="ds in datasets[dsname]">
+							<a href="${ds.id}">${ds}</a>
+						</li>
+							
+					</ul>
+				</div>
+			</div>
+		</div>
 		<div py:if="is_member('logger')" >
 			<h2>Im- and Export</h2>
 			<ul>

@@ -12,33 +12,47 @@ from datetime import datetime
 from genshi import escape
 from glob import glob
 import os.path as op
-from auth import users, require, member_of, has_level, group
+from auth import users, expose_for, has_level, group
 from cStringIO import StringIO
 import db.projection as proj
 class SitePage:
     exposed=True  
-    @require(member_of(group.guest))
-    @web.expose
+    @expose_for(group.guest)
     def default(self,actualsite_id='1',error=''):
         session=db.Session()
-        if actualsite_id=='new':
-            actualsite=db.Site(id=db.newid(db.Site,session),
-                               lon=8.55,lat=50.5,
-                               name='<enter site name>')
-        else:
-            try:
-                actualsite=session.query(db.Site).get(int(actualsite_id))
-            except:
-                error=traceback()
-                actualsite=None
-        
-        result = web.render('site.html',actualsite=actualsite,error=error,image=''
+        try:
+            actualsite=session.query(db.Site).get(int(actualsite_id))
+            datasets = actualsite.datasets.join(db.ValueType)
+            datasets = datasets.order_by(db.ValueType.name,db.sql.desc(db.Dataset.end))
+        except:
+            error=traceback()
+            actualsite=None
+        result = web.render('site.html',actualsite=actualsite,error=error, 
+                            datasets=datasets,icons=self.geticons(),images=actualsite.images
                             ).render('html',doctype='html')
         session.close()
         return result    
     
-    @require(member_of(group.editor))
-    @web.expose
+    @expose_for(group.editor)
+    def new(self,lat=None,lon=None,name=None,error=''):
+        session=db.Session()
+        try:
+            actualsite=db.Site(id=db.newid(db.Site,session),
+                               lon=web.conv(float,lon) or 8.55,lat=web.conv(float,lat) or 50.5,
+                               name=name or '<enter site name>')
+        except:
+            error=traceback()
+            actualsite=None
+        result = web.render('site.html',actualsite=actualsite,error=error, 
+                            datasets=actualsite.datasets, icons=self.geticons(),images=[]
+                            ).render('html',doctype='html')
+        session.close()
+        return result    
+            
+        
+        
+    
+    @expose_for(group.editor)
     def saveitem(self,**kwargs):
         try:
             siteid=web.conv(int,kwargs.get('id'),'')
@@ -68,28 +82,7 @@ class SitePage:
                                   ).render('html',doctype='html')
         raise web.HTTPRedirect('./%s' % siteid)
     
-    @require(member_of(group.editor))
-    @web.expose
-    def edit(self,siteid='new'):
-        session=db.Session()
-        if siteid=='new':        
-            actualsite=db.Site(id=db.newid(db.Site,session),
-                               lon=8.55,lat=50.5,
-                               name='<enter site name>')
-        else:
-            try:
-                actualsite=session.query(db.Site).get(int(siteid))
-                
-            except:
-                error=traceback()
-                actualsite=None
-        if actualsite:
-            result=web.render('newsite.html',actualsite=actualsite,icons=self.geticons()).render('xml')
-        else:        
-            result= web.Markup('<div class="error">%s</div>' % error)
-        session.close()
-        return result
-    @web.expose
+    @expose_for()
     def getinstruments(self):
         web.setmime('application/json')
         session=db.Session()
@@ -97,8 +90,7 @@ class SitePage:
         session.close()
         return res
     
-    @require(member_of(group.editor))
-    @web.expose
+    @expose_for(group.editor)
     def addinstrument(self,siteid,instrumentid,date=None):
         if not instrumentid:
             raise web.HTTPRedirect('/instrument/new')
@@ -123,8 +115,7 @@ class SitePage:
         finally:
             session.close()
         return error
-    @require(member_of(group.editor))
-    @web.expose
+    @expose_for(group.editor)
     def removeinstrument(self,siteid,instrumentid,installationid,date=None):
         session=db.Session()
         error=''
@@ -148,7 +139,7 @@ class SitePage:
         finally:
             session.close()
         return error
-    @web.expose
+    @expose_for()
     def json(self):
         session=db.Session()
         web.setmime('application/json')
@@ -156,7 +147,7 @@ class SitePage:
         session.close()
         return res
         
-    @web.expose
+    @expose_for()
     def kml(self,sitefilter=None):
         session = db.Session()
         web.setmime('application/vnd.google-earth.kml+xml')
@@ -188,7 +179,7 @@ class SitePage:
         path = web.abspath('media/mapicons')
         return [op.basename(p) for p in glob(op.join(path,'*.png'))]
     
-    @web.expose
+    @expose_for(group.logger)
     def sites_csv(self):
         web.setmime('text/csv')
         session = db.Session()

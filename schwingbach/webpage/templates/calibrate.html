@@ -1,0 +1,85 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Calibrate ${target}</title>
+	<style>
+		th.record { background-color: #32739D;
+								color: white;
+								padding-left: 0.5em; 
+								padding-right: 0.5em; 
+							}
+		tr.record {	border-bottom: solid 1px black;}
+		td.record { border: thin dotted #32739D;
+								padding-left: 0.5em; 
+								padding-right: 0.5em; 
+								text-align: right;
+							}
+	</style>
+</head>
+<body>
+	${navigation()}
+	<div class="content">
+    <h1>Calibrate ${target}</h1>
+    <div class="error" py:content="error" />
+  	<form method="get" action="/dataset/calibration">
+	    <h2>
+	    	Calibrate from:
+		    	<input type="hidden" value="${target.id}" name="targetid"/>
+		    	<select name="sourceid">
+		    		<option value="" style="font-style: italic;">&lt;Please select...&gt;</option>
+		    		<option py:for="ds in sources" value="${ds.id}" 
+		    						py:content="ds" 
+		    						py:attrs="markoption(ds is source)"/>
+		    	</select>
+		    	<input type="submit" value="load source" />
+	    </h2>
+    	</form>
+    <div py:if="source">
+    	Source dataset: <a href="/dataset/${source.id}">${source}</a><br/>
+    	Records in timeseries: ${sourcecount}<br/>
+	    <form method="get" action="/dataset/calibration">
+	    	<p>
+		    	Limit matches to: <input type="text" name="limit" value="${limit}" />    		
+	    	</p>
+	    	<input type="hidden" value="${target.id}" name="targetid"/>
+	    	<input type="hidden" value="${source.id}" name="sourceid"/>
+	    	<input type="submit" value="Calibrate" name="calibrate" />
+	    </form>
+    </div>
+    <h1>Calibration results:</h1>
+    <ul>
+    	<li>slope, b = <span id="slope" py:content="result.slope"/></li>
+    	<li>offset, a =<span id="offset" py:content="result.offset"/></li>
+    	<li>offset from mean, a = <span id="meanoffset" py:content="result.meanoffset"/></li>
+    	<li>r<sup>2</sup> = ${result.r2}</li>
+    	<li>target<sub>mean</sub> = ${result.target_mean}&plusmn;${result.target_std}</li>
+    	<li>source<sub>mean</sub> = ${result.source_mean}&plusmn;${result.source_std}</li>
+    	<li>number of matches = ${len(result)}</li>
+    </ul>
+    <br/>
+   
+    <table py:with="unit=source.valuetype.unit if source else ''">
+    	<tr class="record">
+    		<th class="record">time</th>
+    		<th class="record">source (${unit})</th>
+    		<th class="record">target (${unit})</th>
+    		<th class="record">linear regression (${unit})</th>
+    		<th class="record">offset (${unit})</th>
+    		<th class="record">time error (s)</th>
+    	</tr>
+    	<tr py:for="r in result">
+    		<td class="record" py:content="formatdate(r['t'])" />
+    		<td class="record" py:content="r['source']" />
+    		<td class="record" py:content="r['target']" />
+    		<td class="record" py:content="r['lr']" />
+    		<td class="record" py:content="r['off']" />
+    		<td class="record" py:content="r['dt']" />
+    	</tr>
+    </table>
+    
+ </div>
+</body>
+</html>

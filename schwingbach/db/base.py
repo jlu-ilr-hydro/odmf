@@ -26,7 +26,8 @@ def connect():
                             database='schwingbach')
 engine = sql.create_engine('postgresql://',creator=connect)
 Session = orm.sessionmaker(bind=engine)
-
+Session.__exit__ = Session.close
+        
 class Base(object):
     """Hooks into SQLAlchemy's magic to make :meth:`__repr__`s."""
     def __repr__(self):
@@ -45,7 +46,7 @@ class Base(object):
         classy = type(self).__name__
         return "<%s%s>" % (classy,args)
     def session(self):
-        Session.object_session(self)
+        return Session.object_session(self)
     @classmethod
     def query(cls,session):
         return session.query(cls)

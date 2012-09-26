@@ -16,6 +16,19 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
   <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
 
 	<script type="text/javascript">
+    function toggle(id) {
+    	$('#'+id).slideToggle('fast');
+    }
+
+		function map_mousemove(loc) {
+			$('#coordinates').html(loc.toUrlValue());
+		}
+		function map_dblclick(loc) {
+			var url = '/site/new';
+			url += '?lat=' + loc.lat();
+			url += '&lon=' + loc.lng();
+			window.location.href = url; 
+		}
 		function clearmarker() {
 			$.each(markers,function(index,marker) {
 				marker.setMap(null);
@@ -111,9 +124,16 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 	    var myOptions = {
 	      zoom: 16,
 	      center: latlng,
-	      mapTypeId: google.maps.MapTypeId.HYBRID
-	    };    
-	    return new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+	      mapTypeId: google.maps.MapTypeId.HYBRID,
+	    };
+	    var map=new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+	    google.maps.event.addListener(map,'dblclick',function(event) {
+	    	map_dblclick(event.latLng);
+	    });    
+	    google.maps.event.addListener(map,'mousemove',function(event) {
+	    	map_mousemove(event.latLng);
+	    });    
+	    return map
 			
 		}
 		
@@ -145,7 +165,11 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 		<h1>Site map</h1>
 		<table style="height: 90%; width: 100%;">
 			<tr>
-				<td width="25%" valign="top">
+				<td width="25%" valign="top" style="overflow: scroll;">
+					<div>
+						<h2>Current location</h2>
+						<div id="coordinates" >Not in map</div>
+					</div>
 					<div id="filter">
 						<h2>Filter</h2>
 						<table class="wide">
@@ -189,7 +213,6 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 				
 					</div>
 					<hr />
-					<h2>Site</h2>
 					<div id="infotext">No site selected</div>				
 				</td>
 				<td>

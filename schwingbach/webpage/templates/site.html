@@ -8,6 +8,10 @@
 	<script src="/media/jquery-1.7.1.min.js" type="text/javascript"></script>
   <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript"></script>
   <script>
+      function toggle(id) {
+        	$('#'+id).slideToggle('fast');
+        }
+
       function popSelect() {
       	$.getJSON('/site/json',[],function(data){
 		  		var html='';
@@ -69,48 +73,47 @@
       }
       $(function() {
 		$('.datepicker').datepicker({maxDate:"0", dateFormat:'dd.mm.yy'});
-		popSelect();   	
-		popInstruments();
+				popSelect();   	
+				popInstruments();
       });
   </script>
 
 	<title>Sites</title>
 	<style type="text/css">
-  	   input { /*width: 100%;*/}
-  	   .msghint {
-  	   	font-weight: bold;
-  	   	color: red;
-  	   }
-  	   a.highlightonhover {
-  	   	background-color: #fff;
-  	   	height: 36px;
-  	   }
-  	   a.highlightonhover:hover {
-  	   	background-color: #f00;
-  	   	height: 36px;
-  	   }
-	  select { width: 20em;}
-	  .removed {
-	  	color: grey;
-	  }
-	  .imgbutton {
-	  	width: 32px;
-	  	height: 24px;
-	  }
-
-
+	   input { /*width: 100%;*/}
+	   .msghint {
+	   	font-weight: bold;
+	   	color: red;
+	   }
+	   .highlightonhover {
+	   	background-color: none;
+	   	/*height: 36px;*/
+	   }
+	   .highlightonhover:hover {
+	   	background-color: #f00;
+	   	/*height: 36px;*/
+	   }
+		  select { width: 20em;}
+		  .removed {
+		  	color: grey;
+		  }
+		  .imgbutton {
+		  	width: 32px;
+		  	height: 24px;
+		  }
 	</style>	
 </head>
 <body onload="initialize()">
 	${navigation()}
   <div class="content"> 
 			<h1>
-					<span py:if="actualsite"><img src="/media/mapicons/${actualsite.icon}" /> Actual site #${actualsite.id}</span>
+					<span py:if="actualsite"><img src="/media/mapicons/${actualsite.icon}" />Actual site #${actualsite.id}</span>
 					<span py:if="not actualsite">New site</span>
 			</h1>
 
 		<div class="error" id="errordiv" />
-		
+		<a py:if="is_member('editor')" href="/site/new">Create new site...</a>
+
 		<div class="box" style="padding:5px; margin:5px;">
 			<form>Select a site:
 				<select onchange="location.href=this.options[this.selectedIndex].value"
@@ -123,26 +126,83 @@
 			<p py:content="actualsite" />
 			<p py:content="actualsite.comment" />
 			<p py:content="actualsite.as_coordinatetext() + ', UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
-			<p py:if="is_member('editor')">
-				<input type="button" onclick="startedit(${actualsite.id})" value="Edit..." />
-				<input type="button" onclick="startedit('new')" value="New..." />
-	
-			</p>
-			<div id="editarea" />
-			<h2>Messages for this site</h2>
-			<p>
-				Please report briefly any actions you have performed on this site, or if you observed something unusual.
-			</p>
-			<ul>
-				<li py:if="is_member('logger')">
-					<a href="/log/new?siteid=${actualsite.id}" style="font-style: italic;">New message...</a>
-				</li>
-				<li py:for="log in actualsite.logs">
-					<a href="/log/${log.id}" py:content="'%s, %s: %s' % (formatdate(log.time),log.user,log.message)" />
-				</li>
-			</ul>
-			<h2>Installed instruments</h2>
-			<ul>
+			<h2 py:if="is_member('editor')"><a href="javascript:toggle('edit')"><img src="/media/expand_lblue.png"/>Edit properties</a></h2>
+			<form py:if="is_member('editor')" action="/site/saveitem" method="post" id="edit" class="toggle">
+				<div>
+			
+					<table style="width: 100%">
+						<tr>
+							<td style="width: 7em">ID:</td>
+							<td><input type="text" name="id" value="${actualsite.id}" readonly="readonly" class="readonly"/></td>
+						</tr>
+						<tr>
+							<td style="width: 7em">Longitude:</td>
+							<td><input type="text" name="lon" value="${actualsite.lon}" />°</td>
+						</tr>
+						<tr>
+							<td>Latitude:</td>
+							<td><input type="text" name="lat" value="${actualsite.lat}" />°</td>
+						</tr>
+						<tr>
+							<td>Height:</td>
+							<td><input type="text" name="height" value="${actualsite.height}" /> m NN</td>
+						</tr>
+						<tr>
+							<td>Name:</td>
+							<td><input type="text" name="name" value="${actualsite.name}" /></td>
+						</tr>
+						<tr height="36px">
+							<td>
+								Icon: <img src="/media/mapicons/${actualsite.icon if actualsite.icon else 'unknown.png'}" id="currenticon" />
+							</td>
+							<td>
+								<img py:for="icon in icons" 
+										 class="highlightonhover" 
+										 src="/media/mapicons/${icon}" 
+										 onclick="$('#currenticon').attr('src','/media/mapicons/${icon}');$('#iconfile').val('${icon}');"/>
+								<!--
+								<a py:for="icon in icons" class="highlightonhover"
+									 onclick="iconClick(${icon});" >
+									 <img src="/media/mapicons/${icon}" />
+								</a>-->
+								<input name="icon" type="hidden" id="iconfile"/>						 
+							</td>
+						</tr>
+						<tr>
+							<td>Sonstiges</td>
+							<td>
+							<textarea name="comment" 
+									  style="width: 100%;"
+									  rows="10" >${actualsite.comment}</textarea>
+							</td>
+						</tr>
+					</table>
+				</div>
+				<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
+			</form>
+			<h2><a href="javascript:toggle('messagelist')"><img src="/media/expand_lblue.png"/>Messages for this site</a></h2>
+			<div id="messagelist" class="toggle">
+				<p>
+					Please report briefly any actions you have performed on this site, or if you observed something unusual.
+				</p>
+				<ul>
+					<li py:if="is_member('logger')">
+						<a href="/log/new?siteid=${actualsite.id}" style="font-style: italic;">New message...</a>
+					</li>
+					<li py:for="log in actualsite.logs">
+						<a href="/log/${log.id}" py:content="'%s, %s: %s' % (formatdate(log.time),log.user,log.message)" />
+					</li>
+				</ul>
+				
+			</div>
+			<h2><a href="javascript:toggle('pictures')"><img src="/media/expand_lblue.png"/>Pictures</a></h2>
+			<div id="pictures">
+				<div py:for="img in images" style="display: inline">
+					<a href="/picture/${img.id}"><img src="/thumbnail/${img.id}" title="${'%s: %s (%s)' % (formatdatetime(img.time),img.name, img.by)}"/></a>				
+				</div>
+			</div>
+			<h2><a href="javascript:toggle('instrumentlist')"><img src="/media/expand_lblue.png"/>Installed instruments</a></h2>
+			<ul id="instrumentlist" class="toggle">
 				<li py:if="is_member('editor')" >
 						<button onclick="addinstrument()" class="imgbutton">
 							<img src="/media/plus-small.png" alt="Add"/>
@@ -162,18 +222,17 @@
 						 style="font-size: small;font-style: italic;">(remove...)</a>
 				</li>
 			</ul>
-			<h2>Available datasets</h2>
-			<ul>
+			<h2><a href="javascript:toggle('datasetlist')"><img src="/media/expand_lblue.png"/>Available datasets</a></h2>
+			<ul id="datasetlist" class="toggle" style="list-style-type: none;">
 				<li py:if="is_member('editor')" class="plus">
 					<a href="/dataset/new?site_id=${actualsite.id}"
 							style="font-style: italic;" >
-						 
 						 Add new dataset...
 					</a>
 				</li>
-				<li py:for="ds in actualsite.datasets">
+				<li py:for="ds in datasets">
 					<a href="/dataset/${ds.id}?site_id=${actualsite.id}" 
-					py:content="'%s (%s-%s)' % (ds,formatdate(ds.start),formatdate(ds.end))" />
+					py:content="ds" />
 				</li>
 			</ul>
 		</div>

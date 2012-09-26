@@ -146,6 +146,7 @@ def require(*conditions):
         if 'auth.require' not in f._cp_config:
             f._cp_config['auth.require'] = []
         f._cp_config['auth.require'].extend(conditions)
+        f.exposed = True
         return f
     return decorate
 
@@ -161,4 +162,14 @@ def has_level(level):
         return user and user.level>=int(level)
     return check
 
+def expose_for(groupname=None):
+    def decorate(f):
+        if not hasattr(f, '_cp_config'):
+            f._cp_config = {}
+        if groupname:
+            f._cp_config.setdefault('auth.require',[]).append(member_of(groupname))
+        f.exposed = True
+        return f
+    return decorate
+        
 
