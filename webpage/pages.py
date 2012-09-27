@@ -449,12 +449,16 @@ class Root(object):
     instrument=DatasourcePage()
     picture = PicturePage()
     preferences = Preferences()
+    
     @expose_for()
     def index(self):
         return self.map.index()
+    
     @expose_for()
     def navigation(self):
         return web.navigation()
+    
+    @expose_for()
     def login(self,frompage='/',username=None,password=None,error='',logout=None):
         if logout:
             users.logout()
