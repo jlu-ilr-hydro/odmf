@@ -11,7 +11,7 @@
 	<a href="/site/${site.id}">edit...</a>
 </div>
 <div>
-	<a py:for="img in site.images" href="/picture/${img.id}"><img src="/thumbnail/${img.id}" /></a>
+	<a py:for="img in site.images" href="/picture?id=${img.id}"><img src="data:${img.mime};base64,${img.thumbnail64()}" /></a>
 </div>
 <div>
 	<h3><a href="javascript:toggle('instruments')">Instruments:</a></h3>

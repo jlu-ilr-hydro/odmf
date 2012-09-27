@@ -28,7 +28,7 @@ class SitePage:
             error=traceback()
             actualsite=None
         result = web.render('site.html',actualsite=actualsite,error=error, 
-                            datasets=datasets,icons=self.geticons(),images=actualsite.images
+                            datasets=datasets,icons=self.geticons()
                             ).render('html',doctype='html')
         session.close()
         return result    
@@ -44,7 +44,7 @@ class SitePage:
             error=traceback()
             actualsite=None
         result = web.render('site.html',actualsite=actualsite,error=error, 
-                            datasets=actualsite.datasets, icons=self.geticons(),images=[]
+                            datasets=actualsite.datasets, icons=self.geticons()
                             ).render('html',doctype='html')
         session.close()
         return result    
