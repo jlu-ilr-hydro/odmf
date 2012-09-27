@@ -62,6 +62,16 @@ config =  { '/': {
                        'tools.staticdir.dir': 'datafiles'
                        },
            }
+
+class mime:
+    json='application/json'
+    plain='text/plain'
+    xml='text/xml'
+    html='text/html'
+    jpeg='image/jpeg'
+    png='image/png'
+    csv='text/csv'
+
 def mimetype(type):
     def decorate(func):
         def wrapper(*args, **kwargs):
@@ -69,6 +79,7 @@ def mimetype(type):
             return func(*args, **kwargs)
         return wrapper
     return decorate
+
 
 def setmime(type):
     cherrypy.response.headers['Content-Type'] = type

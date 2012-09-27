@@ -12,6 +12,7 @@ from webpage.upload import DownloadPage
 from webpage.map import MapPage
 from webpage.site import SitePage
 from webpage.datasetpage import DatasetPage
+from webpage.preferences import Preferences
 class PersonPage:
     exposed=True
     
@@ -389,6 +390,47 @@ class HeapyPage(object):
         h = self.hp.heap()
         return str(h)                 
 
+class PicturePage(object):
+    exposed=True
+    @expose_for()
+    def image(self,id):
+        session=db.Session()
+        img=db.Image.get(session,int(id))
+        web.setmime(img.mime)
+        res = img.image
+        session.close()
+        return res
+    @expose_for()
+    def thumbnail(self,id):
+        session=db.Session()
+        img=db.Image.get(session,int(id))
+        web.setmime(img.mime)
+        res = img.thumbnail
+        session.close()
+        return res
+    @expose_for()
+    def index(self,id=None,site=None,by=None):
+        session=db.Session()
+        error=''
+        img = imagelist = None
+        if id:
+            img=db.Image.get(session,int(id))
+            if not img: error="No image with id=%s found" % id
+        else:
+            imagelist = session.query(db.Image).order_by(db.Image._site,db.Image.time)
+            if site:
+                imagelist.filter(db.Image._site == site)
+            if by:
+                imagelist.filter(db.Image._by == by)
+        res = web.render('picture.html',image=img,error=error,images=imagelist).render('html')
+        session.close()
+        return res
+        
+               
+        
+
+        
+
 class Root(object):
     _cp_config = {'tools.sessions.on': True,
                   'tools.sessions.timeout':7*24*60, # One Week
@@ -405,29 +447,14 @@ class Root(object):
     log = LogPage()
     map=MapPage()
     instrument=DatasourcePage()
+    picture = PicturePage()
+    preferences = Preferences()
     @expose_for()
     def index(self):
         return self.map.index()
     @expose_for()
     def navigation(self):
         return web.navigation()
-    @expose_for()
-    def picture(self,id):
-        session=db.Session()
-        img=db.Image.get(session,int(id))
-        web.setmime(img.mime)
-        res = img.image
-        session.close()
-        return res
-    @expose_for()
-    def thumbnail(self,id):
-        session=db.Session()
-        img=db.Image.get(session,int(id))
-        web.setmime(img.mime)
-        res = img.thumbnail
-        session.close()
-        return res
-    @expose_for()
     def login(self,frompage='/',username=None,password=None,error='',logout=None):
         if logout:
             users.logout()

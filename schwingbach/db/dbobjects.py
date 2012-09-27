@@ -154,6 +154,12 @@ class Image(Base):
     thumbnail = sql.Column(sql.LargeBinary)
     imageheight = 1024
     thumbnailheight = 72
+    def thumbnail64(self):
+        from base64 import b64encode
+        return b64encode(self.thumbnail)
+    def image64(self):
+        from base64 import b64encode
+        return b64encode(self.image)
     def __PIL_to_stream(self,img,height,format):
         from PIL import Image as pil
         from cStringIO import StringIO

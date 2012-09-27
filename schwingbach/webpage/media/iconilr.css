@@ -20,9 +20,9 @@ h1 {
 	/*border-radius: 10px;*/
 	padding-left: 10px;
 	padding-top: 10px;
-	margin-left: -20px;
+	margin-left: 0px;
 	margin-top: 0px;
-	margin-right: -5px;
+	margin-right: 0px;
 	color: #FFFFFF;
 	background-color: #32739d;
 	height: 45px;
@@ -78,17 +78,20 @@ div.center {
     padding: 0px;
 }
 div.navigate {
+		background-image: url(/media/schwingbach.jpg);
     color: white;
     font-weight: bold;
     font-style: italic;
     text-align: right;
     float: left;
-    padding-right: 10px;
+    padding-right: 0px;
     padding-left: 0px;
     padding-top:0px;
     margin: 0px 0px 0px 0px;
-    width: 243px;
+    width: 13em;
+    height: 600px;
 }
+
 div.navigate li {
 	list-style: none;
 }
@@ -105,9 +108,9 @@ div.navigate a:hover {
 div.content {
 	background-color: white;
 	color: black;
-	margin-left: 254px;
+	margin-left: 13em;
 	margin-top: 0px;
-	padding-left: 1em;
+	padding-left: 0px;
 	padding-top: 0px;
 	padding-bottom: 10px;
 	padding-right: 5px;

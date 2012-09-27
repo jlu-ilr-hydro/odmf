@@ -19,7 +19,23 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
     function toggle(id) {
     	$('#'+id).slideToggle('fast');
     }
+		function savemappref() {
+			var center = map.getCenter();
+		   $.ajax({
+	      type: 'POST',
+	      url: '/preferences/update/map',
+	      contentType: 'pplication/json',
+	      processData: false,
+	      data: {lat:center.lat(),
+	      			 lng:center.lng(),
+	      			 zoom:map.getZoom(),
+	      			 type:map.getMapTypeId(),
+	      			 },
+	      success: function(data) {$('#coordinates').html(data);},
+	      dataType: 'application/json'
+	    });
 
+		}
 		function map_mousemove(loc) {
 			$('#coordinates').html(loc.toUrlValue());
 		}
@@ -133,6 +149,9 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 	    google.maps.event.addListener(map,'mousemove',function(event) {
 	    	map_mousemove(event.latLng);
 	    });    
+	    //google.maps.event.addListener(map,'bounds_changed',function(event) {
+	    //	savemappref();
+	    //});
 	    return map
 			
 		}
@@ -199,9 +218,9 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 							<tr>
 								<td>apply:</td>
 								<td>
-									<button onclick="popSelect();" title="Apply the filter"><img src="/media/filter_32.png" alt="set filter"/></button>
-									<button onclick="clearFilter();" title="Clear filter and show all sites"><img src="/media/clearfilter_32.png" alt="clear filter"/></button>
-									<button onclick="zoomToMarkers();" title="Show all sites"><img src="/media/shimmer/world_32.png"  alt="zoom to markers"/></button>
+									<button onclick="popSelect();" title="Apply the filter"><img src="/media/filter_16.png" alt="set filter"/></button>
+									<button onclick="clearFilter();" title="Clear filter and show all sites"><img src="/media/clearfilter_16.png" alt="clear filter"/></button>
+									<button onclick="zoomToMarkers();" title="Show all sites"><img src="/media/shimmer/world_16.png"  alt="zoom to markers"/></button>
 								</td>
 							</tr>
 							<tr>
