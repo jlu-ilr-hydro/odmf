@@ -155,7 +155,7 @@ class SitePage:
         query = session.query(db.Site)
         if filter:
             query = query.filter(sitefilter)
-        stream = web.render('sites.xml',sites=query,actid=0,descriptor=SitePage.kml_description)
+        stream = web.render('sites.xml',sites=query.all(),actid=0,descriptor=SitePage.kml_description)
         result = stream.render('xml')
         session.close()
         return result    

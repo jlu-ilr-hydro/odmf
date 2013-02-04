@@ -35,10 +35,13 @@ class DatasetPage:
                                     site=site,valuetype=valuetype, measured_by = user)
             else:
                 active = session.query(db.Dataset).get(id)
-            similar_datasets = self.subset(session, valuetype=active.valuetype.id, site=active.site.id)
-            parallel_datasets = session.query(db.Dataset).filter_by(site=active.site).filter(db.Dataset.start<=active.end,db.Dataset.end>=active.start)
-            datasets = {"same type": similar_datasets.filter(db.Dataset.id!=active.id),
-                        "same time": parallel_datasets.filter(db.Dataset.id!=active.id)}
+            try:
+                similar_datasets = self.subset(session, valuetype=active.valuetype.id, site=active.site.id)
+                parallel_datasets = session.query(db.Dataset).filter_by(site=active.site).filter(db.Dataset.start<=active.end,db.Dataset.end>=active.start)
+                datasets = {"same type": similar_datasets.filter(db.Dataset.id!=active.id),
+                            "same time": parallel_datasets.filter(db.Dataset.id!=active.id)}
+            except:
+                datasets={}
             result= web.render('dataset.html',activedataset=active,session=session,
                               error=error,datasets=datasets,db=db,title='Schwingbach-Datensatz #' + str(id)
                               ).render('html',doctype='html')
@@ -75,8 +78,8 @@ class DatasetPage:
                 ds.valuetype = session.query(db.ValueType).get(kwargs.get('valuetype'))
                 ds.quality = session.query(db.Quality).get(kwargs.get('quality'))
                 ds.site = session.query(db.Site).get(kwargs.get('site'))
-                ds.calibration_offset = float(kwargs.get('calibration_offset'))
-                ds.calibration_slope = float(kwargs.get('calibration_slope'))
+                ds.calibration_offset = web.conv(float,kwargs.get('calibration_offset'),0.0)
+                ds.calibration_slope = web.conv(float,kwargs.get('calibration_slope'),1.0)
                 if kwargs.get('source'):
                     ds.source = session.query(db.Datasource).get(int(kwargs.get('source')))
                 session.commit()

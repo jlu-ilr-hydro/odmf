@@ -32,7 +32,7 @@ class PressureImport(object):
         return self.session.query(cls)
     def get(self,cls,id):
         return self.session.query(cls).get(id)
-    def createdatasets(self,comment=''):
+    def createdatasets(self,comment='',verbose=False):
         if not self.result:
             raise ValueError("No results present, you need to execute loadvalues first")
         vtD = self.query(db.ValueType).get(1)
@@ -50,6 +50,10 @@ class PressureImport(object):
         dsT.start = dsD.start = self.result[0].date
         dsT.end = dsD.end = self.result[-1].date
         self.datasets=[dsD,dsT]
+        if verbose:
+            print 'New Datasets:\n' + '\n'.join(['#%i - %s' % (ds.id,ds.name) for ds in self.datasets])
+
+        self.session.commit()
     def submit(self,verbose=False):
         dsD,dsT = self.datasets
         for i,r in enumerate(self.result):
@@ -63,6 +67,7 @@ class PressureImport(object):
                 if verbose:
                     print "commit records %6i -%6i" % (i-self.commitinterval,i)
                     sys.stdout.flush()
+        self.session.commit()
         self.session.close()
 
 
@@ -70,8 +75,7 @@ class PressureImport(object):
         print self.statistics()
         print "Load in session..."
         sys.stdout.flush()
-        self.createdatasets(comment)
-        print 'New Datasets:\n' + '\n'.join(['#%i - %s' % (ds.id,ds.name) for ds in self.datasets])
+        self.createdatasets(comment,True)
         sys.stdout.flush()
         self.submit(True)
     def statistics(self):
@@ -246,7 +250,14 @@ class DiverImport(PressureImport):
     """
 
     def parsedate(self,s):
-        return datetime.strptime(s,'%Y/%m/%d %H:%M:%S')
+        return datetime.strptime(s.strip(),'%Y/%m/%d %H:%M:%S')
+    def parsefloat(self,s):
+        if self.germancsv:
+            s=s.replace(',','.')
+        return float(s)
+    @property
+    def seperator(self):
+        return ';' if self.germancsv else ','
     def loadvalues(self):
         Record = namedtuple("Record", 'id date T d') 
         fin = file(self.filename)
@@ -256,17 +267,17 @@ class DiverImport(PressureImport):
             fin.readline()
         for i,line in enumerate(fin):
             try:
-                columns = line.split(';')
+                columns = line.split(self.seperator)
                 rec = Record(id=i+1,
                              date=self.parsedate(columns[0]),
-                             T=float(columns[2].replace(',','.')),
-                             d=float(columns[1].replace(',','.'))*1e-2
+                             T=self.parsefloat(columns[2]),
+                             d=self.parsefloat(columns[1])*1e-2
                             )
                 result.append(rec)
             except Exception as e:
                 errors.append('%s:%s - Error\n%s' % (os.path.basename(self.filename),i,e.message))
         return result,errors
-    def __init__(self,filename,user,siteid,startdate=None):
+    def __init__(self,filename,user,siteid,germancsv=False,startdate=None):
         """Creates a new importer for Diver CSV files
         filename: Path to the CSV file
         user: user name of the data owner
@@ -274,6 +285,7 @@ class DiverImport(PressureImport):
         startdate: If given, values before the startdate are not imported
         """
         PressureImport.__init__(self, filename, user, siteid, 2,startdate)
+        self.germancsv = germancsv
         self.result,self.errors = self.loadvalues()
         
     

@@ -129,9 +129,7 @@
 				</table>
 				
 			</div>
-		</div>
-		<div>
-			<h1>Installations</h1>
+			<h2>Installations</h2>
 			<ul>
 					<li py:if="is_member('editor')">
 							<button py:if="is_member('editor')" onclick="addinstrument()" class="imgbutton">
@@ -153,13 +151,11 @@
 							 style="font-size: small;font-style: italic;">(remove...)</a>
 					</li>
 				</ul>
-		</div>
-		<div>
-				<h1>Datasets</h1>
+				<h2>Datasets</h2>
 				<ul>
 					<li py:for="ds in actualinstrument.datasets">
 						<a href="/dataset/${ds.id}" 
-						py:content="'%s (%s-%s)' % (ds,formatdate(ds.start),formatdate(ds.end))" />
+						py:content="ds" />
 					</li>
 				</ul>
 	

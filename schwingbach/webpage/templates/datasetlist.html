@@ -13,76 +13,79 @@
 
     <script>
     		function popSelect() {
-    			vt = $('#vtselect').val()
-    			user = $('#userselect').val()
-    			site = $('#siteselect').val()
-    			date = $('#dateselect').val()
-	    			$.getJSON('/dataset/attrjson',
-	    								{ attribute:'valuetype',
-	    								  user:user,
-	    								  site:site,
-	    								  date:date
-	    								},
-	    								function(data){
-	    									var html='<option value="">Please select...</option>';
-	    									$.each(data,function(index,item){
-	    										html+='<option value="'+item.id+'">'+item.name+'</option>';
-	    									});
-	    									$('#vtselect').html(html).val(vt);
-	    								}
-	    			);
-	    					
-		  			$.getJSON('/dataset/attrjson',
-	    								{ attribute:'measured_by',
-	    									valuetype:vt,
-	    								  site:site,
-	    								  date:date
-	    								},
-	    								function(data){
-	    									var html='<option value="">Please select...</option>';
-	    									$.each(data,function(index,item){
-	    										html+='<option value="'+item.username+'">'+item.firstname+' '+item.surname+'</option>';
-	    									});
-	    									$('#userselect').html(html).val(user);
-	    								}
-	    			);		
+    			var vt = $('#vtselect').val()
+    			var user = $('#userselect').val()
+    			var site = $('#siteselect').val()
+    			var date = $('#dateselect').val()
+				$.getJSON('/dataset/attrjson',
+									{ attribute:'valuetype',
+									  user:user,
+									  site:site,
+									  date:date
+									},
+									function(data){
+										var html='<option value="">Please select...</option>';
+										$.each(data,function(index,item){
+											html+='<option value="'+item.id+'">'+item.name+'</option>';
+										});
+										$('#vtselect').html(html).val(vt);
+									}
+				);
+						
+				$.getJSON('/dataset/attrjson',
+									{ attribute:'measured_by',
+									  valuetype:vt,
+									  site:site,
+									  date:date
+									},
+									function(data){
+										var html='<option value="">Please select...</option>';
+										$.each(data,function(index,item){
+											html+='<option value="'+item.username+'">'+item.firstname+' '+item.surname+'</option>';
+										});
+										$('#userselect').html(html).val(user);
+									}
+				);		
 
-	    			$.getJSON('/dataset/attrjson',
-	    								{ attribute:'site',
-	    									valuetype:vt,
-	    								  user:user,
-	    								  date:date
-	    								},
-	    								function(data){
-	    									var html='<option value="">Please select...</option>';
-	    									$.each(data,function(index,item){
-	    										html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
-	    									});
-	    									$('#siteselect').html(html).val(site);
-	    								}
-	    			);
-	    			if (vt || user || site || date) {
-	    				setFilter();
-	    			}
-	    			//addMarkers();
+				$.getJSON('/dataset/attrjson',
+									{ attribute:'site',
+									  valuetype:vt,
+									  user:user,
+									  date:date
+									},
+									function(data){
+										var html='<option value="">Please select...</option>';
+										$.each(data,function(index,item){
+											html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
+										});
+										$('#siteselect').html(html).val(site);
+									}
+				);
+				if (vt!='' || user!='' || site!='' || date!='') {
+					setFilter();
+				}
     		}
     		function setFilter() {
     			// Linklist to datasets
-	    			$.getJSON('/dataset/json',
-	    								{ valuetype: vt,
-	    									user:user,
-	    									site:site,
-	    									date:date,
-	    								},
-	    								function(data){
-	    									var html='';
-	    									$.each(data,function(index,item){
-	    										html+='<li><a href="/dataset/'+
-	    													item.id+'">'+item.label+'</a></li>'
-	    										});
-	    									$('#dslist').html(html);
-	    								}
-	    			);    			
+    			var vt = $('#vtselect').val()
+    			var user = $('#userselect').val()
+    			var site = $('#siteselect').val()
+    			var date = $('#dateselect').val()
+				$.getJSON('/dataset/json',
+									{ valuetype: vt,
+										user:user,
+										site:site,
+										date:date,
+									},
+									function(data){
+										var html='';
+										$.each(data,function(index,item){
+											html+='<li><a href="/dataset/'+
+														item.id+'">'+item.label+'</a></li>'
+											});
+										$('#dslist').html(html);
+									}
+				);    			
     		}
     		function clearFilter() {
     			$('.filter').val('')

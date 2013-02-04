@@ -5,6 +5,20 @@
 	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Schwingbach Pictures</title>
+	<style>
+		.cell {
+			display: table-cell; 
+			width:102px; 
+			height:72px; 
+			overflow:scroll; 
+			vertical-align: top; 
+			font-size: 75%;
+		}
+		.table {
+			border: solid 1px #E8F0FF;
+			display: inline-table;
+		}
+	</style>
 </head>
 <body>
 		${navigation()}
@@ -21,18 +35,18 @@
 				<img src="/picture/image/${image.id}" />
 			</div>
 			<div py:if="images and not image">
-				<div py:for="image in images" style="display: inline-table;">
-					<div style="display: table-cell; width:100px; height:100px;" >
+				<div py:for="image in images" class="table">
+					<div class="cell">
 						<a href="/picture?id=${image.id}">
 							<img src="data:${image.mime};base64,${image.thumbnail64()}" 
 										title="${image}"/>
 						</a>					
 					</div>
-					<div style="display: table-cell; width:100px; height:100px; overflow:scroll; vertical-align: top; font-size: 75%;" >
+					<div class="cell" >
 						${formatdatetime(image.time)} <br/>
-						<a href="/person/${image.by.username}" title="${image.by}">author</a>
+						<a href="/user/${image.by.username}">${image.by}</a>
 						<br/>
-						<a href="/site/${image.site.id}">${image.site}</a>
+						<a href="/site/${image.site.id}">site #${image.site.id}</a>
 					</div>
 				</div>
 			</div>
