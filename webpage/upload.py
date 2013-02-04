@@ -37,7 +37,7 @@ class Path(object):
         return "%5.4g %s" % (size,units[unit])
          
     def __cmp__(self,other):
-        return cmp(str(self),str(other))
+        return cmp(u'%s' % self,u'%s' % other)
 
     def breadcrumbs(self):
         res = [self]
@@ -63,7 +63,6 @@ class DownloadPage(object):
     def index(self,dir='',error='',**kwargs):
         path = Path(op.join(datapath,dir))
         files=[]
-        error=''
         directories=[]
         if path.isdir():            
             for fn in path.listdir():
@@ -100,6 +99,8 @@ class DownloadPage(object):
                         if not data:
                             break
                         fout.write(data)
+                    fout.close()
+                    os.system('chown :users ' + fn)
                 except:
                     error=traceback()
         url = '/download?dir='+escape(dir)

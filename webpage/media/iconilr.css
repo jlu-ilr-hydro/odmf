@@ -139,7 +139,7 @@ div.content {
 	display: none;
 }
 #Inhalt {
-    float: left;
+    float: right;
     width: 20em;
     border: dotted 1px #32739d;
     border-radius: 5px;
@@ -154,7 +154,7 @@ ul#Inhalt li{
     list-style: none;
 }
 div.rightpane {
-	margin-left: 21em;
+	margin-right: 21em;
 }   
 tr.underline {border-bottom: 1px solid #32739d;}
 td.right {text-align: right;}

@@ -62,13 +62,13 @@
 			<div>
 				<h2 py:content="'#%i %s (%s-%s)' % (activedataset.id,activedataset.name,formatdate(activedataset.start),formatdate(activedataset.end))" />
 				<table>
-					<tr>
+					<tr py:if="activedataset.valuetype">
 						<td class="bold">${activedataset.valuetype.name}:</td>
 						<td py:if="activedataset.records.count()" >
 										${'%0.4g' % mean} &plusmn; ${'%0.4g' % std} ${activedataset.valuetype.unit}, n=${n}
 						</td>
 					</tr>
-					<tr>
+					<tr py:if="activedataset.site">
 						<td class="bold">Site:</td>
 						<td>
 							<a href="/site/${activedataset.site.id}" py:content="activedataset.site" />
@@ -90,7 +90,7 @@
 						<td class="bold">Data source:</td>
 						<td py:content="activedataset.source" />
 					</tr>
-					<tr py:if="activedataset.quality.id>=3">
+					<tr py:if="activedataset.quality and activedataset.quality.id>=3">
 						<td class="bold">Calibration: </td>
 						<td py:content="'v\' = %g * v + %g' % (activedataset.calibration_slope,activedataset.calibration_offset)" />
 					</tr>
@@ -103,7 +103,7 @@
 				</table>
 				<h2><a class="toggle" href="javascript:toggle('edit')" py:if="is_member('editor')"><img src="/media/expand_lblue.png"/>Edit dataset...</a></h2>
 				
-				<div id="edit" style="display:none;">
+				<div id="edit" style="display:${'none' if activedataset.valuetype else 'block'};">
 					<form action="/dataset/saveitem" method="post" py:if="is_member('editor')">
 					<input type="text" name="id" value="${activedataset.id}" style="display: none;" />
 					<table style="width: 100%">
@@ -258,8 +258,8 @@
 					<img id="plotimg" alt="" src=""/>
 				</div>
 			</div>
-			<h2><a py:if="is_member('editor')" class="toggle" href="javascript:toggle('split')"><img src="/media/expand_lblue.png"/>Split dataset...</a></h2>
-			<div py:if="is_member('editor')" id="split" style="display: none;">
+			<h2><a py:if="is_member('editor') and activedataset.valuetype and std" class="toggle" href="javascript:toggle('split')"><img src="/media/expand_lblue.png"/>Split dataset...</a></h2>
+			<div py:if="is_member('editor') and activedataset.valuetype and std" id="split" style="display: none;">
 				<script>
 					function loadsplitrecords() {
 						var threshold = $('#splitthreshold').val();

@@ -145,6 +145,8 @@ class Dataset(Base):
     
     def statistics(self):
         session = self.session()
+        if not session:
+            return 0,0,0
         mean = session.query(sql.func.avg(Record.value)).filter(Record.dataset==self).scalar()
         std = session.query(sql.func.stddev(Record.value)).filter(Record.dataset==self).scalar()
         n = self.records.count()
