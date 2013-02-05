@@ -8,12 +8,12 @@
 		<ul>
 			<li><a href="javascript:window.location='/login?frompage='+window.location.pathname;">login</a></li> 
 			<li><a href="/map">map</a></li>
-			<li><a href="/log">log</a></li>
-			<li><a href="/site">sites</a></li>
-			<li><a href="/dataset">data sets</a> </li>
+			<li py:if="is_member('logger')"><a href="/log">log</a></li>
+			<li py:if="is_member('guest')"><a href="/site">sites</a></li>
+			<li py:if="is_member('guest')"><a href="/dataset">data sets</a> </li>
 			<li><a href="/picture">pictures</a></li>
-			<li><a href="/valuetype">value types</a></li> 
-			<li><a href="/instrument">instruments</a></li>
+			<li py:if="is_member('guest')"><a href="/valuetype">value types</a></li> 
+			<li py:if="is_member('guest')"><a href="/instrument">instruments</a></li>
 			<li py:if="is_member('logger')"><a href="/download">download</a></li>
 			<li py:if="is_member('editor')"><a href="/user">users</a></li>
 			<li py:if="is_member('editor')"><a href="/job">jobs</a></li>

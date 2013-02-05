@@ -137,8 +137,7 @@
 			<p py:content="actualsite.as_coordinatetext() + ', UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
 			<h2 py:if="is_member('editor')"><a href="javascript:toggle('edit')"><img src="/media/expand_lblue.png"/>Edit properties</a></h2>
 			<form py:if="is_member('editor')" action="/site/saveitem" method="post" id="edit" class="toggle">
-				<div>
-			
+				<div>		
 					<table style="width: 100%">
 						<tr>
 							<td style="width: 7em">ID:</td>
@@ -169,16 +168,22 @@
 										 class="highlightonhover" 
 										 src="/media/mapicons/${icon}" 
 										 onclick="$('#currenticon').attr('src','/media/mapicons/${icon}');$('#iconfile').val('${icon}');"/>
-								<!--
-								<a py:for="icon in icons" class="highlightonhover"
-									 onclick="iconClick(${icon});" >
-									 <img src="/media/mapicons/${icon}" />
-								</a>-->
 								<input name="icon" type="hidden" id="iconfile"/>						 
 							</td>
 						</tr>
 						<tr>
-							<td>Sonstiges</td>
+							<td>
+								Manual measurements
+							</td>
+							<td>
+								<select name="defaultdataset">
+									<option value="">&lt;Please select...&gt;</option>
+									<option py:for="ds in datasets" value="${ds.id}" py:content="ds" py:attrs="markoption(ds is actualsite.defaultdataset)"/>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td>Comments</td>
 							<td>
 							<textarea name="comment" 
 									  style="width: 100%;"

@@ -15,11 +15,16 @@ import os.path as op
 from auth import users, expose_for, has_level, group
 from cStringIO import StringIO
 import db.projection as proj
+from preferences import Preferences
 class SitePage:
     exposed=True  
     @expose_for(group.guest)
-    def default(self,actualsite_id='1',error=''):
+    def default(self,actualsite_id=None,error=''):
         session=db.Session()
+        pref = Preferences()
+        if not actualsite_id: 
+            actualsite_id = pref['site']
+            
         try:
             actualsite=session.query(db.Site).get(int(actualsite_id))
             datasets = actualsite.datasets.join(db.ValueType)
@@ -73,6 +78,7 @@ class SitePage:
                 site.name=kwargs.get('name')
                 site.height=web.conv(float,kwargs.get('height'))
                 site.icon = kwargs.get('icon')
+                site._defaultdataset = web.conv(int,kwargs.get('defaultdataset'))
                 site.comment=kwargs.get('comment')
                 session.commit()
                 session.close()
@@ -177,7 +183,7 @@ class SitePage:
         return '<br/>'.join(text)
     def geticons(self):
         path = web.abspath('media/mapicons')
-        return [op.basename(p) for p in glob(op.join(path,'*.png'))]
+        return [op.basename(p) for p in glob(op.join(path,'*.png')) if not op.basename(p)=='selection.png']
     
     @expose_for(group.logger)
     def sites_csv(self):

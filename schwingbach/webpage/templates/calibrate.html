@@ -17,6 +17,11 @@
 								padding-right: 0.5em; 
 								text-align: right;
 							}
+		td.value  { border: none;
+								padding-left: 0.5em; 
+								padding-right: 0.5em; 
+								text-align: right;								
+							}
 	</style>
 </head>
 <body>
@@ -42,7 +47,7 @@
     	Records in timeseries: ${sourcecount}<br/>
 	    <form method="get" action="/dataset/calibration">
 	    	<p>
-		    	Limit matches to: <input type="text" name="limit" value="${limit}" />    		
+		    	Limit time error to: <input type="text" name="limit" value="${limit}" />s    		
 	    	</p>
 	    	<input type="hidden" value="${target.id}" name="targetid"/>
 	    	<input type="hidden" value="${source.id}" name="sourceid"/>
@@ -50,15 +55,61 @@
 	    </form>
     </div>
     <h1>Calibration results:</h1>
-    <ul>
-    	<li>slope, b = <span id="slope" py:content="result.slope"/></li>
-    	<li>offset, a =<span id="offset" py:content="result.offset"/></li>
-    	<li>offset from mean, a = <span id="meanoffset" py:content="result.meanoffset"/></li>
-    	<li>r<sup>2</sup> = ${result.r2}</li>
-    	<li>target<sub>mean</sub> = ${result.target_mean}&plusmn;${result.target_std}</li>
-    	<li>source<sub>mean</sub> = ${result.source_mean}&plusmn;${result.source_std}</li>
-    	<li>number of matches = ${len(result)}</li>
-    </ul>
+    <table py:with="unit=target.valuetype.unit">
+    	<tr class="record">
+    		<th class="record">index</th>
+    		<th class="record">value</th>
+    		<th class="record">unit</th>
+    	</tr>
+    	<tr>
+    		<td>number of matches</td>
+    		<td class="value">${len(result)}</td>
+    		<td></td>
+    	</tr>
+    	<tr>
+    		<td>x&#772; <sub>target</sub></td>
+    		<td class="value">${'%g' % result.target_mean}&plusmn;${'%0.4g' % result.target_std}</td>
+    		<td py:content="unit"/>
+    	</tr>
+    	<tr>
+    		<td>x&#772; <sub>source</sub></td>
+    		<td class="value">${'%g' % result.source_mean}&plusmn;${'%0.4g' % result.source_std}</td>
+    		<td py:content="unit"/>
+    	</tr>
+    	<tr>
+    		<td>r<sup>2</sup></td>
+    		<td class="value">${'%g' % result.r2}</td>
+    	</tr>
+    	<tr>
+    		<td>RMSE</td>
+    		<td class="value">${'%g' % result.rmse}</td>
+    		<td py:content="unit"/>
+    	</tr>
+    	<tr>
+    		<td>slope (b)</td>
+    		<td class="value"><span id="slope" py:content="'%g' % result.slope"/></td>
+    	</tr>
+    	<tr>
+    		<td>offset (a)</td>
+    		<td class="value"><span id="offset" py:content="'%g' % result.offset"/></td>
+    		<td py:content="unit"/>
+    	</tr>
+    	<tr>
+    		<td>x&#772; <sub>source</sub> - x&#773; (off)<sub>target</sub></td>
+    		<td class="value"><span id="meanoffset" py:content="'%g' % result.meanoffset"/></td>
+    		<td py:content="unit"/>
+    	</tr>
+    	<tr>
+    		<td>RMSE(b x<sub>target</sub> + a)</td>
+    		<td class="value">${'%g' % result.rmse_lr}</td>
+    		<td py:content="unit"/>
+    	</tr>
+    	<tr>
+    		<td>RMSE(x<sub>target</sub> + off)</td>
+    		<td class="value">${'%g' % result.rmse_off}</td>
+    		<td py:content="unit"/>
+    	</tr>
+    </table>
     <br/>
    
     <table py:with="unit=source.valuetype.unit if source else ''">
@@ -66,17 +117,18 @@
     		<th class="record">time</th>
     		<th class="record">source (${unit})</th>
     		<th class="record">target (${unit})</th>
-    		<th class="record">linear regression (${unit})</th>
-    		<th class="record">offset (${unit})</th>
     		<th class="record">time error (s)</th>
+    		<th class="record">error (lr)</th>
+    		<th class="record">error (off)</th>
+    		
     	</tr>
     	<tr py:for="r in result">
-    		<td class="record" py:content="formatdate(r['t'])" />
-    		<td class="record" py:content="r['source']" />
-    		<td class="record" py:content="r['target']" />
-    		<td class="record" py:content="r['lr']" />
-    		<td class="record" py:content="r['off']" />
-    		<td class="record" py:content="r['dt']" />
+    		<td class="record" py:content="formatdatetime(r['t'])" />
+    		<td class="record" py:content="'%g' % r['source']" />
+    		<td class="record" py:content="'%g' % r['target']" />
+    		<td class="record" py:content="'%g' % r['dt']" />
+    		<td class="record" py:content="'%g' % (r['lr']-r['source'])" />
+    		<td class="record" py:content="'%g' % (r['off']-r['source'])" />
     	</tr>
     </table>
     

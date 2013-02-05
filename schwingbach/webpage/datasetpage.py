@@ -9,10 +9,9 @@ from traceback import format_exc as traceback
 from datetime import datetime
 from genshi import escape
 from cStringIO import StringIO
-from auth import users, require, member_of, group, expose_for
+from auth import group, expose_for, users
 import codecs
-from math import sqrt
-
+from calculation.calibration import Calibration
 
 class DatasetPage:
     exposed=True
@@ -134,7 +133,7 @@ class DatasetPage:
         web.setmime('application/json')        
         session=db.Session()
         try:
-            dump = web.as_json(self.subset(session, valuetype, user, site, date))
+            dump = web.as_json(self.subset(session, valuetype, user, site, date).all())
         finally:
             session.close()
         return dump
@@ -259,82 +258,10 @@ class DatasetPage:
             session.close()
         return ''
 
-class Match:
-    def __init__(self,time,target,source,dt):
-        self.target=target
-        self.time=time
-        self.source=source
-        self.dt=dt
-    def delta(self):
-        return self.source-self.target
-        
-class Calibration:
-    def __len__(self):
-        return len(self.matches)
-    def __init__(self,matches=[]):
-        self.matches=list(matches)
-        self.slope=1.0
-        self.offset=0.0
-        self.meanoffset=0.0
-        self.r2 = 0.0
-        self.target_mean=0.0
-        self.source_mean=0.0
-        self.source_std = 0.0
-        self.target_std = 0.0
-        self.refresh()
-    def __iter__(self):
-        for m in self.matches:
-            yield dict(t=m.time, source=m.source, target=m.target, 
-                       lr=m.target*self.slope + self.offset, 
-                       off=m.target + self.meanoffset,
-                       dt=m.dt,
-                       ) 
-    def refresh(self):
-        if len(self.matches) > 1:
-            self.target_mean = self.source_mean = 0.0
-            n = float(len(self))
-            for m in self.matches:
-                self.target_mean+=m.target/n
-                self.source_mean+=m.source/n
-            cov = var_s = var_t = 0.0
-            for m in self.matches:
-                cov +=  (m.target - self.target_mean) * (m.source - self.source_mean)
-                var_s += (m.source - self.source_mean)**2
-                var_t += (m.target - self.target_mean)**2
-            self.meanoffset = self.source_mean - self.target_mean
-            self.slope = cov/var_t
-            self.offset = self.source_mean - self.slope * self.target_mean
-            self.target_std = sqrt(var_t)
-            self.source_std = sqrt(var_s)
-            # Variant:
-            # self.slope = cov/var_s
-            # self.offset = self.target_mean - self.slope * self.source_mean
-            self.r2 = cov**2/(var_s*var_t) 
-                
-        elif len(self.matches) == 1:
-            self.meanoffset = self.offset = self.matches[0].delta()
-            self.slope=1.0
-            self.r2 = 0.0
-        else:
-            self.slope=1.0
-            self.offset=0.0
-            self.meanoffset=0.0
-            self.r2 = 0.0
-
             
 
 class CalibratePage(object):
     exposed=True
-    def getsourcerecords(self,source,target):
-        return source.records.filter(db.Record.time>=target.start,db.Record.time<=target.end)
-        
-    def getmatches(self,target,source,limit=10):
-        sourcerecords = self.getsourcerecords(source,target)
-        for i,sr in enumerate(sourcerecords):
-            tv,dt = target.findvalue(sr.time) 
-            yield Match(sr.time,tv,sr.value,dt)
-            if i>=limit-1:
-                break
             
     @expose_for(group.editor)
     def index(self,targetid,sourceid=None,limit=None,calibrate=False):
@@ -344,18 +271,19 @@ class CalibratePage(object):
         sources = session.query(db.Dataset).filter_by(site=target.site).filter(db.Dataset.start<=target.end,db.Dataset.end>=target.start)
 
         sourceid = web.conv(int,sourceid)
-        limit=web.conv(int,limit,10)
+        limit=web.conv(int,limit,3600)
         source=sourcerecords=None
         sourcecount=0
         result = Calibration()
 
         if sourceid:
             source = db.Dataset.get(session,sourceid)
-            sourcerecords = self.getsourcerecords(source, target)
+            sourcerecords = source.records.filter(db.Record.time>=target.start,
+                                                  db.Record.time<=target.end)
             sourcecount=sourcerecords.count()
             
             if calibrate:
-                result=Calibration(self.getmatches(target,source,limit))
+                result=Calibration(target,source,limit)
                 
         out = web.render('calibrate.html',
                           error=error,
@@ -369,6 +297,17 @@ class CalibratePage(object):
 
         session.close()
         return out 
+    @expose_for(group.editor)
+    def apply(self,targetid,sourceid,slope,offset):
+        session=db.Session()
+        target = db.Dataset.get(session,int(targetid))
+        source = db.Dataset.get(session,int(sourceid))
+        if target:
+            target.calibration_slope = float(slope)
+            target.calibration_offset = float(offset)
+            if target.comment:
+                target.comment += '\n'
+            target.comment = "Calibrated against %s at %s by %s" % (source,web.formatdate(),users.current) 
         
 DatasetPage.calibration=CalibratePage()
                

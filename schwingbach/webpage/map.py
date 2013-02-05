@@ -24,7 +24,7 @@ class MapPage(object):
         res = json.dumps(sites,indent=4)
         return res
     @web.expose
-    def sitedescription(self,siteid=0):
+    def sitedescription(self,siteid):
         if not siteid:
             return('<div class="error">Site %s not found</div>' % siteid)
         session=db.Session()

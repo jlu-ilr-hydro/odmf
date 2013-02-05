@@ -14,27 +14,26 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 	<script type="text/javascript" src="/media/jquery-1.7.1.min.js"></script> 
   <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
   <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
+  <script src="/media/jquery.json-2.3.min.js" type="text/javascript"></script>
 
 	<script type="text/javascript">
     function toggle(id) {
     	$('#'+id).slideToggle('fast');
     }
+    function setpref(data) {
+			$.ajaxSetup({ scriptCharset:"utf-8", 
+                    contentType:"application/json; charset=utf-8" });
+		  $.post('/preferences/update',$.toJSON(data),null,'json');    	
+    }
 		function savemappref() {
 			var center = map.getCenter();
-		   $.ajax({
-	      type: 'POST',
-	      url: '/preferences/update/map',
-	      contentType: 'pplication/json',
-	      processData: false,
-	      data: {lat:center.lat(),
-	      			 lng:center.lng(),
-	      			 zoom:map.getZoom(),
-	      			 type:map.getMapTypeId(),
-	      			 },
-	      success: function(data) {$('#coordinates').html(data);},
-	      dataType: 'application/json'
-	    });
-
+			var data = {item:'map',
+				   			 	lat:center.lat(),
+				   			 	lng:center.lng(),
+				   			 	zoom:map.getZoom(),
+				   			 	type:map.getMapTypeId()
+				   			};
+			setpref(data);
 		}
 		function map_mousemove(loc) {
 			$('#coordinates').html(loc.toUrlValue());
@@ -53,6 +52,10 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 		}
 		function setmarkers(source,filter) {
 			clearmarker();
+			var selectionsymbol = new google.maps.MarkerImage('/media/mapicons/selection.png',
+														new google.maps.Size(37,37),
+														new google.maps.Point(0,0),
+														new google.maps.Point(6,30));
 	    $.getJSON(source,filter,function(data) {
 	    	$.each(data,function(index,item) {
 					if (!item.icon) {
@@ -65,16 +68,34 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 					      new google.maps.Size(24, 24),
 					      new google.maps.Point(0,0),
 					      new google.maps.Point(0, 24));
-		    	var marker = new google.maps.Marker({
-						position: new google.maps.LatLng(item.lat,item.lon),
+		    	var marker = new google.maps.Marker(
+		    		{
+								position: new google.maps.LatLng(item.lat,item.lon),
 	      				title:'#' + item.id + '(' + item.name + ')',
 	      				map:map,
 	      				icon:image,
-	  			});
+	  				}
+	  			);
+	  			if (item.id == selectedmarker) {
+	  				marker.setShadow(selectionsymbol);
+	  			}
+	  			(function(eventmarker,id){
+		  			google.maps.event.addListener(marker,'click',function() {
+							$('#infotext').load('/map/sitedescription/' + id, function(response, status, xhr) {
+  							if (status == "error") {
+    							var msg = "Sorry but there was an error: ";
+    							$("#infotext").html(msg + xhr.status + " " + xhr.statusText);
+  							}
+							});
+							selectedmarker = id;
+		  				$.each(markers,function(index,item) {
+		  					item.setShadow(null);
+		  				});
+		  				eventmarker.setShadow(selectionsymbol);
+							setpref({site:id});
+		  			});  				
+	  			}(marker,item.id));
 	  			markers.push(marker)
-	  			google.maps.event.addListener(marker,'click',function() {
-						  $('#infotext').load('/map/sitedescription',{siteid:item.id});												
-	  			});
 	    	});
 	    });
 						
@@ -103,7 +124,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 									valuetype:vt,
 								  date:date
 								},
-								function(data){
+								function(data) {
 									var html='<option class="firstoption" value="">Please select...</option>';
 									$.each(data,function(index,item){
 										html+='<option value="'+item.username+'">'+item.firstname+' '+item.surname+'</option>';
@@ -137,21 +158,19 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 		}
 		function createmap() {
  	    var latlng = new google.maps.LatLng(50.5, 8.55);
-	    var myOptions = {
+	    var mapOptions = {
 	      zoom: 16,
 	      center: latlng,
-	      mapTypeId: google.maps.MapTypeId.HYBRID,
+	      mapTypeId: google.maps.MapTypeId.HYBRID
 	    };
-	    var map=new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+	    
+	    var map=new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
 	    google.maps.event.addListener(map,'dblclick',function(event) {
 	    	map_dblclick(event.latLng);
 	    });    
 	    google.maps.event.addListener(map,'mousemove',function(event) {
 	    	map_mousemove(event.latLng);
 	    });    
-	    //google.maps.event.addListener(map,'bounds_changed',function(event) {
-	    //	savemappref();
-	    //});
 	    return map
 			
 		}
@@ -159,11 +178,22 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 
     $(function() {
 			$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
-	    map = createmap(); 
+	    map = createmap();
+			selectedmarker = 0;
 	    markers = [];
 	    popSelect();
 	    clearFilter();
-
+	    $(window).unload(savemappref);
+	    // Get map preferences 
+ 	    $.getJSON('/preferences',{},function(data){
+ 	    	map.setZoom(data.map.zoom);
+ 	    	map.setCenter(new google.maps.LatLng(data.map.lat,data.map.lng));
+ 	    	map.setMapTypeId(data.map.type); 	    	 
+ 	    	if (data.site) {
+	 	    	$('#infotext').load('/map/sitedescription',{siteid:data.site}); 
+	 	    	selectedmarker = data.site;
+    		}
+ 	    });
     });
 	    
 	   

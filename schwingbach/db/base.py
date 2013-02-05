@@ -18,6 +18,16 @@ def abspath(fn):
     normpath = op.normpath(fn)
     return op.join(basepath,normpath)
 
+def newid(cls,session=None):
+    "Creates a new id for all mapped classes with an field called id, which is of integer type"
+    if not session:
+        session=Session()
+    max_id = session.query(sql.func.max(cls.id)).select_from(cls).scalar()
+    if not max_id is None:
+        return max_id+1
+    else:
+        return 1
+
 dbpath = abspath('../data.sqlite').replace('\\','/')
 #engine = sql.create_engine('sqlite:///'+dbpath)
 def connect():
