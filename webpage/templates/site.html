@@ -194,7 +194,7 @@
 				</div>
 				<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
 			</form>
-			<h2><a href="javascript:toggle('messagelist')"><img src="/media/expand_lblue.png"/>Messages for this site</a></h2>
+			<h2><a href="javascript:toggle('messagelist')"><img src="/media/expand_lblue.png"/>Logbook</a><small> [${actualsite.logs.count()} entries]</small></h2>
 			<div id="messagelist" class="toggle">
 				<p>
 					Please report briefly any actions you have performed on this site, or if you observed something unusual.
@@ -209,7 +209,7 @@
 				</ul>
 				
 			</div>
-			<h2><a href="javascript:toggle('pictures')"><img src="/media/expand_lblue.png"/>Pictures</a></h2>
+			<h2><a href="javascript:toggle('pictures')"><img src="/media/expand_lblue.png"/>Pictures</a><small> [${actualsite.images.count()} pictures]</small></h2>
 			<div id="pictures">
 				<div py:for="img in actualsite.images" style="display: inline">
 					<img src="/picture/thumbnail/${img.id}" 
@@ -218,7 +218,7 @@
 							 />
 				</div>
 			</div>
-			<h2><a href="javascript:toggle('instrumentlist')"><img src="/media/expand_lblue.png"/>Installed instruments</a></h2>
+			<h2><a href="javascript:toggle('instrumentlist')"><img src="/media/expand_lblue.png"/>Installed instruments</a><small> [${actualsite.instruments.count()} installations]</small></h2>
 			<ul id="instrumentlist" class="toggle">
 				<li py:if="is_member('editor')" >
 						<button onclick="addinstrument()" class="imgbutton">
@@ -239,7 +239,7 @@
 						 style="font-size: small;font-style: italic;">(remove...)</a>
 				</li>
 			</ul>
-			<h2><a href="javascript:toggle('datasetlist')"><img src="/media/expand_lblue.png"/>Available datasets</a></h2>
+			<h2><a href="javascript:toggle('datasetlist')"><img src="/media/expand_lblue.png"/>Available datasets</a><small> [${actualsite.datasets.count()} datasets]</small></h2>
 			<ul id="datasetlist" class="toggle" style="list-style-type: none;">
 				<li py:if="is_member('editor')" class="plus">
 					<a href="/dataset/new?site_id=${actualsite.id}"
