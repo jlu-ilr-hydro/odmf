@@ -50,6 +50,16 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			});
 			markers.length = 0;			
 		}
+        function selectsite(id) {
+            $('#infotext').load('/map/sitedescription/' + id, 
+                function(response, status, xhr) {
+                    if (status == "error") {
+                        var msg = "Sorry but there was an error: ";
+                        $("#infotext").html(msg + xhr.status + " " + xhr.statusText);
+                    }
+                });
+            selectedmarker = id;
+        }
 		function setmarkers(source,filter) {
 			clearmarker();
 			var selectionsymbol = new google.maps.MarkerImage('/media/mapicons/selection.png',
@@ -80,13 +90,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 	  			}
 	  			(function(eventmarker,id){
 		  			google.maps.event.addListener(marker,'click',function() {
-							$('#infotext').load('/map/sitedescription/' + id, function(response, status, xhr) {
-  							if (status == "error") {
-    							var msg = "Sorry but there was an error: ";
-    							$("#infotext").html(msg + xhr.status + " " + xhr.statusText);
-  							}
-							});
-							selectedmarker = id;
+						selectsite(item.id);
 		  				$.each(markers,function(index,item) {
 		  					item.setShadow(null);
 		  				});
@@ -193,11 +197,10 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 				$('.filter').val('');
 				$('#dateselect').val('');
 				$('#datasetsonly').prop('checked',false);
-	    	popSelect();
  	    	if (data.site) {
-	 	    	$('#infotext').load('/map/sitedescription',{siteid:data.site}); 
-	 	    	selectedmarker = data.site;
+                selectsite(data.site);
     		}
+	    	popSelect();
     	});
 	    $(window).unload(savemappref);
 	    // Get map preferences 

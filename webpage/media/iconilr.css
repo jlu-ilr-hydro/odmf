@@ -68,7 +68,7 @@ body {
   background-color: #32739d;
   padding: 0px 0px 0px 0px;
   margin: 0px 0px 0px 0px;
-	color: black;
+  color: black;
 }
 
 div.center {
@@ -78,7 +78,7 @@ div.center {
     padding: 0px;
 }
 div.navigate {
-		background-image: url(/media/schwingbach.jpg);
+		background-image: url(/media/meteovku.jpg);
     color: white;
     font-weight: bold;
     font-style: italic;
@@ -89,7 +89,8 @@ div.navigate {
     padding-top:0px;
     margin: 0px 0px 0px 0px;
     width: 13em;
-    height: 600px;
+    height: 1773px;
+    overflow: hidden !important; /* FF Scroll-leiste */ 
 }
 
 div.navigate li {
