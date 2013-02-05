@@ -63,7 +63,6 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 					} else {
 						icon = item.icon;
 					}
-					
 	    		var image = new google.maps.MarkerImage('/media/mapicons/' + icon,
 					      new google.maps.Size(24, 24),
 					      new google.maps.Point(0,0),
@@ -95,16 +94,24 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 							setpref({site:id});
 		  			});  				
 	  			}(marker,item.id));
+	  			(function(eventmarker,id){
+	  				google.maps.event.addListener(marker,'dblclick',function() {
+	  					map.setCenter(marker.getPosition());
+	  					map.setZoom(21);
+	  				})
+	  			})(marker,item.id);
 	  			markers.push(marker)
 	    	});
 	    });
-						
 		}
 		
 		function popSelect() {
 			var vt = $('#vtselect').val()
 			var user = $('#userselect').val()
 			var date = $('#dateselect').val()
+			if (vt || user || date) {
+					$('#datasetsonly').prop('checked',true);
+			}
 			$.getJSON('/dataset/attrjson',
 								{ attribute:'valuetype',
 								  user:user,
@@ -132,21 +139,22 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 									$('#userselect').html(html).val(user);
 								}
 			);
-			$('#datasetsonly').html('yes')
-			setmarkers('/dataset/attrjson',
-									{attribute:'site',
-									 valuetype:vt,
-									 user:user,
-									 date:date,
-								});							
+			if ($('#datasetsonly').prop('checked')) {
+				setmarkers('/dataset/attrjson',
+										{attribute:'site',
+										 valuetype:vt,
+										 user:user,
+										 date:date,
+									});											
+			} else {
+				setmarkers('/site/json',{});
+			}
 		}
 		function clearFilter() {
 			$('.filter').val('');
 			$('#dateselect').val('');
-			$('#allsites').val(true);
+			$('#datasetsonly').prop('checked',false);
 			popSelect();
-			setmarkers('/map/sites',{});
-			$('#datasetsonly').html('no')
 		}
 		function zoomToMarkers() {
 			var latlngbounds = new google.maps.LatLngBounds();
@@ -156,12 +164,12 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			map.setCenter(latlngbounds.getCenter());
 			map.fitBounds(latlngbounds); 
 		}
-		function createmap() {
- 	    var latlng = new google.maps.LatLng(50.5, 8.55);
+		function createmap(lat,lng,zoom,type) {
+ 	    var latlng = new google.maps.LatLng(lat, lng);
 	    var mapOptions = {
-	      zoom: 16,
+	      zoom: zoom,
 	      center: latlng,
-	      mapTypeId: google.maps.MapTypeId.HYBRID
+	      mapTypeId: type
 	    };
 	    
 	    var map=new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
@@ -178,22 +186,21 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 
     $(function() {
 			$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
-	    map = createmap();
-			selectedmarker = 0;
-	    markers = [];
-	    popSelect();
-	    clearFilter();
-	    $(window).unload(savemappref);
-	    // Get map preferences 
  	    $.getJSON('/preferences',{},function(data){
- 	    	map.setZoom(data.map.zoom);
- 	    	map.setCenter(new google.maps.LatLng(data.map.lat,data.map.lng));
- 	    	map.setMapTypeId(data.map.type); 	    	 
+		    map = createmap(data.map.lat,data.map.lng,data.map.zoom,data.map.type);
+				selectedmarker = 0;
+		    markers = [];
+				$('.filter').val('');
+				$('#dateselect').val('');
+				$('#datasetsonly').prop('checked',false);
+	    	popSelect();
  	    	if (data.site) {
 	 	    	$('#infotext').load('/map/sitedescription',{siteid:data.site}); 
 	 	    	selectedmarker = data.site;
     		}
- 	    });
+    	});
+	    $(window).unload(savemappref);
+	    // Get map preferences 
     });
 	    
 	   
@@ -255,7 +262,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 							</tr>
 							<tr>
 								<td>only datasets:</td>
-								<td id="datasetsonly" style="text-align: center;">no</td>
+								<td  style="text-align: center;"><input id="datasetsonly" type="checkbox" onchange="popSelect();"/></td>
 							</tr>
 						</table>
 								
