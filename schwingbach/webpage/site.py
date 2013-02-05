@@ -149,7 +149,7 @@ class SitePage:
     def json(self):
         session=db.Session()
         web.setmime('application/json')
-        res = web.as_json(session.query(db.Site).order_by(db.Site.id))
+        res = web.as_json(session.query(db.Site).order_by(db.Site.id).all())
         session.close()
         return res
         

@@ -67,7 +67,7 @@ class PersonPage:
         persons = session.query(db.Person).order_by(db.sql.desc(db.Person.can_supervise),db.Person.surname)
         if supervisors:
             persons = persons.filter(db.Person.can_supervise==True)
-        res = web.as_json(persons)
+        res = web.as_json(persons.all())
         session.close()
         return res
 
@@ -119,10 +119,11 @@ class VTPage:
                                   ).render('html',doctype='html')
         raise web.HTTPRedirect('./%s' % id)
     
+    @expose_for(group.guest)
     def json(self):
         session=db.Session()
         web.setmime('application/json')
-        dump=web.as_json(session.query(db.ValueType))
+        dump=web.as_json(session.query(db.ValueType).all())
         session.close()
         return dump
 class DatasourcePage:
@@ -175,7 +176,7 @@ class DatasourcePage:
     def json(self):
         session=db.Session()
         web.setmime('application/json')
-        dump=web.as_json(session.query(db.Datasource))
+        dump=web.as_json(session.query(db.Datasource).all())
         session.close()
         return dump
     
@@ -329,7 +330,7 @@ class LogPage:
             logs=logs.filter(db.Log.time>=old)
            
             
-        res = web.as_json(logs)
+        res = web.as_json(logs.all())
         session.close()
         return res
     

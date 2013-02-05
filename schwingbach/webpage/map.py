@@ -17,12 +17,11 @@ class MapPage(object):
     def sites(self):
         session=db.Session()
         web.setmime('application/json')
-        res = web.as_json(session.query(db.Site).order_by(db.Site.id))
+        sites = session.query(db.Site).order_by(db.Site.id)
+        res = web.as_json(sites.all())
         session.close()
         return res
 
-        res = json.dumps(sites,indent=4)
-        return res
     @web.expose
     def sitedescription(self,siteid):
         if not siteid:
