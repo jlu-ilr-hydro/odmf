@@ -13,6 +13,7 @@ from webpage.map import MapPage
 from webpage.site import SitePage
 from webpage.datasetpage import DatasetPage
 from webpage.preferences import Preferences
+from webpage.plot import PlotPage 
 class PersonPage:
     exposed=True
     
@@ -163,6 +164,7 @@ class DatasourcePage:
                 inst.name=kwargs.get('name')
                 inst.sourcetype=kwargs.get('sourcetype')
                 inst.comment=kwargs.get('comment')
+                inst.manuallink=kwargs.get('manuallink')
                 session.commit()
                 session.close()
             except:
@@ -434,7 +436,7 @@ class PicturePage(object):
 class Root(object):
     _cp_config = {'tools.sessions.on': True,
                   'tools.sessions.timeout':7*24*60, # One Week
-                  'tools.sessions.storage_type':'file',
+                  'tools.sessions.storage_type':'ram',
                   'tools.sessions.storage_path':web.abspath('sessions'), 
                   'tools.auth.on': True}
 
@@ -449,6 +451,7 @@ class Root(object):
     instrument=DatasourcePage()
     picture = PicturePage()
     preferences = Preferences()
+    plot = PlotPage()
     
     @expose_for()
     def index(self):

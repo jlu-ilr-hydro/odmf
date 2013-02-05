@@ -186,8 +186,10 @@ class OdysseyPRNImport(PressureImport):
     
     t0 = datetime(1899,12,30)
 
-    def float2date(self,date):
-        return OdysseyPRNImport.t0 + timedelta(date)
+    def float2date(date):
+        days = int(date)
+        seconds = round((date % 1) * 86400)
+        return t0 + timedelta(days=days,seconds=seconds)
 
     def loadvalues(self):
         fin = file(self.filename)

@@ -6,20 +6,11 @@ Created on 31.01.2012
 '''
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
-from base import Base,Session
+from base import Base,Session, newid
 from sqlalchemy.schema import ForeignKey
 from datetime import datetime
 from cherrypy.lib.reprconf import as_dict
 from projection import LLtoUTM, dd_to_dms
-def newid(cls,session=None):
-    "Creates a new id for all mapped classes with an field called id, which is of integer type"
-    if not session:
-        session=Session()
-    max_id = session.query(sql.func.max(cls.id)).select_from(cls).scalar()
-    if not max_id is None:
-        return max_id+1
-    else:
-        return 1
     
 class Site(Base):
     "All locations in the database. The coordiante system is always geographic with WGS84/ETRS"
@@ -31,6 +22,8 @@ class Site(Base):
     name = sql.Column(sql.String)
     comment = sql.Column(sql.String)
     icon = sql.Column(sql.String(30))
+    _defaultdataset = sql.Column('defaultdataset',sql.Integer, sql.ForeignKey('dataset.id'))
+    defaultdataset = orm.relationship('Dataset',primaryjoin='Dataset.id==Site._defaultdataset')
     def __str__(self):
         return "#%i - %s" % (self.id,self.name)
     def __jdict__(self):
@@ -63,6 +56,13 @@ class Datasource(Base):
     name=sql.Column(sql.String)
     sourcetype=sql.Column(sql.String)
     comment=sql.Column(sql.String)
+    manuallink=sql.Column(sql.String)
+    
+    def linkname(self):
+        if self.manuallink:
+            return self.manuallink.split('/')[-1]
+        else:
+            return
     def __str__(self):
         return '%s (%s)' % (self.name,self.sourcetype)
     def __jdict__(self):
@@ -247,5 +247,18 @@ class Job(Base):
         else:
             return '#8F8'
     
-    
+class Maintenance(Base):
+    __tablename__='maintenance'
+    id=sql.Column(sql.String,primary_key=True)
+    description=sql.Column(sql.String)
+    jobtext = sql.Column(sql.String)
+    _supervisor=sql.Column('supervisor',sql.String,sql.ForeignKey('person.username'))
+    supervisor=  orm.relationship("Person",primaryjoin='Maintenance._supervisor==Person.username')
+    _responsible =sql.Column('responsible',sql.String,sql.ForeignKey('person.username'))
+    responsible = orm.relationship("Person",primaryjoin='Maintenance._responsible==Person.username')
+    repeat = sql.Column(sql.Integer)
+    _followed_by = sql.Column('followed_by',sql.String, sql.ForeignKey('maintenance.id'))
+    followed_by = orm.relationship('Maintenance',remote_side=[id])
+
+                                   
     

@@ -21,7 +21,7 @@ from genshi.core import Markup
 
 import collections
 import auth
-
+from auth import expose_for, users, group, member_of
 def jsonhandler(obj):
     if hasattr(obj,'__jdict__'):
         return obj.__jdict__()
@@ -30,8 +30,8 @@ def jsonhandler(obj):
     else:
         return obj 
 
-def as_json(iterable):
-    return json.dumps(list(iterable),sort_keys=True,indent=4,default=jsonhandler)
+def as_json(obj):
+    return json.dumps(obj,sort_keys=True,indent=4,default=jsonhandler)
 
 
 def abspath(fn):
@@ -124,14 +124,14 @@ def formatdatetime(t=None):
     
 def parsedate(s):
     res=None
-    formats = '%d.%m.%Y %H:%M:%S','%d.%m.%Y %H:%M','%d.%m.%Y','%Y/%m/%dT%H:%M:%S'
+    formats = '%d.%m.%Y %H:%M:%S','%d.%m.%Y %H:%M','%d.%m.%Y','%Y/%m/%dT%H:%M:%S','%Y-%m-%dT%H:%M:%S'
     for fmt in formats:
         try:
             res=datetime.strptime(s,fmt)
         except ValueError:
             pass
     if res is None:
-        raise ValueError('%s is not a valid date/time format')
+        raise ValueError('%s is not a valid date/time format' % s)
     return res 
 
 def user():
@@ -188,6 +188,8 @@ class httpServer(threading.Thread):
        
 
 def conv(cls,s,default=None):
+    if cls is datetime:
+        return parsedate(s)
     try:
         return cls(s)
     except:

@@ -6,7 +6,7 @@ Created on 13.07.2012
 '''
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
-from base import Base,Session
+from base import Base,Session, newid
 from sqlalchemy.schema import ForeignKey
 from datetime import datetime,timedelta
 from dbobjects import newid, Person, Datasource
@@ -32,6 +32,9 @@ class ValueType(Base):
     comment=sql.Column(sql.String)
     def __str__(self):
         return "%s [%s]" % (self.name,self.unit)
+    def __cmp__(self,other):
+        
+        return cmp(self.__str__().upper(),other.__str__().upper())
     def records(self):
         session= Session.object_session(self)
         return Record.query(session).filter(Dataset.valuetype==self)
@@ -72,7 +75,8 @@ class Dataset(Base):
     start=sql.Column(sql.DateTime, nullable = True)
     end=sql.Column(sql.DateTime, nullable = True)
     _site=sql.Column("site",sql.Integer, sql.ForeignKey('site.id'))
-    site = orm.relationship("Site",backref=orm.backref('datasets',lazy='dynamic',
+    site = orm.relationship("Site",primaryjoin='Site.id==Dataset._site',
+                            backref=orm.backref('datasets',lazy='dynamic',
                                                        #order_by="[Dataset.valuetype.name,sql.desc(Dataset.end)]"
                                                        ))
     _valuetype=sql.Column("valuetype",sql.Integer,sql.ForeignKey('valuetype.id'))
@@ -111,7 +115,7 @@ class Dataset(Base):
                     quality=self.quality,
                     group=self.group,
                     comment=self.comment,
-                    label=str(self))
+                    label=self.__str__())
 
     def maxrecordid(self):
         session = self.session()
@@ -152,11 +156,44 @@ class Dataset(Base):
         n = self.records.count()
         return mean,std,n
     
+    def copy(self,id):
+        return Dataset(id=id,
+                        name=self.name,
+                        filename=self.filename,
+                        valuetype=self.valuetype,
+                        measured_by=self.measured_by,
+                        quality=self.quality,
+                        source=self.source,
+                        group=self.group,
+                        calibration_offset=self.calibration_offset,
+                        calibration_slope=self.calibration_slope,
+                        comment=self.comment,
+                        start=self.start,
+                        end=self.end,
+                        site=self.site)
+    def split(self,time):
+        session = self.session()
+        next = self.records.filter(Record.time>=time,Record.value != None).order_by(Record.time).first()
+        last = self.records.filter(Record.time<=time,Record.value != None).order_by(sql.desc(Record.time)).first()
+        if not next or not last:
+            raise RuntimeError("Split time %s is not between two records of %s" % (t,self))
+        
+        self.comment+='Dataset is splitted at %s to allow for different calibration' % time
+        dsnew = self.copy(id=newid(Dataset,session))
+        
+        self.end = last.time
+        dsnew.start = next.time
+        records = self.records.filter(Record.time>=next.time)
+        for r in records:
+            r.dataset=dsnew
+        #session.commit()
+        
+    
     def findjumps(self,threshold):
         """Returns an iterator to find all jumps greater than threshold
         threshold: 
         """
-        records = self.records.order_by(Record.time)
+        records = self.records.order_by(Record.time).filter(Record.value != None)
         last=None
         for rec in records:
             if not rec.value is None:
@@ -165,8 +202,8 @@ class Dataset(Base):
                 last=rec
     
     def findvalue(self,time):
-        next = self.records.filter(Record.time>=time).order_by(Record.time).first()
-        last = self.records.filter(Record.time<=time).order_by(sql.desc(Record.time)).first()
+        next = self.records.filter(Record.time>=time,Record.value != None).order_by(Record.time).first()
+        last = self.records.filter(Record.time<=time,Record.value != None).order_by(sql.desc(Record.time)).first()
         if next and last:
             dt_next = (next.time-time).total_seconds()
             dt_last = (time-last.time).total_seconds()
@@ -182,12 +219,6 @@ class Dataset(Base):
         else:
             raise RuntimeError('%s has no records' % self)
         
-
-
-            
-            
-        
-            
 
 class Record(Base):
     __tablename__= 'record'
