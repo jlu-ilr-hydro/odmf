@@ -14,7 +14,7 @@
 	<a py:for="img in site.images" href="/picture?id=${img.id}"><img src="data:${img.mime};base64,${img.thumbnail64()}" /></a>
 </div>
 <div>
-	<h3><a href="javascript:toggle('instruments')">Instruments:</a> <small>${site.instruments.count()} installations</small></h3>
+	<h3><a href="javascript:toggle('instruments')">Instruments:</a><small> [${site.instruments.count()} installations]</small></h3>
 	<ul id="instruments" class="toggle">
 		<li py:for="inst in site.instruments" 
 				py:if="inst.active"
@@ -22,7 +22,7 @@
 	</ul>
 </div>
 <div>
-	<h3><a href="javascript:toggle('logbook')">Logbook:</a> <small>${site.logs.count()} entries</small></h3>
+	<h3><a href="javascript:toggle('logbook')">Logbook:</a><small> [${site.logs.count()} entries]</small></h3>
 	<ul id="logbook" class="toggle">
 		<li py:if="is_member('logger')">
 			<a href="/log/new?siteid=${site.id}" style="font-style: italic;">New message...</a>
@@ -34,7 +34,7 @@
 </div>
 
 <div>
-	<h3><a href="javascript:toggle('datasets')">Datasets:</a> <small>${site.datasets.count()} datasets</small></h3>
+	<h3><a href="javascript:toggle('datasets')">Datasets:</a><small> [${site.datasets.count()} datasets]</small></h3>
 	<ul id="datasets" class="toggle">
 		<li py:if="is_member('editor')">
 			<a href="/dataset/new?site_id=${site.id}"

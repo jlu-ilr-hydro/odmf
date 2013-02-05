@@ -92,7 +92,7 @@ class SitePage:
     def getinstruments(self):
         web.setmime('application/json')
         session=db.Session()
-        res=web.as_json(session.query(db.Datasource))
+        res=web.as_json(session.query(db.Datasource).all())
         session.close()
         return res
     
