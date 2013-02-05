@@ -295,7 +295,7 @@ class LogPage:
         elif 'new' in kwargs:
             id='new'
         raise web.HTTPRedirect('./%s' % id)
-    @expose_for(group.admin)
+    @expose_for(group.supervisor)
     def remove(self,id):
         session = db.Session()
         log = session.query(db.Log).get(id)

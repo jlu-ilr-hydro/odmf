@@ -160,7 +160,7 @@
 		</form>
 
 		<ul>
-			<li style="list-style-image:url(/media/minus-small.png);" py:if="is_member('admin') and actuallog" >
+			<li style="list-style-image:url(/media/minus-small.png);" py:if="is_member('supervisor') and actuallog" >
 				<a href="javascript:remove(${actuallog.id})">Remove log...</a>
 			</li>
 			<li style="list-style-image:url(/media/plus-small.png);" py:if="is_member('logger')" >
