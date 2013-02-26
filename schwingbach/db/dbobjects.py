@@ -8,10 +8,11 @@ import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from base import Base,Session, newid
 from sqlalchemy.schema import ForeignKey
-from datetime import datetime
+from datetime import datetime, timedelta
 from cherrypy.lib.reprconf import as_dict
 from projection import LLtoUTM, dd_to_dms
-    
+from collections import deque
+from traceback import format_exc as traceback
 class Site(Base):
     "All locations in the database. The coordiante system is always geographic with WGS84/ETRS"
     __tablename__ = 'site'
@@ -22,8 +23,6 @@ class Site(Base):
     name = sql.Column(sql.String)
     comment = sql.Column(sql.String)
     icon = sql.Column(sql.String(30))
-    _defaultdataset = sql.Column('defaultdataset',sql.Integer, sql.ForeignKey('dataset.id'))
-    defaultdataset = orm.relationship('Dataset',primaryjoin='Dataset.id==Site._defaultdataset')
     def __str__(self):
         return "#%i - %s" % (self.id,self.name)
     def __jdict__(self):
@@ -134,7 +133,9 @@ class Person(Base):
                     telephone = self.telephone,
                     mobile=self.mobile,
                     comment=self.comment,
-                    car_available = self.car_available)
+                    car_available = self.car_available,
+                    label=str(self),
+                    )
     def __cmp__(self,other):
         return cmp(self.surname,other.surname)
 
@@ -178,6 +179,14 @@ class Image(Base):
         self.image= self.__PIL_to_stream(img, self.imageheight, format).getvalue()
         self.thumbnail = self.__PIL_to_stream(img, self.thumbnailheight, format).getvalue()
         self.by=by
+        if not time:
+            try:
+                # Get original data
+                info = img._getexif()
+                # Get DateTimeOriginal from exifdata
+                time=datetime.strptime(info[0x9003],'%Y:%m:%d %H:%M:%S')
+            except:
+                time=None
         self.time=time
         self.site=site
         
@@ -187,11 +196,16 @@ class Log(Base):
     __tablename__='log'
     id=sql.Column(sql.Integer,primary_key=True)
     time=sql.Column(sql.DateTime)
+    # name of logging user
     _user=sql.Column('user',sql.String,sql.ForeignKey('person.username'))
     user = orm.relationship("Person")
+    # text of the log
     message = sql.Column(sql.String)
+    # affected site
     _site = sql.Column('site',sql.Integer,sql.ForeignKey('site.id'))
     site = orm.relationship("Site", backref=orm.backref('logs',lazy='dynamic',order_by=sql.desc(time)))
+    # Type of log
+    type = sql.Column(sql.String)
     def __str__(self):
         return "%s, %s: %s" % (self.user,self.time,self.message)
     def __cmp__(self,other):
@@ -209,30 +223,148 @@ class Job(Base):
     id=sql.Column(sql.Integer,primary_key=True)
     name=sql.Column(sql.String)
     description = sql.Column(sql.String)
+    # Date to which the job needs to be done
     due=sql.Column(sql.DateTime)
+    # The author of the job
     _author=sql.Column('author',sql.String,sql.ForeignKey('person.username'))
     author = orm.relationship("Person",primaryjoin='Job._author==Person.username')
+    # Responsible person to execute job
     _responsible =sql.Column('responsible',sql.String,sql.ForeignKey('person.username'))
     responsible = orm.relationship("Person",primaryjoin='Job._responsible==Person.username',
                                     backref=orm.backref('jobs',lazy='dynamic'))
-    done = sql.Column(sql.Boolean,default=False)
-    nextreminder = sql.Column(sql.DateTime)
+    # Marks the job as done
+    done = sql.Column("done",sql.Boolean,default=False)
+    # Number of days to repeat this job, if NULL, negetative or zero, the job is not repeated
+    # The new job is generated when this job is done, due date is the number of days after this due date
+    repeat = sql.Column(sql.Integer)
+    # A http link to help with the execution of the job
+    link = sql.Column(sql.String)
+    # A job type
+    type = sql.Column(sql.String)
+    # The date the job was done
+    donedate = sql.Column(sql.DateTime)
     def __str__(self):
-        return "%s: %s %s" % (self.responsible,self.name,' (Done)' if self.done else '')
+        return u"%s: %s %s" % (self.responsible,self.name,' (Done)' if self.done else '')
     def __repr__(self):
-        return "<Job(id=%s,name=%s,resp=%s,done=%s)>" % (self.id,self.name,self.responsible,self.done)
+        return u"<Job(id=%s,name=%s,resp=%s,done=%s)>" % (self.id,self.name,self.responsible,self.done)
     def __jdict__(self):
         return dict(id=self.id,
                     name=self.name,
                     description=self.description,
                     due=self.due,
+                    donedate=self.donedate,
                     author = self.author,
                     responsible = self.responsible,
                     done=self.done,
-                    nextreminder = self.nextreminder)
+                    link=self.link,
+                    repeat=self.repeat,
+                    label=str(self)
+                    )
     def __cmp__(self,other):
         return cmp(self.id,other.id)
-
+    def parse_description(self,action='done',time=None):
+        """Creates jobs, logs and mails from the description
+        The description is parsed by line. When a line "when done:" is encountered
+        scan the lines for a trailing "create". 
+        to create a follow up job:
+        create job after 2 days:<job description>
+        create log at site 64:<message>
+        create mail to philipp:<message>
+        """
+        session=self.session()
+        lines = deque(self.description.lower().split('\n'))
+        while lines :
+            if lines.popleft().strip()=='when %s:' % action:
+                break
+        errors=[]
+        objects=[]
+        msg=[]
+        while lines:
+            try:
+                line=lines.popleft()
+                if line.strip(',.-;:').startswith('create'):
+                    if line.count(':'):
+                        cmdstr,text = line.split(':',1)
+                        cmd=[w.strip(',.-;:_()#') for w in cmdstr.split()]
+                        if cmd[1]=='log': # log something
+                            try: # find the site
+                                siteid = int(cmd[cmd.index('site')+1])
+                            except:
+                                raise RuntimeError('Could not find a valid site in command "%s"' % cmdstr)
+                            objects.append(Log(id=newid(Log,session),
+                                user=self.responsible,
+                                time=time,
+                                message=text,
+                                _site=siteid,
+                                type=self.type
+                                ))
+                        # Create a follow up job
+                        elif cmd[1]=='job':
+                            if 'after' in cmd:
+                                after = int(cmd[cmd.index('after')+1])
+                            else:
+                                after = 0
+                            objects.append(Job(id=newid(Job,session),
+                                         name=text,
+                                         due=time + timedelta(days=after),
+                                         author=self.author,
+                                         responsible=self.responsible,
+                                         link=self.link,
+                                         type=self.type))
+                        # Write a mail
+                        elif cmd[1]=='mail':
+                            try:
+                                to = cmd[cmd.index('to')+1:]
+                                to = session.query(Person).filter(Person.username.in_(to))
+                                to = to.all()
+                                import smtplib
+                                from email.mime.text import MIMEText
+                                s = smtplib.SMTP('mailout.uni-giessen.de')
+                                msgdata = dict(id=self.id,action=action,text=text,name=str(self))
+                                text = u'The job %(name)s is %(action)s\nhttp://fb09-pasig.umwelt.uni-giessen.de:8081/job/%(id)s\n\n %(text)s' % msgdata
+                                subject=u'Studienlandschaft Schwingbach: job #%(name)s is %(action)s' % msgdata
+                                msg = MIMEText(text.encode('utf-8'),'plain','utf-8')
+                                msg['Subject'] = subject
+                                msg['From'] = self.author.email
+                                msg['To'] = to[0].email
+                                s.sendmail(self.author.email,[you.email for you in to],msg.as_string())
+                                s.quit()
+                            except:
+                                raise RuntimeError('"%s" is not a valid mail, problem: %s' % (line,traceback()))
+                    else:
+                        raise RuntimeError('"%s" is not an action, missing ":"' % line)
+            except Exception as e:
+                errors.append(e.message)
+        return objects,errors
+                
+    def make_done(self,time=None):
+        "Marks the job as done and performs effects of the job"
+        self.done=True
+        if not time:
+            time=datetime.now()
+        self.donedate = time
+        msg=[]
+        session = self.session()        
+        if self.repeat:
+            newjob=Job(id=newid(Job,session),
+                         name=self.name,
+                         description=self.description,
+                         due=self.due + timedelta(days=self.repeat),
+                         author=self.author,
+                         responsible=self.responsible,
+                         repeat=self.repeat,
+                         link=self.link,
+                         type=self.type)
+            session.add(newjob)
+            msg.append('Added new job %s' % newjob)
+        objects,errors = self.parse_description('done', time)
+        session.add_all(objects)
+        session.commit()
+        msg.extend(str(o) for o in objects)
+        if errors: 
+            msg.append('ERRORS:')
+            msg.extend(errors)
+        return '\n'.join(msg)
     @property
     def color(self):
         if self.done:
@@ -246,19 +378,4 @@ class Job(Base):
             return '#8F4'
         else:
             return '#8F8'
-    
-class Maintenance(Base):
-    __tablename__='maintenance'
-    id=sql.Column(sql.String,primary_key=True)
-    description=sql.Column(sql.String)
-    jobtext = sql.Column(sql.String)
-    _supervisor=sql.Column('supervisor',sql.String,sql.ForeignKey('person.username'))
-    supervisor=  orm.relationship("Person",primaryjoin='Maintenance._supervisor==Person.username')
-    _responsible =sql.Column('responsible',sql.String,sql.ForeignKey('person.username'))
-    responsible = orm.relationship("Person",primaryjoin='Maintenance._responsible==Person.username')
-    repeat = sql.Column(sql.Integer)
-    _followed_by = sql.Column('followed_by',sql.String, sql.ForeignKey('maintenance.id'))
-    followed_by = orm.relationship('Maintenance',remote_side=[id])
-
-                                   
     

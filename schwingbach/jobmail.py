@@ -44,6 +44,8 @@ with kind regards
 This mail has been generated automatically from the Schwingbach database 
 """
 
+    
+
 def sendmail(job,s,simulate=False):
     me = job.author.email
     you = job.responsible.email

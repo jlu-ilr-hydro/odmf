@@ -91,7 +91,15 @@ class DatasetPage:
             id='new'
         raise web.HTTPRedirect('./%s' % id)
     
-    def subset(self,session,valuetype=None,user=None,site=None,date=None):
+    @expose_for(group.admin)
+    def remove(self,dsid):
+        try:
+            db.removedataset(dsid)
+            return None
+        except Exception as e:
+            return str(e)
+    
+    def subset(self,session,valuetype=None,user=None,site=None,date=None,instrument=None):
         datasets=session.query(db.Dataset)
         if user:
             user=session.query(db.Person).get(user)
@@ -105,11 +113,14 @@ class DatasetPage:
         if valuetype:
             vt=session.query(db.ValueType).get(int(valuetype))
             datasets=datasets.filter_by(valuetype=vt)
+        if instrument:
+            source = session.query(db.Datasource).get(int(instrument))
+            datasets=datasets.filter_by(source=source)
             
         return datasets.join(db.ValueType).order_by(db.ValueType.name,db.sql.desc(db.Dataset.end))
     
     @expose_for()
-    def attrjson(self,attribute,valuetype=None,user=None,site=None,date=None):
+    def attrjson(self,attribute,valuetype=None,user=None,site=None,date=None,instrument=None):
         """TODO: This function is not very well scalable. If the number of datasets grows,
         please use distinct to get the distinct sites / valuetypes etc.
         """
@@ -119,7 +130,7 @@ class DatasetPage:
         session=db.Session()
         res=''
         try:
-            datasets = self.subset(session,valuetype,user,site,date)
+            datasets = self.subset(session,valuetype,user,site,date,instrument)
             items = set(getattr(ds, attribute) for ds in datasets)
             res = web.as_json(sorted(items))
             session.close()
@@ -129,15 +140,28 @@ class DatasetPage:
         
         
     @expose_for()
-    def json(self,valuetype=None,user=None,site=None,date=None):
+    def json(self,valuetype=None,user=None,site=None,date=None,instrument=None):
         web.setmime('application/json')        
         session=db.Session()
         try:
-            dump = web.as_json(self.subset(session, valuetype, user, site, date).all())
+            dump = web.as_json(self.subset(session, valuetype, user, site, date,instrument).all())
         finally:
             session.close()
         return dump
     
+    @expose_for(group.editor)
+    def updaterecorderror(self,dataset,records):
+        try:
+            recids = set(int(r) for r in records.split())
+            session=db.Session()
+            ds = db.Dataset.get(session,int(dataset))
+            q=ds.records.filter(db.Record.id.in_(recids))
+            for r in q:
+                r.is_error = True
+            session.commit()
+            session.close()
+        except:
+            return traceback()
 
     @expose_for(group.editor)
     def findsplitpoints(self,datasetid,threshold):
@@ -146,7 +170,7 @@ class DatasetPage:
         try:
             ds = db.Dataset.get(session,int(datasetid))
             jumps=ds.findjumps(float(threshold))
-            output = web.render('record.html',records=jumps,actionname="split dataset",action="/dataset/setsplit").render('xml')
+            output = web.render('record.html',dataset=ds,records=jumps,actionname="split dataset",action="/dataset/setsplit").render('xml')
         except:
             output=traceback()          
         finally:
@@ -154,9 +178,20 @@ class DatasetPage:
         return output
 
 
-    @expose_for(group.admin)
+    @expose_for(group.editor)
     def setsplit(self,datasetid,recordid):
-        print "Split at ds[%s].rec[%s]" % (datasetid,recordid)  
+        try:
+            session=db.Session()
+            ds = db.Dataset.get(session,int(datasetid))
+            rec = ds.records.filter_by(id=int(recordid)).first()
+            ds,dsnew = ds.split(rec.time)
+            res = "New dataset: %s" % dsnew
+        except:
+            res=traceback()
+        finally:
+            session.close()
+        return res
+         
     
     @expose_for(group.logger)
     def records_csv(self,dataset):
@@ -166,7 +201,7 @@ class DatasetPage:
         st = StringIO()
         st.write(codecs.BOM_UTF8)
         st.write((u'"Dataset","ID","time","%s","site","comment"\n' % (ds.valuetype)).encode('utf-8'))
-        query = session.query(db.Record).filter_by(dataset=ds).order_by(db.Record.time)
+        query = session.query(db.Record).filter_by(dataset=ds,is_error=False).order_by(db.Record.time)
         for r in query:
             d=dict(c=str(r.comment).replace('\r','').replace('\n',' / '),
                  v=r.calibrated,
@@ -210,20 +245,22 @@ class DatasetPage:
                 end=web.parsedate(end)
             else:
                 end=ds.end
-            records = ds.records.filter(db.Record.time>=start, db.Record.time<=end)
-            records=records.order_by(db.Record.time)
+            records = session.query(db.Record).filter(db.Record.time>=start, db.Record.time<=end,db.Record._dataset==ds.id)
+            records=records.order_by(db.Record.time).filter(~db.Record.is_error)
             t0 = datetime(1,1,1)
             date2num = lambda t: (t-t0).total_seconds()/86400 + 1.0
             def r2c(records):
                 for r in records:
-                    if r.value is None:
-                        yield np.log(-1),date2num(r.time)
+                    if r[0] is None:
+                        yield np.log(-1),date2num(r[1])
                     else:
-                        yield r.calibrated,date2num(r.time)
-                    
+                        yield r[0],date2num(r[1])
+            print records.statement        
             ts = np.zeros(shape=(records.count(),2),dtype=float)
-            for i,r in enumerate(r2c(records)):
-                ts[i] = r  
+            for i,r in enumerate(r2c(records.values('value','time'))):
+                ts[i] = r
+            ts[:,0]*=ds.calibration_slope 
+            ts[:,0]+=ds.calibration_offset  
             fig=plt.figure()
             ax=fig.gca()
             ax.plot_date(ts[:,1],ts[:,0],color+marker+line)
@@ -257,6 +294,54 @@ class DatasetPage:
         finally:
             session.close()
         return ''
+    @expose_for(group.editor)
+    def records(self,dataset,mindate,maxdate,minvalue,maxvalue):
+        session=db.Session()
+        ds = db.Dataset.get(session,int(dataset))
+        records = ds.records.order_by(db.Record.time).filter(~db.Record.is_error)
+        try:
+            if mindate.strip(): records=records.filter(db.Record.time>web.parsedate(mindate.strip()))
+            if maxdate.strip(): records=records.filter(db.Record.time<web.parsedate(maxdate.strip()))
+            if minvalue: records=records.filter(db.Record.value<float(minvalue))
+            if maxvalue: records=records.filter(db.Record.value>float(maxvalue))
+        except:
+            return web.Markup('<div class="error">'+traceback()+'</div>')
+        records=records.limit(100)
+        res = web.render('record.html',records=records,dataset=ds,actionname='',action='').render('xml')
+        session.close()
+        return res
+            
+    @expose_for(group.supervisor)
+    def plot_coverage(self,siteid):
+        session = db.Session()
+        web.setmime('image/png')
+        try:
+            import matplotlib
+            matplotlib.use('Agg',warn=False)
+            import pylab as plt
+            import numpy as np
+            ds = session.query(db.Dataset).filter_by(_site=int(siteid)).order_by(db.Dataset._source,db.Dataset._valuetype,db.Dataset.start).all()
+            left = plt.date2num([d.start for d in ds])
+            right = plt.date2num([d.end for d in ds])
+            btm = np.arange(-.5,-len(ds),-1)
+            #return 'left=' + str(left) + ' right=' + str(right) + ' btm=' + str(btm)
+            fig = plt.figure()
+            ax = fig.gca()
+            ax.barh(left=left,width=right-left,bottom=btm,height=0.9,fc='0.75',ec='0.5')
+            for l,b,d in zip(left,btm,ds):
+                ax.text(l,b+.5,'#%i' % d.id, color='k',va='center')
+            ax.xaxis_date()
+            ax.set_yticks(btm+.5)
+            ax.set_yticklabels([d.source.name + '/' + d.valuetype.name for d in ds])
+            ax.set_position([0.3,0.05,0.7,0.9])
+            ax.set_title('Site #' + siteid)
+            ax.set_ylim(-len(ds)-.5,.5)
+            ax.grid()
+            io = StringIO()
+            fig.savefig(io,dpi=100)
+        finally:
+            session.close()  
+        return io.getvalue()
 
             
 
@@ -300,14 +385,21 @@ class CalibratePage(object):
     @expose_for(group.editor)
     def apply(self,targetid,sourceid,slope,offset):
         session=db.Session()
-        target = db.Dataset.get(session,int(targetid))
-        source = db.Dataset.get(session,int(sourceid))
-        if target:
+        error=''
+        try:
+            target = db.Dataset.get(session,int(targetid))
+            source = db.Dataset.get(session,int(sourceid))
             target.calibration_slope = float(slope)
             target.calibration_offset = float(offset)
             if target.comment:
                 target.comment += '\n'
-            target.comment = "Calibrated against %s at %s by %s" % (source,web.formatdate(),users.current) 
+            target.comment += "Calibrated against %s at %s by %s" % (source,web.formatdate(),users.current)
+            session.commit()
+        except:
+            error=traceback()
+        finally:
+            session.close()
+            return error
         
 DatasetPage.calibration=CalibratePage()
                

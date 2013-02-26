@@ -71,6 +71,7 @@ class mime:
     jpeg='image/jpeg'
     png='image/png'
     csv='text/csv'
+    pdf='application/pdf'
 
 def mimetype(type):
     def decorate(func):

@@ -12,7 +12,12 @@
 					window.location.reload();
 				}    	
     }
+    function killplot() {
+				$('#plot').slideUp().html('Loading image...');
+
+    }
 		function renderplot(targetdiv, creationtime) {
+			$('#plot').html('Loading image...');
 			var div = $('#'+targetdiv);
 			$('#properties').slideUp();
 			div.html('<img src="/plot/image.png?create=creationtime" alt="Loading image..." />')
@@ -31,13 +36,16 @@
 			$.post('changeplot', {
 				start:gettime('start'),
 				end:gettime('end'),
-				size:$('#sizeselect').val()
+				width:$('#plotwidth').val(),
+				height:$('#plotheight').val(),				
+				rows:$('#plotrows').val(),
+				columns:$('#plotcolumns').val(),
 			}, seterror);
-			
-
+			killplot();
 		}
 		function addsubplot() {
 			$.post('addsubplot', {}, seterror);
+			killplot();
 		}
 		function removesubplot(id) {
 			$.post('removesubplot', {subplotid:id}, function(data) {
@@ -47,12 +55,12 @@
 					window.location.reload();
 				}
 			});
+			killplot();
 		}
 		function getstyle() {
 			return $('#colorpicker').val() + $('#linepicker').val() + $('#markerpicker').val();
 		}
-		function addline() {
-			var sp = $('#subplotselect').val();
+		function addline(sp) {
 			var vt = $('#vtselect').val();
 			var site = $('#siteselect').val();
 			var inst = $('#instrumentselect').val();
@@ -63,9 +71,11 @@
 				instrumentid:inst,
 				style:getstyle()
 			},seterror);
+			killplot();
 		}
 		function removeline(subplot,line) {
 			$.post('removeline',{subplot:subplot,line:line},seterror)
+			killplot();
 		}
 		
 		function timerange(step)

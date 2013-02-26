@@ -31,6 +31,7 @@ class SitePage:
             datasets = datasets.order_by(db.ValueType.name,db.sql.desc(db.Dataset.end))
         except:
             error=traceback()
+            datasets=[]
             actualsite=None
         result = web.render('site.html',actualsite=actualsite,error=error, 
                             datasets=datasets,icons=self.geticons()
@@ -78,7 +79,6 @@ class SitePage:
                 site.name=kwargs.get('name')
                 site.height=web.conv(float,kwargs.get('height'))
                 site.icon = kwargs.get('icon')
-                site._defaultdataset = web.conv(int,kwargs.get('defaultdataset'))
                 site.comment=kwargs.get('comment')
                 session.commit()
                 session.close()
@@ -184,6 +184,18 @@ class SitePage:
     def geticons(self):
         path = web.abspath('media/mapicons')
         return [op.basename(p) for p in glob(op.join(path,'*.png')) if not op.basename(p)=='selection.png']
+    
+    @expose_for(group.guest)
+    def with_instrument(self,instrumentid):
+        web.setmime(web.mime.json)
+        session=db.Session()
+        sites=[]
+        try:
+            inst =  db.Datasource.get(session,int(instrumentid))
+            sites = sorted(set(i.site for i in inst.sites))
+        finally:
+            session.close()
+        return web.as_json(sites)
     
     @expose_for(group.logger)
     def sites_csv(self):

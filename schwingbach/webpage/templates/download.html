@@ -5,15 +5,17 @@
 	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Download</title>
+  <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
+
 </head>
 <body>
 	${navigation()}
 	<div class="content">
     <h1>Download</h1>
     <div class="error" py:content="error" />
-		<div class="box">
+		<h2>
 			<span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
-		</div>
+		</h2>
     <div>
     	<ul style="list-style-image: url(/media/shimmer/folder_32.png); vertical-align:middle;">
     		<li py:for="f in directories">
@@ -22,24 +24,28 @@
     	</ul> 
     	<ul style="list-style-image: url(/media/shimmer/document_32.png);">
     		<li py:for="f in files">
-    			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" />
+    			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" /> 
+    			<a href="to_db?filename=${f.href}" title="import in data base">&#x219D;&#x25CD;</a>
     		</li>
     	</ul> 
 		</div>
 		<div py:if="is_member('logger')">
 			<h1>Upload...</h1>
 			<div>
-				<img src="/media/shimmer/document_add_48.png" />
+				<img src="/media/shimmer/document_add_32.png" />
 		    <form method="post" enctype="multipart/form-data" action="/download/upload" style="display: inline;">
 		    	file:
-		    	<input type="file" name="datafile" />
+		    	<input type="file" name="datafile" onchange="$('.upload').prop('disabled', !$(this).val());"/>
 		    	<input name="dir" type="hidden" value="${curdir}" />
-		    	<input type="submit"  value="Upload file"/>
+		    	<input type="submit"  class="upload" name="upload" value="upload file" disabled="disabled"/>
+		    	<input type="submit" class="upload" name="uploadimport" value="upload &amp; import" disabled="disabled"/>
+					to: <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>				
+
 		    </form>
 				
 			</div>
 			<div >
-				<img src="/media/shimmer/folder_add_48.png"/>
+				<img src="/media/shimmer/folder_add_32.png"/>
 				<form method="post" action="/download/newfolder" style="display: inline;">
 						New folder name:
 						<input type="text" name="newfolder" />

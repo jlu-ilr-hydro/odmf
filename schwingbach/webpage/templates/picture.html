@@ -4,6 +4,49 @@
 <head>
 	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<script src="/media/jquery-1.7.1.min.js" type="text/javascript"></script>
+  <script>
+  	//<![CDATA[
+    function toggle(id) {
+    	$('#'+id).slideToggle('fast');
+    }
+    function reload() {
+    	var params = {site:$('#siteselect').val(),
+    								by:$('#userselect').val()};
+    	window.location = '/picture?' + $.param(params);
+    }
+    function enableupload() {
+    	var siteid = $('#uploadsite').val();
+    	var user = $('#uploaduser').val();
+  		$('#uploadsubmit').prop('disabled',siteid && userselect);
+    }
+    function popSelect() {
+    	$.getJSON('/site/json',[],function(data){
+		  		var html='<option value="">Please select...</option>';
+		  		$.each(data,function(index,item){
+	  				html += '<option value="'+item.id+'">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
+		  		});
+		  		$('.sites').html(html);
+		  		$('.sites').val('${site}');
+	  	});
+    	$.getJSON('/user/json',[],function(data){
+		  		var html='<option value="">Please select...</option>';
+		  		$.each(data,function(index,item){
+	  				html += '<option value="'+item.username+'">' + item.label + '</option>';
+		  		});
+		  		$('.users').html(html);
+		  		$('#userselect').val('${by}');
+		    	$('#uploaduser').val('${user()}');
+	  	});
+	  }
+    $(function() {
+    	popSelect();
+    	enableupload();
+    });
+
+		//]]>
+    </script>
+
 	<title>Schwingbach Pictures</title>
 	<style>
 		.cell {
@@ -25,6 +68,24 @@
 		<div class="content">
 			<h1>${image.name if image else 'Picture'}</h1>
 		  <div class="error" py:content="error" />
+		  
+			<a py:if="image" href="/picture">&#x25C2;overview</a>
+			<a href="javascript:toggle('filter');">&#x25BE;filter</a>
+  			<div class="small toggle" id="filter">
+		    	site:
+		    	<select id="siteselect" class="sites" onchange="reload();"/>
+		    	by:<select id="userselect" class="users" onchange="reload();"/>
+  			</div>
+  			<a py:if="is_member('logger')" href="javascript:toggle('uploadform');">&#x25BE; upload</a>
+				<form method="post" enctype="multipart/form-data" action="/picture/upload"
+	    				py:if="is_member('logger')" id="uploadform" class="toggle small">
+		    	site:<select class="sites" id="uploadsite" name="siteid" onchange="enableupload();"/>
+			    by:<select class="users" id="uploaduser" name="user" onchange="enableupload();"/>
+		    	file:
+		    	<input type="file" name="imgfile" id="imgfile"/>
+		    	<input id="uploadsubmit" type="submit" value="upload" disabled="disabled"/>
+		    </form>
+
 		  <div py:if="image">
 				<div>
 					${formatdatetime(image.time)} by <a href="/person/${image.by.username}">${image.by}</a>

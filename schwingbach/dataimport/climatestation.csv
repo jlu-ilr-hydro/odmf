@@ -1,0 +1,8 @@
+Instrument,19,CR800,
+Applies,1/1/1900,1/1/2100,
+Column,value type,factor,name
+3,9,288,Rainfall
+4,8,1,Temperature
+8,10,1,Humidity
+11,11,1,Solar radiation
+16,12,1,Wind speed

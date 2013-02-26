@@ -29,7 +29,7 @@ class Calibration:
             for sr in sourcerecords:
                 tv,dt = target.findvalue(sr.time)
                 if dt<=limit: 
-                    self.matches.append(Match(sr.time,tv,sr.value,dt))
+                    self.matches.append(Match(sr.time,tv,sr.calibrated,dt))
         self.slope=1.0
         self.offset=0.0
         self.meanoffset=0.0

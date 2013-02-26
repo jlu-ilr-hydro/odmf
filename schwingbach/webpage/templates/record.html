@@ -10,16 +10,35 @@
 	</style>
 	<script>
 		function action(dsid,rid) {
-			$.post('${action}',{datasetid:dsid,recordid:rid}, function() {
+			$.post('${action}',{datasetid:dsid,recordid:rid}, function(data) {
+				if (data) {
+					alert(data);
+				}
 				location.reload();
 			});
 		}
+		function commit_errors() {
+			var res=''
+			$(".errorcheck:checked").each(function(){
+				res +=$(this).val() + ' '
+			});
+			$.post('/dataset/updaterecorderrors',{dataset:${dataset.id},records:res},function(data){
+				$('.error').html(data);
+			});
+			
+		}
 	</script>
-	<div>
+	<div class="small">
 		<table>
 			<thead class="box">
 				<tr class="record box" >
-					<th>ID</th><th>time</th><th>value</th><th></th><th>comment</th><th></th>
+					<th>ID</th>
+					<th>time</th>
+					<th>value</th>
+					<th> </th>
+					<th>comment</th>
+					<th>error?</th>
+					<th> </th>
 				</tr>
 			</thead>
 			<tbody>
@@ -30,11 +49,25 @@
 					<td class="record" py:content="rec.dataset.valuetype.unit" />
 					<td class="record" py:content="rec.comment" />
 					<td class="record">
+						<input type="checkbox" 
+									 py:attrs="attrcheck('checked',rec.is_error)"
+									 class="errorcheck" 
+									 value="${rec.id}" />
+					</td>
+					<td class="record">
 						<button onclick="action(${rec.dataset.id},${rec.id});"
-										py:content="actionname" /> 
+										py:content="actionname" py:if="actionname"/> 
 					</td>
 				</tr>
 			</tbody>
+			<tfoot>
+				<tr>
+					<td /><td /><td /><td /><td />
+					<td>
+						<button onclick="commit_errors()">commit</button>
+					</td>
+				</tr>
+			</tfoot>
 		</table>
 	</div>
 </xml>

@@ -1,0 +1,196 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>ImportToDB</title>
+	<link href="/media/jquery-ui-1.8.18.custom.css" rel="stylesheet" type="text/css"/>
+  <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
+  <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
+
+	<script>
+      function toggle(id) {
+      	$('#'+id).slideToggle('fast');
+      }
+
+			function get_sites() {
+				var instrument = $('#instrument').val();
+				var site = $('#siteselect').val();
+				html = '<option value=""><i>Please select...</i></option>';
+				if (instrument) {
+					$.getJSON('/site/with_instrument/' + instrument, {}, function(data){
+						$.each(data,function(index,item){
+							html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
+						});
+						//$('.error').html(html);
+						$('#siteselect').html(html);
+						$("#siteselect").val(site);
+					});
+				}
+											
+			}
+			function onsiteselect() {
+				var instrument = $('#instrument').val();
+				var site = $('#siteselect').val();
+				if (site) {
+					$.getJSON('/dataset/json',{site:site,instrument:instrument},function(data){
+						var html='';
+						$.each(data,function(index,item){
+								html+='<li><a href="/dataset/'+item.id+'">'+item.label+'</a></li>';
+						});
+						$('#datasets').html(html);
+						// $('#coverage').html('<img src="/dataset/plot_coverage/' + site + '"/>');
+						$('#loadstat').prop('disabled',false);
+					});
+				} else {
+					$('#loadstat').prop('disabled',true);
+				}
+				$('#startdate').val('');
+				$('#enddate').val('');
+			}
+			function setdates(start,end) {
+				$('#startdate').val(start);
+				$('#enddate').val(end);
+      	$('#importdb').prop('disabled',false);
+			}
+
+      $(function() {
+        	$(".datepicker").datepicker({
+        		maxDate:"0", dateFormat: 'dd.mm.yy' 
+        	});
+        	get_sites();
+        	onsiteselect();
+        });
+
+	</script>
+	<style>
+		select {width: 100%;}
+		.datepicker {width: 100%;}
+		td,th {padding: 5px; border-bottom: solid 1px #888; font-size: small;}
+		th {background-color: #E8F0FF;}
+	</style>
+</head>
+<body>
+	<!--
+		Variables:
+		di module dataimport
+		error
+		filename
+		instrumentid
+		siteid
+		gaps - time gaps between datasets in the form [(startdate,enddate)] 
+		stats
+		 -->
+	${navigation()}
+	<div class="content">
+    <h1>Import to database</h1>
+    <div class="error" py:content="error" />
+    <h2>Import specifications</h2>
+   <form action="/download/to_db" method="post" >
+	   <table>
+	    	<tr>
+	    		<td>
+	    			File for upload:
+	    		</td>
+	    		<td>
+	    			<input type="text" id="filename" name="filename" value="${filename}" size="50" />
+	    		</td>
+	    	</tr>
+	    	<tr>
+	    		<td>
+				    Adapter:		
+	    		</td>
+	    		<td>
+				    <select id="instrument" name="instrument" onchange="get_sites();">
+							<option value=""><i>Please select...</i></option>
+							<option py:for="adapter in di.available_adapters()"
+												py:attrs="markoption(adapter.id == instrumentid)"
+												py:content="adapter"
+												value="${adapter.id}" />    
+						</select>
+	    		</td>
+	    	</tr>
+	    	<tr>
+	    		<td>
+	    			Site:
+	    		</td>
+	    		<td>
+						<select id="siteselect" name="site" onchange="onsiteselect();">
+								<option value=""><i>Please select...</i></option>
+								<option py:if="siteid" value="${siteid}" selected="selected">#${siteid}</option>
+						</select>
+	    		</td>
+	    	</tr>
+	    	<tr>
+	    		<td>
+	    			Start date:
+	    		</td>
+	    		<td>
+	    			<input name="startdate" id="startdate" type="text" class="datepicker" 
+	    						 value="${formatdatetime(gaps[0][0]) if gaps else ''}"/>
+	    		</td>
+	    	</tr>
+	    	<tr>
+	    		<td>
+	    			End date:
+	    		</td>
+	    		<td>
+	    			<input name="enddate" id="enddate" type="text" class="datepicker" 
+	    						 value="${formatdatetime(gaps[0][1]) if gaps else ''}"/>
+	    		</td>
+	    	</tr>
+	    </table>
+	    <div>
+			  <div py:if="gaps">
+			  	Select a time period
+			  	<ul>
+			  		<li py:for="g in gaps" class="small">
+			  			<a href="javascript:setdates('${formatdatetime(g[0])}','${formatdatetime(g[1])}')">
+			  				${formatdate(g[0])} - ${formatdate(g[1])}
+			  			</a>
+			  		</li>
+			  	</ul>
+			  </div>
+		  </div>
+	    <input type="submit" name="loadstat" id="loadstat" value="load statistics" disabled="disabled"/>
+	    <h3><a href="javascript:toggle('datasets')">&#x25BE; Similar datasets</a></h3>
+	    <ul id="datasets" class="toggle small" >
+	    	<li>No datasets loaded</li>
+	    </ul>
+	    <div py:if="stats">
+		    <h2>Statistics for ${filename}</h2>
+		    <table id="statistics">
+					<tr>
+						<th>item</th><th>Mean</th><th>Min</th><th>Max</th><th>n</th><th>start</th><th>end</th>
+					</tr>
+					<tr py:for="k,item in stats.iteritems()">
+						<tr>
+							<td py:content="k" />
+							<td py:content="('%g' % item.mean) if item.n else 'N/A'" />
+							<td py:content="'%g' % item.min" />
+							<td py:content="'%g' % item.max" />
+							<td py:content="'%i' % item.n" />
+							<td py:content="formatdatetime(item.start)" />
+							<td py:content="formatdatetime(item.end)" />
+						</tr>
+					</tr>    
+				</table>
+		  </div>
+			<input id="importdb" type="submit" name="importdb" value="start import" disabled="disabled"/>
+		  <div py:if="datasets">
+		  	<h2>
+		  		New datasets
+		  	</h2>
+		  	<ul>
+					<li py:for="k,dsid in datasets.iteritems()">${k}:
+						<a href="/dataset/${dsid}">ds${dsid}</a>
+					</li>
+
+		  	</ul>
+		  	
+		  </div>
+	  </form>
+	</div>
+</body>
+</html>

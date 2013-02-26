@@ -25,7 +25,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			$(".timepicker").autocomplete({source: timerange(15)});
 	    popSelect();
     });
-</script>
+	</script>
 	<style type="text/css">
 	  .wide {width: 100%;}
 	  .filter {width: 10em;}
@@ -40,103 +40,139 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			padding-right: 20px;
 			font-size: small;
 		}
+		li.sp {
+	    background-color: #E8F0FF;
+			border-radius: 5px;
+			border-top: 1px solid #000;
+		}
+		li.line {
+			background-color: #FFF;
+		}
+		.spinner {
+			size: 3;
+		}
 	</style>
 		
 </head>
 <body>
+	<datalist id="numbers"><option py:for="i in xrange(10)" value="${i}"/></datalist>
 	${navigation()}
 	<div class="content">
 		<h1>Plot</h1>
 		<div class="error" id="error"></div>
-		<h2><a href="javascript:toggle('properties')">Properties</a></h2>
+		<h2><a href="javascript:toggle('properties')">&#x25BE; Properties</a></h2>
 		<div id="properties">
-			<div>
-				start:
-				<input class="datepicker" id="startdate" size="10" value="${formatdate(plot.startdate)}"/>
-				<input class="timepicker" id="starttime" size="5" value="00:00" />
-				end:
-				<input class="datepicker" id="enddate" size="10" value="${formatdate(plot.enddate)}"/>
-				<input class="timepicker" id="endtime" size="5" value="00:00" /> 
-				size:<select id="sizeselect">
-					<option value="320" py:attrs="markoption(int(plot.size[0]*100)==320)">320 x 240</option>
-					<option value="640" py:attrs="markoption(int(plot.size[0]*100)==640)">640 x 480</option>
-					<option value="800" py:attrs="markoption(int(plot.size[0]*100)==800)">800 x 600</option>
-					<option value="1200" py:attrs="markoption(int(plot.size[0]*100)==1200)"	>1200 x 900</option>				
-				</select>
-				<button onclick="changeprops()">submit...</button>
-			</div>
-			<button onclick="$.post('clf',{},seterror);changeprops()"><img src="/media/shimmer/delete_16.png"/>clear plot</button>
+			<table class="small">
+				<tr>
+					<td></td><td>date</td><td>time</td><td/><td>width</td><td>height</td><td>subplots:</td>
+				</tr>
+				<tr>
+					<td>start:</td>
+					<td><input class="datepicker" id="startdate" size="10" value="${formatdate(plot.startdate)}"/></td>
+					<td><input class="timepicker" id="starttime" size="5" value="00:00" /></td>
+					<td>size:</td>
+					<td><input type="text" id="plotwidth" size="5" value="${'%g' % (plot.size[0]*100)}"/></td>
+					<td><input type="text" id="plotheight" size="5" value="${'%g' % (plot.size[1]*100)}"/></td>
+					<td>
+						<input list="numbers" value="${plot.rows}" id="plotrows" size="2"/>rows</td>
+					<td>
+						<button onclick="changeprops()" style="width: 8em;">
+							&#x2714;
+							submit...
+						</button>
+					</td>
+				</tr>
+				<tr>
+					<td>end:</td>
+					<td><input class="datepicker" id="enddate" size="10" value="${formatdate(plot.enddate)}"/></td>
+					<td><input class="timepicker" id="endtime" size="5" value="00:00" /> </td>					
+					<td/><td/><td/>
+					<td><input list="numbers" value="${plot.columns}" id="plotcolumns" size="2"/>columns</td>					
+					<td>
+						<button onclick="$.post('clf',{},seterror);changeprops()"
+										style="width: 8em;">
+							<img src="/media/minus-small.png"/>
+							clear plot
+						</button>
+					</td>
+				</tr>
+			</table>
 			<!--
 				Subplots
 			-->
-			<div py:for="sp in plot.subplots">
-				<h3><img src="/media/shimmer/folder_32.png"/>Subplot ${sp.position}</h3>
-				<a href="javascript:removesubplot(${sp.position})" class="small"><img src="/media/shimmer/delete_16.png"/>remove...</a><br/>
-				<ul style="list-style-image: url(/media/shimmer/document_16.png)">
-					<li py:for="i,l in enumerate(sp.lines)">
-						${l}
-						<a href="javascript:removeline(${sp.position},${i})" class="small"><img src="/media/shimmer/delete_16.png"/>remove...</a>
-					</li>
-				</ul>
-			</div>
-				<div py:if="plot.subplots">
-					<h3>Add line to subplot</h3>
-					<img src="/media/shimmer/document_add_32.png"/>
-					sub plot: <select id="subplotselect">
-						<option py:for="sp in plot.subplots" value="${sp.position}">#${sp.position}</option>
-					</select>
-						value:
-						<select id="vtselect" onchange="popSelect();" class="filter">
-							<option value="" class="firstoption">Please select...</option>
-						</select>
-						site:
-						<select id="siteselect" onchange="popSelect();" class="filter">
-							<option value="" class="firstoption">Please select...</option>
-						</select>
-						instrument:
-						<select id="instrumentselect" onchange="popSelect();" class="filter">
-							<option value="" class="firstoption">Please select...</option>
-						</select>
-						marker:
-						<select id="markerpicker">
-							<option value="">none</option>
-							<option value="x">x</option>
-							<option value="o">o</option>
-							<option value=".">.</option>
-							<option value="|">x</option>
-							<option value="+">+</option>
-							<option value="*">*</option>
-						</select>
-						line:
-						<select id="linepicker">
-							<option value="-">-</option>
-							<option value="">none</option>
-							<option value=":">:</option>
-							<option value="--">--</option>
-							<option value="-.">-.</option>
-						</select>
-						color:
-						<select id="colorpicker">
-							<option value="k" style="background-color: #000;">k</option>
-							<option value="b" style="background-color: #00F;">b</option>
-							<option value="g" style="background-color: #0F0;">g</option>
-							<option value="r" style="background-color: #F00;">r</option>
-							<option value="y" style="background-color: #FF0;">y</option>
-							<option value="c" style="background-color: #0FF;">c</option>
-							<option value="m" style="background-color: #F0F;">m</option>
-						</select>
-						<button onclick="addline()"><img src="/media/shimmer/document_add_16.png"/>Add line...</button> 
-										
-				</div>
-	
-			<div>
-				<h3><a href="javascript:addsubplot()"><img src="/media/shimmer/folder_add_32.png"/>Add subplot</a></h3>
-			</div>
-			<div>
-			</div>
+			<ul style="list-style-image: url(/media/shimmer/box_24.png)">
+				<li py:for="sp in plot.subplots" class="sp">
+					subplot ${sp.position} 
+					<a href="javascript:removesubplot(${sp.position})" class="small" style="padding-left: 2em;">
+						<img src="/media/minus-small.png"/>
+						remove...
+					</a>
+					<ul style="list-style-image: url(/media/shimmer/brush_16.png)">
+						<li py:for="i,l in enumerate(sp.lines)" class="small line">
+							${l}
+							<a href="javascript:removeline(${sp.position},${i})" class="small" style="padding-left: 2em;">
+								<img src="/media/minus-small.png"/>
+								remove...
+							</a>
+						</li>
+						<li class="small line">
+							<button onclick="addline(${sp.position})" title="add a line">
+								<img src="/media/plus-small.png"/>
+							</button>
+								value:
+								<select id="vtselect" onchange="popSelect();" class="filter">
+									<option value="" class="firstoption">Please select...</option>
+								</select>
+								site:
+								<select id="siteselect" onchange="popSelect();" class="filter">
+									<option value="" class="firstoption">Please select...</option>
+								</select>
+								instrument:
+								<select id="instrumentselect" onchange="popSelect();" class="filter">
+									<option value="" class="firstoption">Please select...</option>
+								</select>
+								marker:
+								<select id="markerpicker">
+									<option value="">none</option>
+									<option value="x">x</option>
+									<option value="o">o</option>
+									<option value=".">.</option>
+									<option value="|">x</option>
+									<option value="+">+</option>
+									<option value="*">*</option>
+								</select>
+								line:
+								<select id="linepicker">
+									<option value="-">-</option>
+									<option value="">none</option>
+									<option value=":">:</option>
+									<option value="--">--</option>
+									<option value="-.">-.</option>
+								</select>
+								color:
+								<select id="colorpicker">
+									<option value="k" style="background-color: #000;">k</option>
+									<option value="b" style="background-color: #00F;">b</option>
+									<option value="g" style="background-color: #0F0;">g</option>
+									<option value="r" style="background-color: #F00;">r</option>
+									<option value="y" style="background-color: #FF0;">y</option>
+									<option value="c" style="background-color: #0FF;">c</option>
+									<option value="m" style="background-color: #F0F;">m</option>
+								</select>
+						</li>
+					</ul>
+
+				</li>
+				<li class="sp">
+					<button onclick="javascript:addsubplot()">
+						<img src="/media/plus-small.png"/>
+						add subplot
+					</button>
+				</li>
+			</ul>
 		</div>
-					
-		<h2><a href="javascript:renderplot('plot','${plot.createtime}')">Load plot</a></h2>
+		<a href="/plot/image.pdf?create=${plot.createtime}">Plot as pdf...</a>
+		<h2><a href="javascript:renderplot('plot','${plot.createtime}')">&#x25BE; Load plot</a></h2>
 		<div id="plot">
 			
 		</div>
