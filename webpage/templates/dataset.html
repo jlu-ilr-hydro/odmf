@@ -28,7 +28,20 @@
 					        	+ '&amp;' + 'color=' + $('#colorpicker').val();
 					$('#plotimg').attr('src',url);
         }
-
+				function remove(dsid,dsname,reccount) {
+					var msg = 'Are you absolutly sure to delete ' + dsname + '?' +
+					          'It has ' + reccount + ' records!' 
+					var really=confirm(msg)
+					if (really) {
+						$.post('/dataset/remove/' + dsid, function(data) {
+							if (data) {
+								$('.error').html(data);
+							} else {
+								window.back();
+							}
+						});
+					}
+				}
     </script>
 
 	<style>
@@ -39,6 +52,9 @@
 		}
 		a.toggle {
 			display: block; 			
+		}
+		span.nobreak {
+			white-space: nowrap;
 		}
 		
 			
@@ -101,11 +117,15 @@
 						</td>
 					</tr>
 				</table>
-				<h2><a class="toggle" href="javascript:toggle('edit')" py:if="is_member('editor')"><img src="/media/expand_lblue.png"/>Edit dataset...</a></h2>
+				<h3><a class="toggle" href="javascript:toggle('edit')" py:if="is_member('editor')">&#x25BE; Edit dataset...</a></h3>
 				
 				<div id="edit" style="display:${'none' if activedataset.valuetype else 'block'};">
 					<form action="/dataset/saveitem" method="post" py:if="is_member('editor')">
 					<input type="text" name="id" value="${activedataset.id}" style="display: none;" />
+					<a py:if="is_member('admin')"
+							href="javascript:remove(${activedataset.id},'${str(activedataset)}',${activedataset.records.count()});">
+						<img src="/media/minus-small.png" />remove dataset
+					</a>
 					<table style="width: 100%">
 						<tr>
 							<td>Name:</td>
@@ -180,7 +200,7 @@
 							</td>
 						</tr>
 						<tr>
-							<td><a href="/dataset/calibration?targetid=${activedataset.id}">Calibrate</a>: </td>
+							<td><button onclick="window.location='/dataset/calibration?targetid=${activedataset.id}'">Calibrate</button>: </td>
 							<td>
 								v' = <input type="text" value="${activedataset.calibration_slope}" name="calibration_slope" size="5" style="text-align: right;" />
 								* v + <input type="text" value="${activedataset.calibration_offset}" name="calibration_offset" size="5" style="text-align: right;"/>
@@ -216,7 +236,7 @@
 					</form>
 				</div>
 			</div>
-			<h2><a class="toggle" href="javascript:toggle('plot')" py:if="is_member('logger')"><img src="/media/expand_lblue.png"/>Plot...</a></h2>
+			<h3><a href="javascript:toggle('plot')" py:if="is_member('logger')">&#x25BE; Plot...</a></h3>
 			<div id="plot" style="display: none;">
 				<button onclick="plotds(${activedataset.id});">Plot</button>
 	
@@ -258,7 +278,7 @@
 					<img id="plotimg" alt="" src=""/>
 				</div>
 			</div>
-			<h2><a py:if="is_member('editor') and activedataset.valuetype and std" class="toggle" href="javascript:toggle('split')"><img src="/media/expand_lblue.png"/>Split dataset...</a></h2>
+			<h3><a py:if="is_member('editor') and activedataset.valuetype and std" class="toggle" href="javascript:toggle('split')">&#x25BE; Split dataset...</a></h3>
 			<div py:if="is_member('editor') and activedataset.valuetype and std" id="split" style="display: none;">
 				<script>
 					function loadsplitrecords() {
@@ -272,7 +292,7 @@
 				<div id="splitrecords" />
 			</div>
 		</div>
-		<h2><a href="javascript:toggle('similar')"><img src="/media/expand_lblue.png"/>Similar datasets</a></h2>
+		<h3><a href="javascript:toggle('similar')">&#x25BE; Similar datasets</a></h3>
 		<div id="similar" style="display: none;">		
 			<div py:for="dsname in datasets" >
 				<h3>${dsname}</h3>
@@ -286,8 +306,28 @@
 				</div>
 			</div>
 		</div>
+		<h3><a href="javascript:toggle('records')" py:if="is_member('editor')">&#x25BE; Records</a></h3>
+		<div id="records" class="toggle small" py:if="is_member('editor')">
+			min.&nbsp;date=&nbsp;<input type="text" id="recordmindate" class="datepicker" size="10"/>&nbsp;<input type="text" id="recordmintime" size="5" />			
+			max.&nbsp;date=&nbsp;<input type="text" id="recordmaxdate" class="datepicker" size="10"/>&nbsp;<input type="text" id="recordmaxtime" size="5" />
+			min.&nbsp;value=&nbsp;<input type="text" id="recordminvalue"/>
+			max.&nbsp;value=&nbsp;<input type="text" id="recordmaxvalue"/>
+			<script>
+				function loadrecords() {
+					var params={dataset:${activedataset.id},
+											mindate:$('#recordmindate').val() + ' ' + $('#recordmintime').val(),
+											maxdate:$('#recordmaxdate').val() + ' ' + $('#recordmaxtime').val(),
+											minvalue:$('#recordminvalue').val(),
+											maxvalue:$('#recordmaxvalue').val()
+											};
+					$('#recordlist').load('/dataset/records',params);
+				}
+			</script>
+			<button onclick="loadrecords();">find records</button>
+			<div id="recordlist"/>
+		</div>
 		<div py:if="is_member('logger')" >
-			<h2>Im- and Export</h2>
+			<h2>Export</h2>
 			<ul>
 				<li py:if="activedataset">
 				<button onclick="window.location='/dataset/records.csv?dataset=${activedataset.id}';">Export as CSV</button>

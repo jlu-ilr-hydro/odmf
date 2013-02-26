@@ -49,9 +49,9 @@ class Preferences(object):
         web.setmime(web.mime.json)
         data=self.data
         if item in data:
-            return json.dumps(self.data[item])
+            return web.as_json(self.data[item])
         else:
-            return json.dumps(self.data,indent=4)
+            return web.as_json(self.data)
     
     @expose_for()
     @json_in()

@@ -75,13 +75,13 @@
 			</li>
 			<li py:for="inst in instruments">
 				<a href="${'/instrument/%s' % inst.id}" py:content="inst"/>
+				<a py:if="inst and inst.manuallink" class="small" href="${inst.manuallink}">manual</a>
 			</li>
 		</ul>
 	    <div class="rightpane"> 
 			<form action="/instrument/saveitem" method="post" py:if="is_member('editor')">
 				<div py:if="actualinstrument">
 					<h2 py:content="actualinstrument" />
-	
 					<table style="width: 100%">
 						<tr>
 							<td style="width: 7em">ID:</td>
@@ -101,6 +101,14 @@
 								<textarea name="comment" 
 										  rows="2" style="width: 100%;"
 										  py:content="actualinstrument.comment"/>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<a py:if="actualinstrument and actualinstrument.manuallink" href="${actualinstrument.manuallink}">Manual</a>				
+							</td>
+							<td>
+								<input type="text" name="manuallink" value="${actualinstrument.manuallink}" />
 							</td>
 						</tr>
 					</table>

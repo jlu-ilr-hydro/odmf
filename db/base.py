@@ -27,12 +27,9 @@ def newid(cls,session=None):
         return max_id+1
     else:
         return 1
-
-dbpath = abspath('../data.sqlite').replace('\\','/')
-#engine = sql.create_engine('sqlite:///'+dbpath)
 def connect():
     import psycopg2
-    return psycopg2.connect(user='schwingbach-user',host='fb09-pasig.umwelt.uni-giessen.de',password='VK1:SB0',
+    return psycopg2.connect(user='schwingbach-user',host='localhost',password='VK1:SB0',
                             database='schwingbach')
 engine = sql.create_engine('postgresql://',creator=connect)
 Session = orm.sessionmaker(bind=engine)

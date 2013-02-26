@@ -7,7 +7,7 @@ import sys
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from genshi import escape
-
+from cStringIO import StringIO
 from webpage.upload import DownloadPage
 from webpage.map import MapPage
 from webpage.site import SitePage
@@ -185,25 +185,48 @@ class JobPage:
     exposed=True
     
     @expose_for(group.logger)
-    def default(self,jobid='new',user=None):
+    def default(self,jobid=None,user=None,onlyactive='active'):
         session=db.Session()
         error=''
+        if user is None:
+            user=web.user()
         if jobid=='new':
-            job = db.Job(id=db.newid(db.Job,session),name='<Job-Beschreibung>')
+            job = db.Job(id=db.newid(db.Job,session),name='name of new job')
             if user:
                 p_user = session.query(db.Person).get(user)
                 job.responsible = p_user
+                job.due = datetime.now()
+                
+        elif jobid is None:
+            job = session.query(db.Job).filter_by(_responsible=web.user(),done=False).order_by('due').first()
         else:
             try:
                 job = session.query(db.Job).get(int(jobid))
             except:
                 error=traceback()
                 job=None
-        result = web.render('job.html',job=job,error=error,db=db,session=session
+        jobs = session.query(db.Job).order_by('done ,due DESC')
+        if user!='all':
+            jobs=jobs.filter(db.Job._responsible==user)
+        if onlyactive:
+            jobs=jobs.filter(db.Job.done==False)
+        result = web.render('job.html',jobs=jobs,job=job,error=error,db=db,session=session,
+                            username=user,onlyactive=onlyactive,
                             ).render('html',doctype='html')
         session.close()
         return result    
-    
+    @expose_for(group.logger)
+    def done(self,jobid,time=None):
+        session = db.Session()        
+        job = session.query(db.Job).get(int(jobid))
+        if time:
+            time = web.parsedate(time)
+        job._responsible = users.current.name
+        msg=job.make_done(time)
+        
+        session.commit()
+        session.close()
+        return msg
     @expose_for(group.editor)    
     def saveitem(self,**kwargs):
         try:
@@ -218,23 +241,38 @@ class JobPage:
                 if not job:
                     job=db.Job(id=id)
                 if kwargs.get('due'):
-                    job.due=datetime.strptime(kwargs['due'],'%d.%m.%Y')
-                job.filename = kwargs.get('filename')
+                    job.due=web.parsedate(kwargs['due'])
                 job.name=kwargs.get('name')
                 job.description=kwargs.get('description')
                 job.responsible = session.query(db.Person).get(kwargs.get('responsible'))
                 job.author = session.query(db.Person).get(web.user())
-                job.done = bool('done' in kwargs)
-                job.nextreminder = job.due
+                job.link = kwargs.get('link')
+                job.repeat = web.conv(int,kwargs.get('repeat'))
+                job.type = kwargs.get('type')
                 session.commit()
                 session.close()
             except:
                 return web.render('empty.html',error=('\n'.join('%s: %s' % it for it in kwargs.iteritems())) + '\n' + traceback(),
                                   title='Job #%s' % id
                                   ).render('html',doctype='html')
-        elif 'new' in kwargs:
-            id='new'
-        raise web.HTTPRedirect('./%s' % id)
+    def json(self,responsible=None,author=None,onlyactive=False,dueafter=None):
+        session=db.Session()
+        jobs = session.query(db.Job).order_by('done ,due DESC')
+        if responsible!='all':
+            if not responsible: 
+                responsible=users.current.name
+            jobs=jobs.filter(db.Job._responsible==responsible)
+        if onlyactive:
+            jobs=jobs.filter(db.Job._done==False)
+        if author:
+            jobs=jobs.filter(db.Job.author==author)
+        try:
+            jobs=jobs.filter(db.Job.due>web.parsedate(dueafter))
+        except:
+            pass
+        res = web.as_json(jobs.all())
+        session.close()
+        return res
 class LogPage:
     exposed=True
     @expose_for(group.guest)
@@ -412,23 +450,52 @@ class PicturePage(object):
         session.close()
         return res
     @expose_for()
-    def index(self,id=None,site=None,by=None):
+    def imagelist_json(self,site=None,by=None):
+        session=db.Session()
+        imagelist = session.query(db.Image).order_by(db.Image._site,db.Image.time)
+        if site:
+            imagelist.filter(db.Image._site == site)
+        if by:
+            imagelist.filter(db.Image._by == by)
+        res = web.as_json(imagelist.all())
+        session.close()
+        return res
+    @expose_for()
+    def index(self,id='',site='',by=''):
         session=db.Session()
         error=''
         img = imagelist = None
         if id:
             img=db.Image.get(session,int(id))
-            if not img: error="No image with id=%s found" % id
+            if not img: error="No image with id=%s found" % id    
         else:
             imagelist = session.query(db.Image).order_by(db.Image._site,db.Image.time)
             if site:
-                imagelist.filter(db.Image._site == site)
+                imagelist = imagelist.filter_by(_site =site)
             if by:
-                imagelist.filter(db.Image._by == by)
-        res = web.render('picture.html',image=img,error=error,images=imagelist).render('html')
+                imagelist = imagelist.filter_by(_by = by)
+        res = web.render('picture.html',image=img,error=error,images=imagelist,site=site,by=by).render('html')
         session.close()
         return res
+    
+    @expose_for(group.logger)
+    def upload(self,imgfile,siteid,user):
+        session=db.Session()    
+        site = db.Site.get(session,int(siteid)) if siteid else None
+        by = db.Person.get(session,user) if user else None
+        #io = StringIO()
+        #for l in imgfile:
+        #    io.write(l)
+        #io.seek(0)        
+        img = db.Image(site=site, by=by, imagefile=imgfile.file)
+        session.add(img)
+        session.commit()
+        imgid = img.id
+        session.close()
+        raise web.HTTPRedirect('/picture?id=%i' % imgid)
+            
         
+            
                
         
 
@@ -456,6 +523,11 @@ class Root(object):
     
     @expose_for()
     def index(self):
+        if web.user():
+            session=db.Session()
+            user = db.Person.get(session,web.user())
+            if user.jobs.filter(db.Job.done==False, db.Job.due-datetime.now()< timedelta(days=7)).count():
+                raise web.HTTPRedirect('/job')
         return self.map.index()
     
     @expose_for()
@@ -480,7 +552,15 @@ class Root(object):
         web.setmime('application/json')
         import json
         return json.dumps(kwargs,indent=4)
-        
+    @expose_for(group.editor)
+    def datastatus(self):
+        session = db.Session()
+        func = db.sql.func
+        q=session.query(db.Datasource.name,db.Dataset._site, func.count(db.Dataset.id),
+                        func.min(db.Dataset.start),func.max(db.Dataset.end) 
+                        ).join(db.Dataset.source).group_by(db.Datasource.name,db.Dataset._site)
+        for r in q:
+            yield str(r) + '\n'
     
 
 

@@ -13,7 +13,9 @@ table {
 
 /* @group Heading Levels */
 
-
+.small {
+	font-size: small;
+}
 h1 {
 	font-size: 140%;
 	font-weight: bold;
@@ -29,11 +31,11 @@ h1 {
 }
 
 h2 {
-	border: solid 1px #32739d;
-	border-radius: 10px;
-  padding: 2px 10px 2px 10px;
-  background-color: #E8F0FF;
-  margin: 5px;
+	border-bottom: solid 1px #32739d;
+	border-radius: 0px;
+    padding: 2px 10px 2px 10px;
+    background-color: #E8F0FF;
+    margin: 0px;
 	font-size: 110%;
 	color: #32739d;
 	font-style: italic;
@@ -46,7 +48,6 @@ h3 {
   border-top: solid 2px #32739d
   margin: 2px;
 }
-
 /* @group Link Styling */
 
 a {
@@ -88,13 +89,14 @@ div.navigate {
     padding-left: 0px;
     padding-top:0px;
     margin: 0px 0px 0px 0px;
-    width: 13em;
+    width: 189px;
     height: 1773px;
     overflow: hidden !important; /* FF Scroll-leiste */ 
 }
 
 div.navigate li {
 	list-style: none;
+	width: 100%;
 }
 div.navigate a {
 	color: white;
@@ -104,12 +106,12 @@ div.navigate a {
 div.navigate a:hover {
 	background-color: white;
 	color: #32739d;
-	border-radius: 10px;
+	border-radius: 2px;
 }
 div.content {
 	background-color: white;
 	color: black;
-	margin-left: 13em;
+	margin-left: 189px;
 	margin-top: 0px;
 	padding-left: 0px;
 	padding-top: 0px;
@@ -139,11 +141,29 @@ div.content {
 .toggle {
 	display: none;
 }
+
+.expand-open {
+	display: list-item;
+	list-style-type: none;
+}
+.expand-open:before {
+	content: "\25BC"
+	color: #3D578C;
+}
+.expand-closed {
+	display: list-item;
+	list-style-type: none;
+}
+.expand-closed:before {
+	content: "\25BA"
+	color: #3D578C;
+}
+
 #Inhalt {
     float: right;
     width: 20em;
     border: dotted 1px #32739d;
-    border-radius: 5px;
+    border-radius: 0px;
     color: #32739d;
     background-color: #E8F0FF;
     font-size: 90%;

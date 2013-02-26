@@ -11,7 +11,8 @@ from os import path as op
 import os
 from traceback import format_exc as traceback
 from genshi import escape, Markup
-from auth import group, require, member_of
+from auth import users, require, member_of, has_level, group, expose_for
+
 datapath=web.abspath('datafiles')
 home = web.abspath('.')
 
@@ -56,12 +57,13 @@ class Path(object):
         return op.exists(self.absolute)
     def listdir(self):
         return os.listdir(self.absolute)
+
 class DownloadPage(object):
-    exposed=True  
-    @require(member_of(group.logger))
-    @web.expose
+    exposed=True
+    @expose_for(group.logger)
     def index(self,dir='',error='',**kwargs):
         path = Path(op.join(datapath,dir))
+        print path.absolute,datapath,dir
         files=[]
         directories=[]
         if path.isdir():            
@@ -79,10 +81,10 @@ class DownloadPage(object):
         return web.render('download.html',error=error,files=files,directories=directories,
                       curdir=path).render('html',doctype='html')
 
-    @require(member_of(group.editor))
-    @web.expose
-    def upload(self,dir,datafile):
+    @expose_for(group.editor)
+    def upload(self,dir,datafile,**kwargs):
         error=''
+        fn=''
         if datafile:
             path=op.realpath(op.join(datapath,dir))
             if not op.exists(path):
@@ -103,11 +105,13 @@ class DownloadPage(object):
                     os.system('chown :users ' + fn)
                 except:
                     error=traceback()
-        url = '/download?dir='+escape(dir)
-        if error: url+='&error='+escape(error)
+        if "uploadimport" in kwargs and not error:
+            url= '/download/to_db?filename='+escape(fn)
+        else:
+            url = '/download?dir='+escape(dir)
+            if error: url+='&error='+escape(error)
         raise web.HTTPRedirect(url)
-    @require(member_of(group.editor))
-    @web.expose
+    @expose_for(group.editor)
     def newfolder(self,dir,newfolder):
         error=''
         if newfolder:
@@ -124,6 +128,54 @@ class DownloadPage(object):
         url = '/download?dir='+escape(dir)
         if error: url+='&error='+escape(error)
         return self.index(dir=dir,error=error)
+
+    @expose_for(group.supervisor)
+    def to_db(self,filename=None,**kwargs):
+        if not filename:
+            raise web.HTTPRedirect('.')
+        # If the file ends with log.xls, import as log list
+        if filename.endswith('log.xls'):
+            import dataimport.importlog as il
+            absfile = web.abspath(filename.strip('/'))
+            path=Path(absfile)
+            li = il.LogbookImport(absfile,web.user())
+            logs,cancommit = li('commit' in kwargs)
+            return web.render('logimport.html',filename=path,
+                              logs=logs,cancommit=cancommit,
+                              error='').render('html',doctype='html')
+
+        # if it doesn't import as instrument file
+        else:
+            import dataimport as di
+            startdate = kwargs.get('startdate')
+            enddate = kwargs.get('enddate')
+            siteid = web.conv(int,kwargs.get('site'))
+            instrumentid = web.conv(int,kwargs.get('instrument'))
+            if startdate:
+                startdate = web.parsedate(startdate)
+            if enddate:
+                enddate = web.parsedate(enddate)
+            stats = gaps = datasets = None
+            
+            if startdate and enddate:
+                gaps=[(startdate,enddate)]
+            if siteid and instrumentid:
+                absfile = web.abspath(filename.strip('/'))
+                if 'loadstat' in kwargs:
+                    stats = di.importfilestats(absfile, web.user(), siteid, instrumentid, startdate, enddate)
+                    startdate = min(v.start for v in stats.itervalues())
+                    enddate = max(v.end for v in stats.itervalues())
+                if 'importdb' in kwargs and startdate and enddate:
+                    gaps=None
+                    datasets=di.importfile(absfile, web.user(), siteid, instrumentid, startdate, enddate)                    
+                else:
+                    gaps = di.finddateGaps(siteid, instrumentid, startdate, enddate) 
+
+            error=''        
+            return web.render('dbimport.html',di=di,error=error,filename=filename,instrumentid=instrumentid,
+                              siteid=siteid,gaps=gaps,stats=stats,datasets=datasets).render('html',doctype='html')
+    
+ 
         
             
     

@@ -3,21 +3,22 @@
 		<img src="/media/ilrlogo.jpg" />
 	</a>
 	<div class="navigate" >
-		<img src="/media/schwingbachlogo.png" width="100%"/>
-		${users.current}
+		<img src="/media/schwingbachlogo.png"/>
+		<a href="javascript:window.location='/login?frompage='+window.location.pathname;"
+			 py:content="users.current if users.current else 'login'" title="login"/>
 		<ul>
-			<li><a href="javascript:window.location='/login?frompage='+window.location.pathname;">login</a></li> 
 			<li><a href="/map">map</a></li>
-			<li py:if="is_member('logger')"><a href="/log">log</a></li>
+			<li py:if="is_member('logger')"><a href="/plot">plot</a></li>
 			<li py:if="is_member('guest')"><a href="/site">sites</a></li>
-			<li py:if="is_member('guest')"><a href="/dataset">data sets</a> </li>
 			<li><a href="/picture">pictures</a></li>
-			<li py:if="is_member('guest')"><a href="/valuetype">value types</a></li> 
+			<li py:if="is_member('guest')"><a href="/dataset">data sets</a> </li>
+			<li py:if="is_member('guest')"><a href="/valuetype">value types</a></li>
 			<li py:if="is_member('guest')"><a href="/instrument">instruments</a></li>
 			<li py:if="is_member('logger')"><a href="/download">download</a></li>
 			<li py:if="is_member('editor')"><a href="/user">users</a></li>
 			<li py:if="is_member('editor')"><a href="/job">jobs</a></li>
-            <li><div id="navigate_extra"></div></li>
+			<li py:if="is_member('logger')"><a href="/log">log</a></li>
+      <li><div id="navigate_extra"></div></li>
 		</ul>
   </div>
   

@@ -14,14 +14,16 @@ if sys.platform=='win32':
 import pylab as plt
 import db
 from traceback import format_exc as traceback
-
 from datetime import datetime, timedelta
 from cStringIO import StringIO
 
 t0 = datetime(1,1,1)
 nan = plt.log(-1)
 def date2num(t):
-    return (t-t0).total_seconds()/86400 + 1.0    
+    if t is None:
+        return nan
+    else:
+        return (t-t0).total_seconds()/86400 + 1.0    
 def asdict(obj):
     if hasattr(obj,'__jdict__'):
         return obj.__jdict__()
@@ -55,36 +57,43 @@ class Line(object):
                                                         db.Dataset.site==self.site)
             if self.instrument:
                 datasets=datasets.filter(db.Dataset.source == self.instrument)
+
             # Get records
             records = session.query(db.Record)
             # filter records by dataset
-            dsfilter = None
-            for ds in datasets:
-                dsfilter=db.sql.or_(dsfilter,db.Record.dataset == ds)
-            records = records.filter(dsfilter)
+            dsids = [ds.id for ds in datasets]
+            records = records.filter(db.Record._dataset.in_(dsids),~db.Record.is_error)
             # Filter records by date
             if startdate:
                 records = records.filter(db.Record.time>=startdate)
             if enddate:
                 records = records.filter(db.Record.time<=enddate)
+            
             # Order records by time
             records=records.order_by(db.Record.time)
             count = records.count()
+            
             # Get transformation
             if self.transformation:
                 trans = lambda x: eval(self.transformation)
             else:
                 trans = lambda x: x
-
+            
+            # calibrate a (time,value,dataset) tuple
+            calicoeff=dict((ds.id,(ds.calibration_slope,ds.calibration_offset)) for ds in datasets)
+            calibrate = lambda r: r[1] * calicoeff[r[2]][0] + calicoeff[r[2]][1]
+            
             # Allocate memory for timeseries
             if not self.t or len(self.t)!=count:        
                 self.t = plt.zeros(shape=count,dtype=float)
             if not self.v or len(self.v)!=count:
                 self.v = plt.zeros(shape=count,dtype=float)
             # Set values in timeseries
-            for i,r in enumerate(records):
-                self.t[i] = date2num(r.time)
-                self.v[i] = trans(r.calibrated) if r.value else nan
+            for i,r in enumerate(records.values('time','value','dataset')):
+                self.t[i] = date2num(r[0])
+                self.v[i] = nan if r[1] is None else calibrate(r) 
+            self.v = trans(self.v)    
+            
         except:
             error = traceback()
         finally:
@@ -161,11 +170,6 @@ class Plot(object):
         self.rows, self.columns = rows,columns
         self.subplots=[]
         self.createtime = web.formatdatetime()
-    def changeprops(self,start,end,size):
-        self.startdate = start
-        self.enddate = end
-        self.size = size/100., size/133.33333333
-        self.createtime = web.formatdatetime()
     def addtimeplot(self):
         sp = Subplot(self,len(self.subplots)+1)
         self.subplots.append(sp)
@@ -173,7 +177,7 @@ class Plot(object):
             self.rows += 1
         self.createtime = web.formatdatetime()
         return sp
-    def draw(self,getstream=True):
+    def draw(self,format='png'):
         was_interactive=plt.isinteractive()
         plt.ioff()
         fig,axes=plt.subplots(ncols=self.columns, nrows=self.rows,
@@ -183,22 +187,22 @@ class Plot(object):
         if was_interactive:
             plt.ion()
             plt.draw()
-        elif getstream:
+        elif format:
             self.topref()    
             io = StringIO()
-            fig.savefig(io)
+            fig.savefig(io,format=format)
             return io.getvalue()
     def __jdict__(self):
         return dict(size=self.size,rows=self.rows,columns=self.columns,
-                    startdate=self.startdate.isoformat(),enddate=self.enddate.isoformat(),
+                    startdate=self.startdate,enddate=self.enddate,
                     subplots=asdict(self.subplots))
     @classmethod
     def fromdict(cls,d):
         res = cls(size=d.get('size'),columns=d.get('columns'),rows=d.get('rows'),
                   startdate=d.get('startdate'),enddate=d.get('enddate'))
-        if not type(res.startdate) is datetime:
+        if not (type(res.startdate) is datetime or res.startdate is None):
             res.startdate = web.parsedate(res.startdate)
-        if not type(res.enddate) is datetime:
+        if not (type(res.enddate) is datetime or res.enddate is None):
             res.enddate = web.parsedate(res.enddate)
         if 'subplots' in d:
             for sd in d.get('subplots'):
@@ -245,6 +249,11 @@ class PlotPage(object):
         web.setmime(web.mime.png)
         plot = Plot.fromsession()
         return plot.draw()
+    @web.expose_for(plotgroup)
+    def image_pdf(self,**kwargs):
+        web.setmime(web.mime.pdf)
+        plot = Plot.fromsession()
+        return plot.draw(format='pdf')
     
     @web.expose_for(plotgroup)
     def addsubplot(self):
@@ -284,7 +293,7 @@ class PlotPage(object):
         plot = Plot.fromsession()
         sp = plot.subplots[int(subplot)-1]
         del sp.lines[int(line)]
-        plot.topref()
+        plot.tosession()
     
     @web.expose_for(plotgroup)
     def clf(self):
@@ -295,16 +304,13 @@ class PlotPage(object):
         try:
             start = web.parsedate(kwargs.get('start'))
             end = web.parsedate(kwargs.get('end'))
-            size = float(kwargs.get('size'))
             plot = Plot.fromsession()
-            plot.changeprops(start,end,size)
+            plot.startdate = start
+            plot.enddate = end
+            plot.size = float(kwargs.get('width'))/100., float(kwargs.get('height'))/100.
+            plot.rows,plot.columns=int(kwargs.get('rows')),int(kwargs.get('columns'))
+            plot.createtime = web.formatdatetime()
             plot.tosession()
         except:
             return traceback()
-        
-        
-        
-      
-
-        
         

@@ -23,6 +23,15 @@
 								text-align: right;								
 							}
 	</style>
+  <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
+	<script>
+		//<![CDATA[]
+    function toggle(id) {
+    	$('#' + id).slideToggle('fast');
+    }
+
+		//]]>
+	</script>
 </head>
 <body>
 	${navigation()}
@@ -54,83 +63,109 @@
 	    	<input type="submit" value="Calibrate" name="calibrate" />
 	    </form>
     </div>
-    <h1>Calibration results:</h1>
-    <table py:with="unit=target.valuetype.unit">
-    	<tr class="record">
-    		<th class="record">index</th>
-    		<th class="record">value</th>
-    		<th class="record">unit</th>
-    	</tr>
-    	<tr>
-    		<td>number of matches</td>
-    		<td class="value">${len(result)}</td>
-    		<td></td>
-    	</tr>
-    	<tr>
-    		<td>x&#772; <sub>target</sub></td>
-    		<td class="value">${'%g' % result.target_mean}&plusmn;${'%0.4g' % result.target_std}</td>
-    		<td py:content="unit"/>
-    	</tr>
-    	<tr>
-    		<td>x&#772; <sub>source</sub></td>
-    		<td class="value">${'%g' % result.source_mean}&plusmn;${'%0.4g' % result.source_std}</td>
-    		<td py:content="unit"/>
-    	</tr>
-    	<tr>
-    		<td>r<sup>2</sup></td>
-    		<td class="value">${'%g' % result.r2}</td>
-    	</tr>
-    	<tr>
-    		<td>RMSE</td>
-    		<td class="value">${'%g' % result.rmse}</td>
-    		<td py:content="unit"/>
-    	</tr>
-    	<tr>
-    		<td>slope (b)</td>
-    		<td class="value"><span id="slope" py:content="'%g' % result.slope"/></td>
-    	</tr>
-    	<tr>
-    		<td>offset (a)</td>
-    		<td class="value"><span id="offset" py:content="'%g' % result.offset"/></td>
-    		<td py:content="unit"/>
-    	</tr>
-    	<tr>
-    		<td>x&#772; <sub>source</sub> - x&#773; (off)<sub>target</sub></td>
-    		<td class="value"><span id="meanoffset" py:content="'%g' % result.meanoffset"/></td>
-    		<td py:content="unit"/>
-    	</tr>
-    	<tr>
-    		<td>RMSE(b x<sub>target</sub> + a)</td>
-    		<td class="value">${'%g' % result.rmse_lr}</td>
-    		<td py:content="unit"/>
-    	</tr>
-    	<tr>
-    		<td>RMSE(x<sub>target</sub> + off)</td>
-    		<td class="value">${'%g' % result.rmse_off}</td>
-    		<td py:content="unit"/>
-    	</tr>
-    </table>
-    <br/>
-   
-    <table py:with="unit=source.valuetype.unit if source else ''">
-    	<tr class="record">
-    		<th class="record">time</th>
-    		<th class="record">source (${unit})</th>
-    		<th class="record">target (${unit})</th>
-    		<th class="record">time error (s)</th>
-    		<th class="record">error (lr)</th>
-    		<th class="record">error (off)</th>
-    		
-    	</tr>
-    	<tr py:for="r in result">
-    		<td class="record" py:content="formatdatetime(r['t'])" />
-    		<td class="record" py:content="'%g' % r['source']" />
-    		<td class="record" py:content="'%g' % r['target']" />
-    		<td class="record" py:content="'%g' % r['dt']" />
-    		<td class="record" py:content="'%g' % (r['lr']-r['source'])" />
-    		<td class="record" py:content="'%g' % (r['off']-r['source'])" />
-    	</tr>
-    </table>
+    <div py:if="result">
+	    <h3><a href="javascript:toggle('result')">&#x25BE; Calibration results</a></h3>
+	    <table py:with="unit=target.valuetype.unit" id="result">
+	    	<tr class="record">
+	    		<th class="record">index</th>
+	    		<th class="record">value</th>
+	    		<th class="record">unit</th>
+	    	</tr>
+	    	<tr>
+	    		<td>number of matches</td>
+	    		<td class="value">${len(result)}</td>
+	    		<td></td>
+	    	</tr>
+	    	<tr>
+	    		<td>x&#772; <sub>target</sub></td>
+	    		<td class="value">${'%g' % result.target_mean}&plusmn;${'%0.4g' % result.target_std}</td>
+	    		<td py:content="unit"/>
+	    	</tr>
+	    	<tr>
+	    		<td>x&#772; <sub>source</sub></td>
+	    		<td class="value">${'%g' % result.source_mean}&plusmn;${'%0.4g' % result.source_std}</td>
+	    		<td py:content="unit"/>
+	    	</tr>
+	    	<tr>
+	    		<td>r<sup>2</sup></td>
+	    		<td class="value">${'%g' % result.r2}</td>
+	    	</tr>
+	    	<tr>
+	    		<td>RMSE</td>
+	    		<td class="value">${'%g' % result.rmse}</td>
+	    		<td py:content="unit"/>
+	    	</tr>
+	    	<tr>
+	    		<td>slope (b)</td>
+	    		<td class="value"><span id="slope" py:content="'%g' % result.slope"/></td>
+	    	</tr>
+	    	<tr>
+	    		<td>offset (a)</td>
+	    		<td class="value"><span id="offset" py:content="'%g' % result.offset"/></td>
+	    		<td py:content="unit"/>
+	    	</tr>
+	    	<tr>
+	    		<td>x&#772; <sub>source</sub> - x&#773; (off)<sub>target</sub></td>
+	    		<td class="value"><span id="meanoffset" py:content="'%g' % result.meanoffset"/></td>
+	    		<td py:content="unit"/>
+	    	</tr>
+	    	<tr>
+	    		<td>RMSE(b x<sub>target</sub> + a)</td>
+	    		<td class="value">${'%g' % result.rmse_lr}</td>
+	    		<td py:content="unit"/>
+	    	</tr>
+	    	<tr>
+	    		<td>RMSE(x<sub>target</sub> + off)</td>
+	    		<td class="value">${'%g' % result.rmse_off}</td>
+	    		<td py:content="unit"/>
+	    	</tr>
+	    </table>
+	    <script>
+	    	//<![CDATA[
+	    	function applycalib(withslope) {
+	    		var slope = withslope?${result.slope}:1.0;
+	    		var offset = withslope?${result.offset}:${result.meanoffset};
+	    		var params = {sourceid:${source.id},
+	    									targetid:${target.id},
+	    									slope:slope,offset:offset};
+	    		$.post('/dataset/calibration/apply/',params,function(data){
+	    			if (data) {
+	    				$('.error').html(data);
+	    			} else {
+	    				window.location='/dataset/${target.id}'
+	    			}
+	    		});
+	    	}
+	    	//]]>
+	    </script>
+	    <button onclick="applycalib(true)">
+	    	Use offset and slope
+	    </button>
+	    <button onclick="applycalib(false)">
+	    	Use x&#772; <sub>source</sub> - x&#773; (off)<sub>target</sub>
+	    </button>
+   		<br/>
+	    <h3><a href="javascript:toggle('resultlist')">&#x25BE; Matching records</a></h3>
+	    <table py:with="unit=source.valuetype.unit if source else ''" class="toggle" id="resultlist">
+	    	<tr class="record">
+	    		<th class="record">time</th>
+	    		<th class="record">source (${unit})</th>
+	    		<th class="record">target (${unit})</th>
+	    		<th class="record">time error (s)</th>
+	    		<th class="record">error (lr)</th>
+	    		<th class="record">error (off)</th>
+	    		
+	    	</tr>
+	    	<tr py:for="r in result">
+	    		<td class="record" py:content="formatdatetime(r['t'])" />
+	    		<td class="record" py:content="'%g' % r['source']" />
+	    		<td class="record" py:content="'%g' % r['target']" />
+	    		<td class="record" py:content="'%g' % r['dt']" />
+	    		<td class="record" py:content="'%g' % (r['lr']-r['source'])" />
+	    		<td class="record" py:content="'%g' % (r['off']-r['source'])" />
+	    	</tr>
+	    </table>
+	  </div>
     
  </div>
 </body>
