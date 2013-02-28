@@ -81,7 +81,7 @@
 					<tr py:if="activedataset.valuetype">
 						<td class="bold">${activedataset.valuetype.name}:</td>
 						<td py:if="activedataset.records.count()" >
-										${'%0.4g' % mean} &plusmn; ${'%0.4g' % std} ${activedataset.valuetype.unit}, n=${n}
+										${'%0.4g' % mean} ${('&plusmn; %0.4g' % std) if std else ''} ${activedataset.valuetype.unit}, n=${n}
 						</td>
 					</tr>
 					<tr py:if="activedataset.site">
@@ -122,7 +122,7 @@
 				<div id="edit" style="display:${'none' if activedataset.valuetype else 'block'};">
 					<form action="/dataset/saveitem" method="post" py:if="is_member('editor')">
 					<input type="text" name="id" value="${activedataset.id}" style="display: none;" />
-					<a py:if="is_member('admin')"
+					<a py:if="is_member('admin') and activedataset.start"
 							href="javascript:remove(${activedataset.id},'${str(activedataset)}',${activedataset.records.count()});">
 						<img src="/media/minus-small.png" />remove dataset
 					</a>
@@ -278,7 +278,7 @@
 					<img id="plotimg" alt="" src=""/>
 				</div>
 			</div>
-			<h3><a py:if="is_member('editor') and activedataset.valuetype and std" class="toggle" href="javascript:toggle('split')">&#x25BE; Split dataset...</a></h3>
+			<h3 py:if="is_member('editor') and activedataset.valuetype and std"><a class="toggle" href="javascript:toggle('split')">&#x25BE; Split dataset...</a></h3>
 			<div py:if="is_member('editor') and activedataset.valuetype and std" id="split" style="display: none;">
 				<script>
 					function loadsplitrecords() {
@@ -307,7 +307,7 @@
 			</div>
 		</div>
 		<h3><a href="javascript:toggle('records')" py:if="is_member('editor')">&#x25BE; Records</a></h3>
-		<div id="records" class="toggle small" py:if="is_member('editor')">
+		<div id="records" class="toggle small" py:if="is_member('editor') and activedataset">
 			min.&nbsp;date=&nbsp;<input type="text" id="recordmindate" class="datepicker" size="10"/>&nbsp;<input type="text" id="recordmintime" size="5" />			
 			max.&nbsp;date=&nbsp;<input type="text" id="recordmaxdate" class="datepicker" size="10"/>&nbsp;<input type="text" id="recordmaxtime" size="5" />
 			min.&nbsp;value=&nbsp;<input type="text" id="recordminvalue"/>

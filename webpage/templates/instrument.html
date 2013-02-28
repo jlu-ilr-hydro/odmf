@@ -105,7 +105,8 @@
 						</tr>
 						<tr>
 							<td>
-								<a py:if="actualinstrument and actualinstrument.manuallink" href="${actualinstrument.manuallink}">Manual</a>				
+								<a py:if="actualinstrument and actualinstrument.manuallink" href="${actualinstrument.manuallink}">Manual</a>
+								<span py:if="not (actualinstrument and actualinstrument.manuallink)">Manual</span>			
 							</td>
 							<td>
 								<input type="text" name="manuallink" value="${actualinstrument.manuallink}" />

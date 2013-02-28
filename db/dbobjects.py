@@ -357,13 +357,14 @@ class Job(Base):
                          type=self.type)
             session.add(newjob)
             msg.append('Added new job %s' % newjob)
-        objects,errors = self.parse_description('done', time)
-        session.add_all(objects)
-        session.commit()
-        msg.extend(str(o) for o in objects)
-        if errors: 
-            msg.append('ERRORS:')
-            msg.extend(errors)
+        if self.description:
+            objects,errors = self.parse_description('done', time)
+            session.add_all(objects)
+            session.commit()
+            msg.extend(str(o) for o in objects)
+            if errors: 
+                msg.append('ERRORS:')
+                msg.extend(errors)
         return '\n'.join(msg)
     @property
     def color(self):

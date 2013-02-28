@@ -6,54 +6,98 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Download</title>
   <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
-
+  <script>
+  //<![CDATA[
+  	$(function() {
+  		$('#help').load('/datafiles/${curdir.name}/index.html');
+  	});
+  	//]]>
+  </script>
+	<style>
+		.dbimport {
+			display: inline-block;
+			width: 32px;
+			height: 32px;
+			background-image: url(/media/shimmer/document_32.png);
+			background-repeat:no-repeat;
+			color:white;
+		}
+		.dbimport:hover {
+			background-image: url(/media/shimmer/document_add_32.png);
+			color:#32739D;
+		}
+		a:hover {
+			background-color: #4665A2;
+			color: white;
+			text-decoration: none;
+		}
+		.help {
+	    float: right;
+	    width: 30%;
+	    border: dotted 1px #32739d;
+	    border-radius: 0px;
+	    color: black;
+	    background-color: #E8F0FF;
+	    margin: 0.5em 0.5em 0.5em 0.5em;
+	    padding: 1em;
+	    background: white;
+		}
+	</style>
 </head>
 <body>
 	${navigation()}
 	<div class="content">
+		<div py:if="is_member('logger')">
+			<h1>Upload...</h1>
+	    <div class="error" py:content="error" />
+			<div style="vertical-align:middle;">
+				<img src="/media/shimmer/document_add_32.png" />
+		    <form method="post" enctype="multipart/form-data" action="/download/upload" style="display: inline;">
+		    	file:
+		    	<div style="display: inline-block;">
+						<input id="overwrite" type="checkbox" value="overwrite" name="overwrite" title="allow overwrite"/>
+			    	<input type="file" name="datafile" onchange="$('.upload').prop('disabled', !$(this).val());"/>		    		
+		    	</div>
+		    	<input name="dir" type="hidden" value="${curdir}" />
+		    	<input type="submit"  class="upload" name="upload" value="upload file" disabled="disabled"/>
+		    	<input type="submit" class="upload" name="uploadimport" value="upload &amp; import" disabled="disabled"/>
+					to: <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
+	
+		    </form>
+				
+			</div>
+	  </div>
+
     <h1>Download</h1>
-    <div class="error" py:content="error" />
 		<h2>
 			<span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
 		</h2>
+		<div class="help">
+			<h3>${curdir.basename.title()}</h3>
+			<div id="help"/>		
+		</div>
     <div>
     	<ul style="list-style-image: url(/media/shimmer/folder_32.png); vertical-align:middle;">
+    		<li style="list-style-image: url(/media/shimmer/folder_add_32.png)">
+					<form method="post" action="/download/newfolder" style="display: inline;">
+							new folder:
+							<input type="text" name="newfolder" />
+				    	<input name="dir" type="hidden" value="${curdir}" />
+							<input type="submit" value="Create folder"/>
+					</form>    			
+    		</li>
     		<li py:for="f in directories">
     			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" />
     		</li>
     	</ul> 
-    	<ul style="list-style-image: url(/media/shimmer/document_32.png);">
+    	<ul style="list-style: none;padding-left: 0px;">
     		<li py:for="f in files">
+    			<span onclick="window.location='to_db?filename=${f.href}'" title="import in data base" class="dbimport">.</span>
+    			<!--<a href="to_db?filename=${f.href}" title="import in data base" class="dbimport"> </a>-->
     			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" /> 
-    			<a href="to_db?filename=${f.href}" title="import in data base">&#x219D;&#x25CD;</a>
     		</li>
     	</ul> 
 		</div>
-		<div py:if="is_member('logger')">
-			<h1>Upload...</h1>
-			<div>
-				<img src="/media/shimmer/document_add_32.png" />
-		    <form method="post" enctype="multipart/form-data" action="/download/upload" style="display: inline;">
-		    	file:
-		    	<input type="file" name="datafile" onchange="$('.upload').prop('disabled', !$(this).val());"/>
-		    	<input name="dir" type="hidden" value="${curdir}" />
-		    	<input type="submit"  class="upload" name="upload" value="upload file" disabled="disabled"/>
-		    	<input type="submit" class="upload" name="uploadimport" value="upload &amp; import" disabled="disabled"/>
-					to: <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>				
-
-		    </form>
-				
-			</div>
-			<div >
-				<img src="/media/shimmer/folder_add_32.png"/>
-				<form method="post" action="/download/newfolder" style="display: inline;">
-						New folder name:
-						<input type="text" name="newfolder" />
-			    	<input name="dir" type="hidden" value="${curdir}" />
-						<input type="submit" value="Create folder"/>
-				</form>
-			</div>
-	  </div>
 	</div> <!--content-->
 </body>
 </html>

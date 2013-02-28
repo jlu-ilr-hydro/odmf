@@ -7,6 +7,7 @@
 								padding-right: 0.5em; 
 								text-align: right;
 							}
+		.errorcheck { text-align: center;}
 	</style>
 	<script>
 		function action(dsid,rid) {
@@ -17,18 +18,28 @@
 				location.reload();
 			});
 		}
+		function checkall() {
+			$('.errorcheck').prop('checked',true);
+		}
 		function commit_errors() {
 			var res=''
 			$(".errorcheck:checked").each(function(){
 				res +=$(this).val() + ' '
 			});
-			$.post('/dataset/updaterecorderrors',{dataset:${dataset.id},records:res},function(data){
-				$('.error').html(data);
+			$.post('/dataset/updaterecorderror',{dataset:${dataset.id},records:res},function(data){
+				alert('done');
+				if (data) {
+					$('.error').html(data);				
+				} else {
+					location.reload();				
+				}
 			});
+
 			
 		}
 	</script>
 	<div class="small">
+		${records.count()} records.
 		<table>
 			<thead class="box">
 				<tr class="record box" >
@@ -38,23 +49,29 @@
 					<th> </th>
 					<th>comment</th>
 					<th>error?</th>
-					<th> </th>
+					<th py:if="action" />
+				</tr>
+				<tr>
+					<th/><th/><th/><th/>
+					<th></th>
+					<th><button onclick="checkall()">all</button></th>
+					<th py:if="action"/>
 				</tr>
 			</thead>
 			<tbody>
-				<tr py:for="rec in records">
+				<tr py:for="rec in records.limit(50)">
 					<td class="record" py:content="rec.id" />
 					<td class="record" py:content="formatdatetime(rec.time)" />
 					<td class="record" py:content="'%g' % rec.value if rec.value else 'N/A'" />
 					<td class="record" py:content="rec.dataset.valuetype.unit" />
 					<td class="record" py:content="rec.comment" />
-					<td class="record">
+					<td class="record" style="text-align: center;">
 						<input type="checkbox" 
 									 py:attrs="attrcheck('checked',rec.is_error)"
 									 class="errorcheck" 
 									 value="${rec.id}" />
 					</td>
-					<td class="record">
+					<td class="record" py:if="action">
 						<button onclick="action(${rec.dataset.id},${rec.id});"
 										py:content="actionname" py:if="actionname"/> 
 					</td>
