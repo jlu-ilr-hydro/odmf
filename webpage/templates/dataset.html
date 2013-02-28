@@ -56,7 +56,6 @@
 		span.nobreak {
 			white-space: nowrap;
 		}
-		
 			
 	</style>
 </head>
@@ -200,24 +199,14 @@
 							</td>
 						</tr>
 						<tr>
-							<td><button onclick="window.location='/dataset/calibration?targetid=${activedataset.id}'">Calibrate</button>: </td>
+							<td>
+								<a href="/dataset/calibration?targetid=${activedataset.id}">Calibrate</a>: 
+							</td>
 							<td>
 								v' = <input type="text" value="${activedataset.calibration_slope}" name="calibration_slope" size="5" style="text-align: right;" />
 								* v + <input type="text" value="${activedataset.calibration_offset}" name="calibration_offset" size="5" style="text-align: right;"/>
 							</td>
 						</tr>
-						<!--<tr>
-							<td>Datengruppe:</td>
-							<td>
-								<select name="group">
-									<option value=""><i>&lt;Keine Gruppe&gt;</i></option>
-									<option py:for="group in activedataset.potential_groups(session)"
-											py:attrs="markoption(group is activedataset.group)"
-											py:content="group"
-											value="${group.id}" />
-								</select>
-							</td>
-						</tr>-->
 						<tr>
 							<td>Comments</td>
 							<td>

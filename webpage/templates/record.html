@@ -39,7 +39,6 @@
 		}
 	</script>
 	<div class="small">
-		${records.count()} records.
 		<table>
 			<thead class="box">
 				<tr class="record box" >
@@ -59,7 +58,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr py:for="rec in records.limit(50)">
+				<tr py:for="rec in records">
 					<td class="record" py:content="rec.id" />
 					<td class="record" py:content="formatdatetime(rec.time)" />
 					<td class="record" py:content="'%g' % rec.value if rec.value else 'N/A'" />
