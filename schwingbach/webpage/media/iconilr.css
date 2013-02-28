@@ -215,3 +215,9 @@ input[type=text][readonly] {
 	color: grey; 
 	border: none;
 }
+
+a.filelink {
+	background-image: url(/media/shimmer/document_16.png);
+	background-repeat: no-repeat;
+	padding-left: 16px;
+}
