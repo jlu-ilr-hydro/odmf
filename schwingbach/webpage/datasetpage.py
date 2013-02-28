@@ -255,7 +255,6 @@ class DatasetPage:
                         yield np.log(-1),date2num(r[1])
                     else:
                         yield r[0],date2num(r[1])
-            print records.statement        
             ts = np.zeros(shape=(records.count(),2),dtype=float)
             for i,r in enumerate(r2c(records.values('value','time'))):
                 ts[i] = r
@@ -294,6 +293,7 @@ class DatasetPage:
         finally:
             session.close()
         return ''
+    
     @expose_for(group.editor)
     def records(self,dataset,mindate,maxdate,minvalue,maxvalue):
         session=db.Session()
@@ -302,11 +302,10 @@ class DatasetPage:
         try:
             if mindate.strip(): records=records.filter(db.Record.time>web.parsedate(mindate.strip()))
             if maxdate.strip(): records=records.filter(db.Record.time<web.parsedate(maxdate.strip()))
-            if minvalue: records=records.filter(db.Record.value<float(minvalue))
-            if maxvalue: records=records.filter(db.Record.value>float(maxvalue))
+            if minvalue: records=records.filter(db.Record.value>float(minvalue))
+            if maxvalue: records=records.filter(db.Record.value<float(maxvalue))
         except:
             return web.Markup('<div class="error">'+traceback()+'</div>')
-        records=records.limit(100)
         res = web.render('record.html',records=records,dataset=ds,actionname='',action='').render('xml')
         session.close()
         return res

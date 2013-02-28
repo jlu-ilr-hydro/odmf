@@ -57,6 +57,8 @@ class Path(object):
         return op.exists(self.absolute)
     def listdir(self):
         return os.listdir(self.absolute)
+    def up(self):
+        return op.dirname(self.name)
 
 class DownloadPage(object):
     exposed=True
@@ -90,9 +92,9 @@ class DownloadPage(object):
             if not op.exists(path):
                 os.makedirs(path)
             fn = os.path.join(path,str(datafile.filename))
-            if op.exists(fn):
+            if op.exists(fn) and not 'overwrite' in kwargs:
                 short=op.relpath(fn, datapath)
-                error="'%s' exists already, please use another filename or another directory" % short
+                error="'%s' exists already, if you want to overwrite the old version, check allow overwrite" % short
             else:
                 try:
                     fout = file(fn,'wb')
@@ -140,10 +142,24 @@ class DownloadPage(object):
             path=Path(absfile)
             li = il.LogbookImport(absfile,web.user())
             logs,cancommit = li('commit' in kwargs)
-            return web.render('logimport.html',filename=path,
-                              logs=logs,cancommit=cancommit,
-                              error='').render('html',doctype='html')
-
+            if 'commit' in kwargs and cancommit:
+                raise web.HTTPRedirect('/download?dir=' + escape(path.up()))
+            else:
+                return web.render('logimport.html',filename=path,
+                                  logs=logs,cancommit=cancommit,
+                                  error='').render('html',doctype='html')
+        elif 'dataset-' in filename:
+            import dataimport.importlog as il
+            absfile = web.abspath(filename.strip('/'))
+            path=Path(absfile)
+            ri = il.RecordImport(absfile,web.user())
+            logs,cancommit = ri('commit' in kwargs)
+            if 'commit' in kwargs and cancommit:
+                raise web.HTTPRedirect('/download?dir=' + escape(path.up()))
+            else:
+                return web.render('logimport.html',filename=path,
+                                  logs=logs,cancommit=cancommit,
+                                  error='').render('html',doctype='html')
         # if it doesn't import as instrument file
         else:
             import dataimport as di

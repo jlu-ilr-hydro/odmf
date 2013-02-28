@@ -4,6 +4,7 @@ Created on 19.02.2013
 @author: kraft-p
 '''
 import xlrd
+import os
 import db
 from datetime import datetime, timedelta
 
@@ -143,3 +144,70 @@ class LogbookImport(object):
             return u"Log: %s" % newlog
         if job:
             job.make_done(self, time)
+
+class RecordImport(object):
+    def __init__(self,filename,user,sheetname=None):
+        self.filename=filename
+        self.workbook = xlrd.open_workbook(filename)
+        if sheetname:
+            self.sheet = self.workbook.sheet_by_name(sheetname)
+        else:
+            self.sheet = self.workbook.sheet_by_index(0)
+    
+    t0 = datetime(1899,12,30)
+    def get_time(self,date,time):
+        if not time:
+            return self.t0 + timedelta(date)
+        else:
+            if time>1.000001:
+                time=time-int(time)
+            date=int(date)
+        return self.t0 + timedelta(date+time)
+    
+    def row_to_record(self,row,dataset,id,rangeok=[-1e308,1e308]):
+        rec=db.Record(id=id,dataset=dataset)
+        rec.time = self.get_time(row[0].value,row[1].value)
+        try:
+            rec.value = float(row[2].value)
+            if rec.value>max(rangeok) or rec.value<min(rangeok):
+                rec.value=None
+        except ValueError, TypeError:
+            rec.value = None
+        if row[3].value:
+            rec.sample = row[3].value
+        comment=(', '.join([unicode(c.value) for c in row[4:] if c.value])).strip()
+        if comment:
+            rec.comment = comment
+        return rec
+            
+                    
+    
+    def __call__(self,commit=False):
+        dsid = int(self.sheet.cell_value(3,1))
+        errors={}
+        logs=[]
+
+        try:
+            session = db.Session()
+            ds = session.query(db.Dataset).get(dsid)
+            if not ds:
+                session.close()
+                errors[0] = 'Dataset %i not found in database. File %s is not imported' % (id, os.path.basename(self.filename))
+                return [dict(row=0,error=True,log=errors[0])],False 
+            rid = 1
+            for row in range(16,self.sheet.nrows):
+                try:
+                    rec = self.row_to_record(self.sheet.row(row),ds,rid)
+                    session.add(rec)
+                    logs.append(dict(row=row,error=False,log="Add record %s" % rec))
+                    rid += 1
+                except Exception as e:
+                    errors[row] = e.message
+                    logs.append(dict(row=row,error=True, log=e.message))
+            if commit and not errors:
+                session.commit()
+        finally:
+            session.close()
+        return logs,not errors
+                
+        
