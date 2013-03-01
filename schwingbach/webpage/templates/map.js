@@ -20,10 +20,8 @@
 			$('#coordinates').html(loc.toUrlValue());
 		}
 		function map_dblclick(loc) {
-			var url = '/site/new';
-			url += '?lat=' + loc.lat();
-			url += '&lon=' + loc.lng();
-			window.location.href = url; 
+			map.setCenter(loc);
+			map.setZoom(map.getZoom() + 1);
 		}
 		function clearmarker() {
 			$.each(markers,function(index,marker) {
@@ -82,7 +80,7 @@
 	  			(function(eventmarker,id){
 	  				google.maps.event.addListener(marker,'dblclick',function() {
 	  					map.setCenter(marker.getPosition());
-	  					map.setZoom(21);
+	  					map.setZoom(map.getZoom()+2);
 	  				})
 	  			})(marker,item.id);
 	  			markers.push(marker)
