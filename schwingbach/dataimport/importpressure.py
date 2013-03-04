@@ -11,10 +11,9 @@ import sys
 import os
 from base import ImportAdapter, ImportStat
 from traceback import format_exc as traceback
-
 PressureRecord = namedtuple("Record", 'id date T d datechanged') 
 
-        
+            
 class PressureImport(ImportAdapter):
     "Base class for the import of raw data from Water level/ Temp. loggers"
     commitinterval=10000
@@ -217,14 +216,14 @@ class OdysseyImport(PressureImport):
             return self.loadvaluescsv()
 
     
-    def __init__(self,filename, user, siteid, instrumentid, startdate=None):
+    def __init__(self,filename,user,siteid,instrumentid=None,startdate=None,enddate=None):
         """Creates a new importer for Odyssey CSV files
         filename: Path to the CSV file
         user: user name of the data owner
         siteid: id of the site of the installation
         startdate: If given, values before the startdate are not imported
         """
-        PressureImport.__init__(self, filename, user, siteid, 1,startdate)
+        PressureImport.__init__(self, filename, user, siteid, 1,startdate,enddate)
 
 
 

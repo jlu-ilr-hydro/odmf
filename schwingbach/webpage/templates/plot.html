@@ -114,6 +114,9 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 								<img src="/media/minus-small.png"/>
 								remove...
 							</a>
+							<a href="/plot/export.csv?${'subplot=%i&amp;line=%i' % (sp.position,i)}" class="small" style="padding-left: 2em;">
+								export as csv...
+							</a>
 						</li>
 						<li class="small line">
 							<button onclick="addline(${sp.position})" title="add a line">
