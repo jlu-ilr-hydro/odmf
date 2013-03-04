@@ -11,6 +11,10 @@
 		.datepicker {width: 100%;}
 		td,th {padding: 5px; border-bottom: solid 1px #888; font-size: small;}
 		th {background-color: #E8F0FF;}
+		tr.rowerror {
+			background-color: red;
+			color: white;
+		}
 	</style>
 </head>
 <body>
@@ -39,7 +43,7 @@
 				<th>Error?</th>
 				<th>Action</th>
 			</tr>
-			<tr py:for="log in logs" class="small${' error' if log['error'] else ''}">
+			<tr py:for="log in logs" class="small${' rowerror' if log['error'] else ''}">
 				<td py:content="log['row']" />
 				<td py:content="'yes' if log['error'] else 'no'" />
 				<td>${log['log']}</td> 

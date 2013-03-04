@@ -185,6 +185,10 @@ class DatasetPage:
             ds = db.Dataset.get(session,int(datasetid))
             rec = ds.records.filter_by(id=int(recordid)).first()
             ds,dsnew = ds.split(rec.time)
+            if ds.comment: ds.comment+='\n'
+            ds.comment+='splitted by ' + web.user() + ' at ' + web.formatdate() + '. New dataset is ' + str(dsnew)
+            if dsnew.comment: dsnew.comment+='\n'
+            ds.comment+='This dataset is created by a split done by ' + web.user() + ' at ' + web.formatdate() + '. Orignal dataset is ' + str(ds) 
             res = "New dataset: %s" % dsnew
         except:
             res=traceback()
@@ -194,17 +198,19 @@ class DatasetPage:
          
     
     @expose_for(group.logger)
-    def records_csv(self,dataset):
+    def records_csv(self,dataset,raw=False):
         web.setmime('text/csv')
         session = db.Session()
         ds = session.query(db.Dataset).get(dataset)
         st = StringIO()
         st.write(codecs.BOM_UTF8)
         st.write((u'"Dataset","ID","time","%s","site","comment"\n' % (ds.valuetype)).encode('utf-8'))
-        query = session.query(db.Record).filter_by(dataset=ds,is_error=False).order_by(db.Record.time)
+        query = session.query(db.Record).filter_by(dataset=ds).order_by(db.Record.time)
+        if not raw:
+            query = query.filter(~db.Record.is_error)
         for r in query:
             d=dict(c=str(r.comment).replace('\r','').replace('\n',' / '),
-                 v=r.calibrated,
+                 v=r.calibrated if raw else r.value,
                  time = web.formatdate(r.time)+' '+web.formattime(r.time),
                  id=r.id,
                  ds=ds.id,

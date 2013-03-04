@@ -110,7 +110,15 @@ class Line(object):
             ax.plot_date(self.t,self.v,self.style,label=label)
         else:
             ax.plot_date(self.t,self.v,c=self.color,marker=self.marker,ls=self.line,label=label)
-
+    def export_csv(self,stream,startdate=None,enddate=None):
+        if (self.t is None or self.v is None or len(self.t)==0 or len(self.v)!=len(self.t) or 
+            date2num(startdate)<self.t[0] or date2num(enddate)>self.t[-1]):
+            self.load(startdate,enddate)
+        t0 = plt.date2num(datetime(1899,12,30))
+        stream.write('Time,' + str(self.valuetype) + '\n') 
+        for t,v in zip(self.t-t0,self.v):
+            stream.write('%f,%f\n' % (t,v))
+        
     def __jdict__(self):
         return dict(valuetype=self.valuetype.id if self.valuetype else None,
                     site=self.site.id if self.site else None,
@@ -294,7 +302,16 @@ class PlotPage(object):
         sp = plot.subplots[int(subplot)-1]
         del sp.lines[int(line)]
         plot.tosession()
-    
+    @web.expose_for(plotgroup)
+    def export_csv(self,subplot,line):
+        plot = Plot.fromsession()
+        sp = plot.subplots[int(subplot)-1]
+        line = sp.lines[int(line)]
+        web.setmime(web.mime.csv)
+        io = StringIO()
+        line.export_csv(io,plot.startdate,plot.enddate)
+        io.seek(0)
+        return io        
     @web.expose_for(plotgroup)
     def clf(self):
         plot = Plot()
