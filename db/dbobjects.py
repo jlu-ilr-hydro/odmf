@@ -123,7 +123,7 @@ class Person(Base):
     mobile=sql.Column(sql.String)
     car_available=sql.Column(sql.Integer,default=0)
     def __str__(self):
-        return u"%s %s" % (self.firstname,self.surname)
+        return "%s %s" % (self.firstname,self.surname)
     def __jdict__(self):
         return dict(username=self.username,
                     email=self.email,
@@ -134,7 +134,7 @@ class Person(Base):
                     mobile=self.mobile,
                     comment=self.comment,
                     car_available = self.car_available,
-                    label=str(self),
+                    label=u"%s %s" % (self.firstname,self.surname),
                     )
     def __cmp__(self,other):
         return cmp(self.surname,other.surname)
