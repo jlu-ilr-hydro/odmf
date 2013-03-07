@@ -5,6 +5,7 @@ Created on 07.02.2013
 '''
 import db
 import os
+import sys
 from datetime import datetime, timedelta
 def findStartDate(siteid,instrumentid):
     session = db.Session()
@@ -93,3 +94,5 @@ class ImportAdapter(object):
         self.instrumentid=instrumentid
         self.startdate=startdate
         self.enddate=enddate
+        self.errorstream = sys.stderr
+
