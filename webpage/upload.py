@@ -131,7 +131,7 @@ class DownloadPage(object):
         if error: url+='&error='+escape(error)
         return self.index(dir=dir,error=error)
 
-    @expose_for(group.supervisor)
+    @expose_for(group.editor)
     def to_db(self,filename=None,**kwargs):
         if not filename:
             raise web.HTTPRedirect('.')
