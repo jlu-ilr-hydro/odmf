@@ -209,7 +209,7 @@ class DatasetPage:
         if not raw:
             query = query.filter(~db.Record.is_error)
         for r in query:
-            d=dict(c=str(r.comment).replace('\r','').replace('\n',' / '),
+            d=dict(c=unicode(r.comment).replace('\r','').replace('\n',' / '),
                  v=r.calibrated if raw else r.value,
                  time = web.formatdate(r.time)+' '+web.formattime(r.time),
                  id=r.id,

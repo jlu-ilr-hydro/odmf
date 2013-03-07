@@ -103,7 +103,7 @@
 			<tr class="joblist box" >
 				<td><a href="javascript:reload('new')"><img src="/media/plus-small.png" /></a></td>
 				<td>			
-					<select id="filterresponsible" class="filter" onchange="reload(${job.id if job else ''});">
+					<select id="filterresponsible" class="filter" onchange="reload(${job.id if job else '\'\''});">
 						<option value="all" py:attrs="markoption(username=='all')">all users</option>
 						<option py:for="p in session.query(db.Person).order_by(db.sql.desc(db.Person.can_supervise),db.Person.surname)"
 								py:content="p"
