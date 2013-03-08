@@ -126,6 +126,14 @@ div.content {
     white-space: pre;
     border-radius: 5px;
 }
+.code {
+		background-color: white;
+    font-family: monospace;
+    white-space: pre;
+    border: solid 1px black;
+    box-shadow: 5px 5px 5px #888;	
+    padding: 1em;
+}
 .warning {
 		background-color: gold;
 		color: black;

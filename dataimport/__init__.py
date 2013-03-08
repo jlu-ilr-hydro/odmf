@@ -9,10 +9,12 @@ import base
 import importpressure as _ip
 import importclimate as _ic
 import db
+import textimport as _ti
 from base import finddateGaps, findStartDate
 _adapters = {1 : _ip.OdysseyImport,
              2:  _ip.DiverImport,
              19: _ic.ClimateImporterDat,
+             None: _ti.TextImport
              }
 def get_adapter(filename, user, siteid, instrumentid, startdate=None,enddate=None):
     adapterClass = _adapters.get(instrumentid)
@@ -28,8 +30,13 @@ def available_adapters():
     session.close()
     return res
 
-
-def importfilestats(filename, user, siteid, instrumentid, startdate=None,enddate=None):
+def getconfig(filename):
+    try:
+        tid = _ti.TextImportDescription.from_file(filename)
+        return tid
+    except IOError:
+        return None
+def importfilestats(filename, user, siteid, instrumentid=None, startdate=None,enddate=None):
     adapter = get_adapter(filename, user, siteid, instrumentid, startdate,enddate)
     return adapter.get_statistic()
     

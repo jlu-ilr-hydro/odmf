@@ -10,6 +10,7 @@
   <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
 
 	<script>
+			//<![CDATA[
       function toggle(id) {
       	$('#'+id).slideToggle('fast');
       }
@@ -29,6 +30,19 @@
 					});
 				}
 											
+			}
+			function showconfig(href) {
+				$('#configtext').load(href).slideToggle();
+			}
+			function submitform() {
+				document.forms[0].submit();
+				/*var instrument = $('#instrument').val();
+				var site = $('#siteselect').val();
+				var url='.?filename=' + $('#filename').val();
+				if (instrument) url+='&instrument=' + instrument;
+				if (site) url+='&site=' + site;
+				window.location.href=url;
+				*/
 			}
 			function onsiteselect() {
 				var instrument = $('#instrument').val();
@@ -53,6 +67,7 @@
 				$('#startdate').val(start);
 				$('#enddate').val(end);
       	$('#importdb').prop('disabled',false);
+      	$('.startend').slideDown();
 			}
 
       $(function() {
@@ -62,13 +77,16 @@
         	get_sites();
         	onsiteselect();
         });
-
+			//]]>
 	</script>
 	<style>
 		select {width: 100%;}
 		.datepicker {width: 100%;}
 		td,th {padding: 5px; border-bottom: solid 1px #888; font-size: small;}
 		th {background-color: #E8F0FF;}
+		.startend {
+			display: none;
+		}
 	</style>
 </head>
 <body>
@@ -86,8 +104,9 @@
 	<div class="content">
     <h1>Import to database</h1>
     <div class="error" py:content="error" />
+    <a href="/download?dir=${dirlink}">back to download...</a>
     <h2>Import specifications</h2>
-   <form action="/download/to_db" method="post" >
+   	<form action="/download/to_db/" method="post">
 	   <table>
 	    	<tr>
 	    		<td>
@@ -102,13 +121,22 @@
 				    Adapter:		
 	    		</td>
 	    		<td>
-				    <select id="instrument" name="instrument" onchange="get_sites();">
+				    <select py:if="not config"
+				    				id="instrument" name="instrument" onchange="get_sites();">
 							<option value=""><i>Please select...</i></option>
 							<option py:for="adapter in di.available_adapters()"
 												py:attrs="markoption(adapter.id == instrumentid)"
 												py:content="adapter"
 												value="${adapter.id}" />    
 						</select>
+						<div py:if="config">
+							<input type="hidden" id="instrument" value="${config.instrument}" />
+							<a href="javascript:showconfig('${config.href}')" py:content="config.href" />
+							<div class="warning small">
+								Not the right configuration? Copy the fitting .conf file to the directory of the file!
+							</div> 
+							<div class="toggle small code" id="configtext" />							
+						</div>
 	    		</td>
 	    	</tr>
 	    	<tr>
@@ -116,13 +144,25 @@
 	    			Site:
 	    		</td>
 	    		<td>
-						<select id="siteselect" name="site" onchange="onsiteselect();">
+						<select id="siteselect" name="site" onchange="submitform();">
 								<option value=""><i>Please select...</i></option>
 								<option py:if="siteid" value="${siteid}" selected="selected">#${siteid}</option>
 						</select>
 	    		</td>
 	    	</tr>
 	    	<tr>
+	    		<td>
+	    			Periodes:
+	    		</td>
+	    		<td>
+	    			<div py:for="g in (gaps or [])" class="small">
+	    				<input type="radio" name="gap" value="${formatdate(g[0])} - ${formatdate(g[1])}"
+	    							 onclick="setdates('${formatdatetime(g[0])}','${formatdatetime(g[1])}')" />
+	    				${formatdate(g[0])} - ${formatdate(g[1])}
+	    			</div>
+	    		</td>
+	    	</tr>
+	    	<tr class="startend">
 	    		<td>
 	    			Start date:
 	    		</td>
@@ -131,7 +171,7 @@
 	    						 value="${formatdatetime(gaps[0][0]) if gaps else ''}"/>
 	    		</td>
 	    	</tr>
-	    	<tr>
+	    	<tr class="startend">
 	    		<td>
 	    			End date:
 	    		</td>
@@ -141,18 +181,6 @@
 	    		</td>
 	    	</tr>
 	    </table>
-	    <div>
-			  <div py:if="gaps">
-			  	Select a time period
-			  	<ul>
-			  		<li py:for="g in gaps" class="small">
-			  			<a href="javascript:setdates('${formatdatetime(g[0])}','${formatdatetime(g[1])}')">
-			  				${formatdate(g[0])} - ${formatdate(g[1])}
-			  			</a>
-			  		</li>
-			  	</ul>
-			  </div>
-		  </div>
 	    <input type="submit" name="loadstat" id="loadstat" value="load statistics" disabled="disabled"/>
 	    <h3><a href="javascript:toggle('datasets')">&#x25BE; Similar datasets</a></h3>
 	    <ul id="datasets" class="toggle small" >
