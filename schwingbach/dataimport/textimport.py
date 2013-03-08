@@ -37,7 +37,7 @@ class TextImportColumn:
         self.name=name
         self.valuetype=int(valuetype)
         self.comment = comment
-        self.factor=factor
+        self.factor=factor or 1.0
         self.difference = difference
         self.minvalue=minvalue
         self.maxvalue=maxvalue
@@ -93,6 +93,7 @@ class TextImportDescription:
         skiplines: The number of lines prepending the actual data
         delimiter: The delimiter sign of the columns. Use TAB for tab-delimited columns, otherwise ',' or ';'               
         """
+        self.name=''
         self.instrument=int(instrument)
         self.skiplines=skiplines
         self.delimiter=delimiter
@@ -100,6 +101,7 @@ class TextImportDescription:
             self.delimiter='\t'
         self.decimalpoint=decimalpoint
         self.dateformat=dateformat
+        self.filename=''
         try:
             self.datecolumns=tuple(datecolumns)
         except:
@@ -153,6 +155,7 @@ class TextImportDescription:
                   dateformat=config.get(sections[0],'dateformat'),
                   datecolumns=eval(config.get(sections[0],'datecolumns'))
                   )
+        tid.name = sections[0]
         for section in sections[1:]:
             tid.columns.append(TextImportColumn.from_config(config,section))
         return tid
@@ -169,7 +172,7 @@ class TextImportDescription:
             path = op.dirname(path) 
             # if stoppath is found raise an error
             if op.basename(path)==stoppath:
-                raise RuntimeError('Could not find .conf file for file description')
+                raise IOError('Could not find .conf file for file description')
         # Use the first .conf file in the directory
         path = glob(op.join(path,pattern))[0]
         # Create a config
@@ -177,7 +180,9 @@ class TextImportDescription:
         # Load from the file
         config.readfp(file(path))
         # Return the descriptor
-        return cls.from_config(config)
+        descr = cls.from_config(config)
+        descr.filename=path
+        return descr
        
     
 class TextImport(ImportAdapter):
