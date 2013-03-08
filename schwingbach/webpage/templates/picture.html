@@ -18,7 +18,7 @@
     function enableupload() {
     	var siteid = $('#uploadsite').val();
     	var user = $('#uploaduser').val();
-  		$('#uploadsubmit').prop('disabled',siteid && userselect);
+  		$('#uploadsubmit').prop('disabled',!((siteid>0) && (user)));
     }
     function popSelect() {
     	$.getJSON('/site/json',[],function(data){
@@ -77,7 +77,7 @@
 		    	by:<select id="userselect" class="users" onchange="reload();"/>
   			</div>
   			<a py:if="is_member('logger')" href="javascript:toggle('uploadform');">&#x25BE; upload</a>
-				<form method="post" enctype="multipart/form-data" action="/picture/upload"
+			<form method="post" enctype="multipart/form-data" action="/picture/upload"
 	    				py:if="is_member('logger')" id="uploadform" class="toggle small">
 		    	site:<select class="sites" id="uploadsite" name="siteid" onchange="enableupload();"/>
 			    by:<select class="users" id="uploaduser" name="user" onchange="enableupload();"/>
