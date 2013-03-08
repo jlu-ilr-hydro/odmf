@@ -41,7 +41,7 @@
 					style="font-style: italic;" >Add new dataset...</a>
 		</li>
 		<li py:for="ds in site.datasets">
-			<a href="/dataset/${ds.id}">${ds}</a>
+			<a href="/dataset/${ds.id}">${ds}</a><span class="small"> ${ds.records.count()} records</span>
 		</li>
 	</ul>
 </div>

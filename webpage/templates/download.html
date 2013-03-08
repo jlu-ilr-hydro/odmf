@@ -60,7 +60,7 @@
 		    	</div>
 		    	<input name="dir" type="hidden" value="${curdir}" />
 		    	<input type="submit"  class="upload" name="upload" value="upload file" disabled="disabled"/>
-		    	<input type="submit" class="upload" name="uploadimport" value="upload &amp; import" disabled="disabled"/>
+		    	<!--<input type="submit" class="upload" name="uploadimport" value="upload &amp; import" disabled="disabled"/>-->
 					to: <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
 	
 		    </form>
