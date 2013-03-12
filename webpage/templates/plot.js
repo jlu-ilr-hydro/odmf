@@ -20,7 +20,7 @@
 			$('#plot').html('Loading image...');
 			var div = $('#'+targetdiv);
 			$('#properties').slideUp();
-			div.html('<img src="/plot/image.png?create=creationtime" alt="Loading image..." />')
+			div.html('<img src="/plot/image.png?create=' + creationtime + '" alt="Loading image..." />')
 			div.slideDown();
 		}
 		function gettime(startOrEnd) {		
@@ -40,7 +40,10 @@
 				height:$('#plotheight').val(),				
 				rows:$('#plotrows').val(),
 				columns:$('#plotcolumns').val(),
-			}, seterror);
+			}, function(data){
+				if (data) seterror(data);
+				else $('.error').html('');
+			});
 			killplot();
 		}
 		function addsubplot() {
@@ -48,22 +51,16 @@
 			killplot();
 		}
 		function removesubplot(id) {
-			$.post('removesubplot', {subplotid:id}, function(data) {
-				if (data) {
-					$('#error').html(data);
-				} else {
-					window.location.reload();
-				}
-			});
+			$.post('removesubplot', {subplotid:id}, seterror);
 			killplot();
 		}
 		function getstyle() {
 			return $('#colorpicker').val() + $('#linepicker').val() + $('#markerpicker').val();
 		}
 		function addline(sp) {
-			var vt = $('#vtselect').val();
-			var site = $('#siteselect').val();
-			var inst = $('#instrumentselect').val();
+			var vt = $('#vtselect_'+sp).val();
+			var site = $('#siteselect_'+sp).val();
+			var inst = $('#instrumentselect_'+sp).val();
 			$.post('addline', {
 				subplot:sp,
 				valuetypeid:vt,
@@ -92,10 +89,10 @@
 		    return foo;
 		}
 
-		function popSelect() {
-			var vt = $('#vtselect').val();
-			var site = $('#siteselect').val();
-			var instrument = $('#instrumentselect').val();
+		function popSelect(subplotpos) {
+			var vt = $('#vtselect_' + subplotpos).val();
+			var site = $('#siteselect_' + subplotpos).val();
+			var instrument = $('#instrumentselect_' + subplotpos).val();
 			var date = ''; //$('#dateselect').val()
 			$.getJSON('/dataset/attrjson',
 								{ attribute:'valuetype',
@@ -107,7 +104,7 @@
 									$.each(data,function(index,item){
 										html+='<option value="'+item.id+'">'+item.name+'</option>';
 									});
-									$('#vtselect').html(html).val(vt);
+									$('#vtselect_'+subplotpos).html(html).val(vt);
 								}
 			);
 					
@@ -123,7 +120,7 @@
 										if (item)
 											html+='<option value="'+item.id+'">'+item.name+'</option>';
 									});
-									$('#instrumentselect').html(html).val(instrument);
+									$('#instrumentselect_'+subplotpos).html(html).val(instrument);
 								}
 			);
 			$.getJSON('/dataset/attrjson',
@@ -136,7 +133,7 @@
 										$.each(data,function(index,item){
 											html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
 										});
-										$('#siteselect').html(html).val(site);
+										$('#siteselect_'+subplotpos).html(html).val(site);
 									}
 			);
 			
@@ -146,8 +143,11 @@
 			$('.filter').val('');
 			$('#dateselect').val('');
 			$('#allsites').val(true);
-			popSelect();
+			popSelect(1);			
 		}
+		$(function() {
+			$('.props').change(changeprops);
+		});
 
 	    
 	   
