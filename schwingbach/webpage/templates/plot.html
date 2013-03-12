@@ -20,11 +20,15 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 	<script type="text/javascript" src="/html/plot.js">
 	</script>
 	<script type="text/javascript">
+		//<![CDATA[
     $(function() {
 			$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
 			$(".timepicker").autocomplete({source: timerange(15)});
-	    popSelect();
+			for (var i=0;i<10;i++) {
+				popSelect(i);
+			}
     });
+    //]]>
 	</script>
 	<style type="text/css">
 	  .wide {width: 100%;}
@@ -64,46 +68,45 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 		<div id="properties">
 			<table class="small">
 				<tr>
-					<td></td><td>date</td><td>time</td><td/><td>width</td><td>height</td><td>subplots:</td>
+					<td></td><td>date:</td><td>time:</td><td/><td>size:</td><td/><td>subplots:</td>
 				</tr>
 				<tr>
 					<td>start:</td>
-					<td><input class="datepicker" id="startdate" size="10" value="${formatdate(plot.startdate)}"/></td>
-					<td><input class="timepicker" id="starttime" size="5" value="00:00" /></td>
-					<td>size:</td>
-					<td><input type="text" id="plotwidth" size="5" value="${'%g' % (plot.size[0]*100)}"/></td>
-					<td><input type="text" id="plotheight" size="5" value="${'%g' % (plot.size[1]*100)}"/></td>
+					<td><input class="props datepicker" id="startdate" size="10" value="${formatdate(plot.startdate)}"/></td>
+					<td><input class="props timepicker" id="starttime" size="5" value="00:00" /></td>
+					<td>w:</td>
+					<td><input class="props" type="text" id="plotwidth" size="5" value="${'%g' % (plot.size[0]*100)}"/></td>
+					<td>rows:</td>
 					<td>
-						<input list="numbers" value="${plot.rows}" id="plotrows" size="2"/>rows</td>
-					<td>
-						<button onclick="changeprops()" style="width: 8em;">
-							&#x2714;
-							submit...
-						</button>
+						<input class="props" list="numbers" value="${plot.rows}" id="plotrows" size="2"/>
 					</td>
 				</tr>
 				<tr>
+					
 					<td>end:</td>
-					<td><input class="datepicker" id="enddate" size="10" value="${formatdate(plot.enddate)}"/></td>
-					<td><input class="timepicker" id="endtime" size="5" value="00:00" /> </td>					
-					<td/><td/><td/>
-					<td><input list="numbers" value="${plot.columns}" id="plotcolumns" size="2"/>columns</td>					
-					<td>
-						<button onclick="$.post('clf',{},seterror);changeprops()"
-										style="width: 8em;">
-							<img src="/media/minus-small.png"/>
-							clear plot
-						</button>
-					</td>
+					<td><input class="props datepicker" id="enddate" size="10" value="${formatdate(plot.enddate)}"/></td>
+					<td><input class="props timepicker" id="endtime" size="5" value="00:00" /> </td>
+					
+					<td>h:</td>					
+					<td><input class="props" type="text" id="plotheight" size="5" value="${'%g' % (plot.size[1]*100)}"/></td>
+					
+					<td>cols</td>
+					<td><input list="props numbers" value="${plot.columns}" id="plotcolumns" size="2"/></td>					
 				</tr>
 			</table>
+			<button onclick="$.post('clf',{},seterror);changeprops()"
+							style="width: 8em;">
+				<img src="/media/minus-small.png"/>
+				clear plot
+			</button>
+
 			<!--
 				Subplots
 			-->
 			<ul style="list-style-image: url(/media/shimmer/box_24.png)">
 				<li py:for="sp in plot.subplots" class="sp">
 					subplot ${sp.position} 
-					<a href="javascript:removesubplot(${sp.position})" class="small" style="padding-left: 2em;">
+					<a py:if="sp.position==len(plot.subplots)" href="javascript:removesubplot(${sp.position})" class="small" style="padding-left: 2em;">
 						<img src="/media/minus-small.png"/>
 						remove...
 					</a>
@@ -123,19 +126,19 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 								<img src="/media/plus-small.png"/>
 							</button>
 								value:
-								<select id="vtselect" onchange="popSelect();" class="filter">
+								<select id="vtselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter vtselect">
 									<option value="" class="firstoption">Please select...</option>
 								</select>
 								site:
-								<select id="siteselect" onchange="popSelect();" class="filter">
+								<select id="siteselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter siteselect">
 									<option value="" class="firstoption">Please select...</option>
 								</select>
 								instrument:
-								<select id="instrumentselect" onchange="popSelect();" class="filter">
+								<select id="instrumentselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter instrumentselect">
 									<option value="" class="firstoption">Please select...</option>
 								</select>
 								marker:
-								<select id="markerpicker">
+								<select id="markerpicker_${sp.position}">
 									<option value="">none</option>
 									<option value="x">x</option>
 									<option value="o">o</option>
@@ -145,7 +148,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 									<option value="*">*</option>
 								</select>
 								line:
-								<select id="linepicker">
+								<select id="linepicker_${sp.position}">
 									<option value="-">-</option>
 									<option value="">none</option>
 									<option value=":">:</option>
@@ -153,7 +156,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 									<option value="-.">-.</option>
 								</select>
 								color:
-								<select id="colorpicker">
+								<select id="colorpicker_${sp.position}">
 									<option value="k" style="background-color: #000;">k</option>
 									<option value="b" style="background-color: #00F;">b</option>
 									<option value="g" style="background-color: #0F0;">g</option>

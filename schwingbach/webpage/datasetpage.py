@@ -22,6 +22,10 @@ class DatasetPage:
 
     @expose_for(group.guest)
     def default(self,id='new',site_id=None,vt_id=None,user=None):
+        if id=='last':
+            id = web.cherrypy.session.get('dataset')
+            if id is None:
+                raise web.HTTPRedirect('/dataset/')
         session=db.Session()
         error=''
         datasets={}
@@ -34,6 +38,8 @@ class DatasetPage:
                                     site=site,valuetype=valuetype, measured_by = user)
             else:
                 active = session.query(db.Dataset).get(id)
+                if active:
+                    web.cherrypy.session['dataset']=id
             try:
                 similar_datasets = self.subset(session, valuetype=active.valuetype.id, site=active.site.id)
                 parallel_datasets = session.query(db.Dataset).filter_by(site=active.site).filter(db.Dataset.start<=active.end,db.Dataset.end>=active.start)

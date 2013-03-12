@@ -172,8 +172,8 @@ class Subplot(object):
                    
 class Plot(object):
     def __init__(self,size=(6.0,4.8),columns=1,rows=1,startdate=None,enddate=None):
-        self.startdate=startdate
-        self.enddate=enddate
+        self.startdate=startdate or datetime.today() - timedelta(days=365)
+        self.enddate=enddate or datetime.today()
         self.size=size
         self.rows, self.columns = rows,columns
         self.subplots=[]

@@ -96,6 +96,12 @@
     			popSelect();
     			$('#dslist').html('')
     		}
+    		function gotods() {
+    			dsid = prompt('Goto dataset no.');
+    			if (dsid>0) {
+    				window.location.href='/dataset/' + dsid;
+    			}
+    		}
     		$(function() {
   					//$('#navigation').load('/navigation');
     				$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
@@ -116,32 +122,34 @@
 		<h1>Datasets</h1>
 		<div>
 			<h2>Filter:</h2>
-			value type:
-			<select id="vtselect" onchange="popSelect();" class="filter">
-				<option value="">Please select...</option>
-			</select>
-			site:
-			<select id="siteselect"  onchange="popSelect();" class="filter">
-				<option value="">Please select...</option>
-			</select>
-			user:
-			<select id="userselect"  onchange="popSelect();" class="filter">
-				<option value="">Please select...</option>
-			</select>
-			date:
-			<input id="dateselect" type="text" class="datepicker" value=""  
-						onchange="popSelect();" class="filter"/>
-			<button onclick="setFilter();">apply filter</button>
-			<button onclick="clearFilter();">clear filter</button>
+			<div class="small">
+				value type:
+				<select id="vtselect" onchange="popSelect();" class="filter" tabindex="2">
+					<option value="">Please select...</option>
+				</select>
+				site:
+				<select id="siteselect"  onchange="popSelect();" class="filter" tabindex="3">
+					<option value="">Please select...</option>
+				</select>
+				user:
+				<select id="userselect"  onchange="popSelect();" class="filter" tabindex="4">
+					<option value="">Please select...</option>
+				</select>
+				date:
+				<input id="dateselect" type="text" class="datepicker" value=""  
+							onchange="popSelect();" class="filter" tabindex="5"/>
+				<button onclick="setFilter();">apply filter</button>
+				<button onclick="clearFilter();">clear filter</button>
+			</div>
 	
 		</div>
 		<div>
 			<h2>List:</h2>
-			<ul style="list-style-image: url(/media/shimmer/document_add_48.png)">
-				<li>
-					<a href="/dataset/new">New dataset...</a>
-				</li>
-			</ul>
+			<div>
+				<a href="/dataset/new" ><img src="/media/shimmer/document_add_24.png"/> New dataset...</a>		
+				<a href="javascript:gotods();" tabindex="1" >&#x25B6;goto</a>
+		
+			</div>
 			<ul id="dslist" style="list-style-image: url(/media/shimmer/document_24.png)">
 			</ul>
 		</div>				
