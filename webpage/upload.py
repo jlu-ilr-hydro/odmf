@@ -193,7 +193,7 @@ class DownloadPage(object):
                 error="'%s' exists already, if you want to overwrite the old version, check allow overwrite" % fn.name
             else:
                 try:
-                    fout = file(fn,'wb')
+                    fout = file(fn.absolute,'wb')
                     while True:
                         data = datafile.file.read(8192)
                         if not data:
@@ -213,15 +213,18 @@ class DownloadPage(object):
     def newfolder(self,dir,newfolder):
         error=''
         if newfolder:
-            try:
-                path=Path(op.join(datapath,dir,newfolder))
-                if not path:
-                    path.make()
-                    path.setownergroup()
-                else:
-                    error="Folder %s exists already!" % newfolder
-            except:
-                error=traceback()
+            if ' ' in newfolder:
+                error="The folder name may not include a space!"
+            else:
+                try:
+                    path=Path(op.join(datapath,dir,newfolder))
+                    if not path:
+                        path.make()
+                        path.setownergroup()
+                    else:
+                        error="Folder %s exists already!" % newfolder
+                except:
+                    error=traceback()
         else:
             error='Forgotten to give your new folder a name?'
         url = '/download?dir='+escape(dir)

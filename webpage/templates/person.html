@@ -93,31 +93,6 @@
 				<input type="submit" name="save" value="Save" style="width: 7em;"/>
 			</form>
 		</div>
-		<div class="rightpane">
-			<h2>Jobs</h2>
-			<ul>
-				<li class="plus">
-					<a href="/job?user=${active_person.username}" >
-							 Add new job...
-						</a>
-				</li>
-				<li py:for="job in jobs">
-					<a href="/job/${job.id}" py:content="'%-12s: %s' % (formatdate(job.due),job.name)"
-					   style="background-color: ${job.color}" />
-				</li>
-			</ul>
-		</div>
-		<div py:if="active_person" class="rightpane">
-			<h2>Datasets</h2>
-			<ul>
-				<li class="plus"><a href="/dataset/new?user=${active_person.username}">Add new dataset...</a>
-				</li>
-				<li py:for="ds in active_person.datasets">
-					<a href="/dataset/${ds.id}" 
-					py:content="ds" />
-				</li>
-			</ul>
-		</div>		
 	</div>
 </body>
 </html>

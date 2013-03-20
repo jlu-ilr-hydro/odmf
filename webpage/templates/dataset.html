@@ -118,9 +118,9 @@
 						</td>
 					</tr>
 				</table>
-				<h3><a class="toggle" href="javascript:toggle('edit')" py:if="is_member('editor')">&#x25BE; Edit dataset...</a></h3>
+				<h3><a href="javascript:toggle('edit')" py:if="is_member('editor')">&#x25BE; Edit dataset...</a></h3>
 				
-				<div id="edit" style="display:${'none' if activedataset.valuetype else 'block'};">
+				<div id="edit" class="toggle">
 					<form action="/dataset/saveitem" method="post" py:if="is_member('editor')">
 					<input type="text" name="id" value="${activedataset.id}" style="display: none;" />
 					<a py:if="is_member('admin') and activedataset.start"
@@ -137,7 +137,7 @@
 							<td>
 								<select name="measured_by">
 									<option value=""><i>Please select...</i></option>
-									<option py:for="p in session.query(db.Person)"
+									<option py:for="p in session.query(db.Person).order_by('can_supervise DESC,surname')"
 											py:attrs="markoption(p is activedataset.measured_by)"
 											py:content="p"
 											value="${p.username}" />
@@ -228,7 +228,7 @@
 				</div>
 			</div>
 			<h3><a href="javascript:toggle('plot')" py:if="is_member('logger')">&#x25BE; Plot...</a></h3>
-			<div id="plot" style="display: none;">
+			<div id="plot" class="toggle">
 				<button onclick="plotds(${activedataset.id});">Plot</button>
 	
 				from:
@@ -269,8 +269,8 @@
 					<img id="plotimg" alt="" src=""/>
 				</div>
 			</div>
-			<h3 py:if="is_member('editor') and activedataset.valuetype and std"><a class="toggle" href="javascript:toggle('split')">&#x25BE; Split dataset...</a></h3>
-			<div py:if="is_member('editor') and activedataset.valuetype and std" id="split" style="display: none;">
+			<h3 py:if="is_member('editor') and activedataset.valuetype and std"><a href="javascript:toggle('split')">&#x25BE; Split dataset...</a></h3>
+			<div py:if="is_member('editor') and activedataset.valuetype and std" id="split" class="toggle" >
 				<script>
 					function loadsplitrecords() {
 						var threshold = $('#splitthreshold').val();
@@ -284,7 +284,7 @@
 			</div>
 		</div>
 		<h3><a href="javascript:toggle('similar')">&#x25BE; Similar datasets</a></h3>
-		<div id="similar" style="display: none;">		
+		<div id="similar" class="toggle">		
 			<div py:for="dsname in datasets" >
 				<h3>${dsname}</h3>
 				<div id="${dsname.replace(' ','_')}">

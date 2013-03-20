@@ -96,7 +96,7 @@ class VTPage:
         session.close()
         return result    
     
-    @expose_for(group.editor)
+    @expose_for(group.supervisor)
     def saveitem(self,**kwargs):
         try:
             id=web.conv(int,kwargs.get('id'),'')

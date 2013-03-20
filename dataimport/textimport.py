@@ -94,6 +94,7 @@ class TextImportDescription:
         delimiter: The delimiter sign of the columns. Use TAB for tab-delimited columns, otherwise ',' or ';'               
         """
         self.name=''
+        self.fileextension=''
         self.instrument=int(instrument)
         self.skiplines=skiplines
         self.delimiter=delimiter
@@ -135,6 +136,8 @@ class TextImportDescription:
         config.set(section,'decimalpoint',self.decimalpoint)
         config.set(section,'dateformat',self.dateformat)
         config.set(section,'datecolumns',str(self.datecolumns).strip('(), '))
+        if self.fileextension:
+            config.set(section,'fileextension',self.fileextension)
         for col in self.columns:
             section = col.name
             config.add_section(section)
@@ -147,6 +150,8 @@ class TextImportDescription:
         by parsing its content
         """
         sections=config.sections()
+        if not sections:
+            raise IOError('Empty config file')
         # Create a new TextImportDescriptor from config file
         tid = cls(instrument=config.getint(sections[0],'instrument'),
                   skiplines=config.getint(sections[0],'skiplines'),
