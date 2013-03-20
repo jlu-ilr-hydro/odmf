@@ -6,6 +6,7 @@ encoding//db/base.py=utf-8
 encoding//db/dataset.py=utf-8
 encoding//db/dbobjects.py=utf-8
 encoding//webpage/__init__.py=utf-8
+encoding//webpage/datafiles/minustrainer.py=utf-8
 encoding//webpage/lib.py=utf-8
 encoding//webpage/pages.py=utf-8
 encoding//webpage/site.py=utf-8

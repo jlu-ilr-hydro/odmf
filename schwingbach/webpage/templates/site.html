@@ -199,7 +199,7 @@
 				
 			</div>
 			<h3><a href="javascript:toggle('pictures')">&#x25BE; Pictures</a><small> ${actualsite.images.count()} images</small></h3>
-			<div id="pictures">
+			<div id="pictures" class="toggle">
 				<div py:for="img in actualsite.images" style="display: inline">
 					<img src="/picture/thumbnail/${img.id}" 
 							 title="${'%s: %s (%s)' % (formatdatetime(img.time),img.name, img.by)}"
@@ -208,48 +208,52 @@
 				</div>
 			</div>
 			<h3><a href="javascript:toggle('instrumentlist')">&#x25BE; Installed instruments</a><small> ${actualsite.instruments.count()} instruments</small></h3>
-			<ul id="instrumentlist" class="toggle">
-				<li py:if="is_member('editor')" >
-						<button onclick="addinstrument()" class="imgbutton">
-							<img src="/media/plus-small.png" alt="Add"/>
-						</button>
-						<input class="datepicker" id="installationdate" value="${formatdate()}" /> 
-						<select id="instruments" >
-							<option value="">Please select...</option>
-						</select>
-				</li>
-				<li py:for="inst in actualsite.instruments" >
-					<span py:if="inst.active" 
-								py:content="'since %s: %s (%s)' % (formatdate(inst.installdate),inst.instrument.name,inst.instrument.sourcetype)" />
-					<span py:if="not inst.active" class="removed"
-								py:content="'until %s: %s (%s)' % (formatdate(inst.removedate),inst.instrument.name,inst.instrument.sourcetype)" />
-					<a href="javascript:removeinstrument(${inst.id},${inst.site.id})" 
-						 py:if="is_member('editor')" 
-						 style="font-size: small;font-style: italic;">(remove...)</a>
-				</li>
-			</ul>
+			<div id="instrumentlist" class="toggle"> 
+				<ul>
+					<li py:if="is_member('editor')" >
+							<button onclick="addinstrument()" class="imgbutton">
+								<img src="/media/plus-small.png" alt="Add"/>
+							</button>
+							<input class="datepicker" id="installationdate" value="${formatdate()}" /> 
+							<select id="instruments" >
+								<option value="">Please select...</option>
+							</select>
+					</li>
+					<li py:for="inst in actualsite.instruments" >
+						<span py:if="inst.active" 
+									py:content="'since %s: %s (%s)' % (formatdate(inst.installdate),inst.instrument.name,inst.instrument.sourcetype)" />
+						<span py:if="not inst.active" class="removed"
+									py:content="'until %s: %s (%s)' % (formatdate(inst.removedate),inst.instrument.name,inst.instrument.sourcetype)" />
+						<a href="javascript:removeinstrument(${inst.id},${inst.site.id})" 
+							 py:if="is_member('editor')" 
+							 style="font-size: small;font-style: italic;">(remove...)</a>
+					</li>
+				</ul>
+			</div>
 			<h3><a href="javascript:toggle('datasetlist')">&#x25BE; Available datasets</a><small> ${actualsite.datasets.count()} datasets</small></h3>
-			<ul id="datasetlist" class="toggle" style="list-style-type: none;">
-				<li py:if="is_member('editor')" class="plus">
-					<a href="/dataset/new?site_id=${actualsite.id}"
-							style="font-style: italic;" >
-						 Add new dataset...
-					</a>
-				</li>
-				<li py:for="ds in datasets">
-					<a href="/dataset/${ds.id}?site_id=${actualsite.id}" 
-					py:content="ds" />
-				</li>
-				<li py:if="is_member('supervisor')">
-					<script>
-						function makeplotcover() {
-							$('#plotcoverageimg').attr('src','/dataset/plot_coverage/${actualsite.id}');							
-						}
-					</script>
-					<a href="javascript:makeplotcover();">Plot the time coverage of the datasets</a> 
-					<img src="" alt="plot time coverage" id="plotcoverageimg" />				
-				</li>
-			</ul>
+			<div id="datasetlist" class="toggle" >
+				<ul style="list-style-type: none;">
+					<li py:if="is_member('editor')" class="plus">
+						<a href="/dataset/new?site_id=${actualsite.id}"
+								style="font-style: italic;" >
+							 Add new dataset...
+						</a>
+					</li>
+					<li py:for="ds in datasets">
+						<a href="/dataset/${ds.id}?site_id=${actualsite.id}" 
+						py:content="ds" />
+					</li>
+					<li py:if="is_member('supervisor')">
+						<script>
+							function makeplotcover() {
+								$('#plotcoverageimg').attr('src','/dataset/plot_coverage/${actualsite.id}');							
+							}
+						</script>
+						<a href="javascript:makeplotcover();">Plot the time coverage of the datasets</a> 
+						<img src="" alt="plot time coverage" id="plotcoverageimg" />				
+					</li>
+				</ul>
+			</div>
 		</div>
 		<a href="sites.csv" style="float:left;">
 			<img src="/media/excel-icon.gif" />

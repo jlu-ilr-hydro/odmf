@@ -5,7 +5,7 @@ Created on 01.10.2012
 '''
 import sys
 import matplotlib
-
+import codecs
 matplotlib.use('Agg', warn=False)
 if sys.platform=='win32':
     matplotlib.rc('font', **{'sans-serif' : 'Arial',
@@ -46,18 +46,20 @@ class Line(object):
         self.instrument = session.query(db.Datasource).get(int(instrument)) if instrument else None
         session.close()
         self.transformation=transformation
+    def getdatasets(self,session):
+        datasets = session.query(db.Dataset).filter(db.Dataset.valuetype==self.valuetype,
+                                                    db.Dataset.site==self.site)
+        if self.instrument:
+            datasets=datasets.filter(db.Dataset.source == self.instrument)
+        return datasets.all()
+        
     def load(self,startdate=None,enddate=None):
         self.v = None
         self.t = None
         session=db.Session()
         error=''
         try:
-                
-            datasets = session.query(db.Dataset).filter(db.Dataset.valuetype==self.valuetype,
-                                                        db.Dataset.site==self.site)
-            if self.instrument:
-                datasets=datasets.filter(db.Dataset.source == self.instrument)
-
+            datasets = self.getdatasets(session)
             # Get records
             records = session.query(db.Record)
             # filter records by dataset
@@ -115,7 +117,8 @@ class Line(object):
             date2num(startdate)<self.t[0] or date2num(enddate)>self.t[-1]):
             self.load(startdate,enddate)
         t0 = plt.date2num(datetime(1899,12,30))
-        stream.write('Time,' + str(self.valuetype) + '\n') 
+        stream.write(codecs.BOM_UTF8)
+        stream.write('Time,' + unicode(self.valuetype).encode('UTF-8') + '\n') 
         for t,v in zip(self.t-t0,self.v):
             stream.write('%f,%f\n' % (t,v))
         

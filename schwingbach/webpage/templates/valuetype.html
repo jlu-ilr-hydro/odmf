@@ -21,7 +21,7 @@
 			</li>
 		</ul>
 	    <div class="rightpane"> 
-			<form action="/valuetype/saveitem" method="post" py:if="is_member('editor')">
+			<form action="/valuetype/saveitem" method="post" py:if="is_member('supervisor')">
 				<div py:if="actualvaluetype">
 					<h2 py:content="actualvaluetype" />
 					<table style="width: 100%">
@@ -47,7 +47,7 @@
 						</tr>
 					</table>
 				</div>
-				<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
+				<input type="submit" name="save" value="save changes" style="width: 10em;"/>						
 			</form>
 			<div py:if="not is_member('editor') and actualvaluetype">
 					<h2 py:content="actualvaluetype" />
