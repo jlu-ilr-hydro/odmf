@@ -54,8 +54,10 @@
 			$.post('removesubplot', {subplotid:id}, seterror);
 			killplot();
 		}
-		function getstyle() {
-			return $('#colorpicker').val() + $('#linepicker').val() + $('#markerpicker').val();
+		function getstyle(sp) {
+			return $('#colorpicker_'+sp).val() + 
+                   $('#linepicker_'+sp).val() + 
+                   $('#markerpicker_'+sp).val();
 		}
 		function addline(sp) {
 			var vt = $('#vtselect_'+sp).val();
@@ -66,7 +68,7 @@
 				valuetypeid:vt,
 				siteid:site,
 				instrumentid:inst,
-				style:getstyle()
+				style:getstyle(sp)
 			},seterror);
 			killplot();
 		}
