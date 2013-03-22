@@ -22,11 +22,11 @@
         function plotds(id) {	
         	var url = '/dataset/plot'
 					        	+ '?id='+id
-					        	+ '&amp;' + 'start='+$('#plotstart').val()
-					        	+ '&amp;' + 'end='+$('#plotend').val()
-					        	+ '&amp;' + 'marker=' + $('#markerpicker').val()
-					        	+ '&amp;' + 'line=' + $('#linepicker').val()
-					        	+ '&amp;' + 'color=' + $('#colorpicker').val();
+					        	+ '&' + 'start='+$('#plotstart').val()
+					        	+ '&' + 'end='+$('#plotend').val()
+					        	+ '&' + 'marker=' + $('#markerpicker').val()
+					        	+ '&' + 'line=' + $('#linepicker').val()
+					        	+ '&' + 'color=' + $('#colorpicker').val();
 					$('#plotimg').attr('src',url);
         }
 				function remove(dsid,dsname,reccount) {

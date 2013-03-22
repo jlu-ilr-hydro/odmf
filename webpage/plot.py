@@ -157,7 +157,7 @@ class Subplot(object):
             plt.ylim(self.ylim)
         plt.xlim(date2num(self.plot.startdate),date2num(self.plot.enddate))
         ax.grid()
-        ax.legend(loc=0)
+        ax.legend(loc=0,prop=dict(size=9))
         if self.lines:
             l=self.lines[0]
             plt.ylabel(u'%s [%s]' % (l.valuetype.name,l.valuetype.unit))
