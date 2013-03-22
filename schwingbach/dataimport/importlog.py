@@ -109,13 +109,16 @@ class LogbookImport(object):
             raise LogImportError(row,'%s is not at site #%i' % (ds,site.id))
         v=None
         if self.sheet.cell_type(row,LogColumns.value) == 2: # Numeric field
-            v = self.get_value(row,LogColumns.value)
-        if v and ds is None:
+            try:
+                v = float(self.get_value(row,LogColumns.value))
+            except TypeError:
+                v = None
+        if (not v is None) and ds is None:
             raise LogImportError(row,"A value is given, but no dataset")
         logtype,msg = self.get_value(row,(LogColumns.logtext,LogColumns.msg))
         job,err = self.get_obj(session, db.Job, row, LogColumns.job)
         if err: raise LogImportError(row,'%s in not a valid Job.id')
-        if ds and v:
+        if ds and not v is None:
             if ds.start>time:
                 ds.start=time
             if ds.end<time:
