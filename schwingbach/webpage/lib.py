@@ -125,7 +125,8 @@ def formatdatetime(t=None):
     
 def parsedate(s):
     res=None
-    formats = '%d.%m.%Y %H:%M:%S','%d.%m.%Y %H:%M','%d.%m.%Y','%Y/%m/%dT%H:%M:%S','%Y-%m-%dT%H:%M:%S'
+    formats = ('%d.%m.%Y %H:%M:%S','%d.%m.%Y %H:%M','%d.%m.%Y',
+               '%Y/%m/%dT%H:%M:%S','%Y-%m-%dT%H:%M:%S.%f','%Y-%m-%dT%H:%M:%S')
     for fmt in formats:
         try:
             res=datetime.strptime(s,fmt)
