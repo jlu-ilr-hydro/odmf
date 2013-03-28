@@ -151,11 +151,13 @@ class Subplot(object):
         return self
     def draw(self,figure):
         ax = figure.axes[self.position-1]
+        plt.sca(ax)
         for l in self.lines:
             l.draw(ax,self.plot.startdate,self.plot.enddate)
         if self.ylim:
             plt.ylim(self.ylim)
         plt.xlim(date2num(self.plot.startdate),date2num(self.plot.enddate))
+        plt.xticks(rotation=15)
         ax.grid()
         ax.legend(loc=0,prop=dict(size=9))
         if self.lines:

@@ -280,6 +280,7 @@ class DatasetPage:
             #loc.interval_multiples=True
             io = StringIO()
             ax.grid()
+            plt.xticks(rotation=15)
             plt.ylabel('%s [%s]' % (ds.valuetype.name,ds.valuetype.unit))
             plt.title(ds.site)
             fig.savefig(io,dpi=100)
