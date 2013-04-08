@@ -46,7 +46,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 		}
 		li.sp {
 	    background-color: #E8F0FF;
-			border-radius: 5px;
+			border-radius: 0px;
 			border-top: 1px solid #000;
 		}
 		li.line {
@@ -54,6 +54,32 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 		}
 		.spinner {
 			size: 3;
+		}
+		.leftspace {
+			padding-left: 2px;
+		}
+		ul.brush {
+			list-style-image: url(/media/shimmer/brush_16.png)
+		}
+		ul.box_24 {
+			list-style-image: url(/media/shimmer/box_24.png)
+		}
+		ul.doc {
+			list-style-image: url(/media/shimmer/document_16.png)
+		}
+		span.box {
+			padding: 0px;
+			background-color: #FFF;
+			margin-right: 10px;
+		}
+		span.box a{
+			padding: 0px 2px;
+		}
+		span.box a:hover {
+			background-color:#32739D;
+			color:#FFF;
+			border-radius: 10px;
+			text-decoration: none;
 		}
 	</style>
 		
@@ -66,7 +92,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 		<div class="error" id="error"></div>
 		<h2><a href="javascript:toggle('properties')">&#x25BE; Properties</a></h2>
 		<div id="properties">
-			<table class="small">
+			<table class="small" style="display: inline-block">
 				<tr>
 					<td></td><td>date:</td><td>time:</td><td/><td>size:</td><td/><td>subplots:</td>
 				</tr>
@@ -96,30 +122,36 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			</table>
 			<button onclick="$.post('clf',{},seterror);changeprops()"
 							style="width: 8em;">
-				<img src="/media/minus-small.png"/>
-				clear plot
+				&#x2718; clear plot
 			</button>
 
 			<!--
 				Subplots
 			-->
-			<ul style="list-style-image: url(/media/shimmer/box_24.png)">
+			<ul class="box_24">
 				<li py:for="sp in plot.subplots" class="sp">
 					subplot ${sp.position} 
-					<a py:if="sp.position==len(plot.subplots)" href="javascript:removesubplot(${sp.position})" class="small" style="padding-left: 2em;">
-						<img src="/media/minus-small.png"/>
-						remove...
+					<a py:if="sp.position==len(plot.subplots)" 
+						href="javascript:removesubplot(${sp.position})" 
+						class="small leftspace"
+						title="remove">
+						&#x2718; remove...
 					</a>
-					<ul style="list-style-image: url(/media/shimmer/brush_16.png)">
+					<ul class="brush">
 						<li py:for="i,l in enumerate(sp.lines)" class="small line">
+							<span class="small box">
+								<a href="javascript:removeline(${sp.position},${i})" title="remove line">
+									&#x2718; 
+								</a>
+								<a href="/plot/export.csv?${'subplot=%i&amp;line=%i' % (sp.position,i)}" title="export to csv">
+									csv&#x25B8;
+								</a>
+								<a href="javascript:showlinedatasets(${sp.position},${i})" title="show datasets">
+									&#x25BE;ds
+								</a>
+							</span>
 							${l}
-							<a href="javascript:removeline(${sp.position},${i})" class="small" style="padding-left: 2em;">
-								<img src="/media/minus-small.png"/>
-								remove...
-							</a>
-							<a href="/plot/export.csv?${'subplot=%i&amp;line=%i' % (sp.position,i)}" class="small" style="padding-left: 2em;">
-								export as csv...
-							</a>
+							<ul id="datasetlist_${sp.position}_${i}" class="datasetlist small doc"/>
 						</li>
 						<li class="small line">
 							<button onclick="addline(${sp.position})" title="add a line">
@@ -172,8 +204,8 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 				<li class="sp">
 					<button onclick="javascript:addsubplot()">
 						<img src="/media/plus-small.png"/>
-						add subplot
 					</button>
+						add subplot
 				</li>
 			</ul>
 		</div>

@@ -342,7 +342,8 @@ class TextImport(ImportAdapter):
     def raw_commit(self,records):
         "Commits the records to the Record table, and clears the records-lists"
         for k,rec in records.iteritems():
-            db.engine.execute(db.Record.__table__.insert(),rec)
+            if rec:
+                db.engine.execute(db.Record.__table__.insert(),rec)
         # Return a dict like records, but with empty lists
         return dict((r,[]) for r in records)
              
@@ -371,10 +372,10 @@ class TextImport(ImportAdapter):
                     # If there is a value for column k
                     if not d[k] is None:
                         records[k].append(dict(dataset=datasets[k].id,id=recid[k],time=t,value=d[k]))
-                    # Next id for column k
-                    recid[k]+=1
+                        # Next id for column k
+                        recid[k]+=1
                 # To protected the memory, commit every 10000 items
-                if i % 10000 == 0:
+                if (i+1) % 10000 == 0:
                     records=self.raw_commit(records)
             # Commit remaining records
             records=self.raw_commit(records)

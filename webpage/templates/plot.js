@@ -76,7 +76,27 @@
 			$.post('removeline',{subplot:subplot,line:line},seterror)
 			killplot();
 		}
-		
+		function showlinedatasets(subplot,line) {
+			var content = $('#datasetlist_'+subplot+'_'+line).html();
+			$('#datasetlist_'+subplot+'_'+line).slideUp('fast').html('');
+			if (content=='') {
+				$.getJSON(
+					'/plot/linedatasets.json',
+					{ subplot: subplot,
+						line:line
+					},
+					function(data){
+						var html='';
+						$.each(data,function(index,item){
+							html+='<li><a href="/dataset/'+item.id + '">' + item.label + '</a></li>';
+						});
+						$('#datasetlist_'+subplot+'_'+line).html(html)
+						$('#datasetlist_'+subplot+'_'+line).slideDown('fast');
+					}
+				);				
+			} 
+
+		}
 		function timerange(step)
 		{
 		    if (step == null) {step=60;}
@@ -92,52 +112,55 @@
 		}
 
 		function popSelect(subplotpos) {
-			var vt = $('#vtselect_' + subplotpos).val();
-			var site = $('#siteselect_' + subplotpos).val();
-			var instrument = $('#instrumentselect_' + subplotpos).val();
-			var date = ''; //$('#dateselect').val()
-			$.getJSON('/dataset/attrjson',
-								{ attribute:'valuetype',
-								  site:site,
-								  date:date,
-								},
-								function(data){
-									var html='<option class="firstoption" value="">Please select...</option>';
-									$.each(data,function(index,item){
-										html+='<option value="'+item.id+'">'+item.name+'</option>';
-									});
-									$('#vtselect_'+subplotpos).html(html).val(vt);
-								}
-			);
-					
-			$.getJSON('/dataset/attrjson',
-								{ attribute:'source',
-									valuetype:vt,
-									site:site,
-								  date:date
-								},
-								function(data) {
-									var html='<option class="firstoption" value="">Please select...</option>';
-									$.each(data,function(index,item){
-										if (item)
-											html+='<option value="'+item.id+'">'+item.name+'</option>';
-									});
-									$('#instrumentselect_'+subplotpos).html(html).val(instrument);
-								}
-			);
-			$.getJSON('/dataset/attrjson',
-									{ attribute:'site',
-										valuetype:vt,
-									  date:date
+			if ($('#vtselect_'+ subplotpos).length) {
+				var vt = $('#vtselect_' + subplotpos).val();
+				var site = $('#siteselect_' + subplotpos).val();
+				var instrument = $('#instrumentselect_' + subplotpos).val();
+				var date = ''; //$('#dateselect').val()
+				$.getJSON('/dataset/attrjson',
+									{ attribute:'valuetype',
+									  site:site,
+									  date:date,
 									},
 									function(data){
-										var html='<option value="">Please select...</option>';
+										var html='<option class="firstoption" value="">Please select...</option>';
 										$.each(data,function(index,item){
-											html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
+											html+='<option value="'+item.id+'">'+item.name+'</option>';
 										});
-										$('#siteselect_'+subplotpos).html(html).val(site);
+										$('#vtselect_'+subplotpos).html(html).val(vt);
 									}
-			);
+				);
+						
+				$.getJSON('/dataset/attrjson',
+									{ attribute:'source',
+										valuetype:vt,
+										site:site,
+									  date:date
+									},
+									function(data) {
+										var html='<option class="firstoption" value="">Please select...</option>';
+										$.each(data,function(index,item){
+											if (item)
+												html+='<option value="'+item.id+'">'+item.name+'</option>';
+										});
+										$('#instrumentselect_'+subplotpos).html(html).val(instrument);
+									}
+				);
+				$.getJSON('/dataset/attrjson',
+										{ attribute:'site',
+											valuetype:vt,
+										  date:date
+										},
+										function(data){
+											var html='<option value="">Please select...</option>';
+											$.each(data,function(index,item){
+												html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
+											});
+											$('#siteselect_'+subplotpos).html(html).val(site);
+										}
+				);
+				
+			}
 			
 
 		}
