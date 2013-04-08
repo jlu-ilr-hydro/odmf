@@ -3,9 +3,9 @@ html {
 	padding: 0px;
 	margin: 0px;
 }
-body, table, div, p, dl {
+body, table, div, p, dl, button {
 	font-family: Lucida Grande, Verdana, Geneva, Arial, sans-serif;
-	font-size: 16px;
+	font-size: 14px;
 	padding: 0px;
 	margin: 0px;
 }
@@ -87,14 +87,19 @@ div.navigate {
     font-weight: bold;
     font-style: italic;
     text-align: right;
-    float: left;
     padding-right: 0px;
     padding-left: 0px;
     padding-top:0px;
     margin: 0px 0px 0px 0px;
     width: 189px;
-    height: 1773px;
-    overflow: hidden !important; /* FF Scroll-leiste */ 
+    height: 100%;
+    /*float: left;*/
+
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    overflow: hidden; 
 }
 
 div.navigate li {
@@ -114,12 +119,22 @@ div.navigate a:hover {
 div.content {
 	background-color: white;
 	color: black;
+	
+	position: fixed;
+	left: 190px;
+	right: 0;
+	top:0;
+	bottom:0;
+	overflow:auto;
+	/*
 	margin-left: 189px;
 	margin-top: 0px;
+
 	padding-left: 0px;
 	padding-top: 0px;
 	padding-bottom: 10px;
 	padding-right: 5px;
+		*/
 }
 .error {
     background-color: red; 

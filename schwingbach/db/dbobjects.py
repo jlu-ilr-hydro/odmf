@@ -262,6 +262,8 @@ class Job(Base):
                     )
     def __cmp__(self,other):
         return cmp(self.id,other.id)
+    def is_due(self):
+        return (self.done is None) and (self.due + timedelta(days=1)<datetime.today())
     def parse_description(self,action='done',time=None):
         """Creates jobs, logs and mails from the description
         The description is parsed by line. When a line "when done:" is encountered
@@ -281,8 +283,10 @@ class Job(Base):
         msg=[]
         while lines:
             try:
-                line=lines.popleft()
-                if line.strip(',.-;:').startswith('create'):
+                line=lines.popleft().strip(',.-;: ')
+                if line.startswith('when'):
+                    break
+                elif line.startswith('create'):
                     if line.count(':'):
                         cmdstr,text = line.split(':',1)
                         cmd=[w.strip(',.-;:_()#') for w in cmdstr.split()]
@@ -317,18 +321,18 @@ class Job(Base):
                                 to = cmd[cmd.index('to')+1:]
                                 to = session.query(Person).filter(Person.username.in_(to))
                                 to = to.all()
-                                import smtplib
-                                from email.mime.text import MIMEText
-                                s = smtplib.SMTP('mailout.uni-giessen.de')
-                                msgdata = dict(id=self.id,action=action,text=text,name=str(self))
-                                text = u'The job %(name)s is %(action)s\nhttp://fb09-pasig.umwelt.uni-giessen.de:8081/job/%(id)s\n\n %(text)s' % msgdata
-                                subject=u'Studienlandschaft Schwingbach: job #%(name)s is %(action)s' % msgdata
-                                msg = MIMEText(text.encode('utf-8'),'plain','utf-8')
-                                msg['Subject'] = subject
-                                msg['From'] = self.author.email
-                                msg['To'] = to[0].email
-                                s.sendmail(self.author.email,[you.email for you in to],msg.as_string())
-                                s.quit()
+                                msgdata = dict(id=self.id,action=action,text=text,name=unicode(self),
+                                               description=self.description)
+                                text = u'''The job %(name)s is %(action)s
+                                        http://fb09-pasig.umwelt.uni-giessen.de:8081/job/%(id)s
+                                        
+                                        %(text)s
+                                        
+                                        %(description)s
+                                        ''' % msgdata
+                                subject=u'Studienlandschaft Schwingbach: job #%(id)s is %(action)s' % msgdata
+                                from tools.mail import EMail
+                                EMail(self.author.email,[you.email for you in to],subject,text).send()
                             except:
                                 raise RuntimeError('"%s" is not a valid mail, problem: %s' % (line,traceback()))
                     else:
@@ -336,7 +340,7 @@ class Job(Base):
             except Exception as e:
                 errors.append(e.message)
         return objects,errors
-                
+               
     def make_done(self,time=None):
         "Marks the job as done and performs effects of the job"
         self.done=True
