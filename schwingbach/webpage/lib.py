@@ -93,8 +93,8 @@ loader = TemplateLoader(abspath('templates'),
 
 expose = cherrypy.expose
 HTTPRedirect = cherrypy.HTTPRedirect
-def navigation():
-    return Markup(render('navigation.html').render('xml'))
+def navigation(title=''):
+    return Markup(render('navigation.html',title=title).render('xml'))
 def attrcheck(kw,condition):
     if condition:
         return {kw:kw}

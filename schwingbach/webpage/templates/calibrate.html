@@ -34,9 +34,8 @@
 	</script>
 </head>
 <body>
-	${navigation()}
+	${navigation('Calibrate ' + unicode(target))}
 	<div class="content">
-    <h1>Calibrate ${target}</h1>
     <div class="error" py:content="error" />
   	<form method="get" action="/dataset/calibration">
 	    <h2>

@@ -19,9 +19,8 @@
 	}
 </style>
 <body>
-	${navigation()}
+	${navigation('Log in')}
 	<div class="content">
-		<h1>Log in</h1>
 		<div class="error" py:content="error" />
 		<h3>Current user: ${users.current}</h3>
 		<form method="post" action="/login">
@@ -59,8 +58,11 @@
 				<div class="space">
 					<h1>About</h1>
 					<img src="/media/schwingbachlogo.png" alt="logo"/>
-					<a href="http://www.uni-giessen.de/cms/ilr">
-						<img src="http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/sidepanels/instlogo.jpg/image_preview" />
+					<a href="http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
+						<img src="/media/ilr-logo_4_klein_RGB.png" alt="ILR"/>
+					</a>
+					<a href="http://www.uni-giessen.de">
+						<img src="/media/jlu-logo-150.png" alt="University Giessen"/>
 					</a>
 
 					<div class="space">

@@ -45,10 +45,10 @@
 	</style>
 </head>
 <body>
-	${navigation()}
+	${navigation('File management')}
 	<div class="content">
 		<div py:if="is_member('logger')">
-			<h1>Upload...</h1>
+			<h2>Upload...</h2>
 	    <div class="error" py:content="error" />
 			<div style="vertical-align:middle;">
 				<img src="/media/shimmer/document_add_32.png" />
@@ -68,10 +68,10 @@
 			</div>
 	  </div>
 
-    <h1>Download</h1>
-		<h2>
+    <h2>Download</h2>
+		<h3>
 			<span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
-		</h2>
+		</h3>
 		<div class="help">
 			<h3>${curdir.basename.title()}</h3>
 			<div id="help" class="small"/>		

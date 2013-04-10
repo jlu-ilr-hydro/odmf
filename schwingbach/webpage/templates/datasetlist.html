@@ -14,7 +14,7 @@
   <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
 
     <script>
-    	//<[CDATA[
+    	//<![CDATA[
     		function popSelect() {
     			var vt = $('#vtselect').val()
     			var user = $('#userselect').val()
@@ -117,9 +117,8 @@
 
 </head>
 <body>
-	${navigation()}
+	${navigation('Datasets')}
 	<div class="content">
-		<h1>Datasets</h1>
 		<div>
 			<h2>Filter:</h2>
 			<div class="small">
@@ -136,8 +135,8 @@
 					<option value="">Please select...</option>
 				</select>
 				date:
-				<input id="dateselect" type="text" class="datepicker" value=""  
-							onchange="popSelect();" class="filter" tabindex="5"/>
+				<input id="dateselect" type="text" class="datepicker filter" value=""  
+							onchange="popSelect();" tabindex="5"/>
 				<button onclick="setFilter();">apply filter</button>
 				<button onclick="clearFilter();">clear filter</button>
 			</div>

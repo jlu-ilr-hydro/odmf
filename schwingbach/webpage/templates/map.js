@@ -17,11 +17,18 @@
 			setpref(data);
 		}
 		function map_mousemove(loc) {
-			$('#coordinates').html(loc.toUrlValue());
+			$('#coordinates').html(loc.lat().toFixed(6) + '°N, ' + loc.lng().toFixed(6) + '°E');
 		}
 		function map_dblclick(loc) {
-			map.setCenter(loc);
-			map.setZoom(map.getZoom() + 1);
+			if ($('#createsite').prop('checked')) {
+				var url = '/site/new';
+				url += '?lat=' + loc.lat();
+				url += '&lon=' + loc.lng();
+				window.location.href = url; 				
+			} else {
+				map.setCenter(loc);
+				map.setZoom(map.getZoom() + 1);
+			}
 		}
 		function clearmarker() {
 			$.each(markers,function(index,marker) {

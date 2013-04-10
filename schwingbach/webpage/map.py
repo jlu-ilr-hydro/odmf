@@ -10,9 +10,9 @@ class MapPage(object):
     exposed=True
     @web.expose
     def index(self):
-        res = file(web.abspath('templates/map.html')).read()
-        return res.replace('${navigation()}',web.navigation())  
-    
+        #res = file(web.abspath('templates/map.html')).read();
+        #return res.replace("${navigation('Map')}",web.navigation('Map'))  
+        return web.render('map.html').render('html',doctype='html')
     @web.expose
     def sites(self):
         session=db.Session()

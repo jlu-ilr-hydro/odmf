@@ -51,7 +51,7 @@ class Line(object):
                                                     db.Dataset.site==self.site)
         if self.instrument:
             datasets=datasets.filter(db.Dataset.source == self.instrument)
-        return datasets.all()
+        return datasets.order_by(db.Dataset.start).all()
         
     def load(self,startdate=None,enddate=None):
         self.v = None
