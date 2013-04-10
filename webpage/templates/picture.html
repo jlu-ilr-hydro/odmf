@@ -64,9 +64,8 @@
 	</style>
 </head>
 <body>
-		${navigation()}
+		${navigation(image.name if image else 'Picture')}
 		<div class="content">
-			<h1>${image.name if image else 'Picture'}</h1>
 		  <div class="error" py:content="error" />
 		  
 			<a py:if="image" href="/picture">&#x25C2;overview</a>

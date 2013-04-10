@@ -1,26 +1,42 @@
 <xml xmlns:py="http://genshi.edgewall.org/" >
-	<a style="float:right;" href="http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
-		<img src="/media/ilrlogo.jpg" />
-	</a>
+	<!--
+	</h1>-->
 	<div class="navigate" >
 		<img src="/media/schwingbachlogo.png"/>
 		<a href="javascript:window.location='/login?frompage='+window.location.pathname;"
 			 py:content="users.current if users.current else 'login'" title="login"/>
 		<ul>
 			<li><a href="/map">map</a></li>
-			<li py:if="is_member('logger')"><a href="/plot">plot</a></li>
-			<li py:if="is_member('guest')"><a href="/site">sites</a></li>
-			<li><a href="/picture">pictures</a></li>
-			<li py:if="is_member('guest')"><a href="/dataset/last">data sets</a> </li>
-			<li py:if="is_member('guest')"><a href="/valuetype">value types</a></li>
-			<li py:if="is_member('guest')"><a href="/instrument">instruments</a></li>
-			<li py:if="is_member('logger')"><a href="/download">download</a></li>
-			<li py:if="is_member('editor')"><a href="/user">users</a></li>
-			<li py:if="is_member('editor')"><a href="/job">jobs</a></li>
-			<li py:if="is_member('logger')"><a href="/log">log</a></li>
-      <li><div id="navigate_extra"></div></li>
+			<li py:if="is_member('logger')"><a href="/plot"        >plot</a></li>
+			<li py:if="is_member('guest')" ><a href="/site"        >sites</a></li>
+			<li><a href="/picture"                                 >pictures</a></li>
+			<li py:if="is_member('guest')" ><a href="/dataset/last">data sets</a> </li>
+			<li py:if="is_member('guest')" ><a href="/valuetype"   >value types</a></li>
+			<li py:if="is_member('guest')" ><a href="/instrument"  >instruments</a></li>
+			<li py:if="is_member('logger')"><a href="/download"    >download</a></li>
+			<li py:if="is_member('admin')" ><a href="/calendar"    >calendar</a></li>
+			<li py:if="is_member('editor')"><a href="/user"        >users</a></li>
+			<li py:if="is_member('editor')"><a href="/job"         >jobs</a></li>
+			<li py:if="is_member('logger')"><a href="/log"         >log</a></li>
+      <li><div id="navigate_extra"   ></div></li>
 		</ul>
   </div>
+	<div style="vertical-align: middle;">
+  	<h1 style="position: absolute; top 0px; left: 189px; z-index: 10; right: 0px;">
+		${title}
+		<span style="position: absolute; top 0px; right: 0px;">
+			<a href="http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
+				<img src="/media/ilr-logo_4_klein_RGB.png" alt="ILR"/>
+			</a>
+			<a href="http://www.uni-giessen.de">
+				<img src="/media/jlu-logo-150.png" alt="University Giessen"/>
+			</a>
+			
+		</span>
+		</h1>		
+	</div>
+			
+
   
 
 </xml>

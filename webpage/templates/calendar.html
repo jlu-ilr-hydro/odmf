@@ -14,11 +14,18 @@
   <script src="/media/fullcalendar/jquery/jquery-ui-1.10.2.custom.min.js" type="text/javascript" ></script>
   <script src='/media/fullcalendar/fullcalendar.min.js'></script>
 	<script>
+	
 		//<![CDATA[
+		function date2str(date) {
+			//return date.getDay() + '.' + (date.getMonth()+1) + '.' + date.getFullYear();
+			var str = date.toLocaleString() 
+			return str.substr(0,str.length - 9);
+		}
 		function getsource(url) {
 			return {
 				url: '/calendar/' + url + '.json',
 				type: 'POST',
+				data: {responsible: 'all'},
 				allDayDefault: false,
 
 				error: function() {
@@ -45,7 +52,11 @@
           if (view.name !== 'agendaDay') {
               $(jsEvent.target).attr('title', event.title);
           }
-        }
+        },
+        dayClick: function( date, allDay, jsEvent, view ) {
+        	$('#calendar').fullCalendar('gotoDate',date);
+        	$('#currentdate').html(date2str(date));
+        },
 			});
 			
 		}
@@ -55,7 +66,8 @@
 				var src=getsource($('#eventsource').val());
 				$('#calendar').fullCalendar('addEventSource',src);
 			});
-			
+			var date = $('#calendar').fullCalendar('getDate');
+			$('#currentdate').html(date2str(date));			
 		});
 		//]]>
 	</script>
@@ -63,29 +75,38 @@
 		#calendar {
 			width: 100%;
 	    margin: 0 auto;
-	    font-size: 10px;
+	    font-size: 1em;
 		}
 		div.fc-event-inner {
-			font-size: 0.75em;
+			font-size: 0.9em;
 		}
 		div.fc-event {
 			height: 0.8em;
+		}
+		h2 {
+			background: none;
+			font-size: 2em;
+			font-style:italic;
+			font-weight: bold;
+			border-bottom: none;
 		}
 	</style>	
 	
 </head>
 <body>
-	${navigation()}
+	${navigation('Calendar')}
 	<div class="content">
-		<h1>Calendar</h1>
 		<div class="error"></div>
 		<div>
 			
 		</div>
+		<!--
 		<div>
 			Calendar source:
 			<input id="eventsource" size="20"/>
 		</div>
+		-->
+		<div id="currentdate"></div>
 		<div id="calendar" ></div>
 	</div>
 </body>

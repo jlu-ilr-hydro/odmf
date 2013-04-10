@@ -69,10 +69,9 @@
 	db - module 
 -->
 <body>
-	${navigation()}
+	${navigation('Data sets')}
   <div class="content">
 	  <div class="error" py:content="error" />
-		<h1>Data sets</h1>
 		<a href="/dataset">Go to list...</a>
 	
 	  <div py:if="activedataset" py:with="mean,std,n=activedataset.statistics()"> 

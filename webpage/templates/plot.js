@@ -159,7 +159,12 @@
 											$('#siteselect_'+subplotpos).html(html).val(site);
 										}
 				);
-				
+				if ($('#siteselect_'+subplotpos).val()!='' && 
+						$('#vtselect_'+subplotpos).val()!='') {
+					$('#addline_' + subplotpos).removeProp('disabled');
+				} else {
+					$('#addline_' + subplotpos).prop('disabled','disabled');			
+				}
 			}
 			
 

@@ -62,7 +62,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			list-style-image: url(/media/shimmer/brush_16.png)
 		}
 		ul.box_24 {
-			list-style-image: url(/media/shimmer/box_24.png)
+			list-style-image: url(/media/plot.png)
 		}
 		ul.doc {
 			list-style-image: url(/media/shimmer/document_16.png)
@@ -80,17 +80,25 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			color:#FFF;
 			border-radius: 10px;
 			text-decoration: none;
+			cursor: hand;
 		}
 	</style>
 		
 </head>
 <body>
 	<datalist id="numbers"><option py:for="i in xrange(10)" value="${i}"/></datalist>
-	${navigation()}
+	${navigation('Plot')}
 	<div class="content">
-		<h1>Plot</h1>
 		<div class="error" id="error"></div>
-		<h2><a href="javascript:toggle('properties')">&#x25BE; Properties</a></h2>
+		<h2><a href="javascript:toggle('properties')">&#x25BE; Properties</a>
+			<span class="box small leftspace">
+				<a href="javascript:$.post('clf',{},seterror);changeprops()" class="tooltip">
+					&#x2718;
+					<span>removes all lines and subplots of the figure</span>
+					clear plot
+				</a>
+			</span>
+		</h2>
 		<div id="properties">
 			<table class="small" style="display: inline-block">
 				<tr>
@@ -120,10 +128,6 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 					<td><input list="props numbers" value="${plot.columns}" id="plotcolumns" size="2"/></td>					
 				</tr>
 			</table>
-			<button onclick="$.post('clf',{},seterror);changeprops()"
-							style="width: 8em;">
-				&#x2718; clear plot
-			</button>
 
 			<!--
 				Subplots
@@ -131,31 +135,38 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			<ul class="box_24">
 				<li py:for="sp in plot.subplots" class="sp">
 					subplot ${sp.position} 
-					<a py:if="sp.position==len(plot.subplots)" 
-						href="javascript:removesubplot(${sp.position})" 
-						class="small leftspace"
-						title="remove">
-						&#x2718; remove...
+					<span class="box small leftspace"> 
+						<a py:if="sp.position==len(plot.subplots)" 
+							href="javascript:removesubplot(${sp.position})" 
+							class="tooltip">
+							&#x2718;
+							<span>remove subplot ${sp.position} from figure</span>
+							remove
 					</a>
+					</span>
 					<ul class="brush">
 						<li py:for="i,l in enumerate(sp.lines)" class="small line">
-							<span class="small box">
-								<a href="javascript:removeline(${sp.position},${i})" title="remove line">
+							<span class="small box" id="linetools_${sp.position}_${i}">
+								<a href="javascript:removeline(${sp.position},${i})" title="remove line" class="tooltip">
 									&#x2718; 
+									<span>remove line</span>
 								</a>
-								<a href="/plot/export.csv?${'subplot=%i&amp;line=%i' % (sp.position,i)}" title="export to csv">
+								<a href="/plot/export.csv?${'subplot=%i&amp;line=%i' % (sp.position,i)}" class="tooltip">
 									csv&#x25B8;
+									<span>export to csv file...</span>
 								</a>
-								<a href="javascript:showlinedatasets(${sp.position},${i})" title="show datasets">
+								<a href="javascript:showlinedatasets(${sp.position},${i})" class="tooltip">
 									&#x25BE;ds
+									<span>show datasets of line</span>
 								</a>
 							</span>
 							${l}
 							<ul id="datasetlist_${sp.position}_${i}" class="datasetlist small doc"/>
 						</li>
 						<li class="small line">
-							<button onclick="addline(${sp.position})" title="add a line">
+							<button onclick="addline(${sp.position})" class="tooltip" id="addline_${sp.position}">
 								<img src="/media/plus-small.png"/>
+								<span>Add the line to subplot ${sp.position}</span>
 							</button>
 								value:
 								<select id="vtselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter vtselect">
@@ -202,8 +213,9 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 
 				</li>
 				<li class="sp">
-					<button onclick="javascript:addsubplot()">
+					<button onclick="javascript:addsubplot()" class="tooltip">
 						<img src="/media/plus-small.png"/>
+						<span>Add a new subplot to the figure</span>
 					</button>
 						add subplot
 				</li>

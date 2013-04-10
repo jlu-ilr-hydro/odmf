@@ -24,9 +24,8 @@
 		error: some error messages
 		cancommit: If True, a commit is possible
 	-->
-	${navigation()}
+	${navigation('Import logs to database')}
 	<div class="content">
-    <h1>Import logs to database</h1>
     <div class="error" py:content="error" />
     <h3>${filename}</h3>
     <div class="warning" py:if="not cancommit">

@@ -524,7 +524,7 @@ class CalendarPage(object):
                        title=j.name,
                        start=j.due,
                        end=j.done if j.done else j.due,
-                       color='#888' if j.done else '#F80',
+                       color='#AAA' if j.done else '',
                        allDay=True) for j in jobs]
         res = web.as_json(events)
         session.close()
@@ -613,6 +613,10 @@ class Root(object):
                         ).join(db.Dataset.source).group_by(db.Datasource.name,db.Dataset._site)
         for r in q:
             yield str(r) + '\n'
+    @expose_for()
+    def robots_txt(self):
+        web.setmime(web.mime.plain)
+        return "User-agent: *\nDisallow: /\n"
     
 
         

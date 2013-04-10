@@ -17,8 +17,9 @@ class DatasetPage:
     exposed=True
     @expose_for()
     def index(self):
-        text = file(web.abspath('templates/datasetlist.html')).read()
-        return text.replace('${navigation()}',web.navigation())
+        return web.render('datasetlist.html').render('html',doctype='html');
+        #text = file(web.abspath('templates/datasetlist.html')).read()
+        #return text.replace('${navigation()}',web.navigation())
 
     @expose_for(group.guest)
     def default(self,id='new',site_id=None,vt_id=None,user=None):
