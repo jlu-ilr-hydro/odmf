@@ -521,7 +521,7 @@ class CalendarPage(object):
             pass
         events = [dict(id=j.id,
                        url='/job/%i' % j.id,
-                       title=j.name,
+                       title=unicode(j),
                        start=j.due,
                        end=j.done if j.done else j.due,
                        color='#AAA' if j.done else '',
