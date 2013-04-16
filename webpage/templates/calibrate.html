@@ -22,45 +22,74 @@
 								padding-right: 0.5em; 
 								text-align: right;								
 							}
+		.method_off {
+			display:none;
+		}
 	</style>
   <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
 	<script>
-		//<![CDATA[]
+		//<![CDATA[
     function toggle(id) {
     	$('#' + id).slideToggle('fast');
     }
-
+		function reload(targetid,calibrate) {
+			var data={};
+			data = {
+				sourceid:$('#sourceid').val(),
+				targetid:targetid,
+				calibrate:calibrate
+			};
+			$.get('/dataset/calibration',data,function(html){
+				$('#content').html(html);
+			});
+		}
+		function changemethod() {
+			$('.method_lr,.method_off').fadeToggle();
+		}
 		//]]>
 	</script>
+  <script py:if="result">
+  	//<![CDATA[
+  	function applycalib(withslope) {
+  		var slope = withslope?${result.slope}:1.0;
+  		var offset = withslope?${result.offset}:${result.meanoffset};
+  		var params = {sourceid:${source.id},
+  									targetid:${target.id},
+  									slope:slope,offset:offset};
+  		$.post('/dataset/calibration/apply/',params,function(data){
+  			if (data) {
+  				$('.error').html(data);
+  			} else {
+  				window.location='/dataset/${target.id}'
+  			}
+  		});
+  	}
+  	//]]>
+  </script>
 </head>
 <body>
-	${navigation('Calibrate ' + unicode(target))}
-	<div class="content">
+	<!--${navigation('Calibrate ' + unicode(target))}
+	<div class="content">-->
+	<div id="content">
     <div class="error" py:content="error" />
-  	<form method="get" action="/dataset/calibration">
-	    <h2>
-	    	Calibrate from:
-		    	<input type="hidden" value="${target.id}" name="targetid"/>
-		    	<select name="sourceid">
-		    		<option value="" style="font-style: italic;">&lt;Please select...&gt;</option>
-		    		<option py:for="ds in sources" value="${ds.id}" 
-		    						py:content="ds" 
-		    						py:attrs="markoption(ds is source)"/>
-		    	</select>
-		    	<input type="submit" value="load source" />
-	    </h2>
-    	</form>
+    <div>    	
+    	Calibrate from:
+	    	<input type="hidden" value="${target.id}" name="targetid"/>
+	    	<select id="sourceid" onchange="reload(${target.id},false)">
+	    		<option value="" style="font-style: italic;">&lt;Please select...&gt;</option>
+	    		<option py:for="ds in sources" value="${ds.id}" 
+	    						py:content="ds" 
+	    						py:attrs="markoption(ds is source)"/>
+	    	</select>
+    </div>
     <div py:if="source">
-    	Source dataset: <a href="/dataset/${source.id}">${source}</a><br/>
     	Records in timeseries: ${sourcecount}<br/>
-	    <form method="get" action="/dataset/calibration">
+    	<div>
 	    	<p>
 		    	Limit time error to: <input type="text" name="limit" value="${limit}" />s    		
 	    	</p>
-	    	<input type="hidden" value="${target.id}" name="targetid"/>
-	    	<input type="hidden" value="${source.id}" name="sourceid"/>
-	    	<input type="submit" value="Calibrate" name="calibrate" />
-	    </form>
+	    	<button onclick="reload(${target.id},true)">calibrate</button>
+			</div>
     </div>
     <div py:if="result">
 	    <h3><a href="javascript:toggle('result')">&#x25BE; Calibration results</a></h3>
@@ -69,19 +98,21 @@
 	    		<th class="record">index</th>
 	    		<th class="record">value</th>
 	    		<th class="record">unit</th>
+	    		<th class="record"></th>
+	    		<th class="record"></th>
 	    	</tr>
 	    	<tr>
-	    		<td>number of matches</td>
+	    		<td title="Number of matches">n</td>
 	    		<td class="value">${len(result)}</td>
 	    		<td></td>
 	    	</tr>
 	    	<tr>
-	    		<td>x&#772; <sub>target</sub></td>
+	    		<td>mean(x<sub>target</sub>)</td>
 	    		<td class="value">${'%g' % result.target_mean}&plusmn;${'%0.4g' % result.target_std}</td>
 	    		<td py:content="unit"/>
 	    	</tr>
 	    	<tr>
-	    		<td>x&#772; <sub>source</sub></td>
+	    		<td>mean(x<sub>source</sub>)</td>
 	    		<td class="value">${'%g' % result.source_mean}&plusmn;${'%0.4g' % result.source_std}</td>
 	    		<td py:content="unit"/>
 	    	</tr>
@@ -89,61 +120,56 @@
 	    		<td>r<sup>2</sup></td>
 	    		<td class="value">${'%g' % result.r2}</td>
 	    	</tr>
-	    	<tr>
+	    	<tr title="Root mean square error, uncalibrated">
 	    		<td>RMSE</td>
 	    		<td class="value">${'%g' % result.rmse}</td>
 	    		<td py:content="unit"/>
 	    	</tr>
-	    	<tr>
-	    		<td>slope (b)</td>
-	    		<td class="value"><span id="slope" py:content="'%g' % result.slope"/></td>
+	    	<tr><td></td></tr>
+	    	<tr class="record">
+	    		<th class="record">
+	    			Calibration method:
+	    		</th>
+	    		<th class="record">linear regression</th>
+	    		<th class="record"></th>
+	    		<th class="record">mean offset</th>
+	    		<th class="record"></th>
 	    	</tr>
-	    	<tr>
-	    		<td>offset (a)</td>
+	    	<tr class="method_lr">
+	    		<td>slope</td>
+	    		<td class="value"><span id="slope" py:content="'%g' % result.slope"/></td>
+	    		<td></td>
+	    		<td class="value"><span id="slope" py:content="'1.0'"/></td>
+	    	</tr>
+	    	<tr class="method_lr">
+	    		<td>offset</td>
 	    		<td class="value"><span id="offset" py:content="'%g' % result.offset"/></td>
 	    		<td py:content="unit"/>
-	    	</tr>
-	    	<tr>
-	    		<td>x&#772; <sub>source</sub> - x&#773; (off)<sub>target</sub></td>
 	    		<td class="value"><span id="meanoffset" py:content="'%g' % result.meanoffset"/></td>
 	    		<td py:content="unit"/>
 	    	</tr>
-	    	<tr>
-	    		<td>RMSE(b x<sub>target</sub> + a)</td>
+	    	<tr class="method_lr" title="Root mean square error, calibrated">
+	    		<td >RMSE<sub>calib.</sub></td>
 	    		<td class="value">${'%g' % result.rmse_lr}</td>
 	    		<td py:content="unit"/>
-	    	</tr>
-	    	<tr>
-	    		<td>RMSE(x<sub>target</sub> + off)</td>
 	    		<td class="value">${'%g' % result.rmse_off}</td>
 	    		<td py:content="unit"/>
 	    	</tr>
+	    	<tr>
+	    		<td></td>
+	    		<td>
+						<button onclick="applycalib(true)">
+	    				calibrate regression
+	    			</button>
+	    		</td>
+	    		<td></td>
+	    		<td>
+	    			<button onclick="applycalib(false)">
+	    				calibrate offset
+	    			</button>
+					</td>
+	    	</tr>
 	    </table>
-	    <script>
-	    	//<![CDATA[
-	    	function applycalib(withslope) {
-	    		var slope = withslope?${result.slope}:1.0;
-	    		var offset = withslope?${result.offset}:${result.meanoffset};
-	    		var params = {sourceid:${source.id},
-	    									targetid:${target.id},
-	    									slope:slope,offset:offset};
-	    		$.post('/dataset/calibration/apply/',params,function(data){
-	    			if (data) {
-	    				$('.error').html(data);
-	    			} else {
-	    				window.location='/dataset/${target.id}'
-	    			}
-	    		});
-	    	}
-	    	//]]>
-	    </script>
-	    <button onclick="applycalib(true)">
-	    	Use offset and slope
-	    </button>
-	    <button onclick="applycalib(false)">
-	    	Use x&#772; <sub>source</sub> - x&#773; (off)<sub>target</sub>
-	    </button>
-   		<br/>
 	    <h3><a href="javascript:toggle('resultlist')">&#x25BE; Matching records</a></h3>
 	    <table py:with="unit=source.valuetype.unit if source else ''" class="toggle" id="resultlist">
 	    	<tr class="record">

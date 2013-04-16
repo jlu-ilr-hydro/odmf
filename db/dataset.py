@@ -53,29 +53,7 @@ class ValueType(Base):
                     unit=self.unit,
                     comment=self.comment)
 
-class DataGroup(Base):
-    """The data group is an idea to group datasets belonging to each other.
-    The idea is depricated, the code is still present for later use. 
-    Might be deleted in the fututre"""
-    __tablename__ = 'datagroup'
-    id = sql.Column(sql.Integer,primary_key=True)
-    name = sql.Column(sql.String,unique=True)
-    _valuetype=sql.Column("valuetype",sql.Integer,sql.ForeignKey('valuetype.id'))
-    valuetype = orm.relationship("ValueType")
-    _site=sql.Column("site",sql.Integer, sql.ForeignKey('site.id'))
-    site = orm.relationship("Site")
-    comment=sql.Column(sql.String)
-    def append(self,dataset):
-        if (dataset.valuetype is self.valuetype and
-            dataset.site is self.site):
-            dataset.group = self
-    def __jdict__(self):
-        return dict(id=self.id,
-                    name=self.name,
-                    valuetype=self.valuetype,
-                    site=self.site,
-                    comment=self.comment)
-        
+       
     
 
 class Dataset(Base):
@@ -97,7 +75,6 @@ class Dataset(Base):
     calibration_offset, calibration_slope: Values to apply an linear transformation of the records
     comment: Some more details for the dataset
     
-    group: depricated entry, do not use
     
     Backwards references:
     records: A query for records
@@ -122,8 +99,6 @@ class Dataset(Base):
     quality = orm.relationship("Quality")
     _source = sql.Column("source",sql.Integer,sql.ForeignKey('datasource.id'),nullable=True)
     source = orm.relationship("Datasource",backref="datasets")
-    _group = sql.Column("group",sql.Integer,sql.ForeignKey('datagroup.id'),nullable=True)
-    group = orm.relationship("DataGroup",backref='datasets')
     calibration_offset = sql.Column(sql.Float,nullable=False,default=0.0)
     calibration_slope = sql.Column(sql.Float,nullable=False,default=1.0)
     comment=sql.Column(sql.String)
@@ -147,7 +122,6 @@ class Dataset(Base):
                     valuetype=self.valuetype,
                     measured_by=self.measured_by,
                     quality=self.quality,
-                    group=self.group,
                     comment=self.comment,
                     label=self.__str__())
 
@@ -179,13 +153,6 @@ class Dataset(Base):
         result = Record(id=Id,time=time,value=value,dataset=self,comment=comment)
         session.add(result)
         return result
-    
-    def potential_groups(self,session):
-        "Deprecated"
-        q = session.query(DataGroup)
-        q=q.filter_by(valuetype = self.valuetype)
-        q=q.filter_by(site = self.site)
-        return q
     
     def statistics(self):
         """Calculates mean, stddev and number of records for this data set
