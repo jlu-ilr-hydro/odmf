@@ -55,7 +55,11 @@
 		    <form method="post" enctype="multipart/form-data" action="/download/upload" style="display: inline;">
 		    	file:
 		    	<div style="display: inline-block;">
-						<input id="overwrite" type="checkbox" value="overwrite" name="overwrite" title="allow overwrite"/>
+		    		<span class="tooltip">
+		    			<input id="overwrite" type="checkbox" value="overwrite" name="overwrite"/>
+		    			<span>Allow to overwrite existing file with the same name</span>
+		    		</span>
+						
 			    	<input type="file" name="datafile" onchange="$('.upload').prop('disabled', !$(this).val());"/>		    		
 		    	</div>
 		    	<input name="dir" type="hidden" value="${curdir}" />
