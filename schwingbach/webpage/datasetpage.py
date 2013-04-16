@@ -11,7 +11,7 @@ from genshi import escape
 from cStringIO import StringIO
 from auth import group, expose_for, users
 import codecs
-from calculation.calibration import Calibration
+from tools.calibration import Calibration, CalibrationSource
 
 class DatasetPage:
     exposed=True
@@ -48,12 +48,12 @@ class DatasetPage:
                             "same time": parallel_datasets.filter(db.Dataset.id!=active.id)}
             except:
                 datasets={}
-            result= web.render('dataset.html',activedataset=active,session=session,
+            result= web.render('datasettab.html',activedataset=active,session=session,
                               error=error,datasets=datasets,db=db,title='Schwingbach-Datensatz #' + str(id)
                               ).render('html',doctype='html')
                 
         except:
-            result = web.render('dataset.html',error=traceback(),title='Schwingbach-Datensatz (Fehler)',
+            result = web.render('datasettab.html',error=traceback(),title='Schwingbach-Datensatz (Fehler)',
                               session=session,datasets=datasets,db=db,activedataset=None).render('html',doctype='html')
         finally:
             session.close()
@@ -367,22 +367,21 @@ class CalibratePage(object):
         error=''
         target = db.Dataset.get(session,int(targetid))
         sources = session.query(db.Dataset).filter_by(site=target.site).filter(db.Dataset.start<=target.end,db.Dataset.end>=target.start)
-
-        sourceid = web.conv(int,sourceid)
+        if sourceid:
+            sourceid = int(sourceid)
         limit=web.conv(int,limit,3600)
         source=sourcerecords=None
         sourcecount=0
         result = Calibration()
 
         if sourceid:
-            source = db.Dataset.get(session,sourceid)
-            sourcerecords = source.records.filter(db.Record.time>=target.start,
-                                                  db.Record.time<=target.end)
+            source = CalibrationSource([sourceid], target.start, target.end)
+            sourcerecords = source.records(session)
             sourcecount=sourcerecords.count()
             
-            if calibrate:
+            if calibrate and calibrate!='false':
                 result=Calibration(target,source,limit)
-                
+            source = db.Dataset.get(session,sourceid)    
         out = web.render('calibrate.html',
                           error=error,
                           target=target,

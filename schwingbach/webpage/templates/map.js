@@ -1,3 +1,4 @@
+    // toggle the appeareance of the element with id. Uses jQuery slide
     function toggle(id) {
     	$('#'+id).slideToggle('fast');
     }
@@ -6,6 +7,7 @@
                     contentType:"application/json; charset=utf-8" });
 		  $.post('/preferences/update',$.toJSON(data),null,'json');    	
     }
+    // Saves the actual map preferences to the session / file
 		function savemappref() {
 			var center = map.getCenter();
 			var data = {item:'map',
@@ -16,9 +18,12 @@
 				   			};
 			setpref(data);
 		}
+		// Shows the actual map coordinates in div #coordinates. Event handler
 		function map_mousemove(loc) {
 			$('#coordinates').html(loc.lat().toFixed(6) + '°N, ' + loc.lng().toFixed(6) + '°E');
 		}
+		// Handles double click on the map
+		// If checkbox #createsite is checked, a new site is created, else zoom in
 		function map_dblclick(loc) {
 			if ($('#createsite').prop('checked')) {
 				var url = '/site/new';
@@ -30,22 +35,24 @@
 				map.setZoom(map.getZoom() + 1);
 			}
 		}
+		// Clears the markers from the map
 		function clearmarker() {
 			$.each(markers,function(index,marker) {
 				marker.setMap(null);
 			});
 			markers.length = 0;			
 		}
-        function selectsite(id) {
-            $('#infotext').load('/map/sitedescription/' + id, 
-                function(response, status, xhr) {
-                    if (status == "error") {
-                        var msg = "Sorry but there was an error: ";
-                        $("#infotext").html(msg + xhr.status + " " + xhr.statusText);
-                    }
-                });
-            selectedmarker = id;
-        }
+		
+    function selectsite(id) {
+        $('#infotext').load('/map/sitedescription/' + id, 
+            function(response, status, xhr) {
+                if (status == "error") {
+                    var msg = "Sorry but there was an error: ";
+                    $("#infotext").html(msg + xhr.status + " " + xhr.statusText);
+                }
+            });
+        selectedmarker = id;
+    }
 		function setmarkers(source,filter) {
 			clearmarker();
 			var selectionsymbol = new google.maps.MarkerImage('/media/mapicons/selection.png',

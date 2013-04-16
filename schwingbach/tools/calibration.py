@@ -15,6 +15,16 @@ class Match:
         self.dt=dt
     def delta(self):
         return self.source-self.target
+class CalibrationSource:
+    def __init__(self,datasetids,start=None,end=None):
+        self.datasets = datasetids
+        self.start=start
+        self.end=end
+    def records(self,session):
+        return session.query(db.Record).filter(db.Record._dataset.in_(self.datasets),
+                                                ~db.Record.is_error,
+                                                db.Record.time>=self.start,
+                                                db.Record.time<=self.end)
         
 class Calibration:
     def __len__(self):
@@ -24,8 +34,7 @@ class Calibration:
         self.source = source
         self.matches = []
         if target and source:
-            sourcerecords = self.source.records.filter(db.Record.time>=self.target.start,
-                                                       db.Record.time<=self.target.end)
+            sourcerecords = self.source.records(self.target.session())
             for sr in sourcerecords:
                 tv,dt = target.findvalue(sr.time)
                 if dt<=limit: 
