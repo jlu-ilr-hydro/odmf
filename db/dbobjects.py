@@ -263,7 +263,7 @@ class Job(Base):
     def __cmp__(self,other):
         return cmp(self.id,other.id)
     def is_due(self):
-        return (self.done is None) and (self.due + timedelta(days=1)<datetime.today())
+        return (not self.done) and (self.due + timedelta(days=1)<datetime.today())
     def parse_description(self,action='done',time=None):
         """Creates jobs, logs and mails from the description
         The description is parsed by line. When a line "when done:" is encountered
