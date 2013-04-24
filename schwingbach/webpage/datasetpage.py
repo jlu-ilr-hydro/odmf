@@ -324,7 +324,7 @@ class DatasetPage:
         session.close()
         return res
             
-    @expose_for(group.supervisor)
+    @expose_for(group.editor)
     def plot_coverage(self,siteid):
         session = db.Session()
         web.setmime('image/png')

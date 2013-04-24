@@ -12,7 +12,7 @@
 	  <div class="error" py:content="error" />
 	
 			<ul id="Inhalt" >
-			<li>
+			<li py:if="is_member('supervisor')">
 				<a href="/valuetype/new"><b>New value type...</b></a>			
 			</li>
 			<li py:for="v in valuetypes">
@@ -48,7 +48,7 @@
 				</div>
 				<input type="submit" name="save" value="save changes" style="width: 10em;"/>						
 			</form>
-			<div py:if="not is_member('editor') and actualvaluetype">
+			<div py:if="not is_member('supervisor') and actualvaluetype">
 					<h2 py:content="actualvaluetype" />
 	
 					<table style="width: 100%">
