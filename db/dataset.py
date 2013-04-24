@@ -176,7 +176,6 @@ class Dataset(Base):
                         measured_by=self.measured_by,
                         quality=self.quality,
                         source=self.source,
-                        group=self.group,
                         calibration_offset=self.calibration_offset,
                         calibration_slope=self.calibration_slope,
                         comment=self.comment,

@@ -239,7 +239,7 @@
 						<a href="/dataset/${ds.id}?site_id=${actualsite.id}" 
 						py:content="ds" />
 					</li>
-					<li py:if="is_member('supervisor')">
+					<li py:if="is_member('editor')">
 						<script>
 							function makeplotcover() {
 								$('#plotcoverageimg').attr('src','/dataset/plot_coverage/${actualsite.id}');							

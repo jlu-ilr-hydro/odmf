@@ -113,7 +113,10 @@
 				<table>
 					<tr py:if="activedataset.valuetype">
 						<td class="bold">Data:</td>
-						<td><a href="/valuetype/${activedataset.valuetype.id}" py:content="activedataset.valuetype.name"/>
+						<td><a href="/valuetype/${activedataset.valuetype.id}" class="tooltip">
+                                ${activedataset.valuetype.name}
+                                <span>${activedataset.valuetype.comment}</span>
+                            </a>
 							<span py:if="activedataset.records.count()" >
 											${'%0.4g' % mean} ${('&plusmn; %0.4g' % std) if std else ''} ${activedataset.valuetype.unit}, n=${n}
 							</span>
@@ -168,7 +171,7 @@
 				<form action="/dataset/saveitem" method="post">
 					<input type="text" name="id" value="${activedataset.id}" style="display: none;" />
 					<a py:if="is_member('admin') and activedataset.start"
-							href="javascript:remove(${activedataset.id},'${str(activedataset)}',${activedataset.records.count()});">
+							href="javascript:remove(${activedataset.id},'${activedataset}',${activedataset.records.count()});">
 						<img src="/media/minus-small.png" />remove dataset
 					</a>
 					<table style="width: 100%">
