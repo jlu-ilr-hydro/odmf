@@ -31,12 +31,13 @@ class DatasetPage:
         error=''
         datasets={}
         try:
-            site = session.query(db.Site).get(site_id) if site_id else None
-            valuetype = session.query(db.ValueType).get(vt_id) if vt_id else None
-            user = session.query(db.Person).get(user) if user else None
+            #site = session.query(db.Site).get(site_id) if site_id else None
+            #valuetype = session.query(db.ValueType).get(vt_id) if vt_id else None
+            #if user is None: user = web.user()
+            #user = session.query(db.Person).get(user) if user else None
             if id=='new':
-                active = db.Dataset(id=db.newid(db.Dataset,session),
-                                    site=site,valuetype=valuetype, measured_by = user)
+                active = db.Dataset(id=db.newid(db.Dataset,session),name = 'New Dataset')#,
+                                    #site=site,valuetype=valuetype, measured_by = user)
             else:
                 active = session.query(db.Dataset).get(id)
                 if active:

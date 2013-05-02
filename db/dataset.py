@@ -159,10 +159,11 @@ class Dataset(Base):
         """
         session = self.session()
         if not session:
-            return 0,0,0
+            return 0,0,0            
+        n = self.records.filter(Record.is_error == False).count()
+        if not n: return 0,0,0
         mean = session.query(sql.func.avg(Record.value)).filter(Record.dataset==self).filter(Record.is_error == False).scalar()
         std = session.query(sql.func.stddev(Record.value)).filter(Record.dataset==self).filter(Record.is_error == False).scalar()
-        n = self.records.filter(Record.is_error == False).count()
         return mean,std,n
     
     def copy(self,id):

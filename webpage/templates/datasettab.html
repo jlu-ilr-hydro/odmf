@@ -107,7 +107,7 @@
   <div class="content">
 	  <div class="error" py:content="error" />
 		<a href="/dataset">Go to list...</a><a href="javascript:gotods();" tabindex="1" class="leftspace">&#x25B6;goto dataset...</a>
-		<div py:if="activedataset" py:with="mean,std,n=activedataset.statistics()">
+		<div py:if="activedataset" py:with="mean,std,n=activedataset.statistics() if activedataset.valuetype else (0,0,0)">
 			<h2 py:content="'#%i %s (%s-%s)' % (activedataset.id,activedataset.name,formatdate(activedataset.start),formatdate(activedataset.end))" />	
 			<div id="description">
 				<table>
@@ -157,7 +157,7 @@
 				</table>
 			</div>
 		</div>
-	  <div py:if="activedataset" id="tab" py:with="mean,std,n=activedataset.statistics()">
+	  <div py:if="activedataset" id="tab" py:with="mean,std,n=activedataset.statistics() if activedataset.valuetype else (0,0,0)">
 	  	<ul id="tabheads">
 	  		<li py:if="is_member('editor')"><a href="#edit">edit</a></li>
 	  		<li><a href="#similar">similar</a></li>
