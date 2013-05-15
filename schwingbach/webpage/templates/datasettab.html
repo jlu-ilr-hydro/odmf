@@ -248,10 +248,6 @@
 				</button>
 				<form action="/dataset/saveitem" method="post">
 					<input type="text" name="id" value="${activedataset.id}" style="display: none;" />
-					<a py:if="is_member('admin') and activedataset.start"
-							href="javascript:remove(${activedataset.id},'${activedataset}',${activedataset.records.count()});">
-						<img src="/media/minus-small.png" />remove dataset
-					</a>
 					<table style="width: 100%">
 						<tr>
 							<td style="width: 10em">Name:</td>
