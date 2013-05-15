@@ -122,7 +122,11 @@ def formatdatetime(t=None):
         return t.strftime('%d.%m.%Y %H:%M:%S')
     except:
         return None
-    
+def formatfloat(v,style='%g'):
+    try:
+        return style % v
+    except:
+        return 'N/A'
 def parsedate(s):
     res=None
     formats = ('%d.%m.%Y %H:%M:%S','%d.%m.%Y %H:%M','%d.%m.%Y',
@@ -148,6 +152,7 @@ class Renderer(object):
                           'formatdate' : formatdate,
                           'formattime' : formattime,
                           'formatdatetime' : formatdatetime,
+                          'formatfloat' : formatfloat,
                           'user' : user,
                           'users': auth.users,
                           'is_member': auth.is_member,

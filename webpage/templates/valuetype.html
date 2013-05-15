@@ -5,6 +5,16 @@
 	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>ValueTypes</title>
+  <link href="/media/jquery-ui-1.8.18.custom.css" rel="stylesheet" type="text/css"/>
+	<script src="/media/jquery-1.7.1.min.js" type="text/javascript"></script>
+
+	<script>
+			//<![CDATA[
+      function toggle(id) {
+      	$('#'+id).slideToggle('fast');
+      }		
+      //]]>
+	</script>
 </head>
 <body>
 	${navigation('Value types')}
@@ -19,10 +29,40 @@
 				<a href="${'/valuetype/%s' % v.id}" py:content="v"/>
 			</li>
 		</ul>
-	    <div class="rightpane"> 
-			<form action="/valuetype/saveitem" method="post" py:if="is_member('supervisor')">
-				<div py:if="actualvaluetype">
-					<h2 py:content="actualvaluetype" />
+    <div class="rightpane">
+			<div py:if="actualvaluetype">
+				<h2 py:content="actualvaluetype" />
+				<table style="width: 100%">
+					<tr>
+						<td style="width: 7em">ID:</td>
+						<td py:content="actualvaluetype.id" />
+					</tr>
+					<tr>
+						<td>Name:</td>
+						<td py:content="actualvaluetype.name" />
+					</tr>
+					<tr>
+						<td>Unit:</td>
+						<td py:content="actualvaluetype.unit" />
+					</tr>
+					<tr>
+						<td>
+							Allowed value range:
+						</td>
+						<td>
+							${'%(min)s%(u)s - %(max)s%(u)s' % dict(min=formatfloat(actualvaluetype.minvalue),
+								max=formatfloat(actualvaluetype.maxvalue),u=actualvaluetype.unit)}  
+						</td>
+					</tr>
+					<tr>
+						<td>Comment:</td>
+						<td py:content="actualvaluetype.comment" />
+					</tr>
+				</table>
+			</div>
+			<h3><a href="javascript:toggle('edit')">&#x25BE; Edit properties</a></h3>
+			<div py:if="actualvaluetype" id="edit" class="toggle">
+				<form action="/valuetype/saveitem" method="post" py:if="is_member('supervisor')">
 					<table style="width: 100%">
 						<tr>
 							<td style="width: 7em">ID:</td>
@@ -37,6 +77,14 @@
 							<td><input type="text" name="unit" value="${actualvaluetype.unit}" /></td>
 						</tr>
 						<tr>
+							<td>Lowest value:</td>
+							<td><input type="number" name="minvalue" value="${actualvaluetype.minvalue}"/></td>
+						</tr>
+						<tr>
+							<td>Highest value:</td>
+							<td><input type="number" name="maxvalue" value="${actualvaluetype.maxvalue}"/></td>
+						</tr>
+						<tr>
 							<td>Comment:</td>
 							<td>
 								<textarea name="comment" 
@@ -45,31 +93,10 @@
 							</td>
 						</tr>
 					</table>
-				</div>
-				<input type="submit" name="save" value="save changes" style="width: 10em;"/>						
-			</form>
-			<div py:if="not is_member('supervisor') and actualvaluetype">
-					<h2 py:content="actualvaluetype" />
-	
-					<table style="width: 100%">
-						<tr>
-							<td style="width: 7em">ID:</td>
-							<td py:content="actualvaluetype.id" />
-						</tr>
-						<tr>
-							<td>Name:</td>
-							<td py:content="actualvaluetype.name" />
-						</tr>
-						<tr>
-							<td>Unit:</td>
-							<td py:content="actualvaluetype.unit" />
-						</tr>
-						<tr>
-							<td>Comment:</td>
-							<td py:content="actualvaluetype.comment" />
-						</tr>
-					</table>
+					<input type="submit" name="save" value="save changes" style="width: 10em;"/>						
+				</form>
 			</div>
+
 			<div py:if="actualvaluetype">
 				<h2>Datasets</h2>
 				<ul>

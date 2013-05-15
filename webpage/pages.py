@@ -111,6 +111,8 @@ class VTPage:
                     session.add(vt)
                 vt.name=kwargs.get('name')
                 vt.unit=kwargs.get('unit')
+                vt.minvalue=web.conv(float,kwargs.get('minvalue'))
+                vt.maxvalue=web.conv(float,kwargs.get('maxvalue'))
                 vt.comment=kwargs.get('comment')
                 session.commit()
                 session.close()
