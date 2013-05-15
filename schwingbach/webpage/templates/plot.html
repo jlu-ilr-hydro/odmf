@@ -27,6 +27,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			for (var i=0;i<10;i++) {
 				popSelect(i);
 			}
+			$('#addsubplot').removeProp('disabled');
     });
     //]]>
 	</script>
@@ -213,7 +214,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 
 				</li>
 				<li class="sp">
-					<button onclick="javascript:addsubplot()" class="tooltip">
+					<button id="addsubplot" onclick="javascript:addsubplot()" class="tooltip">
 						<img src="/media/plus-small.png"/>
 						<span>Add a new subplot to the figure</span>
 					</button>

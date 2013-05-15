@@ -4,11 +4,31 @@
 <head>
 	
 	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<link href="/media/jqmath/jqmath-0.4.0.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>${title}</title>
 	<link href="/media/jquery-ui-1.8.18.custom.css" rel="stylesheet" type="text/css"/>
     <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
     <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
+    <!--<script src="/media/jqmath/jscurry-0.3.0.js" type="text/javascript"></script>
+    <script src="/media/jqmath/jqmath-0.4.0.js" type="text/javascript"></script>-->
+    
+    <script type="text/javascript"
+  		src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+		</script>
+		<script py:if="activedataset">
+			function loadstatistics() {
+				var id=${activedataset.id}
+				var unit='${activedataset.valuetype.unit}'
+				$.getJSON('/dataset/statistics/',{id:id},function(data){
+					$('#mean').html(data.mean.toPrecision(4));
+					$('#std').html(data.std.toPrecision(4));
+					$('#splitthreshold').val(data.std.toPrecision(4));
+					$('#n').html(data.n);
+				});
+			}
+
+		</script>
     <script>
     		//<![CDATA[
         $(function() {
@@ -19,9 +39,19 @@
 					$('#tabheads a').click(function() {
 						$('#title').html('Data sets (' + $(this).html() + ')');
 					});
-
-        	
+					loadstatistics();
         });
+        function reload(error) {
+        	if (error) {
+        		if (error.substring(0,5)=='goto:') {
+        			window.location.href = error.substring(5);
+        		} else {
+	        		$('.error').html(error);      			
+        		}
+        	} else {
+        		window.location.reload(true);
+        	}
+        }
         function toggle(id) {
         	$('#' + id).slideToggle('fast');
         }
@@ -92,7 +122,33 @@
 		.leftspace {
 			margin-left: 2em;
 		}
-			
+		.big {
+			font-size: 1.5em;
+		}
+		span.box {
+			padding: 0px;
+			background-color: #FFF;
+			margin-right: 10px;
+		}
+		span.box a{
+			padding: 0px 2px;
+		}
+		span.box a:hover {
+			background-color:#32739D;
+			color:#FFF;
+			border-radius: 10px;
+			text-decoration: none;
+			cursor: hand;
+		}
+		#trans_help td {
+			border: solid 1px black;
+			background-color: white;
+			padding: 0px 5px;
+		}
+		button.small {
+			width: 3em;
+			height: 2em;
+		}
 	</style>
 </head>
 <!--
@@ -106,19 +162,24 @@
 	${navigation('Data sets')}
   <div class="content">
 	  <div class="error" py:content="error" />
-		<a href="/dataset">Go to list...</a><a href="javascript:gotods();" tabindex="1" class="leftspace">&#x25B6;goto dataset...</a>
-		<div py:if="activedataset" py:with="mean,std,n=activedataset.statistics() if activedataset.valuetype else (0,0,0)">
-			<h2 py:content="'#%i %s (%s-%s)' % (activedataset.id,activedataset.name,formatdate(activedataset.start),formatdate(activedataset.end))" />	
+		<a href="/dataset">Go to list...</a>
+		<a href="javascript:gotods();" tabindex="1" class="leftspace">&#x25B6;goto dataset...</a>
+		<div py:if="activedataset" py:with="n=activedataset.size()">
+			<h2 py:content="activedataset" />	
 			<div id="description">
 				<table>
+					<tr>
+						<td class="bold">Type:</td>
+						<td>${activedataset.type}</td>
+					</tr>
 					<tr py:if="activedataset.valuetype">
 						<td class="bold">Data:</td>
 						<td><a href="/valuetype/${activedataset.valuetype.id}" class="tooltip">
                                 ${activedataset.valuetype.name}
                                 <span>${activedataset.valuetype.comment}</span>
                             </a>
-							<span py:if="activedataset.records.count()" >
-											${'%0.4g' % mean} ${('&plusmn; %0.4g' % std) if std else ''} ${activedataset.valuetype.unit}, n=${n}
+							<span id="statistics" >
+								<span id="mean">?</span> &plusmn; <span id="std">?</span> ${activedataset.valuetype.unit}, n=<span id="n">${n}</span>
 							</span>
 						</td>
 					</tr>
@@ -129,7 +190,7 @@
 						</td>
 					</tr>
 					<tr>
-						<td class="bold">Measured by:</td>
+						<td class="bold">Responsible:</td>
 						<td>
 							<a href="${'/user/%s' % (activedataset.measured_by.username if activedataset.measured_by else '')}">
 								${activedataset.measured_by}
@@ -142,11 +203,15 @@
 					</tr>
 					<tr>
 						<td class="bold">Data source:</td>
-						<td py:content="activedataset.source" />
+						<td><a href="/instrument/${activedataset.source.id}" py:content="activedataset.source" /></td> 
 					</tr>
-					<tr py:if="activedataset.quality and activedataset.quality.id>=3">
+					<tr py:if="activedataset.is_timeseries() and activedataset.quality and activedataset.quality.id>=3">
 						<td class="bold">Calibration: </td>
 						<td py:content="'v\' = %g * v + %g' % (activedataset.calibration_slope,activedataset.calibration_offset)" />
+					</tr>
+					<tr py:if="activedataset.is_transformed()">
+						<td class="bold">Transformation:</td>
+						<td class="big">\(f(x)=${activedataset.latex}\)</td>
 					</tr>
 					<tr>
 						<td class="bold">Comment:</td>
@@ -157,17 +222,30 @@
 				</table>
 			</div>
 		</div>
-	  <div py:if="activedataset" id="tab" py:with="mean,std,n=activedataset.statistics() if activedataset.valuetype else (0,0,0)">
+	  <div py:if="activedataset" id="tab" py:with="n=activedataset.size()">
 	  	<ul id="tabheads">
 	  		<li py:if="is_member('editor')"><a href="#edit">edit</a></li>
+	  		<li py:if="activedataset.is_transformed()"><a href="#transforms">transforms</a></li>
 	  		<li><a href="#similar">similar</a></li>
-	  		<li py:if="is_member('editor')"><a href="#records">records</a></li>	  		
+	  		<li py:if="activedataset.is_timeseries() and is_member('editor')"><a href="#records">records</a></li>	  		
 	  		<li><a href="#plot">plot</a></li>
-	  		<li py:if="is_member('editor') and activedataset.valuetype and std"><a href="#split">split</a></li>
-	  		<li py:if="is_member('editor')"><a href="/dataset/calibration?targetid=${activedataset.id}">calibrate</a></li>
+	  		<li py:if="activedataset.is_timeseries() and is_member('editor') and activedataset.valuetype"><a href="#split">split</a></li>
+	  		<li py:if="activedataset.is_timeseries() and is_member('editor')"><a href="/dataset/calibration?targetid=${activedataset.id}">calibrate</a></li>
 	  		<li py:if="is_member('logger')"><a href="#export">export</a></li>
 	  	</ul> 
 			<div id="edit" py:if="is_member('editor')">
+				<button py:if="is_member('admin')" class="tooltip small"
+						onclick="javascript:remove(${activedataset.id},'${str(activedataset)}',${n});">
+					&#x2718;
+					<span>remove dataset</span>
+				</button>
+				
+				<button py:if="activedataset.is_timeseries() and is_member('editor')"
+					 onclick="$.post('/dataset/create_transformation/',{sourceid:${activedataset.id}},reload)"
+					 class="tooltip small">
+					f(x)
+					<span>Create a transformation for this dataset</span>
+				</button>
 				<form action="/dataset/saveitem" method="post">
 					<input type="text" name="id" value="${activedataset.id}" style="display: none;" />
 					<a py:if="is_member('admin') and activedataset.start"
@@ -176,11 +254,11 @@
 					</a>
 					<table style="width: 100%">
 						<tr>
-							<td>Name:</td>
+							<td style="width: 10em">Name:</td>
 							<td><input type="text" name="name" value="${activedataset.name}" /></td>
 						</tr>
 						<tr>
-							<td><a href="${'/user/%s' % (activedataset.measured_by.username if activedataset.measured_by else '')}"> Measured by:</a></td>
+							<td><a href="${'/user/%s' % (activedataset.measured_by.username if activedataset.measured_by else '')}">Responsible:</a></td>
 							<td>
 								<select name="measured_by">
 									<option value=""><i>Please select...</i></option>
@@ -227,12 +305,12 @@
 								</select>
 							</td>
 						</tr>
-						<tr>
-							<td style="width: 7em">From (date):</td>
+						<tr py:if="activedataset.is_timeseries()">
+							<td>From (date):</td>
 							<td><input type="text" class="datepicker" name="start" value="${formatdate(activedataset.start)}" /></td>
 						</tr>
-						<tr>
-							<td>Until (Datum):</td>
+						<tr py:if="activedataset.is_timeseries()">
+							<td>Until (date):</td>
 							<td><input type="text" class="datepicker" name="end" value="${formatdate(activedataset.end)}" /></td>
 						</tr>
 						<tr>
@@ -247,22 +325,30 @@
 								</select>
 							</td>
 						</tr>
-						<tr>
+						<tr py:if="activedataset.is_timeseries()">
 							<td>
 								<a href="/dataset/calibration?targetid=${activedataset.id}">Calibrate</a>: 
 							</td>
 							<td>
-								v' = <input type="text" value="${activedataset.calibration_slope}" name="calibration_slope" size="5" style="text-align: right;" />
-								* v + <input type="text" value="${activedataset.calibration_offset}" name="calibration_offset" size="5" style="text-align: right;"/>
+								v' = <input type="text" value="${formatfloat(activedataset.calibration_slope)}" name="calibration_slope" size="5" style="text-align: right;" />
+								* v + <input type="text" value="${formatfloat(activedataset.calibration_offset)}" name="calibration_offset" size="5" style="text-align: right;"/>
 							</td>
 						</tr>
+						<tr py:if="activedataset.is_transformed()" title="Please enter a valid Python/numpy expression for the transformation. See below for guidance">
+							<td>Python:</td>
+							<td>
+								\(f(x)=\)<input type="text" value="${activedataset.expression}" name="expression" size="50"/>
+							</td>
+						</tr>
+						<tr py:if="activedataset.is_transformed()" title="Please enter the latex description for the formula for printing">
+							<td>Latex:</td>
+							<td>
+								\(f(x)=\)<input type="text" value="${activedataset.latex}" name="latex" size="50"/>
+							</td>
+						</tr>					
 						<tr>
 							<td>Comments</td>
 							<td>
-								<p>
-									The database is still under construction. Please insert instrument type and other meta data
-									in the comment.
-								</p>
 								<textarea name="comment" 
 									  style="width: 100%;"
 									  rows="10" 
@@ -270,9 +356,68 @@
 							</td>
 						</tr>
 					</table>
-					<input type="submit" name="save"  style="width: 10em;"/>						
+					<input type="submit" name="save"  style="width: 10em;"/>			
+					<div py:if="activedataset.is_transformed()" id="trans_help">
+						<h3>Some help for the Python and latex expressions</h3>
+						Do not use any other variables in the expression than x (the values of the timeseries)
+						<table>
+							<tr>
+								<th>Equation type</th>
+								<th>Example</th>
+								<th>Python code</th>
+								<th>Latex code</th>
+							</tr>
+							<tr>
+								<td>Polynom</td>
+								<td>\(-0.5\cdot10^{-5}x^3+2.35x^2-124.5x+15.3\)</td>
+								<td>-0.5e-5*x**3 + 2.35*x**2 - 124.5*x + 15.3</td>
+								<td>-0.5\dot10^{-5}x^3+2.35x^2-124.5x+15.3</td>
+							</tr>
+							<tr>
+								<td>Exponential</td>
+								<td>\(3.2 e^{0.5x}\)</td>
+								<td>3.2 * exp(0.5*x)</td>
+								<td>3.2 e^{0.5x}</td>
+							</tr>
+							<tr>
+								<td>nat. log.</td>
+								<td>\(\ln{x}\)</td>
+								<td>log(x)</td>
+								<td>\ln{x})</td>
+							</tr>
+							<tr>
+								<td>dec. log.</td>
+								<td>\(\log_{10}{x}\)</td>
+								<td>log10(x)</td>
+								<td>\log_{10}{x}</td>
+							</tr>
+						</table>
+					</div>
+			
 				</form>
 			</div>
+			<div id="transforms" py:if="activedataset.is_transformed()">
+	  		<h3>This data set transforms the records of the following data sets:</h3>
+	  		<ul style="list-style:none;">
+	  			<li py:for="source in activedataset.sources" >
+	  				<button class="tooltip small" onclick="$.post('/dataset/transform_removesource/',{transid:${activedataset.id},sourceid:${source.id}},reload)">
+	  					&#x2718;<span>Remove source from transformation</span>
+	  				</button>
+						<a class="tooltip" href="${source.id}" >${source}<span class="small">${source.size()} records</span></a>
+	  			</li>
+	  			<li>
+	  				<button class="tooltip small" onclick="$.post('/dataset/transform_addsource/',{transid:${activedataset.id},sourceid:$('#trans_sources').val()},reload)">
+	  					<img src="/media/plus-small.png"/>
+	  					<span>Adds the source for transformation</span>
+	  				</button>
+	  				<select id="trans_sources">
+	  					<option value="" style="font-style: italic;">Please select</option>
+	  					<option py:for="potsrc in activedataset.suitablesources()" value="${potsrc.id}">${potsrc}</option>
+	  				</select>
+	  			</li>
+	  		</ul>
+	  	</div>
+
 			<div id="plot" >
 				<button onclick="plotds(${activedataset.id});">Plot</button>
 	
@@ -314,8 +459,8 @@
 					<img id="plotimg" alt="" src=""/>
 				</div>
 			</div>
-			<div id="split" py:if="is_member('editor') and activedataset.valuetype and std" >
-				Threshold:<input id="splitthreshold" type="text" value="${'%0.3g' % std}" style="text-align: right;" />${activedataset.valuetype.unit}
+			<div id="split" py:if="is_member('editor') and activedataset.is_timeseries() and activedataset.valuetype" >
+				Threshold:<input id="splitthreshold" type="text" value="" style="text-align: right;" />${activedataset.valuetype.unit}
 				<input type="button" onclick="loadsplitrecords(${activedataset.id});" value="Find"/>
 				<div id="splitrecords" />
 			</div>
@@ -332,7 +477,7 @@
 					</div>
 				</div>
 			</div>
-			<div id="records" class="small" py:if="is_member('editor') and activedataset">
+			<div id="records" class="small" py:if="is_member('editor') and activedataset and activedataset.is_timeseries()">
 				min.&nbsp;date=&nbsp;<input type="text" id="recordmindate" class="datepicker" size="10"/>&nbsp;<input type="text" id="recordmintime" size="5" />			
 				max.&nbsp;date=&nbsp;<input type="text" id="recordmaxdate" class="datepicker" size="10"/>&nbsp;<input type="text" id="recordmaxtime" size="5" />
 				min.&nbsp;value=&nbsp;<input type="text" id="recordminvalue"/>

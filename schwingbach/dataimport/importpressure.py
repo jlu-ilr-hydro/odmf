@@ -63,9 +63,12 @@ class PressureImport(ImportAdapter):
         for r,error in self.loadvalues():
             if error:
                 errors.append(error)
-            elif (not self.startdate) or r.date>self.startdate:
-                Drec.append(dict(id=r.id,time=r.date,value=r.d,dataset=dsD.id))
-                Trec.append(dict(id=r.id,time=r.date,value=r.T,dataset=dsT.id))
+            elif (((not self.startdate) or r.date>=self.startdate)
+                  and (not self.enddate) or r.date<=self.enddate):
+                if not dsD.valuetype.outofrange(r.d):
+                    Drec.append(dict(id=r.id,time=r.date,value=r.d,dataset=dsD.id))
+                if not dsT.valuetype.outofrange(r.T):
+                    Trec.append(dict(id=r.id,time=r.date,value=r.T,dataset=dsT.id))
                 i+=1
             if i % self.commitinterval == 0 and i:
                 Drec,Trec=self.raw_commit(Drec,Trec)

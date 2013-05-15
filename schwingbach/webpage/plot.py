@@ -58,44 +58,12 @@ class Line(object):
         self.t = None
         session=db.Session()
         error=''
+        start=self.subplot.plot.startdate
+        end=self.subplot.plot.enddate
         try:
-            datasets = self.getdatasets(session)
-            # Get records
-            records = session.query(db.Record)
-            # filter records by dataset
-            dsids = [ds.id for ds in datasets]
-            records = records.filter(db.Record._dataset.in_(dsids),~db.Record.is_error)
-            # Filter records by date
-            if startdate:
-                records = records.filter(db.Record.time>=startdate)
-            if enddate:
-                records = records.filter(db.Record.time<=enddate)
-            
-            # Order records by time
-            records=records.order_by(db.Record.time)
-            count = records.count()
-            
-            # Get transformation
-            if self.transformation:
-                trans = lambda x: eval(self.transformation)
-            else:
-                trans = lambda x: x
-            
-            # calibrate a (time,value,dataset) tuple
-            calicoeff=dict((ds.id,(ds.calibration_slope,ds.calibration_offset)) for ds in datasets)
-            calibrate = lambda r: r[1] * calicoeff[r[2]][0] + calicoeff[r[2]][1]
-            
-            # Allocate memory for timeseries
-            if not self.t or len(self.t)!=count:        
-                self.t = plt.zeros(shape=count,dtype=float)
-            if not self.v or len(self.v)!=count:
-                self.v = plt.zeros(shape=count,dtype=float)
-            # Set values in timeseries
-            for i,r in enumerate(records.values('time','value','dataset')):
-                self.t[i] = date2num(r[0])
-                self.v[i] = nan if r[1] is None else calibrate(r) 
-            self.v = trans(self.v)    
-            
+            datasets=self.getdatasets(session)
+            group = db.DatasetGroup([ds.id for ds in datasets], start, end)
+            self.t,self.v = group.asarray(session)
         except:
             error = traceback()
         finally:
