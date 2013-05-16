@@ -129,7 +129,7 @@
 		</div>
 		<div py:if="actualsite">
 			<p py:content="actualsite" />
-			<p py:content="actualsite.comment" />
+			<p py:content="markdown(actualsite.comment)" />
 			<p py:content="actualsite.as_coordinatetext() + ', UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
 			<h3 py:if="is_member('editor')"><a href="javascript:toggle('edit')">&#x25BE; Edit properties</a></h3>
 			<form py:if="is_member('editor')" action="/site/saveitem" method="post" id="edit" class="toggle">
@@ -169,10 +169,17 @@
 						</tr>
 						<tr>
 							<td>Comments</td>
-							<td>
+							<td class="tooltip">
 							<textarea name="comment" 
 									  style="width: 100%;"
 									  rows="10" >${actualsite.comment}</textarea>
+								<span>
+									<strong>Add a comment describing the site.</strong><br/>You can use 
+									<a href="http://en.wikipedia.org/wiki/Markdown" style="text-decoration: ;">&#x25B8;Markdown</a> 
+									for formatting comments.<br/>
+									If you reference datasets like eg. "ds219", links are automatically created.<br/>
+									Link to files using the syntax "file:user/index.html".
+								</span>
 							</td>
 						</tr>
 					</table>

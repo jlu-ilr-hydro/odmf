@@ -25,6 +25,12 @@
 			</li>
 		</ul>
 	    <div class="rightpane"> 
+	    	<h2 py:content="active_person"/>
+	    	<div py:with="U=active_person">
+	    		${markdown(U.email)}
+	    		${markdown(U.comment)}
+    		</div>
+	    		
 			<form action="/user/saveitem" method="post">
 				<h2>Edit user</h2>
 				<table style="width: 100%" py:if="active_person">

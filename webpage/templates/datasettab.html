@@ -19,7 +19,7 @@
 		<script py:if="activedataset">
 			function loadstatistics() {
 				var id=${activedataset.id}
-				var unit='${activedataset.valuetype.unit}'
+				var unit='${activedataset.valuetype.unit if (activedataset and activedataset.valuetype) else "?"}'
 				$.getJSON('/dataset/statistics/',{id:id},function(data){
 					$('#mean').html(data.mean.toPrecision(4));
 					$('#std').html(data.std.toPrecision(4));
@@ -189,7 +189,7 @@
 							<a href="/site/${activedataset.site.id}" py:content="activedataset.site" />
 						</td>
 					</tr>
-					<tr>
+					<tr py:if="activedataset.measured_by">
 						<td class="bold">Responsible:</td>
 						<td>
 							<a href="${'/user/%s' % (activedataset.measured_by.username if activedataset.measured_by else '')}">
@@ -201,7 +201,7 @@
 						<td class="bold">Quality:</td>
 						<td py:content="activedataset.quality" />
 					</tr>
-					<tr>
+					<tr py:if="activedataset.source">
 						<td class="bold">Data source:</td>
 						<td><a href="/instrument/${activedataset.source.id}" py:content="activedataset.source" /></td> 
 					</tr>
@@ -216,7 +216,7 @@
 					<tr>
 						<td class="bold">Comment:</td>
 						<td>
-							<div py:content="activedataset.comment" style="white-space: pre-line;"/>
+							<div py:content="markdown(activedataset.comment)" style="white-space: pre-line;"/>
 						</td>
 					</tr>
 				</table>
@@ -224,7 +224,6 @@
 		</div>
 	  <div py:if="activedataset" id="tab" py:with="n=activedataset.size()">
 	  	<ul id="tabheads">
-	  		<li py:if="is_member('editor')"><a href="#edit">edit</a></li>
 	  		<li py:if="activedataset.is_transformed()"><a href="#transforms">transforms</a></li>
 	  		<li><a href="#similar">similar</a></li>
 	  		<li py:if="activedataset.is_timeseries() and is_member('editor')"><a href="#records">records</a></li>	  		
@@ -232,6 +231,7 @@
 	  		<li py:if="activedataset.is_timeseries() and is_member('editor') and activedataset.valuetype"><a href="#split">split</a></li>
 	  		<li py:if="activedataset.is_timeseries() and is_member('editor')"><a href="/dataset/calibration?targetid=${activedataset.id}">calibrate</a></li>
 	  		<li py:if="is_member('logger')"><a href="#export">export</a></li>
+	  		<li py:if="is_member('editor')"><a href="#edit">edit</a></li>
 	  	</ul> 
 			<div id="edit" py:if="is_member('editor')">
 				<button py:if="is_member('admin')" class="tooltip small"
@@ -323,6 +323,17 @@
 						</tr>
 						<tr py:if="activedataset.is_timeseries()">
 							<td>
+								Timezone
+							</td>
+							<td>
+								<select name="uses_dst">
+									<option value="dst" py:attrs="markoption(activedataset.uses_dst)">Berlin</option>
+									<option value="" py:attrs="markoption(not activedataset.uses_dst)">Berlin, winter time</option>
+								</select>
+							</td>
+						</tr>
+						<tr py:if="activedataset.is_timeseries()">
+							<td>
 								<a href="/dataset/calibration?targetid=${activedataset.id}">Calibrate</a>: 
 							</td>
 							<td>
@@ -344,11 +355,18 @@
 						</tr>					
 						<tr>
 							<td>Comments</td>
-							<td>
+							<td class="tooltip">
 								<textarea name="comment" 
 									  style="width: 100%;"
 									  rows="10" 
 									  py:content="activedataset.comment" />
+								<span>
+									Add a comment describing the dataset.<br/>You can use 
+									<a href="http://en.wikipedia.org/wiki/Markdown" style="text-decoration: ;">&#x25B8;Markdown</a> 
+									for formatting comments.<br/>
+									If you reference other datasets like eg. "ds219", links are automatically created.<br/>
+									Link to files using the syntax "file:user/index.html".
+								</span>
 							</td>
 						</tr>
 					</table>

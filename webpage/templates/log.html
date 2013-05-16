@@ -84,7 +84,7 @@
 			<img src="/media/shimmer/brush_32.png" style="float: left; margin-top: 10px;"/>
 			<ul style="list-style: none;">
 				<li>
-					Message: <span style="font-style: italic; font-weight: bold;" py:content="actuallog.message" />	
+					Message: <span style="font-style: italic; font-weight: bold;" py:content="markdown(actuallog.message)" />	
 				</li>
 				<li py:if="actuallog.site">
 					Site: <a href="/site/${actuallog.site.id}" py:content="actuallog.site" />						

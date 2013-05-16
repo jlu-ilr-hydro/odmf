@@ -43,13 +43,13 @@ class DatasetPage:
         error=''
         datasets={}
         try:
-            #site = session.query(db.Site).get(site_id) if site_id else None
-            #valuetype = session.query(db.ValueType).get(vt_id) if vt_id else None
-            #if user is None: user = web.user()
-            #user = session.query(db.Person).get(user) if user else None
+            site = session.query(db.Site).get(site_id) if site_id else None
+            valuetype = session.query(db.ValueType).get(vt_id) if vt_id else None
+            if user is None: user = web.user()
+            user = session.query(db.Person).get(user) if user else None
             if id=='new':
-                active = db.Dataset(id=db.newid(db.Dataset,session),name = 'New Dataset')#,
-                                    #site=site,valuetype=valuetype, measured_by = user)
+                active = db.Timeseries(id=db.newid(db.Dataset,session),name = 'New Dataset',
+                                    site=site,valuetype=valuetype, measured_by = user)
             else: # Else load requested dataset
                 active = session.query(db.Dataset).get(int(id))
                 if active: # save requested dataset as 'last'
@@ -110,21 +110,27 @@ class DatasetPage:
             try:
                 # get database session
                 session = db.Session()
+                pers = db.Person.get(session,kwargs.get('measured_by'))
+                vt=db.ValueType.get(session,kwargs.get('valuetype'))
+                q=db.Quality.get(session,kwargs.get('quality'))
+                s=db.Site.get(session,kwargs.get('site'))
+                src=db.Datasource.get(session,kwargs.get('source'))
+
                 # get the dataset        
                 ds = session.query(db.Dataset).get(int(id))
                 if not ds:
                     # If no ds with id exists, create a new one
-                    ds=db.Dataset(id=id,type='timeseries')
+                    ds=db.Timeseries(id=id)
                 # Get properties from the keyword arguments kwargs
+                ds.site = s
                 ds.filename = kwargs.get('filename')
                 ds.name=kwargs.get('name')
                 ds.comment=kwargs.get('comment')
-                ds.measured_by = session.query(db.Person).get(kwargs.get('measured_by'))
-                ds.valuetype = session.query(db.ValueType).get(kwargs.get('valuetype'))
-                ds.quality = session.query(db.Quality).get(kwargs.get('quality'))
-                ds.site = session.query(db.Site).get(kwargs.get('site'))
-                if kwargs.get('source'):
-                    ds.source = session.query(db.Datasource).get(int(kwargs.get('source')))
+                ds.measured_by = pers
+                ds.valuetype = vt
+                ds.quality = q
+                if src:
+                    ds.source = src
                 
                 # Timeseries only arguments
                 if ds.is_timeseries():

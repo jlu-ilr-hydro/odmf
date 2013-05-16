@@ -78,9 +78,11 @@
 			</li>
 		</ul>
 	    <div class="rightpane"> 
+	    	
 			<form action="/instrument/saveitem" method="post" py:if="is_member('editor')">
 				<div py:if="actualinstrument">
 					<h2 py:content="actualinstrument" />
+					<div py:content="markdown(actualinstrument.comment)" />
 					<table style="width: 100%">
 						<tr>
 							<td style="width: 7em">ID:</td>
@@ -131,7 +133,7 @@
 					</tr>
 					<tr>
 						<td>Comment:</td>
-						<td py:content="actualinstrument.comment" />
+						<td py:content="markdown(actualinstrument.comment)" />
 	
 					</tr>
 				</table>
