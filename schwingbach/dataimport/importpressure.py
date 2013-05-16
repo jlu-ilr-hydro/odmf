@@ -33,11 +33,11 @@ class PressureImport(ImportAdapter):
         raw = session.query(db.Quality).get(0)
         idD = db.newid(db.Dataset,session)
         idT =idD+1
-        dsD = db.Dataset(id=idD,measured_by=user,valuetype=vtD,site=site,
+        dsD = db.Timeseries(id=idD,measured_by=user,valuetype=vtD,site=site,
                          filename=self.filename,comment=comment,source=inst,quality=raw)
         dsD.name = name + '-d'
         dsD.comment = 'Contains the uncalibrated water level above the sensor. Please change the valuetype after calibration.'
-        dsT = db.Dataset(id=idT,measured_by=user,valuetype=vtT,site=site,
+        dsT = db.Timeseries(id=idT,measured_by=user,valuetype=vtT,site=site,
                          filename=self.filename,comment=comment,source=inst,quality=raw)
         dsT.name = name + '-T'
         dsT.comment = 'Contains the uncalibrated water temperature at the sensor.'
