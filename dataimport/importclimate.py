@@ -63,7 +63,7 @@ class ClimateImporterDat(base.ImportAdapter):
                 vt_id,factor,colname = self.vtcoldict[column]
                 valuetype = session.query(db.ValueType).get(vt_id)
                 dsid = db.newid(db.Dataset, session)
-                ds = db.Dataset(id=dsid,site=site,measured_by=user,valuetype=valuetype,_source=self.instrumentid,
+                ds = db.Timeseries(id=dsid,site=site,measured_by=user,valuetype=valuetype,_source=self.instrumentid,
                             start=self.startdate,end=datetime.today(),name=colname)
                 session.add(ds)
                 self.datasets[column] = ds.id

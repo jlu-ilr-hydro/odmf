@@ -251,7 +251,7 @@ class TextImport(ImportAdapter):
         for col in self.descriptor.columns:
             vt = session.query(db.ValueType).get(col.valuetype)
             id = db.newid(db.Dataset,session)
-            ds = db.Dataset(id=id,measured_by=user,valuetype=vt,site=site,name=col.name,
+            ds = db.Timeseries(id=id,measured_by=user,valuetype=vt,site=site,name=col.name,
                             filename=self.filename,comment=col.comment,source=inst,quality=raw,
                             start=self.startdate,end=datetime.today())
             self.datasets[col.column] = ds.id
