@@ -616,6 +616,9 @@ class Root(object):
         for r in q:
             yield str(r) + '\n'
     @expose_for()
+    def markdown(self,fn):
+        return web.markdown(file(web.abspath(fn)).read())
+    @expose_for()
     def robots_txt(self):
         web.setmime(web.mime.plain)
         return "User-agent: *\nDisallow: /\n"

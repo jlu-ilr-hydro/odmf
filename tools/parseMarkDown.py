@@ -8,14 +8,14 @@ from markdown.extensions import Extension
 import re
 from markdown.preprocessors import Preprocessor
 from genshi.core import Markup
-class LinkDs(Preprocessor):
-    def run(self,lines):                                                                                                   
-        pattern = re.compile('(ds)([0-9]+)')                                                                               
-        return [pattern.sub(r'&#x25B9;[\1\2](/dataset/\2/)',line) for line in lines]
-class LinkFile(Preprocessor):
+
+class MarkDownLink(Preprocessor):
+    def __init__(self,md,pattern,sub):
+        super(MarkDownLink,self).__init__(md)
+        self.pattern = re.compile(pattern)
+        self.sub = sub
     def run(self,lines):
-        pattern = re.compile(r'(file:)(\S+)')
-        return [pattern.sub(r'&#x25B9;[\2](/datafiles/\2)',line) for line in lines]
+        return [self.pattern.sub(self.sub,line) for line in lines]
 
 
 # The UrlizePattern class is taken from: https://github.com/r0wb0t/markdown-urlize/blob/master/urlize.py
@@ -51,9 +51,13 @@ class UrlizePattern(markdown.inlinepatterns.Pattern):
            
 class MarkDown:
     def __init__(self):
-        self.md = markdown.Markdown()
-        self.md.preprocessors['link datasets']=LinkDs(self.md)
-        self.md.preprocessors['link files']=LinkFile(self.md)
+        self.md = markdown.Markdown(extensions=['nl2br'])
+        self.md.preprocessors['link datasets'] = MarkDownLink(self.md,'(ds)([0-9]+)',r'&#x25B9;[\1\2](/dataset/\2/)')
+        self.md.preprocessors['link files']=MarkDownLink(self.md,r'(file:)(\S+)',r'&#x25B9;[\2](/datafiles/\2)')
+        self.md.preprocessors['link sites']=MarkDownLink(self.md,'(#)([0-9]+)',r'&#x25B9;[\1\2](/site/\2)')
+        self.md.preprocessors['link job']=MarkDownLink(self.md,'(job)([0-9]+)',r'&#x25B9;[\1\2](/job/\2)')
+        self.md.preprocessors['link dir']=MarkDownLink(self.md,'(dir:)(\S+)',r'&#x25B9;[/\2](/download?dir=\2)')
+        self.md.preprocessors['link user']=MarkDownLink(self.md,'(\s@)(\S+)',r'&#x25B9;[/\2](/person\2)')
         self.md.inlinePatterns['autolink'] = UrlizePattern(URLIZE_RE, self.md)
     def __call__(self,s):
         if s:
