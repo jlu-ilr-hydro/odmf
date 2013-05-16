@@ -12,6 +12,10 @@ from datetime import datetime,timedelta
 from dbobjects import newid, Person, Datasource
 from collections import deque
 from math import sqrt
+import pytz
+tzberlin = pytz.timezone('Europe/Berlin')
+tzwinter = pytz.FixedOffset(60)
+tzutc = pytz.utc
 import numpy as np
 class Quality(Base):
     """Denotes the data quality of measurements, from raw to calibrated.
@@ -140,6 +144,9 @@ class Dataset(Base):
         return self.type=='transformed_timeseries'
     def is_geodataset(self):
         return self.type=='geodataset'
+    @property
+    def tzinfo(self):
+        return tzberlin if self.uses_dst else tzwinter
     def copy(self,id):
         """Creates a new dataset without records with the same meta data as this dataset.
         Give a new (unused) id
