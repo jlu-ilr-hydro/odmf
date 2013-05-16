@@ -129,7 +129,15 @@
 					style="background-color: ${j.color}">
 				<td py:content="j.id" />
 				<td py:content="j.responsible"/>
-				<td><a href="javascript:reload(${j.id})" py:content="j.name" /></td>
+				<td class="tooltip">
+					<a href="javascript:reload(${j.id})" >
+						${j.name}
+					</a>
+					<span style="max-width: 40%;">
+						<strong>${j.name}</strong>
+						${markdown(j.description)}
+					</span>
+				</td>
 				<td><a href="${j.link}">${j.link}</a></td>
 				<td py:content="formatdate(j.due)" />
 				<td py:content="j.type" />
