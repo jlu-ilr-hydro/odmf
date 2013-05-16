@@ -22,7 +22,7 @@ class LogColumns:
     value=4
     logtext=5
     msg=6
-    job=7
+    sample=7
 class LogbookImport(object):
     """Imports from an defined xls file messages to the logbook and append values to datasets"""
     t0 = datetime(1899,12,30)
@@ -107,7 +107,7 @@ class LogbookImport(object):
         timetolerance: the tolerance of the time in seconds
         """
         td = timedelta(seconds=30)
-        return timeseries.records.filter(db.sql.between(db.Log.time,time-td,time+td)).count()>0
+        return timeseries.records.filter(db.sql.between(db.Record.time,time-td,time+td)).count()>0
         
     def importrow(self,session,row):
         """
@@ -144,10 +144,15 @@ class LogbookImport(object):
             raise LogImportError(row,"A value is given, but no dataset")
         # Get logtype and message (for logs or as record comment)
         logtype,msg = self.get_value(row,(LogColumns.logtext,LogColumns.msg))
-        # Get job
-        job,err = self.get_obj(session, db.Job, row, LogColumns.job)
-        if err: raise LogImportError(row,'%s in not a valid Job.id')
-        
+        # Get job, currently disabled. Column 7 hold the sample name
+        #job,err = self.get_obj(session, db.Job, row, LogColumns.job)
+        #if err: raise LogImportError(row,'%s in not a valid Job.id')
+        job=None
+        # Get the sample name if present
+        try:
+            sample = self.get_value(row,LogColumns.sample)
+        except:
+            sample = None
         # If dataset and value present (import as record)
         if ds and not v is None:
             # Extent time of dataset
@@ -160,7 +165,7 @@ class LogbookImport(object):
                 raise LogImportError(row,'%s has already a record at %s' % (ds,time))
             else:
                 try:
-                    ds.addrecord(value=v,time=time,comment=msg)
+                    ds.addrecord(value=v,time=time,comment=msg,sample=(sample if sample else None))
                 except ValueError as e:
                     raise LogImportError(row,e.message)
             # Check for duplicate log. If log exists, go on quitely
@@ -245,7 +250,7 @@ class RecordImport(object):
             ds = session.query(db.Dataset).get(dsid)
             if not ds:
                 session.close()
-                errors[0] = 'Dataset %i not found in database. File %s is not imported' % (id, os.path.basename(self.filename))
+                errors[0] = 'Dataset %i not found in database. File %s is not imported' % (dsid, os.path.basename(self.filename))
                 return [dict(row=0,error=True,log=errors[0])],False 
             rid = 1
             for row in range(16,self.sheet.nrows):

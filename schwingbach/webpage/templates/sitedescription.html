@@ -5,7 +5,7 @@
 		#${site.id} (${site.name})
 	</a>
 </h2>
-<div py:content="site.comment" />
+<div py:content="markdown(site.comment)" />
 <div py:if="site.height" py:content="'%0.1f m NN' % site.height" />
 <div>
 	<a href="/site/${site.id}">edit...</a>

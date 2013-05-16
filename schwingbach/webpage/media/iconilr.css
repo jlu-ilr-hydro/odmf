@@ -254,10 +254,13 @@ a.filelink {
  		margin-left:5px; 
  		/*width:240px; 
  		line-height:16px; */} 
+ .tooltip span a {
+ 		color:#3D578C;
+ }
  .tooltip:hover span{ 
  		display:inline; 
  		position:absolute; 
- 		color:#111; 
+ 		/*color:#111;*/ 
  		border:1px solid #DCA; 
  		background:#fffAF0;
  	} 

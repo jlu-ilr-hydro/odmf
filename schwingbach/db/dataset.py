@@ -54,7 +54,7 @@ class ValueType(Base):
                     name=self.name,
                     unit=self.unit,
                     comment=self.comment)
-    def outofrange(self,value):
+    def inrange(self,value):
         return ((self.minvalue is None or value>=self.minvalue)
             and (self.maxvalue is None or value<=self.maxvalue))
 
@@ -108,17 +108,18 @@ class Dataset(Base):
     calibration_slope = sql.Column(sql.Float,nullable=False,default=1.0)
     comment=sql.Column(sql.String)
     type=sql.Column(sql.String)
+    uses_dst=sql.Column(sql.Boolean,default=False,nullable=False)
     __mapper_args__ = dict(polymorphic_identity=None,
                            polymorphic_on=type)
 
     def __str__(self):
         return (u'ds%(id)03i: %(valuetype)s at site #%(site)s with %(instrument)s (%(start)s-%(end)s)' % 
                 dict(id=self.id,
-                     start=self.start.strftime('%d.%m.%Y'),
-                     end=self.end.strftime('%d.%m.%Y'),
-                     site=self.site.id,
-                     instrument=self.source,
-                     valuetype=self.valuetype.name))
+                     start=self.start.strftime('%d.%m.%Y') if self.start else '?',
+                     end=self.end.strftime('%d.%m.%Y') if self.end else '?',
+                     site=self.site.id if self.site else '',
+                     instrument=self.source if self.source else None,
+                     valuetype=self.valuetype.name if self.valuetype else ''))
     
     def __jdict__(self):
         return dict(id=self.id,
@@ -300,7 +301,7 @@ class Timeseries(Dataset):
         q=session.query(sql.func.max(Record.id)).select_from(Record)
         q=q.filter_by(dataset=self).scalar()
         return q if not q is None else 1
-    def addrecord(self,Id=None,value=None,time=None,comment=None):
+    def addrecord(self,Id=None,value=None,time=None,comment=None,sample=None):
         """Adds a record to the dataset
         Id: id for the recordset, if None, a new id will be created
         value: value of the record
@@ -314,14 +315,14 @@ class Timeseries(Dataset):
             Id=maxid+1
         if time is None:
             time = datetime.now()
-        if (self.valuetype.outofrange(value)):
+        if (not self.valuetype.inrange(value)):
             raise ValueError('RECORD does not fit VALUETYPE: %(v)g %(u)s is out of range for %(vt)s' 
                              % dict(v=value,u=self.valuetype.unit,vt=self.valuetype.name)) 
         if not (self.start <= time <= self.end):
             raise ValueError('RECORD does not fit DATASET: You tried to insert a record for date %s ' +
                                'to dataset %s, which allows only records between %s and %s' 
                                % (time,self,self.start,self.end))
-        result = Record(id=Id,time=time,value=value,dataset=self,comment=comment)
+        result = Record(id=Id,time=time,value=value,dataset=self,comment=comment,sample=sample)
         session.add(result)
         return result
     def asarray(self,start=None,end=None):

@@ -22,6 +22,8 @@ from genshi.core import Markup
 import collections
 import auth
 from auth import expose_for, users, group, member_of
+from tools.parseMarkDown import MarkDown
+markdown = MarkDown()
 def jsonhandler(obj):
     if hasattr(obj,'__jdict__'):
         return obj.__jdict__()
@@ -39,7 +41,6 @@ def abspath(fn):
     basepath = op.abspath(op.dirname(__file__))
     normpath = op.normpath(fn)
     return op.join(basepath,normpath)
-
 
 
 config =  { '/': {
@@ -156,7 +157,8 @@ class Renderer(object):
                           'user' : user,
                           'users': auth.users,
                           'is_member': auth.is_member,
-                          'bool2js' : lambda b : str(b).lower()
+                          'bool2js' : lambda b : str(b).lower(),
+                          'markdown' : markdown, 
                           }
     def __call__(self,*args,**kwargs):
         """Function to render the given data to the template specified via the
