@@ -276,6 +276,12 @@ class PlotPage(object):
         del sp.lines[int(line)]
         plot.tosession()
     @web.expose_for(plotgroup)
+    def reloadline(self,subplot,line):
+        plot = Plot.fromsession()
+        sp = plot.subplots[int(subplot)-1]
+        line = sp.lines[int(line)]
+        line.load()
+    @web.expose_for(plotgroup)
     def linedatasets_json(self,subplot,line):
         web.setmime(web.mime.json)
         plot=Plot.fromsession()
