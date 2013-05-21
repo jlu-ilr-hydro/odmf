@@ -17,6 +17,36 @@ class MarkDownLink(Preprocessor):
     def run(self,lines):
         return [self.pattern.sub(self.sub,line) for line in lines]
 
+def user2name(s):
+    name=' '.join(S.title() for S in s.group(2).split('.'))
+    return '[%s](/person/%s)' % (name,s)
+
+class PatternLink(markdown.inlinepatterns.Pattern):
+    def __init__(self,md,pattern,href,text):
+        super(PatternLink,self).__init__(pattern,md)
+        self.href=href
+        self.text = text
+    def handleMatch(self,m):
+        try:
+            href = self.href(m)
+        except TypeError:
+            href =  m.expand(self.href)
+        try:
+            text = self.text(m)
+        except TypeError:
+            text =  m.expand(self.text)
+        el = markdown.util.etree.Element("a")
+        el.set('href', href)
+        el.text = u'\u25B8' + markdown.util.AtomicString(text)
+        return el
+
+class SymbolPattern(markdown.inlinepatterns.Pattern):
+    def __init__(self,md,pattern,out):
+        super(SymbolPattern,self).__init__(pattern,md)
+        self.out = out
+    def handleMatch(self,m):
+        return self.out
+                 
 
 # The UrlizePattern class is taken from: https://github.com/r0wb0t/markdown-urlize/blob/master/urlize.py
 # Global Vars
@@ -48,17 +78,35 @@ class UrlizePattern(markdown.inlinepatterns.Pattern):
         el.text = '&#x25B8;' + markdown.util.AtomicString(text)
         return el
 
+class SchwingbachExtension(markdown.Extension):
+    def extendMarkdown(self, md, md_globals):
+        """ Replace autolink with UrlizePattern """
+        user2name = lambda s:' '.join(S.title() for S in s.group(3).split('.'))
+        md.inlinePatterns['link datasets'] = PatternLink(md,'(ds)([0-9]+)',r'/dataset/\3/',r'\2\3')
+        md.inlinePatterns['link files']=PatternLink(md,r'(file:)(\S+)',r'/datafiles/\3',r'\3')
+        md.inlinePatterns['link sites']=PatternLink(md,'(#)([0-9]+)',r'/site/\3',r'\2\3')
+        md.inlinePatterns['link job']=PatternLink(md,'(job:)([0-9]+)',r'/job/\3',r'\2\3')
+        md.inlinePatterns['link dir']=PatternLink(md,'(dir:)(\S+)',r'/download?dir=\3',r'\3')
+        md.inlinePatterns['link user']=PatternLink(md,r'(user:)([a-zA-Z\.]+)',r'/user/\3',user2name)
+        md.inlinePatterns['link photo']=PatternLink(md,'(photo:)([0-9]+)',r'/picture/?id=\3',r'\2\3')
+        md.inlinePatterns['replace rarrow']=SymbolPattern(md,r'(-->)',u'\u2192')
+        md.inlinePatterns['replace larrow']=SymbolPattern(md,r'(<--)',u'\u2190')
+        md.inlinePatterns['replace rarrow big']=SymbolPattern(md,r'(==>)',u'\u21D2')
+        md.inlinePatterns['replace larrow big']=SymbolPattern(md,r'(<==)',u'\u21D0')
+class UrlizeExtension(markdown.Extension):
+    """ Urlize Extension for Python-Markdown. """
+
+    def extendMarkdown(self, md, md_globals):
+        """ Replace autolink with UrlizePattern """
+        md.inlinePatterns['autolink'] = UrlizePattern(URLIZE_RE, md)
+
            
 class MarkDown:
     def __init__(self):
-        self.md = markdown.Markdown(extensions=['nl2br'])
-        self.md.preprocessors['link datasets'] = MarkDownLink(self.md,'(ds)([0-9]+)',r'&#x25B9;[\1\2](/dataset/\2/)')
-        self.md.preprocessors['link files']=MarkDownLink(self.md,r'(file:)(\S+)',r'&#x25B9;[\2](/datafiles/\2)')
-        self.md.preprocessors['link sites']=MarkDownLink(self.md,'(#)([0-9]+)',r'&#x25B9;[\1\2](/site/\2)')
-        self.md.preprocessors['link job']=MarkDownLink(self.md,'(job)([0-9]+)',r'&#x25B9;[\1\2](/job/\2)')
-        self.md.preprocessors['link dir']=MarkDownLink(self.md,'(dir:)(\S+)',r'&#x25B9;[/\2](/download?dir=\2)')
-        self.md.preprocessors['link user']=MarkDownLink(self.md,'(\s@)(\S+)',r'&#x25B9;[/\2](/person\2)')
-        self.md.inlinePatterns['autolink'] = UrlizePattern(URLIZE_RE, self.md)
+        se = SchwingbachExtension(configs={})
+        al = UrlizeExtension(configs={})
+        self.md = markdown.Markdown(extensions=['admonition',se,al])
+
     def __call__(self,s):
         if s:
             return Markup(self.md.convert(s))

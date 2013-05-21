@@ -3,7 +3,7 @@
 import lib as web
 from auth import users, require, member_of, has_level, group, expose_for
 import db
-import sys
+import sys,os
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from genshi import escape
@@ -617,7 +617,25 @@ class Root(object):
             yield str(r) + '\n'
     @expose_for()
     def markdown(self,fn):
-        return web.markdown(file(web.abspath(fn)).read())
+        """
+        A simple markdown API access. Can be used for text files
+        """
+        fn=web.abspath(fn)
+        if os.path.exists(fn):
+            return web.markdown(file(fn).read())
+        else:
+            return ''
+    @expose_for()
+    def markdown_help(self,source=None):
+        res = web.render('empty.html',title="How to write nice comments",error='').render('html',doctype='html')
+        fn = 'templates/markdownhelp'
+        if source:
+            helphtml =('<a href="/markdown.help">Back to rendered code...</a><br/>'+
+                       '<pre>\n' + file(web.abspath(fn)).read() + '\n</pre>')
+        else:
+            helphtml= self.markdown(fn)
+        res = res.replace('<!--content goes here-->', helphtml)
+        return res
     @expose_for()
     def robots_txt(self):
         web.setmime(web.mime.plain)

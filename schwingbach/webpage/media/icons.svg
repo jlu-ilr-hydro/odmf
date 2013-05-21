@@ -18,6 +18,18 @@
    sodipodi:docname="icons.svg">
   <defs
      id="defs4">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient3026">
+      <stop
+         style="stop-color:#80b3ff;stop-opacity:1"
+         offset="0"
+         id="stop3028" />
+      <stop
+         style="stop-opacity:1;stop-color:#003380"
+         offset="1"
+         id="stop3030" />
+    </linearGradient>
     <marker
        inkscape:stockid="Arrow1Mend"
        orient="auto"
@@ -157,6 +169,15 @@
          stdDeviation="1.2251658"
          id="feGaussianBlur3826" />
     </filter>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3026"
+       id="linearGradient3032"
+       x1="513.92859"
+       y1="545.57648"
+       x2="533.92859"
+       y2="565.93359"
+       gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -166,8 +187,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8"
-     inkscape:cx="587.40067"
-     inkscape:cy="450.92161"
+     inkscape:cx="644.85667"
+     inkscape:cy="502.17884"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -239,7 +260,7 @@
        inkscape:export-filename="D:\Code\schwingbach\webpage\media\clearfilter_16.png"
        inkscape:export-xdpi="27.105883"
        inkscape:export-ydpi="27.105883"
-       transform="translate(-1.0714289,3.9285714)">
+       transform="translate(391.07143,-21.785714)">
       <g
          id="g3948">
         <path
@@ -330,5 +351,32 @@
          id="tspan3032"
          x="617.50024"
          y="527.58582">t</tspan></text>
+    <path
+       sodipodi:type="arc"
+       style="fill:url(#linearGradient3032);stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;fill-opacity:1"
+       id="path3024"
+       sodipodi:cx="523.57141"
+       sodipodi:cy="555.57648"
+       sodipodi:rx="14.285714"
+       sodipodi:ry="14.285714"
+       d="m 537.85713,555.57648 a 14.285714,14.285714 0 1 1 -28.57143,0 14.285714,14.285714 0 1 1 28.57143,0 z"
+       inkscape:export-filename="C:\Users\kraft-p.UNI-GIESSEN\Documents\Code\schwingbach\webpage\media\help.png"
+       inkscape:export-xdpi="50.400002"
+       inkscape:export-ydpi="50.400002" />
+    <text
+       xml:space="preserve"
+       style="font-size:29.24983788000000100px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Lucida Handwriting;-inkscape-font-specification:Sans"
+       x="574.06305"
+       y="507.7637"
+       id="text3034"
+       sodipodi:linespacing="125%"
+       transform="scale(0.89212512,1.120919)"
+       inkscape:export-filename="C:\Users\kraft-p.UNI-GIESSEN\Documents\Code\schwingbach\webpage\media\help.png"
+       inkscape:export-xdpi="50.400002"
+       inkscape:export-ydpi="50.400002"><tspan
+         sodipodi:role="line"
+         id="tspan3036"
+         x="574.06305"
+         y="507.7637">?</tspan></text>
   </g>
 </svg>

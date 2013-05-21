@@ -39,7 +39,7 @@
     			});
     		}
         $(function() {
-        	$(".datepicker").datepicker({dateFormat: 'dd.mm.yy' });
+        	$(".datepicker").datepicker({dateFormat: 'dd.mm.yy' });        	
         });
     		function submitform() {
     			var formdata = {
@@ -74,6 +74,9 @@
 								cursor: pointer;}
 		tr.joblist>td {border: dotted 1px #888;}
 		table {width: 100%;}
+		.markdownhelp {
+			top: 0px;
+		}
 	</style>
 
 </head>
@@ -93,7 +96,6 @@
 				<th>id</th>
 				<th>responsible</th>
 				<th>Name</th>
-				<th>link</th>
 				<th>due</th>
 				<th>type</th>
 				<th>repeat</th>
@@ -114,7 +116,6 @@
 				<td><a href="javascript:reload('new')">create a new job...</a></td>
 				<td> </td>
 				<td> </td>
-				<td> </td>	
 				<td> </td>	
 				<td> 
 					<select id="filteractive" class="filter" onchange="reload(${job.id if job else ''});">
@@ -138,7 +139,6 @@
 						${markdown(j.description)}
 					</span>
 				</td>
-				<td><a href="${j.link}">${j.link}</a></td>
 				<td py:content="formatdate(j.due)" />
 				<td py:content="j.type" />
 				<td py:content="j.repeat" />
@@ -164,10 +164,6 @@
 					<td>Due:</td>
 					<td><input type="text" id="editdue" value="${formatdate(job.due)}" class="datepicker" /></td>
 				</tr>
-					<tr>
-						<td>Link</td>
-						<td><input type="text" id="editlink" value="${job.link}" /></td>
-					</tr>
 				<tr>
 					<td>
 						Repeat in days 	
@@ -193,7 +189,7 @@
 					</td>
 				</tr>
 				<tr>
-					<td>Comments</td>
+					<td>Comments <a href="/markdown.help" class="tooltip"><img src="/media/help.png" /><span>Get help for using links and formats</span></a></td>
 					<td>
 						<textarea id="editdescription" 
 								  rows="5">${job.description}</textarea>

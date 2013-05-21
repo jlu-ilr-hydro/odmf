@@ -168,18 +168,11 @@
 							</td>
 						</tr>
 						<tr>
-							<td>Comments</td>
-							<td class="tooltip">
-							<textarea name="comment" 
-									  style="width: 100%;"
-									  rows="10" >${actualsite.comment}</textarea>
-								<span>
-									<strong>Add a comment describing the site.</strong><br/>You can use 
-									<a href="http://en.wikipedia.org/wiki/Markdown" style="text-decoration: ;">&#x25B8;Markdown</a> 
-									for formatting comments.<br/>
-									If you reference datasets like eg. "ds219", links are automatically created.<br/>
-									Link to files using the syntax "file:user/index.html".
-								</span>
+							<td>Comments<a href="/markdown.help" class="tooltip"><img src="/media/help.png" /><span>Get help for using links and formats</span></a></td>
+							<td>
+								<textarea name="comment" 
+										  style="width: 100%;"
+										  rows="10" >${actualsite.comment}</textarea>
 							</td>
 						</tr>
 					</table>
@@ -196,7 +189,8 @@
 						<a href="/log/new?siteid=${actualsite.id}" style="font-style: italic;">New message...</a>
 					</li>
 					<li py:for="log in actualsite.logs">
-						<a href="/log/${log.id}" py:content="'%s, %s: %s' % (formatdatetime(log.time),log.user,log.message)" />
+						<a href="/log/${log.id}" py:content="formatdatetime(log.time)"/>
+						${log.user}, ${markdown(log.message)}
 					</li>
 				</ul>
 				
@@ -223,8 +217,10 @@
 							</select>
 					</li>
 					<li py:for="inst in actualsite.instruments" >
-						<span py:if="inst.active" 
-									py:content="'since %s: %s (%s)' % (formatdate(inst.installdate),inst.instrument.name,inst.instrument.sourcetype)" />
+						<span py:if="inst.active">
+								since ${formatdate(inst.installdate)}: <a py:content="inst.instrument.name" href="/instrument/inst.instrument.id"/>
+								<a py:if="inst.instrument.manuallink" href="${inst.instrument.manuallink}" class="small"><img src="/media/shimmer/document_16.png" alt="documentation"/></a>							
+						</span>
 						<span py:if="not inst.active" class="removed"
 									py:content="'until %s: %s (%s)' % (formatdate(inst.removedate),inst.instrument.name,inst.instrument.sourcetype)" />
 						<a href="javascript:removeinstrument(${inst.id},${inst.site.id})" 
