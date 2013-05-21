@@ -54,6 +54,7 @@
 			$.post('removesubplot', {subplotid:id}, seterror);
 			killplot();
 		}
+
 		function getstyle(sp) {
 			return $('#colorpicker_'+sp).val() + 
                    $('#linepicker_'+sp).val() + 
@@ -73,9 +74,13 @@
 			killplot();
 		}
 		function removeline(subplot,line) {
-			$.post('removeline',{subplot:subplot,line:line},seterror)
+			$.post('removeline',{subplot:subplot,line:line},seterror);
 			killplot();
 		}
+		function reloadline(subplot,line) {
+			$.post('reloadline',{subplot:subplot,line:line},seterror);
+			killplot();
+		} 
 		function showlinedatasets(subplot,line) {
 			var content = $('#datasetlist_'+subplot+'_'+line).html();
 			$('#datasetlist_'+subplot+'_'+line).slideUp('fast').html('');

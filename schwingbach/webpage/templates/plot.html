@@ -83,6 +83,9 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			text-decoration: none;
 			cursor: hand;
 		}
+		.tooltip span {
+			color: #111;
+		}
 	</style>
 		
 </head>
@@ -159,6 +162,10 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 								<a href="javascript:showlinedatasets(${sp.position},${i})" class="tooltip">
 									&#x25BE;ds
 									<span>show datasets of line</span>
+								</a>
+								<a href="javascript:reloadline(${sp.position},${i})" class="tooltip">
+									&#x21BB;
+									<span>Reload this line from the database.</span>
 								</a>
 							</span>
 							${l}
