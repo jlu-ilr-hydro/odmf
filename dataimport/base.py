@@ -96,3 +96,24 @@ class ImportAdapter(object):
         self.enddate=enddate
         self.errorstream = sys.stderr
 
+def savetoimports(filename,user,datasets=None):
+    d = os.path.dirname(filename)
+    f = file(os.path.join(d,'.import.hist'),'a')
+    f.write(u'%s,%s,%s' % (os.path.basename(filename),user,datetime.now()))
+    for ds in datasets:
+        f.write(u',ds%s' % ds)
+    f.write('\n')
+    f.close()
+def checkimport(filename):
+    d = os.path.dirname(filename)
+    fn = os.path.join(d,'.import.hist')
+    if os.path.exists(fn):
+        f = file(fn)
+        b = os.path.basename(filename)
+        for l in f:
+            ls=l.split(',',3)
+            if b in ls[0]:
+                d=dict(fn=ls[0],dt=ls[2],u=ls[1],ds=ls[3])
+                return "%(u)s has already imported %(fn)s at %(dt)s as %(ds)s" % d
+    return ''
+    

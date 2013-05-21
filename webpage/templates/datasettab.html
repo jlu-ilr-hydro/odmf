@@ -214,7 +214,7 @@
 						<td class="big">\(f(x)=${activedataset.latex}\)</td>
 					</tr>
 					<tr>
-						<td class="bold">Comment:</td>
+						<td class="bold">Comment:<a href="/markdown.help" class="tooltip"><img src="/media/help.png" /><span>Get help for using links and formats</span></a></td>
 						<td>
 							<div py:content="markdown(activedataset.comment)" style="white-space: pre-line;"/>
 						</td>
@@ -354,19 +354,12 @@
 							</td>
 						</tr>					
 						<tr>
-							<td>Comments</td>
-							<td class="tooltip">
+							<td>Comments<a href="/markdown.help" class="tooltip"><img src="/media/help.png" /><span>Get help for using links and formats</span></a></td>
+							<td>
 								<textarea name="comment" 
 									  style="width: 100%;"
 									  rows="10" 
 									  py:content="activedataset.comment" />
-								<span>
-									Add a comment describing the dataset.<br/>You can use 
-									<a href="http://en.wikipedia.org/wiki/Markdown" style="text-decoration: ;">&#x25B8;Markdown</a> 
-									for formatting comments.<br/>
-									If you reference other datasets like eg. "ds219", links are automatically created.<br/>
-									Link to files using the syntax "file:user/index.html".
-								</span>
 							</td>
 						</tr>
 					</table>

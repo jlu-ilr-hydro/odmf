@@ -10,7 +10,7 @@ import importpressure as _ip
 import importclimate as _ic
 import db
 import textimport as _ti
-from base import finddateGaps, findStartDate
+from base import finddateGaps, findStartDate, savetoimports, checkimport
 _adapters = {1 : _ip.OdysseyImport,
              2:  _ip.DiverImport,
              19: _ic.ClimateImporterDat,
@@ -46,4 +46,5 @@ def importfile(filename, user, siteid, instrumentid, startdate=None, enddate=Non
     adapter = get_adapter(filename, user, siteid, instrumentid, startdate,enddate)
     adapter.createdatasets()
     adapter.submit()
+    savetoimports(filename,user,adapter.datasets.values())
     return adapter.datasets

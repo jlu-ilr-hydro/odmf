@@ -12,6 +12,7 @@ import os
 from traceback import format_exc as traceback
 from genshi import escape, Markup
 from auth import group, expose_for
+from cStringIO import StringIO
 datapath=web.abspath('datafiles')
 home = web.abspath('.')
 try:
@@ -106,6 +107,7 @@ class DBImportPage(object):
     def instrumentimport(self,filename,kwargs):
         path = Path(web.abspath(filename.strip('/')))
         import dataimport as di
+        error=web.markdown(di.checkimport(path.absolute)) 
         startdate = kwargs.get('startdate')
         enddate = kwargs.get('enddate')
         siteid = web.conv(int,kwargs.get('site'))
@@ -133,7 +135,7 @@ class DBImportPage(object):
                 gaps = di.finddateGaps(siteid, instrumentid, startdate, enddate) 
                     
 
-        error=''        
+       
         return web.render('dbimport.html',di=di,error=error,filename=filename,instrumentid=instrumentid,dirlink=path.up(),
                           siteid=siteid,gaps=gaps,stats=stats,datasets=datasets,config=config).render('html',doctype='html')
 
@@ -230,12 +232,29 @@ class DownloadPage(object):
         url = '/download?dir='+escape(dir)
         if error: url+='&error='+escape(error)
         return self.index(dir=dir,error=error)
-
-    
- 
-        
-            
-    
+    @expose_for(group.logger)
+    def saveindex(self,dir,s):
+        """Saves the string s to index.html
+        """
+        path = Path(op.join(datapath,dir,'index.html'))
+        s=s.replace('\r','')
+        f=file(path.absolute,'wb')
+        f.write(s)
+        f.close()   
+        return web.markdown(s)
+    @expose_for()
+    def getindex(self,dir):
+        index = Path(op.join(datapath,dir,'index.html'))
+        io=StringIO()
+        if index.exists():
+            io.write(file(index.absolute).read())
+        imphist = Path(op.join(datapath,dir,'.import.hist'))
+        if imphist.exists():
+            io.write('\n')
+            for l in file(imphist.absolute):
+                ls = l.split(',',3)
+                io.write(' * file:%s/%s imported by user:%s at %s into %s\n' % tuple([imphist.up()]+ls))
+        return web.markdown(io.getvalue())
 if __name__=='__main__':
     class Root:
         download=DownloadPage()
