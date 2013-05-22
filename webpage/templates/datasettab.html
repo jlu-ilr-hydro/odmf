@@ -216,7 +216,12 @@
 					</tr>
 					<tr py:if="activedataset.source">
 						<td class="bold">Data source:</td>
-						<td><a href="/instrument/${activedataset.source.id}" py:content="activedataset.source" /></td> 
+						<td>
+							<a href="/instrument/${activedataset.source.id}" py:content="activedataset.source" />
+							<a py:if="inst.instrument.manuallink" href="${inst.instrument.manuallink}" class="small">
+								<img src="/media/shimmer/document_16.png" alt="documentation"/>
+							</a>
+						</td> 
 					</tr>
 					<tr py:if="activedataset.is_timeseries() and activedataset.quality and activedataset.quality.id>=3">
 						<td class="bold">Calibration: </td>
