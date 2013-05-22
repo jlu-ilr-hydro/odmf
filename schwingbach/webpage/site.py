@@ -92,7 +92,8 @@ class SitePage:
     def getinstruments(self):
         web.setmime('application/json')
         session=db.Session()
-        res=web.as_json(session.query(db.Datasource).all())
+        inst=[inst for inst in session.query(db.Datasource) if inst.sites.count()]
+        res=web.as_json(sorted(inst))
         session.close()
         return res
     
@@ -185,7 +186,7 @@ class SitePage:
         path = web.abspath('media/mapicons')
         return [op.basename(p) for p in glob(op.join(path,'*.png')) if not op.basename(p)=='selection.png']
     
-    @expose_for(group.guest)
+    @expose_for()
     def with_instrument(self,instrumentid):
         web.setmime(web.mime.json)
         session=db.Session()

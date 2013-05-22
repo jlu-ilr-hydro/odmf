@@ -103,9 +103,10 @@
 		}
 		
 		function popSelect() {
-			var vt = $('#vtselect').val()
-			var user = $('#userselect').val()
-			var date = $('#dateselect').val()
+			var vt = $('#vtselect').val();
+			var user = $('#userselect').val();
+			var date = $('#dateselect').val();
+			var instrument = $('#instrumentselect').val();
 			if (vt || user || date) {
 					$('#datasetsonly').prop('checked',true);
 			}
@@ -136,13 +137,23 @@
 									$('#userselect').html(html).val(user);
 								}
 			);
+			$.getJSON('/site/getinstruments',{},function(data){
+									var html='<option class="firstoption" value="">Please select...</option>';
+									$.each(data,function(index,item){
+										html+='<option value="'+item.id+'">'+item.name+'</option>';
+									});
+									$('#instrumentselect').html(html).val(instrument);
+			});
 			if ($('#datasetsonly').prop('checked')) {
 				setmarkers('/dataset/attrjson',
 										{attribute:'site',
 										 valuetype:vt,
 										 user:user,
 										 date:date,
+										 instrument:instrument,
 									});											
+			} else if (instrument){
+				setmarkers('/site/with_instrument',{instrumentid:instrument});
 			} else {
 				setmarkers('/site/json',{});
 			}
