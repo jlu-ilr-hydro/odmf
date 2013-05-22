@@ -64,6 +64,8 @@ class Datasource(Base):
             return
     def __str__(self):
         return '%s (%s)' % (self.name,self.sourcetype)
+    def __cmp__(self,other):
+        return cmp(self.name,other.name)
     def __jdict__(self):
         return dict(id=self.id,
                  name=self.name,
