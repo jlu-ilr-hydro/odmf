@@ -186,7 +186,7 @@ class DatasetPage:
         except Exception as e:
             return str(e)
     
-    def subset(self,session,valuetype=None,user=None,site=None,date=None,instrument=None):
+    def subset(self,session,valuetype=None,user=None,site=None,date=None,instrument=None,type=None):
         """
         A not exposed helper function to get a subset of available datasets using filter
         """
@@ -204,13 +204,18 @@ class DatasetPage:
             vt=session.query(db.ValueType).get(int(valuetype))
             datasets=datasets.filter_by(valuetype=vt)
         if instrument:
-            source = session.query(db.Datasource).get(int(instrument))
+            if instrument=='null':
+                source = None
+            else:
+                source = session.query(db.Datasource).get(int(instrument))
             datasets=datasets.filter_by(source=source)
+        if type:
+            datasets=datasets.filter_by(type=type)
             
         return datasets.join(db.ValueType).order_by(db.ValueType.name,db.sql.desc(db.Dataset.end))
     
     @expose_for()
-    def attrjson(self,attribute,valuetype=None,user=None,site=None,date=None,instrument=None):
+    def attrjson(self,attribute,valuetype=None,user=None,site=None,date=None,instrument=None,type=None):
         """
         Gets the attributes for a dataset filter. Returns json. Used for many filters using ajax.
         e.g: Map filter, datasetlist, import etc.
@@ -225,7 +230,7 @@ class DatasetPage:
         res=''
         try:
             # Get dataset for filter
-            datasets = self.subset(session,valuetype,user,site,date,instrument)
+            datasets = self.subset(session,valuetype,user,site,date,instrument,type)
             # Make a set of the attribute items 
             items = set(getattr(ds, attribute) for ds in datasets)
             # Convert object set to json
@@ -237,14 +242,14 @@ class DatasetPage:
         
         
     @expose_for()
-    def json(self,valuetype=None,user=None,site=None,date=None,instrument=None):
+    def json(self,valuetype=None,user=None,site=None,date=None,instrument=None,type=None):
         """
         Gets a json file of available datasets with filter
         """
         web.setmime('application/json')        
         session=db.Session()
         try:
-            dump = web.as_json(self.subset(session, valuetype, user, site, date,instrument).all())
+            dump = web.as_json(self.subset(session, valuetype, user, site, date,instrument,type).all())
         finally:
             session.close()
         return dump
@@ -318,10 +323,7 @@ class DatasetPage:
         st = StringIO()
         st.write(codecs.BOM_UTF8)
         st.write((u'"Dataset","ID","time","%s","site","comment"\n' % (ds.valuetype)).encode('utf-8'))
-        query = session.query(db.Record).filter_by(dataset=ds).order_by(db.Record.time)
-        if not raw:
-            query = query.filter(~db.Record.is_error)
-        for r in query:
+        for r in ds.iterrecords(raw):
             d=dict(c=unicode(r.comment).replace('\r','').replace('\n',' / '),
                  v=r.calibrated if raw else r.value,
                  time = web.formatdate(r.time)+' '+web.formattime(r.time),
