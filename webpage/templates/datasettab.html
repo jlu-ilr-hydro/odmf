@@ -91,7 +91,15 @@
 					$('#splitrecords').load('/dataset/findsplitpoints',
 																		{datasetid:datasetid,threshold:threshold});
 				}
-				
+				$(function(){
+					$('.transhelpparent').focusin(function(){
+						$('#trans_help').slideDown('fast');
+					});
+					$('.transhelpparent').focusout(function(){
+						$('#trans_help').hide();
+					});
+					
+				});
 				//]]>
     </script>
 
@@ -139,6 +147,11 @@
 			border-radius: 10px;
 			text-decoration: none;
 			cursor: hand;
+		}
+		#trans_help {
+		 		z-index:10;
+		 		position:absolute; 
+		 		background:#fffAF0;
 		}
 		#trans_help td {
 			border: solid 1px black;
@@ -214,7 +227,7 @@
 						<td class="big">\(f(x)=${activedataset.latex}\)</td>
 					</tr>
 					<tr>
-						<td class="bold">Comment:<a href="/markdown.help" class="tooltip"><img src="/media/help.png" /><span>Get help for using links and formats</span></a></td>
+						<td class="bold">Comment:</td>
 						<td>
 							<div py:content="markdown(activedataset.comment)" style="white-space: pre-line;"/>
 						</td>
@@ -343,14 +356,57 @@
 						</tr>
 						<tr py:if="activedataset.is_transformed()" title="Please enter a valid Python/numpy expression for the transformation. See below for guidance">
 							<td>Python:</td>
-							<td>
-								\(f(x)=\)<input type="text" value="${activedataset.expression}" name="expression" size="50"/>
+							<td >
+								\(f(x)=\)<input type="text" value="${activedataset.expression}" name="expression" size="50" class="transhelpparent"/>
 							</td>
 						</tr>
 						<tr py:if="activedataset.is_transformed()" title="Please enter the latex description for the formula for printing">
 							<td>Latex:</td>
 							<td>
-								\(f(x)=\)<input type="text" value="${activedataset.latex}" name="latex" size="50"/>
+								\(f(x)=\)<input type="text" value="${activedataset.latex}" name="latex" size="50" class="transhelpparent"/>
+								<div py:if="activedataset.is_transformed()" id="trans_help" class="toggle">
+									<h3>Some help for the Python and latex expressions</h3>
+									Do not use any other variables in the expression than x (the values of the timeseries)
+									<table>
+										<tr>
+											<th>Equation type</th>
+											<th>Example</th>
+											<th>Python code</th>
+											<th>Latex code</th>
+										</tr>
+										<tr>
+											<td>Polynom</td>
+											<td>\(-0.5\cdot10^{-5}x^3+2.35x^2-124.5x+15.3\)</td>
+											<td>-0.5e-5*x**3 + 2.35*x**2 - 124.5*x + 15.3</td>
+											<td>-0.5\dot10^{-5}x^3+2.35x^2-124.5x+15.3</td>
+										</tr>
+										<tr>
+											<td>Exponential</td>
+											<td>\(3.2 e^{0.5x}\)</td>
+											<td>3.2 * exp(0.5*x)</td>
+											<td>3.2 e^{0.5x}</td>
+										</tr>
+										<tr>
+											<td>nat. log.</td>
+											<td>\(\ln{x}\)</td>
+											<td>log(x)</td>
+											<td>\ln{x})</td>
+										</tr>
+										<tr>
+											<td>dec. log.</td>
+											<td>\(\log_{10}{x}\)</td>
+											<td>log10(x)</td>
+											<td>\log_{10}{x}</td>
+										</tr>
+										<tr>
+											<td>cumulative sum</td>
+											<td>\[\int_{t=0}^{t(x)}x dx\]</td>
+											<td>cumsum(x)</td>
+											<td>\int_{t=0}^{t(x)}x'dx</td>
+										</tr>
+									</table>
+								</div>
+
 							</td>
 						</tr>					
 						<tr>
@@ -364,42 +420,6 @@
 						</tr>
 					</table>
 					<input type="submit" name="save"  style="width: 10em;"/>			
-					<div py:if="activedataset.is_transformed()" id="trans_help">
-						<h3>Some help for the Python and latex expressions</h3>
-						Do not use any other variables in the expression than x (the values of the timeseries)
-						<table>
-							<tr>
-								<th>Equation type</th>
-								<th>Example</th>
-								<th>Python code</th>
-								<th>Latex code</th>
-							</tr>
-							<tr>
-								<td>Polynom</td>
-								<td>\(-0.5\cdot10^{-5}x^3+2.35x^2-124.5x+15.3\)</td>
-								<td>-0.5e-5*x**3 + 2.35*x**2 - 124.5*x + 15.3</td>
-								<td>-0.5\dot10^{-5}x^3+2.35x^2-124.5x+15.3</td>
-							</tr>
-							<tr>
-								<td>Exponential</td>
-								<td>\(3.2 e^{0.5x}\)</td>
-								<td>3.2 * exp(0.5*x)</td>
-								<td>3.2 e^{0.5x}</td>
-							</tr>
-							<tr>
-								<td>nat. log.</td>
-								<td>\(\ln{x}\)</td>
-								<td>log(x)</td>
-								<td>\ln{x})</td>
-							</tr>
-							<tr>
-								<td>dec. log.</td>
-								<td>\(\log_{10}{x}\)</td>
-								<td>log10(x)</td>
-								<td>\log_{10}{x}</td>
-							</tr>
-						</table>
-					</div>
 			
 				</form>
 			</div>

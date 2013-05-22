@@ -9,20 +9,19 @@ import re
 from markdown.preprocessors import Preprocessor
 from genshi.core import Markup
 
-class MarkDownLink(Preprocessor):
-    def __init__(self,md,pattern,sub):
-        super(MarkDownLink,self).__init__(md)
-        self.pattern = re.compile(pattern)
-        self.sub = sub
-    def run(self,lines):
-        return [self.pattern.sub(self.sub,line) for line in lines]
-
-def user2name(s):
-    name=' '.join(S.title() for S in s.group(2).split('.'))
-    return '[%s](/person/%s)' % (name,s)
 
 class PatternLink(markdown.inlinepatterns.Pattern):
+    """
+    Creates a link from a specific Regular Expression pattern
+    """
     def __init__(self,md,pattern,href,text):
+        """
+        Creates the rule to substitute a pattern with a link
+        md: The MarkDown object
+        pattern: a regular expression of the text to be used as the pattern
+        href: a substitution string to yield the linked url from the pattern. Note: Groups have one index higher as one would expect. Eg. the first group in \2
+        text: a substitution string to yield the link label from the pattern. Note: Groups have one index higher as one would expect. Eg. the first group in \2
+        """
         super(PatternLink,self).__init__(pattern,md)
         self.href=href
         self.text = text
@@ -75,7 +74,7 @@ class UrlizePattern(markdown.inlinepatterns.Pattern):
     
         el = markdown.util.etree.Element("a")
         el.set('href', url)
-        el.text = '&#x25B8;' + markdown.util.AtomicString(text)
+        el.text = markdown.util.AtomicString(text)
         return el
 
 class SchwingbachExtension(markdown.Extension):

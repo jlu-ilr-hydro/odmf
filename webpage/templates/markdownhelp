@@ -34,19 +34,44 @@ Formatting
  * You can do some more stuff with Markdown, have a look [here][1] and [here][2] or at the [source for 
     this page][3] 
 
-###Some boxed elements. Just look at the [source][3]:
+Formatted boxes
+----------------
+
+### Warning:
+
+Writing:
+
+	!!! warning "A warning"
+	    And some more text  
+
+Results in:
 
 !!! warning "A warning"
-    Write it this way: `!!! warning "A warning"`  
+    And some more text  
 
+### Error:
   
-!!! error "An error" 
-    Write it this way: `!!! error "An error`  
+Writing:
 
+	!!! error "An error"
+	    And some more text  
+
+Results in:
+
+!!! error "An error"
+    And some more text  
+	
+### Box:
+  
+Writing:
+
+	!!! box "A box"
+	    And some more text  
+
+Results in:
   
 !!! box "A box"
-    Write it this way: `!!! box "A box"`  
-  
+    And some more text  
 
  [1]: http://de.wikipedia.org/wiki/Markdown
  [2]: http://daringfireball.net/projects/markdown/syntax

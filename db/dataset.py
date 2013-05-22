@@ -165,7 +165,7 @@ class Dataset(Base):
                         end=self.end,
                         site=self.site)
     def asarray(self,start=None,end=None):
-        raise NotImplementedError('%s - data set can not return values with "asarray". Is the type correct?' % self.type)    
+        raise NotImplementedError('%s(type=%s) - data set can not return values with "asarray". Is the type correct?' % (self,self.type))    
     def size(self):
         return 0
     def statistics(self):
@@ -173,6 +173,8 @@ class Dataset(Base):
         """
         t,v = self.asarray()
         return np.mean(v),np.std(v),len(v)
+    def iterrecords(self,witherrors=False):
+        raise NotImplementedError('%s(type=%s) - data set has no records to iterate. Is the type correct?' % (self,self.type))
 
 def removedataset(*args):
     """Removes a dataset and its records entirely from the database
@@ -357,6 +359,15 @@ class Timeseries(Dataset):
         return t,v
     def size(self):
         return self.records.count()
+    def iterrecords(self, witherrors=False):
+        session = self.session()    
+        records = session.query(Record).filter(Record._dataset == self.id)
+        records=records.order_by(Record.time)
+        if not witherrors:
+            records = records.filter(~Record.is_error)
+        for r in records:
+            yield r
+        
 
 
 class TransformedTimeseries(Dataset):
@@ -384,7 +395,7 @@ class TransformedTimeseries(Dataset):
         self.end = max(ds.end for ds in self.sources)
     def transform(self,x):
         return eval(self.expression,{'x':x},np.__dict__)
-    def records(self, witherrors=False):
+    def iterrecords(self, witherrors=False):
         session = self.session()
         srcrecords = session.query(Record).filter(Record._dataset.in_(self.sourceids())).order_by(Record.time)
         if not witherrors:
@@ -422,6 +433,11 @@ class DatasetGroup(object):
             src_t = np.concatenate((src_t,t))
             src_v = np.concatenate((src_v,v))
         return src_t, src_v
-    
+    def iterrecords(self,session,witherrors):
+        datasets = self.datasets(session)
+        for ds in datasets:
+            for r in ds.iterrecords(witherrors):
+                yield r
+        
         
         
