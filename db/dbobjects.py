@@ -65,7 +65,10 @@ class Datasource(Base):
     def __str__(self):
         return '%s (%s)' % (self.name,self.sourcetype)
     def __cmp__(self,other):
-        return cmp(self.name,other.name)
+        if other:
+            return cmp(self.name,other.name)
+        else:
+            return 1
     def __jdict__(self):
         return dict(id=self.id,
                  name=self.name,

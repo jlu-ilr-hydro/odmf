@@ -218,7 +218,7 @@
 						<td class="bold">Data source:</td>
 						<td>
 							<a href="/instrument/${activedataset.source.id}" py:content="activedataset.source" />
-							<a py:if="inst.instrument.manuallink" href="${inst.instrument.manuallink}" class="small">
+							<a py:if="activedataset.source.manuallink" href="${activedataset.source.manuallink}" class="small">
 								<img src="/media/shimmer/document_16.png" alt="documentation"/>
 							</a>
 						</td> 
