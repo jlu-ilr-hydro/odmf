@@ -253,7 +253,7 @@
 	  	</ul> 
 			<div id="edit" py:if="is_member('editor')">
 				<button py:if="is_member('admin')" class="tooltip small"
-						onclick="javascript:remove(${activedataset.id},'${str(activedataset)}',${n});">
+						onclick="javascript:remove(${activedataset.id},'${unicode(activedataset)}',${n});">
 					&#x2718;
 					<span>remove dataset</span>
 				</button>
