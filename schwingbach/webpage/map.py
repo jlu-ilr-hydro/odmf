@@ -6,12 +6,23 @@ Created on 12.07.2012
 import lib as web
 import db
 from datasetpage import DatasetPage
+from preferences import Preferences
 class MapPage(object):
     exposed=True
     @web.expose
-    def index(self):
+    def index(self,site=None):
         #res = file(web.abspath('templates/map.html')).read();
-        #return res.replace("${navigation('Map')}",web.navigation('Map'))  
+        #return res.replace("${navigation('Map')}",web.navigation('Map'))
+        if site:
+            session=db.Session()
+            site=db.Site.get(session,int(site))
+            pref = Preferences()
+            pref['site']=site.id
+            pmap = pref['map']
+            pmap['zoom']=20
+            pmap['lat']=site.lat
+            pmap['lng']=site.lon
+            pref.save()
         return web.render('map.html').render('html',doctype='html')
     @web.expose
     def sites(self):
