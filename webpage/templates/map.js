@@ -137,7 +137,7 @@
 									$('#userselect').html(html).val(user);
 								}
 			);
-			$.getJSON('/site/getinstruments',{},function(data){
+			$.getJSON('/site/getinstalledinstruments',{},function(data){
 									var html='<option class="firstoption" value="">Please select...</option>';
 									$.each(data,function(index,item){
 										html+='<option value="'+item.id+'">'+item.name+'</option>';

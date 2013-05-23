@@ -24,6 +24,8 @@ class SitePage:
         pref = Preferences()
         if not actualsite_id: 
             actualsite_id = pref['site']
+        else:
+            pref['site']=actualsite_id
             
         try:
             actualsite=session.query(db.Site).get(int(actualsite_id))
@@ -89,10 +91,18 @@ class SitePage:
         raise web.HTTPRedirect('./%s' % siteid)
     
     @expose_for()
-    def getinstruments(self):
+    def getinstalledinstruments(self):
         web.setmime('application/json')
         session=db.Session()
         inst=[inst for inst in session.query(db.Datasource) if inst.sites.count()]
+        res=web.as_json(sorted(inst))
+        session.close()
+        return res
+    @expose_for()
+    def getinstruments(self):
+        web.setmime('application/json')
+        session=db.Session()
+        inst=session.query(db.Datasource).all()
         res=web.as_json(sorted(inst))
         session.close()
         return res
