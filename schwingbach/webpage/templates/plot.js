@@ -54,6 +54,11 @@
 			$.post('removesubplot', {subplotid:id}, seterror);
 			killplot();
 		}
+		function changeylimit(id) {
+			var text = prompt('Enter the y axis limit as min,max, eg. 0.5,1.5.').split(',');
+			$.post('changeylim',{subplotid:id,ymin:parseFloat(text[0]),ymax:parseFloat(text[1])},seterror);
+			killplot();			
+		}
 
 		function getstyle(sp) {
 			return $('#colorpicker_'+sp).val() + 

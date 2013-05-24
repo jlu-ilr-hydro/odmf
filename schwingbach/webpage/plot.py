@@ -12,13 +12,14 @@ if sys.platform=='win32':
                            'family' : 'sans-serif'})
 
 import pylab as plt
+import numpy as np
 import db
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from cStringIO import StringIO
 
 t0 = datetime(1,1,1)
-nan = plt.log(-1)
+nan = np.nan
 def date2num(t):
     if t is None:
         return nan
@@ -123,7 +124,10 @@ class Subplot(object):
         for l in self.lines:
             l.draw(ax,self.plot.startdate,self.plot.enddate)
         if self.ylim:
-            plt.ylim(self.ylim)
+            if np.isfinite(self.ylim[0]):
+                plt.ylim(ymin=self.ylim[0])
+            if np.isfinite(self.ylim[1]):
+                plt.ylim(ymax=self.ylim[1])
         plt.xlim(date2num(self.plot.startdate),date2num(self.plot.enddate))
         plt.xticks(rotation=15)
         ax.grid()
@@ -254,7 +258,18 @@ class PlotPage(object):
             return
         except:
             return traceback()
-    
+    @web.expose(plotgroup)
+    def changeylim(self,subplotid,ymin=None,ymax=None):
+        try:
+            plot = Plot.fromsession()
+            id = int(subplotid)
+            sp = plot.subplots[id-1]
+            sp.ylim = float(ymin),float(ymax)
+            plot.createtime = web.formatdate()
+            plot.tosession()
+            return
+        except:
+            return traceback();
     @web.expose_for(plotgroup)
     def addline(self,subplot,valuetypeid,siteid,instrumentid,style):
         try:
