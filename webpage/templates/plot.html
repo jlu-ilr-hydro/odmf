@@ -146,7 +146,12 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 							&#x2718;
 							<span>remove subplot ${sp.position} from figure</span>
 							remove
-					</a>
+						</a>
+					</span>
+					<span class="box small leftspace">
+						<a href="javascript:changeylimit(${sp.position})" class="tooltip">
+							<i>y</i>&#x2195;<span>change y axis limit</span>
+						</a>
 					</span>
 					<ul class="brush">
 						<li py:for="i,l in enumerate(sp.lines)" class="small line">
