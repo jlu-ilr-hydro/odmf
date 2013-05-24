@@ -10,9 +10,7 @@
 	<link href="/media/jquery-ui-1.8.18.custom.css" rel="stylesheet" type="text/css"/>
     <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
     <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
-    <!--<script src="/media/jqmath/jscurry-0.3.0.js" type="text/javascript"></script>
-    <script src="/media/jqmath/jqmath-0.4.0.js" type="text/javascript"></script>-->
-    
+
     <script type="text/javascript"
   		src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 		</script>
@@ -38,6 +36,12 @@
         	$('#tab').tabs();
 					$('#tabheads a').click(function() {
 						$('#title').html('Data sets (' + $(this).html() + ')');
+					});
+					$('.transhelpparent').focusin(function(){
+						$('#trans_help').slideDown('fast');
+					});
+					$('.transhelpparent').focusout(function(){
+						$('#trans_help').hide();
 					});
 					loadstatistics();
         });
@@ -91,15 +95,6 @@
 					$('#splitrecords').load('/dataset/findsplitpoints',
 																		{datasetid:datasetid,threshold:threshold});
 				}
-				$(function(){
-					$('.transhelpparent').focusin(function(){
-						$('#trans_help').slideDown('fast');
-					});
-					$('.transhelpparent').focusout(function(){
-						$('#trans_help').hide();
-					});
-					
-				});
 				//]]>
     </script>
 

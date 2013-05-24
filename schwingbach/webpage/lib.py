@@ -159,6 +159,7 @@ class Renderer(object):
                           'is_member': auth.is_member,
                           'bool2js' : lambda b : str(b).lower(),
                           'markdown' : markdown, 
+                          'as_json' : as_json,
                           }
     def __call__(self,*args,**kwargs):
         """Function to render the given data to the template specified via the

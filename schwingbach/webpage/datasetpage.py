@@ -356,7 +356,7 @@ class DatasetPage:
                 end=web.parsedate(end)
             else:
                 end=ds.end
-            t,v = ds.asarray()
+            t,v = ds.asarray(start,end)
             fig=plt.figure()
             ax=fig.gca()
             ax.plot_date(t,v,color+marker+line)
