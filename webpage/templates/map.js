@@ -50,15 +50,45 @@
                     var msg = "Sorry but there was an error: ";
                     $("#infotext").html(msg + xhr.status + " " + xhr.statusText);
                 }
-            });
+        });
         selectedmarker = id;
+        var selectionSymbol = getSelectionSymbol();
+				$.each(markers,function(index,item) {
+					if (item.get('id') == id) {
+		  				item.setShadow(selectionSymbol);
+					} else {
+	  					item.setShadow(null);						
+					}
+				});
+				setpref({site:id});
+
     }
-		function setmarkers(source,filter) {
-			clearmarker();
-			var selectionsymbol = new google.maps.MarkerImage('/media/mapicons/selection.png',
+    function zoomToSelected() {
+    	var marker=null;
+    	alert(markers[0]);
+    	$.each(markers,function(index,item){
+    		if (item.get('id') == selectedmarker) {
+    			marker = item;
+	    		alert('marker found!' + JSON.stringify(marker));
+    			return false;
+    		}
+    	});
+    	if (marker) {
+    		map.setCenter(marker.getPosition());
+    		map.setZoom(20);
+    	} else {
+    		alert('no marker!');
+    	}
+    }
+		function getSelectionSymbol() {
+			return new google.maps.MarkerImage('/media/mapicons/selection.png',
 														new google.maps.Size(37,37),
 														new google.maps.Point(0,0),
 														new google.maps.Point(6,30));
+		}    
+		function setmarkers(source,filter) {
+			clearmarker();
+			var selectionsymbol = getSelectionSymbol(); 
 	    $.getJSON(source,filter,function(data) {
 	    	$.each(data,function(index,item) {
 					if (!item.icon) {
@@ -78,17 +108,13 @@
 	      				icon:image,
 	  				}
 	  			);
+	  			marker.set('id',item.id);
 	  			if (item.id == selectedmarker) {
 	  				marker.setShadow(selectionsymbol);
 	  			}
 	  			(function(eventmarker,id){
 		  			google.maps.event.addListener(marker,'click',function() {
-						selectsite(item.id);
-		  				$.each(markers,function(index,item) {
-		  					item.setShadow(null);
-		  				});
-		  				eventmarker.setShadow(selectionsymbol);
-							setpref({site:id});
+							selectsite(item.id);
 		  			});  				
 	  			}(marker,item.id));
 	  			(function(eventmarker,id){
@@ -192,20 +218,25 @@
 		}
 		
 
-    $(function() {
+    function initMap(site) {
 			$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
  	    $.getJSON('/preferences',{},function(data){
+ 	    	if (site) {
+ 	    		data.site = site.id;
+ 	    		data.map.zoom = 20;
+ 	    		data.map.lat = site.lat;
+ 	    		data.map.lng = site.lon;
+ 	    	}
 		    map = createmap(data.map.lat,data.map.lng,data.map.zoom,data.map.type);
-				selectedmarker = 0;
 		    markers = [];
 				$('.filter').val('');
 				$('#dateselect').val('');
 				$('#datasetsonly').prop('checked',false);
  	    	if (data.site) {
-                selectsite(data.site);
+	          selectsite(data.site);
     		}
 	    	popSelect();
     	});
 	    $(window).unload(savemappref);
 	    // Get map preferences 
-    });
+    }
