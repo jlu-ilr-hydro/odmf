@@ -42,6 +42,11 @@
     $(function() {
     	popSelect();
     	enableupload();
+    	$('#bigimage').prop('height',512);
+    	$('#imagesize').change(function() {
+    		$('#bigimage').prop('height',$(this).val());
+    	});
+    	$('#imagesize').val(512);
     });
 
 		//]]>
@@ -86,13 +91,23 @@
 		    </form>
 
 		  <div py:if="image">
-				<div>
+		  	<div>photo:${image.id}
 					${formatdatetime(image.time)} by <a href="/person/${image.by.username}">${image.by}</a>
 				</div>
 				<div>
 					Location: <a href="/site/${image.site.id}">${image.site}</a>
 				</div>
-				<img src="/picture/image/${image.id}" />
+				<div>
+					Picture height:
+					<select id="imagesize">
+						<option value="256">256</option>
+						<option value="512">512</option>
+						<option value="768">768</option>
+						<option value="1024">1024</option>
+					</select>
+					px
+				</div>
+				<img src="/picture/image/${image.id}" id="bigimage"/>
 			</div>
 			<div py:if="images and not image">
 				<div py:for="image in images" class="table">
