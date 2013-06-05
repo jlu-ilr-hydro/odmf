@@ -8,7 +8,7 @@ The import is performed by the class TextImport, derived from ImportAdapter.
 The file format is described in the TextImportDescription, an saved in a config file.
 '''
 import db
-from ConfigParser import RawConfigParser
+from configparser import RawConfigParser
 from glob import glob
 import os
 import os.path as op
