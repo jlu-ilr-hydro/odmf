@@ -39,11 +39,13 @@ h2 {
 	border-radius: 0px;
     padding: 2px 10px 2px 10px;
     background-color: #E8F0FF;
-    margin: 0px;
-	font-size: 110%;
+    margin-top: 1em;
+	font-size: 120%;
 	color: #32739d;
 	font-style: italic;
-	font-weight: normal; 
+	font-weight: bold; 
+    padding: 2px;
+	box-shadow: 2px 2px 3px #32739d;;
 }
 
 h3 {
@@ -149,12 +151,14 @@ div.content {
 		color: black;
 		border: solid 1px orangered;
 		border-radius: 5px;
+		box-shadow: 5px 5px 8px darkred;
 } 
 .box {
-		background-color: #E8F0FF;
-		border: solid 1px #32739d;
-		border-radius: 10px;
+	background-color: #E8F0FF;
+	border: solid 1px #32739d;
+	border-radius: 10px;
     padding: 2px;
+	box-shadow: 2px 2px 8px #888;
 }
 .toggle {
 	margin: -2px 1px 1px 1px;

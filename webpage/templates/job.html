@@ -73,6 +73,7 @@
 								border-bottom: solid 1px #888;
 								cursor: pointer;}
 		tr.joblist>td {border: dotted 1px #888;}
+		tr.joblist:hover {outline: solid 4px white;}
 		table {width: 100%;}
 		.markdownhelp {
 			top: 0px;
@@ -101,7 +102,7 @@
 				<th>repeat</th>
 				<th>done</th>
 			</tr>
-			<tr class="joblist box" >
+			<tr class="box" >
 				<td><a href="javascript:reload('new')"><img src="/media/plus-small.png" /></a></td>
 				<td>			
 					<select id="filterresponsible" class="filter" onchange="reload(${job.id if job else '\'\''});">
@@ -193,6 +194,20 @@
 					<td>
 						<textarea id="editdescription" class="markdown"
 								  rows="5">${job.description}</textarea>
+						<div class="small box">
+							Use the description to perform actions, when the job is done. Use the button to append some template actions to the job.
+							Remember to replace the x's in the template by meaningful days, site ids and users! 
+							<script>
+								//<![CDATA[
+								function addactiontemplate() {
+									var oldtext=$('#editdescription').val();
+									var newtext='\nwhen done:\ncreate job after x days:<follow up job>\ncreate log at site x:<log text>\ncreate mail to x philipp:<email text>\n'
+									$('#editdescription').val(oldtext+newtext)
+								}
+								//]]>
+							</script>
+							<button onclick="addactiontemplate();">create action template</button>
+						</div>
 					</td>
 				</tr>
 				<tr>
@@ -209,20 +224,6 @@
 					</td>
 				</tr>
 			</table>
-			<div class="small warning">
-				Use the description to perform actions, when the job is done. Use the button to append some template actions to the job.
-				Remember to replace the x's in the template by meaningful days, site ids and users! 
-				<script>
-					//<![CDATA[
-					function addactiontemplate() {
-						var oldtext=$('#editdescription').val();
-						var newtext='\nwhen done:\ncreate job after x days:<follow up job>\ncreate log at site x:<log text>\ncreate mail to x philipp:<email text>\n'
-						$('#editdescription').val(oldtext+newtext)
-					}
-					//]]>
-				</script>
-				<button onclick="addactiontemplate();">create action template</button>
-			</div>
 			<input type="button" 
 				id="editsave" 
 				style="width: 10em;"
