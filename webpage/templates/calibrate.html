@@ -37,6 +37,7 @@
 			data = {
 				sourceid:$('#sourceid').val(),
 				targetid:targetid,
+				limit:$('#limit').val(),
 				calibrate:calibrate
 			};
 			$.get('/dataset/calibration',data,function(html){
@@ -86,7 +87,7 @@
     	Records in timeseries: ${sourcecount}<br/>
     	<div>
 	    	<p>
-		    	Limit time error to: <input type="text" name="limit" value="${limit}" />s    		
+		    	Limit time error to: <input type="text" id="limit" value="${limit}" />s    		
 	    	</p>
 	    	<button onclick="reload(${target.id},true)">calibrate</button>
 			</div>

@@ -278,7 +278,7 @@
 						</li>
 						<li py:for="inst in actualsite.instruments" >
 							<span py:if="inst.active">
-									since ${formatdate(inst.installdate)}: <a py:content="inst.instrument.name" href="/instrument/inst.instrument.id"/>
+									since ${formatdate(inst.installdate)}: <a py:content="inst.instrument.name" href="/instrument/${inst.instrument.id}"/>
 									<a py:if="inst.instrument.manuallink" href="${inst.instrument.manuallink}" class="small"><img src="/media/shimmer/document_16.png" alt="documentation"/></a>							
 							</span>
 							<span py:if="not inst.active" class="removed"

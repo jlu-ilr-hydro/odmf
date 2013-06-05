@@ -9,14 +9,16 @@
     }
     // Saves the actual map preferences to the session / file
 		function savemappref() {
-			var center = map.getCenter();
-			var data = {item:'map',
-				   			 	lat:center.lat(),
-				   			 	lng:center.lng(),
-				   			 	zoom:map.getZoom(),
-				   			 	type:map.getMapTypeId()
-				   			};
-			setpref(data);
+			if (map) {
+				var center = map.getCenter();
+				var data = {item:'map',
+					   			 	lat:center.lat(),
+					   			 	lng:center.lng(),
+					   			 	zoom:map.getZoom(),
+					   			 	type:map.getMapTypeId()
+					   			};
+				setpref(data);
+			}
 		}
 		// Shows the actual map coordinates in div #coordinates. Event handler
 		function map_mousemove(loc) {
@@ -61,6 +63,7 @@
 					}
 				});
 				setpref({site:id});
+				$('#title').html('Map <a href="/site/'+ id + '">site #' + id + '</a>');
 
     }
     function zoomToSelected() {
@@ -216,9 +219,25 @@
 	    return map
 			
 		}
+		function toggleInfo() {
+			if ($('#openinfo>button').html() == '&lt;') {
+				//alert('isOpen');
+				$('#openinfo').css('left','0px');
+				$('#infopane').fadeOut();
+				$('#openinfo>button').html('&gt;');
+				$('#map_canvas').removeClass('mapCanvasShort').addClass('mapCanvasWide');
+			} else {
+				//alert('isClosed, #openInfo>button.html()==' + $('#openinfo>button').html());
+				$('#openinfo').css('left','20em');
+				$('#infopane').fadeIn();
+				$('#openinfo>button').html('&lt;');			
+				$('#map_canvas').removeClass('mapCanvasWide').addClass('mapCanvasShort');
+			}
+		}
 		
 
     function initMap(site) {
+			map=null;
 			$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
  	    $.getJSON('/preferences',{},function(data){
  	    	if (site) {
@@ -236,7 +255,10 @@
 	          selectsite(data.site);
     		}
 	    	popSelect();
+    	}).fail(function( jqxhr, textStatus, error){
+    		$('#map_canvas').html('JSONerror:' + textStatus + ',' + error);
     	});
 	    $(window).unload(savemappref);
+	    $('#openinfo>button').click(toggleInfo);
 	    // Get map preferences 
     }
