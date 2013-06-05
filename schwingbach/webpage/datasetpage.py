@@ -535,15 +535,19 @@ class CalibratePage(object):
         source=sourcerecords=None
         sourcecount=0
         result = Calibration()
-
-        if sourceid:
-            source = CalibrationSource([sourceid], target.start, target.end)
-            sourcerecords = source.records(session)
-            sourcecount=sourcerecords.count()
-            
-            if calibrate and calibrate!='false':
-                result=Calibration(target,source,limit)
-            source = db.Dataset.get(session,sourceid)    
+        try:   
+            if sourceid:
+                source = CalibrationSource([sourceid], target.start, target.end)
+                sourcerecords = source.records(session)
+                sourcecount=sourcerecords.count()
+                
+                if calibrate and calibrate!='false':
+                    result=Calibration(target,source,limit)
+                    if not result:
+                        error='No matching records for the given time limit is found'
+                source = db.Dataset.get(session,sourceid)
+        except:
+            error = traceback()    
         out = web.render('calibrate.html',
                           error=error,
                           target=target,

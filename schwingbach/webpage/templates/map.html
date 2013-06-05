@@ -29,13 +29,22 @@
 			height: 100%;
 			padding-left: 2px;
 		}
-	  #map_canvas {
+		.mapCanvasWide {
+	  	position:absolute; 
+	  	height: 100%;
+	  	left: 0px;
+	  	right: 0px;
+		}
+		.mapCanvasShort {
 	  	position:absolute; 
 	  	height: 100%;
 	  	left: 20em;
 	  	right: 0px;
-	  }
-	  
+		}
+	  h1 a {
+	  	color: #FFF;
+	  	font-size: small;
+	  	}
 	  .wide {width: 100%;}
 	  .filter {width: 100%;}
 	  /*button {height: 64px;}*/
@@ -46,7 +55,10 @@
 <body>
 	${navigation('Map')}
 	<div class="content">
-		<div id="infopane">		
+		<div id="openinfo" style="position: absolute; left: 20em; top: 0px;z-index: 100;">
+			<button>&lt;</button>
+		</div>	
+		<div id="infopane">
 			<div>
 				<h2>Current location</h2>
 				<div class="small">
@@ -110,8 +122,9 @@
 			</div>
 			<hr />
 			<div id="infotext">No site selected</div>
+
 		</div>				
-		<div id="map_canvas">Map</div>	
+		<div id="map_canvas" class="mapCanvasShort">Map</div>	
 	</div>
 </body>
 </html>

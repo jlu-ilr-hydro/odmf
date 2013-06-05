@@ -267,6 +267,7 @@ a.filelink {
  		/*color:#111;*/ 
  		border:1px solid #DCA; 
  		background:#fffAF0;
+ 		z-index: 100;
  	} 
  .callout {
  		z-index:20;
