@@ -640,7 +640,13 @@ class Root(object):
     def robots_txt(self):
         web.setmime(web.mime.plain)
         return "User-agent: *\nDisallow: /\n"
-    
+    @expose_for(group.admin)
+    def svnlog(self):
+        import subprocess as sp
+        res = web.render('empty.html',title="svn log",error='').render('html',doctype='html')
+        svnlog = sp.Popen('svn log ~/schwingbach'.split(),stdout=sp.PIPE)
+        res.replace('<!--content goes here-->', web.markdown(unicode(svnlog.stdout.read(),'latin-1')))
+        return res
 
         
 
