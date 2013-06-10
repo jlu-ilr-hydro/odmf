@@ -42,7 +42,9 @@ class Path(object):
             size = size/1024.
             unit +=1
         return "%5.4g %s" % (size,units[unit])
-         
+    @property
+    def is_legal(self):
+        return self.absolute.startswith(datapath)    
     def __cmp__(self,other):
         return cmp(u'%s' % self,u'%s' % other)
     
@@ -164,10 +166,9 @@ class DownloadPage(object):
     @expose_for(group.logger)
     def index(self,dir='',error='',**kwargs):
         path = Path(op.join(datapath,dir))
-        print path.absolute,datapath,dir
         files=[]
         directories=[]
-        if path.isdir():            
+        if path.isdir() and path.is_legal:            
             for fn in path.listdir():
                 if not fn.startswith('.'):
                     child = path.child(fn)
@@ -178,7 +179,7 @@ class DownloadPage(object):
             files.sort()
             directories.sort()
         else:
-            error='%s is not a valid directory'
+            error='%s is not a valid directory' % dir
         return web.render('download.html',error=error,files=files,directories=directories,
                       curdir=path).render('html',doctype='html')
 
@@ -191,6 +192,8 @@ class DownloadPage(object):
             if not path:
                 path.make()
             fn = path + datafile.filename
+            if not fn.is_legal:
+                error="'%s' is not leg"
             if fn and not 'overwrite' in kwargs:
                 error="'%s' exists already, if you want to overwrite the old version, check allow overwrite" % fn.name
             else:
