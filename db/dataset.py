@@ -147,6 +147,8 @@ class Dataset(Base):
     @property
     def tzinfo(self):
         return tzberlin if self.uses_dst else tzwinter
+    def localizetime(self,time):
+        return self.tzinfo.localize(time)
     def copy(self,id):
         """Creates a new dataset without records with the same meta data as this dataset.
         Give a new (unused) id
@@ -342,14 +344,15 @@ class Timeseries(Dataset):
             records=records.filter(Record.time>=start)
         if end:
             records=records.filter(Record.time<=end)
-        t0 = datetime(1,1,1)
+        tz_local = self.tzinfo
+        t0 = tzwinter.localize(datetime(1,1,1))
         date2num = lambda t: (t-t0).total_seconds()/86400 + 1.0
         def r2c(records):
             for r in records:
                 if r[0] is None:
                     yield np.log(-1),date2num(r[1])
                 else:
-                    yield r[0],date2num(r[1])
+                    yield r[0],date2num(tz_local.localize(r[1]))
         t = np.zeros(shape=records.count(),dtype=float)
         v = np.zeros(shape=records.count(),dtype=float)
         for i,r in enumerate(r2c(records.values('value','time'))):

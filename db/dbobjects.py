@@ -13,6 +13,8 @@ from cherrypy.lib.reprconf import as_dict
 from projection import LLtoUTM, dd_to_dms
 from collections import deque
 from traceback import format_exc as traceback
+from tools.mail import EMail
+
 class Site(Base):
     "All locations in the database. The coordiante system is always geographic with WGS84/ETRS"
     __tablename__ = 'site'
@@ -336,7 +338,6 @@ class Job(Base):
                                         %(description)s
                                         ''' % msgdata
                                 subject=u'Studienlandschaft Schwingbach: job #%(id)s is %(action)s' % msgdata
-                                from tools.mail import EMail
                                 EMail(self.author.email,[you.email for you in to],subject,text).send()
                             except:
                                 raise RuntimeError('"%s" is not a valid mail, problem: %s' % (line,traceback()))
