@@ -36,7 +36,9 @@ class Calibration:
         if target and source:
             sourcerecords = self.source.records(self.target.session())
             for sr in sourcerecords:
-                tv,dt = target.findvalue(sr.time)
+                # Change the time of source record from source timezone to the target timezone
+                time = sr.time - self.source.tzinfo.utcoffset(sr.time) + self.target.tzinfo.utcoffset(sr.time) 
+                tv,dt = target.findvalue(time)
                 if dt<=limit: 
                     self.matches.append(Match(sr.time,tv,sr.calibrated,dt))
         self.slope=1.0

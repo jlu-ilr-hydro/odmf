@@ -241,13 +241,12 @@ class JobPage:
                 session = db.Session()        
                 job = session.query(db.Job).get(id)
                 if not job:
-                    job=db.Job(id=id)
+                    job=db.Job(id=id,_author = web.user())
                 if kwargs.get('due'):
                     job.due=web.parsedate(kwargs['due'])
                 job.name=kwargs.get('name')
                 job.description=kwargs.get('description')
                 job.responsible = session.query(db.Person).get(kwargs.get('responsible'))
-                job.author = session.query(db.Person).get(web.user())
                 job.link = kwargs.get('link')
                 job.repeat = web.conv(int,kwargs.get('repeat'))
                 job.type = kwargs.get('type')
