@@ -80,7 +80,8 @@ class Line(object):
         return datasets.order_by(db.Dataset.start).all()
     def killcache(self):
         for s in 'tv':
-            os.remove(self.getcachename(s))
+            if os.path.exists(self.getcachename(s)):
+                os.remove(self.getcachename(s))
     def load(self,startdate=None,enddate=None,usecache=False):
         """
         Loads the records into an array

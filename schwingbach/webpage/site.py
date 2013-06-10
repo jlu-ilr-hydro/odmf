@@ -74,10 +74,10 @@ class SitePage:
                     site=db.Site(id=int(siteid))
                     session.add(site)
                 site.lon=web.conv(float,kwargs.get('lon'))
+                site.lat=web.conv(float,kwargs.get('lat'))
                 if site.lon>180 or site.lat>180:
                     site.lat,site.lon = proj.UTMtoLL(23, site.lat, site.lon, '32N')
                     
-                site.lat=web.conv(float,kwargs.get('lat'))
                 site.name=kwargs.get('name')
                 site.height=web.conv(float,kwargs.get('height'))
                 site.icon = kwargs.get('icon')
