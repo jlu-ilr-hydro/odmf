@@ -136,8 +136,9 @@
 						${j.name}
 					</a>
 					<span style="max-width: 40%;">
-						<strong>${j.name}</strong>
+						<h3>${j}</h3>
 						${markdown(j.description)}
+						${markdown('---------\n\n*by user:' + j.author.username+'*')}
 					</span>
 				</td>
 				<td py:content="formatdate(j.due)" />
@@ -214,7 +215,7 @@
 					<td>type</td>
 					<td>
 						<select id="edittype">
-							<option py:for="t in session.query(db.Job.type).distinct()"
+							<option py:for="t in session.query(db.Job.type).order_by(db.Job.type).distinct()"
 											py:attrs="markoption(t[0]==job.type)"
 											value="${t}"
 											py:content="t">

@@ -153,7 +153,8 @@ class Dataset(Base):
         """Creates a new dataset without records with the same meta data as this dataset.
         Give a new (unused) id
         """
-        return Dataset(id=id,
+        cls = type(self)
+        return cls(id=id,
                         name=self.name,
                         filename=self.filename,
                         valuetype=self.valuetype,
@@ -264,6 +265,8 @@ class Timeseries(Dataset):
         
         self.comment+='Dataset is splitted at %s to allow for different calibration' % time
         dsnew = self.copy(id=newid(Dataset,session))
+        self.comment+='. Other part of the dataset is ds%03i\n' % dsnew.id
+        dsnew.comment+='. Other part of the dataset is ds%03i\n' % self.id
         self.end = last.time
         dsnew.start = next.time
         records = self.records.filter(Record.time>=next.time)
