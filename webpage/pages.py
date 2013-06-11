@@ -635,17 +635,27 @@ class Root(object):
             helphtml= self.markdown(fn)
         res = res.replace('<!--content goes here-->', helphtml)
         return res
+    def markdownpage(self,content):
+        """
+        Returns a fully rendered page with navigation including the rendered markdown content 
+        """
+        res = web.render('empty.html',title="svn log",error='').render('html',doctype='html')
+        return res.replace('<!--content goes here-->', web.markdown(unicode(content)))
     @expose_for()
     def robots_txt(self):
         web.setmime(web.mime.plain)
         return "User-agent: *\nDisallow: /\n"
     @expose_for(group.admin)
     def svnlog(self):
-        import subprocess as sp
-        res = web.render('empty.html',title="svn log",error='').render('html',doctype='html')
-        svnlog = sp.Popen('svn log ~/schwingbach'.split(),stdout=sp.PIPE)
-        res.replace('<!--content goes here-->', web.markdown(unicode(svnlog.stdout.read(),'latin-1')))
-        return res
+        import pysvn
+        svnclient = pysvn.Client()
+        svnlogs = svnclient.log(web.abspath('..'))
+        out = StringIO()
+        for log in svnlogs:
+            log['revno'] = log['revision'].number
+            log['date'] = web.formatdatetime(datetime.fromtimestamp(log['date']))
+            out.write('### %(revno)i - %(date)s\n\n%(message)s\n\n*by %(author)s*\n\n' % log)
+        return self.markdownpage(out.getvalue()) 
 
         
 
