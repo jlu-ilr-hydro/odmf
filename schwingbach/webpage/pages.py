@@ -4,6 +4,7 @@ import lib as web
 from auth import users, require, member_of, has_level, group, expose_for
 import db
 import sys,os
+import pysvn
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from genshi import escape
@@ -552,12 +553,49 @@ class CalendarPage(object):
         res = web.as_json(events)
         session.close()
         return res
-  
+class svnlogPage(object):
+    exposed=True
+
+    @expose_for(group.admin)
+    def default(self,revno=None):
+        svnclient = pysvn.Client()
+        out = StringIO()
+        work_path = web.abspath('..')
+        if not revno:
+            svnlogs = svnclient.log(work_path)
+            for log in svnlogs:
+                log['revno'] = log['revision'].number
+                log['date'] = web.formatdatetime(datetime.fromtimestamp(log['date']))
+                out.write('### [%(revno)i](/svnlog/%(revno)i) - %(date)s\n\n*by %(author)s*\n\n * %(message)s\n\n' % log)
+        else: 
+            rev = pysvn.Revision(pysvn.opt_revision_kind.number,int(revno))
+            log, = svnclient.log(work_path,rev,rev)           
+            log['revno'] = log['revision'].number
+            log['date'] = web.formatdatetime(datetime.fromtimestamp(log['date']))
+            out.write('*[back to revision list](/svnlog)*\n\n')
+            out.write('## [%(revno)i](/svnlog/%(revno)i) - %(date)s\n\n%(message)s\n\n*by user:%(author)s*\n\n' % log)
+            out.write('### Changed paths\n\n')
+            info2 = svnclient.info2(work_path,rev)
+            for path,info in info2:
+                if info.last_changed_rev.number == rev.number and info.kind == pysvn.node_kind.file:
+                    out.write(' * `%s`\n' % path)
+            out.write('### All paths\n\n')
+            for path,info in info2:
+                if info.kind == pysvn.node_kind.file and (path.endswith('py') or path.endswith('html')):
+                    info['last_changed_date'] = web.formatdatetime(datetime.fromtimestamp(info['last_changed_date']))
+                    info['last_changed_rev'] = info['last_changed_rev'].number
+                    info['path'] = path
+                    out.write(' * `%(path)s` [REV%(last_changed_rev)s ](/svnlog/%(last_changed_rev)s)(%(last_changed_date)s)\n' % info)
+
+                
+        res = web.render('empty.html',title="svn log",error='').render('html',doctype='html')
+        return res.replace('<!--content goes here-->', web.markdown(unicode(out.getvalue())))
+            
 
 class Root(object):
     _cp_config = {'tools.sessions.on': True,
-                  'tools.sessions.timeout':7*24*60, # One Week
-                  'tools.sessions.storage_type':'ram',
+                  'tools.sessions.timeout':24*60, # One day
+                  'tools.sessions.storage_type':'file',
                   'tools.sessions.storage_path':web.abspath('sessions'), 
                   'tools.auth.on': True}
 
@@ -574,6 +612,7 @@ class Root(object):
     preferences = Preferences()
     plot = PlotPage()
     calendar = CalendarPage()
+    svnlog = svnlogPage()
     @expose_for()
     def index(self):
         if web.user():
@@ -645,17 +684,6 @@ class Root(object):
     def robots_txt(self):
         web.setmime(web.mime.plain)
         return "User-agent: *\nDisallow: /\n"
-    @expose_for(group.admin)
-    def svnlog(self):
-        import pysvn
-        svnclient = pysvn.Client()
-        svnlogs = svnclient.log(web.abspath('..'))
-        out = StringIO()
-        for log in svnlogs:
-            log['revno'] = log['revision'].number
-            log['date'] = web.formatdatetime(datetime.fromtimestamp(log['date']))
-            out.write('### %(revno)i - %(date)s\n\n%(message)s\n\n*by %(author)s*\n\n' % log)
-        return self.markdownpage(out.getvalue()) 
 
         
 
