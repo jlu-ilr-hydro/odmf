@@ -108,6 +108,10 @@ class MarkDown:
 
     def __call__(self,s):
         if s:
+            if type(s) is str:
+                s = unicode(s,'utf-8','replace')
+            elif not type(s) is unicode:
+                s = unicode(s,error='replace')
             return Markup(self.md.convert(s))
         else:
             return s
