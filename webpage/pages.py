@@ -8,7 +8,7 @@ import pysvn
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from genshi import escape
-from cStringIO import StringIO
+from StringIO import StringIO
 from webpage.upload import DownloadPage
 from webpage.map import MapPage
 from webpage.site import SitePage
@@ -555,41 +555,46 @@ class CalendarPage(object):
         return res
 class svnlogPage(object):
     exposed=True
-
-    @expose_for(group.admin)
-    def default(self,revno=None):
-        svnclient = pysvn.Client()
-        out = StringIO()
-        work_path = web.abspath('..')
-        if not revno:
-            svnlogs = svnclient.log(work_path)
-            for log in svnlogs:
-                log['revno'] = log['revision'].number
-                log['date'] = web.formatdatetime(datetime.fromtimestamp(log['date']))
-                out.write('### [%(revno)i](/svnlog/%(revno)i) - %(date)s\n\n*by %(author)s*\n\n * %(message)s\n\n' % log)
-        else: 
+    def logs(self,svnlogs):
+        for log in svnlogs:
+            log['revno'] = log['revision'].number
+            log['date'] = web.formatdatetime(datetime.fromtimestamp(log['date']))
+            yield '### [%(revno)i](/svnlog/%(revno)i) - %(date)s\n\n*by %(author)s*\n\n * %(message)s' % log
+    def changes(self,revno,svnclient,work_path='.'):
             rev = pysvn.Revision(pysvn.opt_revision_kind.number,int(revno))
             log, = svnclient.log(work_path,rev,rev)           
             log['revno'] = log['revision'].number
             log['date'] = web.formatdatetime(datetime.fromtimestamp(log['date']))
-            out.write('*[back to revision list](/svnlog)*\n\n')
-            out.write('## [%(revno)i](/svnlog/%(revno)i) - %(date)s\n\n%(message)s\n\n*by user:%(author)s*\n\n' % log)
-            out.write('### Changed paths\n\n')
+            yield '*[back to revision list](/svnlog)*\n'
+            yield '## [%(revno)i](/svnlog/%(revno)i) - %(date)s\n\n%(message)s\n' % log
+            yield '*by user:%(author)s*\n' % log
+            yield '### Changed paths\n'
             info2 = svnclient.info2(work_path,rev)
             for path,info in info2:
                 if info.last_changed_rev.number == rev.number and info.kind == pysvn.node_kind.file:
-                    out.write(' * `%s`\n' % path)
-            out.write('### All paths\n\n')
+                    yield ' * `%s`' % path
+            yield '\n### All paths\n'
             for path,info in info2:
                 if info.kind == pysvn.node_kind.file and (path.endswith('py') or path.endswith('html')):
                     info['last_changed_date'] = web.formatdatetime(datetime.fromtimestamp(info['last_changed_date']))
                     info['last_changed_rev'] = info['last_changed_rev'].number
                     info['path'] = path
-                    out.write(' * `%(path)s` [REV%(last_changed_rev)s ](/svnlog/%(last_changed_rev)s)(%(last_changed_date)s)\n' % info)
+                    yield ' * `%(path)s` [REV%(last_changed_rev)s ](/svnlog/%(last_changed_rev)s)(%(last_changed_date)s)' % info
 
-                
+        
+
+    @expose_for(group.admin)
+    def default(self,revno=None):
+        svnclient = pysvn.Client()
+        out = ''
+        work_path = web.abspath('..')
+        if not revno:
+            svnlogs = svnclient.log(work_path)
+            out = '\n\n'.join(self.logs(svnlogs))
+        else: 
+            out = '\n'.join(self.changes(revno, svnclient))
         res = web.render('empty.html',title="svn log",error='').render('html',doctype='html')
-        return res.replace('<!--content goes here-->', web.markdown(unicode(out.getvalue())))
+        return res.replace('<!--content goes here-->', web.markdown(out))
             
 
 class Root(object):
