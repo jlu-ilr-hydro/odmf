@@ -250,7 +250,7 @@
 						</li>
 						<li py:for="log in actualsite.logs">
 							<a href="/log/${log.id}" py:content="formatdatetime(log.time)"/>
-							${log.user}, ${markdown(log.message)}
+							${log.user}<sup>log:${log.id}</sup> ${markdown(log.message)}
 						</li>
 					</ul>
 					

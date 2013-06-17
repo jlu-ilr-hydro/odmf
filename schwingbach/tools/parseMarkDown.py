@@ -36,7 +36,7 @@ class PatternLink(markdown.inlinepatterns.Pattern):
             text =  m.expand(self.text)
         el = markdown.util.etree.Element("a")
         el.set('href', href)
-        el.text = u'\u25B8' + markdown.util.AtomicString(text)
+        el.text = markdown.util.AtomicString(text)
         return el
 
 class SymbolPattern(markdown.inlinepatterns.Pattern):
@@ -81,13 +81,15 @@ class SchwingbachExtension(markdown.Extension):
     def extendMarkdown(self, md, md_globals):
         """ Replace autolink with UrlizePattern """
         user2name = lambda s:' '.join(S.title() for S in s.group(3).split('.'))
-        md.inlinePatterns['link datasets'] = PatternLink(md,'(ds)([0-9]+)',r'/dataset/\3/',r'\2\3')
-        md.inlinePatterns['link files']=PatternLink(md,r'(file:)(\S+)',r'/datafiles/\3',r'\3')
-        md.inlinePatterns['link sites']=PatternLink(md,'(#)([0-9]+)',r'/site/\3',r'\2\3')
-        md.inlinePatterns['link job']=PatternLink(md,'(job:)([0-9]+)',r'/job/\3',r'\2\3')
-        md.inlinePatterns['link dir']=PatternLink(md,'(dir:)(\S+)',r'/download?dir=\3',r'\3')
+        md.inlinePatterns['link datasets'] = PatternLink(md,'(ds)([0-9]+)',r'/dataset/\3/',u'\u25B8'+r'\2\3')
+        md.inlinePatterns['link files']=PatternLink(md,r'(file:)(\S+)',r'/datafiles/\3',u'\u25B8'+r'\3')
+        md.inlinePatterns['link sites']=PatternLink(md,'(#)([0-9]+)',r'/site/\3',u'\u25B8'+r'\2\3')
+        md.inlinePatterns['link job']=PatternLink(md,'(job:)([0-9]+)',r'/job/\3',u'\u25B8'+r'\2\3')
+        md.inlinePatterns['link dir']=PatternLink(md,'(dir:)(\S+)',r'/download?dir=\3',u'\u25B8'+r'\3')
         md.inlinePatterns['link user']=PatternLink(md,r'(user:)([a-zA-Z\.]+)',r'/user/\3',user2name)
-        md.inlinePatterns['link photo']=PatternLink(md,'(photo:)([0-9]+)',r'/picture/?id=\3',r'\2\3')
+        md.inlinePatterns['link photo']=PatternLink(md,'(photo:)([0-9]+)',r'/picture/?id=\3',u'\u25B8'+r'\2\3')
+        md.inlinePatterns['link log']=PatternLink(md,'(log:)([0-9]+)',r'/log/?id=\3',u'\u25B8'+r'\2\3')
+        md.inlinePatterns['link wiki']=PatternLink(md,'(wiki:)(\S+)',r'/wiki/\3',u'\u2607\\3')
         md.inlinePatterns['replace rarrow']=SymbolPattern(md,r'(-->)',u'\u2192')
         md.inlinePatterns['replace larrow']=SymbolPattern(md,r'(<--)',u'\u2190')
         md.inlinePatterns['replace rarrow big']=SymbolPattern(md,r'(==>)',u'\u21D2')
