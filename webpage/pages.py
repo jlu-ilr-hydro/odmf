@@ -679,12 +679,29 @@ class Root(object):
             helphtml= self.markdown(fn)
         res = res.replace('<!--content goes here-->', helphtml)
         return res
-    def markdownpage(self,content):
+    def markdownpage(self,content,title=''):
         """
         Returns a fully rendered page with navigation including the rendered markdown content 
         """
-        res = web.render('empty.html',title="svn log",error='').render('html',doctype='html')
-        return res.replace('<!--content goes here-->', web.markdown(unicode(content)))
+        res = web.render('empty.html',title=title,error='').render('html',doctype='html')
+        return res.replace('<!--content goes here-->', web.markdown(content))
+    @expose_for()
+    def wiki(self,fn=''):
+        filename= web.abspath('datafiles/wiki/'+fn+'.wiki')
+        if os.path.exists(filename):
+            return self.markdownpage(file(filename).read(),fn)
+        elif fn:
+            content = '!!! error ""\n    Wiki page "%s" is not available.\n\n' %fn
+        else:
+            content =''
+        from glob import glob
+        content = content + '## Available Wiki pages:\n\n' + '\n'.join(
+                            ' * wiki:%s' % os.path.basename(s).split('.')[0] 
+                              for s in  glob(web.abspath('datafiles/wiki/*.wiki'))
+                            )
+        return self.markdownpage(content,'wiki')
+                  
+         
     @expose_for()
     def robots_txt(self):
         web.setmime(web.mime.plain)

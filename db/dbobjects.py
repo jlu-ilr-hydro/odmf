@@ -214,7 +214,7 @@ class Log(Base):
     # Type of log
     type = sql.Column(sql.String)
     def __str__(self):
-        return "%s, %s: %s" % (self.user,self.time,self.message)
+        return "%s, %s: %s (id:%i)" % (self.user,self.time,self.message,self.id)
     def __cmp__(self,other):
         return cmp(self.id,other.id)
 
