@@ -695,7 +695,9 @@ class Root(object):
         else:
             content =''
         from glob import glob
-        content = content + '## Available Wiki pages:\n\n' + '\n'.join(
+        content += ('### Create new pages \n\n Create new pages by uploading text files to directory dir:wiki\n' + 
+                    'Follow the instructions there.\n\n')
+        content = content + '### Available Wiki pages:\n\n' + '\n'.join(
                             ' * wiki:%s' % os.path.basename(s).split('.')[0] 
                               for s in  glob(web.abspath('datafiles/wiki/*.wiki'))
                             )
