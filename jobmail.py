@@ -52,7 +52,8 @@ if __name__=="__main__":
     mails=[]
     for job in session.query(db.Job).filter(db.Job.done==False,db.Job.due<today):
         if job.is_due():
-            job.parse_description(action='due')
+            if job.description:
+                job.parse_description(action='due')
             subject = 'Studienlandschaft Schwingbach: %s' % job.name
             msgdata = dict(id=job.id,you=job.responsible.firstname,due=job.due,job=job.name,descr=job.description,
                                 me=job.author.firstname)

@@ -13,11 +13,12 @@ Creating links
  * `ds370` links to a dataset ==> ds370 
  * `#18` links to a site ==> #18
  * `job:1` links to a job ==> job:1
+ * `wiki:help` links to a file /wiki/help (this one): wiki:help
  * `photo:1` links to a photo ==> photo:1
  * `![title](/picture/thumbnail/1)`inserts a small version of a photo ==> ![title](/picture/thumbnail/1)
  * `user:philipp` links to a user page ==> user:philipp
  * `[link name](http://uni-giessen.de)` links to another web site. ==> [link name](http://uni-giessen.de)
- * `[title](/map)` links to a location on this site ==> [title](/map) 
+ * `[title](/map)` links to a location on this site ==> [title](/map)
  * Just write the link address - it will be converted automatically to a link, eg. http://uni-giessen.de
 
 
