@@ -353,7 +353,7 @@ class Timeseries(Dataset):
         def r2c(records):
             for r in records:
                 if r[0] is None:
-                    yield np.log(-1),date2num(r[1])
+                    yield np.log(-1),date2num(tz_local.localize(r[1]))
                 else:
                     yield r[0],date2num(tz_local.localize(r[1]))
         t = np.zeros(shape=records.count(),dtype=float)
