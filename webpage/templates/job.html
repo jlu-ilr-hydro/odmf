@@ -41,7 +41,7 @@
         $(function() {
         	$(".datepicker").datepicker({dateFormat: 'dd.mm.yy' });        	
         });
-    		function submitform() {
+    		function submitform(own) {
     			var formdata = {
     				id: $('#editid').val(),
     				name: $('#editname').val(),
@@ -51,7 +51,7 @@
     				repeat: $('#editrepeat').val(),
     				description: $('#editdescription').val(),
     				type: $('#edittype').val(),
-    				save: 'save',
+    				save: own ? 'own' : 'save',
     			};
     			$.post('/job/saveitem/',formdata,function(data) {
     				if (data) {
@@ -225,11 +225,22 @@
 					</td>
 				</tr>
 			</table>
-			<input type="button" 
-				id="editsave" 
-				style="width: 10em;"
-				onclick="submitform();" 
-				value="save changes"/>
+			<span class="tooltip">
+				<input type="button" 
+					id="editsave" 
+					style="width: 10em;"
+					onclick="submitform(false);" 
+					value="save changes"/>
+				<span>Saves the changes to the database</span>
+			</span>
+			<span class="tooltip" py:if="job.author.username!=user()">
+				<input type="button"
+					id="editsaveandown"
+					style="width: 10em;"
+					onclick="submitform(true);" 
+					value="become author"/>
+				<span>Saves the changes to the author and makes <b>you</b> to the author of the job</span>
+			</span>
 		</div>
 	</div>
 </body>

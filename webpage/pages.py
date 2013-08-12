@@ -194,7 +194,8 @@ class JobPage:
         if user is None:
             user=web.user()
         if jobid=='new':
-            job = db.Job(id=db.newid(db.Job,session),name='name of new job')
+            author = session.query(db.Person).get(web.user())
+            job = db.Job(id=db.newid(db.Job,session),name='name of new job',author=author)
             if user:
                 p_user = session.query(db.Person).get(user)
                 job.responsible = p_user
@@ -251,6 +252,9 @@ class JobPage:
                 job.link = kwargs.get('link')
                 job.repeat = web.conv(int,kwargs.get('repeat'))
                 job.type = kwargs.get('type')
+                if kwargs['save']=='own':
+                    p_user = session.query(db.Person).get(web.user())
+                    job.author = p_user
                 session.commit()
                 session.close()
             except:
