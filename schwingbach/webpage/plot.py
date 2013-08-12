@@ -128,7 +128,7 @@ class Line(object):
         t0 = plt.date2num(datetime(1899,12,30))
         stream.write(codecs.BOM_UTF8)
         stream.write('Time,' + unicode(self.valuetype).encode('UTF-8') + '\n') 
-        for t,v in zip(self.t-t0,self.v):
+        for t,v in zip(t-t0,v):
             stream.write('%f,%f\n' % (t,v))
         
     def __jdict__(self):

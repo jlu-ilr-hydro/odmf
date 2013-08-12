@@ -153,7 +153,13 @@
 		<br/>
 		<div py:if="job" >
 			<h2>${job.name}</h2>
+			<div py:content="markdown(job.description)"/>
+			<br/>
 			<table style="width: 100%" class="small">
+				<tr style="background-color:${job.color}">
+					<td>Status:</td>
+					<td py:content="'done at ' + formatdate(job.donedate) if job.done else 'due at ' + formatdate(job.due)"/>
+				</tr>
 				<tr >
 					<td style="width: 7em">ID:</td>
 					<td><input type="text" id="editid" value="${job.id}" readonly="readonly"/></td>

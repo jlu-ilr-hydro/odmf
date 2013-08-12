@@ -88,7 +88,7 @@ class SchwingbachExtension(markdown.Extension):
         md.inlinePatterns['link dir']=PatternLink(md,'(dir:)(\S+)',r'/download?dir=\3',u'\u25B8'+r'\3')
         md.inlinePatterns['link user']=PatternLink(md,r'(user:)([a-zA-Z\.]+)',r'/user/\3',user2name)
         md.inlinePatterns['link photo']=PatternLink(md,'(photo:)([0-9]+)',r'/picture/?id=\3',u'\u25B8'+r'\2\3')
-        md.inlinePatterns['link log']=PatternLink(md,'(log:)([0-9]+)',r'/log/?id=\3',u'\u25B8'+r'\2\3')
+        md.inlinePatterns['link log']=PatternLink(md,'(log:)([0-9]+)',r'/log/\3',u'\u25B8'+r'\2\3')
         md.inlinePatterns['link wiki']=PatternLink(md,'(wiki:)(\S+)',r'/wiki/\3',u'\u2607\\3')
         md.inlinePatterns['replace rarrow']=SymbolPattern(md,r'(-->)',u'\u2192')
         md.inlinePatterns['replace larrow']=SymbolPattern(md,r'(<--)',u'\u2190')

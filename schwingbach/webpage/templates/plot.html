@@ -87,6 +87,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 		.tooltip span {
 			color: #111;
 		}
+		.nowrap {white-space: nowrap;}
 	</style>
 		
 </head>
@@ -140,7 +141,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			<ul class="box_24">
 				<li py:for="sp in plot.subplots" class="sp">
 					subplot ${sp.position} 
-					<span class="box small leftspace"> 
+					<span class="box small leftspace nowrap"> 
 						<a py:if="sp.position==len(plot.subplots)" 
 							href="javascript:removesubplot(${sp.position})" 
 							class="tooltip">
@@ -149,14 +150,14 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 							remove
 						</a>
 					</span>
-					<span class="box small leftspace">
+					<span class="box small leftspace nowrap">
 						<a href="javascript:changeylimit(${sp.position})" class="tooltip">
 							<i>y</i>&#x2195;<span>change y axis limit</span>
 						</a>
 					</span>
 					<ul class="brush">
 						<li py:for="i,l in enumerate(sp.lines)" class="small line">
-							<span class="small box" id="linetools_${sp.position}_${i}">
+							<span class="small box nowrap" id="linetools_${sp.position}_${i}">
 								<a href="javascript:removeline(${sp.position},${i})" title="remove line" class="tooltip">
 									&#x2718; 
 									<span>remove line</span>
@@ -182,46 +183,58 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 								<img src="/media/plus-small.png"/>
 								<span>Add the line to subplot ${sp.position}</span>
 							</button>
-								value:
-								<select id="vtselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter vtselect">
-									<option value="" class="firstoption">Please select...</option>
-								</select>
-								site:
-								<select id="siteselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter siteselect">
-									<option value="" class="firstoption">Please select...</option>
-								</select>
-								instrument:
-								<select id="instrumentselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter instrumentselect">
-									<option value="" class="firstoption">Please select...</option>
-								</select>
-								marker:
-								<select id="markerpicker_${sp.position}">
-									<option value="">none</option>
-									<option value="x">x</option>
-									<option value="o">o</option>
-									<option value=".">.</option>
-									<option value="|">|</option>
-									<option value="+">+</option>
-									<option value="*">*</option>
-								</select>
-								line:
-								<select id="linepicker_${sp.position}">
-									<option value="-">-</option>
-									<option value="">none</option>
-									<option value=":">...</option>
-									<option value="--">--</option>
-									<option value="-.">-.</option>
-								</select>
-								color:
-								<select id="colorpicker_${sp.position}">
-									<option value="k" style="background-color: #000;">k</option>
-									<option value="b" style="background-color: #00F;">b</option>
-									<option value="g" style="background-color: #0F0;">g</option>
-									<option value="r" style="background-color: #F00;">r</option>
-									<option value="y" style="background-color: #FF0;">y</option>
-									<option value="c" style="background-color: #0FF;">c</option>
-									<option value="m" style="background-color: #F0F;">m</option>
-								</select>
+								<span class="nowrap">
+									value:
+									<select id="vtselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter vtselect">
+										<option value="" class="firstoption">Please select...</option>
+									</select>
+								</span>
+								<span class="nowrap">
+									site:
+									<select id="siteselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter siteselect">
+										<option value="" class="firstoption">Please select...</option>
+									</select>
+								</span>
+								<span class="nowrap">
+									instrument:
+									<select id="instrumentselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter instrumentselect">
+										<option value="" class="firstoption">Please select...</option>
+									</select>
+								</span>
+								<span class="nowrap">
+									marker:
+									<select id="markerpicker_${sp.position}">
+										<option value="">none</option>
+										<option value="x">x</option>
+										<option value="o">o</option>
+										<option value=".">.</option>
+										<option value="|">|</option>
+										<option value="+">+</option>
+										<option value="*">*</option>
+									</select>
+								</span>
+								<span class="nowrap">
+									line:
+									<select id="linepicker_${sp.position}">
+										<option value="-">-</option>
+										<option value="">none</option>
+										<option value=":">...</option>
+										<option value="--">--</option>
+										<option value="-.">-.</option>
+									</select>
+								</span>
+								<span class="nowrap">
+									color:
+									<select id="colorpicker_${sp.position}">
+										<option value="k" style="background-color: #000;">k</option>
+										<option value="b" style="background-color: #00F;">b</option>
+										<option value="g" style="background-color: #0F0;">g</option>
+										<option value="r" style="background-color: #F00;">r</option>
+										<option value="y" style="background-color: #FF0;">y</option>
+										<option value="c" style="background-color: #0FF;">c</option>
+										<option value="m" style="background-color: #F0F;">m</option>
+									</select>
+								</span>
 						</li>
 					</ul>
 
