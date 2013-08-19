@@ -76,7 +76,7 @@
 					        	+ '&' + 'color=' + $('#colorpicker').val();
 					$('#plotimg').attr('src',url);
         }
-				function remove(dsid,dsname,reccount) {
+				function removeds(dsid,dsname,reccount) {
 					var msg = 'Are you absolutly sure to delete ' + dsname + '?' +
 					          'It has ' + reccount + ' records!' 
 					var really=confirm(msg)
@@ -252,7 +252,7 @@
 	  	</ul> 
 			<div id="edit" py:if="is_member('editor')">
 				<button py:if="is_member('admin')" class="tooltip small"
-						onclick="javascript:remove(${activedataset.id},'${unicode(activedataset)}',${n});">
+						onclick="javascript:removeds(${activedataset.id},'${unicode(activedataset)}',${n});">
 					&#x2718;
 					<span>remove dataset</span>
 				</button>
