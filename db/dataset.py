@@ -185,7 +185,7 @@ def removedataset(*args):
     session=Session()
     datasets = [session.query(Dataset).get(int(a)) for a in args]
     for ds in datasets:
-        name = str(ds)
+        dsid = ds.id
         if ds.is_timeseries():
             reccount=ds.records.delete()
             session.commit()
@@ -193,7 +193,7 @@ def removedataset(*args):
             reccount = 0
         session.delete(ds)
         session.commit()
-        print "Deleted %s and %i records" % (name,reccount)
+        print "Deleted ds%03i and %i records" % (dsid,reccount)
 
 class MemRecord(object):
     def __init__(self,id,dataset,time,value,sample=None,comment=None,is_error=False):
