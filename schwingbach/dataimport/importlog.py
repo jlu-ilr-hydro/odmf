@@ -156,9 +156,9 @@ class LogbookImport(object):
         # If dataset and value present (import as record)
         if ds and not v is None:
             # Extent time of dataset
-            if ds.start>time:
+            if ds.start>time or ds.records.count()==0:
                 ds.start=time
-            if ds.end<time:
+            if ds.end<time or ds.records.count()==0:
                 ds.end=time
             # Check for duplicate record
             if self.recordexists(ds, time):

@@ -144,7 +144,12 @@ class Person(Base):
                     label=u"%s %s" % (self.firstname,self.surname),
                     )
     def __cmp__(self,other):
-        return cmp(self.surname,other.surname)
+        if hasattr(other,'surname'):
+            return cmp(self.surname,other.surname)
+        elif other:
+            return cmp(self.surname,unicode(other))
+        else:
+            return cmp(self.surname,other)
 
 
 
