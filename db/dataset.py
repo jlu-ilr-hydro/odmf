@@ -13,6 +13,7 @@ from dbobjects import newid, Person, Datasource
 from collections import deque
 from math import sqrt
 import pytz
+from pandas import Series
 tzberlin = pytz.timezone('Europe/Berlin')
 tzwinter = pytz.FixedOffset(60)
 tzutc = pytz.utc
@@ -168,7 +169,7 @@ class Dataset(Base):
                         end=self.end,
                         site=self.site)
     def asarray(self,start=None,end=None):
-        raise NotImplementedError('%s(type=%s) - data set can not return values with "asarray". Is the type correct?' % (self,self.type))    
+        raise NotImplementedError('%s(type=%s) - data set can not return values with "asarray". Is the type correct?' % (self,self.type))
     def size(self):
         return 0
     def statistics(self):
@@ -432,13 +433,16 @@ class DatasetGroup(object):
         return session.query(Dataset).filter(Dataset.id.in_(self.datasetids)).order_by(Dataset.start).all()
     def asarray(self,session):
         datasets=self.datasets(session)
-        src_t=[]
-        src_v=[]
+        if not len(datasets):
+            return [],[]
+        src=datasets[0]
+        t,v = src.asarray(self.start,self.end)
+        data=Series(v,index=t)
         for src in datasets:
             t,v = src.asarray(self.start,self.end)
-            src_t = np.concatenate((src_t,t))
-            src_v = np.concatenate((src_v,v))
-        return src_t, src_v
+            data.append(Series(v,index=t))
+        data=data.sort_index()
+        return np.array(data.index,dtype=float), np.array(data,dtype=float)
     def iterrecords(self,session,witherrors):
         datasets = self.datasets(session)
         for ds in datasets:
