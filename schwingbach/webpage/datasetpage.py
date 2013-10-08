@@ -6,7 +6,7 @@ Created on 18.07.2012
 import lib as web
 import db
 from traceback import format_exc as traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 from genshi import escape
 from cStringIO import StringIO
 from auth import group, expose_for, users
@@ -532,12 +532,13 @@ class CalibratePage(object):
         if sourceid:
             sourceid = int(sourceid)
         limit=web.conv(int,limit,3600)
+        day = timedelta(days=1)
         source=sourcerecords=None
         sourcecount=0
         result = Calibration()
         try:   
             if sourceid:
-                source = CalibrationSource([sourceid], target.start, target.end)
+                source = CalibrationSource([sourceid], target.start - day, target.end + day)
                 sourcerecords = source.records(session)
                 sourcecount=sourcerecords.count()
                 
