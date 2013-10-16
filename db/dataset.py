@@ -263,8 +263,9 @@ class Timeseries(Dataset):
         last = self.records.filter(Record.time<=time,Record.value != None).order_by(sql.desc(Record.time)).first()
         if not next or not last:
             raise RuntimeError("Split time %s is not between two records of %s" % (t,self))
-        
-        self.comment+='Dataset is splitted at %s to allow for different calibration' % time
+        if self.comment==None:
+            self.comment='Dataset is splitted at %s to allow for different calibration' % time
+        else: self.comment+='Dataset is splitted at %s to allow for different calibration' % time
         dsnew = self.copy(id=newid(Dataset,session))
         self.comment+='. Other part of the dataset is ds%03i\n' % dsnew.id
         dsnew.comment+='. Other part of the dataset is ds%03i\n' % self.id
