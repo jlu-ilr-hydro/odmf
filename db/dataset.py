@@ -365,6 +365,9 @@ class Timeseries(Dataset):
         v*=self.calibration_slope 
         v+=self.calibration_offset  
         return t,v
+    def asseries(self,start=None,end=None):
+        t,v = self.asarray(start, end)
+        return Series(v,index=t)            
     def size(self):
         return self.records.count()
     def iterrecords(self, witherrors=False):
@@ -389,15 +392,17 @@ class TransformedTimeseries(Dataset):
         return [s.id for s in self.sources]
     def size(self):
         return self.session().query(Record).filter(Record._dataset.in_(self.sourceids())).count()
-    def asarray(self,start=None,end=None):
-        src_t=[]
-        src_v=[]
-        for src in self.sources:
+    def asseries(self,start=None,end=None):
+        datasets = self.sources
+        data=Series()
+        for src in datasets:
             t,v = src.asarray(start,end)
-            src_t = np.concatenate((src_t,t))
-            src_v = np.concatenate((src_v,v))
-        src_v = self.transform(src_v)
-        return src_t, src_v
+            data=data.append(Series(v,index=t))
+        data=data.sort_index()
+        return data
+    def asarray(self,start=None,end=None):
+        data = self.asseries(start, end)
+        return np.array(data.index,dtype=float), np.array(data,dtype=float)
     def updatetime(self):
         self.start = min(ds.start for ds in self.sources)
         self.end = max(ds.end for ds in self.sources)
@@ -432,17 +437,15 @@ class DatasetGroup(object):
         self.end = end
     def datasets(self,session):
         return session.query(Dataset).filter(Dataset.id.in_(self.datasetids)).order_by(Dataset.start).all()
-    def asarray(self,session):
+    def asseries(self,session):
         datasets=self.datasets(session)
-        if not len(datasets):
-            return [],[]
-        src=datasets[0]
-        t,v = src.asarray(self.start,self.end)
-        data=Series(v,index=t)
+        data=Series()
         for src in datasets:
             t,v = src.asarray(self.start,self.end)
-            data.append(Series(v,index=t))
-        data=data.sort_index()
+            data=data.append(Series(v,index=t))
+        return data.sort_index()
+    def asarray(self,session):
+        data = self.asseries(session)
         return np.array(data.index,dtype=float), np.array(data,dtype=float)
     def iterrecords(self,session,witherrors):
         datasets = self.datasets(session)
