@@ -91,22 +91,24 @@ class Line(object):
             v=np.fromfile(self.getcachename('v'))
             if not (len(t)==0 or len(v)!=len(t)):
                 print ".../\./\|\...load from cache<-" + os.path.basename(self.getcachename('?'))
-                return t,v
-        print ".../\./\|\...load from database->" + os.path.basename(self.getcachename('?'))
-        session=db.Session()
-        error=''
-        start=self.subplot.plot.startdate
-        end=self.subplot.plot.enddate
-        try:
-            datasets=self.getdatasets(session)
-            group = db.DatasetGroup([ds.id for ds in datasets], start, end)
-            t,v = group.asarray(session)
-            t.tofile(self.getcachename('t'))
-            v.tofile(self.getcachename('v'))
-        except Exception as e:
-            raise e
-        finally:
-            session.close()
+        else:
+            print ".../\./\|\...load from database->" + os.path.basename(self.getcachename('?'))
+            session=db.Session()
+            error=''
+            start=self.subplot.plot.startdate
+            end=self.subplot.plot.enddate
+            try:
+                datasets=self.getdatasets(session)
+                group = db.DatasetGroup([ds.id for ds in datasets], start, end)
+                t,v = group.asarray(session)
+                t.tofile(self.getcachename('t'))
+                v.tofile(self.getcachename('v'))
+            except Exception as e:
+                raise e
+            finally:
+                session.close()
+        print "size(v)=", v.size,"mean(v)=",v[np.isnan(v)==False].mean(),"std(v)=",v[np.isnan(v)==False].std()
+        print "size(t)=", t.size,"min(t)=",plt.num2date(t.min()),"max(t)=",plt.num2date(t.max())
         return t,v
     def draw(self,ax,startdate=None,enddate=None):
         """
