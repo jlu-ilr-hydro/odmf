@@ -370,14 +370,18 @@ class Timeseries(Dataset):
         return Series(v,index=t)            
     def size(self):
         return self.records.count()
-    def iterrecords(self, witherrors=False):
+    def iterrecords(self, witherrors=False,start=None,end=None):
         session = self.session()    
-        records = session.query(Record).filter(Record._dataset == self.id)
+        records = session.query(Record).filter(Record._dataset == self.id).order_by(Record.time)
+        if start:
+            records = records.filter(Record.time>=start)
+        if end:
+            records = records.filter(Record.time<=end)    
         records=records.order_by(Record.time)
         if not witherrors:
             records = records.filter(~Record.is_error)
         for r in records:
-            yield r
+            yield MemRecord(id=r.id,dataset=r.dataset,time=r.time,value=r.calibrated,sample=r.sample,comment=r.comment)
         
 
 
@@ -398,6 +402,7 @@ class TransformedTimeseries(Dataset):
         for src in datasets:
             t,v = src.asarray(start,end)
             data=data.append(Series(v,index=t))
+        data = self.transform(data)
         data=data.sort_index()
         return data
     def asarray(self,start=None,end=None):
@@ -408,9 +413,13 @@ class TransformedTimeseries(Dataset):
         self.end = max(ds.end for ds in self.sources)
     def transform(self,x):
         return eval(self.expression,{'x':x},np.__dict__)
-    def iterrecords(self, witherrors=False):
+    def iterrecords(self, witherrors=False,start=None,end=None):
         session = self.session()
         srcrecords = session.query(Record).filter(Record._dataset.in_(self.sourceids())).order_by(Record.time)
+        if start:
+            srcrecords = srcrecords.filter(Record.time>=start)
+        if end:
+            srcrecords = srcrecords.filter(Record.time<=end)    
         if not witherrors:
             srcrecords = srcrecords.filter(~Record.is_error)
         i=0
