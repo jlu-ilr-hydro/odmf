@@ -69,11 +69,13 @@
 			var vt = $('#vtselect_'+sp).val();
 			var site = $('#siteselect_'+sp).val();
 			var inst = $('#instrumentselect_'+sp).val();
+			var level = $('#levelselect_'+sp).val();
 			$.post('addline', {
 				subplot:sp,
 				valuetypeid:vt,
 				siteid:site,
 				instrumentid:inst,
+				level:level,
 				style:getstyle(sp)
 			},seterror);
 			killplot();
@@ -126,6 +128,7 @@
 				var vt = $('#vtselect_' + subplotpos).val();
 				var site = $('#siteselect_' + subplotpos).val();
 				var instrument = $('#instrumentselect_' + subplotpos).val();
+				var level = $('#levelselect_' + subplotpos).val();
 				var date = ''; //$('#dateselect').val()
 				$.getJSON('/dataset/attrjson',
 									{ attribute:'valuetype',
@@ -169,6 +172,32 @@
 											$('#siteselect_'+subplotpos).html(html).val(site);
 										}
 				);
+				if (vt!='' && site!='') {
+					$.getJSON('/dataset/attrjson',
+										{ attribute:'level',
+											valuetype:vt,
+											date:date,
+											site:site
+										},
+										function(data) {
+											var show=false;
+											var html='<option value="" class="firstoption">Please select...</option>';
+											$.each(data,function(index,item){
+												if (item!=null) {
+													html+='<option value="'+item+'">'+item+'</option>';
+													show=true;
+												}
+											});
+											if (show && vt!='' && site!='') {
+												$('#levelselect_'+subplotpos).html(html).val(level);
+												$('#levelselect_'+subplotpos).parent().show();											
+											} else {
+												$('#levelselect_'+subplotpos).parent().hide();
+											}
+										});
+				} else {
+						$('#levelselect_'+subplotpos).parent().hide();					
+				}
 				if ($('#siteselect_'+subplotpos).val()!='' && 
 						$('#vtselect_'+subplotpos).val()!='') {
 					$('#addline_' + subplotpos).removeProp('disabled');
