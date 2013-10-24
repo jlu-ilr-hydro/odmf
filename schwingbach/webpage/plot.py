@@ -17,7 +17,7 @@ import db
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from cStringIO import StringIO
-
+import time
 t0 = datetime(1,1,1)
 nan = np.nan
 def date2num(t):
@@ -44,7 +44,7 @@ class Line(object):
     """
     Represents a single line of a subplot
     """
-    def __init__(self,subplot,valuetype,site,instrument=None,style='',
+    def __init__(self,subplot,valuetype,site,instrument=None,level=None,style='',
                  transformation=None):
         """
         Create a Line:
@@ -61,14 +61,9 @@ class Line(object):
         self.valuetype=session.query(db.ValueType).get(int(valuetype)) if valuetype else None
         self.site=session.query(db.Site).get(int(site)) if site else None
         self.instrument = session.query(db.Datasource).get(int(instrument)) if instrument else None
+        self.level = level
         session.close()
         self.transformation=transformation
-    def getcachename(self,t_or_v):
-        plot = self.subplot.plot
-        path = plot.getpath()
-        spno = self.subplot.position
-        lineno = self.subplot.lines.index(self)
-        return '%s.sp%i.l%i.%s.npy' % (path,spno,lineno,t_or_v)
     def getdatasets(self,session):
         """
         Loads the datasets for this line
@@ -77,7 +72,22 @@ class Line(object):
                                                     db.Dataset.site==self.site)
         if self.instrument:
             datasets=datasets.filter(db.Dataset.source == self.instrument)
+        if not self.level is None:
+            datasets=datasets.filter(db.Dataset.level == self.level)
         return datasets.order_by(db.Dataset.start).all()
+    def getcachename(self,t_or_v):
+        plot = self.subplot.plot
+        path = plot.getpath()
+        spno = self.subplot.position
+        lineno = self.subplot.lines.index(self)
+        return '%s.sp%i.l%i.%s.npy' % (path,spno,lineno,t_or_v)
+    def hascache(self):
+        now = time.time()
+        tname = self.getcachename('t')
+        vname = self.getcachename('v')
+        return (os.path.exists(tname) and 
+                os.path.exists(vname) and
+                now - os.path.getmtime(tname) < 600)
     def killcache(self):
         for s in 'tv':
             if os.path.exists(self.getcachename(s)):
@@ -86,7 +96,7 @@ class Line(object):
         """
         Loads the records into an array
         """
-        if usecache and os.path.exists(self.getcachename('t')) and os.path.exists(self.getcachename('v')):
+        if usecache and self.hascache():
             t=np.fromfile(self.getcachename('t'))
             v=np.fromfile(self.getcachename('v'))
             if not (len(t)==0 or len(v)!=len(t)):
@@ -116,7 +126,7 @@ class Line(object):
         """
         t,v = self.load(startdate,enddate,True)
         # Do the plot 
-        label = u'%s at site %s' % (self.valuetype.name,self.site)
+        label = unicode(self)
         if self.style:
             ax.plot_date(t,v,self.style,label=label)
         else:
@@ -140,6 +150,7 @@ class Line(object):
         return dict(valuetype=self.valuetype.id if self.valuetype else None,
                     site=self.site.id if self.site else None,
                     instrument=self.instrument.id if self.instrument else None,
+                    level=self.level,
                     style=self.style,transformation=self.transformation)
     @classmethod
     def fromdict(cls,subplot,d):
@@ -147,15 +158,20 @@ class Line(object):
         Creates the line element from a dictionary (for loading from session)
         """
         return cls(subplot,valuetype=d.get('valuetype'),site=d.get('site'),instrument=d.get('instrument'),style=d.get('style'),
-                   transformation=d.get('transformation'))
-    def __str__(self):
+                   transformation=d.get('transformation'),level=d.get('level'))
+    def __unicode__(self):
         """
         Returns a string representation
         """
         if self.instrument:
-            return '%s at %s using %s (%s)' % (self.valuetype, self.site,self.instrument,self.style)
+            return u'%s at #%i%s using %s' % (self.valuetype, self.site.id,
+                                                 '(%gm)' % self.level if not self.level is None else '',
+                                                 self.instrument.name)
         else:
-            return '%s at %s (%s)' % (self.valuetype, self.site,self.style)
+            return u'%s at #%i%s' % (self.valuetype, self.site.id,
+                                      '(%gm)' % self.level if not self.level is None else '')
+    def __str__(self):
+        return unicode(self).encode('utf-8',errors='replace')
     def __repr__(self):
         return "plot.Line(%s@%s,'%s')" % (self.valuetype,self.site,self.style)
     
@@ -171,7 +187,7 @@ class Subplot(object):
         self.position=position
         self.lines=[]
         self.ylim = None
-    def addline(self,valuetype,site,instrument=None,style=''):
+    def addline(self,valuetype,site,instrument=None,level=None,style=''):
         """
         Adds a line to the subplot
         @param valuetype: the id of a valuetype
@@ -179,7 +195,7 @@ class Subplot(object):
         @param instrument: the id of an instrument (can be omitted)
         @param style: the style of the line, eg 'o-k' for black line with circle markers 
         """
-        self.lines.append(Line(self,valuetype=valuetype,site=site,instrument=instrument,style=style))
+        self.lines.append(Line(self,valuetype=valuetype,site=site,instrument=instrument,level=level,style=style))
         self.plot.createtime = web.formatdate()
         return self
     def draw(self,figure):
@@ -379,7 +395,7 @@ class PlotPage(object):
         except:
             return traceback();
     @web.expose_for(plotgroup)
-    def addline(self,subplot,valuetypeid,siteid,instrumentid,style):
+    def addline(self,subplot,valuetypeid,siteid,instrumentid,level,style):
         try:
             plot = Plot.frompref()
             spi = int(subplot)
@@ -387,7 +403,7 @@ class PlotPage(object):
                 sp=plot.addtimeplot()
             else:
                 sp = plot.subplots[spi-1]         
-            sp.addline(web.conv(int,valuetypeid),web.conv(int,siteid),web.conv(int,instrumentid),style=style)
+            sp.addline(web.conv(int,valuetypeid),web.conv(int,siteid),web.conv(int,instrumentid),web.conv(float,level),style=style)
             plot.topref()
         except:
             return traceback()
@@ -425,7 +441,22 @@ class PlotPage(object):
         io = StringIO()
         line.export_csv(io,plot.startdate,plot.enddate)
         io.seek(0)
-        return io        
+        return io
+    @web.expose_for(plotgroup)
+    def exportall_csv(self,tolerance):
+        plot = Plot.frompref()
+        datasetids=[]
+        session=db.Session()
+        for sp in plot.subplots:
+            for line in sp.lines:
+                datasetids.extend(ds.id for ds in line.getdatasets(session) if ds.type=='timeseries')
+        session.close()
+        stream = StringIO()
+        from tools.exportdatasets import exportData
+        exportData(stream,datasetids,plot.startdate,plot.enddate,web.conv(float,tolerance,60))
+        web.setmime(web.mime.csv)
+        return stream.getvalue()
+                
     @web.expose_for(plotgroup)
     def clf(self):
         plot = Plot.frompref()

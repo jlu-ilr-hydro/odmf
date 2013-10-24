@@ -16,22 +16,17 @@ class Preferences(object):
      }
     types=dict(map=dict(lat=float,lng=float,zoom=int,type=str),
                site=int)
+    def __init__(self):
+        try:
+            self.data = json.load(file(self.filename))
+        except:
+            self.data = Preferences.default
     @property
     def filename(self):
         if users.current:
             return web.abspath('preferences/' + users.current.name + '.json')
         else:
             return web.abspath('preferences/any.json')
-    @property
-    def data(self):
-        session = web.cherrypy.session
-        if 'preferences' in session:
-            return session['preferences']
-        elif users.current and op.exists(self.filename):
-            session['preferences'] = json.load(file(self.filename))
-        else:
-            session['preferences'] = Preferences.default
-        return session['preferences']
     def __getitem__(self,item):
         return self.data.get(item)
     def __setitem__(self,item,value):

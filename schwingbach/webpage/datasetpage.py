@@ -131,7 +131,8 @@ class DatasetPage:
                 ds.quality = q
                 if src:
                     ds.source = src
-                
+                if 'level' in kwargs:
+                    ds.level = web.conv(float,kwargs.get('level'))
                 # Timeseries only arguments
                 if ds.is_timeseries():
                     if kwargs.get('start'):
@@ -186,7 +187,7 @@ class DatasetPage:
         except Exception as e:
             return str(e)
     
-    def subset(self,session,valuetype=None,user=None,site=None,date=None,instrument=None,type=None):
+    def subset(self,session,valuetype=None,user=None,site=None,date=None,instrument=None,type=None,level=None):
         """
         A not exposed helper function to get a subset of available datasets using filter
         """
@@ -211,11 +212,13 @@ class DatasetPage:
             datasets=datasets.filter_by(source=source)
         if type:
             datasets=datasets.filter_by(type=type)
+        if not level is None:
+            datasets=datasets.filter_by(level=level)
             
         return datasets.join(db.ValueType).order_by(db.ValueType.name,db.sql.desc(db.Dataset.end))
     
     @expose_for()
-    def attrjson(self,attribute,valuetype=None,user=None,site=None,date=None,instrument=None,type=None):
+    def attrjson(self,attribute,valuetype=None,user=None,site=None,date=None,instrument=None,type=None,level=None):
         """
         Gets the attributes for a dataset filter. Returns json. Used for many filters using ajax.
         e.g: Map filter, datasetlist, import etc.
@@ -230,7 +233,7 @@ class DatasetPage:
         res=''
         try:
             # Get dataset for filter
-            datasets = self.subset(session,valuetype,user,site,date,instrument,type)
+            datasets = self.subset(session,valuetype,user,site,date,instrument,type,level)
             # Make a set of the attribute items 
             items = set(getattr(ds, attribute) for ds in datasets)
             # Convert object set to json
@@ -242,14 +245,14 @@ class DatasetPage:
         
         
     @expose_for()
-    def json(self,valuetype=None,user=None,site=None,date=None,instrument=None,type=None):
+    def json(self,valuetype=None,user=None,site=None,date=None,instrument=None,type=None,level=None):
         """
         Gets a json file of available datasets with filter
         """
         web.setmime('application/json')        
         session=db.Session()
         try:
-            dump = web.as_json(self.subset(session, valuetype, user, site, date,instrument,type).all())
+            dump = web.as_json(self.subset(session, valuetype, user, site, date,instrument,type,level).all())
         finally:
             session.close()
         return dump

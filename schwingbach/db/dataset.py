@@ -113,18 +113,23 @@ class Dataset(Base):
     calibration_slope = sql.Column(sql.Float,nullable=False,default=1.0)
     comment=sql.Column(sql.String)
     type=sql.Column(sql.String)
+    level=sql.Column(sql.Float)
     uses_dst=sql.Column(sql.Boolean,default=False,nullable=False)
     __mapper_args__ = dict(polymorphic_identity=None,
                            polymorphic_on=type)
 
-    def __str__(self):
-        return (u'ds%(id)03i: %(valuetype)s at site #%(site)s with %(instrument)s (%(start)s-%(end)s)' % 
-                dict(id=self.id,
+    def __unicode__(self):
+        return (u'ds%(id)03i: %(valuetype)s at site #%(site)s %(level)s with %(instrument)s (%(start)s-%(end)s)' % 
+               dict(id=self.id,
                      start=self.start.strftime('%d.%m.%Y') if self.start else '?',
                      end=self.end.strftime('%d.%m.%Y') if self.end else '?',
                      site=self.site.id if self.site else '',
                      instrument=self.source if self.source else None,
-                     valuetype=self.valuetype.name if self.valuetype else ''))
+                     valuetype=self.valuetype.name if self.valuetype else '',
+                     level = ('%g m offset' % self.level) if not self.level is None else '',
+                     ))
+    def __str__(self):
+        return unicode(self).encode('utf-8',errors='xmlcharrefreplace')
     
     def __jdict__(self):
         return dict(id=self.id,
@@ -136,6 +141,7 @@ class Dataset(Base):
                     valuetype=self.valuetype,
                     measured_by=self.measured_by,
                     quality=self.quality,
+                    level=self.level,
                     comment=self.comment,
                     label=self.__str__())
 

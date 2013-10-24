@@ -196,6 +196,14 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 									</select>
 								</span>
 								<span class="nowrap">
+									level:
+									<select id="levelselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter levelselect">
+										<option value="" class="firstoption">Please select...</option>
+									</select>
+									m
+								</span>
+
+								<span class="nowrap">
 									instrument:
 									<select id="instrumentselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter instrumentselect">
 										<option value="" class="firstoption">Please select...</option>
@@ -248,7 +256,15 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 				</li>
 			</ul>
 		</div>
-		<a href="/plot/image.pdf?create=${plot.createtime}">Plot as pdf...</a>
+		<a class="box small leftspace nowrap" 
+			 href="/plot/image.pdf?create=${plot.createtime}">
+			 plot as pdf...
+		</a>
+		<a py:if="is_member('admin')" 
+			class="box small leftspace nowrap" 
+			href="/plot/exportall.csv?tolerance=300">
+			export all datasets as csv...
+		</a>
 		<h2><a href="javascript:renderplot('plot',Date.now())">&#x25BE; Load plot</a></h2>
 		<div id="plot">
 			
