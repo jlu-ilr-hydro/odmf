@@ -96,7 +96,8 @@
 			<tr>
 				<th>id</th>
 				<th>responsible</th>
-				<th>Name</th>
+				<th class="small">author</th>
+				<th>name</th>
 				<th>due</th>
 				<th>type</th>
 				<th>repeat</th>
@@ -114,6 +115,7 @@
 								value="${p.username}" />
 					</select>
 			 </td>
+			  <td> </td>
 				<td><a href="javascript:reload('new')">create a new job...</a></td>
 				<td> </td>
 				<td> </td>
@@ -130,7 +132,8 @@
 					py:for="j in jobs" 
 					style="background-color: ${j.color}">
 				<td py:content="j.id" />
-				<td py:content="j.responsible"/>
+				<td py:content="j.responsible" />
+				<td py:content="j.author" class="small"/>
 				<td class="tooltip">
 					<a href="javascript:reload(${j.id})" >
 						${j.name}
