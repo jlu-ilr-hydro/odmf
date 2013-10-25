@@ -348,7 +348,7 @@ class PlotPage(object):
     def image_png(self,**kwargs):
         web.setmime(web.mime.png)
         plot = Plot.frompref()
-        return plot.draw()
+        return plot.draw(format='png')
     @web.expose_for(plotgroup)
     def image_pdf(self,**kwargs):
         web.setmime(web.mime.pdf)

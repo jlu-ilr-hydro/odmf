@@ -174,7 +174,8 @@
 				);
 				if (vt!='' && site!='') {
 					$.getJSON('/dataset/attrjson',
-										{ attribute:'level',
+										{ 
+											attribute:'level',
 											valuetype:vt,
 											date:date,
 											site:site
@@ -190,13 +191,13 @@
 											});
 											if (show && vt!='' && site!='') {
 												$('#levelselect_'+subplotpos).html(html).val(level);
-												$('#levelselect_'+subplotpos).parent().show();											
+												$('#levelselect_'+subplotpos).parent().show(200);											
 											} else {
-												$('#levelselect_'+subplotpos).parent().hide();
+												$('#levelselect_'+subplotpos).parent().hide(200);
 											}
 										});
 				} else {
-						$('#levelselect_'+subplotpos).parent().hide();					
+						$('#levelselect_'+subplotpos).parent().hide(200);					
 				}
 				if ($('#siteselect_'+subplotpos).val()!='' && 
 						$('#vtselect_'+subplotpos).val()!='') {
