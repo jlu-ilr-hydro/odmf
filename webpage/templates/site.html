@@ -283,7 +283,7 @@
 							</span>
 							<span py:if="not inst.active" class="removed"
 										py:content="'until %s: %s (%s)' % (formatdate(inst.removedate),inst.instrument.name,inst.instrument.sourcetype)" />
-							<a href="javascript:removeinstrument(${inst.id},${inst.site.id})" 
+							<a href="javascript:removeinstrument(${inst.id},${inst.instrument.id})" 
 								 py:if="is_member('editor')" 
 								 style="font-size: small;font-style: italic;">(remove...)</a>
 						</li>
