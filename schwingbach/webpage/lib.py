@@ -12,7 +12,7 @@ from os import path as op
 import cherrypy
 import threading
 import json
-from datetime import datetime
+from datetime import datetime,timedelta
 
 from genshi.core import Stream
 from genshi.output import encode, get_serializer
@@ -154,6 +154,8 @@ class Renderer(object):
                           'formattime' : formattime,
                           'formatdatetime' : formatdatetime,
                           'formatfloat' : formatfloat,
+                          'datetime' : datetime,
+                          'timedelta' : timedelta,
                           'user' : user,
                           'users': auth.users,
                           'is_member': auth.is_member,
