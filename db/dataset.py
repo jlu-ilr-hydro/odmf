@@ -360,10 +360,11 @@ class Timeseries(Dataset):
         date2num = lambda t: (t-t0).total_seconds()/86400 + 1.0
         def r2c(records):
             for r in records:
-                if r[0] is None:
-                    yield np.log(-1),date2num(tz_local.localize(r[1]))
-                else:
+                if not r[0] is None:
                     yield r[0],date2num(tz_local.localize(r[1]))
+                elif r[1]:
+                    yield np.log(-1),date2num(tz_local.localize(r[1]))
+                    
         t = np.zeros(shape=records.count(),dtype=float)
         v = np.zeros(shape=records.count(),dtype=float)
         for i,r in enumerate(r2c(records.values('value','time'))):

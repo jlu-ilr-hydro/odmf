@@ -95,7 +95,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 	<datalist id="numbers"><option py:for="i in xrange(10)" value="${i}"/></datalist>
 	${navigation('Plot')}
 	<div class="content">
-		<div class="error" id="error"></div>
+		<div class="error" id="error">${error}</div>
 		<h2><a href="javascript:toggle('properties')">&#x25BE; Properties</a>
 			<span class="box small leftspace">
 				<a href="javascript:$.post('clf',{},seterror);changeprops()" class="tooltip">
@@ -263,14 +263,16 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
                 Opens the graph as a pdf file.
              </span>
 		</a>
-		<a py:if="is_member('admin')" 
+		<a py:if="is_member('supervisor')" 
 			class="box small leftspace nowrap tooltip" 
 			href="/plot/exportall.csv?tolerance=300">
 			export all
             <span>
                 Exports all datasets in this plot to a csv file. <br/>
                 The exported file has multiple columns according <br/>
-                to valuetypes, sites and levels
+                to valuetypes, sites and levels. This feature is </br>
+                still experimental. Transformed timeseries are not </br>
+                part of the export.
             </span>
 		</a>
 		<h2><a href="javascript:renderplot('plot',Date.now())">&#x25BE; Load plot</a></h2>
