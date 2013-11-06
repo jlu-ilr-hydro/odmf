@@ -255,6 +255,7 @@ class Plot(object):
         self.subplots=[]
         self.createtime = web.formatdatetime()
         self.name = 'plot'
+        self.newlineprops = None
     def getpath(self):
         return web.abspath('preferences/plots/' + web.user() + '.' + self.name)
     def addtimeplot(self):
@@ -295,7 +296,7 @@ class Plot(object):
         """
         return dict(size=self.size,rows=self.rows,columns=self.columns,
                     startdate=self.startdate,enddate=self.enddate,
-                    subplots=asdict(self.subplots))
+                    subplots=asdict(self.subplots),newlineprops = asdict(self.newlineprops))
     @classmethod
     def fromdict(cls,d):
         """
@@ -310,6 +311,7 @@ class Plot(object):
         if 'subplots' in d:
             for sd in d.get('subplots'):
                 res.subplots.append(Subplot.fromdict(res,sd))
+        res.newlineprops = d.get('newlineprops')
         return res
     @classmethod
     def frompref(cls,createplot=False):
@@ -340,25 +342,29 @@ plotgroup = web.group.logger
 class PlotPage(object):
     exposed=True
     @web.expose_for(plotgroup)
-    def index(self,valuetype=None,site=None):
+    def index(self,valuetype=None,site=None,error=''):
         plot=Plot.frompref(createplot=True)
-        return web.render('plot.html',plot=plot).render('html')
+        return web.render('plot.html',plot=plot,error=error).render('html')
     
     @web.expose_for(plotgroup)
     def image_png(self,**kwargs):
         web.setmime(web.mime.png)
-        plot = Plot.frompref()
+        plot = Plot.frompref()   
+        if not plot:
+            raise web.HTTPRedirect('/plot?error=No plot available')        
         return plot.draw(format='png')
     @web.expose_for(plotgroup)
     def image_pdf(self,**kwargs):
         web.setmime(web.mime.pdf)
         plot = Plot.frompref()
+        if not plot:
+            raise web.HTTPRedirect('/plot?error=No plot available')
         return plot.draw(format='pdf')
     
     @web.expose_for(plotgroup)
     def addsubplot(self):
         try:
-            plot = Plot.frompref()
+            plot = Plot.frompref(createplot=True)
             plot.addtimeplot()
             plot.topref()
         except:
@@ -378,7 +384,7 @@ class PlotPage(object):
     @web.expose(plotgroup)
     def changeylim(self,subplotid,ymin=None,ymax=None):
         try:
-            plot = Plot.frompref()
+            plot = Plot.frompref(createplot=True)
             id = int(subplotid)
             sp = plot.subplots[id-1]
             try:
@@ -397,13 +403,14 @@ class PlotPage(object):
     @web.expose_for(plotgroup)
     def addline(self,subplot,valuetypeid,siteid,instrumentid,level,style):
         try:
-            plot = Plot.frompref()
+            plot = Plot.frompref(createplot=True)
             spi = int(subplot)
             if spi>len(plot.subplots):
                 sp=plot.addtimeplot()
             else:
                 sp = plot.subplots[spi-1]         
             sp.addline(web.conv(int,valuetypeid),web.conv(int,siteid),web.conv(int,instrumentid),web.conv(float,level),style=style)
+            plot.newlineprops = sp.lines[-1]
             plot.topref()
         except:
             return traceback()
@@ -413,7 +420,7 @@ class PlotPage(object):
         plot = Plot.frompref()
         sp = plot.subplots[int(subplot)-1]
         sp.lines[int(line)].killcache()
-        del sp.lines[int(line)]
+        plot.newlineprops = sp.lines.pop(int(line))
         plot.topref()
     @web.expose_for(plotgroup)
     def reloadline(self,subplot,line):
@@ -456,6 +463,7 @@ class PlotPage(object):
         exportData(stream,datasetids,plot.startdate,plot.enddate,web.conv(float,tolerance,60))
         web.setmime(web.mime.csv)
         return stream.getvalue()
+        
                 
     @web.expose_for(plotgroup)
     def clf(self):
