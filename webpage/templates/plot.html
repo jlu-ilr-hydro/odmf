@@ -256,14 +256,22 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 				</li>
 			</ul>
 		</div>
-		<a class="box small leftspace nowrap" 
+		<a class="box small leftspace nowrap tooltip" 
 			 href="/plot/image.pdf?create=${plot.createtime}">
 			 plot as pdf...
+             <span>
+                Opens the graph as a pdf file.
+             </span>
 		</a>
 		<a py:if="is_member('admin')" 
-			class="box small leftspace nowrap" 
+			class="box small leftspace nowrap tooltip" 
 			href="/plot/exportall.csv?tolerance=300">
-			export all datasets as csv...
+			export all
+            <span>
+                Exports all datasets in this plot to a csv file. <br/>
+                The exported file has multiple columns according <br/>
+                to valuetypes, sites and levels
+            </span>
 		</a>
 		<h2><a href="javascript:renderplot('plot',Date.now())">&#x25BE; Load plot</a></h2>
 		<div id="plot">
