@@ -712,7 +712,14 @@ class Root(object):
     def robots_txt(self):
         web.setmime(web.mime.plain)
         return "User-agent: *\nDisallow: /\n"
-
+    @expose_for(web.group.admin)
+    def freemem(self):
+        web.setmime(web.mime.plain)
+        import subprocess
+        if sys.platform=='linux2':
+            return subprocess.Popen(['free','-m'],stdout=subprocess.PIPE).communicate()[0]
+        else:
+            return 'Memory storage information is not available at your platform'
         
 
 #if __name__=='__main__':
