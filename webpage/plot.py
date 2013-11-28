@@ -97,26 +97,30 @@ class Line(object):
         Loads the records into an array
         """
         if usecache and self.hascache():
+            print 'Load from cache'
             t=np.fromfile(self.getcachename('t'))
             v=np.fromfile(self.getcachename('v'))
             if not (len(t)==0 or len(v)!=len(t)):
                 print ".../\./\|\...load from cache<-" + os.path.basename(self.getcachename('?'))
-        else:
-            print ".../\./\|\...load from database->" + os.path.basename(self.getcachename('?'))
-            session=db.Session()
-            error=''
-            start=self.subplot.plot.startdate
-            end=self.subplot.plot.enddate
-            try:
-                datasets=self.getdatasets(session)
-                group = db.DatasetGroup([ds.id for ds in datasets], start, end)
-                t,v = group.asarray(session)
-                t.tofile(self.getcachename('t'))
-                v.tofile(self.getcachename('v'))
-            except Exception as e:
-                raise e
-            finally:
-                session.close()
+                return t,v
+        print ".../\./\|\...load from database->" + os.path.basename(self.getcachename('?'))
+        session=db.Session()
+        error=''
+        start=self.subplot.plot.startdate
+        end=self.subplot.plot.enddate
+        #try:
+        datasets=self.getdatasets(session)
+        group = db.DatasetGroup([ds.id for ds in datasets], start, end)
+        t,v = group.asarray(session)
+        print 'Leave out t.tofile'
+        #t.tofile(self.getcachename('t'))
+        print 'Leave out v.tofile'
+        #v.tofile(self.getcachename('v'))
+        print 'Load complete'
+        #except Exception as e:
+        #    raise e
+        #finally:
+        session.close()
         print "size(v)=", v.size,"mean(v)=",v[np.isnan(v)==False].mean(),"std(v)=",v[np.isnan(v)==False].std()
         print "size(t)=", t.size,"min(t)=",plt.num2date(t.min()),"max(t)=",plt.num2date(t.max())
         return t,v
@@ -124,13 +128,17 @@ class Line(object):
         """
         Draws the line to the matplotlib axis ax
         """
-        t,v = self.load(startdate,enddate,True)
-        # Do the plot 
-        label = unicode(self)
-        if self.style:
-            ax.plot_date(t,v,self.style,label=label)
-        else:
-            ax.plot_date(t,v,c=self.color,marker=self.marker,ls=self.line,label=label)
+        try:
+            t,v = self.load(startdate,enddate,True)
+            # Do the plot 
+            label = unicode(self)
+            if self.style:
+                ax.plot_date(t,v,self.style,label=label)
+            else:
+                ax.plot_date(t,v,c=self.color,marker=self.marker,ls=self.line,label=label)
+        except ValueError:
+            print 'Zero-size Array'
+
     
     def export_csv(self,stream,startdate=None,enddate=None):
         """
@@ -456,15 +464,30 @@ class PlotPage(object):
         session=db.Session()
         for sp in plot.subplots:
             for line in sp.lines:
-                datasetids.extend(ds.id for ds in line.getdatasets(session) if ds.type=='timeseries')
+                datasetids.extend(ds.id for ds in line.getdatasets(session))
         session.close()
         stream = StringIO()
         from tools.exportdatasets import exportData
         exportData(stream,datasetids,plot.startdate,plot.enddate,web.conv(float,tolerance,60))
         web.setmime(web.mime.csv)
-        return stream.getvalue()
-        
-                
+        return stream.getvalue()            
+    @web.expose_for(plotgroup)
+    def RegularTimeseries(self,tolerance=12,interpolation=''):
+        plot = Plot.frompref()
+        datasetids=[]
+        session=db.Session()
+        lines = []
+        for sp in plot.subplots:
+            lines.extend(sp.lines)
+            for line in sp.lines:
+                datasetids.extend(ds.id for ds in line.getdatasets(session))
+        session.close()
+        stream = StringIO()
+        from tools.ExportRegularData import createPandaDfs
+        stream.write(codecs.BOM_UTF8)
+        createPandaDfs(lines,plot.startdate,plot.enddate,stream,interpolationtime=interpolation,tolerance=12) 
+        web.setmime(web.mime.csv)
+        return stream.getvalue()   
     @web.expose_for(plotgroup)
     def clf(self):
         plot = Plot.frompref()

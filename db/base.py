@@ -33,7 +33,7 @@ def connect():
                             database='schwingbach')
 engine = sql.create_engine('postgresql://',creator=connect)
 Session = orm.sessionmaker(bind=engine)
-Session.__exit__ = Session.close
+#Session.__exit__ = Session.close
         
 class Base(object):
     """Hooks into SQLAlchemy's magic to make :meth:`__repr__`s."""
