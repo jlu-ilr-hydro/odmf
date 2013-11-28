@@ -269,9 +269,7 @@ class Timeseries(Dataset):
         last = self.records.filter(Record.time<=time,Record.value != None).order_by(sql.desc(Record.time)).first()
         if not next or not last:
             raise RuntimeError("Split time %s is not between two records of %s" % (t,self))
-        if self.comment==None:
-            self.comment='Dataset is splitted at %s to allow for different calibration' % time
-        else: self.comment+='Dataset is splitted at %s to allow for different calibration' % time
+        self.comment= unicode(self.comment) + u'Dataset is splitted at %s to allow for different calibration' % time
         dsnew = self.copy(id=newid(Dataset,session))
         self.comment+='. Other part of the dataset is ds%03i\n' % dsnew.id
         dsnew.comment+='. Other part of the dataset is ds%03i\n' % self.id
@@ -408,8 +406,8 @@ class TransformedTimeseries(Dataset):
         data=Series()
         for src in datasets:
             t,v = src.asarray(start,end)
+            v = self.transform(v)
             data=data.append(Series(v,index=t))
-        data = self.transform(data)
         data=data.sort_index()
         return data
     def asarray(self,start=None,end=None):
@@ -457,8 +455,8 @@ class DatasetGroup(object):
         datasets=self.datasets(session)
         data=Series()
         for src in datasets:
-            t,v = src.asarray(self.start,self.end)
-            data=data.append(Series(v,index=t))
+            s = src.asseries(self.start,self.end)
+            data=data.append(s)
         return data.sort_index()
     def asarray(self,session):
         data = self.asseries(session)

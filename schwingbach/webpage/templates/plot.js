@@ -59,7 +59,16 @@
 			$.post('changeylim',{subplotid:id,ymin:text[0],ymax:text[1]},seterror);
 			killplot();			
 		}
-
+		function exportall_csv() {
+			var href = '/plot/exportall.csv?tolerance=' + $('#tolerance_skipper').val();
+			alert(href);
+			window.location = href;
+		}
+		function RegTime() {
+			var href = '/plot/RegularTimeseries?tolerance='+$('#Interpolation_Limit').val() + '&interpolation=' + $('#reg_interpolation').val();
+			alert(href);
+			window.location = href;
+		}
 		function getstyle(sp) {
 			return $('#colorpicker_'+sp).val() + 
                    $('#linepicker_'+sp).val() + 
