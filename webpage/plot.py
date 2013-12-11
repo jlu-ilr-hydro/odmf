@@ -485,7 +485,7 @@ class PlotPage(object):
         stream = StringIO()
         from tools.ExportRegularData import createPandaDfs
         stream.write(codecs.BOM_UTF8)
-        createPandaDfs(lines,plot.startdate,plot.enddate,stream,interpolationtime=interpolation,tolerance=12) 
+        createPandaDfs(lines,plot.startdate,plot.enddate,stream,interpolationtime=interpolation,tolerance=float(tolerance)) 
         web.setmime(web.mime.csv)
         return stream.getvalue()   
     @web.expose_for(plotgroup)
