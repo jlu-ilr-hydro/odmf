@@ -21,7 +21,7 @@ def createPandaDfs(lines,start, end, fout, interpolationtime=None, tolerance=12)
         dfs=[]
         #Loop through Lines
         for line in lines:
-            Column_name=str(line.site)[0:3]+' - '+str(line.valuetype)
+            Column_name=str(line.site)[0:3]+str(' - ')+str(line.valuetype)[0:10]
             try:
                 Time, Value = line.load(startdate=start,enddate=end,usecache=True)
             except ValueError:
@@ -38,7 +38,7 @@ def createPandaDfs(lines,start, end, fout, interpolationtime=None, tolerance=12)
             dfs.append(pd.DataFrame(data=np.empty(len(reg_time)),index=reg_time,columns=['reg_time']))
         
         #Make one big Panda Dataframe and interpolate through missing values
-        con=pd.concat(dfs).sort_index().interpolate(limit=tolerance)
+        con=pd.concat(dfs).sort_index().interpolate(limit=float(tolerance), method='linear')
         #Delete duplicates in the Index
         con['index'] = con.index
         df=con.drop_duplicates(cols='index')
