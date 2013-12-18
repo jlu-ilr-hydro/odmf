@@ -25,7 +25,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
 			$(".timepicker").autocomplete({source: timerange(15)});
 			for (var i=0;i<10;i++) {
-				popSelect(i);
+				popSelect(i,${as_json(plot.newlineprops)});
 			}
 			$('#addsubplot').removeProp('disabled');
     });
@@ -174,8 +174,17 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 									&#x21BB;
 									<span>Reload this line from the database.</span>
 								</a>
+								<a href="javascript:editline(${sp.position},${i})" title="edit line" class="tooltip">
+									edit
+									<span>Edit this line</span>
+								</a>
+								<a href="javascript:copyline(${sp.position},${i})" title="copy line" class="tooltip">
+									copy
+									<span>Copy this line</span>
+								</a>
+								
 							</span>
-							${l}
+							${l} (${l.style})
 							<ul id="datasetlist_${sp.position}_${i}" class="datasetlist small doc"/>
 						</li>
 						<li class="small line">

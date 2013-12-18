@@ -418,17 +418,27 @@ class PlotPage(object):
             else:
                 sp = plot.subplots[spi-1]         
             sp.addline(web.conv(int,valuetypeid),web.conv(int,siteid),web.conv(int,instrumentid),web.conv(float,level),style=style)
-            plot.newlineprops = sp.lines[-1]
+            plot.newlineprops = None
             plot.topref()
         except:
             return traceback()
     
     @web.expose_for(plotgroup)
-    def removeline(self,subplot,line):
+    def removeline(self,subplot,line,savelineprops=False):
         plot = Plot.frompref()
         sp = plot.subplots[int(subplot)-1]
         sp.lines[int(line)].killcache()
-        plot.newlineprops = sp.lines.pop(int(line))
+        if savelineprops:
+            plot.newlineprops = sp.lines.pop(int(line))
+        else:
+            plot.newlineprops = None
+            del sp.lines[int(line)]
+        plot.topref()
+    @web.expose_for(plotgroup)
+    def copyline(self,subplot,line):
+        plot = Plot.frompref()
+        sp = plot.subplots[int(subplot)-1]
+        plot.newlineprops = sp.lines[int(line)]
         plot.topref()
     @web.expose_for(plotgroup)
     def reloadline(self,subplot,line):

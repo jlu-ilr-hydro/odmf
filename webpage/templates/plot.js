@@ -93,6 +93,12 @@
 			$.post('removeline',{subplot:subplot,line:line},seterror);
 			killplot();
 		}
+		function editline(subplot,line) {
+			$.post('removeline',{subplot:subplot,line:line,savelineprops:true},seterror);
+		}
+		function copyline(subplot,line) {
+			$.post('copyline',{subplot:subplot,line:line},seterror);
+		}
 		function reloadline(subplot,line) {
 			$.post('reloadline',{subplot:subplot,line:line},seterror);
 			killplot();
@@ -132,13 +138,18 @@
 		    return foo;
 		}
 
-		function popSelect(subplotpos) {
+		function popSelect(subplotpos,newlineprops) {
 			if ($('#vtselect_'+ subplotpos).length) {
 				var vt = $('#vtselect_' + subplotpos).val();
 				var site = $('#siteselect_' + subplotpos).val();
 				var instrument = $('#instrumentselect_' + subplotpos).val();
 				var level = $('#levelselect_' + subplotpos).val();
 				var date = ''; //$('#dateselect').val()
+				if (newlineprops && !vt) vt=newlineprops.valuetype;
+				if (newlineprops && !instrument) instrument=newlineprops.instrument;
+				if (newlineprops && !site) site=newlineprops.site;
+				if (newlineprops && !level) level=newlineprops.level;
+
 				$.getJSON('/dataset/attrjson',
 									{ attribute:'valuetype',
 									  site:site,
@@ -177,7 +188,7 @@
 											var html='<option value="">Please select...</option>';
 											$.each(data,function(index,item){
 												html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
-											});
+											});										
 											$('#siteselect_'+subplotpos).html(html).val(site);
 										}
 				);
@@ -208,8 +219,8 @@
 				} else {
 						$('#levelselect_'+subplotpos).parent().hide(200);					
 				}
-				if ($('#siteselect_'+subplotpos).val()!='' && 
-						$('#vtselect_'+subplotpos).val()!='') {
+				if (site!='' && 
+						vt!='') {
 					$('#addline_' + subplotpos).removeProp('disabled');
 				} else {
 					$('#addline_' + subplotpos).prop('disabled','disabled');			
