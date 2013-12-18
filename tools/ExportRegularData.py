@@ -38,10 +38,17 @@ def createPandaDfs(lines,start, end, fout, interpolationtime=None, tolerance=12)
             dfs.append(pd.DataFrame(data=np.empty(len(reg_time)),index=reg_time,columns=['reg_time']))
         
         #Make one big Panda Dataframe and interpolate through missing values
-        con=pd.concat(dfs).sort_index().interpolate(limit=float(tolerance), method='linear')
-        #Delete duplicates in the Index
-        con['index'] = con.index
-        df=con.drop_duplicates(cols='index')
+        con=pd.concat(dfs)
+        sort=con.sort_index()
+	print sort.head(10)
+	print Column_name
+	print tolerance
+	print type(tolerance)
+        #inter=sort.interpolate(limit=float(tolerance), method='time')
+        inter=sort.interpolate(limit=int(tolerance), method='time')
+	#Delete duplicates in the Index
+        inter['index'] = inter.index
+        df=inter.drop_duplicates(cols='index')
         if interpolationtime:
             del df['reg_time']
         del df['index']
@@ -56,4 +63,4 @@ def createPandaDfs(lines,start, end, fout, interpolationtime=None, tolerance=12)
     
     except:
         sys.stderr.write(traceback())
-        
+       
