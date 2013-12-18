@@ -463,7 +463,7 @@
 				from:
 				<input type="text" class="datepicker" id="plotstart" value="${formatdate(activedataset.start)}"/>
 				until:
-				<input type="text" class="datepicker" id="plotend" value="${formatdate(activedataset.end + timedelta(days=1))}"/>
+				<input type="text" class="datepicker" id="plotend" value="${formatdate(activedataset.end + timedelta(days=1) if activedataset.end else activedataset.end)}"/>
 				marker:
 				<select id="markerpicker">
 					<option value="">none</option>
