@@ -243,13 +243,10 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 								<span class="nowrap">
 									color:
 									<select id="colorpicker_${sp.position}">
-										<option value="k" style="background-color: #000;">k</option>
-										<option value="b" style="background-color: #00F;">b</option>
-										<option value="g" style="background-color: #0F0;">g</option>
-										<option value="r" style="background-color: #F00;">r</option>
-										<option value="y" style="background-color: #FF0;">y</option>
-										<option value="c" style="background-color: #0FF;">c</option>
-										<option value="m" style="background-color: #F0F;">m</option>
+										<option py:for="c,ccode in [('k','#000'),('b','#00F'),('g','#0F0'),('r','#F00'),('y','#FF0'),('c','#0FF'),('m','#F0F')]"
+														value="${c}" py:content="c" style="background-color: ${ccode}"
+														py:attrs="markoption(plot.newlineprops and plot.newlineprops.style[0]==c)"
+										/>
 									</select>
 								</span>
 						</li>
