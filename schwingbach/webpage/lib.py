@@ -62,6 +62,10 @@ config =  { '/': {
                        'tools.staticdir.on': True,
                        'tools.staticdir.dir': 'datafiles'
                        },
+           '/wikitude' : {
+                          'tools.staticdir.on': True,
+                          'tools.staticdir.dir': 'wikitude'
+                          }
            }
 
 class mime:
