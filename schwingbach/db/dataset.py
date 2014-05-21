@@ -345,6 +345,13 @@ class Timeseries(Dataset):
         result = Record(id=Id,time=time,value=value,dataset=self,comment=comment,sample=sample)
         session.add(result)
         return result
+    def adjusttimespan(self):
+        """
+        Adjusts the start and end properties to match the timespan of the records
+        """
+        session=self.session()
+        session.query
+        
     def asarray(self,start=None,end=None):
         session = self.session()    
         records = session.query(Record).filter(Record._dataset == self.id)

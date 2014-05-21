@@ -84,6 +84,9 @@ class ImportAdapter(object):
         raise NotImplementedError("Use an implementation class")
     
     def submit(self):
+        """
+        Submits the import to the dataset(s)
+        """
         raise NotImplementedError("Use an implementation class")
     
     def __init__(self,filename,user,siteid,instrumentid,startdate,enddate):
@@ -97,6 +100,9 @@ class ImportAdapter(object):
         self.errorstream = sys.stderr
 
 def savetoimports(filename,user,datasets=None):
+    """
+    Adds the filename to the import history file .import.hist
+    """
     d = os.path.dirname(filename)
     f = file(os.path.join(d,'.import.hist'),'a')
     f.write(u'%s,%s,%s' % (os.path.basename(filename),user,datetime.now()))

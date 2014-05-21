@@ -132,10 +132,7 @@ class Line(object):
             t,v = self.load(startdate,enddate,True)
             # Do the plot 
             label = unicode(self)
-            if self.style:
-                ax.plot_date(t,v,self.style,label=label)
-            else:
-                ax.plot_date(t,v,c=self.color,marker=self.marker,ls=self.line,label=label)
+            ax.plot_date(t,v,self.style or 'k-',label=label)
         except ValueError:
             print 'Zero-size Array'
 
@@ -290,7 +287,6 @@ class Plot(object):
             plt.ion()
             plt.draw()
         elif format:
-            self.topref()    
             io = StringIO()
             fig.savefig(io,format=format)
             return io.getvalue()
@@ -520,4 +516,28 @@ class PlotPage(object):
             plot.topref()
         except:
             return traceback()
+
+    @web.expose
+    @web.mimetype(web.mime.png)
+    def climate_png(self,days=1,site=47):
+        days=int(days)
+        site=int(site)
+        enddate = datetime.now()
+        startdate = enddate - timedelta(days=days)
+        plot = Plot((6.,10.), columns=1, rows=6, startdate=startdate, enddate=enddate)
+        # 1 Temperature (vt=14)
+        Tsp=plot.addtimeplot()
+        Tsp.addline(14, site, style='r-')
+        Tsp.addline(8,site,style='b-') # Water Temperature
+        # 2 Rainfall
+        plot.addtimeplot().addline(9,site,style='b-')
+        # 3 Discharge
+        plot.addtimeplot().addline(3,site,style='b-')
+        # 4 Radiation
+        plot.addtimeplot().addline(11,site,style='r-')
+        # 5 rH
+        plot.addtimeplot().addline(10,site,style='c-')
+        # 6 Windspeed
+        plot.addtimeplot().addline(12,site,style='k-')
         
+        return plot.draw(format='png')
