@@ -20,7 +20,7 @@ from cStringIO import StringIO
     
 class TextImportColumn:
     """Describes the content of a column in a delimited text file"""
-    def __init__(self,column,name,valuetype,factor=1.0,comment=None,difference=None,minvalue=-1e308,maxvalue=+1e308):
+    def __init__(self,column,name,valuetype,factor=1.0,comment=None,difference=None,minvalue=-1e308,maxvalue=+1e308,append=None):
         """Creates a column description in a delimited text file.
         upon import, the column will be saved as a dataset in the database
         
@@ -32,6 +32,7 @@ class TextImportColumn:
         minvalue: This is the allowed lowest value (not converted). Lower values will not be imported
         maxvalue: This is the allowed highest value. Higher values will not be converted
         comment: The new dataset can be commented by this comment
+        append: For automatic import, append to this datasetid 
         """
         self.column=int(column)
         self.name=name
@@ -41,6 +42,7 @@ class TextImportColumn:
         self.difference = difference
         self.minvalue=minvalue
         self.maxvalue=maxvalue
+        self.append=append
     def __str__(self):
         return "%s[%s]:column=%i" % ('d' if self.difference else '',self.name,self.column) 
     def to_config(self,config,section):
@@ -78,7 +80,8 @@ class TextImportColumn:
                    comment=getvalue('comment'),
                    difference = getvalue('difference'),
                    minvalue = getvalue('minvalue',float),
-                   maxvalue=getvalue('maxvalue',float)
+                   maxvalue=getvalue('maxvalue',float),
+                   append=getvalue('append',int)
                    )
         
 
@@ -257,7 +260,6 @@ class TextImport(ImportAdapter):
             self.datasets[col.column] = ds.id
         session.commit()
         session.close()
-    
     def loadvalues(self):
         """
         Generator function, yields the values from the file as 
@@ -357,7 +359,8 @@ class TextImport(ImportAdapter):
         for k in self.datasets:
             datasets[k] = db.Dataset.get(session,self.datasets[k])
         # A dict to hold the current record id for each column k
-        recid=dict((k,0) for k in self.datasets)
+        newid = session.query(db.sql.func.max(db.Record.id)).filter(db.Record._dataset==datasets[k].id).scalar()+1
+        recid=dict((k,newid) for k in self.datasets)
         # A dict to cache the value entries for committing for each column k
         records=dict((k,[]) for k in self.datasets)
         try:
@@ -375,7 +378,7 @@ class TextImport(ImportAdapter):
                         # Next id for column k
                         recid[k]+=1
                 # To protected the memory, commit every 10000 items
-                if (i+1) % 10000 == 0:
+                if (i+1) % self.commitinterval == 0:
                     records=self.raw_commit(records)
             # Commit remaining records
             records=self.raw_commit(records)
