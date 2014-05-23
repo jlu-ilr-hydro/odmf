@@ -88,7 +88,10 @@ class Calibration:
             # Variant:
             # self.slope = cov/var_s
             # self.offset = self.target_mean - self.slope * self.source_mean
-            self.r2 = cov**2/(var_s*var_t) 
+            try:
+                self.r2 = cov**2/(var_s*var_t) 
+            except ZeroDivisionError:
+                self.r2 = 0.0
                 
         elif len(self.matches) == 1:
             self.meanoffset = self.offset = self.matches[0].delta()
