@@ -8,12 +8,18 @@ import os
 import dataimport as di
 from dataimport.textimport import TextImport, TextImportDescription
 from tools import Path
-
+import time
 if len(sys.argv)!=4:
     print "usage: climateimport.py [newfile.dat] [siteid] [archivefile.dat]"
 
 # Get filename for import from cmdline
 path = Path(sys.argv[1])
+i=0
+while not path.exists():
+	time.sleep(60)
+	i+=1
+	if i>20:
+		sys.exit(1)
 # Get siteid from cmdline
 siteid = int(sys.argv[2])
 

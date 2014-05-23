@@ -93,8 +93,9 @@ class Users(collections.Mapping):
             f = file(Users.filename)
             self.dict={}
             for line in f:
-                ls = line.split()
-                self.dict[ls[0]] = User(*ls)
+                if line.strip():
+                    ls = line.split()
+                    self.dict[ls[0]] = User(*ls)
             f.close()
     def check(self,username,password):
         if not username in self:

@@ -262,7 +262,8 @@ class Plot(object):
         self.name = 'plot'
         self.newlineprops = None
     def getpath(self):
-        return web.abspath('preferences/plots/' + web.user() + '.' + self.name)
+        username = web.user() or 'nologin'
+        return web.abspath('preferences/plots/' + username + '.' + self.name)
     def addtimeplot(self):
         """
         Adds a new subplot to the plot
@@ -412,8 +413,11 @@ class PlotPage(object):
             if spi>len(plot.subplots):
                 sp=plot.addtimeplot()
             else:
-                sp = plot.subplots[spi-1]         
-            sp.addline(web.conv(int,valuetypeid),web.conv(int,siteid),web.conv(int,instrumentid),web.conv(float,level),style=style)
+                sp = plot.subplots[spi-1]
+            if valuetypeid and siteid:
+                sp.addline(web.conv(int,valuetypeid),web.conv(int,siteid),web.conv(int,instrumentid),web.conv(float,level),style=style)
+            else:
+                return "You tried to add a line without site or value type. This is not possible"
             plot.newlineprops = None
             plot.topref()
         except:
@@ -532,7 +536,7 @@ class PlotPage(object):
         # 2 Rainfall
         plot.addtimeplot().addline(9,site,style='b-')
         # 3 Discharge
-        plot.addtimeplot().addline(3,site,style='b-')
+        plot.addtimeplot().addline(1,site,style='b-')
         # 4 Radiation
         plot.addtimeplot().addline(11,site,style='r-')
         # 5 rH

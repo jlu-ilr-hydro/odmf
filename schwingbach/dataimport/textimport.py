@@ -359,8 +359,8 @@ class TextImport(ImportAdapter):
         for k in self.datasets:
             datasets[k] = db.Dataset.get(session,self.datasets[k])
         # A dict to hold the current record id for each column k
-        newid = session.query(db.sql.func.max(db.Record.id)).filter(db.Record._dataset==datasets[k].id).scalar()+1
-        recid=dict((k,newid) for k in self.datasets)
+        newid = lambda k: (session.query(db.sql.func.max(db.Record.id)).filter(db.Record._dataset==datasets[k].id).scalar() or 0)+1
+        recid=dict((k,newid(k)) for k in self.datasets)
         # A dict to cache the value entries for committing for each column k
         records=dict((k,[]) for k in self.datasets)
         try:
