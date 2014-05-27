@@ -1,0 +1,43 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Climate</title>
+	<link href="/media/jquery-ui-1.8.18.custom.css" rel="stylesheet" type="text/css"/>
+  <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
+  <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
+
+	</head>
+	<body>
+		<div style="vertical-align: middle;">
+			<h1 style="position: absolute; top: 0px; left: 0px; z-index: 1000; right: 0px;" id="title" >Schwingbach
+			</h1>		
+			<span style="position: absolute; top 0px; right: 0px; z-index: 2000">
+				<a href="http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
+					<img src="/media/ilr-logo_4_klein_RGB.png" alt="ILR"/>
+				</a>
+				<a href="http://www.uni-giessen.de">
+					<img src="/media/jlu-logo-150.png" alt="University Giessen"/>
+				</a>
+				
+			</span>
+		</div>
+		<div style="position: absolute; top: 55px; left: 0px;" class="content">
+			<div style="width: 600px;height: 1000px; position: absolute; top: 0px;">
+				<img src="data:image/png;base64,${climateplot}" />
+			</div>
+			<div style="position: absolute; top: 0px; left: 600px;">
+				<div py:for="sp in plot.subplots">
+					<p py:for="line in sp.lines" py:with="t,v=line.load()">
+						<span py:content="'%s avg: %0.4g &plusmn; %0.4g, min: %0.4g, max: %0.4g %s' % (line.valuetype.name,v.mean(),v.std(),v.min(),v.max(), line.valuetype.unit)" /> 
+					</p> 
+							
+					
+				</div>
+			</div>
+		</div>
+
+	</body>
+</html>
