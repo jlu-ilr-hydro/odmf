@@ -18,6 +18,8 @@ from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from cStringIO import StringIO
 import time
+from base64 import b64encode
+
 t0 = datetime(1,1,1)
 nan = np.nan
 def date2num(t):
@@ -45,7 +47,7 @@ class Line(object):
     Represents a single line of a subplot
     """
     def __init__(self,subplot,valuetype,site,instrument=None,level=None,style='',
-                 transformation=None):
+                 transformation=None,usecache=False):
         """
         Create a Line:
         @param subplot: The Subplot to which this line belongs
@@ -64,12 +66,16 @@ class Line(object):
         self.level = level
         session.close()
         self.transformation=transformation
+        self.usecache = usecache
     def getdatasets(self,session):
         """
         Loads the datasets for this line
         """
         datasets = session.query(db.Dataset).filter(db.Dataset.valuetype==self.valuetype,
-                                                    db.Dataset.site==self.site)
+                                                    db.Dataset.site==self.site, 
+                                                    db.Dataset.start<self.subplot.plot.enddate,
+                                                    db.Dataset.end>self.subplot.plot.startdate,
+                                                    )
         if self.instrument:
             datasets=datasets.filter(db.Dataset.source == self.instrument)
         if not self.level is None:
@@ -82,6 +88,7 @@ class Line(object):
         lineno = self.subplot.lines.index(self)
         return '%s.sp%i.l%i.%s.npy' % (path,spno,lineno,t_or_v)
     def hascache(self):
+        if not self.usecache: return False
         now = time.time()
         tname = self.getcachename('t')
         vname = self.getcachename('v')
@@ -92,11 +99,11 @@ class Line(object):
         for s in 'tv':
             if os.path.exists(self.getcachename(s)):
                 os.remove(self.getcachename(s))
-    def load(self,startdate=None,enddate=None,usecache=False):
+    def load(self,startdate=None,enddate=None):
         """
         Loads the records into an array
         """
-        if usecache and self.hascache():
+        if self.hascache():
             print 'Load from cache'
             t=np.fromfile(self.getcachename('t'))
             v=np.fromfile(self.getcachename('v'))
@@ -112,10 +119,9 @@ class Line(object):
         datasets=self.getdatasets(session)
         group = db.DatasetGroup([ds.id for ds in datasets], start, end)
         t,v = group.asarray(session)
-        print 'Leave out t.tofile'
-        #t.tofile(self.getcachename('t'))
-        print 'Leave out v.tofile'
-        #v.tofile(self.getcachename('v'))
+        if self.usecache:
+            t.tofile(self.getcachename('t'))
+            v.tofile(self.getcachename('v'))
         print 'Load complete'
         #except Exception as e:
         #    raise e
@@ -129,7 +135,7 @@ class Line(object):
         Draws the line to the matplotlib axis ax
         """
         try:
-            t,v = self.load(startdate,enddate,True)
+            t,v = self.load(startdate,enddate)
             # Do the plot 
             label = unicode(self)
             ax.plot_date(t,v,self.style or 'k-',label=label)
@@ -141,7 +147,7 @@ class Line(object):
         """
         Exports the line as csv file
         """
-        t,v = self.load(startdate, enddate, True)
+        t,v = self.load(startdate, enddate)
         t0 = plt.date2num(datetime(1899,12,30))
         stream.write(codecs.BOM_UTF8)
         stream.write('Time,' + unicode(self.valuetype).encode('UTF-8') + '\n') 
@@ -156,14 +162,14 @@ class Line(object):
                     site=self.site.id if self.site else None,
                     instrument=self.instrument.id if self.instrument else None,
                     level=self.level,
-                    style=self.style,transformation=self.transformation)
+                    style=self.style,transformation=self.transformation, usecache=self.usecache)
     @classmethod
     def fromdict(cls,subplot,d):
         """
         Creates the line element from a dictionary (for loading from session)
         """
         return cls(subplot,valuetype=d.get('valuetype'),site=d.get('site'),instrument=d.get('instrument'),style=d.get('style'),
-                   transformation=d.get('transformation'),level=d.get('level'))
+                   transformation=d.get('transformation'),level=d.get('level'),usecache=d.get('usecache',False))
     def __unicode__(self):
         """
         Returns a string representation
@@ -192,7 +198,7 @@ class Subplot(object):
         self.position=position
         self.lines=[]
         self.ylim = None
-    def addline(self,valuetype,site,instrument=None,level=None,style=''):
+    def addline(self,valuetype,site,instrument=None,level=None,style='',usecache=False):
         """
         Adds a line to the subplot
         @param valuetype: the id of a valuetype
@@ -200,7 +206,7 @@ class Subplot(object):
         @param instrument: the id of an instrument (can be omitted)
         @param style: the style of the line, eg 'o-k' for black line with circle markers 
         """
-        self.lines.append(Line(self,valuetype=valuetype,site=site,instrument=instrument,level=level,style=style))
+        self.lines.append(Line(self,valuetype=valuetype,site=site,instrument=instrument,level=level,style=style,usecache=usecache))
         self.plot.createtime = web.formatdate()
         return self
     def draw(self,figure):
@@ -222,7 +228,7 @@ class Subplot(object):
         ax.legend(loc=0,prop=dict(size=9))
         if self.lines:
             l=self.lines[0]
-            plt.ylabel(u'%s [%s]' % (l.valuetype.name,l.valuetype.unit))
+            plt.ylabel(u'%s [%s]' % (l.valuetype.name,l.valuetype.unit),fontsize=self.plot.args.get('ylabelfs','small'))
     def __jdict__(self):
         """
         Returns a dictionary with the properties of this plot
@@ -245,7 +251,7 @@ class Plot(object):
     """
     Represents a full plot (matplotlib figure)
     """
-    def __init__(self,size=(6.0,4.8),columns=1,rows=1,startdate=None,enddate=None):
+    def __init__(self,size=(6.0,4.8),columns=1,rows=1,startdate=None,enddate=None,**kwargs):
         """
         @param size: A tuple (width,height), the size of the plot in inches (with 100dpi)
         @param columns: number of subplot columns
@@ -261,6 +267,7 @@ class Plot(object):
         self.createtime = web.formatdatetime()
         self.name = 'plot'
         self.newlineprops = None
+        self.args=kwargs
     def getpath(self):
         username = web.user() or 'nologin'
         return web.abspath('preferences/plots/' + username + '.' + self.name)
@@ -281,9 +288,10 @@ class Plot(object):
         was_interactive=plt.isinteractive()
         plt.ioff()
         fig,axes=plt.subplots(ncols=self.columns, nrows=self.rows,
-                              figsize=self.size,dpi=100)
+                              figsize=self.size,dpi=100,sharex=True)
         for sp in self.subplots:
             sp.draw(fig)
+        fig.subplots_adjust(top=0.95,bottom=0.05,hspace=0.0)
         if was_interactive:
             plt.ion()
             plt.draw()
@@ -522,26 +530,31 @@ class PlotPage(object):
             return traceback()
 
     @web.expose
-    @web.mimetype(web.mime.png)
-    def climate_png(self,days=1,site=47):
-        days=int(days)
+    # @web.mimetype(web.mime.png)
+    def climate_png(self,enddate=None,days=1,site=47):
+        try:
+            enddate = web.parsedate(enddate)
+        except: 
+            enddate = datetime.now()
+        days=float(days)
         site=int(site)
-        enddate = datetime.now()
         startdate = enddate - timedelta(days=days)
-        plot = Plot((6.,10.), columns=1, rows=6, startdate=startdate, enddate=enddate)
+        plot = Plot((6.,9.), columns=1, rows=6, startdate=startdate, enddate=enddate,ylabelfs='8')
         # 1 Temperature (vt=14)
         Tsp=plot.addtimeplot()
-        Tsp.addline(14, site, style='r-')
-        Tsp.addline(8,site,style='b-') # Water Temperature
+        Tsp.addline(14, site, style='r-',usecache=True)
+        Tsp.addline(8,site,style='b-',usecache=True) # Water Temperature
         # 2 Rainfall
-        plot.addtimeplot().addline(9,site,style='b-')
+        plot.addtimeplot().addline(9,site,style='b-',usecache=True)
         # 3 Discharge
-        plot.addtimeplot().addline(1,site,style='b-')
+        plot.addtimeplot().addline(1,site,style='b-',usecache=True)
         # 4 Radiation
-        plot.addtimeplot().addline(11,site,style='r-')
+        plot.addtimeplot().addline(11,site,style='r-',usecache=True)
         # 5 rH
-        plot.addtimeplot().addline(10,site,style='c-')
+        plot.addtimeplot().addline(10,site,style='c-',usecache=True)
         # 6 Windspeed
-        plot.addtimeplot().addline(12,site,style='k-')
+        plot.addtimeplot().addline(12,site,style='k-',usecache=True)
         
-        return plot.draw(format='png')
+        plot64 = b64encode(plot.draw(format='png'))
+        
+        return web.render('kiosk.html',climateplot=plot64,plot=plot).render('html')
