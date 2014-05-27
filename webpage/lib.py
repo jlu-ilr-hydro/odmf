@@ -139,7 +139,7 @@ def parsedate(s):
     for fmt in formats:
         try:
             res=datetime.strptime(s,fmt)
-        except ValueError:
+        except ValueError, TypeError:
             pass
     if res is None:
         raise ValueError('%s is not a valid date/time format' % s)
