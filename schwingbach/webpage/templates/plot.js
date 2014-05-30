@@ -65,7 +65,7 @@
 			window.location = href;
 		}
 		function RegTime() {
-			var href = '/plot/RegularTimeseries?tolerance='+$('#Interpolation_Limit').val() + '&interpolation=' + $('#reg_interpolation').val();
+			var href = '/plot/RegularTimeseries.csv?tolerance='+$('#Interpolation_Limit').val() + '&interpolation=' + $('#reg_interpolation').val();
 			alert(href);
 			window.location = href;
 		}

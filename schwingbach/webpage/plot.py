@@ -291,13 +291,14 @@ class Plot(object):
                               figsize=self.size,dpi=100,sharex=True)
         for sp in self.subplots:
             sp.draw(fig)
-        fig.subplots_adjust(top=0.95,bottom=0.05,hspace=0.0)
+        fig.subplots_adjust(top=0.975,bottom=0.1,hspace=0.0)
         if was_interactive:
             plt.ion()
             plt.draw()
         elif format:
             io = StringIO()
             fig.savefig(io,format=format)
+            plt.close('all')
             return io.getvalue()
     def killcache(self):
         for sp in self.subplots:
@@ -490,7 +491,7 @@ class PlotPage(object):
         web.setmime(web.mime.csv)
         return stream.getvalue()            
     @web.expose_for(plotgroup)
-    def RegularTimeseries(self,tolerance=12,interpolation=''):
+    def RegularTimeseries_csv(self,tolerance=12,interpolation=''):
         plot = Plot.frompref()
         datasetids=[]
         session=db.Session()
@@ -531,7 +532,7 @@ class PlotPage(object):
 
     @web.expose
     # @web.mimetype(web.mime.png)
-    def climate_png(self,enddate=None,days=1,site=47):
+    def climate(self,enddate=None,days=1,site=47):
         try:
             enddate = web.parsedate(enddate)
         except: 
@@ -557,4 +558,4 @@ class PlotPage(object):
         
         plot64 = b64encode(plot.draw(format='png'))
         
-        return web.render('kiosk.html',climateplot=plot64,plot=plot).render('html')
+        return web.render('climateplot.html',climateplot=plot64,plot=plot).render('html')
