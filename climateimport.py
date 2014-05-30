@@ -22,8 +22,8 @@ if len(sys.argv)!=4:
 nowstr = lambda : datetime.now().strftime('%Y-%m-%d %H:%M')
 path = Path(sys.argv[1])
 i=0
+log('Wait for ' + path.absolute)
 while not path.exists():
-    log('Wait for ' + path.basename)
     time.sleep(60)
     i+=1
     if i>20:
