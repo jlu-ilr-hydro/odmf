@@ -23,7 +23,7 @@ def createPandaDfs(lines,start, end, fout, interpolationtime=None, tolerance=12)
         for line in lines:
             Column_name=str(line.site)[0:3]+str(' - ')+str(line.valuetype)[0:10]
             try:
-                Time, Value = line.load(startdate=start,enddate=end,usecache=True)
+                Time, Value = line.load(startdate=start,enddate=end)#,usecache=True)
             except ValueError:
                 print 'Leave out zero size array in line '+str(line)
                 continue
