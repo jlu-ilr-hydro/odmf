@@ -21,7 +21,7 @@ def createPandaDfs(lines,start, end, fout, interpolationtime=None, tolerance=12)
         dfs=[]
         #Loop through Lines
         for line in lines:
-            Column_name=str(line.site)[0:3]+str(' - ')+str(line.valuetype)[0:10]
+            Column_name=(unicode(line.site)[0:3] + '_' + unicode(line.valuetype)[0:10] + '_' + unicode(line.instrument)[0:10]).replace(' ','_')
             try:
                 Time, Value = line.load(startdate=start,enddate=end)#,usecache=True)
             except ValueError:
