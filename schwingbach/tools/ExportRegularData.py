@@ -21,11 +21,11 @@ def createPandaDfs(lines,start, end, fout, interpolationtime=None, tolerance=12)
         dfs=[]
         #Loop through Lines
         for line in lines:
-            Column_name=(unicode(line.site)[0:3] + '_' + unicode(line.valuetype)[0:10] + '_' + unicode(line.instrument)[0:10]).replace(' ','_')
+            Column_name=(unicode(line.site) + ' - ' + unicode(line.valuetype) + ' - ' + unicode(line.instrument))
             try:
                 Time, Value = line.load(startdate=start,enddate=end)#,usecache=True)
             except ValueError:
-                print 'Leave out zero size array in line '+str(line)
+                print 'Leave out zero size array in line '+unicode(line)
                 continue
             #Make Panda Dataframes
             index=pd.Index(plt.num2date(Time),name='Date')

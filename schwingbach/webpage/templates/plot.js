@@ -61,12 +61,12 @@
 		}
 		function exportall_csv() {
 			var href = '/plot/exportall.csv?tolerance=' + $('#tolerance_skipper').val();
-			alert(href);
+			//alert(href);
 			window.location = href;
 		}
 		function RegTime() {
 			var href = '/plot/RegularTimeseries.csv?tolerance='+$('#Interpolation_Limit').val() + '&interpolation=' + $('#reg_interpolation').val();
-			alert(href);
+			//alert(href);
 			window.location = href;
 		}
 		function getstyle(sp) {

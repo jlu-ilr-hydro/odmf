@@ -281,43 +281,59 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
                 part of the export.
             </span>
 		</a>
-		<select id="tolerance_skipper">
-			<option value="0">no_skipping</option>
-			<option value="60">1Min</option>
-			<option value="120">2Min</option>
-			<option value="180">3Min</option>
-			<option value="300">5Min</option>
-			<option value="600">10Min</option>
-			<option value="1800">30Min</option>
-		</select>
+		<span class="tooltip">
+			<select id="tolerance_skipper">
+				<option value="0">no tolerance</option>
+				<option value="300">5Min</option>
+				<option value="600">10Min</option>
+				<option value="1800">30Min</option>
+				<option value="3600">1h</option>
+				<option value="86400">1day</option>
+			</select>
+			<span>
+				Specifies a tolerance time to keep values in the same line of the csv file. <br/>
+				"no tolerance" means there is no tolerance, and the smallest difference in the timestamp of two values <br/>
+				leads to a new line.
+			</span>
+		</span>
 		<a py:if="is_member('supervisor')" 
 			class="box small leftspace nowrap tooltip" 
 			href="javascript:RegTime()">
-			RegularTime
+			regular export
             <span>
-                Exports all datasets in this plot to a csv file. <br/>
+                Exports all datasets in this plot to a csv file with regularized timesteps. <br/>
                 The exported file has multiple columns according <br/>
                 to valuetypes, sites and levels. This feature is <br/>
-                still experimental. Transformed timeseries are not <br/>
-                part of the export.
+                still experimental. <br/>
             </span>
 		</a>
-		<select id="reg_interpolation">
-			<option value="1Min">1Min</option>
-			<option value="5Min">5Min</option>
-			<option value="10Min">10Min</option>
-			<option value="15Min">15Min</option>
-			<option value="30Min">30Min</option>
-			<option value="60Min">1h</option>
-		</select>
-		<select id="Interpolation_Limit">
-			<option value="1">1Timestep</option>
-			<option value="5">5Timesteps</option>
-			<option value="10">10Timesteps</option>
-			<option value="50">50Timesteps</option>
-			<option value="100">100Timesteps</option>
-			<option value="200">200Timesteps</option>
-		</select>
+		<span class="tooltip">
+			<select id="reg_interpolation">
+				<option value="5Min">5Min</option>
+				<option value="10Min">10Min</option>
+				<option value="15Min">15Min</option>
+				<option value="30Min">30Min</option>
+				<option value="60Min">1h</option>
+				<option value="1440Min">1day</option>
+				
+			</select>
+			<span>
+				Time resolution of all datasets in the output csv-file.
+			</span>
+		</span>
+		<span class="tooltip">
+			<select id="Interpolation_Limit">
+				<option value="1">1Timestep</option>
+				<option value="5">5Timesteps</option>
+				<option value="10">10Timesteps</option>
+				<option value="50">50Timesteps</option>
+				<option value="100">100Timesteps</option>
+				<option value="200">200Timesteps</option>
+			</select>
+			<span>
+				Number of possible gaps in the data which will be filled through linear interpolation.
+			</span>
+		</span>
 		<h2><a href="javascript:renderplot('plot',Date.now())">&#x25BE; Load plot</a></h2>
 		<div id="plot">
 			
