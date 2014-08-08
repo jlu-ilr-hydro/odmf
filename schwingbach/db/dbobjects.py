@@ -276,7 +276,7 @@ class Job(Base):
         return cmp(self.id,other.id)
     def is_due(self):
         return (not self.done) and (self.due + timedelta(days=1)<datetime.today())
-    def parse_description(self,action='done',time=None):
+    def parse_description(self,by,action='done',time=None):
         """Creates jobs, logs and mails from the description
         The description is parsed by line. When a line "when done:" is encountered
         scan the lines for a trailing "create". 
@@ -330,12 +330,13 @@ class Job(Base):
                         # Write a mail
                         elif cmd[1]=='mail':
                             try:
+                                by = Person.get(session,by)  
                                 to = cmd[cmd.index('to')+1:]
                                 to = session.query(Person).filter(Person.username.in_(to))
                                 to = to.all()
                                 msgdata = dict(id=self.id,action=action,text=text,name=unicode(self),
-                                               description=self.description)
-                                text = u'''The job %(name)s is %(action)s
+                                               description=self.description,by=unicode(by))
+                                text = u'''The job %(name)s is %(action)s by %(by)s
                                         http://fb09-pasig.umwelt.uni-giessen.de:8081/job/%(id)s
                                         
                                         %(text)s
@@ -343,7 +344,7 @@ class Job(Base):
                                         %(description)s
                                         ''' % msgdata
                                 subject=u'Studienlandschaft Schwingbach: job #%(id)s is %(action)s' % msgdata
-                                EMail(self.author.email,[you.email for you in to],subject,text).send()
+                                EMail(by.email,list(set([you.email for you in to] + [self.responsible.email,self.author.email])),subject,text).send()
                             except:
                                 raise RuntimeError('"%s" is not a valid mail, problem: %s' % (line,traceback()))
                     else:
@@ -352,7 +353,7 @@ class Job(Base):
                 errors.append(e.message)
         return objects,errors
                
-    def make_done(self,time=None):
+    def make_done(self,by,time=None):
         "Marks the job as done and performs effects of the job"
         self.done=True
         if not time:
@@ -373,7 +374,7 @@ class Job(Base):
             session.add(newjob)
             msg.append('Added new job %s' % newjob)
         if self.description:
-            objects,errors = self.parse_description('done', time)
+            objects,errors = self.parse_description('done',by, time)
             session.add_all(objects)
             session.commit()
             msg.extend(str(o) for o in objects)

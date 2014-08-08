@@ -225,8 +225,7 @@ class JobPage:
         job = session.query(db.Job).get(int(jobid))
         if time:
             time = web.parsedate(time)
-        job._responsible = users.current.name
-        msg=job.make_done(time)
+        msg=job.make_done(users.current.name, time)
         
         session.commit()
         session.close()
