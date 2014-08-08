@@ -40,6 +40,7 @@
 				height:$('#plotheight').val(),				
 				rows:$('#plotrows').val(),
 				columns:$('#plotcolumns').val(),
+				aggregate:$('#plotaggregate').val(),
 			}, function(data){
 				if (data) seterror(data);
 				else $('.error').html('');
@@ -64,6 +65,27 @@
 			//alert(href);
 			window.location = href;
 		}
+		function flotplot() {
+			$('#properties').slideUp();
+			$.getJSON(
+				'/plot/export.json',
+				{subplot:0,line:0})
+				.done(
+					function(data) {
+						$.plot('#flotcanvas', [{label:'data',data:data} ],
+							{
+								xaxis:{
+									mode:'time',
+								},
+						});
+				})
+				.fail(
+					function( jqxhr, textStatus, error ) {
+						var err = textStatus + ", " + error;
+						$('#error').html(err);
+				});
+
+		}
 		function RegTime() {
 			var href = '/plot/RegularTimeseries.csv?tolerance='+$('#Interpolation_Limit').val() + '&interpolation=' + $('#reg_interpolation').val();
 			//alert(href);
@@ -79,13 +101,15 @@
 			var site = $('#siteselect_'+sp).val();
 			var inst = $('#instrumentselect_'+sp).val();
 			var level = $('#levelselect_'+sp).val();
+			var aggfunc = $('#aggpicker_'+sp).val();
 			$.post('addline', {
 				subplot:sp,
 				valuetypeid:vt,
 				siteid:site,
 				instrumentid:inst,
 				level:level,
-				style:getstyle(sp)
+				style:getstyle(sp),
+				aggfunc:aggfunc,
 			},seterror);
 			killplot();
 		}

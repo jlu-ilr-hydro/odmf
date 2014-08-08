@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 from cStringIO import StringIO
 import time
 from base64 import b64encode
-
+from pandas import to_datetime, TimeGrouper
 t0 = datetime(1,1,1)
 nan = np.nan
 def date2num(t):
@@ -47,7 +47,7 @@ class Line(object):
     Represents a single line of a subplot
     """
     def __init__(self,subplot,valuetype,site,instrument=None,level=None,style='',
-                 transformation=None,usecache=False):
+                 transformation=None,usecache=False,aggregatefunction='mean'):
         """
         Create a Line:
         @param subplot: The Subplot to which this line belongs
@@ -67,6 +67,7 @@ class Line(object):
         session.close()
         self.transformation=transformation
         self.usecache = usecache
+        self.aggregatefunction=aggregatefunction
     def getdatasets(self,session):
         """
         Loads the datasets for this line
@@ -99,37 +100,62 @@ class Line(object):
         for s in 'tv':
             if os.path.exists(self.getcachename(s)):
                 os.remove(self.getcachename(s))
-    def load(self,startdate=None,enddate=None):
-        """
-        Loads the records into an array
-        """
-        if self.hascache():
-            print 'Load from cache'
-            t=np.fromfile(self.getcachename('t'))
-            v=np.fromfile(self.getcachename('v'))
-            if not (len(t)==0 or len(v)!=len(t)):
-                print ".../\./\|\...load from cache<-" + os.path.basename(self.getcachename('?'))
-                return t,v
-        print ".../\./\|\...load from database->" + os.path.basename(self.getcachename('?'))
+    def aggregate(self):
         session=db.Session()
         error=''
         start=self.subplot.plot.startdate
         end=self.subplot.plot.enddate
-        #try:
-        datasets=self.getdatasets(session)
-        group = db.DatasetGroup([ds.id for ds in datasets], start, end)
-        t,v = group.asarray(session)
-        if self.usecache:
-            t.tofile(self.getcachename('t'))
-            v.tofile(self.getcachename('v'))
-        print 'Load complete'
-        #except Exception as e:
-        #    raise e
-        #finally:
-        session.close()
-        print "size(v)=", v.size,"mean(v)=",v[np.isnan(v)==False].mean(),"std(v)=",v[np.isnan(v)==False].std()
-        print "size(t)=", t.size,"min(t)=",plt.num2date(t.min()),"max(t)=",plt.num2date(t.max())
+        # Get values from session as a pandas.Series
+        try:
+            datasets=self.getdatasets(session)
+            group = db.DatasetGroup([ds.id for ds in datasets], start, end)
+            series = group.asseries(session)
+        finally:
+            session.close()
+        # Change series.index to datetime64 type
+        t0 = plt.date2num(datetime(1970,1,1))
+        series.index = to_datetime((series.index.values - t0),unit='D')
+        # Use pandas resample mechanism for aggregation
+        aggseries = series.resample(self.subplot.plot.aggregate,self.aggregatefunction)
+        # Rip series index and values appart and convert the datetime64 index (in ns) back to matplotlib value
+        t = aggseries.index.values.astype(float)/(24*60*60*1e9) + t0
+        v = aggseries.values
         return t,v
+    def load(self,startdate=None,enddate=None):
+        """
+        Loads the records into an array
+        """
+        if self.subplot.plot.aggregate:
+            return self.aggregate()
+        else:
+            if self.hascache():
+                print 'Load from cache'
+                t=np.fromfile(self.getcachename('t'))
+                v=np.fromfile(self.getcachename('v'))
+                if not (len(t)==0 or len(v)!=len(t)):
+                    print ".../\./\|\...load from cache<-" + os.path.basename(self.getcachename('?'))
+                    return t,v
+            print ".../\./\|\...load from database->" + os.path.basename(self.getcachename('?'))
+            session=db.Session()
+            error=''
+            start=self.subplot.plot.startdate
+            end=self.subplot.plot.enddate
+            try:
+                datasets=self.getdatasets(session)
+                group = db.DatasetGroup([ds.id for ds in datasets], start, end)
+                t,v = group.asarray(session)
+            finally:
+                session.close()
+            if self.usecache:
+                t.tofile(self.getcachename('t'))
+                v.tofile(self.getcachename('v'))
+            print 'Load complete'
+            #except Exception as e:
+            #    raise e
+            #finally:
+            print "size(v)=", v.size,"mean(v)=",v[np.isnan(v)==False].mean(),"std(v)=",v[np.isnan(v)==False].std()
+            print "size(t)=", t.size,"min(t)=",plt.num2date(t.min()),"max(t)=",plt.num2date(t.max())
+            return t,v
     def draw(self,ax,startdate=None,enddate=None):
         """
         Draws the line to the matplotlib axis ax
@@ -148,12 +174,23 @@ class Line(object):
         Exports the line as csv file
         """
         t,v = self.load(startdate, enddate)
+        # Epoch for excel dates
         t0 = plt.date2num(datetime(1899,12,30))
         stream.write(codecs.BOM_UTF8)
         stream.write('Time,' + unicode(self.valuetype).encode('UTF-8') + '\n') 
         for t,v in zip(t-t0,v):
             stream.write('%f,%f\n' % (t,v))
+    def export_json(self,stream,startdate=None,enddate=None):
+        t,v = self.load(startdate, enddate)
+        # Unix-Epoch 
+        t0 = plt.date2num(datetime(1970,1,1))
+        # Flot expects ms since epoch -> (t-t0)*24*60*60*1000
+        stream.write('[')
+        for T,V in zip((t-t0)*24*60*60*1000,v):
+            stream.write('[%f,%f],' % (T,V))
+        stream.write('[null,null]]')
         
+            
     def __jdict__(self):
         """
         Returns a dictionary of the line
@@ -162,25 +199,32 @@ class Line(object):
                     site=self.site.id if self.site else None,
                     instrument=self.instrument.id if self.instrument else None,
                     level=self.level,
-                    style=self.style,transformation=self.transformation, usecache=self.usecache)
+                    style=self.style,transformation=self.transformation, 
+                    usecache=self.usecache, aggregatefunction=self.aggregatefunction )
     @classmethod
     def fromdict(cls,subplot,d):
         """
         Creates the line element from a dictionary (for loading from session)
         """
         return cls(subplot,valuetype=d.get('valuetype'),site=d.get('site'),instrument=d.get('instrument'),style=d.get('style'),
-                   transformation=d.get('transformation'),level=d.get('level'),usecache=d.get('usecache',False))
+                   transformation=d.get('transformation'),level=d.get('level'),usecache=d.get('usecache',False),
+                   aggregatefunction=d.get('aggregatefunction','mean')
+                   )
     def __unicode__(self):
         """
         Returns a string representation
         """
+        res = u''
         if self.instrument:
-            return u'%s at #%i%s using %s' % (self.valuetype, self.site.id,
+            res = u'%s at #%i%s using %s' % (self.valuetype, self.site.id,
                                                  '(%gm)' % self.level if not self.level is None else '',
                                                  self.instrument.name)
         else:
-            return u'%s at #%i%s' % (self.valuetype, self.site.id,
+            res = u'%s at #%i%s' % (self.valuetype, self.site.id,
                                       '(%gm)' % self.level if not self.level is None else '')
+        if self.subplot.plot.aggregate:
+            res += ' (%s/%s)' % (self.aggregatefunction,self.subplot.plot.aggregate)
+        return res
     def __str__(self):
         return unicode(self).encode('utf-8',errors='replace')
     def __repr__(self):
@@ -198,7 +242,7 @@ class Subplot(object):
         self.position=position
         self.lines=[]
         self.ylim = None
-    def addline(self,valuetype,site,instrument=None,level=None,style='',usecache=False):
+    def addline(self,valuetype,site,instrument=None,level=None,style='',usecache=False,aggfunc='mean'):
         """
         Adds a line to the subplot
         @param valuetype: the id of a valuetype
@@ -268,6 +312,7 @@ class Plot(object):
         self.name = 'plot'
         self.newlineprops = None
         self.args=kwargs
+        self.aggregate = ''
     def getpath(self):
         username = web.user() or 'nologin'
         return web.abspath('preferences/plots/' + username + '.' + self.name)
@@ -310,7 +355,8 @@ class Plot(object):
         """
         return dict(size=self.size,rows=self.rows,columns=self.columns,
                     startdate=self.startdate,enddate=self.enddate,
-                    subplots=asdict(self.subplots),newlineprops = asdict(self.newlineprops))
+                    subplots=asdict(self.subplots),newlineprops = asdict(self.newlineprops),
+                    aggregate=self.aggregate)
     @classmethod
     def fromdict(cls,d):
         """
@@ -326,6 +372,7 @@ class Plot(object):
             for sd in d.get('subplots'):
                 res.subplots.append(Subplot.fromdict(res,sd))
         res.newlineprops = d.get('newlineprops')
+        res.aggregate = d.get('aggregate','')
         return res
     @classmethod
     def frompref(cls,createplot=False):
@@ -374,7 +421,7 @@ class PlotPage(object):
         if not plot:
             raise web.HTTPRedirect('/plot?error=No plot available')
         return plot.draw(format='pdf')
-    
+        
     @web.expose_for(plotgroup)
     def addsubplot(self):
         try:
@@ -415,7 +462,7 @@ class PlotPage(object):
         except:
             return traceback();
     @web.expose_for(plotgroup)
-    def addline(self,subplot,valuetypeid,siteid,instrumentid,level,style):
+    def addline(self,subplot,valuetypeid,siteid,instrumentid,level,style,aggfunc='mean'):
         try:
             plot = Plot.frompref(createplot=True)
             spi = int(subplot)
@@ -424,7 +471,7 @@ class PlotPage(object):
             else:
                 sp = plot.subplots[spi-1]
             if valuetypeid and siteid:
-                sp.addline(web.conv(int,valuetypeid),web.conv(int,siteid),web.conv(int,instrumentid),web.conv(float,level),style=style)
+                sp.addline(web.conv(int,valuetypeid),web.conv(int,siteid),web.conv(int,instrumentid),web.conv(float,level),style=style,aggfunc=aggfunc)
             else:
                 return "You tried to add a line without site or value type. This is not possible"
             plot.newlineprops = None
@@ -477,6 +524,17 @@ class PlotPage(object):
         io.seek(0)
         return io
     @web.expose_for(plotgroup)
+    def export_json(self,subplot,line):
+        plot = Plot.frompref()
+        sp = plot.subplots[int(subplot)-1]
+        line = sp.lines[int(line)]
+        web.setmime(web.mime.csv)
+        io = StringIO()
+        line.export_json(io,plot.startdate,plot.enddate)
+        io.seek(0)
+        return io
+
+    @web.expose_for(plotgroup)
     def exportall_csv(self,tolerance):
         plot = Plot.frompref()
         datasetids=[]
@@ -525,6 +583,7 @@ class PlotPage(object):
             plot.enddate = end
             plot.size = float(kwargs.get('width'))/100., float(kwargs.get('height'))/100.
             plot.rows,plot.columns=int(kwargs.get('rows')),int(kwargs.get('columns'))
+            plot.aggregate = kwargs.get('aggregate','')
             plot.createtime = web.formatdatetime()
             plot.topref()
         except:

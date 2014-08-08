@@ -16,6 +16,8 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
   <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
   <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
   <script src="/media/jquery.json-2.3.min.js" type="text/javascript"></script>
+  <script src="/media/flot/jquery.flot.js" type="text/javascript" ></script>
+	<script type="text/javascript" src="/media/flot/jquery.flot.time.js"></script>
 
 	<script type="text/javascript" src="/html/plot.js">
 	</script>
@@ -88,6 +90,17 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			color: #111;
 		}
 		.nowrap {white-space: nowrap;}
+		.propsection {
+			display: inline-block;
+			vertical-align: top;
+			border: 1px solid #111;
+			border-radius: 5px;
+			height: 100%;
+			padding: 5px;
+		}
+		#plotproperties {
+			height: 70px;
+		}
 	</style>
 		
 </head>
@@ -105,39 +118,62 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 				</a>
 			</span>
 		</h2>
-		<div id="properties">
-			<table class="small" style="display: inline-block">
-				<tr>
-					<td></td><td>date:</td><td>time:</td><td/><td>size:</td><td/><td>subplots:</td>
-				</tr>
-				<tr>
-					<td>start:</td>
-					<td><input class="props datepicker" id="startdate" size="10" value="${formatdate(plot.startdate)}"/></td>
-					<td><input class="props timepicker" id="starttime" size="5" value="00:00" /></td>
-					<td>w:</td>
-					<td><input class="props" type="text" id="plotwidth" size="5" value="${'%g' % (plot.size[0]*100)}"/></td>
-					<td>rows:</td>
-					<td>
-						<input class="props" list="numbers" value="${plot.rows}" id="plotrows" size="2"/>
-					</td>
-				</tr>
-				<tr>
+		<div id="properties" >
+			<div id="plotproperties">
+				<div class="propsection small">
+					<table>
+						<tr>
+							<td></td><td>date:</td><td>time:</td><td/><td>size:</td><td/><td>subplots:</td>
+						</tr>
+						<tr>
+							<td>start:</td>
+							<td><input class="props datepicker" id="startdate" size="10" value="${formatdate(plot.startdate)}"/></td>
+							<td><input class="props timepicker" id="starttime" size="5" value="00:00" /></td>
+							<td>w:</td>
+							<td><input class="props" type="text" id="plotwidth" size="5" value="${'%g' % (plot.size[0]*100)}"/></td>
+							<td>rows:</td>
+							<td>
+								<input class="props" list="numbers" value="${plot.rows}" id="plotrows" size="2"/>
+							</td>
+						</tr>
+						<tr>
+							
+							<td>end:</td>
+							<td><input class="props datepicker" id="enddate" size="10" value="${formatdate(plot.enddate)}"/></td>
+							<td><input class="props timepicker" id="endtime" size="5" value="00:00" /> </td>
+							
+							<td>h:</td>					
+							<td><input class="props" type="text" id="plotheight" size="5" value="${'%g' % (plot.size[1]*100)}"/></td>
+							
+							<td>cols</td>
+							<td><input list="props numbers" value="${plot.columns}" id="plotcolumns" size="2"/></td>					
+						</tr>
+					</table>
+				</div>
+				<div id="agg" class="propsection small">
+					Aggregate data:<br/>
+					<select id="plotaggregate" class="props">
+						<option value="" py:attrs="markoption(plot.aggregate=='')">No aggregation</option>
+						<option value="30Min" py:attrs="markoption(plot.aggregate=='30Min')">Half hourly</option>
+						<option value="h" py:attrs="markoption(plot.aggregate=='h')">Hourly</option>
+						<option value="D" py:attrs="markoption(plot.aggregate=='D')">Daily</option>
+						<option value="W" py:attrs="markoption(plot.aggregate=='W')">Weekly</option>
+						<option value="M" py:attrs="markoption(plot.aggregate=='M')">Monthly</option>
+						<option value="Y" py:attrs="markoption(plot.aggregate=='Y')">Yearly</option>
+					</select>
+				</div>
+				<!--				
+				<div class="propsection small">
+					<h3>Plot description</h3>
 					
-					<td>end:</td>
-					<td><input class="props datepicker" id="enddate" size="10" value="${formatdate(plot.enddate)}"/></td>
-					<td><input class="props timepicker" id="endtime" size="5" value="00:00" /> </td>
-					
-					<td>h:</td>					
-					<td><input class="props" type="text" id="plotheight" size="5" value="${'%g' % (plot.size[1]*100)}"/></td>
-					
-					<td>cols</td>
-					<td><input list="props numbers" value="${plot.columns}" id="plotcolumns" size="2"/></td>					
-				</tr>
-			</table>
+				</div>
+				-->
+				<!--
+					Subplots
+				-->
+							
+			</div>
 
-			<!--
-				Subplots
-			-->
 			<ul class="box_24">
 				<li py:for="sp in plot.subplots" class="sp">
 					subplot ${sp.position} 
@@ -249,6 +285,15 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 										/>
 									</select>
 								</span>
+								<span class="nowrap" py:if="plot.aggregate">
+									aggregate:
+									<select id="aggpicker_${sp.position}">
+										<option value="mean">mean</option>
+										<option value="min">min</option>
+										<option value="max">max</option>
+										<!--<option value="stdev">stdev</option>-->
+									</select>
+								</span>
 						</li>
 					</ul>
 
@@ -338,6 +383,12 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 		<div id="plot">
 			
 		</div>
+		<!-- Something for the future: use flot on client instead of matplotlib on server
+		<h2>flot</h2>
+		<button onclick="flotplot()">flot it</button>
+		<div id="flotlegend"/>
+		<div style="width:1200px;height: 600px;" id="flotcanvas"></div>
+		-->
 	</div>
 
 </body>
