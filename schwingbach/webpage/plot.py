@@ -250,7 +250,7 @@ class Subplot(object):
         @param instrument: the id of an instrument (can be omitted)
         @param style: the style of the line, eg 'o-k' for black line with circle markers 
         """
-        self.lines.append(Line(self,valuetype=valuetype,site=site,instrument=instrument,level=level,style=style,usecache=usecache))
+        self.lines.append(Line(self,valuetype=valuetype,site=site,instrument=instrument,level=level,style=style,usecache=usecache,aggregatefunction=aggfunc))
         self.plot.createtime = web.formatdate()
         return self
     def draw(self,figure):
