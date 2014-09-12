@@ -4,6 +4,12 @@ import os.path as op
  
 datapath = op.abspath(op.join(op.dirname(__file__),'..','webpage','datafiles'))
 home = op.dirname(datapath)
+try:
+    import grp
+    osgroup = gid = grp.getgrnam("users").gr_gid
+except ImportError:
+    osgroup = None
+
 class Path(object):
     def __init__(self,abspath):
         self.absolute = op.realpath(abspath)

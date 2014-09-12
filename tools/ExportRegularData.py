@@ -13,7 +13,10 @@ import pylab as plt
 
 def createPandaDfs(lines,start, end, fout, interpolationtime=None, tolerance=12):
     '''
-    dfs:               Expects a list of Panda Dataframes with Datetime as a sorted Index
+    lines:             Lines of plot object.
+    start:             Starttime of the plot object
+    end:               Endtime of the plot object
+    fout:              Name of the outputfile as a String
     interpolationtime: A setting String with the final Resolution of the Outputfile
     tolerance:         Maximum Timesteps of interpolationtime which will be interpolated 
     '''
@@ -22,6 +25,9 @@ def createPandaDfs(lines,start, end, fout, interpolationtime=None, tolerance=12)
         #Loop through Lines
         for line in lines:
             Column_name=(unicode(line.site) + ' - ' + unicode(line.valuetype) + ' - ' + unicode(line.instrument))
+
+	   # Column_name=str(line.site) + ' - ' +str(line.valuetype) + ' - ' +str(line.instrument)
+
             try:
                 Time, Value = line.load(startdate=start,enddate=end)#,usecache=True)
             except ValueError:
@@ -59,7 +65,7 @@ def createPandaDfs(lines,start, end, fout, interpolationtime=None, tolerance=12)
         reg_df=reg_df.drop(reg_df.index[:1])
         reg_df.index.name='Date'
         #Export Data to csv
-        reg_df.to_csv(fout)
+        reg_df.to_csv(fout,encoding='utf-16')
     
     except:
         sys.stderr.write(traceback())

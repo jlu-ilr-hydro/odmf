@@ -12,6 +12,7 @@ if sys.platform=='win32':
                            'family' : 'sans-serif'})
 import os
 import pylab as plt
+from matplotlib.ticker import MaxNLocator
 import numpy as np
 import db
 from traceback import format_exc as traceback
@@ -268,6 +269,9 @@ class Subplot(object):
                 plt.ylim(ymax=self.ylim[1])
         plt.xlim(date2num(self.plot.startdate),date2num(self.plot.enddate))
         plt.xticks(rotation=15)
+        ax.yaxis.set_major_locator(MaxNLocator(prune='upper'))
+        ax.tick_params(axis='both', which='major', labelsize=8)
+
         ax.grid()
         ax.legend(loc=0,prop=dict(size=9))
         if self.lines:
@@ -602,18 +606,18 @@ class PlotPage(object):
         plot = Plot((6.,9.), columns=1, rows=6, startdate=startdate, enddate=enddate,ylabelfs='8')
         # 1 Temperature (vt=14)
         Tsp=plot.addtimeplot()
-        Tsp.addline(14, site, style='r-',usecache=True)
-        Tsp.addline(8,site,style='b-',usecache=True) # Water Temperature
+        Tsp.addline(14, site, style='r-',usecache=False)
+        Tsp.addline(8,site,style='b-',usecache=False) # Water Temperature
         # 2 Rainfall
-        plot.addtimeplot().addline(9,site,style='b-',usecache=True)
+        plot.addtimeplot().addline(9,site,style='b-',usecache=False)
         # 3 Discharge
-        plot.addtimeplot().addline(1,site,style='b-',usecache=True)
+        plot.addtimeplot().addline(1,site,style='b-',usecache=False)
         # 4 Radiation
-        plot.addtimeplot().addline(11,site,style='r-',usecache=True)
+        plot.addtimeplot().addline(11,site,style='r-',usecache=False)
         # 5 rH
-        plot.addtimeplot().addline(10,site,style='c-',usecache=True)
+        plot.addtimeplot().addline(10,site,style='c-',usecache=False)
         # 6 Windspeed
-        plot.addtimeplot().addline(12,site,style='k-',usecache=True)
+        plot.addtimeplot().addline(12,site,style='k-',usecache=False)
         
         plot64 = b64encode(plot.draw(format='png'))
         
