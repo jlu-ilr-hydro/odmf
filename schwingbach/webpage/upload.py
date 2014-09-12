@@ -16,11 +16,6 @@ from cStringIO import StringIO
 from tools import Path
 datapath=web.abspath('datafiles')
 home = web.abspath('.')
-try:
-    import grp
-    osgroup = gid = grp.getgrnam("users").gr_gid
-except ImportError:
-    osgroup = None
 
 
 class DBImportPage(object):
