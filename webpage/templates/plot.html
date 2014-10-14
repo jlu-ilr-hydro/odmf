@@ -30,6 +30,26 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 				popSelect(i,${as_json(plot.newlineprops)});
 			}
 			$('#addsubplot').removeProp('disabled');
+  		
+  		$('.description').click(function() {
+  			if ($('#description').html().substring(0,9)!='<textarea') {
+  				// Create textarea for editing of index.html
+	  			$('#description').html('<textarea rows="20"/><br/><button>Save</button><button>Cancel</button><a href="/markdown.help"><img src="/media/help.png" /></a>');
+	  			// Load current file in textarea
+	  			$('#description textarea').val("${plot.description.replace('\n',r'\n')}");				
+	  			// Save file on click
+	  			$('#description button').click(function() {
+	  				if ($(this).text()=="Save") {
+		  				var text=$('#description textarea').val();
+		  				$.post('describe',{newdescription:text},seterror);	  					
+	  				} else {
+	  					var text = '${markdown(plot.description).replace("\n",r"\n")}';
+	  					$('#description').html(text);
+	  				}
+	  			});  				
+  			}
+  		});
+
     });
     //]]>
 	</script>
@@ -74,10 +94,11 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			padding: 0px;
 			background-color: #FFF;
 			margin-right: 10px;
-		 	box-shadow: 5px 5px 8px #888; 
+		 	box-shadow: 5px 5px 8px #888;
 		}
 		span.box a{
 			padding: 0px 2px;
+		 	cursor: pointer; 
 		}
 		span.box a:hover {
 			background-color:#32739D;
@@ -95,12 +116,30 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			vertical-align: top;
 			border: 1px solid #111;
 			border-radius: 5px;
-			height: 100%;
+			height: 70px;
 			padding: 5px;
+			overflow: auto;
 		}
 		#plotproperties {
-			height: 70px;
 		}
+		.description {
+	    float: right;
+	    width: 30%;
+	    border: dotted 1px #32739d;
+	    border-radius: 0px;
+	    color: black;
+	    background-color: #E8F0FF;
+	    margin: 0.5em 0.5em 0.5em 0.5em;
+	    padding: 1em;
+	    background: white;
+	    cursor: hand;
+		}
+		#description textarea {
+			width: 100%;
+			font-family: monospace;
+			cursor: auto;
+		}
+
 	</style>
 		
 </head>
@@ -109,6 +148,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 	${navigation('Plot')}
 	<div class="content">
 		<div class="error" id="error">${error}</div>
+
 		<h2><a href="javascript:toggle('properties')">&#x25BE; Properties</a>
 			<span class="box small leftspace">
 				<a href="javascript:$.post('clf',{},seterror);changeprops()" class="tooltip">
@@ -119,6 +159,10 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			</span>
 		</h2>
 		<div id="properties" >
+			<div class="description tooltip">
+				<div id="description" class="small" py:content="markdown(plot.description)"/>
+				<span>Click to edit...</span>
+			</div>
 			<div id="plotproperties">
 				<div class="propsection small">
 					<table>
@@ -162,18 +206,34 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 						<option value="Y" py:attrs="markoption(plot.aggregate=='Y')">Yearly</option>
 					</select>
 				</div>
-				<!--				
-				<div class="propsection small">
-					<h3>Plot description</h3>
-					
+				<div class="propsection">
+					save plot<br/>
+					<div class="tooltip">
+						<input type="text" value="" length="15" id="saveplotfilename"/>
+						<span>
+							File name for the plot. Use somthing short and meaningful
+						</span>
+				
+					</div>
+					<span class="box small leftspace nowrap"><a id="saveplotbutton">save plot</a></span>
 				</div>
-				-->
+				<div class="propsection">
+					load plot: <br/>
+					<select id="savedplots" >
+						<option value="${fn}" py:for="fn in plot.listdir()" py:content="fn" /> 
+					</select><br/>
+					<span class="box small leftspace nowrap"><a id="loadplotbutton">load plot</a>
+					<a class="tooltip" id="deleteplotbutton" >&#x2718;
+						<span>Delete the file from disk</span>
+					</a></span>
+						
+				</div>
+			</div>
+
 				<!--
 					Subplots
 				-->
-							
-			</div>
-
+			
 			<ul class="box_24">
 				<li py:for="sp in plot.subplots" class="sp">
 					subplot ${sp.position} 

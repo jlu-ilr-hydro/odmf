@@ -21,6 +21,8 @@ from cStringIO import StringIO
 import time
 from base64 import b64encode
 from pandas import to_datetime, TimeGrouper
+import json
+from glob import iglob
 t0 = datetime(1,1,1)
 nan = np.nan
 def date2num(t):
@@ -176,10 +178,9 @@ class Line(object):
         """
         t,v = self.load(startdate, enddate)
         # Epoch for excel dates
-        t0 = plt.date2num(datetime(1899,12,30))
         stream.write(codecs.BOM_UTF8)
         stream.write('Time,' + unicode(self.valuetype).encode('UTF-8') + '\n') 
-        for t,v in zip(t-t0,v):
+        for t,v in zip(plt.num2date(t),v):
             stream.write('%f,%f\n' % (t,v))
     def export_json(self,stream,startdate=None,enddate=None):
         t,v = self.load(startdate, enddate)
@@ -317,6 +318,7 @@ class Plot(object):
         self.newlineprops = None
         self.args=kwargs
         self.aggregate = ''
+        self.description = ''
     def getpath(self):
         username = web.user() or 'nologin'
         return web.abspath('preferences/plots/' + username + '.' + self.name)
@@ -360,7 +362,7 @@ class Plot(object):
         return dict(size=self.size,rows=self.rows,columns=self.columns,
                     startdate=self.startdate,enddate=self.enddate,
                     subplots=asdict(self.subplots),newlineprops = asdict(self.newlineprops),
-                    aggregate=self.aggregate)
+                    aggregate=self.aggregate,description=self.description)
     @classmethod
     def fromdict(cls,d):
         """
@@ -377,6 +379,7 @@ class Plot(object):
                 res.subplots.append(Subplot.fromdict(res,sd))
         res.newlineprops = d.get('newlineprops')
         res.aggregate = d.get('aggregate','')
+        res.description = d.get('description','')
         return res
     @classmethod
     def frompref(cls,createplot=False):
@@ -392,13 +395,38 @@ class Plot(object):
                 plot.topref()
                 return plot
             return
-    
     def topref(self):
         """
         Saves the plot to the preferences
         """
         pref = Preferences()
         pref['plot'] = asdict(self)
+    def save(self,fn):
+        d = asdict(self)
+        try:
+            open(self.absfilename(fn),'wb').write(web.as_json(d))
+        except:
+            return traceback()
+    @classmethod
+    def load(cls,fn):
+        fp = open(cls.absfilename(fn))
+        plot = Plot.fromdict(json.load(fp))
+        return plot
+    @classmethod
+    def listdir(cls):
+        return [os.path.basename(fn).rsplit('.')[0]
+                for fn in iglob(cls.absfilename('*'))
+                ]
+    @classmethod
+    def killfile(cls,fn):
+        if os.path.exists(cls.absfilename(fn)):
+            os.remove(cls.absfilename(fn))
+        else:
+            return "File %s does not exist" % fn
+    @classmethod
+    def absfilename(cls,fn):
+        return web.abspath('preferences/plots/'+fn+'.plot')
+        
    
 import webpage.lib as web
 from webpage.preferences import Preferences
@@ -410,7 +438,39 @@ class PlotPage(object):
     def index(self,valuetype=None,site=None,error=''):
         plot=Plot.frompref(createplot=True)
         return web.render('plot.html',plot=plot,error=error).render('html')
+    @web.expose_for(plotgroup)
+    def loadplot(self,filename):
+        try:
+            plot = Plot.load(filename)
+        except:
+            return traceback()
+        plot.topref() 
+    @web.expose_for(plotgroup)
+    def saveplot(self,filename,overwrite=False):
+        if not filename:
+            return 'No filename given'
+        elif filename in Plot.listdir() and not overwrite:
+            return 'Filename exists already. Choose another or delete this file'
+        else:
+            return Plot.frompref().save(filename)
+    @web.expose_for(plotgroup)
+    def deleteplotfile(self,filename):
+        return Plot.killfile(filename)
+        
     
+    @web.expose_for(plotgroup)
+    def listplotfiles(self):
+        web.setmime(web.mime.json)
+        return web.as_json(Plot.listdir())
+    @web.expose_for(plotgroup)
+    def describe(self,newdescription):
+        try:
+            plot = Plot.frompref(True)
+            plot.description = newdescription
+            plot.topref()
+        except:
+            return traceback()
+                    
     @web.expose_for(plotgroup)
     def image_png(self,**kwargs):
         web.setmime(web.mime.png)

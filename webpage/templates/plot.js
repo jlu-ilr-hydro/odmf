@@ -240,6 +240,14 @@
 												$('#levelselect_'+subplotpos).parent().hide(200);
 											}
 										});
+				/*
+				 * if (newlineprops) {
+				 * 	marker,line,color = parse newlineprops.style
+				 *  $('#markerpicker_'+subplotpos).value(marker);
+				 *  $('#linepicker_'+subplotpos).value(line);
+				 *  $('#colorpicker_'+subplotpos).value(color);
+				 * }
+				 */
 				} else {
 						$('#levelselect_'+subplotpos).parent().hide(200);					
 				}
@@ -261,6 +269,25 @@
 		}
 		$(function() {
 			$('.props').change(changeprops);
+			$('#savedplots').change(function() {
+				$('#loadplotbutton').html('load plot ' + $('#savedplots').val());
+			});
+			$('#saveplotbutton').click(function() {
+				var fn = $('#saveplotfilename').val();
+				$.post('saveplot',{filename:fn,overwrite:true},seterror);
+				killplot();
+			});
+			$('#loadplotbutton').click(function() {
+				var fn = $('#savedplots').val();
+				$.post('loadplot',{filename:fn},seterror);
+				killplot();
+			});
+			$('#deleteplotbutton').click(function() {
+				var fn = $('#savedplots').val();
+				$.post('deleteplotfile',{filename:fn},seterror);
+				
+			});
+
 		});
 
 	    

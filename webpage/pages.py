@@ -719,7 +719,21 @@ class Root(object):
             return subprocess.Popen(['free','-m'],stdout=subprocess.PIPE).communicate()[0]
         else:
             return 'Memory storage information is not available at your platform'
-        
+    @expose_for()
+    def actualclimate_json(self,site=47):
+        session = db.Session()
+        web.setmime(web.mime.json)
+        now = datetime.now()
+        yesterday = now - timedelta(hours=24)
+        res ={'time': now}
+        for dsid in range(1493,1502):
+            ds = db.Timeseries.get(session,dsid)
+            t,v=ds.asarray(start=yesterday)
+            res[ds.name.split(',')[0].strip().replace(' ','_')] = {'min':v.min(),'max':v.max(),'mean':v.mean()}
+        return web.as_json(res)
+            
+            
+            
 
 #if __name__=='__main__':
 #    web.start_server(Root(), autoreload=False, port=8081)
