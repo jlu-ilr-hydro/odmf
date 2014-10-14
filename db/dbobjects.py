@@ -276,7 +276,7 @@ class Job(Base):
         return cmp(self.id,other.id)
     def is_due(self):
         return (not self.done) and (self.due + timedelta(days=1)<datetime.today())
-    def parse_description(self,by,action='done',time=None):
+    def parse_description(self,by=None,action='done',time=None):
         """Creates jobs, logs and mails from the description
         The description is parsed by line. When a line "when done:" is encountered
         scan the lines for a trailing "create". 
@@ -330,7 +330,10 @@ class Job(Base):
                         # Write a mail
                         elif cmd[1]=='mail':
                             try:
-                                by = Person.get(session,by)  
+                                if by:
+                                    by = Person.get(session,by)  
+                                else:
+                                    by = self.author
                                 to = cmd[cmd.index('to')+1:]
                                 to = session.query(Person).filter(Person.username.in_(to))
                                 to = to.all()
