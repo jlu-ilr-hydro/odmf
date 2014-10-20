@@ -13,7 +13,7 @@
   		$('.help').click(function() {
   			if ($('#help').html().substring(0,9)!='<textarea') {
   				// Create textarea for editing of index.html
-	  			$('#help').html('<textarea rows="20"/><br/><button>Save</button><button>Cancel</button><a href="/markdown.help"><img src="/media/help.png" /></a>');
+	  			$('#help').html('<textarea rows="20"/><br/><button>Save</button><button>Cancel</button><a href="/wiki/help"><img src="/media/help.png" /></a>');
 	  			// Load current file in textarea
 	  			$.get('/datafiles/${curdir.name}/index.html',{},function(text) {
 		  			$('#help textarea').val(text);				

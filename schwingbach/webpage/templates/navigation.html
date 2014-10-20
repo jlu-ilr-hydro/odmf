@@ -24,8 +24,13 @@
 		</ul>
   </div>
 	<div style="vertical-align: middle;">
-		<h1 style="position: absolute; top: 0px; left: 189px; z-index: 1000; right: 0px;" id="title" py:content="title">
-		</h1>		
+		<h1 style="position: absolute; top: 0px; left: 189px; z-index: 1000; right: 0px;" id="title">
+			${title} 
+			<a href="javascript:window.location.href='/wiki/' + window.location.pathname.split('/')[1]"
+					style="padding-left: 0.5em;">
+				<img src="/media/help.png" alt="help"/>
+			</a>
+		</h1>	
 		<span style="position: absolute; top 0px; right: 0px; z-index: 2000">
 			<a href="http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
 				<img src="/media/ilr-logo_4_klein_RGB.png" alt="ILR"/>

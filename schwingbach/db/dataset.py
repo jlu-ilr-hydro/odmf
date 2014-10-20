@@ -279,18 +279,18 @@ class Timeseries(Dataset):
         records.update({'dataset':dsnew.id})
         session.commit()
         return self,dsnew
-    def findjumps(self,threshold):
+    def findjumps(self,threshold,start=None,end=None):
         """Returns an iterator to find all jumps greater than threshold
         
         To find "jumps", the records of the dataset are scanned for differences
         between records (ordered by time). If the difference is greater than threshold,
         the later record is returned as a jump
         """
-        records = self.records.order_by(Record.time).filter(Record.value != None,~Record.is_error)
+        records = self.records.order_by(Record.time).filter(Record.value != None,~Record.is_error).filter(Record.time>=(start or self.start)).filter(Record.time<=(end or self.end))
         last=None
         for rec in records:
             if not rec.value is None:
-                if last and abs(rec.value-last.value)>threshold:
+                if threshold==0.0 or (last and abs(rec.value-last.value)>threshold):
                     yield rec
                 last=rec
     def findvalue(self,time):

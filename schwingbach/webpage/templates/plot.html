@@ -34,20 +34,24 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
   		$('.description').click(function() {
   			if ($('#description').html().substring(0,9)!='<textarea') {
   				// Create textarea for editing of index.html
-	  			$('#description').html('<textarea rows="20"/><br/><button>Save</button><button>Cancel</button><a href="/markdown.help"><img src="/media/help.png" /></a>');
+	  			$('#description').html('<textarea rows="5"/><br/><button>Save</button><button>Cancel</button><a href="/wiki/help"><img src="/media/help.png" /></a>');
 	  			// Load current file in textarea
 	  			$('#description textarea').val("${plot.description.replace('\n',r'\n')}");				
 	  			// Save file on click
-	  			$('#description button').click(function() {
+	  			$('#description button').click(function(event) {
 	  				if ($(this).text()=="Save") {
 		  				var text=$('#description textarea').val();
-		  				$.post('describe',{newdescription:text},seterror);	  					
+		  				$.post('describe',{newdescription:text},seterror);
 	  				} else {
 	  					var text = '${markdown(plot.description).replace("\n",r"\n")}';
 	  					$('#description').html(text);
+	  					event.stopPropagation();
 	  				}
 	  			});  				
-  			}
+  			} /* else {
+  					var text = '${markdown(plot.description).replace("\n",r"\n")}';
+  					$('#description').html(text);  				
+  			}*/
   		});
 
     });
@@ -105,7 +109,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			color:#FFF;
 			border-radius: 10px;
 			text-decoration: none;
-			cursor: hand;
+			cursor: pointer;
 		}
 		.tooltip span {
 			color: #111;
@@ -116,23 +120,28 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			vertical-align: top;
 			border: 1px solid #111;
 			border-radius: 5px;
-			height: 70px;
+			height: 75px;
 			padding: 5px;
 			overflow: auto;
 		}
 		#plotproperties {
 		}
 		.description {
-	    float: right;
+	    /*float: right;
 	    width: 30%;
-	    border: dotted 1px #32739d;
-	    border-radius: 0px;
+	    border: solid 1px #32739d;
+	    border-radius: 5px;
 	    color: black;
 	    background-color: #E8F0FF;
 	    margin: 0.5em 0.5em 0.5em 0.5em;
 	    padding: 1em;
 	    background: white;
-	    cursor: hand;
+	    */
+	    cursor: pointer;
+		}
+		.w90 {
+			display: inline-block;
+			width: 8em;
 		}
 		#description textarea {
 			width: 100%;
@@ -159,10 +168,6 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			</span>
 		</h2>
 		<div id="properties" >
-			<div class="description tooltip">
-				<div id="description" class="small" py:content="markdown(plot.description)"/>
-				<span>Click to edit...</span>
-			</div>
 			<div id="plotproperties">
 				<div class="propsection small">
 					<table>
@@ -205,27 +210,34 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 						<option value="M" py:attrs="markoption(plot.aggregate=='M')">Monthly</option>
 						<option value="Y" py:attrs="markoption(plot.aggregate=='Y')">Yearly</option>
 					</select>
-				</div>
-				<div class="propsection">
-					save plot<br/>
-					<div class="tooltip">
-						<input type="text" value="" length="15" id="saveplotfilename"/>
-						<span>
-							File name for the plot. Use somthing short and meaningful
-						</span>
-				
+					<div style="font-size: x-small;">
+						<a href="/wiki/plot/aggregate">more on aggregate...</a>
 					</div>
-					<span class="box small leftspace nowrap"><a id="saveplotbutton">save plot</a></span>
 				</div>
 				<div class="propsection">
-					load plot: <br/>
-					<select id="savedplots" >
-						<option value="${fn}" py:for="fn in plot.listdir()" py:content="fn" /> 
-					</select><br/>
-					<span class="box small leftspace nowrap"><a id="loadplotbutton">load plot</a>
-					<a class="tooltip" id="deleteplotbutton" >&#x2718;
+					<span class="box small leftspace tooltip w90">
+						<a id="saveplotbutton">&#x25B8;save</a>
+						<span>
+							Save the actual plot. You will be prompted for a name.
+						</span>
+					</span>
+					<br/>
+					<span class="box small leftspace w90">
+						<a id="loadplotbutton">&#x25BE;load</a>
+						<div style="position: absolute" class="box small toggle" id="loadplotdiv">
+							<div py:for="fn in plot.listdir()"><a py:content="fn" class="loadplotfn"/></div>
+						</div>
+					</span>
+						<br/>
+					<span class="box small leftspace w90">
+						<a class="tooltip" id="deleteplotbutton" >&#x25BE;delete
 						<span>Delete the file from disk</span>
-					</a></span>
+						</a>
+						<div style="position: absolute" class="box small toggle" id="killplotdiv">
+							<div py:for="fn in plot.listdir()"><a py:content="fn" class="killplotfn"/></div>
+						</div>
+					</span>
+						<br/>
 						
 				</div>
 			</div>
@@ -280,7 +292,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 								</a>
 								
 							</span>
-							${l} (${l.style})
+							${l} (${l.color+l.linestyle+l.marker})
 							<ul id="datasetlist_${sp.position}_${i}" class="datasetlist small doc"/>
 						</li>
 						<li class="small line">
@@ -341,7 +353,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 									<select id="colorpicker_${sp.position}">
 										<option py:for="c,ccode in [('k','#000'),('b','#00F'),('g','#0F0'),('r','#F00'),('y','#FF0'),('c','#0FF'),('m','#F0F')]"
 														value="${c}" py:content="c" style="background-color: ${ccode}"
-														py:attrs="markoption(plot.newlineprops and plot.newlineprops.style[0]==c)"
+														py:attrs="markoption(plot.newlineprops and plot.newlineprops.color==c)"
 										/>
 									</select>
 								</span>
@@ -442,6 +454,10 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 		<h2><a href="javascript:renderplot('plot',Date.now())">&#x25BE; Load plot</a></h2>
 		<div id="plot">
 			
+		</div>
+		<div class="description small">
+			Figure description (<a class="description">click to edit</a>):
+			<div id="description" class="small" py:content="markdown(plot.description)"/>
 		</div>
 		<!-- Something for the future: use flot on client instead of matplotlib on server
 		<h2>flot</h2>

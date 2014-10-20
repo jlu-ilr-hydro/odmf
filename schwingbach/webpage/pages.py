@@ -599,7 +599,57 @@ class svnlogPage(object):
         res = web.render('empty.html',title="svn log",error='').render('html',doctype='html')
         return res.replace('<!--content goes here-->', web.markdown(out))
             
-
+class Wiki(object):
+    exposed=True
+    
+    def name2path(self,name):
+        return web.abspath('datafiles/wiki/'+name+'.wiki')
+    @expose_for()
+    def default(self,*args):
+        from glob import glob
+        args=list(args)
+        name = '.'.join(args)
+        title = ' / '.join(arg.title() for arg in args)
+        filename= self.name2path(name.lower())
+        content=''
+        related=''
+        pages = sorted([os.path.basename(s)[:-5] 
+                for s in glob(web.abspath('datafiles/wiki/%s*.wiki' % name.split('.')[0]))])
+        if name in pages:
+            pages.remove(name)
+        if os.path.exists(filename):
+            content=file(filename).read()
+        elif args:
+            if pages:
+                content += '\n\n!!! box "Note:"\n    You can write an introduction to this topic with the edit button above.\n'
+            else:
+                content = '''
+                ## No content on %s
+                
+                This page is empty. Please write some meaningful content with the edit button.
+                
+                To get some nice formatting, get wiki:help .
+                ''' % (title)
+                content='\n'.join(l.strip() for l in content.split('\n'))
+        else:
+            name='content'
+        res = web.render('wiki.html',name=name,error='',wikitext=content,pages=pages).render('html',doctype='html')
+        return res
+        
+    @expose_for(web.group.editor)
+    def save(self,name,newtext):
+        try:
+            fn = self.name2path(name)
+            file(fn,'w').write(newtext)
+        except:
+            return 'err:' + traceback()
+    @expose_for(web.group.admin)
+    def delete(self,name):
+        try:
+            os.remove(self.name2path(name))
+        except:
+            return 'err:' + traceback()
+        return ''
 class Root(object):
     _cp_config = {'tools.sessions.on': True,
                   'tools.sessions.timeout':24*60, # One day
@@ -621,6 +671,7 @@ class Root(object):
     plot = PlotPage()
     calendar = CalendarPage()
     svnlog = svnlogPage()
+    wiki = Wiki()
     @expose_for()
     def index(self):
         if web.user():
@@ -671,40 +722,12 @@ class Root(object):
             return web.markdown(file(fn).read())
         else:
             return ''
-    @expose_for()
-    def markdown_help(self,source=None):
-        res = web.render('empty.html',title="How to write nice comments",error='').render('html',doctype='html')
-        fn = 'templates/markdownhelp'
-        if source:
-            helphtml =('<a href="/markdown.help">Back to rendered code...</a><br/>'+
-                       '<pre>\n' + file(web.abspath(fn)).read() + '\n</pre>')
-        else:
-            helphtml= self.markdown(fn)
-        res = res.replace('<!--content goes here-->', helphtml)
-        return res
     def markdownpage(self,content,title=''):
         """
         Returns a fully rendered page with navigation including the rendered markdown content 
         """
         res = web.render('empty.html',title=title,error='').render('html',doctype='html')
         return res.replace('<!--content goes here-->', web.markdown(content))
-    @expose_for()
-    def wiki(self,fn=''):
-        filename= web.abspath('datafiles/wiki/'+fn+'.wiki')
-        if os.path.exists(filename):
-            return self.markdownpage(file(filename).read(),fn)
-        elif fn:
-            content = '!!! error ""\n    Wiki page "%s" is not available.\n\n' %fn
-        else:
-            content =''
-        from glob import glob
-        content += ('### Create new pages \n\n Create new pages by uploading text files to directory dir:wiki\n' + 
-                    'Follow the instructions there.\n\n')
-        content = content + '### Available Wiki pages:\n\n' + '\n'.join(
-                            ' * wiki:%s' % os.path.basename(s).split('.')[0] 
-                              for s in  glob(web.abspath('datafiles/wiki/*.wiki'))
-                            )
-        return self.markdownpage(content,'wiki')
                   
          
     @expose_for()

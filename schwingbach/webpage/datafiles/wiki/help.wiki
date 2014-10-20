@@ -1,7 +1,11 @@
+Markdown - a simple way to format web content
+------------------------
+
+
 In some places, eg. comments [Markdown][1] syntax can be used to 
 enhance the appearance of the text. **But you don't need to care!**
 
-This help page is written using Markdown, see [here][3] to see this page as source code
+This help page is written using Markdown, click on edit to see the source code
 
 
 

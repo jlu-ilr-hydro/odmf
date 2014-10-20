@@ -100,40 +100,43 @@
 	    	</div>
 			<form action="/instrument/saveitem" method="post" py:if="is_member('editor')">
 				<div py:if="actualinstrument">
-					<h2><a onclick="$('.toggle').slideToggle('fast');">edit</a></h2>
-					<table style="width: 100%" class="toggle">
-						<tr>
-							<td style="width: 7em">ID:</td>
-							<td><input type="text" name="id" value="${actualinstrument.id}" readonly="readonly" class="readonly"/></td>
-						</tr>
-						<tr>
-							<td>Name:</td>
-							<td><input type="text" name="name" value="${actualinstrument.name}" /></td>
-						</tr>
-						<tr>
-							<td>Sourcetype:</td>
-							<td><input type="text" name="sourcetype" value="${actualinstrument.sourcetype}" /></td>
-						</tr>
-						<tr>
-							<td>Comment:<a href="/markdown.help" class="tooltip"><img src="/media/help.png" /><span>Get help for using links and formats</span></a></td>
-							<td>
-								<textarea name="comment" 
-										  rows="2" style="width: 100%;"
-										  py:content="actualinstrument.comment"/>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<a py:if="actualinstrument and actualinstrument.manuallink" href="${actualinstrument.manuallink}">Manual</a>
-								<span py:if="not (actualinstrument and actualinstrument.manuallink)">Manual</span>			
-							</td>
-							<td>
-								<input type="text" name="manuallink" value="${actualinstrument.manuallink}" />
-							</td>
-						</tr>
-					</table>
+					<h2><a href="#" onclick="$('#edit').slideToggle('fast');">&#x25BE;edit</a></h2>
+					<div id="edit" class="toggle">
+						<table style="width: 100%">
+							<tr>
+								<td style="width: 7em">ID:</td>
+								<td><input type="text" name="id" value="${actualinstrument.id}" readonly="readonly" class="readonly"/></td>
+							</tr>
+							<tr>
+								<td>Name:</td>
+								<td><input type="text" name="name" value="${actualinstrument.name}" /></td>
+							</tr>
+							<tr>
+								<td>Sourcetype:</td>
+								<td><input type="text" name="sourcetype" value="${actualinstrument.sourcetype}" /></td>
+							</tr>
+							<tr>
+								<td>Comment:<a href="/wiki/help" class="tooltip"><img src="/media/help.png" /><span>Get help for using links and formats</span></a></td>
+								<td>
+									<textarea name="comment" 
+											  rows="2" style="width: 98%;"
+											  py:content="actualinstrument.comment"/>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<a py:if="actualinstrument and actualinstrument.manuallink" href="${actualinstrument.manuallink}">Manual</a>
+									<span py:if="not (actualinstrument and actualinstrument.manuallink)">Manual</span>			
+								</td>
+								<td>
+									<input type="text" name="manuallink" value="${actualinstrument.manuallink}" />
+								</td>
+							</tr>
+						</table>
+						<input type="submit" name="save" style="width: 10em;"/>						
+					</div>
 				</div>
-				<input type="submit" name="save" style="width: 10em;"/>						
+				
 			</form>
 			<div py:if="not is_member('editor')" class="rightpane">
 				<table style="width: 100%">
@@ -157,38 +160,42 @@
 				</table>
 				
 			</div>
-			<h2>Installations</h2>
-			<div style="margin:0px;padding:0px;">
-				<span style="margin-left:5.5em;">Installation date</span><span style="margin-left:2.5em;">Site</span>
+			<h2><a href="#" onclick="$('#installations').slideToggle('fast')">&#x25BE;Installations</a></h2>
+			<div id="installations" class="toggle">
+				<div style="margin:0px;padding:0px;">
+					<span style="margin-left:5.5em;">Installation date</span><span style="margin-left:2.5em;">Site</span>
+				</div>
+				<ul style="margin-top:0px;padding-top:0px;">
+						<li py:if="is_member('editor')">
+								<button py:if="is_member('editor')" onclick="addinstrument()" class="imgbutton">
+									<img src="/media/plus-small.png" alt="Add"/>
+								</button>
+								<input class="datepicker" id="installationdate" value="${formatdate()}" /> 
+								<select id="siteselect" >
+									<option value="">Please select...</option>
+								</select>
+						</li>
+						<li py:for="inst in actualinstrument.sites" >
+							<a  href="/site/${inst.site.id}"
+									py:if="inst.active" 
+									py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
+							<span py:if="not inst.active" class="removed"
+										py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" /> 
+							<a href="javascript:removeinstrument(${inst.id},${inst.site.id})" 
+								 py:if="is_member('editor')" 
+								 style="font-size: small;font-style: italic;">(remove...)</a>
+						</li>
+					</ul>
 			</div>
-			<ul style="margin-top:0px;padding-top:0px;">
-					<li py:if="is_member('editor')">
-							<button py:if="is_member('editor')" onclick="addinstrument()" class="imgbutton">
-								<img src="/media/plus-small.png" alt="Add"/>
-							</button>
-							<input class="datepicker" id="installationdate" value="${formatdate()}" /> 
-							<select id="siteselect" >
-								<option value="">Please select...</option>
-							</select>
-					</li>
-					<li py:for="inst in actualinstrument.sites" >
-						<a  href="/site/${inst.site.id}"
-								py:if="inst.active" 
-								py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
-						<span py:if="not inst.active" class="removed"
-									py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" /> 
-						<a href="javascript:removeinstrument(${inst.id},${inst.site.id})" 
-							 py:if="is_member('editor')" 
-							 style="font-size: small;font-style: italic;">(remove...)</a>
-					</li>
-				</ul>
-				<h2>Datasets</h2>
+			<h2><a href="#" onclick="$('#datasets').slideToggle('fast')">&#x25BE;Datasets</a></h2>
+			<div id="datasets" class="toggle">
 				<ul>
 					<li py:for="ds in actualinstrument.datasets">
 						<a href="/dataset/${ds.id}" 
 						py:content="ds" />
 					</li>
 				</ul>
+			</div>
 	
 		</div>
 	</div>

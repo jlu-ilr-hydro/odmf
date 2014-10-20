@@ -176,7 +176,7 @@
 				<span py:content="actualsite" />
 			</p>
 			<p py:content="actualsite.as_coordinatetext() + ', UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
-			<p py:content="markdown(actualsite.comment)" />
+			<div py:content="markdown(actualsite.comment)" style="max-height: 10em; overflow-y:scroll;" />
 			<div id="tab">
 				<ul id="tabheads">
 					<li><a href='#map'>map</a></li>
@@ -228,7 +228,7 @@
 								</td>
 							</tr>
 							<tr>
-								<td>Comments<a href="/markdown.help" class="tooltip"><img src="/media/help.png" /><span>Get help for using links and formats</span></a></td>
+								<td>Comments<a href="/wiki.help" class="tooltip"><img src="/media/help.png" /><span>Get help for using links and formats</span></a></td>
 								<td>
 									<textarea name="comment" 
 											  style="width: 100%;"

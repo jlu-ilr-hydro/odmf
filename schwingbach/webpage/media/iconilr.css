@@ -160,6 +160,27 @@ div.content {
     padding: 2px;
 	box-shadow: 2px 2px 8px #888;
 }
+span.box {
+	padding: 0px;
+	background-color: #FFF;
+	margin-right: 10px;
+ 	box-shadow: 5px 5px 8px #888;
+}
+span.box a{
+	padding: 0px 2px;
+ 	cursor: pointer; 
+}
+span.box a:hover {
+	background-color:#32739D;
+	color:#FFF;
+	border-radius: 10px;
+	text-decoration: none;
+	cursor: hand;
+}
+.tooltip span {
+	color: #111;
+}
+
 .toggle {
 	margin: -2px 1px 1px 1px;
 	display: none;
