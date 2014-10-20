@@ -49,7 +49,8 @@ class Line(object):
     """
     Represents a single line of a subplot
     """
-    def __init__(self,subplot,valuetype,site,instrument=None,level=None,style='',
+    def __init__(self,subplot,valuetype,site,instrument=None,level=None,
+                 color='',marker='',linestyle='',
                  transformation=None,usecache=False,aggregatefunction='mean'):
         """
         Create a Line:
@@ -57,11 +58,15 @@ class Line(object):
         @param valuetype: The valuetype id of the line
         @param site: the site id of the line
         @param intrument: the instrument of the line
-        @param style: the style of the line. See pylab.plot for details
+        @param color: the color of the line (k,b,g,r,y,m,c)
+        @param linestyle: the line style (-,--,:,-.)
+        @param marker: the marker of the line data points (o,x,+,|,. etc.)
         @param transformation: Not used    
         """
         self.subplot=subplot
-        self.style=style
+        self.marker=marker
+        self.color=color
+        self.linestyle=linestyle
         session=db.Session()
         self.valuetype=session.query(db.ValueType).get(int(valuetype)) if valuetype else None
         self.site=session.query(db.Site).get(int(site)) if site else None
@@ -167,7 +172,8 @@ class Line(object):
             t,v = self.load(startdate,enddate)
             # Do the plot 
             label = unicode(self)
-            ax.plot_date(t,v,self.style or 'k-',label=label)
+            style=dict(color=self.color or 'k',linestyle=self.linestyle,marker=self.marker)
+            ax.plot_date(t,v,label=label,**style)
         except ValueError:
             print 'Zero-size Array'
 
@@ -181,7 +187,7 @@ class Line(object):
         stream.write(codecs.BOM_UTF8)
         stream.write('Time,' + unicode(self.valuetype).encode('UTF-8') + '\n') 
         for t,v in zip(plt.num2date(t),v):
-            stream.write('%f,%f\n' % (t,v))
+            stream.write('%s,%f\n' % (t.strftime('%Y-%m-%d %H:%M:%S'),v))
     def export_json(self,stream,startdate=None,enddate=None):
         t,v = self.load(startdate, enddate)
         # Unix-Epoch 
@@ -201,14 +207,16 @@ class Line(object):
                     site=self.site.id if self.site else None,
                     instrument=self.instrument.id if self.instrument else None,
                     level=self.level,
-                    style=self.style,transformation=self.transformation, 
+                    color=self.color,linestyle=self.linestyle,marker=self.marker,
+                    transformation=self.transformation, 
                     usecache=self.usecache, aggregatefunction=self.aggregatefunction )
     @classmethod
     def fromdict(cls,subplot,d):
         """
         Creates the line element from a dictionary (for loading from session)
         """
-        return cls(subplot,valuetype=d.get('valuetype'),site=d.get('site'),instrument=d.get('instrument'),style=d.get('style'),
+        return cls(subplot,valuetype=d.get('valuetype'),site=d.get('site'),instrument=d.get('instrument'),
+                   color=d.get('color','k'),linestyle=d.get('linestyle','-'),marker=d.get('marker',''),
                    transformation=d.get('transformation'),level=d.get('level'),usecache=d.get('usecache',False),
                    aggregatefunction=d.get('aggregatefunction','mean')
                    )
@@ -230,7 +238,7 @@ class Line(object):
     def __str__(self):
         return unicode(self).encode('utf-8',errors='replace')
     def __repr__(self):
-        return "plot.Line(%s@%s,'%s')" % (self.valuetype,self.site,self.style)
+        return "plot.Line(%s@%s,'%s')" % (self.valuetype,self.site,self.color + self.linestyle + self.marker)
     
 class Subplot(object):
     """
@@ -244,15 +252,22 @@ class Subplot(object):
         self.position=position
         self.lines=[]
         self.ylim = None
-    def addline(self,valuetype,site,instrument=None,level=None,style='',usecache=False,aggfunc='mean'):
+    def addline(self,valuetype,site,instrument=None,level=None,
+                color='k',linestyle='-',marker='',
+                usecache=False,aggfunc='mean'):
         """
         Adds a line to the subplot
         @param valuetype: the id of a valuetype
         @param site: the id of a site
         @param instrument: the id of an instrument (can be omitted)
-        @param style: the style of the line, eg 'o-k' for black line with circle markers 
+        @param color: the color of the line (k,b,g,r,y,m,c)
+        @param linestyle: the line style (-,--,:,-.)
+        @param marker: the marker of the line data points (o,x,+,|,. etc.)
+        @param aggfunc: Type of aggregation function (mean,max,min) 
         """
-        self.lines.append(Line(self,valuetype=valuetype,site=site,instrument=instrument,level=level,style=style,usecache=usecache,aggregatefunction=aggfunc))
+        self.lines.append(Line(self,valuetype=valuetype,site=site,instrument=instrument,level=level,
+                               color=color,linestyle=linestyle,marker=marker,
+                               usecache=usecache,aggregatefunction=aggfunc))
         self.plot.createtime = web.formatdate()
         return self
     def draw(self,figure):
@@ -526,7 +541,9 @@ class PlotPage(object):
         except:
             return traceback();
     @web.expose_for(plotgroup)
-    def addline(self,subplot,valuetypeid,siteid,instrumentid,level,style,aggfunc='mean'):
+    def addline(self,subplot,valuetypeid,siteid,instrumentid,level,
+                color='k',linestyle='-',marker='',
+                usecache=False,aggfunc='mean'):
         try:
             plot = Plot.frompref(createplot=True)
             spi = int(subplot)
@@ -535,7 +552,9 @@ class PlotPage(object):
             else:
                 sp = plot.subplots[spi-1]
             if valuetypeid and siteid:
-                sp.addline(web.conv(int,valuetypeid),web.conv(int,siteid),web.conv(int,instrumentid),web.conv(float,level),style=style,aggfunc=aggfunc)
+                sp.addline(web.conv(int,valuetypeid),web.conv(int,siteid),web.conv(int,instrumentid),web.conv(float,level),
+                           color=color,linestyle=linestyle,marker=marker,
+                           aggfunc=aggfunc)
             else:
                 return "You tried to add a line without site or value type. This is not possible"
             plot.newlineprops = None
@@ -666,18 +685,18 @@ class PlotPage(object):
         plot = Plot((6.,9.), columns=1, rows=6, startdate=startdate, enddate=enddate,ylabelfs='8')
         # 1 Temperature (vt=14)
         Tsp=plot.addtimeplot()
-        Tsp.addline(14, site, style='r-',usecache=False)
-        Tsp.addline(8,site,style='b-',usecache=False) # Water Temperature
+        Tsp.addline(14, site, color='r',linestyle='-',usecache=False)
+        Tsp.addline(8,site,color='b',linestyle='-',usecache=False) # Water Temperature
         # 2 Rainfall
-        plot.addtimeplot().addline(9,site,style='b-',usecache=False)
+        plot.addtimeplot().addline(9,site,color='b',linestyle='-',usecache=False)
         # 3 Discharge
-        plot.addtimeplot().addline(1,site,style='b-',usecache=False)
+        plot.addtimeplot().addline(1,site,color='b',linestyle='-',usecache=False)
         # 4 Radiation
-        plot.addtimeplot().addline(11,site,style='r-',usecache=False)
+        plot.addtimeplot().addline(11,site,color='r',linestyle='-',usecache=False)
         # 5 rH
-        plot.addtimeplot().addline(10,site,style='c-',usecache=False)
+        plot.addtimeplot().addline(10,site,color='c',linestyle='-',usecache=False)
         # 6 Windspeed
-        plot.addtimeplot().addline(12,site,style='k-',usecache=False)
+        plot.addtimeplot().addline(12,site,color='k',linestyle='-',usecache=False)
         
         plot64 = b64encode(plot.draw(format='png'))
         

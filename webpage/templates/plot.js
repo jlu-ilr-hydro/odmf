@@ -91,11 +91,6 @@
 			//alert(href);
 			window.location = href;
 		}
-		function getstyle(sp) {
-			return $('#colorpicker_'+sp).val() + 
-                   $('#linepicker_'+sp).val() + 
-                   $('#markerpicker_'+sp).val();
-		}
 		function addline(sp) {
 			var vt = $('#vtselect_'+sp).val();
 			var site = $('#siteselect_'+sp).val();
@@ -108,7 +103,9 @@
 				siteid:site,
 				instrumentid:inst,
 				level:level,
-				style:getstyle(sp),
+				color:$('#colorpicker_'+sp).val(),
+				linestyle:$('#linepicker_'+sp).val(),
+				marker:$('#markerpicker_'+sp).val(),
 				aggfunc:aggfunc,
 			},seterror);
 			killplot();
@@ -240,14 +237,16 @@
 												$('#levelselect_'+subplotpos).parent().hide(200);
 											}
 										});
-				/*
-				 * if (newlineprops) {
-				 * 	marker,line,color = parse newlineprops.style
-				 *  $('#markerpicker_'+subplotpos).value(marker);
-				 *  $('#linepicker_'+subplotpos).value(line);
-				 *  $('#colorpicker_'+subplotpos).value(color);
-				 * }
-				 */
+				
+				 if (newlineprops) {
+				 		var color = newlineprops.color;
+					 	var line = newlineprops.linestyle;
+					 	var marker = newlineprops.marker; 
+					  $('#markerpicker_'+subplotpos).val(marker);
+					  $('#linepicker_'+subplotpos).val(line);
+					  $('#colorpicker_'+subplotpos).val(color);
+				 }
+				 
 				} else {
 						$('#levelselect_'+subplotpos).parent().hide(200);					
 				}
@@ -269,22 +268,28 @@
 		}
 		$(function() {
 			$('.props').change(changeprops);
-			$('#savedplots').change(function() {
-				$('#loadplotbutton').html('load plot ' + $('#savedplots').val());
-			});
 			$('#saveplotbutton').click(function() {
-				var fn = $('#saveplotfilename').val();
-				$.post('saveplot',{filename:fn,overwrite:true},seterror);
-				killplot();
+				var fn = prompt('The name of the actual plot','new plot');
+				if (fn) {
+					$.post('saveplot',{filename:fn,overwrite:true},seterror);
+				}
 			});
 			$('#loadplotbutton').click(function() {
-				var fn = $('#savedplots').val();
+				toggle('loadplotdiv');
+			});
+			$('.loadplotfn').click(function(){
+				var fn = $(this).html();
 				$.post('loadplot',{filename:fn},seterror);
-				killplot();
+				killplot();				
 			});
 			$('#deleteplotbutton').click(function() {
-				var fn = $('#savedplots').val();
-				$.post('deleteplotfile',{filename:fn},seterror);
+				toggle('killplotdiv');
+				
+			});
+			$('.killplotfn').click(function(){
+				var fn = $(this).html();
+				if (confirm('Do you really want to delete your plot "' + fn + '" from the server'))
+					$.post('deleteplotfile',{filename:fn},seterror);
 				
 			});
 

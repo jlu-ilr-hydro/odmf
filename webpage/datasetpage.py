@@ -275,7 +275,7 @@ class DatasetPage:
             return traceback()
 
     @expose_for(group.editor)
-    def findsplitpoints(self,datasetid,threshold):
+    def findsplitpoints(self,datasetid,start=None,end=None,threshold=0.0):
         """
         finds jumps between records in dataset.
         r_{i+1}-r_{i}>threshold
@@ -284,7 +284,9 @@ class DatasetPage:
         output=''
         try:
             ds = db.Dataset.get(session,int(datasetid))
-            jumps=ds.findjumps(float(threshold))
+            start = web.parsedate(start) or ds.start
+            end = web.parsedate(end) or ds.end
+            jumps=ds.findjumps(float(threshold),start,end)
             output = web.render('record.html',dataset=ds,records=jumps,actionname="split dataset",action="/dataset/setsplit").render('xml')
         except:
             output=traceback()          

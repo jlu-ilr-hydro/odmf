@@ -8,9 +8,10 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>${title}</title>
 	<link href="/media/jquery-ui-1.8.18.custom.css" rel="stylesheet" type="text/css"/>
+	<link href="/media/jquery.datetimepicker.css" rel="stylesheet" type="text/css"/>
     <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
     <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
-
+		<script src="/media/jquery.datetimepicker.js" type="text/javascript"></script>
     <script type="text/javascript"
   		src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 		</script>
@@ -30,8 +31,9 @@
     <script>
     		//<![CDATA[
         $(function() {
-        	$(".datepicker").datepicker({
-        		maxDate:"0", dateFormat: 'dd.mm.yy' 
+        	$(".datepicker").datetimepicker({
+        		maxDate:"0", format: 'd.m.Y H:i:s',
+        		timepicker:true,mask:false, dayOfWeekStart:1
         	});
         	$('#tab').tabs();
 					$('#tabheads a').click(function() {
@@ -91,9 +93,15 @@
 					}
 				}
 				function loadsplitrecords(datasetid) {
-					var threshold = $('#splitthreshold').val();
+					var threshold = 0.0;
+					if ($('#splitUseThreshold').prop('checked'))
+							threshold = $('#splitthreshold').val();
 					$('#splitrecords').load('/dataset/findsplitpoints',
-																		{datasetid:datasetid,threshold:threshold});
+																		{ datasetid:datasetid,
+																			threshold:threshold,
+																			start:$('#plotstart').val(),
+																			end:$('#plotend').val(),
+																			});
 				}
 				//]]>
     </script>
@@ -245,7 +253,6 @@
 	  		<li><a href="#similar">similar</a></li>
 	  		<li py:if="activedataset.is_timeseries() and is_member('editor')"><a href="#records">records</a></li>	  		
 	  		<li><a href="#plot">plot</a></li>
-	  		<li py:if="activedataset.is_timeseries() and is_member('editor') and activedataset.valuetype"><a href="#split">split</a></li>
 	  		<li py:if="activedataset.is_timeseries() and is_member('editor')"><a href="/dataset/calibration?targetid=${activedataset.id}">calibrate</a></li>
 	  		<li py:if="is_member('logger')"><a href="#export">export</a></li>
 	  		<li py:if="is_member('editor')"><a href="#edit">edit</a></li>
@@ -422,7 +429,7 @@
 							</td>
 						</tr>					
 						<tr>
-							<td>Comments<a href="/markdown.help" class="tooltip"><img src="/media/help.png" /><span>Get help for using links and formats</span></a></td>
+							<td>Comments<a href="/wiki.help" class="tooltip"><img src="/media/help.png" /><span>Get help for using links and formats</span></a></td>
 							<td>
 								<textarea name="comment" 
 									  style="width: 100%;"
@@ -461,9 +468,13 @@
 				<button onclick="plotds(${activedataset.id});">Plot</button>
 	
 				from:
-				<input type="text" class="datepicker" id="plotstart" value="${formatdate(activedataset.start)}"/>
+				<input type="text" class="datepicker" id="plotstart" 
+							value="${formatdatetime(activedataset.start)}" 
+							onchange="$('#splitStartSearch').html($(this).val());"/>
 				until:
-				<input type="text" class="datepicker" id="plotend" value="${formatdate(activedataset.end + timedelta(days=1) if activedataset.end else activedataset.end)}"/>
+				<input type="text" class="datepicker" id="plotend" 
+								value="${formatdatetime(activedataset.end + timedelta(days=1) if activedataset.end else activedataset.end)}"
+								onchange="$('#splitEndSearch').html($(this).val())"/>
 				marker:
 				<select id="markerpicker">
 					<option value="">none</option>
@@ -497,11 +508,38 @@
 				<div>
 					<img id="plotimg" alt="" src=""/>
 				</div>
-			</div>
-			<div id="split" py:if="is_member('editor') and activedataset.is_timeseries() and activedataset.valuetype" >
-				Threshold:<input id="splitthreshold" type="text" value="" style="text-align: right;" />${activedataset.valuetype.unit}
-				<input type="button" onclick="loadsplitrecords(${activedataset.id});" value="Find"/>
-				<div id="splitrecords" />
+				<div py:if="is_member('editor')">
+					<h3 >
+						<a onclick="$('#splitdiv').slideToggle('fast');" style="cursor:pointer">
+							&#x25BE;Split dataset 
+						</a>
+						<a href="/wiki/dataset.split">
+							<img src="/media/help.png"/>
+							</a>
+					</h3>
+					<div id="splitdiv" class="toggle">
+						<p>
+							Find records from 
+							<span id="splitStartSearch" 
+								py:content="formatdate(activedataset.start)" 
+								style="font-weight: bold;"/>
+							until 
+							<span id="splitEndSearch" 
+								py:content="formatdate(activedataset.end + timedelta(days=1) if activedataset.end else activedataset.end)" 
+								style="font-weight: bold;"/>
+							(as the plot)
+						</p><p>
+							<input type="checkbox" id="splitUseThreshold"/> 
+							show only records with a jump greater than 
+							<a href="/wiki/split"><img src="/media/help.png"/></a>
+							<input id="splitthreshold" type="text" value="0.0" style="text-align: right;" />${activedataset.valuetype.unit}
+						</p><p>
+							<input type="button" onclick="loadsplitrecords(${activedataset.id});" value="find"/>
+						</p>
+						<div id="splitrecords" />
+					</div>
+				</div>
+
 			</div>
 			<div id="similar">		
 				<div py:for="dsname in datasets" >
