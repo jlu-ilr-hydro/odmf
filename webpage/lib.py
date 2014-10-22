@@ -115,16 +115,17 @@ def formatdate(t=None):
         return t.strftime('%d.%m.%Y')
     except:
         return None
-def formattime(t):
+def formattime(t,showseconds=True):
+    
     try:
-        return t.strftime('%H:%M:%S')
+        return t.strftime('%H:%M:%S' if showseconds else '%H:%M')
     except:
         return None
-def formatdatetime(t=None):
+def formatdatetime(t=None,fmt='%d.%m.%Y %H:%M:%S'):
     if not t:
         t=datetime.now()
     try:
-        return t.strftime('%d.%m.%Y %H:%M:%S')
+        return t.strftime(fmt)
     except:
         return None
 def formatfloat(v,style='%g'):

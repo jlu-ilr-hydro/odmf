@@ -48,13 +48,16 @@
 					<th> </th>
 					<th>comment</th>
 					<th>error?</th>
-					<th py:if="action" />
+					<th py:if="action" >
+					</th>
 				</tr>
 				<tr>
 					<th/><th/><th/><th/>
 					<th></th>
 					<th><button onclick="checkall()">all</button></th>
-					<th py:if="action"/>
+					<th py:if="action">
+					</th>
+
 				</tr>
 			</thead>
 			<tbody>
@@ -71,8 +74,15 @@
 									 value="${rec.id}" />
 					</td>
 					<td class="record" py:if="action">
-						<button onclick="action(${rec.dataset.id},${rec.id});"
-										py:content="actionname" py:if="actionname"/> 
+						<span class="box nowrap small">
+							<a onclick="action(${rec.dataset.id},${rec.id});"
+											py:content="actionname" py:if="actionname"/> 
+							
+						</span>
+						<a py:if="action_help" href="${action_help}" >
+							<img src="/media/help.png" alt="help"/>
+						</a>
+
 					</td>
 				</tr>
 			</tbody>
