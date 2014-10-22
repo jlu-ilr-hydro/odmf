@@ -275,27 +275,6 @@ class DatasetPage:
             return traceback()
 
     @expose_for(group.editor)
-    def findsplitpoints(self,datasetid,start=None,end=None,threshold=0.0):
-        """
-        finds jumps between records in dataset.
-        r_{i+1}-r_{i}>threshold
-        """
-        session=db.Session()
-        output=''
-        try:
-            ds = db.Dataset.get(session,int(datasetid))
-            start = web.parsedate(start) or ds.start
-            end = web.parsedate(end) or ds.end
-            jumps=ds.findjumps(float(threshold),start,end)
-            output = web.render('record.html',dataset=ds,records=jumps,actionname="split dataset",action="/dataset/setsplit").render('xml')
-        except:
-            output=traceback()          
-        finally:
-            session.close()
-        return output
-
-
-    @expose_for(group.editor)
     def setsplit(self,datasetid,recordid):
         """
         Splits the datset at record id
@@ -354,11 +333,11 @@ class DatasetPage:
             import numpy as np  
             ds = session.query(db.Dataset).get(int(id))
             if start:
-                start=web.parsedate(start)
+                start=web.parsedate(start.strip())
             else:
                 start=ds.start
             if end:
-                end=web.parsedate(end)
+                end=web.parsedate(end.strip())
             else:
                 end=ds.end
             t,v = ds.asarray(start,end)
@@ -399,7 +378,7 @@ class DatasetPage:
         return ''
     
     @expose_for(group.editor)
-    def records(self,dataset,mindate,maxdate,minvalue,maxvalue):
+    def records(self,dataset,mindate,maxdate,minvalue,maxvalue,threshold=None):
         """
         Returns a html-table of filtered records
         """
@@ -407,13 +386,16 @@ class DatasetPage:
         ds = db.Dataset.get(session,int(dataset))
         records = ds.records.order_by(db.Record.time).filter(~db.Record.is_error)
         try:
-            if mindate.strip(): records=records.filter(db.Record.time>web.parsedate(mindate.strip()))
-            if maxdate.strip(): records=records.filter(db.Record.time<web.parsedate(maxdate.strip()))
-            if minvalue: records=records.filter(db.Record.value>float(minvalue))
-            if maxvalue: records=records.filter(db.Record.value<float(maxvalue))
+            if threshold:
+                records=ds.findjumps(float(threshold),web.parsedate(mindate.strip()),web.parsedate(maxdate.strip()))
+            else:
+                if mindate.strip(): records=records.filter(db.Record.time>web.parsedate(mindate.strip()))
+                if maxdate.strip(): records=records.filter(db.Record.time<web.parsedate(maxdate.strip()))
+                if minvalue: records=records.filter(db.Record.value>float(minvalue))
+                if maxvalue: records=records.filter(db.Record.value<float(maxvalue))
         except:
             return web.Markup('<div class="error">'+traceback()+'</div>')
-        res = web.render('record.html',records=records,dataset=ds,actionname='',action='').render('xml')
+        res = web.render('record.html',records=records,dataset=ds,actionname="split dataset",action="/dataset/setsplit",action_help='/wiki/dataset/split').render('xml')
         session.close()
         return res
             

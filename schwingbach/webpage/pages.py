@@ -626,9 +626,9 @@ class Wiki(object):
                 content = '''
                 ## No content on %s
                 
-                This page is empty. Please write some meaningful content with the edit button.
+                !!! box "This page is empty. Please write some meaningful content with the edit button."
                 
-                To get some nice formatting, get wiki:help .
+                To get some nice formatting, get wiki:help.
                 ''' % (title)
                 content='\n'.join(l.strip() for l in content.split('\n'))
         else:

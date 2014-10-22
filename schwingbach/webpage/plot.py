@@ -429,9 +429,9 @@ class Plot(object):
         return plot
     @classmethod
     def listdir(cls):
-        return [os.path.basename(fn).rsplit('.')[0]
-                for fn in iglob(cls.absfilename('*'))
-                ]
+        def basename(fn):
+            return os.path.basename(fn).replace(web.user() + '.','').replace('.plot','')
+        return [basename(fn) for fn in iglob(cls.absfilename('*'))]
     @classmethod
     def killfile(cls,fn):
         if os.path.exists(cls.absfilename(fn)):
@@ -440,7 +440,7 @@ class Plot(object):
             return "File %s does not exist" % fn
     @classmethod
     def absfilename(cls,fn):
-        return web.abspath('preferences/plots/'+fn+'.plot')
+        return web.abspath('preferences/plots/'+web.user()+'.'+fn+'.plot')
         
    
 import webpage.lib as web
