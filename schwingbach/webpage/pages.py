@@ -618,7 +618,7 @@ class Wiki(object):
         if name in pages:
             pages.remove(name)
         if os.path.exists(filename):
-            content=file(filename).read()
+            content=unicode(file(filename).read(),encoding='utf-8',errors='replace')
         elif args:
             if pages:
                 content += '\n\n!!! box "Note:"\n    You can write an introduction to this topic with the edit button above.\n'
@@ -640,7 +640,7 @@ class Wiki(object):
     def save(self,name,newtext):
         try:
             fn = self.name2path(name)
-            file(fn,'w').write(newtext)
+            file(fn,'w').write(newtext.encode('utf-8',errors='replace'))
         except:
             return 'err:' + traceback()
     @expose_for(web.group.admin)
