@@ -60,6 +60,11 @@
 			$.post('changeylim',{subplotid:id,ymin:text[0],ymax:text[1]},seterror);
 			killplot();			
 		}
+		function changelogsite(id) {
+			var logsite = $('#logsiteselect_' + id).val();
+			$.post('changelogsite',{subplotid:id,logsite:logsite},seterror);
+			killplot();
+		}
 		function exportall_csv() {
 			var href = '/plot/exportall.csv?tolerance=' + $('#tolerance_skipper').val();
 			//alert(href);
@@ -292,7 +297,6 @@
 					$.post('deleteplotfile',{filename:fn},seterror);
 				
 			});
-
 		});
 
 	    

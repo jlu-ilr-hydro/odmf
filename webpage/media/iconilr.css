@@ -1,8 +1,11 @@
-/* The standard CSS for doxygen */
+
 html {
 	padding: 0px;
 	margin: 0px;
 }
+/*
+ * General settings
+ */
 body, table, div, p, dl, button {
 	font-family: Lucida Grande, Verdana, Geneva, Arial, sans-serif;
 	font-size: 14px;
@@ -10,18 +13,18 @@ body, table, div, p, dl, button {
 	margin: 0px;
 }
 table {
-	border-collapse: collapse;
+	border-collapse: collapse; /* Do not show table borders*/
 }
 
-/* @group Heading Levels */
 
 .small {
 	font-size: small;
 }
+/* @group Heading Levels */
+
 h1 {
 	font-size: 140%;
 	font-weight: bold;
-	/*border-radius: 10px;*/
 	padding-left: 10px;
 	padding-top: 0px;
 	line-height: 55px;
@@ -96,8 +99,7 @@ div.navigate {
     margin: 0px 0px 0px 0px;
     width: 189px;
     height: 100%;
-    /*float: left;*/
-
+ 
     position: absolute;
     top: 0;
     bottom: 0;

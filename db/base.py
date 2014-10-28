@@ -33,6 +33,7 @@ def connect():
                             database='schwingbach')
 engine = sql.create_engine('postgresql://',creator=connect)
 Session = orm.sessionmaker(bind=engine)
+scoped_session = orm.scoped_session(Session)
 #Session.__exit__ = Session.close
         
 class Base(object):

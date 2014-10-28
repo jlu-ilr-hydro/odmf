@@ -252,6 +252,7 @@ class Subplot(object):
         self.position=position
         self.lines=[]
         self.ylim = None
+        self.logsite = None
     def addline(self,valuetype,site,instrument=None,level=None,
                 color='k',linestyle='-',marker='',
                 usecache=False,aggfunc='mean'):
@@ -270,6 +271,8 @@ class Subplot(object):
                                usecache=usecache,aggregatefunction=aggfunc))
         self.plot.createtime = web.formatdate()
         return self
+    def get_sites(self):
+        return dict((line.site.id,unicode(line.site)) for line in self.lines)
     def draw(self,figure):
         """
         Draws the subplot on a matplotlib figure
@@ -283,6 +286,22 @@ class Subplot(object):
                 plt.ylim(ymin=self.ylim[0])
             if np.isfinite(self.ylim[1]):
                 plt.ylim(ymax=self.ylim[1])
+        
+        # Show log book entries for the logsite of this subplot
+        
+        # Get all site-ids of this subplot 
+        sites = self.get_sites()
+        # Draw only logs if logsite is a site of the subplot's lines
+        if self.logsite in sites:
+            # open session - trying the new scoped_session
+            session = db.scoped_session()
+            # Get logbook entries for logsite during the plot-time
+            logs = session.query(db.Log).filter_by(_site = self.logsite).filter(db.Log.time >= self.plot.startdate).filter(db.Log.time<=self.plot.enddate)
+            # Traverse logs and draw them
+            for log in logs:
+                x = plt.date2num(log.time)
+                plt.axvline(x,linestyle='-',color='r',alpha=0.5,linewidth=3)
+                plt.text(x,plt.ylim()[0],log.type,ha='left',va='bottom',fontsize=8)
         plt.xlim(date2num(self.plot.startdate),date2num(self.plot.enddate))
         plt.xticks(rotation=15)
         ax.yaxis.set_major_locator(MaxNLocator(prune='upper'))
@@ -298,7 +317,8 @@ class Subplot(object):
         Returns a dictionary with the properties of this plot
         """
         return dict(lines=asdict(self.lines),
-                    ylim=self.ylim,position=self.position)
+                    ylim=self.ylim,position=self.position,
+                    logsite=self.logsite)
     @classmethod
     def fromdict(cls,plot,d):
         """
@@ -306,6 +326,7 @@ class Subplot(object):
         """
         res = cls(plot=plot,position=d.get('position'))
         res.ylim = d.get('ylim')
+        res.logsite = d.get('logsite')
         if 'lines' in d:
             for ld in d.get('lines'):
                 res.lines.append(Line.fromdict(res,ld))
@@ -540,6 +561,19 @@ class PlotPage(object):
             return
         except:
             return traceback();
+    @web.expose_for(plotgroup)
+    def changelogsite(self,subplotid,logsite):
+        try:
+            plot = Plot.frompref(createplot=True)
+            id = int(subplotid)
+            sp = plot.subplots[id-1]
+            sp.logsite = web.conv(int,logsite, None)
+            plot.createtime = web.formatdate()
+            plot.topref()
+            return
+        except:
+            return traceback();
+            
     @web.expose_for(plotgroup)
     def addline(self,subplot,valuetypeid,siteid,instrumentid,level,
                 color='k',linestyle='-',marker='',

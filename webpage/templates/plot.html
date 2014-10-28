@@ -148,6 +148,11 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			font-family: monospace;
 			cursor: auto;
 		}
+		.pluspadding {
+			display: inline-block;
+			padding-left: 2em;
+			padding-right: 2em;
+		}
 
 	</style>
 		
@@ -263,6 +268,25 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 							<i>y</i>&#x2195;<span>change y axis limit</span>
 						</a>
 					</span>
+					<span class="box small leftspace nowrap pluspadding">
+						<a onclick="toggle('logsiteselectdiv_${sp.position}')" class="tooltip">show logs ${'for #%i' % sp.logsite if sp.logsite else ''}
+						<span>
+							Select a site for which you want<br/> to have the log entries shown.<br/>Only sites of the lines are available
+						</span>
+						</a>
+						<div id="logsiteselectdiv_${sp.position}" class="toggle" style="position:absolute;background-color: #FFF;border-radius: 5px;">
+							<select id="logsiteselect_${sp.position}"  
+											py:with="sites=sp.get_sites()"
+											onchange="changelogsite(${sp.position});"
+											size="${min(len(sites)+1,10)}">
+								<option value="" py:attrs="markoption(not sp.logsite in sites)">None</option>
+								<option py:for="siteid in sorted(sites)"
+												py:attrs="markoption(sp.logsite == siteid)" 
+												value="${siteid}">${sites[siteid]}</option>
+							</select>
+						</div>
+					</span>
+
 					<ul class="brush">
 						<li py:for="i,l in enumerate(sp.lines)" class="small line">
 							<span class="small box nowrap" id="linetools_${sp.position}_${i}">
