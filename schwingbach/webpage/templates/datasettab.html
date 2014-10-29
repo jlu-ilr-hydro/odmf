@@ -14,34 +14,37 @@
   		src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 		</script>
 		<script py:if="activedataset">
-			function loadstatistics() {
-				var id=${activedataset.id}
-				var unit='${activedataset.valuetype.unit if (activedataset and activedataset.valuetype) else "?"}'
-				$.getJSON('/dataset/statistics/',{id:id},function(data){
-					$('#mean').html(data.mean.toPrecision(4));
-					$('#std').html(data.std.toPrecision(4));
-					$('#splitthreshold').val(data.std.toPrecision(4));
-					$('#n').html(data.n);
-				});
-			}
-			function loadrecords() {
-				var threshold = null;
-				if ($('#splitUseThreshold').prop('checked'))
-						threshold = $('#splitthreshold').val();
-
-				var params={dataset:${activedataset.id},
-										mindate:$('#recordmindate').val() + ' ' + $('#recordmintime').val(),
-										maxdate:$('#recordmaxdate').val() + ' ' + $('#recordmaxtime').val(),
-										minvalue:$('#recordminvalue').val(),
-										maxvalue:$('#recordmaxvalue').val(),
-										threshold:threshold
-										};
-				$('#recordlist').load('/dataset/records',params);
-			}
-
+			dsid = ${activedataset.id};
 		</script>
-    <script>
-    		//<![CDATA[
+		<script>
+	  		//<![CDATA[
+				function loadstatistics() {
+					$.getJSON('/dataset/statistics/',{id:dsid},function(data){
+						$('#mean').html(data.mean.toPrecision(4));
+						$('#std').html(data.std.toPrecision(4));
+						$('#splitthreshold').val(data.std.toPrecision(4));
+						$('#n').html(data.n);
+					});
+				}
+				
+				function loadrecords() {
+					var threshold = null;
+					var limit = $('#recordlimit').val();
+					if ($('#splitUseThreshold').prop('checked')) {
+							threshold = $('#splitthreshold').val();
+					}
+	
+					var params={dataset:dsid,
+											mindate:$('#recordmindate').val() + ' ' + $('#recordmintime').val(),
+											maxdate:$('#recordmaxdate').val() + ' ' + $('#recordmaxtime').val(),
+											minvalue:$('#recordminvalue').val(),
+											maxvalue:$('#recordmaxvalue').val(),
+											threshold:threshold,
+											limit:limit
+										};
+					$('#recordlist').load('/dataset/records',params);
+				}
+				
 				function timerange(step)
 				{
 				    if (step == null) {step=60;}
@@ -554,6 +557,7 @@
 				<input id="splitthreshold" type="text" value="0.0" style="text-align: right;" />${activedataset.valuetype.unit}
 				<br/>
 				<button onclick="loadrecords();">find records</button>
+				<span class="tooltip">limit: <input type="text" value="100" id="recordlimit"/><span>show not more then these records</span></span>
 				<div id="recordlist"/>
 			</div>
 			<div id="export" py:if="is_member('logger')">

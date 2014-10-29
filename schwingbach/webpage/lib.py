@@ -147,11 +147,14 @@ def parsedate(s,raiseerror=True):
     else:
         return res
 def abbrtext(s,maxlen=50):
-    s = s.replace('\n',' ')
-    if len(s)>maxlen:
-        idx = s.rfind(' ',0,maxlen-4)
-        s=s[:idx] + ' ...'
-    return s
+    if s:
+        s = unicode(s).replace('\n',' ')
+        if len(s)>maxlen:
+            idx = s.rfind(' ',0,maxlen-4)
+            s=s[:idx] + ' ...'
+        return s
+    else:
+        return ''
 def user():
     return cherrypy.request.login
     
