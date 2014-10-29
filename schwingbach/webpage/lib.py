@@ -133,7 +133,7 @@ def formatfloat(v,style='%g'):
         return style % v
     except:
         return 'N/A'
-def parsedate(s):
+def parsedate(s,raiseerror=True):
     res=None
     formats = ('%d.%m.%Y %H:%M:%S','%d.%m.%Y %H:%M','%d.%m.%Y',
                '%Y/%m/%dT%H:%M:%S','%Y-%m-%dT%H:%M:%S.%f','%Y-%m-%dT%H:%M:%S')
@@ -142,10 +142,16 @@ def parsedate(s):
             res=datetime.strptime(s,fmt)
         except ValueError, TypeError:
             pass
-    if res is None:
+    if not res and raiseerror:
         raise ValueError('%s is not a valid date/time format' % s)
-    return res 
-
+    else:
+        return res
+def abbrtext(s,maxlen=50):
+    s = s.replace('\n',' ')
+    if len(s)>maxlen:
+        idx = s.rfind(' ',0,maxlen-4)
+        s=s[:idx] + ' ...'
+    return s
 def user():
     return cherrypy.request.login
     
@@ -167,6 +173,7 @@ class Renderer(object):
                           'bool2js' : lambda b : str(b).lower(),
                           'markdown' : markdown, 
                           'as_json' : as_json,
+                          'abbrtext' : abbrtext
                           }
     def __call__(self,*args,**kwargs):
         """Function to render the given data to the template specified via the

@@ -385,12 +385,15 @@ class DatasetPage:
         session=db.Session()
         ds = db.Dataset.get(session,int(dataset))
         records = ds.records.order_by(db.Record.time).filter(~db.Record.is_error)
+        tstart = web.parsedate(mindate.strip(),raiseerror=False)
+        tend = web.parsedate(maxdate.strip(),raiseerror=False)
+        threshold = web.conv(float,threshold)
         try:
             if threshold:
-                records=ds.findjumps(float(threshold),web.parsedate(mindate.strip()),web.parsedate(maxdate.strip()))
+                records=ds.findjumps(float(threshold),tstart,tend)
             else:
-                if mindate.strip(): records=records.filter(db.Record.time>web.parsedate(mindate.strip()))
-                if maxdate.strip(): records=records.filter(db.Record.time<web.parsedate(maxdate.strip()))
+                if tstart: records=records.filter(db.Record.time>=tstart)
+                if tend: records=records.filter(db.Record.time<=tend)
                 if minvalue: records=records.filter(db.Record.value>float(minvalue))
                 if maxvalue: records=records.filter(db.Record.value<float(maxvalue))
         except:
