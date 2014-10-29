@@ -153,7 +153,10 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			padding-left: 2em;
 			padding-right: 2em;
 		}
-
+		.abs {
+			position: absolute;
+			background-color: #FFF;
+		}
 	</style>
 		
 </head>
@@ -229,7 +232,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 					<br/>
 					<span class="box small leftspace w90">
 						<a id="loadplotbutton">&#x25BE;load</a>
-						<div style="position: absolute" class="box small toggle" id="loadplotdiv">
+						<div class="box small toggle abs" id="loadplotdiv">
 							<div py:for="fn in plot.listdir()"><a py:content="fn" class="loadplotfn"/></div>
 						</div>
 					</span>
@@ -238,7 +241,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 						<a class="tooltip" id="deleteplotbutton" >&#x25BE;delete
 						<span>Delete the file from disk</span>
 						</a>
-						<div style="position: absolute" class="box small toggle" id="killplotdiv">
+						<div class="box small toggle abs" id="killplotdiv">
 							<div py:for="fn in plot.listdir()"><a py:content="fn" class="killplotfn"/></div>
 						</div>
 					</span>
@@ -274,7 +277,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 							Select a site for which you want<br/> to have the log entries shown.<br/>Only sites of the lines are available
 						</span>
 						</a>
-						<div id="logsiteselectdiv_${sp.position}" class="toggle" style="position:absolute;background-color: #FFF;border-radius: 5px;">
+						<div id="logsiteselectdiv_${sp.position}" class="toggle abs" >
 							<select id="logsiteselect_${sp.position}"  
 											py:with="sites=sp.get_sites()"
 											onchange="changelogsite(${sp.position});"
