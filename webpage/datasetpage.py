@@ -378,16 +378,17 @@ class DatasetPage:
         return ''
     
     @expose_for(group.editor)
-    def records(self,dataset,mindate,maxdate,minvalue,maxvalue,threshold=None):
+    def records(self,dataset,mindate,maxdate,minvalue,maxvalue,threshold=None,limit=None):
         """
         Returns a html-table of filtered records
         """
-        session=db.Session()
+        session=db.scoped_session()
         ds = db.Dataset.get(session,int(dataset))
         records = ds.records.order_by(db.Record.time).filter(~db.Record.is_error)
         tstart = web.parsedate(mindate.strip(),raiseerror=False)
         tend = web.parsedate(maxdate.strip(),raiseerror=False)
         threshold = web.conv(float,threshold)
+        limit = web.conv(int,limit,250)
         try:
             if threshold:
                 records=ds.findjumps(float(threshold),tstart,tend)
@@ -396,9 +397,11 @@ class DatasetPage:
                 if tend: records=records.filter(db.Record.time<=tend)
                 if minvalue: records=records.filter(db.Record.value>float(minvalue))
                 if maxvalue: records=records.filter(db.Record.value<float(maxvalue))
+                count = records.count()
+                records = records.limit(limit)
         except:
             return web.Markup('<div class="error">'+traceback()+'</div>')
-        res = web.render('record.html',records=records,dataset=ds,actionname="split dataset",action="/dataset/setsplit",action_help='/wiki/dataset/split').render('xml')
+        res = web.render('record.html',records=records,totalrecords=count,dataset=ds,actionname="split dataset",action="/dataset/setsplit",action_help='/wiki/dataset/split').render('xml')
         session.close()
         return res
             
