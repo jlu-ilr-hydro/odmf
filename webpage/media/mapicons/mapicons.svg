@@ -13,10 +13,18 @@
    height="297mm"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.2 r9819"
+   inkscape:version="0.48.4 r9939"
    sodipodi:docname="mapicons.svg">
   <defs
-     id="defs4" />
+     id="defs4">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       id="perspective3058" />
+  </defs>
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -24,15 +32,15 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.959798"
-     inkscape:cx="159.8168"
-     inkscape:cy="-6.5408774"
+     inkscape:zoom="15.839192"
+     inkscape:cx="169.97638"
+     inkscape:cy="11.78672"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1858"
+     inkscape:window-width="1856"
      inkscape:window-height="1058"
-     inkscape:window-x="54"
+     inkscape:window-x="56"
      inkscape:window-y="-8"
      inkscape:window-maximized="1" />
   <metadata
@@ -539,5 +547,62 @@
        inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\selection.png"
        inkscape:export-xdpi="86.292137"
        inkscape:export-ydpi="86.292137" />
+    <path
+       inkscape:export-ydpi="86.292137"
+       inkscape:export-xdpi="86.292137"
+       inkscape:export-filename="Y:\schwingbach\webpage\media\mapicons\tracgas.png"
+       inkscape:connector-curvature="0"
+       style="fill:#ffffff;fill-opacity:0.50196078;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       d="m 175.46459,1028.7897 c -6.35127,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.83728,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.89001,1.3627 4.17944,2.1874 6.6875,2.1874 6.35128,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.14872,-11.5 -11.5,-11.5 z"
+       id="path3036-1" />
+    <rect
+       style="fill:#999999;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linejoin:round;stroke-miterlimit:9;stroke-opacity:1;stroke-dasharray:none"
+       id="rect3074"
+       width="13.863314"
+       height="8.6409454"
+       x="166.3622"
+       y="1038.2968"
+       inkscape:export-filename="Y:\schwingbach\webpage\media\mapicons\tracgas.png"
+       inkscape:export-xdpi="86.292137"
+       inkscape:export-ydpi="86.292137" />
+    <rect
+       y="1187.823"
+       x="-239.13492"
+       height="8.6409454"
+       width="4.4324074"
+       id="rect3844"
+       style="fill:#999999;fill-opacity:1;stroke:#000000;stroke-width:1.13920343;stroke-linejoin:round;stroke-miterlimit:9;stroke-opacity:1;stroke-dasharray:none"
+       transform="matrix(-0.77054405,0.63738675,0,1,0,0)"
+       inkscape:export-filename="Y:\schwingbach\webpage\media\mapicons\tracgas.png"
+       inkscape:export-xdpi="86.292137"
+       inkscape:export-ydpi="86.292137" />
+    <rect
+       y="-1868.7328"
+       x="1720.222"
+       height="4.7345004"
+       width="14.150599"
+       id="rect3846"
+       style="fill:#999999;fill-opacity:1;stroke:#000000;stroke-width:1.34182799;stroke-linejoin:round;stroke-miterlimit:9;stroke-opacity:1;stroke-dasharray:none"
+       transform="matrix(1,0,0.83158279,-0.55540081,0,0)"
+       inkscape:export-filename="Y:\schwingbach\webpage\media\mapicons\tracgas.png"
+       inkscape:export-xdpi="86.292137"
+       inkscape:export-ydpi="86.292137" />
+    <text
+       xml:space="preserve"
+       style="font-size:7.96557567px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold;font-stretch:normal;font-variant:normal;text-anchor:start;text-align:start;writing-mode:lr"
+       x="191.56004"
+       y="907.16119"
+       id="text3853"
+       sodipodi:linespacing="125%"
+       transform="scale(0.86782851,1.1523014)"
+       inkscape:export-filename="Y:\schwingbach\webpage\media\mapicons\tracgas.png"
+       inkscape:export-xdpi="86.292137"
+       inkscape:export-ydpi="86.292137"><tspan
+         sodipodi:role="line"
+         id="tspan3855"
+         x="191.56004"
+         y="907.16119">N<tspan
+   style="font-size:7.96557567px;baseline-shift:sub;fill:#ffffff;-inkscape-font-specification:Sans Bold;font-family:Sans;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;text-anchor:start;text-align:start;writing-mode:lr;line-height:125%"
+   id="tspan3857">2</tspan>O</tspan></text>
   </g>
 </svg>

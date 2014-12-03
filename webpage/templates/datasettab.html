@@ -554,7 +554,7 @@
 				<input type="checkbox" id="splitUseThreshold"/> 
 				show only records with a jump from the last value greater than 
 				<a href="/wiki/split"><img src="/media/help.png"/></a>
-				<input id="splitthreshold" type="text" value="0.0" style="text-align: right;" />${activedataset.valuetype.unit}
+				<input id="splitthreshold" type="text" value="0.0" style="text-align: right;" />${activedataset.valuetype.unit if activedataset and activedataset.valuetype else '?'}
 				<br/>
 				<button onclick="loadrecords();">find records</button>
 				<span class="tooltip">limit: <input type="text" value="100" id="recordlimit"/><span>show not more then these records</span></span>
