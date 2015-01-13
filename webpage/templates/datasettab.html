@@ -197,7 +197,10 @@
 		<a href="/dataset">Go to list...</a>
 		<a href="javascript:gotods();" tabindex="1" class="leftspace">&#x25B6;goto dataset...</a>
 		<div py:if="activedataset" py:with="n=activedataset.size()">
-			<h2 py:content="activedataset" />	
+			<h2 py:content="activedataset" />
+			<div class="small warning" py:if="activedataset and users.current.level<activedataset.access">
+				Sorry, you can not see the content of this dataset. You need to be at least ${users.current.groups[activedataset.access]}, but your status is ${user.current.group}.
+			</div>
 			<div id="description">
 				<table>
 					<tr>
@@ -268,12 +271,12 @@
 	  		<li py:if="activedataset.is_transformed()"><a href="#transforms">transforms</a></li>
 	  		<li><a href="#similar">similar</a></li>
 	  		<li py:if="activedataset.is_timeseries() and is_member('editor')"><a href="#records">records</a></li>	  		
-	  		<li><a href="#plot">plot</a></li>
-	  		<li py:if="activedataset.is_timeseries() and is_member('editor')"><a href="/dataset/calibration?targetid=${activedataset.id}">calibrate</a></li>
-	  		<li py:if="is_member('logger')"><a href="#export">export</a></li>
+	  		<li><a href="#plot" py:if="users.current.level>=activedataset.access">plot</a></li>
+	  		<li py:if="activedataset.is_timeseries() and is_member('editor') and users.current.level>=activedataset.access"><a href="/dataset/calibration?targetid=${activedataset.id}">calibrate</a></li>
+	  		<li py:if="is_member('logger') and users.current.level>=activedataset.access"><a href="#export">export</a></li>
 	  		<li py:if="is_member('editor')"><a href="#edit">edit</a></li>
 	  	</ul> 
-			<div id="edit" py:if="is_member('editor')">
+			<div id="edit" py:if="is_member('editor') and users.current.level>=activedataset.access">
 				<button py:if="is_member('admin')" class="tooltip small"
 						onclick="javascript:removeds(${activedataset.id},'${unicode(activedataset)}',${n});">
 					&#x2718;
@@ -480,7 +483,7 @@
 	  		</ul>
 	  	</div>
 
-			<div id="plot" >
+			<div id="plot" py:if="users.current.level>=activedataset.access">
 				<button onclick="plotds(${activedataset.id});">Plot</button>
 	
 				from:
@@ -545,7 +548,7 @@
 					</div>
 				</div>
 			</div>
-			<div id="records" class="small" py:if="is_member('editor') and activedataset and activedataset.is_timeseries()">
+			<div id="records" class="small" py:if="is_member('editor') and activedataset and activedataset.is_timeseries() and users.current.level>=activedataset.access">
 				min.&nbsp;date=&nbsp;<input type="text" id="recordmindate" class="datepicker" size="10"/>&nbsp;<input type="text" id="recordmintime" class="timepicker" size="5" />			
 				max.&nbsp;date=&nbsp;<input type="text" id="recordmaxdate" class="datepicker" size="10"/>&nbsp;<input type="text" id="recordmaxtime" class="timepicker" size="5" />
 				min.&nbsp;value=&nbsp;<input type="text" id="recordminvalue"/>
@@ -560,7 +563,7 @@
 				<span class="tooltip">limit: <input type="text" value="100" id="recordlimit"/><span>show not more then these records</span></span>
 				<div id="recordlist"/>
 			</div>
-			<div id="export" py:if="is_member('logger')">
+			<div id="export" py:if="is_member('logger') and users.current.level>=activedataset.access">
 				<ul>
 					<li py:if="activedataset">
 					<button onclick="window.location='/dataset/records.csv?dataset=${activedataset.id}';">Export as CSV</button>

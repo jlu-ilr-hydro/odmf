@@ -117,7 +117,7 @@ class Dataset(Base):
     uses_dst=sql.Column(sql.Boolean,default=False,nullable=False)
     __mapper_args__ = dict(polymorphic_identity=None,
                            polymorphic_on=type)
-
+    access = sql.Column(sql.Integer,default=1) 
     def __unicode__(self):
         return (u'ds%(id)03i: %(valuetype)s at site #%(site)s %(level)s with %(instrument)s (%(start)s-%(end)s)' % 
                dict(id=self.id,
@@ -143,7 +143,8 @@ class Dataset(Base):
                     quality=self.quality,
                     level=self.level,
                     comment=self.comment,
-                    label=self.__str__())
+                    label=self.__str__(),
+                    access=self.access)
 
     def is_timeseries(self):
         return self.type=='timeseries'
@@ -161,19 +162,22 @@ class Dataset(Base):
         Give a new (unused) id
         """
         cls = type(self)
-        return cls(id=id,
-                        name=self.name,
-                        filename=self.filename,
-                        valuetype=self.valuetype,
-                        measured_by=self.measured_by,
-                        quality=self.quality,
-                        source=self.source,
-                        calibration_offset=self.calibration_offset,
-                        calibration_slope=self.calibration_slope,
-                        comment=self.comment,
-                        start=self.start,
-                        end=self.end,
-                        site=self.site)
+        return cls( id=id,
+                    name=self.name,
+                    filename=self.filename,
+                    valuetype=self.valuetype,
+                    measured_by=self.measured_by,
+                    quality=self.quality,
+                    source=self.source,
+                    calibration_offset=self.calibration_offset,
+                    calibration_slope=self.calibration_slope,
+                    comment=self.comment,
+                    start=self.start,
+                    end=self.end,
+                    site=self.site,
+                    level=self.level,
+                    type=self.type,
+                    access=self.access)
     def asarray(self,start=None,end=None):
         raise NotImplementedError('%s(type=%s) - data set can not return values with "asarray". Is the type correct?' % (self,self.type))
     def size(self):
@@ -203,7 +207,7 @@ def removedataset(*args):
         print "Deleted ds%03i and %i records" % (dsid,reccount)
 
 class MemRecord(object):
-    def __init__(self,id,dataset,time,value,sample=None,comment=None,is_error=False):
+    def __init__(self,id,dataset,time,value,sample=None,comment=None,is_error=False,rawvalue=None):
         self.id=id
         self.dataset=dataset
         self.time=time
@@ -211,6 +215,7 @@ class MemRecord(object):
         self.sample=sample
         self.comment=comment
         self.is_error=is_error
+        self.rawvalue=rawvalue
 class Record(Base):
     """
     The record holds sinigle measured, quantitative values.
@@ -393,7 +398,7 @@ class Timeseries(Dataset):
         if not witherrors:
             records = records.filter(~Record.is_error)
         for r in records:
-            yield MemRecord(id=r.id,dataset=r.dataset,time=r.time,value=r.calibrated,sample=r.sample,comment=r.comment)
+            yield MemRecord(id=r.id,dataset=r.dataset,time=r.time,value=r.calibrated,sample=r.sample,comment=r.comment,rawvalue=r.value)
         
 
 

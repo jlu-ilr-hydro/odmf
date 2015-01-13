@@ -23,6 +23,8 @@ from base64 import b64encode
 from pandas import to_datetime, TimeGrouper
 import json
 from glob import iglob
+
+from auth import users
 t0 = datetime(1,1,1)
 nan = np.nan
 def date2num(t):
@@ -82,8 +84,9 @@ class Line(object):
         """
         datasets = session.query(db.Dataset).filter(db.Dataset.valuetype==self.valuetype,
                                                     db.Dataset.site==self.site, 
-                                                    db.Dataset.start<self.subplot.plot.enddate,
-                                                    db.Dataset.end>self.subplot.plot.startdate,
+                                                    db.Dataset.start<=self.subplot.plot.enddate,
+                                                    db.Dataset.end>=self.subplot.plot.startdate,
+                                                    db.Dataset.access>=users.current.level
                                                     )
         if self.instrument:
             datasets=datasets.filter(db.Dataset.source == self.instrument)
@@ -125,7 +128,7 @@ class Line(object):
         series.index = to_datetime((series.index.values - t0),unit='D')
         # Use pandas resample mechanism for aggregation
         aggseries = series.resample(self.subplot.plot.aggregate,self.aggregatefunction)
-        # Rip series index and values appart and convert the datetime64 index (in ns) back to matplotlib value
+        # Rip series index and values apart and convert the datetime64 index (in ns) back to matplotlib value
         t = aggseries.index.values.astype(float)/(24*60*60*1e9) + t0
         v = aggseries.values
         return t,v

@@ -134,7 +134,7 @@ class DownloadPage(object):
                 path.make()
             fn = path + datafile.filename
             if not fn.is_legal:
-                error="'%s' is not leg"
+                error="'%s' is not legal"
             if fn and not 'overwrite' in kwargs:
                 error="'%s' exists already, if you want to overwrite the old version, check allow overwrite" % fn.name
             else:
