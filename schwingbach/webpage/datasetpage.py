@@ -65,6 +65,7 @@ class DatasetPage:
             except:
                 # If loading fails, don't show similar datasets
                 datasets={}
+                
             # Render the resulting page
             result= web.render('datasettab.html',
                                # activedataset is the current dataset (id or new)
@@ -187,7 +188,7 @@ class DatasetPage:
         except Exception as e:
             return str(e)
     
-    def subset(self,session,valuetype=None,user=None,site=None,date=None,instrument=None,type=None,level=None):
+    def subset(self,session,valuetype=None,user=None,site=None,date=None,instrument=None,type=None,level=None,onlyaccess=False):
         """
         A not exposed helper function to get a subset of available datasets using filter
         """
@@ -214,11 +215,12 @@ class DatasetPage:
             datasets=datasets.filter_by(type=type)
         if not level is None:
             datasets=datasets.filter_by(level=level)
-            
+        if onlyaccess:
+            datasets = datasets.filter(users.current.level>=db.Dataset.access) 
         return datasets.join(db.ValueType).order_by(db.ValueType.name,db.sql.desc(db.Dataset.end))
     
     @expose_for()
-    def attrjson(self,attribute,valuetype=None,user=None,site=None,date=None,instrument=None,type=None,level=None):
+    def attrjson(self,attribute,valuetype=None,user=None,site=None,date=None,instrument=None,type=None,level=None,onlyaccess=False):
         """
         Gets the attributes for a dataset filter. Returns json. Used for many filters using ajax.
         e.g: Map filter, datasetlist, import etc.
@@ -233,7 +235,7 @@ class DatasetPage:
         res=''
         try:
             # Get dataset for filter
-            datasets = self.subset(session,valuetype,user,site,date,instrument,type,level)
+            datasets = self.subset(session,valuetype,user,site,date,instrument,type,level,onlyaccess)
             # Make a set of the attribute items 
             items = set(getattr(ds, attribute) for ds in datasets)
             # Convert object set to json
@@ -245,14 +247,14 @@ class DatasetPage:
         
         
     @expose_for()
-    def json(self,valuetype=None,user=None,site=None,date=None,instrument=None,type=None,level=None):
+    def json(self,valuetype=None,user=None,site=None,date=None,instrument=None,type=None,level=None,onlyaccess=False):
         """
         Gets a json file of available datasets with filter
         """
         web.setmime('application/json')        
         session=db.Session()
         try:
-            dump = web.as_json(self.subset(session, valuetype, user, site, date,instrument,type,level).all())
+            dump = web.as_json(self.subset(session, valuetype, user, site, date,instrument,type,level,onlyaccess).all())
         finally:
             session.close()
         return dump
@@ -318,7 +320,29 @@ class DatasetPage:
             st.write((u'%(ds)i,%(id)i,%(time)s,%(v)s,%(s)i,"%(c)s"\n' % d).encode('utf-8'))
         session.close()
         return st.getvalue()
-        
+    @expose_for(group.logger)
+    def multirecords_csv(self,valuetype=None,user=None,site=None,date=None,instrument=None,type=None,level=None,onlyaccess=False,witherrors=False):
+        web.setmime('text/csv')
+        session = db.scoped_session()
+        datasets = self.subset(session, valuetype, user, site, date, instrument, type, level, onlyaccess)
+        datagroup = db.DatasetGroup([ds.id for ds in datasets])
+        st = StringIO()
+        st.write(codecs.BOM_UTF8)
+        st.write((u'"Dataset","ID","time","%(vt)s calibrated","%(vt)s raw","site","comment"\n' % dict(vt=ds.valuetype)).encode('utf-8'))
+        for r in datagroup.iterrecords(session, witherrors):
+            d=dict(c=unicode(r.comment).replace('\r','').replace('\n',' / '),
+                 vc=r.value if witherrors and not r.is_error else '',
+                 vr = r.rawvalue,
+                 time = web.formatdate(r.time)+' '+web.formattime(r.time),
+                 id=r.id,
+                 ds=ds.id,
+                 s=ds.site.id,
+                 e=r.is_error)
+            st.write((u'%(ds)i,%(id)i,%(time)s,%(vc)s,%(vr)s,%(s)i,"%(c)s",%(e)s\n' % d).encode('utf-8'))
+        session.close()
+        return st.getvalue()
+            
+          
     @expose_for(group.logger)
     def plot(self,id,start=None,end=None,marker='',line='-',color='k'):
         """

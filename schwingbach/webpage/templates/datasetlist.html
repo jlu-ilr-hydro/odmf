@@ -108,6 +108,7 @@
 											$('#instrumentselect').html(html).val(instrument);
 										}
 					);
+					$('#exportrecords').prop('disabled',!(vt && site)); 
 					if (vt!='' || user!='' || site!='' || date!='' || type!='' || instrument!='') {
 						setFilter();
 					}
@@ -154,6 +155,29 @@
     		$(function() {
   					//$('#navigation').load('/navigation');
     				$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
+    				$("#toggleexport").click(function(){
+    					$('#exportdiv').slideToggle();
+    				});
+    				$('#exportrecords').click(function() {
+			    			var props = {valuetype:$('#vtselect').val(),
+			    								 user:$('#userselect').val(),
+			    								 site:$('#siteselect').val(),
+			    								 date:$('#dateselect').val(),
+			    								 type:$('#typeselect').val(),
+			    								 instrument:$('#instrumentselect').val(),
+			    								 witherrors:$('#exportrecordswitherror').prop('checked')
+			    							};
+								
+								// Check if vt,site and instrument are selected, otherwise set error
+								if (!(props.valuetype && props.site)) {
+									$('.error').html('Cannot export values when valuetype, site or instrument are not selected');
+								} else {
+		    					// Call a function with the filter that generates a csv with all
+		    					// records. 
+									//alert($.param(props));
+									window.location = '/dataset/multirecords.csv?' +$.param(props) 
+								}
+    				});
 	    			popSelect();
 
 	   		});
@@ -175,6 +199,7 @@
 <body>
 	${navigation('Datasets')}
 	<div class="content">
+		<div class="error"></div>
 		<div>
 			<h2>Filter:</h2>
 			<div class="small">
@@ -239,6 +264,27 @@
 			</div>
 			<h2>List:</h2>
 			<h3 id="dscount">0 datasets:</h3>
+			<div class="small">
+				<span class="small box">
+					<a id="toggleexport">&#x25BE;export</a>
+					<div class="toggle abs small box" id="exportdiv">
+						<span class="tooltip">
+							<button id="exportrecords" disabled="disabled">export records</button>
+							<span>
+								Only available when valuetype and site are selected.<br/> Beware multi-instrument and multi-level situations.
+							</span>
+						</span>
+						<span class="tooltip">
+							<input type="checkbox" id="exportrecordswitherror" /> 
+							include error records
+							<span>
+								Check, if you want to have records mark as error exported also	
+							</span>
+						</span>
+					</div>
+
+				</span>
+			</div>
 			<ul id="dslist" style="list-style-image: url(/media/shimmer/document_24.png)">
 			</ul>
 		</div>				

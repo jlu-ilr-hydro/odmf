@@ -180,6 +180,7 @@
 									{ attribute:'valuetype',
 									  site:site,
 									  date:date,
+									  onlyaccess:true,
 									},
 									function(data){
 										var html='<option class="firstoption" value="">Please select...</option>';
@@ -194,7 +195,8 @@
 									{ attribute:'source',
 										valuetype:vt,
 										site:site,
-									  date:date
+									  date:date,
+									  onlyaccess:true,
 									},
 									function(data) {
 										var html='<option class="firstoption" value="">Please select...</option>';
@@ -208,7 +210,8 @@
 				$.getJSON('/dataset/attrjson',
 										{ attribute:'site',
 											valuetype:vt,
-										  date:date
+										  date:date,
+									  	onlyaccess:true,
 										},
 										function(data){
 											var html='<option value="">Please select...</option>';
@@ -224,7 +227,8 @@
 											attribute:'level',
 											valuetype:vt,
 											date:date,
-											site:site
+											site:site,
+									  	onlyaccess:true,
 										},
 										function(data) {
 											var show=false;
@@ -243,14 +247,14 @@
 											}
 										});
 				
-				 if (newlineprops) {
-				 		var color = newlineprops.color;
-					 	var line = newlineprops.linestyle;
-					 	var marker = newlineprops.marker; 
-					  $('#markerpicker_'+subplotpos).val(marker);
-					  $('#linepicker_'+subplotpos).val(line);
-					  $('#colorpicker_'+subplotpos).val(color);
-				 }
+					 if (newlineprops) {
+					 		var color = newlineprops.color;
+						 	var line = newlineprops.linestyle;
+						 	var marker = newlineprops.marker; 
+						  $('#markerpicker_'+subplotpos).val(marker);
+						  $('#linepicker_'+subplotpos).val(line);
+						  $('#colorpicker_'+subplotpos).val(color);
+					 }
 				 
 				} else {
 						$('#levelselect_'+subplotpos).parent().hide(200);					
