@@ -86,7 +86,7 @@ class Line(object):
                                                     db.Dataset.site==self.site, 
                                                     db.Dataset.start<=self.subplot.plot.enddate,
                                                     db.Dataset.end>=self.subplot.plot.startdate,
-                                                    db.Dataset.access>=users.current.level
+                                                    db.Dataset.access<=users.current.level
                                                     )
         if self.instrument:
             datasets=datasets.filter(db.Dataset.source == self.instrument)

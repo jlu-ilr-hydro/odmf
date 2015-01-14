@@ -251,9 +251,12 @@ class JobPage:
                 job.link = kwargs.get('link')
                 job.repeat = web.conv(int,kwargs.get('repeat'))
                 job.type = kwargs.get('type')
+                
                 if kwargs['save']=='own':
                     p_user = session.query(db.Person).get(web.user())
                     job.author = p_user
+                elif kwargs['save']=='done':
+                    job.make_done(users.current.name)
                 session.commit()
                 session.close()
             except:
