@@ -198,7 +198,7 @@
 		<a href="javascript:gotods();" tabindex="1" class="leftspace">&#x25B6;goto dataset...</a>
 		<div py:if="activedataset" py:with="n=activedataset.size()">
 			<h2 py:content="activedataset" />
-			<div class="small warning" py:if="activedataset and users.current.level<activedataset.access">
+			<div class="small warning" py:if="activedataset and activedataset.access>=users.current.level">
 				Sorry, you can not see the content of this dataset. You need to be at least ${users.current.groups[activedataset.access]}, but your status is ${user.current.group}.
 			</div>
 			<div id="description">
