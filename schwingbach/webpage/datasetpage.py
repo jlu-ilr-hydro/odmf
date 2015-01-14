@@ -416,16 +416,19 @@ class DatasetPage:
         try:
             if threshold:
                 records=ds.findjumps(float(threshold),tstart,tend)
+                currentcount=None
+                totalcount=None
             else:
                 if tstart: records=records.filter(db.Record.time>=tstart)
                 if tend: records=records.filter(db.Record.time<=tend)
                 if minvalue: records=records.filter(db.Record.value>float(minvalue))
                 if maxvalue: records=records.filter(db.Record.value<float(maxvalue))
-                count = records.count()
+                totalcount = records.count()
                 records = records.limit(limit)
+                currentcount = records.count()
         except:
             return web.Markup('<div class="error">'+traceback()+'</div>')
-        res = web.render('record.html',records=records,totalrecords=count,dataset=ds,actionname="split dataset",action="/dataset/setsplit",action_help='/wiki/dataset/split').render('xml')
+        res = web.render('record.html',records=records,currentcount=currentcount,totalrecords=totalcount,dataset=ds,actionname="split dataset",action="/dataset/setsplit",action_help='/wiki/dataset/split').render('xml')
         session.close()
         return res
             
