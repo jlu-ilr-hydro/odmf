@@ -398,7 +398,10 @@ class Timeseries(Dataset):
         if not witherrors:
             records = records.filter(~Record.is_error)
         for r in records:
-            yield MemRecord(id=r.id,dataset=r.dataset,time=r.time,value=r.calibrated,sample=r.sample,comment=r.comment,rawvalue=r.value)
+            yield MemRecord(id=r.id,dataset=r.dataset,
+                            time=r.time,value=r.calibrated,
+                            sample=r.sample,comment=r.comment,
+                            rawvalue=r.value,is_error=r.is_error)
         
 
 
@@ -442,7 +445,10 @@ class TransformedTimeseries(Dataset):
         i=0
         for r in srcrecords:
             i+=1
-            yield MemRecord(id=i,dataset=r.dataset,time=r.time,value=self.transform(r.calibrated),sample=r.sample,comment=r.comment)
+            yield MemRecord(id=i,dataset=r.dataset,time=r.time,
+                            value=self.transform(r.calibrated),
+                            sample=r.sample,comment=r.comment,
+                            is_error = r.is_error)
     def suitablesources(self):
         session = self.session()
         sourceids = self.sourceids()

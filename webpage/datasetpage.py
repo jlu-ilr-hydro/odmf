@@ -328,16 +328,17 @@ class DatasetPage:
         datagroup = db.DatasetGroup([ds.id for ds in datasets])
         st = StringIO()
         st.write(codecs.BOM_UTF8)
-        st.write((u'"Dataset","ID","time","%(vt)s calibrated","%(vt)s raw","site","comment"\n' % dict(vt=ds.valuetype)).encode('utf-8'))
+        st.write((u'"Dataset","ID","time","%(vt)s calibrated","%(vt)s raw","site","comment","is error?"\n' % dict(vt=ds.valuetype)).encode('utf-8'))
         for r in datagroup.iterrecords(session, witherrors):
-            d=dict(c=unicode(r.comment).replace('\r','').replace('\n',' / '),
+            d=dict(
+                 c=(unicode(r.comment).replace('\r','').replace('\n',' / ')) if r.comment else '',
                  vc=r.value if witherrors and not r.is_error else '',
                  vr = r.rawvalue,
                  time = web.formatdate(r.time)+' '+web.formattime(r.time),
                  id=r.id,
                  ds=ds.id,
                  s=ds.site.id,
-                 e=r.is_error)
+                 e=int(r.is_error))
             st.write((u'%(ds)i,%(id)i,%(time)s,%(vc)s,%(vr)s,%(s)i,"%(c)s",%(e)s\n' % d).encode('utf-8'))
         session.close()
         return st.getvalue()
