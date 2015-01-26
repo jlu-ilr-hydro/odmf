@@ -82,11 +82,12 @@ class Line(object):
         """
         Loads the datasets for this line
         """
+        userlevel = users.current.level if users.current else 0
         datasets = session.query(db.Dataset).filter(db.Dataset.valuetype==self.valuetype,
                                                     db.Dataset.site==self.site, 
                                                     db.Dataset.start<=self.subplot.plot.enddate,
                                                     db.Dataset.end>=self.subplot.plot.startdate,
-                                                    db.Dataset.access<=users.current.level
+                                                    db.Dataset.access<=userlevel
                                                     )
         if self.instrument:
             datasets=datasets.filter(db.Dataset.source == self.instrument)
