@@ -20,7 +20,7 @@ from cStringIO import StringIO
     
 class TextImportColumn:
     """Describes the content of a column in a delimited text file"""
-    def __init__(self,column,name,valuetype,factor=1.0,comment=None,difference=None,minvalue=-1e308,maxvalue=+1e308,append=None):
+    def __init__(self,column,name,valuetype,factor=1.0,comment=None,difference=None,minvalue=-1e308,maxvalue=+1e308,append=None,level=None):
         """Creates a column description in a delimited text file.
         upon import, the column will be saved as a dataset in the database
         
@@ -43,6 +43,7 @@ class TextImportColumn:
         self.minvalue=minvalue
         self.maxvalue=maxvalue
         self.append=append
+        self.level=level
     def __str__(self):
         return "%s[%s]:column=%i" % ('d' if self.difference else '',self.name,self.column) 
     def to_config(self,config,section):
@@ -64,6 +65,10 @@ class TextImportColumn:
         config.set(section,'minvalue',self.minvalue)
         config.set(section,'; highest allowed value, use this for NoData values')
         config.set(section,'maxvalue',self.maxvalue)
+        if self.level:
+            config.set(section,'; Level property of the dataset. Us this for Instruments measuring at one site in different depth')
+            config.set(section,'level',self.level)
+            
         
     @classmethod
     def from_config(cls,config,section):
@@ -81,7 +86,8 @@ class TextImportColumn:
                    difference = getvalue('difference'),
                    minvalue = getvalue('minvalue',float),
                    maxvalue=getvalue('maxvalue',float),
-                   append=getvalue('append',int)
+                   append=getvalue('append',int),
+                   level=getvalue('level',float)
                    )
         
 
@@ -256,7 +262,7 @@ class TextImport(ImportAdapter):
             id = db.newid(db.Dataset,session)
             ds = db.Timeseries(id=id,measured_by=user,valuetype=vt,site=site,name=col.name,
                             filename=self.filename,comment=col.comment,source=inst,quality=raw,
-                            start=self.startdate,end=datetime.today())
+                            start=self.startdate,end=datetime.today(),level=self.descriptor.level)
             self.datasets[col.column] = ds.id
         session.commit()
         session.close()
