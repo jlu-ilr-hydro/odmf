@@ -413,7 +413,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
                 Opens the graph as a pdf file.
              </span>
 		</a>
-		<a py:if="is_member('supervisor')" 
+		<a py:if="is_member('editor')" 
 			class="box small leftspace nowrap tooltip" 
 			href="javascript:exportall_csv()">
 			export all
@@ -440,7 +440,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 				leads to a new line.
 			</span>
 		</span>
-		<a py:if="is_member('supervisor')" 
+		<a py:if="is_member('editor')" 
 			class="box small leftspace nowrap tooltip" 
 			href="javascript:RegTime()">
 			regular export

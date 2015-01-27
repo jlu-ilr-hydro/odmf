@@ -142,6 +142,7 @@ class DatasetPage:
                         ds.end=datetime.strptime(kwargs['end'],'%d.%m.%Y')
                     ds.calibration_offset = web.conv(float,kwargs.get('calibration_offset'),0.0)
                     ds.calibration_slope = web.conv(float,kwargs.get('calibration_slope'),1.0)
+                    ds.access = web.conv(int,kwargs.get('access'),1)
                 # Transformation only arguments
                 if ds.is_transformed():
                     ds.expression = kwargs.get('expression')
