@@ -321,6 +321,23 @@
 							</td>
 						</tr>
 						<tr>
+							<td class="tooltip">
+								User level
+								<span>
+									Select the user level needed to see the content of the dataset. Default is logged in user
+								</span>
+							</td>
+							<td>
+								<select name="accesss">
+									<option value="0" py:attrs="markoption(activedataset.access==0)">Public dataset</option>
+									<option value="1" py:attrs="markoption(activedataset.access==1)">Only known users (logger)</option>
+									<option value="2" py:attrs="markoption(activedataset.access==2)">Only editing users (editor)</option>
+									<option value="3" py:attrs="markoption(activedataset.access==3)">Only employees (supervisor)</option>
+									<option value="4" py:attrs="markoption(activedataset.access==4)">Only administrators (admin)</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
 							<td><a href="${'/site/%s' % (activedataset.site.id if activedataset.site else '')}">Site:</a></td>
 							<td>
 								<select name="site">
