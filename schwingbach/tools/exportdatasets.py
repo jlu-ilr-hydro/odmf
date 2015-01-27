@@ -37,6 +37,10 @@ def exportData(fout,datasetids,start=None,end=None,tolerance=60):
         
         # Query records
         records = session.query(db.Record).filter(db.Record._dataset.in_(sorted(datasetdict))).order_by(db.Record.time)
+        if start:
+            records = records.filter(db.Record.time>=start)
+        if end:
+            records = records.filter(db.Record.time<=end)
     except:
         sys.stderr.write(traceback())
         session.close()
