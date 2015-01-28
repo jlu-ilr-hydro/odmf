@@ -270,8 +270,8 @@ class TextImport(ImportAdapter):
             id = db.newid(db.Dataset,session)
             ds = db.Timeseries(id=id,measured_by=user,valuetype=vt,site=site,name=col.name,
                             filename=self.filename,comment=col.comment,source=inst,quality=raw,
-                            start=self.startdate,end=datetime.today(),level=self.descriptor.level,
-                            access=self.descriptor.access if not self.descriptor.access is None else 1)
+                            start=self.startdate,end=datetime.today(),level=col.level,
+                            access=col.access if not col.access is None else 1)
             self.datasets[col.column] = ds.id
         session.commit()
         session.close()
