@@ -117,7 +117,7 @@ class Dataset(Base):
     uses_dst=sql.Column(sql.Boolean,default=False,nullable=False)
     __mapper_args__ = dict(polymorphic_identity=None,
                            polymorphic_on=type)
-    access = sql.Column(sql.Integer,default=1) 
+    access = sql.Column(sql.Integer,default=1,nullable=False) 
     def __unicode__(self):
         return (u'ds%(id)03i: %(valuetype)s at site #%(site)s %(level)s with %(instrument)s (%(start)s-%(end)s)' % 
                dict(id=self.id,
