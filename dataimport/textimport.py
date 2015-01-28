@@ -20,7 +20,9 @@ from cStringIO import StringIO
     
 class TextImportColumn:
     """Describes the content of a column in a delimited text file"""
-    def __init__(self,column,name,valuetype,factor=1.0,comment=None,difference=None,minvalue=-1e308,maxvalue=+1e308,append=None,level=None):
+    def __init__(self,column,name,valuetype,factor=1.0,comment=None,
+                 difference=None,minvalue=-1e308,maxvalue=+1e308,
+                 append=None,level=None,access=None):
         """Creates a column description in a delimited text file.
         upon import, the column will be saved as a dataset in the database
         
@@ -44,6 +46,7 @@ class TextImportColumn:
         self.maxvalue=maxvalue
         self.append=append
         self.level=level
+        self.access = access
     def __str__(self):
         return "%s[%s]:column=%i" % ('d' if self.difference else '',self.name,self.column) 
     def to_config(self,config,section):
@@ -66,8 +69,12 @@ class TextImportColumn:
         config.set(section,'; highest allowed value, use this for NoData values')
         config.set(section,'maxvalue',self.maxvalue)
         if self.level:
-            config.set(section,'; Level property of the dataset. Us this for Instruments measuring at one site in different depth')
+            config.set(section,'; Level property of the dataset. Use this for Instruments measuring at one site in different depth')
             config.set(section,'level',self.level)
+        if not self.access is None:
+            config.set(section,'; Access property of the dataset. Default level is 1 (for loggers) but can set to 0 for public datasets or to a higher level for confidential datasets')
+            config.set(section,'access',self.access)
+            
             
         
     @classmethod
@@ -87,7 +94,8 @@ class TextImportColumn:
                    minvalue = getvalue('minvalue',float),
                    maxvalue=getvalue('maxvalue',float),
                    append=getvalue('append',int),
-                   level=getvalue('level',float)
+                   level=getvalue('level',float),
+                   access=getvalue('access',int)
                    )
         
 
@@ -262,7 +270,8 @@ class TextImport(ImportAdapter):
             id = db.newid(db.Dataset,session)
             ds = db.Timeseries(id=id,measured_by=user,valuetype=vt,site=site,name=col.name,
                             filename=self.filename,comment=col.comment,source=inst,quality=raw,
-                            start=self.startdate,end=datetime.today(),level=self.descriptor.level)
+                            start=self.startdate,end=datetime.today(),level=self.descriptor.level,
+                            access=self.descriptor.access if not self.descriptor.access is None else 1)
             self.datasets[col.column] = ds.id
         session.commit()
         session.close()
