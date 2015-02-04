@@ -319,7 +319,10 @@ class Timeseries(Dataset):
     def calibratevalue(self,value):
         """Calibrates a value
         """
-        return value * self.calibration_slope + self.calibration_offset
+        try:
+            return value * self.calibration_slope + self.calibration_offset
+        except TypeError:
+            return None
     def maxrecordid(self):
         """Finds the highest record id for this dataset"""
         session = self.session()
