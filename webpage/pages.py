@@ -4,7 +4,10 @@ import lib as web
 from auth import users, require, member_of, has_level, group, expose_for
 import db
 import sys,os
-import pysvn
+try:
+    import pysvn
+except ImportError:
+    pysvn = None
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from genshi import escape
@@ -673,7 +676,8 @@ class Root(object):
     preferences = Preferences()
     plot = PlotPage()
     calendar = CalendarPage()
-    svnlog = svnlogPage()
+    if pysvn:
+        svnlog = svnlogPage()
     wiki = Wiki()
     @expose_for()
     def index(self):
