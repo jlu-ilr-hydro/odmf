@@ -697,7 +697,7 @@ class PlotPage(object):
         try:
             start = web.parsedate(kwargs.get('start'))
             end = web.parsedate(kwargs.get('end'))
-            plot = Plot.frompref()
+            plot = Plot.frompref(createplot=True)
             if start<plot.startdate or end>plot.enddate:
                 plot.killcache()
             plot.startdate = start
