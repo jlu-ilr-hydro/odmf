@@ -26,7 +26,7 @@ def createPandaDfs(lines,start, end, fout, interpolationtime=None, tolerance=12)
         for line in lines:
             Column_name=(unicode(line.site) + ' - ' + unicode(line.valuetype) + ' - ' + unicode(line.instrument))
 
-	   # Column_name=str(line.site) + ' - ' +str(line.valuetype) + ' - ' +str(line.instrument)
+            # Column_name=str(line.site) + ' - ' +str(line.valuetype) + ' - ' +str(line.instrument)
 
             try:
                 Time, Value = line.load(startdate=start,enddate=end)#,usecache=True)
@@ -46,13 +46,13 @@ def createPandaDfs(lines,start, end, fout, interpolationtime=None, tolerance=12)
         #Make one big Panda Dataframe and interpolate through missing values
         con=pd.concat(dfs)
         sort=con.sort_index()
-	print sort.head(10)
-	print Column_name
-	print tolerance
-	print type(tolerance)
+        print sort.head(10)
+        print Column_name
+        print tolerance
+        print type(tolerance)
         #inter=sort.interpolate(limit=float(tolerance), method='time')
         inter=sort.interpolate(limit=int(tolerance), method='time')
-	#Delete duplicates in the Index
+        #Delete duplicates in the Index
         inter['index'] = inter.index
         df=inter.drop_duplicates(cols='index')
         if interpolationtime:
@@ -65,7 +65,7 @@ def createPandaDfs(lines,start, end, fout, interpolationtime=None, tolerance=12)
         reg_df=reg_df.drop(reg_df.index[:1])
         reg_df.index.name='Date'
         #Export Data to csv
-        reg_df.to_csv(fout,encoding='utf-16')
+        reg_df.to_csv(fout,encoding='utf-8')
     
     except:
         sys.stderr.write(traceback())
