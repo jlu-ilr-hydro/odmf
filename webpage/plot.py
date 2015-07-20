@@ -658,15 +658,19 @@ class PlotPage(object):
     @web.expose_for(plotgroup)
     def exportall_csv(self,tolerance):
         plot = Plot.frompref()
-        datasetids=[]
-        session=db.Session()
+#         datasetids=[]
+#         session=db.Session()
+#         for sp in plot.subplots:
+#             for line in sp.lines:
+#                 datasetids.extend(ds.id for ds in line.getdatasets(session))
+#         session.close()
+        lines = []
         for sp in plot.subplots:
-            for line in sp.lines:
-                datasetids.extend(ds.id for ds in line.getdatasets(session))
-        session.close()
+            lines.extend(sp.lines)
         stream = StringIO()
-        from tools.exportdatasets import exportData
-        exportData(stream,datasetids,plot.startdate,plot.enddate,web.conv(float,tolerance,60))
+        from tools.exportdatasets import exportData, exportLines
+        #exportData(stream,datasetids,plot.startdate,plot.enddate,web.conv(float,tolerance,60))
+        exportLines(stream,lines,web.conv(float,tolerance,60))
         web.setmime(web.mime.csv)
         return stream.getvalue()            
     @web.expose_for(plotgroup)
