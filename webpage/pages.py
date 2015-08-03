@@ -758,7 +758,7 @@ class Root(object):
     def index(self):
         if web.user():
             session=db.Session()
-            user = db.Person.get(session,web.user())
+            user = session.query(db.Person).get(web.user())
             if user.jobs.filter(db.Job.done==False, db.Job.due-datetime.now()< timedelta(days=7)).count():
                 raise web.HTTPRedirect('/job')
         return self.map.index()
