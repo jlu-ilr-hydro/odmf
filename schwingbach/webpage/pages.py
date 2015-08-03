@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+import cherrypy
 
 import lib as web
-from auth import users, require, member_of, has_level, group, expose_for
+from auth import users, require, member_of, has_level, group, expose_for, hashpw, is_self, get_levels
 import db
 import sys,os
 try:
@@ -18,6 +19,9 @@ from webpage.site import SitePage
 from webpage.datasetpage import DatasetPage
 from webpage.preferences import Preferences
 from webpage.plot import PlotPage 
+
+import bcrypt
+
 class PersonPage:
     exposed=True
     
@@ -25,6 +29,12 @@ class PersonPage:
     def default(self,act_user=None):
         session = db.Session()
         persons = session.query(db.Person).order_by(db.sql.desc(db.Person.can_supervise),db.Person.surname)
+
+        # 'guest' user can't see himself in the user list
+        if users.current.name == 'guest':
+            persons = persons.filter(db.Person.access_level != 0)
+            # TODO: url "host/guest" shouldn't be accessible for the guest user
+
         supervisors = persons.filter(db.Person.can_supervise==True)
         error=''
         jobs=[]
@@ -38,13 +48,15 @@ class PersonPage:
             except:
                 p_act=None
                 error=traceback()   
-        result = web.render('person.html',persons=persons,active_person=p_act,
-                          supervisors=supervisors,error=error,jobs=jobs).render('html',doctype='html')
+        result = web.render('person.html', persons=persons,active_person=p_act,
+                          supervisors=supervisors,error=error,jobs=jobs,
+                            act_user=act_user, levels=get_levels, is_self=is_self).render('html',doctype='html')
         session.close()
         return result
+
     @expose_for(group.supervisor)
     def saveitem(self,**kwargs):
-        username=kwargs.get('username')
+        username = kwargs.get('username')
         if 'save' in kwargs and username:
             session = db.Session()        
             p_act = session.query(db.Person).filter_by(username=username).first()
@@ -60,6 +72,19 @@ class PersonPage:
             p_act.telephone=kwargs.get('telephone')
             p_act.mobile=kwargs.get('mobile')
             p_act.comment=kwargs.get('comment')
+            if kwargs.get('status') == 'on':
+                p_act.active = True
+            else:
+                p_act.active = False
+
+            # Simple Validation
+            if kwargs.get('password') is not None:
+                if kwargs.get('password') == kwargs.get('password_verify'):
+                    p_act.password = hashpw(kwargs.get('password'))
+            # Simple Validation
+            #if users.current.level == ACCESS_LEVELS['Supervisor']:
+            p_act.access_level = int(kwargs.get('access_level'))
+
             session.commit()
             session.close()
         raise web.HTTPRedirect('./' + username)
@@ -74,6 +99,56 @@ class PersonPage:
         res = web.as_json(persons.all())
         session.close()
         return res
+
+    @expose_for(group.logger)
+    def changepassword(self, username=None):
+        """
+        Form request
+        """
+        session = db.Session()
+        changing_user_level = session.query(db.Person).filter(db.Person.username == username).first().access_level
+
+        # cast from unicode to int
+        changing_user_level = int(changing_user_level)
+
+        if changing_user_level > users.current.level:
+            raise cherrypy.HTTPRedirect("/login?error=You are missing privileges to do what you liked to do.&frompage="+cherrypy.request.path_info)
+        else:
+            error = ''
+            result = web.render('passwordchange.html',
+                            error=error, username=username).render('html',doctype='html')
+
+        session.close()
+
+        return result
+
+    @expose_for(group.logger)
+    def savepassword(self, **kwargs):
+        """
+        Save to database
+        """
+        password = kwargs.get('password')
+        password_repeat = kwargs.get('password_repeat')
+        username = kwargs.get('username')
+
+        if password is None or password_repeat is None or username is None:
+            raise IOError
+
+        #if password != password_repeat:
+        #    error = 'Error: Password don\'t match'
+        #    result = web.render('passwordchange.html', error=error, username=username)\
+        #        .render('html', doctype='html')
+
+        # Password encryption and db saving
+        session = db.Session()
+
+        p_act = session.query(db.Person).filter_by(username=username).first()
+        p_act.password = hashpw(password)
+
+        session.commit()
+        session.close()
+
+        raise web.HTTPRedirect('./' + username)
 
         
 class VTPage:
@@ -195,8 +270,8 @@ class JobPage:
         session=db.Session()
         error=''
         if user is None:
-            user=web.user()
-        if jobid=='new':
+            user = web.user()
+        if jobid == 'new':
             author = session.query(db.Person).get(web.user())
             job = db.Job(id=db.newid(db.Job,session),name='name of new job',author=author)
             if user:
@@ -761,9 +836,7 @@ class Root(object):
             t,v=ds.asarray(start=yesterday)
             res[ds.name.split(',')[0].strip().replace(' ','_')] = {'min':v.min(),'max':v.max(),'mean':v.mean()}
         return web.as_json(res)
-            
-            
-            
+
 
 #if __name__=='__main__':
 #    web.start_server(Root(), autoreload=False, port=8081)

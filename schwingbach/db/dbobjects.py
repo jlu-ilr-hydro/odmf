@@ -6,7 +6,7 @@ Created on 31.01.2012
 '''
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
-from base import Base,Session, newid
+from base import Base, Session, newid, engine
 from sqlalchemy.schema import ForeignKey
 from datetime import datetime, timedelta
 from cherrypy.lib.reprconf import as_dict
@@ -129,6 +129,10 @@ class Person(Base):
     can_supervise=sql.Column(sql.Boolean, default=False)
     mobile=sql.Column(sql.String)
     car_available=sql.Column(sql.Integer,default=0)
+    password = sql.Column(sql.VARCHAR)
+    access_level = sql.Column(sql.INTEGER)
+    active = sql.Column(sql.Boolean, default=True)
+
     def __str__(self):
         return "%s %s" % (self.firstname,self.surname)
     def __jdict__(self):
@@ -150,6 +154,8 @@ class Person(Base):
             return cmp(self.surname,unicode(other))
         else:
             return cmp(self.surname,other)
+
+
 
 
 
@@ -201,8 +207,6 @@ class Image(Base):
                 time=None
         self.time=time
         self.site=site
-        
-        
 
 class Log(Base):
     __tablename__='log'
@@ -218,8 +222,10 @@ class Log(Base):
     site = orm.relationship("Site", backref=orm.backref('logs',lazy='dynamic',order_by=sql.desc(time)))
     # Type of log
     type = sql.Column(sql.String)
+
     def __str__(self):
         return "%s, %s: %s (id:%i)" % (self.user,self.time,self.message,self.id)
+
     def __cmp__(self,other):
         return cmp(self.id,other.id)
 
@@ -398,4 +404,8 @@ class Job(Base):
             return '#8F4'
         else:
             return '#8F8'
-    
+
+# Creating all tables those inherit Base
+#print "Create Tables"
+#Base.metadata.create_all(engine)
+
