@@ -4,12 +4,38 @@ Created on 05.09.2012
 @author: philkraf
 The file borrows heavily from http://tools.cherrypy.org/wiki/AuthenticationAndAccessRestrictions
 '''
+from operator import le
 import os.path as op
 import collections
 import md5
 import cherrypy
 
+import db
+from sqlalchemy import func
+import bcrypt
+
+ACCESS_LEVELS = [["Guest", "0"],
+                 ["Logger", "1"],
+                 ["Editor", "2"],
+                 ["Supervisor", "3"],
+                 ["Admin", "4"]]
+
+def levels_supervisor():
+    return levels_admin()[:2]
+
+def levels_admin():
+    return ACCESS_LEVELS[1:5]
+
+def get_levels(level):
+    if level == int(ACCESS_LEVELS[3][1]):
+        return levels_supervisor()
+    elif level == int(ACCESS_LEVELS[4][1]):
+        return levels_admin()
+    else:
+        return ACCESS_LEVELS
+
 SESSION_KEY='#!35625/Schwingbach?Benutzer'
+
 def sessionuser():
     "Returns the username saved in the session"
     return cherrypy.session.get(SESSION_KEY)
@@ -31,7 +57,7 @@ def check_auth(*args,**kwargs):
         else:
             raise cherrypy.HTTPRedirect("/login?error=You need to be logged in, to access this page&frompage="+cherrypy.request.path_info)
 
-cherrypy.tools.auth = cherrypy.Tool('before_handler', check_auth)    
+cherrypy.tools.auth = cherrypy.Tool('before_handler', check_auth)
 
 def abspath(fn):
     "Returns the absolute path to the relative filename fn"
@@ -41,39 +67,52 @@ def abspath(fn):
 
 class group:
     "This class is only a constant holder, for using code completion for require "
-    guest='guest'
-    logger='logger'
-    editor='editor'
-    supervisor='supervisor'
-    admin='admin'
+    guest = 'guest'
+    logger = 'logger'
+    editor = 'editor'
+    supervisor = 'supervisor'
+    admin = 'admin'
+
 class User(object):
-    groups = ('guest','logger','editor','supervisor','admin')
-    @classmethod 
+    groups = ('guest', 'logger', 'editor', 'supervisor', 'admin')
+
+    @classmethod
     def __level_to_group(cls,level):
         if level>=0 and level<len(User.groups):
             return User.groups[level]
         else:
             return "Unknown level %i" % level
 
-    def __init__(self,name,level,password):
-        self.name=name
+    def __init__(self, name, level, password):
+        self.name = name
         self.level = int(level)
         self.password = password
-        self.person=None
+        self.person = None
+
     @property
     def group(self):
         return User.__level_to_group(self.level)
-    def is_member(self,group):
+
+    def is_member(self, group):
         grouplevel = User.groups.index(group)
         return self.level>= grouplevel
-    def check(self,password):
-        return password == self.password
+
+    def check(self, password):
+
+        # Salt of the password out of the db into unicode too
+        salt = get_bcrypt_salt(self.password)
+
+        # Input password and the salt out of the db
+        hashed_password = hashpw(password, salt)
+
+        return hashed_password == self.password
     def as_tuple(self):
         return self.name,self.level,self.password
     def __repr__(self):
         return "User(%s,%i,'xxxx')" % (self.name,self.level)
     def __str__(self):
         return "%s (%s)" % (self.name,self.group)
+
 
 class Users(collections.Mapping):
     filename = abspath('../users')
@@ -89,21 +128,25 @@ class Users(collections.Mapping):
     def __contains__(self,user):
         return user in self.dict
     def load(self):
-        if op.exists(Users.filename):
-            f = file(Users.filename)
-            self.dict={}
-            for line in f:
-                if line.strip():
-                    ls = line.split()
-                    self.dict[ls[0]] = User(*ls)
-            f.close()
-    def check(self,username,password):
+        session = db.Session()
+
+        q = session.query(db.Person).filter(db.Person.active == 1)
+
+        self.dict = {}
+        allpersons = q.all()
+
+        for person in allpersons:
+            self.dict[person.username] = User(person.username, person.access_level, person.password)
+
+    def check(self, username, password):
+
         if not username in self:
             return "User '%s' not found" % username
         elif self[username].check(password):
             return
         else:
             return "Password not correct"
+
     def list(self):
         return sorted(self)
     def save(self):
@@ -123,13 +166,13 @@ class Users(collections.Mapping):
             cherrypy.session.regenerate()
             cherrypy.session[SESSION_KEY] = cherrypy.request.login = username
             return
+
     def logout(self):
         sess = cherrypy.session
         username = sess.get(SESSION_KEY, None)
         sess[SESSION_KEY] = None
         if username:
             cherrypy.request.login = None
-            
 
 
 
@@ -172,5 +215,32 @@ def expose_for(groupname=None):
         f.exposed = True
         return f
     return decorate
-        
 
+def is_self(name):
+    return users.current.name == name
+
+
+def hashpw(password, salt=None):
+    """
+    This function is written as generic solution for using a hashing algorithm
+
+    :param password: unicode or string
+    :param salt: unicode or string, when it's not given salt is generated randomly
+    :return: hashed password
+    """
+    password = password.encode(encoding='utf-8', errors='xmlcharrefreplace')
+
+    if salt:
+        salt = salt.encode(encoding='utf-8', errors='xmlcharrefreplace')
+        hashed_password = bcrypt.hashpw(password, salt)
+    else:
+        hashed_password = bcrypt.hashpw(password, bcrypt.gensalt())
+
+    return hashed_password
+
+
+def get_bcrypt_salt(hashed):
+    """
+    Get the salt from on bcrypt hashed string
+    """
+    return hashed[:29]

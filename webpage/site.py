@@ -22,6 +22,7 @@ class SitePage:
     def default(self,actualsite_id=None,error=''):
         session=db.Session()
         pref = Preferences()
+
         if not actualsite_id: 
             actualsite_id = pref['site']
         else:

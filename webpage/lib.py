@@ -30,7 +30,7 @@ def jsonhandler(obj):
     elif hasattr(obj,'isoformat'):
         return obj.isoformat()
     else:
-        return obj 
+        return obj
 
 def as_json(obj):
     return json.dumps(obj,sort_keys=True,indent=4,default=jsonhandler)
@@ -45,7 +45,7 @@ def abspath(fn):
 
 config =  { '/': {
                     'tools.staticdir.root' : abspath('.'),
-                    
+
                   },
             '/media': {
                        'tools.staticdir.on': True,
@@ -89,8 +89,8 @@ def mimetype(type):
 
 def setmime(type):
     cherrypy.response.headers['Content-Type'] = type
-    
-    
+
+
 loader = TemplateLoader(abspath('templates'),
                             auto_reload=True)
 
@@ -116,7 +116,7 @@ def formatdate(t=None):
     except:
         return None
 def formattime(t,showseconds=True):
-    
+
     try:
         return t.strftime('%H:%M:%S' if showseconds else '%H:%M')
     except:
@@ -157,8 +157,8 @@ def abbrtext(s,maxlen=50):
         return ''
 def user():
     return cherrypy.request.login
-    
-    
+
+
 class Renderer(object):
     def __init__(self):
         self.functions = {'attrcheck' : attrcheck,
@@ -174,7 +174,7 @@ class Renderer(object):
                           'users': auth.users,
                           'is_member': auth.is_member,
                           'bool2js' : lambda b : str(b).lower(),
-                          'markdown' : markdown, 
+                          'markdown' : markdown,
                           'as_json' : as_json,
                           'abbrtext' : abbrtext
                           }
@@ -203,7 +203,7 @@ class httpServer(threading.Thread):
     def run(self):
         self.server = cherrypy.quickstart(root=self.root,config=self.config)
     def __init__(self,root,config=config,autoreload=False):
-        cherrypy.config.update({"engine.autoreload_on":autoreload})
+        cherrypy.config.update({"engine.autoreload.on":autoreload})
         super(httpServer,self).__init__()
         self.server=None
         self.root = root
@@ -212,7 +212,7 @@ class httpServer(threading.Thread):
         self.daemon = True
         self.start()
 
-       
+
 
 def conv(cls,s,default=None):
     if cls is datetime:
@@ -225,7 +225,7 @@ def conv(cls,s,default=None):
 
 
 def start_server(root,autoreload=False, port=8080):
-    cherrypy.config.update({"engine.autoreload_on":autoreload})
+    cherrypy.config.update({"engine.autoreload.on":autoreload})
     cherrypy.config["tools.encode.encoding"] = "utf-8"
     cherrypy.config["tools.encode.on"] = True
     cherrypy.config["tools.encode.decode"] = True
@@ -233,5 +233,15 @@ def start_server(root,autoreload=False, port=8080):
     cherrypy.server.socket_host="0.0.0.0"
     cherrypy.server.socket_port=port
     cherrypy.quickstart(root=root,config=config)
-      
-         
+
+def is_selected(a1, a2):
+    """
+    Helper function to compare two access_levels and return "selected" if true
+    :param a1: access_level 1
+    :param a2: access_level 2
+    :return: String "selected" if a1 and a2 are equal
+    """
+
+    if a1 == a2:
+        return {'selected': 'isSelected'}
+    return ""

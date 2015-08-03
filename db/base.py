@@ -12,6 +12,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from cStringIO import StringIO
 import os.path as op
 
+
 def abspath(fn):
     "Returns the absolute path to the relative filename fn"
     basepath = op.abspath(op.dirname(__file__))
@@ -31,7 +32,13 @@ def connect():
     import psycopg2
     return psycopg2.connect(user='schwingbach-user',host='fb09-pasig.umwelt.uni-giessen.de',password='VK1:SB0',
                             database='schwingbach')
-engine = sql.create_engine('postgresql://',creator=connect)
+#engine = sql.create_engine('postgresql://',creator=connect)
+
+createTables = op.exists('./file.db')
+
+from sqlite3 import dbapi2 as sqlite
+#engine = sql.create_engine('sqlite+pysqlite:///file.db', module=sqlite)
+engine = sql.create_engine('sqlite:///file.db')
 Session = orm.sessionmaker(bind=engine)
 scoped_session = orm.scoped_session(Session)
 #Session.__exit__ = Session.close
@@ -53,20 +60,24 @@ class Base(object):
         args = '(%s)' % ', '.join(formats(reprs()))
         classy = type(self).__name__
         return "<%s%s>" % (classy,args)
+
     def session(self):
         return Session.object_session(self)
+
     @classmethod
     def query(cls,session):
         return session.query(cls)
-    @classmethod
-    def get(cls,session,id):
-        return session.query(cls).get(id)
-        
 
-Base = declarative_base(cls=Base)
-metadata=Base.metadata
+    @classmethod
+    def get(cls, session, id):
+        return session.query(cls).get(id)
+
+Base = declarative_base()
+metadata = Base.metadata
 
 def primarykey():
-    return sql.Column(sql.Integer,primary_key=True)
+    return sql.Column(sql.Integer, primary_key=True)
 def stringcol():
     return sql.Column(sql.String)
+
+
