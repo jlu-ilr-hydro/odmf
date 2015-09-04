@@ -1,0 +1,36 @@
+==User permissions==
+
+Inheritance for the levels applies from the bottom to the top
+
+===Edit-View===
+
+* Admin
+
+  ** Change the password of all users
+
+  ** Make user "active" or "inactive"
+
+  ** Change user access levels (1, 2, 3, 4)
+
+  ** Create a new user (1, 2, 3, 4)
+
+* Supervisor
+
+  ** Create a new user (1, 2)
+
+  ** Change user access levels (1, 2)
+
+  ** Change other comments (and own), supervised_by, access_level (1, 2)
+
+* Editor
+
+  ** 
+
+* Logger (root privileges)
+
+  ** Change own first name, surename, e-mail, phone, mobile,
+
+  ** Change own password
+
+* Guest
+
