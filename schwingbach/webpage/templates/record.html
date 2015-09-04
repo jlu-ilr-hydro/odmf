@@ -45,33 +45,46 @@
 		}
 	</script>
 	<div class="small">
-		<div class="small" py:content="'%s/%s records' % (currentcount,totalrecords)"/>
+		<div class="small">
+            <span />
+            <span style="position: relative; right:0px;">
+                
+            </span>
+        </div>
 		<table>
-			<thead class="box">
+			<thead>
+                <tr style="font-weight: normal;" class="small">
+                    <td/>
+                    <td py:content="'%s/%s records' % (currentcount,totalrecords)"/>
+                    
+                    <td/><td/><td/><td/><td/>
+                    <td>
+                        <button onclick="checkall()">check all</button>
+                    </td>
+                    <td>
+                        <button onclick="commit_errors()">commit errors</button>
+                    </td>
+                </tr>
 				<tr class="record box" >
 					<th>ID</th>
 					<th>time</th>
-					<th>value</th>
+					<th>raw value</th>
+					<th> </th>
+					<th>calib. value</th>
 					<th> </th>
 					<th>comment</th>
 					<th>error?</th>
 					<th py:if="action" >
 					</th>
 				</tr>
-				<tr>
-					<th/><th/><th/><th/>
-					<th></th>
-					<th><button onclick="checkall()">all</button></th>
-					<th py:if="action">
-					</th>
-
-				</tr>
 			</thead>
 			<tbody>
 				<tr py:for="rec in records">
 					<td class="record number" py:content="rec.id" />
 					<td class="record str" py:content="formatdatetime(rec.time)" />
-					<td class="record number" py:content="'%g' % rec.value if rec.value else 'N/A'" />
+					<td class="record number" py:content="'%0.4g' % rec.value if rec.value else 'N/A'" />
+					<td class="record str" py:content="rec.dataset.valuetype.unit" />
+					<td class="record number" py:content="'%0.4g' % rec.calibrated if rec.value else 'N/A'" />
 					<td class="record str" py:content="rec.dataset.valuetype.unit" />
 					<td class="record str small" py:content="abbrtext(rec.comment,100)"/> 
 					<td class="record" style="text-align: center;">
@@ -97,7 +110,6 @@
 				<tr>
 					<td /><td /><td /><td /><td />
 					<td>
-						<button onclick="commit_errors()">commit</button>
 					</td>
 				</tr>
 			</tfoot>
