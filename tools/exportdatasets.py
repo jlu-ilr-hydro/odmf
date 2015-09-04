@@ -91,7 +91,7 @@ def exportData(fout,datasetids,start=None,end=None,tolerance=60):
         columnnames=['time'] + ['%s at #%i%s' % (vtnames[c[0]],c[1],'(%gm)' % c[2] if not c[2] is None else '') for c in columnset]
         
         # Query records
-        records = session.query(db.Record).filter(db.Record._dataset.in_(sorted(datasetdict))).order_by(db.Record.time).filter(~Record.is_error)
+        records = session.query(db.Record).filter(db.Record._dataset.in_(sorted(datasetdict))).order_by(db.Record.time).filter(~db.Record.is_error)
         if start:
             records = records.filter(db.Record.time>=start)
         if end:
