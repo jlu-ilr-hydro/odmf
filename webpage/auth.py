@@ -130,7 +130,7 @@ class Users(collections.Mapping):
     def load(self):
         session = db.Session()
 
-        q = session.query(db.Person).filter(db.Person.active == 1)
+        q = session.query(db.Person).filter(db.Person.active == True)
 
         self.dict = {}
         allpersons = q.all()

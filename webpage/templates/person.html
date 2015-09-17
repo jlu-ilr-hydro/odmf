@@ -151,7 +151,7 @@
 								<option py:for="value in levels(users.current.level)"
 										py:content="value[0]"
 										value="${value[1]}"
-										py:attrs="markoption(value[1] == active_person.access_level)"/>
+										py:attrs="markoption(str(value[1]) == str(active_person.access_level))"/>
 							</select>
 						</td>
 						<td py:if="(act_user != 'new' and not is_member('supervisor') or is_self(active_person.username)) or active_person.access_level == '0'">
