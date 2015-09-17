@@ -32,13 +32,13 @@ def connect():
     import psycopg2
     return psycopg2.connect(user='schwingbach-user',host='fb09-pasig.umwelt.uni-giessen.de',password='VK1:SB0',
                             database='schwingbach')
-#engine = sql.create_engine('postgresql://',creator=connect)
+engine = sql.create_engine('postgresql://',creator=connect)
 
-createTables = op.exists('./file.db')
+#createTables = op.exists('./file.db')
 
-from sqlite3 import dbapi2 as sqlite
+#from sqlite3 import dbapi2 as sqlite
 #engine = sql.create_engine('sqlite+pysqlite:///file.db', module=sqlite)
-engine = sql.create_engine('sqlite:///file.db')
+#engine = sql.create_engine('sqlite:///file.db')
 Session = orm.sessionmaker(bind=engine)
 scoped_session = orm.scoped_session(Session)
 #Session.__exit__ = Session.close
@@ -72,7 +72,7 @@ class Base(object):
     def get(cls, session, id):
         return session.query(cls).get(id)
 
-Base = declarative_base()
+Base = declarative_base(cls=Base)
 metadata = Base.metadata
 
 def primarykey():
