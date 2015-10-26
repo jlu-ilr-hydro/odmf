@@ -115,8 +115,11 @@ class TextImportDescription:
         self.instrument=int(instrument)
         self.skiplines=skiplines
         self.delimiter=delimiter
+        # Replace space and tab keywords
         if self.delimiter.upper()=='TAB':
             self.delimiter='\t'
+        elif self.delimiter.upper()=='SPACE':
+            self.delimiter = ' '
         self.decimalpoint=decimalpoint
         self.dateformat=dateformat
         self.filename=''
@@ -149,7 +152,8 @@ class TextImportDescription:
         config.add_section(section)
         config.set(section,'instrument',self.instrument)
         config.set(section,'skiplines',self.skiplines)
-        config.set(section,'delimiter','TAB' if self.delimiter=='\t' else self.delimiter)
+        # Replace space and tab by keywords
+        config.set(section,'delimiter',{' ':'SPACE','\t':'TAB'}.get(self.delimiter,self.delimiter))
         config.set(section,'decimalpoint',self.decimalpoint)
         config.set(section,'dateformat',self.dateformat)
         config.set(section,'datecolumns',str(self.datecolumns).strip('(), '))
@@ -312,8 +316,8 @@ class TextImport(ImportAdapter):
                         # Shortcut to column number
                         k=col.column
                         try:
-                            # get raw value of column
-                            raw[k] = float(ls[k])
+                            # get raw value of column using the parsefloat function
+                            raw[k] = self.parsefloat(ls[k])
                             # check if raw value is out of bounds
                             if outofrange(col,raw[k]):
                                 raw[k]=None

@@ -121,7 +121,10 @@
 					</form>    			
     		</li>
     		<li py:for="f in directories">
-    			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" />
+    			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" /> 
+    			<span class="box" py:if="is_member('admin')">
+						
+    			</span>
     		</li>
     	</ul> 
     	<ul style="list-style: none;padding-left: 0px;">
