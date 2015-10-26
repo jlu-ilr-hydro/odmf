@@ -40,7 +40,7 @@ class PersonPage:
         jobs=[]
         act_user = act_user or users.current.name
         if act_user == 'new':
-            p_act = db.Person()
+            p_act = db.Person(active=True)
         else:
             try:
                 p_act = session.query(db.Person).get(act_user)

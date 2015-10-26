@@ -41,7 +41,6 @@ engine = sql.create_engine('postgresql://',creator=connect)
 #engine = sql.create_engine('sqlite:///file.db')
 Session = orm.sessionmaker(bind=engine)
 scoped_session = orm.scoped_session(Session)
-#Session.__exit__ = Session.close
         
 class Base(object):
     """Hooks into SQLAlchemy's magic to make :meth:`__repr__`s."""

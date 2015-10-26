@@ -34,19 +34,6 @@ class DBImportPage(object):
                               logs=logs,cancommit=cancommit,
                               error='').render('html',doctype='html')
         
-    def datasetimport(self,filename,kwargs):
-        import dataimport.importlog as il
-        absfile = web.abspath(filename.strip('/'))
-        path=Path(absfile)
-        ri = il.RecordImport(absfile,web.user())
-        logs,cancommit = ri('commit' in kwargs)
-        if 'commit' in kwargs and cancommit:
-            raise web.HTTPRedirect('/download?dir=' + escape(path.up()))
-        else:
-            return web.render('logimport.html',filename=path,
-                              logs=logs,cancommit=cancommit,
-                              error='').render('html',doctype='html')
-    
     def instrumentimport(self,filename,kwargs):
         path = Path(web.abspath(filename.strip('/')))
         import dataimport as di
@@ -90,9 +77,6 @@ class DBImportPage(object):
         # If the file ends with log.xls, import as log list
         if filename.endswith('log.xls'):
             return self.logimport(filename, kwargs)
-        # if the file starts with dataset-, import as single dataset
-        elif 'dataset-' in filename:
-            return self.datasetimport(filename, kwargs)
         # else import as instrument file
         else:
             return self.instrumentimport(filename, kwargs)
@@ -199,6 +183,17 @@ class DownloadPage(object):
                 ls = l.split(',',3)
                 io.write(' * file:%s/%s imported by user:%s at %s into %s\n' % tuple([imphist.up()]+ls))
         return web.markdown(io.getvalue())
+    @expose_for(group.admin)
+    def removefile(self,link):
+        path = Path(op.join(datapath,link))
+        if path.exists():
+            try:
+                os.remove(path.absolute)
+            except:
+                return "Could not delete the file. A good reason would be a mismatch of user rights on the server file system" 
+            return None
+        else:
+            return "File not found. Is it already deleted?"
 if __name__=='__main__':
     class Root:
         download=DownloadPage()

@@ -1,6 +1,8 @@
 '''
 Created on 24.07.2012
 
+@TODO: Check dependencies and delete this module 
+@deprecated: 
 @author: philkraf
 '''
 from __future__ import division

@@ -131,7 +131,7 @@ class Person(Base):
     car_available=sql.Column(sql.Integer,default=0)
     password = sql.Column(sql.VARCHAR)
     access_level = sql.Column(sql.INTEGER)
-    active = sql.Column(sql.Boolean, default=True)
+    active = sql.Column(sql.Boolean, default=True, nullable=False)
 
     def __str__(self):
         return "%s %s" % (self.firstname,self.surname)

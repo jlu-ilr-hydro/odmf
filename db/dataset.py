@@ -154,7 +154,16 @@ class Dataset(Base):
         return self.type=='geodataset'
     @property
     def tzinfo(self):
-        return tzberlin if self.uses_dst else tzwinter
+        if False: # TODO: Change uses_dst to char-field timezone
+            if self.timezone in pytz.common_timezones:
+                return pytz.timezone(self.timezone) 
+            elif self.timezone.startswith('Fixed/'):
+                return pytz.FixedOffset(int(self.timezone.split('/')[1]))
+            else:
+                return pytz.utc
+        else:
+            return tzberlin if self.uses_dst else tzwinter
+        
     def localizetime(self,time):
         return self.tzinfo.localize(time)
     def copy(self,id):

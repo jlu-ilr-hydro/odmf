@@ -3,6 +3,8 @@
 """
 Created on Jun 28, 2012
 @author: Philipp Kraft
+@deprecated: Check if called somewhere, but should be deleted 
+@TODO
 """
 
 from __future__ import division
