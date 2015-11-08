@@ -8,16 +8,14 @@ The import is performed by the class TextImport, derived from ImportAdapter.
 The file format is described in the TextImportDescription, an saved in a config file.
 '''
 import db
-from configparser import RawConfigParser
 from glob import glob
 import os
 import os.path as op
-import sys
-from base import ImportAdapter, ImportStat
-from datetime import datetime,timedelta
-from traceback import format_exc as traceback
+from configparser import RawConfigParser
 from cStringIO import StringIO
-    
+
+from base import AbstractImport
+
 class TextImportColumn:
     """Describes the content of a column in a delimited text file"""
     def __init__(self,column,name,valuetype,factor=1.0,comment=None,
@@ -211,7 +209,7 @@ class TextImportDescription:
         return descr
        
     
-class TextImport(ImportAdapter):
+class TextImport(AbstractImport):
     """
     This class imports tabular text files (eg. CSV) to the database, using a config file. The config file 
     describes the format and gives necessary meta data, as the instrument, and the value types of the columns.
@@ -228,57 +226,12 @@ class TextImport(ImportAdapter):
         startdate: Beginning of the import period
         enddate:   End of the import period
         """
-        ImportAdapter.__init__(self,filename,user,siteid,instrumentid,startdate,enddate)
+        AbstractImport.__init__(self,filename,user,siteid,instrumentid,startdate,enddate)
         self.descriptor = TextImportDescription.from_file(self.filename)
         self.instrumentid = self.descriptor.instrument
         self.commitinterval = 10000
         self.datasets={}
-    def parsedate(self,timestr):
-        """
-        Parses a datestring according to the format given in the description.
-        The description should either be a valid python formatstring, like %Y/%m/%d %H:%M
-        or "excel" to parse float values as in excel to a date. 
-        """
-        if self.descriptor.dateformat.lower() == 'excel':
-            t0 = datetime(1899,12,30)
-            timestr=timestr.split()
-            if len(timestr) == 1:
-                timefloat = float(timestr[0])
-                days = int(timefloat)
-                seconds = round((timefloat % 1) * 86400)
-                return t0 + timedelta(days=days,seconds=seconds)
-            elif len(timestr) == 2:
-                days = int(timestr[0])
-                seconds = round((float(timestr[1]) % 1) * 86400)
-                return t0 + timedelta(days=days,seconds=seconds)
-        else:
-            return datetime.strptime(timestr,self.descriptor.dateformat)
-    def parsefloat(self,s):
-        """
-        parses a string to float, using the decimal point from the descriptor
-        """
-        s.replace(self.descriptor.decimalpoint,'.')
-        return float(s)
-    
-    def createdatasets(self,comment='',verbose=False):
-        """
-        Creates the datasets according to the descriptor
-        """
-        session=db.Session()
-        inst = session.query(db.Datasource).get(self.instrumentid)
-        user=session.query(db.Person).get(self.user)
-        site=session.query(db.Site).get(self.siteid)
-        raw = session.query(db.Quality).get(0)
-        for col in self.descriptor.columns:
-            vt = session.query(db.ValueType).get(col.valuetype)
-            id = db.newid(db.Dataset,session)
-            ds = db.Timeseries(id=id,measured_by=user,valuetype=vt,site=site,name=col.name,
-                            filename=self.filename,comment=col.comment,source=inst,quality=raw,
-                            start=self.startdate,end=datetime.today(),level=col.level,
-                            access=col.access if not col.access is None else 1)
-            self.datasets[col.column] = ds.id
-        session.commit()
-        session.close()
+
     def loadvalues(self):
         """
         Generator function, yields the values from the file as 
@@ -341,79 +294,23 @@ class TextImport(ImportAdapter):
                         yield res
             except Exception as e:
                 # Write the error message to the errorstream and go to the next line
-                self.errorstream.write('%s:%i: %s\n' % (os.path.basename(self.filename),lineno + self.descriptor.skiplines,e))
 
-    def get_statistic(self):
-        """
-        Returns a column name - ImportStat dictionary with the statistics for each import column
-        """
-        stats=dict((col.column,ImportStat()) for col in self.descriptor.columns)
-        for d in self.loadvalues():
-            for col in self.descriptor.columns:
-                k=col.column
-                if not d[k] is None:
-                    stats[k].sum += d[k]
-                    stats[k].max = max(stats[k].max,d[k])
-                    stats[k].min = min(stats[k].min,d[k])
-                    stats[k].n += 1
-                    stats[k].start = min(d['d'],stats[k].start)
-                    stats[k].end = max(d['d'],stats[k].end)
-        return dict((col.name,stats[col.column]) for col in self.descriptor.columns)
-    # Use sqlalchemy.core for better performance
-    def raw_commit(self,records):
-        "Commits the records to the Record table, and clears the records-lists"
-        for k,rec in records.iteritems():
-            if rec:
-                db.engine.execute(db.Record.__table__.insert(),rec)
-        # Return a dict like records, but with empty lists
-        return dict((r,[]) for r in records)
-             
-    def submit(self):     
-        """
-        Submits the data from the columns of the textfile (using loadvalues) to the database, using raw_commit
-        """
-        session = db.Session()
-        # Get the dataset objects for the columns
-        datasets={}
-        for k in self.datasets:
-            datasets[k] = db.Dataset.get(session,self.datasets[k])
-        # A dict to hold the current record id for each column k
-        newid = lambda k: (session.query(db.sql.func.max(db.Record.id)).filter(db.Record._dataset==datasets[k].id).scalar() or 0)+1
-        recid=dict((k,newid(k)) for k in self.datasets)
-        # A dict to cache the value entries for committing for each column k
-        records=dict((k,[]) for k in self.datasets)
-        try:
-            # Loop through all values
-            for i,d in enumerate(self.loadvalues()):
-                # Get time of record
-                t = d['d']
-                
-                # Loop through columns
-                for col in self.descriptor.columns:
-                    k = col.column
-                    # If there is a value for column k
-                    if not d[k] is None:
-                        records[k].append(dict(dataset=datasets[k].id,id=recid[k],time=t,value=d[k]))
-                        # Next id for column k
-                        recid[k]+=1
-                # To protected the memory, commit every 10000 items
-                if (i+1) % self.commitinterval == 0:
-                    records=self.raw_commit(records)
-            # Commit remaining records
-            records=self.raw_commit(records)
-            # Update start and end of the datasets
-            for k,ds in datasets.iteritems():
-                ds.start = session.query(db.sql.func.min(db.Record.time)).filter_by(dataset=ds).scalar()
-                ds.end = session.query(db.sql.func.max(db.Record.time)).filter_by(dataset=ds).scalar()
-            # Commit changes to the session
-            session.commit()
+                # After a reported bug #1025
+                # For the line with errorstream.write raising IOError
+                # Few researches shows that only the stream.write can raise such
+                # an error
+                # https://docs.python.org/2/library/io.html#io.IOBase.writable
 
-        except:
-            # Something wrong? Write to error stream
-            self.errorstream.write(traceback())
-            session.rollback()
-        finally:
-            session.close()
+                # But isn't really a final solution
+                if self.errorstream.writable():
+                    self.errorstream.write('%s:%i: %s\n' % (os.path.basename(self.filename),lineno + self.descriptor.skiplines,e))
+                else:
+                    print '%s:%i: %s\n' % (os.path.basename(self.filename),lineno + self.descriptor.skiplines,e)
+
+    @staticmethod
+    def extension_fits_to(filename):
+        return True
+
 
 # Just for debugging
 if __name__=='__main__':

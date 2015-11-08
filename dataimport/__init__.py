@@ -6,23 +6,33 @@ Created on 13.07.2012
 '''
 
 import base
-import importpressure as _ip
-import importclimate as _ic
+import os.path
+#import importpressure as _ip
+#import importclimate as _ic
 import db
 import textimport as _ti
+import xls as _xl
 from base import finddateGaps, findStartDate, savetoimports, checkimport
-_adapters = {1 : _ip.OdysseyImport,
-             2:  _ip.DiverImport,
-             19: _ic.ClimateImporterDat,
-             None: _ti.TextImport
-             }
-def get_adapter(filename, user, siteid, instrumentid, startdate=None,enddate=None):
-    adapterClass = _adapters.get(instrumentid)
-    if adapterClass:
-        adapter = adapterClass(filename, user, siteid, instrumentid, startdate, enddate)
-        return adapter
-    else:
-        raise RuntimeError("No adapter available for intrument %i", instrumentid)
+
+# This list hast to be a 'python-list' since the order or the adapters is
+# necessary for the implementation
+_adapters = [
+    _xl.XlsImport,  # xls files
+    _ti.TextImport  # default
+    ]
+
+def get_adapter(filename, user, siteid, instrumentid, startdate=None,
+                enddate=None):
+
+    for adapter in _adapters:
+        if adapter.extension_fits_to(filename):
+            print "[LOG] - Using %s for importing" % adapter.__name__
+            return adapter(filename, user, siteid, instrumentid, startdate,
+                           enddate)
+
+    raise RuntimeError("No adapter available for file extension ", instrumentid)
+
+# TODO: Ist das jetzt so noch aktuell?
 def available_adapters():
     session = db.Session()
     q=session.query(db.Datasource).filter(db.Datasource.id.in_(_adapters.keys()))
