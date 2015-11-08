@@ -1,13 +1,36 @@
-import os.path.basename
-from textimport import TextImport
 import xlrd
+from os.path import basename, splitext
+from datetime import datetime, timedelta
 
-import importxls
-from datetime import datetime
+from base import AbstractImport
+from textimport import TextImportDescription
 
-class XlsImport (TextImport):
+class XlsImport (AbstractImport):
+    """ Special class for importing xls files. """
+    def __init__(self, filename, user, siteid, instrumentid=None,
+                 startdate=None,enddate=None):
+        AbstractImport.__init__(self, filename, user, siteid, instrumentid,
+                                startdate, enddate)
+        self.descriptor = TextImportDescription.from_file(self.filename)
+        self.instrumentid = self.descriptor.instrument
+        self.commitinterval = 10000
+        self.datasets={}
 
     def loadvalues(self):
+        """
+        Generator function, yields the values from the file as
+        a dictionary for each import column
+        """
+
+        # There are 4 kinds of date columns in an excel sheet:
+        #
+        #  1 column:
+        #    -> with excel date type
+        #    -> with date as text
+        #
+        #  2 columns:
+        #    -> with excel date type
+        #    -> with date as text
 
         # Document date types to decide only once what date type the document has
         DOCUMENT_DATETYPE_DATE_1C = 0
@@ -21,15 +44,45 @@ class XlsImport (TextImport):
         DATETYPE_TIME_AT_COL2 = 1
 
         # Helper Functions
+        def get_time(date, time, t0=datetime(1899, 12, 30)):
+            """
+            Parses the datetime from a date and time float value from an excel
+            sheet
+
+            :param date: float value
+            :param time: float value
+            :param t0: datetime object where the computation of time should
+                       begin
+            :return: datetime object
+            """
+            if not time:
+                return t0 + timedelta(date)
+            else:
+                if time > 1.000001:
+                    time -= int(time)
+                    date = int(date)
+                    return t0 + timedelta(date+time)
+
         def intime(time):
-            "Checks if time is between startdate and enddate"
+            """
+            Checks if time is between startdate and enddate
+
+            :param time:
+            :return:
+            """
             return ((not self.startdate) or time >= self.startdate) and \
                    ((not self.enddate) or time <= self.enddate)
 
-        def inrange(d,v):
-            "Tests if the value is inside the boundaries given by the column \
-            description"
-            return d.minvalue <= v <= d.maxvalue
+        def inrange(desc, value):
+            """
+            Tests if the value is inside the boundaries given by the column
+            description
+
+            :param desc:
+            :param value:
+            :return:
+            """
+            return desc.minvalue <= value <= desc.maxvalue
 
         def determine_date(datetype, datepos, row, date_cols):
             """
@@ -42,7 +95,7 @@ class XlsImport (TextImport):
             :return: datetime object
             """
             if datetype == DOCUMENT_DATETYPE_DATE_1C:
-                return importxls.get_time(row[date_cols[0]].value,None)
+                return get_time(row[date_cols[0]].value,None)
                 #d = xlrd.xldate_as_tuple(
                 #    row[date_cols[0]], sheet.datemode)
                 #d = datetime(d[2], d[1], d[0])
@@ -52,10 +105,10 @@ class XlsImport (TextImport):
             elif datetype == DOCUMENT_DATETYPE_DATE_2C:
                 # TODO: Philipp nachfragen, reicht ein vergleich kleiner 0 groesser 0
                 if datepos == DATETYPE_TIME_AT_COL1:
-                    return importxls.get_time(row[date_cols[1]].value,
+                    return get_time(row[date_cols[1]].value,
                                            row[date_cols[0]].value)
                 elif datepos == DATETYPE_TIME_AT_COL2:
-                    return importxls.get_time(row[date_cols[0]].value,
+                    return get_time(row[date_cols[0]].value,
                                            row[date_cols[1]].value)
             elif datetype == DOCUMENT_DATETYPE_TEXT_2C:
                     return datetime.strptime(row[date_cols[0]] +
@@ -136,12 +189,12 @@ class XlsImport (TextImport):
                 self.errorstream.write("ERROR: Please make sure there is a "
                                        "sheet. Xls file '%s' has no sheet "
                                        "specified !\n"
-                                       % os.path.basename(self.filename))
+                                       % basename(self.filename))
                 # Stops the generator - see PEP 380
                 # https://www.python.org/dev/peps/pep-0380/
                 raise StopIteration("ERROR: Please make sure there is a sheet."
                                     " Xls file '%s' has no sheet specified !\n"
-                                    % os.path.basename(self.filename))
+                                    % basename(self.filename))
             else:
                 sheet = fin.sheet_by_index(0)
                 self.errorstream.write("WARNING: xls file with more than one "
@@ -185,16 +238,6 @@ class XlsImport (TextImport):
                 hasval = False
 
                 # Check the date and get it into result object
-                # There are 4 kinds of date columns in an excel sheet:
-                #
-                #  1 column:
-                #    -> with excel date type
-                #    -> with date as text
-                #
-                #  2 columns:
-                #    -> with excel date type
-                #    -> with date as text
-
                 if date_cols:
                     # Even if the else branch is most likely always executed
                     # first the if branch is used even more. So i decided to
@@ -261,3 +304,13 @@ class XlsImport (TextImport):
                   "  ->\tNot_intime:\t%d\n" % (stats['total_rows'],
                                                stats['not_inrange'],
                                                stats['not_intime'])
+
+    @staticmethod
+    def extension_fits_to(filename):
+        """
+
+        :param filename:
+        :return:
+        """
+        name, ext = splitext(filename)
+        return ext.lower() == '.xls'
