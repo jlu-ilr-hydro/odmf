@@ -55,19 +55,26 @@ class DBImportPage(object):
         if siteid and (instrumentid or config):
             absfile = web.abspath(filename.strip('/'))
             if 'loadstat' in kwargs:
-                stats = di.importfilestats(absfile, web.user(), siteid, instrumentid, startdate, enddate)
+                stats = di.importfilestats(absfile, web.user(), siteid,
+                                           instrumentid, startdate, enddate)
                 startdate = min(v.start for v in stats.itervalues())
                 enddate = max(v.end for v in stats.itervalues())
             if 'importdb' in kwargs and startdate and enddate:
                 gaps=None
-                datasets=di.importfile(absfile, web.user(), siteid, instrumentid, startdate, enddate)
+                datasets = di.importfile(absfile, web.user(), siteid,
+                                         instrumentid, startdate, enddate)
             else:
-                gaps = di.finddateGaps(siteid, instrumentid, startdate, enddate) 
-                    
+                gaps = di.finddateGaps(siteid, instrumentid, startdate, enddate)
 
-       
-        return web.render('dbimport.html',di=di,error=error,filename=filename,instrumentid=instrumentid,dirlink=path.up(),
-                          siteid=siteid,gaps=gaps,stats=stats,datasets=datasets,config=config).render('html',doctype='html')
+        #import sys
+        #if sys.stderr is not None:
+        #    error = sys.stderr
+
+        return web.render('dbimport.html', di=di, error=error,
+                          filename=filename, instrumentid=instrumentid,
+                          dirlink=path.up(), siteid=siteid, gaps=gaps,
+                          stats=stats, datasets=datasets, config=config)\
+            .render('html', doctype='html')
 
     @expose_for(group.editor)
     def index(self,filename=None,**kwargs):
@@ -198,6 +205,3 @@ if __name__=='__main__':
     class Root:
         download=DownloadPage()
     web.start_server(Root(), autoreload=False, port=8081)
-
-        
-        
