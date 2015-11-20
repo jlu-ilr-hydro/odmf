@@ -12,6 +12,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from cStringIO import StringIO
 import os.path as op
 
+from contextlib import contextmanager
+
 
 def abspath(fn):
     "Returns the absolute path to the relative filename fn"
@@ -31,8 +33,30 @@ def newid(cls,session=None):
 def connect():
     import psycopg2
     return psycopg2.connect(user='schwingbach-user',host='fb09-pasig.umwelt.uni-giessen.de',password='VK1:SB0',
-                            database='schwingbach')
+    #return psycopg2.connect(user='schwingbach-user',host='localhost',password='1234',
+                            database='schwingbachcopy')
+
+@contextmanager
+def session_scope():
+    """
+    Provide a transactional scope around a series of operations.
+
+    See for more information
+     http://docs.sqlalchemy.org/en/rel_1_0/orm/session_basics.html#when-do-i-con
+     struct-a-session-when-do-i-commit-it-and-when-do-i-close-it
+    """
+    session = Session()
+    try:
+        yield session
+        session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
 engine = sql.create_engine('postgresql://',creator=connect)
+
 
 #createTables = op.exists('./file.db')
 

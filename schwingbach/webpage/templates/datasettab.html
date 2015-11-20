@@ -400,6 +400,17 @@
 								</select>
 							</td>
 						</tr>
+						<tr>
+							<td>
+								Project
+							</td>
+							<td>
+								<select name="project">
+									<option value="" >No Project</option>
+									<option value="${p.id}" py:for="p in projects" py:content="p.name" py:attrs="markoption(p.id == activedataset.project)"></option>
+								</select>
+							</td>
+						</tr>
 						<tr py:if="activedataset.is_timeseries()">
 							<td>
 								<a href="/dataset/calibration?targetid=${activedataset.id}">Calibrate</a>: 

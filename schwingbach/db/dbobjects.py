@@ -412,7 +412,8 @@ class Project(Base):
     __tablename__ = 'project'
 
     id = sql.Column(sql.Integer, primary_key=True)
-    _person_responsible = sql.Column('person', sql.String, sql.ForeignKey('person.username'))
+    _person_responsible = sql.Column('person_responsible', sql.String,
+                                     sql.ForeignKey('person.username'))
     person_responsible = sql.orm.relationship("Person", primaryjoin='Project._person_responsible==Person.username')
     name = sql.Column(sql.String)
     comment = sql.Column(sql.String)

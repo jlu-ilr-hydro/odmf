@@ -15,6 +15,7 @@ from configparser import RawConfigParser
 from cStringIO import StringIO
 
 from base import AbstractImport
+import conf
 
 class TextImportColumn:
     """Describes the content of a column in a delimited text file"""
@@ -102,7 +103,9 @@ class TextImportDescription:
     Describes the file format and content of a delimited text file for
     import to the database.
     """
-    def __init__(self,instrument,skiplines=0,delimiter=',',decimalpoint='.',dateformat='%d/%m/%Y %H:%M:%S',datecolumns=(0,1)):
+    def __init__(self, instrument, skiplines=0, delimiter=',', decimalpoint='.',
+                 dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
+                 timezone=conf.CFG_DATETIME_DEFAULT_TIMEZONE, project=None):
         """
         instrument: the database id of the instrument that produced this file
         skiplines: The number of lines prepending the actual data
@@ -126,6 +129,11 @@ class TextImportDescription:
         except:
             self.datecolumns=datecolumns, 
         self.columns=[]
+
+        # New added for feature
+        self.timezone = timezone  # Timezone for the dataset
+        self.project = project  # Project for the dataset
+
     def __str__(self):
         io=StringIO()
         self.to_config().write(io)

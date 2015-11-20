@@ -18,6 +18,9 @@ tzberlin = pytz.timezone('Europe/Berlin')
 tzwinter = pytz.FixedOffset(60)
 tzutc = pytz.utc
 import numpy as np
+
+import conf
+
 class Quality(Base):
     """Denotes the data quality of measurements, from raw to calibrated.
     id: numeric key to the dataquality
@@ -117,7 +120,10 @@ class Dataset(Base):
     uses_dst=sql.Column(sql.Boolean,default=False,nullable=False)
     __mapper_args__ = dict(polymorphic_identity=None,
                            polymorphic_on=type)
-    access = sql.Column(sql.Integer,default=1,nullable=False) 
+    access = sql.Column(sql.Integer,default=1,nullable=False)
+
+    timezone = sql.Column(sql.String, default=conf.CFG_DATETIME_DEFAULT_TIMEZONE)
+    project = sql.Column(sql.Integer, sql.ForeignKey('project.id'), nullable=True)
     def __unicode__(self):
         return (u'ds%(id)03i: %(valuetype)s at site #%(site)s %(level)s with %(instrument)s (%(start)s-%(end)s)' % 
                dict(id=self.id,

@@ -731,6 +731,204 @@ class Wiki(object):
         except:
             return 'err:' + traceback()
         return ''
+class ProjectPage:
+    exposed=True
+
+    @expose_for(group.logger)
+    def default(self, project_id=None):
+
+        res = None
+
+        with db.session_scope() as session:
+
+            if project_id is not None and str(project_id).isdigit():
+                project_from_id = session.query(db.Project).get(project_id)
+
+                if project_from_id is None:
+
+                    error = 'This id has no project'
+                    res = self.render_projects(error)
+
+                else:
+                    persons = session.query(db.Person)
+                    persons = persons.filter(db.Person.access_level > 3)
+
+                    # TODO: Get this running
+                    #stats = self.get_stats(project_from_id, session)
+
+                    error=''
+
+                    res = web.render('project_from_id.html', project=project_from_id,
+                                     persons=persons, error=error) \
+                        .render('html', doctype='html')
+            elif project_id is None:
+
+                res = self.render_projects(session)
+
+            else:
+                raise web.HTTPRedirect('/project?error=This id is wrong')
+
+        return res
+
+    @expose_for(group.supervisor)
+    def add(self):
+        session = db.Session()
+
+        persons = session.query(db.Person)
+        persons = persons.filter(db.Person.access_level > 3)
+
+        error = ''
+
+        res = web.render('project_new.html', persons=persons, error=error) \
+            .render('html', doctype='html')
+
+        session.close()
+
+        return res
+
+    @expose_for(group.supervisor)
+    def save(self, **kwargs):
+
+        name = kwargs.get('name')#.encode(encoding='utf-8', errors='xmlcharrefreplace')
+        person = kwargs.get('person')#.encode(encoding='utf-8', errors='xmlcharrefreplace')
+        comment = kwargs.get('comment')#.encode(encoding='utf-8', errors='xmlcharrefreplace')
+
+        if name is None or person is None:
+            raise web.HTTPRedirect('/project/add?error=Not all form fields were set')
+
+        session = db.Session()
+
+        person = db.Person.get(session, person)
+
+        if person is None:
+            raise web.HTTPRedirect('/project/add?error=There was a problem with the given user')
+
+        #person = person.username
+        #result = session.execute()
+        #result = session.execute('INSERT INTO project (name, person_responsible, comment) VALUES (:name, :person, :comment)', {'name': name, 'person': person, 'comment': comment})
+        #print result.inserted_primary_key
+
+        new_project = db.Project(name=name, person_responsible=person, comment=comment)
+
+        session.add(new_project)
+        session.flush()
+        #print session.inserted_primary_key
+
+        #new_project.name = name
+        #new_project.person_responsible = person
+        #new_project.comment = comment
+
+        # For the user interface
+        persons = session.query(db.Person)
+        persons = persons.filter(db.Person.access_level > 3)
+
+        error=''
+
+        res = web.render('project_from_id.html', project=new_project,
+                             persons=persons, error=error).render('html', doctype='html')
+
+        session.commit()
+        session.close()  # TODO: Check if id is set
+
+        return res
+
+    @expose_for(group.supervisor)
+    def change(self, name=None, person=None, comment=None, project_id=None):
+
+        if (project_id is None) or (name is None) or (person is None):
+            raise cherrypy.HTTPError(500)
+
+        if str(project_id).isdigit():
+
+            session = db.Session()
+
+            project = session.query(db.Project).get(project_id)
+            person = session.query(db.Person).get(person)
+
+            # Update
+            project.name = name
+            project.person_responsible = person
+
+            if project.comment is not None:
+                project.comment = comment
+
+            # Render Webpage
+            persons = session.query(db.Person)
+            persons = persons.filter(db.Person.access_level > 3)
+
+            #stats = self.get_stats(project)
+
+            error = ''
+
+            res = web.render('project_from_id.html', project=project,
+                             persons=persons, error=error).render('html', doctype='html')
+
+            session.commit()
+            session.close()
+
+        else:
+
+            session = db.Session()
+
+            error = 'There was a problem with the server'
+
+            res = self.render_projects(session, error)
+
+        return res
+
+    @expose_for(group.supervisor)
+    def delete(self, project_id=None, force=None):
+
+        session = db.Session()
+
+        if str(force) == 'True':
+
+            project = session.query(db.Project).get(project_id)
+
+            session.delete(project)
+
+            session.commit()
+            session.close()
+
+            # Returning to project
+            raise web.HTTPRedirect('project')
+
+        else:
+            project = session.query(db.Project).get(project_id)
+
+            error = ''
+
+            res = web.render('project_delete.html', project=project,
+                             error=error).render('html', doctype='html')
+            session.close()
+        # TODO: Design the delete Dialog
+
+        return res
+
+    def get_stats(self, project, session=None):
+
+        if session:
+            session = db.Session()
+
+        datasets = session.query(db.Dataset.id).filter(db.Dataset.project == project.id)
+
+        print datasets.all()
+
+        return dict(
+            dataset=datasets.count(),
+            record=session.query(db.Record)
+                .filter(db.Record.dataset.in_(datasets.all())).count())
+
+    def render_projects(self, session, error=''):
+
+        session.query(db.Project)
+
+        projects = session.query(db.Project)
+        projects = projects.order_by(db.sql.asc(db.Project.id))
+
+        return web.render('projects.html', error=error, projects=projects)\
+            .render('html', doctype='html')
+
 class Root(object):
     _cp_config = {'tools.sessions.on': True,
                   'tools.sessions.timeout':24*60, # One day
@@ -743,6 +941,7 @@ class Root(object):
     valuetype=VTPage()
     dataset=DatasetPage()
     download=DownloadPage()
+    project=ProjectPage()
     job = JobPage()
     log = LogPage()
     map=MapPage()
@@ -840,4 +1039,3 @@ class Root(object):
 
 #if __name__=='__main__':
 #    web.start_server(Root(), autoreload=False, port=8081)
-
