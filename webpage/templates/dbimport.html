@@ -129,7 +129,7 @@
 												value="${adapter.id}" />    
 						</select>
 						<div py:if="config">
-							<input type="hidden" id="instrument" value="${config.instrument}" />
+							<input type="hidden" id="instrument" name="instrument" value="${config.instrument}" />
 							<a href="javascript:showconfig('${config.href}')" py:content="config.href" />
 							<div class="small">
 								Please check the configuration. Copy the fitting .conf file to the directory of the file!

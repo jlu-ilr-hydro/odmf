@@ -60,6 +60,10 @@ class DatasetPage:
                 similar_datasets = self.subset(session, valuetype=active.valuetype.id, site=active.site.id)
                 # parallel dataset (same site and same time, different type)
                 parallel_datasets = session.query(db.Dataset).filter_by(site=active.site).filter(db.Dataset.start<=active.end,db.Dataset.end>=active.start)
+
+                # All projects
+                projects = session.query(db.Project)
+
                 datasets = {"same type": similar_datasets.filter(db.Dataset.id!=active.id),
                             "same time": parallel_datasets.filter(db.Dataset.id!=active.id)}
             except:
@@ -78,6 +82,8 @@ class DatasetPage:
                                datasets=datasets,
                                # the db module for queries during rendering
                                db=db,
+                               # The select options for all projects
+                               projects=projects,
                                # The title of the page
                                title='Schwingbach-Datensatz #' + str(id)
                               ).render('html',doctype='html')
@@ -130,6 +136,8 @@ class DatasetPage:
                 ds.measured_by = pers
                 ds.valuetype = vt
                 ds.quality = q
+                ds.project = kwargs.get('project')
+
                 if src:
                     ds.source = src
                 if 'level' in kwargs:
