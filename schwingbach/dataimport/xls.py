@@ -313,4 +313,4 @@ class XlsImport (AbstractImport):
         :return:
         """
         name, ext = splitext(filename)
-        return ext.lower() == '.xls'
+        return ext.lower() == '.xls' or ext.lower() == '.xlsx'
