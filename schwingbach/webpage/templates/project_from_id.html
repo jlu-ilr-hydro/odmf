@@ -29,7 +29,7 @@
 		<form method="post" action="change" class="form-horizontal">
             <div class="form-group">
 				<label for="name" class="col-sm-2 control-label">Name</label>
-				<div class="col-sm-10">
+				<div class="col-sm-8">
 					<input name="name" id="name" type="text" class="form-control"
 							value="${project.name}" readonly="True"/>
 				</div>
@@ -38,8 +38,9 @@
 			<div class="form-group">
 				<label for="person"
 					   class="col-sm-2 control-label">Person responsible</label>
-				<div class="col-sm-10">
-					<select readonly="True" name="person" id="person" class="form-control">
+				<div class="col-sm-8">
+					<a id="person_link" href="/user/${project.person_responsible.username}">${project.person_responsible}</a>
+					<select readonly="True" disabled="True" name="person" id="person" class="form-control" style="display: none;">
 						<option py:for="p in persons"
 								value="${p.username}"
 								py:content="p"
@@ -50,23 +51,26 @@
 
 			<div class="form-group">
 				<label for="comment" class="col-sm-2 control-label">Comment</label><br/>
-				<div class="col-sm-10">
-                    <textarea name="comment" id="comment" class="form-control" readonly="True">${project.comment}</textarea>
+				<div class="col-sm-8">
+                    <textarea name="comment" id="comment" class="form-control" rows="5" readonly="True">${project.comment}</textarea>
 				</div>
+			</div>
 
-				<div class="col-sm-2">
+				<div class="col-sm-offset-2 col-sm-1">
 					<div id="btn-edit" class="btn btn-default">Edit</div>
                     <button id="btn-save" type="submit"
                     class="btn btn-success" style="display: none;">Save</button>
                     <input type="hidden" id="project_id" name="project_id" value="${project.id}" />
 				</div>
-			</div>
 		</form>
-        <form method="post" action="/project/delete">
-            <button id="btn-delete" type="submit"
-            class="btn btn-danger" style="display: none;">Delete</button>
-            <input type="hidden" id="project_id" name="project_id" value="${project.id}" />
-		</form>
+				<div class="col-sm-2">
+				<form method="post" action="/project/delete" style="display: inline;">
+					<button id="btn-delete" type="submit"
+					class="btn btn-danger" style="display: none;">Delete</button>
+					<input type="hidden" id="project_id" name="project_id" value="${project.id}" />
+				</form>
+				<button id="btn-cancel" class="btn" style="display: none;">Cancel</button>
+		</div>
 
 		<!--<h2>Data</h2>
 
@@ -87,18 +91,37 @@
 			$('#btn-edit').click(function() {
 
                 $('#btn-edit').hide();
-				$('#btn-save').show();
-				$('#btn-delete').show();
+                $('#btn-delete').show();
+                $('#btn-save').show();
+				$('#btn-cancel').show();
 
 				// Make the form writeable
                 $('#name').attr('readonly', false);
                 $('#person').attr('readonly', false);
-				$('#comment').attr('readonly', false);
+				$('#person').attr('disabled', false);
+				$('#person').show()
+                $('#person_link').hide()
+                $('#comment').attr('readonly', false);
 
-			$('#person').click(function(event) {
-				event.preventDefault()
-			})
-		})
+			});
+
+			$('#btn-cancel').click(function() {
+
+				$('#btn-save').hide();
+				$('#btn-delete').hide();
+				$('#btn-edit').show();
+
+
+				// Make the form readonly
+                $('#name').attr('readonly', true);
+                $('#person').attr('readonly', true);
+				$('#person').attr('disabled', true);
+                $('#person').hide()
+                $('#person_link').show()
+                $('#comment').attr('readonly', true);
+
+				$('#btn-cancel').hide();
+			});
 		})
 
 
