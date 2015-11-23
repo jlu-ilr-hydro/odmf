@@ -5,216 +5,12 @@ Created on 04.03.2013
 
 This module is a generic import tool for delimited text files, created from automatic loggers
 The import is performed by the class TextImport, derived from ImportAdapter. 
-The file format is described in the TextImportDescription, an saved in a config file.
+The file format is described in the ImportDescription, an saved in a config file.
 '''
-import db
-from glob import glob
 import os
-import os.path as op
-from configparser import RawConfigParser
-from cStringIO import StringIO
 
-from base import AbstractImport
-import conf
+from base import AbstractImport, ImportDescription
 
-class TextImportColumn:
-    """Describes the content of a column in a delimited text file"""
-    def __init__(self,column,name,valuetype,factor=1.0,comment=None,
-                 difference=None,minvalue=-1e308,maxvalue=+1e308,
-                 append=None,level=None,access=None):
-        """Creates a column description in a delimited text file.
-        upon import, the column will be saved as a dataset in the database
-        
-        column: Position of the column in the file. Note: The first column is 0
-        name: Name of the column and name of the dataset
-        valuetype: Id of the value type stored in the column.
-        factor: If the units of the column and the valuetype differ, use factor for conversion
-        difference: If True, the stored values will be the difference to the value of the last row
-        minvalue: This is the allowed lowest value (not converted). Lower values will not be imported
-        maxvalue: This is the allowed highest value. Higher values will not be converted
-        comment: The new dataset can be commented by this comment
-        append: For automatic import, append to this datasetid 
-        """
-        self.column=int(column)
-        self.name=name
-        self.valuetype=int(valuetype)
-        self.comment = comment
-        self.factor=factor or 1.0
-        self.difference = difference
-        self.minvalue=minvalue
-        self.maxvalue=maxvalue
-        self.append=append
-        self.level=level
-        self.access = access
-    def __str__(self):
-        return "%s[%s]:column=%i" % ('d' if self.difference else '',self.name,self.column) 
-    def to_config(self,config,section):
-        "Writes the colummn description to a config file"
-        config.set(section,'; 0 based column number')
-        config.set(section,'column',self.column)
-        config.set(section,'; name of the field, will become name of the dataset')
-        config.set(section,'name',self.name)
-        config.set(section,'; id of the valuetype in this field')
-        config.set(section,'valuetype',self.valuetype)
-        config.set(section,'; factor for unit conversion')
-        config.set(section,'factor',self.factor)
-        if self.comment:
-            config.set(section,'comment',self.comment)
-        if not self.difference is None:
-            config.set(section,'; if Yes, the import will save the difference to the last value')
-            config.set(section,'difference',self.difference)
-        config.set(section,'; lowest allowed value, use this for NoData values')
-        config.set(section,'minvalue',self.minvalue)
-        config.set(section,'; highest allowed value, use this for NoData values')
-        config.set(section,'maxvalue',self.maxvalue)
-        if self.level:
-            config.set(section,'; Level property of the dataset. Use this for Instruments measuring at one site in different depth')
-            config.set(section,'level',self.level)
-        if not self.access is None:
-            config.set(section,'; Access property of the dataset. Default level is 1 (for loggers) but can set to 0 for public datasets or to a higher level for confidential datasets')
-            config.set(section,'access',self.access)
-            
-            
-        
-    @classmethod
-    def from_config(cls,config,section):
-        "Get the column description from a config-file"
-        def getvalue(option,type=str):
-            if config.has_option(section,option):
-                return type(config.get(section,option))
-            else:
-                return None
-        return cls(column=config.getint(section,'column'),
-                   name=config.get(section,'name'),
-                   valuetype=config.getint(section,'valuetype'),
-                   factor=config.getfloat(section,'factor'),
-                   comment=getvalue('comment'),
-                   difference = getvalue('difference'),
-                   minvalue = getvalue('minvalue',float),
-                   maxvalue=getvalue('maxvalue',float),
-                   append=getvalue('append',int),
-                   level=getvalue('level',float),
-                   access=getvalue('access',int)
-                   )
-        
-
-class TextImportDescription:
-    """
-    Describes the file format and content of a delimited text file for
-    import to the database.
-    """
-    def __init__(self, instrument, skiplines=0, delimiter=',', decimalpoint='.',
-                 dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
-                 timezone=conf.CFG_DATETIME_DEFAULT_TIMEZONE, project=None):
-        """
-        instrument: the database id of the instrument that produced this file
-        skiplines: The number of lines prepending the actual data
-        delimiter: The delimiter sign of the columns. Use TAB for tab-delimited columns, otherwise ',' or ';'               
-        """
-        self.name=''
-        self.fileextension=''
-        self.instrument=int(instrument)
-        self.skiplines=skiplines
-        self.delimiter=delimiter
-        # Replace space and tab keywords
-        if self.delimiter.upper()=='TAB':
-            self.delimiter='\t'
-        elif self.delimiter.upper()=='SPACE':
-            self.delimiter = ' '
-        self.decimalpoint=decimalpoint
-        self.dateformat=dateformat
-        self.filename=''
-        try:
-            self.datecolumns=tuple(datecolumns)
-        except:
-            self.datecolumns=datecolumns, 
-        self.columns=[]
-
-        # New added for feature
-        self.timezone = timezone  # Timezone for the dataset
-        self.project = project  # Project for the dataset
-
-    def __str__(self):
-        io=StringIO()
-        self.to_config().write(io)
-        return io.getvalue()
-    def addcolumn(self,column,name,valuetype,factor=1.0,comment=None,difference=None,minvalue=-1e308,maxvalue=1e308):
-        """
-        Adds the description of a column to the file format description
-        """
-        self.columns.append(TextImportColumn(column,name,valuetype,factor,comment,difference))
-        return self.columns[-1]
-    def to_config(self):
-        """
-        Returns a ConfigParser.RawConfigParser with the data of this description
-        """
-        config = RawConfigParser(allow_no_value=True)
-        session=db.Session()
-        inst = session.query(db.Datasource).get(self.instrument)
-        if not inst:
-            raise ValueError('Error in import description: %s is not a valid instrument id')
-        session.close()
-        section = unicode(inst)
-        config.add_section(section)
-        config.set(section,'instrument',self.instrument)
-        config.set(section,'skiplines',self.skiplines)
-        # Replace space and tab by keywords
-        config.set(section,'delimiter',{' ':'SPACE','\t':'TAB'}.get(self.delimiter,self.delimiter))
-        config.set(section,'decimalpoint',self.decimalpoint)
-        config.set(section,'dateformat',self.dateformat)
-        config.set(section,'datecolumns',str(self.datecolumns).strip('(), '))
-        if self.fileextension:
-            config.set(section,'fileextension',self.fileextension)
-        for col in self.columns:
-            section = col.name
-            config.add_section(section)
-            col.to_config(config,section)
-        return config
-    @classmethod
-    def from_config(cls,config):
-        """
-        Creates a TextImportDescriptor from a ConfigParser.RawConfigParser
-        by parsing its content
-        """
-        sections=config.sections()
-        if not sections:
-            raise IOError('Empty config file')
-        # Create a new TextImportDescriptor from config file
-        tid = cls(instrument=config.getint(sections[0],'instrument'),
-                  skiplines=config.getint(sections[0],'skiplines'),
-                  delimiter=config.get(sections[0],'delimiter'),
-                  decimalpoint=config.get(sections[0],'decimalpoint'),
-                  dateformat=config.get(sections[0],'dateformat'),
-                  datecolumns=eval(config.get(sections[0],'datecolumns'))
-                  )
-        tid.name = sections[0]
-        for section in sections[1:]:
-            tid.columns.append(TextImportColumn.from_config(config,section))
-        return tid
-    
-    @classmethod
-    def from_file(cls,path,stoppath='datafiles',pattern='*.conf'):
-        """
-        Searches in the parent directories of the given path for .conf file
-        until the stoppath is reached.
-        """
-        # As long as no *.conf file is in the path 
-        while not glob(op.join(path,pattern)):
-            # Go to the parent directory
-            path = op.dirname(path) 
-            # if stoppath is found raise an error
-            if op.basename(path)==stoppath:
-                raise IOError('Could not find .conf file for file description')
-        # Use the first .conf file in the directory
-        path = glob(op.join(path,pattern))[0]
-        # Create a config
-        config = RawConfigParser()
-        # Load from the file
-        config.readfp(file(path))
-        # Return the descriptor
-        descr = cls.from_config(config)
-        descr.filename=path
-        return descr
        
     
 class TextImport(AbstractImport):
@@ -235,7 +31,7 @@ class TextImport(AbstractImport):
         enddate:   End of the import period
         """
         AbstractImport.__init__(self,filename,user,siteid,instrumentid,startdate,enddate)
-        self.descriptor = TextImportDescription.from_file(self.filename)
+        self.descriptor = ImportDescription.from_file(self.filename)
         self.instrumentid = self.descriptor.instrument
         self.commitinterval = 10000
         self.datasets={}
@@ -244,7 +40,11 @@ class TextImport(AbstractImport):
         """
         Generator function, yields the values from the file as 
         a dictionary for each import column
-        """    
+        """  
+        
+        if (not self.descriptor.decimalpoint) or (not self.descriptor.delimiter):
+            raise RuntimeError('.conf file for text import needs to have a decimal point and delimiter defined')
+          
         def intime(time):
             "Checks if time is between startdate and enddate"
             return (
@@ -321,7 +121,7 @@ class TextImport(AbstractImport):
 
     @staticmethod
     def get_importdescriptor():
-        return TextImportDescription
+        return ImportDescription
 
 
 # Just for debugging
