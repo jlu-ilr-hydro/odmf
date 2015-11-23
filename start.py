@@ -5,14 +5,14 @@ Created on 12.02.2012
 
 @author: philkraf
 '''
-
-
-from webpage import Root, HeapyPage
-from webpage import lib
 import sys
 import os
 from glob import glob
 
+print sys.executable
+
+from webpage import Root, HeapyPage
+from webpage import lib
 # Make autoreload
 autoreload= not 'noreload' in sys.argv
 print "autoreload =",autoreload

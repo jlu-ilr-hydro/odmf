@@ -35,6 +35,11 @@ class DBImportPage(object):
                               error='').render('html',doctype='html')
         
     def instrumentimport(self,filename,kwargs):
+        """
+        Loads instrument data using a .conf file
+        """
+        
+        # TODO: Major refactoring of this code logic, when to load gaps, etc.
         path = Path(web.abspath(filename.strip('/')))
         import dataimport as di
         error=web.markdown(di.checkimport(path.absolute)) 
