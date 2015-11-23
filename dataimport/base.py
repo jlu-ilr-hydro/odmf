@@ -172,7 +172,7 @@ class AbstractImport(object):
             ds = db.Timeseries(id=id,measured_by=user,valuetype=vt,site=site,name=col.name,
                             filename=self.filename,comment=col.comment,source=inst,quality=raw,
                             start=self.startdate,end=datetime.today(),level=col.level,
-                            access=col.access if not col.access is None else 1)
+                            access=col.access if not col.access is None else 1, timezone=None, project=None)
             self.datasets[col.column] = ds.id
         session.commit()
         session.close()
@@ -235,6 +235,13 @@ class AbstractImport(object):
         :return: Returns if a file is applicable for an import class
         """
         raise NotImplementedError("Use an implementation class")
+
+    @staticmethod
+    def get_importdescriptor():
+        """
+        Return the prefered import descriptor class
+        """
+        raise NotImplementedError('Use an implementation class')
 
 def savetoimports(filename,user,datasets=None):
     """
