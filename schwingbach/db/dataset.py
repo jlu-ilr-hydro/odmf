@@ -122,8 +122,10 @@ class Dataset(Base):
                            polymorphic_on=type)
     access = sql.Column(sql.Integer,default=1,nullable=False)
 
-    timezone = sql.Column(sql.String, default=conf.CFG_DATETIME_DEFAULT_TIMEZONE)
-    project = sql.Column(sql.Integer, sql.ForeignKey('project.id'), nullable=True)
+    timezone = sql.Column(sql.String,
+                          default=conf.CFG_DATETIME_DEFAULT_TIMEZONE)
+    project = sql.Column(sql.Integer, sql.ForeignKey('project.id'),
+                         nullable=True)
     def __unicode__(self):
         return (u'ds%(id)03i: %(valuetype)s at site #%(site)s %(level)s with %(instrument)s (%(start)s-%(end)s)' % 
                dict(id=self.id,
@@ -192,7 +194,9 @@ class Dataset(Base):
                     site=self.site,
                     level=self.level,
                     type=self.type,
-                    access=self.access)
+                    access=self.access,
+                    project=self.project,
+                    timezone=self.timezone)
     def asarray(self,start=None,end=None):
         raise NotImplementedError('%s(type=%s) - data set can not return values with "asarray". Is the type correct?' % (self,self.type))
     def size(self):

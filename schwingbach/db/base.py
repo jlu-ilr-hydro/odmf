@@ -36,15 +36,20 @@ def connect():
     #return psycopg2.connect(user='schwingbach-user',host='localhost',password='1234',
                             database='schwingbachcopy')
 
+engine = sql.create_engine('postgresql://',creator=connect)
+
+#createTables = op.exists('./file.db')
+
+#from sqlite3 import dbapi2 as sqlite
+#engine = sql.create_engine('sqlite+pysqlite:///file.db', module=sqlite)
+#engine = sql.create_engine('sqlite:///file.db')
+Session = orm.sessionmaker(bind=engine)
+scoped_session = orm.scoped_session(Session)
+
+
 @contextmanager
 def session_scope():
-    """
-    Provide a transactional scope around a series of operations.
-
-    See for more information
-     http://docs.sqlalchemy.org/en/rel_1_0/orm/session_basics.html#when-do-i-con
-     struct-a-session-when-do-i-commit-it-and-when-do-i-close-it
-    """
+    """Provide a transactional scope around a series of operations."""
     session = Session()
     try:
         yield session
@@ -55,17 +60,6 @@ def session_scope():
     finally:
         session.close()
 
-engine = sql.create_engine('postgresql://',creator=connect)
-
-
-#createTables = op.exists('./file.db')
-
-#from sqlite3 import dbapi2 as sqlite
-#engine = sql.create_engine('sqlite+pysqlite:///file.db', module=sqlite)
-#engine = sql.create_engine('sqlite:///file.db')
-Session = orm.sessionmaker(bind=engine)
-scoped_session = orm.scoped_session(Session)
-        
 class Base(object):
     """Hooks into SQLAlchemy's magic to make :meth:`__repr__`s."""
     def __repr__(self):
