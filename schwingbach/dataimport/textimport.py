@@ -319,6 +319,10 @@ class TextImport(AbstractImport):
     def extension_fits_to(filename):
         return True
 
+    @staticmethod
+    def get_importdescriptor():
+        return TextImportDescription
+
 
 # Just for debugging
 if __name__=='__main__':
