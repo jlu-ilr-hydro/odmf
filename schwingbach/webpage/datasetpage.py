@@ -45,6 +45,9 @@ class DatasetPage:
         try:
             site = session.query(db.Site).get(site_id) if site_id else None
             valuetype = session.query(db.ValueType).get(vt_id) if vt_id else None
+            # All projects
+            projects = session.query(db.Project)
+
             if user is None: user = web.user()
             user = session.query(db.Person).get(user) if user else None
             if id=='new':
@@ -61,8 +64,6 @@ class DatasetPage:
                 # parallel dataset (same site and same time, different type)
                 parallel_datasets = session.query(db.Dataset).filter_by(site=active.site).filter(db.Dataset.start<=active.end,db.Dataset.end>=active.start)
 
-                # All projects
-                projects = session.query(db.Project)
 
                 datasets = {"same type": similar_datasets.filter(db.Dataset.id!=active.id),
                             "same time": parallel_datasets.filter(db.Dataset.id!=active.id)}

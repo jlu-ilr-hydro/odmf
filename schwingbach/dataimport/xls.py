@@ -7,63 +7,9 @@ from glob import glob
 from configparser import RawConfigParser
 import os.path as op
 
-from base import AbstractImport
-from textimport import ImportDescription, ImportColumn
+from base import AbstractImport, ImportDescription, ImportColumn
 
 
-class XlsImportDescription(ImportDescription):
-
-    @classmethod
-    def from_file(cls, path, stoppath='datafiles', pattern='*.conf'):
-        """
-        Searches in the parent directories of the given path for .conf file
-        until the stoppath is reached.
-        """
-        # As long as no *.conf file is in the path
-        while not glob(op.join(path, pattern)):
-            # Go to the parent directory
-            path = op.dirname(path)
-            # if stoppath is found raise an error
-            if op.basename(path) == stoppath:
-                raise IOError('Could not find .conf file for file description')
-        # Use the first .conf file in the directory
-        path = glob(op.join(path,pattern))[0]
-        # Create a config
-        config = RawConfigParser()
-        # Load from the file
-        config.readfp(file(path))
-        # Return the descriptor
-        descr = cls.from_config(config)
-        descr.filename = path
-        return descr
-
-    @classmethod
-    def from_config(cls, config):
-        """
-        Creates a TextImportDescriptor from a ConfigParser.RawConfigParser
-        by parsing its content
-        """
-        def getvalue(section, option, type=str):
-            if config.has_option(section, option):
-                return type(config.get(section, option))
-            else:
-                return None
-
-        sections = config.sections()
-        if not sections:
-            raise IOError('Empty config file')
-        # Create a new TextImportDescriptor from config file
-        tid = cls(instrument=config.getint(sections[0], 'instrument'),
-                  skiplines=config.getint(sections[0], 'skiplines'),
-                  dateformat=config.get(sections[0], 'dateformat'),
-                  datecolumns=eval(config.get(sections[0], 'datecolumns')),
-                  project=getvalue(sections[0], 'project'),
-                  timezone=getvalue(sections[0], 'timezone')
-                  )
-        tid.name = sections[0]
-        for section in sections[1:]:
-            tid.columns.append(ImportColumn.from_config(config,section))
-        return tid
 
 class XlsImport (AbstractImport):
     """ Special class for importing xls files. """
@@ -72,7 +18,7 @@ class XlsImport (AbstractImport):
         AbstractImport.__init__(self, filename, user, siteid, instrumentid,
                                 startdate, enddate)
 
-        self.descriptor = XlsImportDescription.from_file(self.filename)
+        self.descriptor = ImportDescription.from_file(self.filename)
         self.instrumentid = self.descriptor.instrument
         self.commitinterval = 10000
         self.datasets={}
@@ -322,7 +268,6 @@ class XlsImport (AbstractImport):
 
                         d = determine_date(document_datetype, datetype_timepos,
                                            row, date_cols)
-                        print d
 
                     if not intime(d):
                         stats['not_intime'] += 1
@@ -381,4 +326,4 @@ class XlsImport (AbstractImport):
 
     @staticmethod
     def get_importdescriptor():
-        return XlsImportDescription
+        return ImportDescription

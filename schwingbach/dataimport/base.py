@@ -50,7 +50,7 @@ def finddateGaps(siteid,instrumentid,startdate=None,enddate=None):
         # Check for gaps>1 day between datasets 
         for ds1,ds2 in zip(dss[:-1],dss[1:]):
             # if there is a gap between
-            if ds1.end - ds2.start >= timedelta(days=1):
+            if ds2.start - ds1.end >= timedelta(days=1):
                 res.append((ds1.end,ds2.start))
         # Is there space after the last dataset
         if enddate>dss[-1].end:
@@ -160,10 +160,10 @@ class ImportDescription:
         self.skiplines=skiplines
         self.delimiter=delimiter
         # Replace space and tab keywords
-        if self.delimiter.upper()=='TAB':
+        if self.delimiter and self.delimter.upper()=='TAB':
             self.delimiter='\t'
-        elif self.delimiter.upper()=='SPACE':
-            self.delimiter = ' '
+        elif self.delimiter and self.delimiter.upper()=='SPACE':
+            self.delimiter = None
         self.decimalpoint=decimalpoint
         self.dateformat=dateformat
         self.filename=''

@@ -11,6 +11,7 @@ import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
 from cStringIO import StringIO
 import os.path as op
+import conf
 
 from contextlib import contextmanager
 
@@ -32,9 +33,8 @@ def newid(cls,session=None):
         return 1
 def connect():
     import psycopg2
-    return psycopg2.connect(user='schwingbach-user',host='fb09-pasig.umwelt.uni-giessen.de',password='VK1:SB0',
-    #return psycopg2.connect(user='schwingbach-user',host='localhost',password='1234',
-                            database='schwingbachcopy')
+    return psycopg2.connect(user=conf.CFG_DATABASE_USERNAME,host=conf.CFG_DATABASE_HOST,password=conf.CFG_DATABASE_PASSWORD,
+                            database=conf.CFG_DATABASE_NAME)
 
 engine = sql.create_engine('postgresql://',creator=connect)
 
