@@ -8,10 +8,10 @@ from configparser import RawConfigParser
 import os.path as op
 
 from base import AbstractImport
-from textimport import TextImportDescription, TextImportColumn
+from textimport import ImportDescription, ImportColumn
 
 
-class XlsImportDescription(TextImportDescription):
+class XlsImportDescription(ImportDescription):
 
     @classmethod
     def from_file(cls, path, stoppath='datafiles', pattern='*.conf'):
@@ -62,7 +62,7 @@ class XlsImportDescription(TextImportDescription):
                   )
         tid.name = sections[0]
         for section in sections[1:]:
-            tid.columns.append(TextImportColumn.from_config(config,section))
+            tid.columns.append(ImportColumn.from_config(config,section))
         return tid
 
 class XlsImport (AbstractImport):

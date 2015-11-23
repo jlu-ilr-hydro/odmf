@@ -69,6 +69,12 @@
 			font-family: monospace;
 			cursor: auto;
 		}
+		ul.folder {
+			list-style-image: url(/media/shimmer/folder_32.png); vertical-align:middle;
+		}
+		li.folder {
+			list-style-image: url(/media/shimmer/folder_add_32.png)
+		}
 	</style>
 </head>
 <body>
@@ -111,8 +117,8 @@
 			<span>Click to edit...</span>
 		</div>
     <div>
-    	<ul style="list-style-image: url(/media/shimmer/folder_32.png); vertical-align:middle;">
-    		<li style="list-style-image: url(/media/shimmer/folder_add_32.png)">
+    	<ul class="folder">
+    		<li class="folder">
 					<form method="post" action="/download/newfolder" style="display: inline;">
 							new folder:
 							<input type="text" name="newfolder" />
@@ -122,9 +128,6 @@
     		</li>
     		<li py:for="f in directories">
     			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" /> 
-    			<span class="box" py:if="is_member('admin')">
-						
-    			</span>
     		</li>
     	</ul> 
     	<ul style="list-style: none;padding-left: 0px;">
@@ -132,6 +135,11 @@
     			<span onclick="window.location='to_db?filename=${f.href}'" title="import in data base" class="dbimport">.</span>
     			<!--<a href="to_db?filename=${f.href}" title="import in data base" class="dbimport"> </a>-->
     			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" /> 
+    			<span class="box" py:if="is_member('admin')">
+    				<a href="javascript:removefile('${f.basename}')">&#x2718;</a>
+						
+    			</span>
+
     		</li>
     	</ul> 
 		</div>
