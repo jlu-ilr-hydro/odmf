@@ -21,6 +21,8 @@ _adapters = [
     _ti.TextImport  # default
     ]
 
+# TODO: Seperate the part of get_adapter where the adapter is chosen from where the adapter is called
+
 def get_adapter(filename, user, siteid, instrumentid, startdate=None,
                 enddate=None):
 
@@ -41,11 +43,18 @@ def available_adapters():
     return res
 
 def getconfig(filename):
-    try:
-        tid = _ti.TextImportDescription.from_file(filename)
-        return tid
-    except IOError:
-        return None
+
+    for adapter in _adapters:
+        if adapter.extension_fits_to(filename):
+            print "[LOG] - Using %s for extract config" % adapter.__name__
+            try:
+                # Get import description
+                importdesc = adapter.get_importdescriptor().from_file(filename)
+                return importdesc
+            except IOError:
+                return None
+
+
 def importfilestats(filename, user, siteid, instrumentid=None, startdate=None,enddate=None):
     adapter = get_adapter(filename, user, siteid, instrumentid, startdate,enddate)
     return adapter.get_statistic()
@@ -53,7 +62,7 @@ def importfilestats(filename, user, siteid, instrumentid=None, startdate=None,en
 
 def importfile(filename, user, siteid, instrumentid, startdate=None, enddate=None):
     "Imports a file using the fitting ImportAdapter for the instrument"
-    adapter = get_adapter(filename, user, siteid, instrumentid, startdate,enddate)
+    adapter = get_adapter(filename, user, siteid, instrumentid, startdate, enddate)
     adapter.createdatasets()
     adapter.submit()
     savetoimports(filename,user,adapter.datasets.values())
