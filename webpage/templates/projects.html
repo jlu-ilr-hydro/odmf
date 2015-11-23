@@ -60,10 +60,10 @@
 			</tr>
 			<tr py:for="p in projects">
 				<td>${p.id}</td>
-				<td><a href="project/${p.id}">${p.name}</a></td>
+				<td><a href="/project/${p.id}">${p.name}</a></td>
 				<td><a href="user/${p.person_responsible.username}">${p.person_responsible}</a></td>
 			</tr>
-			<tr class="active">
+			<tr py:if="is_member('supervisor')" class="active">
 				<td><a class="btn btn-default" href="project/add">Add project</a></td>
 				<td></td>
 				<td></td>
