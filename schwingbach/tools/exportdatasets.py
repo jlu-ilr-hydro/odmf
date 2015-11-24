@@ -17,16 +17,25 @@ def num2date(t):
     return t0 + timedelta(days=t)
 
 def exportLines(fout,lines,tolerance=60):
-    # prepare the output file
+    """
+    Exports multiple lines from a plot as a table with each line as a column
+    To align the values in the rows a tolerance is chosen, by which measure times
+    may differ, but should still be combined in the same row. 
+    """
+    # Make sure the tolerance is > 0
+    tolerance = max(tolerance,0.01)
+
+    # prepare the output file, Excel needs the BOM to recognize csv files with UTF-8
     fout.write(codecs.BOM_UTF8)
-    # Write headers
-    fout.write('time,')
-    fout.write(','.join(unicode(l) for l in lines))
-    fout.write('\n')
     
-    # simplify fileutput
+    # simplify fileoutput
     def writeline(line):
         fout.write(','.join((unicode(s).encode('utf-8') if s else '') for s in line) + '\n')
+    
+    # Write headers
+    fout.write('time,')
+    writeline(lines)
+    fout.write('\n')
         
     # Load all time and value arrays for the lines. This is a huge memory consumer
     tvpairs = [l.load() for l in lines]
