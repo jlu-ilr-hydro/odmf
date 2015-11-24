@@ -59,9 +59,11 @@ class DBImportPage(object):
             gaps=[(startdate,enddate)]
         if siteid and (instrumentid or config):
             absfile = web.abspath(filename.strip('/'))
+            adapter = di.get_adapter(absfile, web.user(), siteid, 
+                                     instrumentid, startdate, enddate)
+            adapter.errorstream = StringIO()
             if 'loadstat' in kwargs:
-                stats = di.importfilestats(absfile, web.user(), siteid,
-                                           instrumentid, startdate, enddate)
+                stats = adapter.get_statistic()
                 startdate = min(v.start for v in stats.itervalues())
                 enddate = max(v.end for v in stats.itervalues())
             if 'importdb' in kwargs and startdate and enddate:
