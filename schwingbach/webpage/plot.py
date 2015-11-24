@@ -668,8 +668,7 @@ class PlotPage(object):
         for sp in plot.subplots:
             lines.extend(sp.lines)
         stream = StringIO()
-        from tools.exportdatasets import exportData, exportLines
-        #exportData(stream,datasetids,plot.startdate,plot.enddate,web.conv(float,tolerance,60))
+        from tools.exportdatasets import exportLines
         exportLines(stream,lines,web.conv(float,tolerance,60))
         web.setmime(web.mime.csv)
         return stream.getvalue()            
