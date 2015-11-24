@@ -322,8 +322,7 @@ class XlsImport (AbstractImport):
         :return:
         """
         name, ext = splitext(filename)
-        return ext.lower() == '.xls' or ext.lower() == '.xlsx'
-
+        return ext.lower() == '.xls' 
     @staticmethod
     def get_importdescriptor():
         return ImportDescription
