@@ -15,6 +15,8 @@ from cStringIO import StringIO
 import conf
 # AbstractImport
 from traceback import format_exc as traceback
+from pytz import common_timezones_set
+from sqlalchemy import func
 
 def findStartDate(siteid,instrumentid):
     session = db.Session()
@@ -225,9 +227,31 @@ class ImportDescription:
             else:
                 return None
 
-        sections=config.sections()
+        sections = config.sections()
         if not sections:
             raise IOError('Empty config file')
+
+        # Check integrity of the data
+        with db.session_scope() as session:
+
+            # Get the data which shall be checked
+            project = getvalue(sections[0], 'project')
+            timezone = getvalue(sections[0], 'timezone')
+
+            if project:
+                rows = session.query(db.Project)\
+                    .filter(db.Project.id == project).count()
+                if rows != 1:
+                    raise ValueError('Error in import description: \'%s\' is no'
+                                     ' valid project identifier' % project)
+
+            if timezone:
+                # Search in pytz's "set" cause of the set is faster than the
+                # list
+                if timezone not in common_timezones_set:
+                    raise ValueError('Error in import description: \'%s\' is no'
+                                     ' valid timezone' % timezone)
+
         # Create a new TextImportDescriptor from config file
         tid = cls(instrument=config.getint(sections[0],'instrument'),
                   skiplines=config.getint(sections[0],'skiplines'),
