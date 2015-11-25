@@ -249,6 +249,12 @@
 							</a>
 						</td> 
 					</tr>
+					<tr py:if="activedataset.project">
+						<td class="bold">Project:</td>
+						<td>
+							<a href="/project/${activedataset.project}" py:content="activeproject.name"></a>
+						</td>
+					</tr>
 					<tr py:if="activedataset.is_timeseries() and activedataset.quality and activedataset.quality.id>=3">
 						<td class="bold">Calibration: </td>
 						<td py:content="'v\' = %g * v + %g' % (activedataset.calibration_slope,activedataset.calibration_offset)" />
@@ -394,9 +400,11 @@
 								Timezone
 							</td>
 							<td>
-								<select name="uses_dst">
-									<option value="dst" py:attrs="markoption(activedataset.uses_dst)">Berlin</option>
-									<option value="" py:attrs="markoption(not activedataset.uses_dst)">Berlin, winter time</option>
+								<select name="timezone">
+									<option py:for="timezone in timezones"
+											py:attrs="markoption(timezone == activedataset.timezone)"
+											py:content="timezone"
+											value="${timezone}"></option>
 								</select>
 							</td>
 						</tr>
@@ -405,9 +413,13 @@
 								Project
 							</td>
 							<td>
-								<select name="project">
-									<option value="" >No Project</option>
-									<option value="${p.id}" py:for="p in projects" py:content="p.name" py:attrs="markoption(p.id == activedataset.project)"></option>
+								<a py:if="not is_member('supervisor')" href="/project/${activeproject.id}">${activeproject.name}</a>
+								<select py:if="is_member('supervisor')" name="project">
+									<option value="0" >No Project</option>
+									<option value="${p.id}"
+											py:for="p in projects"
+											py:content="p.name"
+											py:attrs="markoption(p.id == activedataset.project)"></option>
 								</select>
 							</td>
 						</tr>
