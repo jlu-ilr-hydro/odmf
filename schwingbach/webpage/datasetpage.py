@@ -12,7 +12,7 @@ from cStringIO import StringIO
 from auth import group, expose_for, users
 import codecs
 from tools.calibration import Calibration, CalibrationSource
-
+from pytz import common_timezones
 
 class DatasetPage:
     """
@@ -55,8 +55,16 @@ class DatasetPage:
                                     site=site,valuetype=valuetype, measured_by = user)
             else: # Else load requested dataset
                 active = session.query(db.Dataset).get(int(id))
+
                 if active: # save requested dataset as 'last'
                     web.cherrypy.session['dataset']=id
+
+            # Setting the project, for editing and ui navigation
+            if active.project is not None:
+                project = session.query(db.Project).get(int(active.project))
+            else:
+                project = None
+
             try:
                 # load data for datasettab.html: 
                 # similar datasets (same site and same type)
@@ -64,13 +72,12 @@ class DatasetPage:
                 # parallel dataset (same site and same time, different type)
                 parallel_datasets = session.query(db.Dataset).filter_by(site=active.site).filter(db.Dataset.start<=active.end,db.Dataset.end>=active.start)
 
-
                 datasets = {"same type": similar_datasets.filter(db.Dataset.id!=active.id),
                             "same time": parallel_datasets.filter(db.Dataset.id!=active.id)}
             except:
                 # If loading fails, don't show similar datasets
                 datasets={}
-                
+
             # Render the resulting page
             result= web.render('datasettab.html',
                                # activedataset is the current dataset (id or new)
@@ -85,6 +92,10 @@ class DatasetPage:
                                db=db,
                                # The select options for all projects
                                projects=projects,
+                               # The project
+                               activeproject=project,
+                               # All available timezones
+                               timezones=common_timezones,
                                # The title of the page
                                title='Schwingbach-Datensatz #' + str(id)
                               ).render('html',doctype='html')
@@ -137,7 +148,14 @@ class DatasetPage:
                 ds.measured_by = pers
                 ds.valuetype = vt
                 ds.quality = q
-                ds.project = kwargs.get('project')
+
+                # TODO: Is it necessary to protect this of being modified by somebody who isn't a supervisor or higher?
+                if kwargs.get('project') == '0':
+                    ds.project = None
+                else:
+                    ds.project = kwargs.get('project')
+
+                ds.timezone = kwargs.get('timezone')
 
                 if src:
                     ds.source = src
