@@ -306,10 +306,10 @@ class XlsImport (AbstractImport):
                 yield res
 
             print "Function 'loadvalues' successfully!\n" \
-                  "  Rows\n" \
-                  "  ->\tTotal:\t\t%d\n"\
-                  "  ->\tNot_inrange:\t%d\n"\
-                  "  ->\tNot_intime:\t%d\n" % (stats['total_rows'] -
+                  "  Stats\n" \
+                  "  ->\tRows total:\t\t%d\n"\
+                  "  ->\tCells not_inrange:\t%d\n"\
+                  "  ->\tRows not_intime:\t%d\n" % (stats['total_rows'] -
                                                self.descriptor.skiplines,
                                                stats['not_inrange'],
                                                stats['not_intime'])
@@ -322,7 +322,8 @@ class XlsImport (AbstractImport):
         :return:
         """
         name, ext = splitext(filename)
-        return ext.lower() == '.xls' 
+        return ext.lower() == '.xls' or ext.lower() == '.xlsx'
+    
     @staticmethod
     def get_importdescriptor():
         return ImportDescription
