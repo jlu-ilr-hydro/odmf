@@ -162,7 +162,7 @@ class ImportDescription:
         self.skiplines=skiplines
         self.delimiter=delimiter
         # Replace space and tab keywords
-        if self.delimiter and self.delimter.upper()=='TAB':
+        if self.delimiter and self.delimiter.upper()=='TAB':
             self.delimiter='\t'
         elif self.delimiter and self.delimiter.upper()=='SPACE':
             self.delimiter = None
