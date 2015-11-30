@@ -61,7 +61,7 @@ class DBImportPage(object):
             absfile = web.abspath(filename.strip('/'))
             adapter = di.get_adapter(absfile, web.user(), siteid, 
                                      instrumentid, startdate, enddate)
-            adapter.errorstream = StringIO()
+            #adapter.errorstream = StringIO()
             if 'loadstat' in kwargs:
                 stats = adapter.get_statistic()
                 startdate = min(v.start for v in stats.itervalues())
