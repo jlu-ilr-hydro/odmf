@@ -478,13 +478,6 @@ class AbstractImport(object):
         """
         raise NotImplementedError("Use an implementation class")
 
-    @staticmethod
-    def get_importdescriptor():
-        """
-        Return the prefered import descriptor class
-        """
-        raise NotImplementedError('Use an implementation class')
-
 def savetoimports(filename,user,datasets=None):
     """
     Adds the filename to the import history file .import.hist
