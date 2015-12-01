@@ -323,7 +323,3 @@ class XlsImport (AbstractImport):
         """
         name, ext = splitext(filename)
         return ext.lower() == '.xls' or ext.lower() == '.xlsx'
-    
-    @staticmethod
-    def get_importdescriptor():
-        return ImportDescription
