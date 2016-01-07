@@ -61,7 +61,7 @@ class DBImportPage(object):
             absfile = web.abspath(filename.strip('/'))
             adapter = di.get_adapter(absfile, web.user(), siteid, 
                                      instrumentid, startdate, enddate)
-            #adapter.errorstream = StringIO()
+            adapter.errorstream = StringIO()
             if 'loadstat' in kwargs:
                 stats = adapter.get_statistic()
                 startdate = min(v.start for v in stats.itervalues())
@@ -72,11 +72,9 @@ class DBImportPage(object):
                                          instrumentid, startdate, enddate)
             else:
                 gaps = di.finddateGaps(siteid, instrumentid, startdate, enddate)
+                error = adapter.errorstream.getvalue()
 
-        #import sys
-        #if sys.stderr is not None:
-        #    error = sys.stderr
-
+            adapter.errorstream.close()
         return web.render('dbimport.html', di=di, error=error,
                           filename=filename, instrumentid=instrumentid,
                           dirlink=path.up(), siteid=siteid, gaps=gaps,

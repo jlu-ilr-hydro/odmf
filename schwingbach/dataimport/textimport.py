@@ -101,19 +101,8 @@ class TextImport(AbstractImport):
                         lastraw.update(dict((k,v) for k,v in raw.iteritems() if not v is None))
                         yield res
             except Exception as e:
-                # Write the error message to the errorstream and go to the next line
-
-                # After a reported bug #1025
-                # For the line with errorstream.write raising IOError
-                # Few researches shows that only the stream.write can raise such
-                # an error
-                # https://docs.python.org/2/library/io.html#io.IOBase.writable
-
-                # But isn't really a final solution
-                if self.errorstream.writable():
-                    self.errorstream.write('%s:%i: %s\n' % (os.path.basename(self.filename),lineno + self.descriptor.skiplines,e))
-                else:
-                    print '%s:%i: %s\n' % (os.path.basename(self.filename),lineno + self.descriptor.skiplines,e)
+                # Write to StringIO Errorstream
+                self.errorstream.write('%s:%i: %s\n' % (os.path.basename(self.filename),lineno + self.descriptor.skiplines,e))
 
     @staticmethod
     def extension_fits_to(filename):
