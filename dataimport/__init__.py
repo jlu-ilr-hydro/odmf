@@ -6,9 +6,6 @@ Created on 13.07.2012
 '''
 
 import base
-import os.path
-#import importpressure as _ip
-#import importclimate as _ic
 import db
 import textimport as _ti
 import xls as _xl
@@ -21,8 +18,6 @@ _adapters = [
     _xl.XlsImport,  # xls files
     _ti.TextImport  # default
     ]
-
-# TODO: Seperate the part of get_adapter where the adapter is chosen from where the adapter is called
 
 def get_adapter(filename, user, siteid, instrumentid, startdate=None,
                 enddate=None):
