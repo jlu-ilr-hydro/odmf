@@ -13,6 +13,7 @@ class LogImportError(RuntimeError):
         RuntimeError.__init__(self,"Could not import row %i:%s" % (row+1,msg))
         self.row = row
         self.text = msg
+
 class LogColumns:
     date=0
     time=1
@@ -23,6 +24,7 @@ class LogColumns:
     logtext=5
     msg=6
     sample=7
+
 class LogbookImport(object):
     """Imports from an defined xls file messages to the logbook and append values to datasets"""
     t0 = datetime(1899,12,30)
@@ -35,6 +37,7 @@ class LogbookImport(object):
                 time=time-int(time)
             date=int(date)
         return self.t0 + timedelta(date+time)
+
     def get_obj(self,session,cls,row,col):
         id=None
         try:
@@ -49,11 +52,13 @@ class LogbookImport(object):
             return obj,''
         except Exception as e:
             return None,'%s is not a valid %s id: %s' % (id,cls,e)
+
     def get_value(self,row,columns):
         try:
             return [self.sheet.cell_value(row,col) for col in columns] 
         except:
             return self.sheet.cell_value(row,columns)   
+
     def __init__(self,filename,user,sheetname=None):
         self.filename=filename
         self.workbook = xlrd.open_workbook(filename)
@@ -66,10 +71,14 @@ class LogbookImport(object):
             self.sheet = self.workbook.sheet_by_name(sheetname)
         else:
             self.sheet = self.workbook.sheet_by_index(0)
+
     def __call__(self,commit=False):
         session = db.Session()
         logs=[]
         errors={}
+
+        print "Rows: %d" % self.sheet.nrows
+
         try:
             for row in xrange(1,self.sheet.nrows):
                 if self.sheet.cell_value(row,0):
@@ -91,6 +100,7 @@ class LogbookImport(object):
         finally:
             session.close()
         return logs, not errors
+
     def logexists(self,session,site,time,timetolerance=30):
         """Checks if a log at site and time exists in db
         session: an open sqlalchemy session
@@ -100,6 +110,7 @@ class LogbookImport(object):
         """
         td = timedelta(seconds=30)
         return session.query(db.Log).filter(db.Log.site == site,db.sql.between(db.Log.time,time-td,time+td)).count()>0
+
     def recordexists(self,timeseries,time,timetolerance=30):
         """Checks if a record at time exists in dataset
         dataset: A timeseries to be checked
@@ -208,6 +219,7 @@ class RecordImport(object):
             self.sheet = self.workbook.sheet_by_index(0)
     
     t0 = datetime(1899,12,30)
+
     def get_time(self,date,time):
         if not time:
             return self.t0 + timedelta(date)
@@ -237,9 +249,7 @@ class RecordImport(object):
         if comment:
             rec.comment = comment
         return rec
-            
-                    
-    
+
     def __call__(self,commit=False):
         dsid = int(self.sheet.cell_value(3,1))
         errors={}
@@ -267,5 +277,3 @@ class RecordImport(object):
         finally:
             session.close()
         return logs,not errors
-                
-        
