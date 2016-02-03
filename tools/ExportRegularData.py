@@ -10,6 +10,7 @@ import sys
 import pandas as pd
 import numpy as np
 import pylab as plt
+import matplotlib.dates
 
 def createPandaDfs(lines,start, end, fout, interpolationtime=None, tolerance=12):
     '''
@@ -34,7 +35,7 @@ def createPandaDfs(lines,start, end, fout, interpolationtime=None, tolerance=12)
                 print 'Leave out zero size array in line '+unicode(line)
                 continue
             #Make Panda Dataframes
-            index=pd.Index(plt.num2date(Time),name='Date')
+            index=pd.Index(matplotlib.dates.num2date(Time),name='Date')
             dfs.append(pd.DataFrame(data=Value,index=index,columns=[Column_name]))
         
         if interpolationtime:

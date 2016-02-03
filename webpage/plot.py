@@ -13,6 +13,7 @@ if sys.platform=='win32':
 import os
 import pylab as plt
 from matplotlib.ticker import MaxNLocator
+import matplotlib.dates
 import numpy as np
 import db
 from traceback import format_exc as traceback
@@ -166,7 +167,7 @@ class Line(object):
             #    raise e
             #finally:
             print "size(v)=", v.size,"mean(v)=",v[np.isnan(v)==False].mean(),"std(v)=",v[np.isnan(v)==False].std()
-            print "size(t)=", t.size,"min(t)=",plt.num2date(t.min()),"max(t)=",plt.num2date(t.max())
+            print "size(t)=", t.size,"min(t)=",matplotlib.dates.num2date(t.min()),"max(t)=",matplotlib.dates.num2date(t.max())
             return t,v
     def draw(self,ax,startdate=None,enddate=None):
         """
@@ -190,7 +191,7 @@ class Line(object):
         # Epoch for excel dates
         stream.write(codecs.BOM_UTF8)
         stream.write('Time,' + unicode(self.valuetype).encode('UTF-8') + '\n') 
-        for t,v in zip(plt.num2date(t),v):
+        for t,v in zip(matplotlib.dates.num2date(t),v):
             stream.write('%s,%f\n' % (t.strftime('%Y-%m-%d %H:%M:%S'),v))
     def export_json(self,stream,startdate=None,enddate=None):
         t,v = self.load(startdate, enddate)
