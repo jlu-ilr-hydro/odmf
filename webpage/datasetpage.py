@@ -95,7 +95,7 @@ class DatasetPage:
                                # The project
                                activeproject=project,
                                # All available timezones
-                               timezones=common_timezones,
+                               timezones=common_timezones + ['Fixed/60'] ,
                                # The title of the page
                                title='Schwingbach-Datensatz #' + str(id)
                               ).render('html',doctype='html')
