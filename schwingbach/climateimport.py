@@ -5,8 +5,7 @@ Created on 21.05.2014
 '''
 import sys
 import os
-import dataimport as di
-from dataimport.textimport import TextImport, TextImportDescription
+from dataimport.textimport import TextImport
 from tools import Path
 import time
 from datetime import datetime

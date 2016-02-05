@@ -31,7 +31,7 @@
 		</ul>
     <div class="rightpane">
 			<div py:if="actualvaluetype">
-				<h2 py:content="actualvaluetype" />
+				<h2 py:content="unicode(actualvaluetype)" />
 				<table style="width: 100%">
 					<tr>
 						<td style="width: 7em">ID:</td>
@@ -102,14 +102,14 @@
 				<ul>
 					<li py:for="ds in actualvaluetype.datasets">
 						<a href="/dataset/${ds.id}" 
-						py:content="'%s #%i(%s-%s)' % (ds,ds.id,formatdate(ds.start),formatdate(ds.end))" />
+						py:content="'%s #%i(%s-%s)' % (unicode(ds),ds.id,formatdate(ds.start),formatdate(ds.end))" />
 					</li>
 					<li>
 						<a href="/dataset/new?vt_id=${actualvaluetype.id}"
 						py:content="'Neuen Datensatz hinzufügen...'" style="font-style: italic;" />
 					</li>
 				</ul>
-			</div>		
+			</div>	         
 		</div>
 	</div>
 </body>
