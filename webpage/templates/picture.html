@@ -92,7 +92,7 @@
 
 		  <div py:if="image">
 		  	<div>photo:${image.id}
-					${formatdatetime(image.time)} by <a href="/person/${image.by.username}">${image.by}</a>
+					${formatdatetime(image.time)} by <a href="/user/${image.by.username}">${image.by}</a>
 				</div>
 				<div>
 					Location: <a href="/site/${image.site.id}">${image.site}</a>
