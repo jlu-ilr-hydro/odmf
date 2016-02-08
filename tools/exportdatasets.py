@@ -14,8 +14,6 @@ from datetime import datetime,timedelta
 import matplotlib.dates
 t0 = datetime(1,1,1)
 
-EXPORT_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-
 def num2date(t):
     return t0 + timedelta(days=t)
 
@@ -58,7 +56,7 @@ def exportLines(fout, lines, tolerance=60):
         # If the current time step is past the tolerance time in seconds
         if t-told >= tolerance/86400.:
             # Get the datetime
-            time = matplotlib.dates.num2date(t).strftime(EXPORT_DATETIME_FORMAT)
+            time = matplotlib.dates.num2date(t).strftime("%Y-%m-%d %H:%M:%S")
             # Save the current linedata to the file
             if linedata:
                 writeline(linedata)
