@@ -19,22 +19,25 @@ home = web.abspath('.')
 
 
 class DBImportPage(object):
-    exposed=True
+    exposed = True
     
-    def logimport(self,filename,kwargs):
+    def logimport(self, filename, kwargs):
         import dataimport.importlog as il
+
         absfile = web.abspath(filename.strip('/'))
-        path=Path(absfile)
-        li = il.LogbookImport(absfile,web.user())
-        logs,cancommit = li('commit' in kwargs)
+        path = Path(absfile)
+        li = il.LogbookImport(absfile, web.user())
+        # TODO: Sometimes this is causing a delay
+        logs, cancommit = li('commit' in kwargs)
+
         if 'commit' in kwargs and cancommit:
             raise web.HTTPRedirect('/download?dir=' + escape(path.up()))
         else:
-            return web.render('logimport.html',filename=path,
-                              logs=logs,cancommit=cancommit,
-                              error='').render('html',doctype='html')
+            return web.render('logimport.html', filename=path, logs=logs,
+                              cancommit=cancommit, error='')\
+                .render('html', doctype='html')
         
-    def instrumentimport(self,filename,kwargs):
+    def instrumentimport(self, filename, kwargs):
         """
         Loads instrument data using a .conf file
         """
@@ -42,36 +45,46 @@ class DBImportPage(object):
         # TODO: Major refactoring of this code logic, when to load gaps, etc.
         path = Path(web.abspath(filename.strip('/')))
         import dataimport as di
-        error=web.markdown(di.checkimport(path.absolute)) 
+        error = web.markdown(di.checkimport(path.absolute))
         startdate = kwargs.get('startdate')
         enddate = kwargs.get('enddate')
-        siteid = web.conv(int,kwargs.get('site'))
-        instrumentid = web.conv(int,kwargs.get('instrument'))
-        config=di.getconfig(path.absolute)
+        siteid = web.conv(int, kwargs.get('site'))
+        instrumentid = web.conv(int, kwargs.get('instrument'))
+        config = di.getconfig(path.absolute)
+        valuetype = [e.valuetype for e in config.columns]
+
         if config:
             config.href = Path(config.filename).href
+
         if startdate:
             startdate = web.parsedate(startdate)
+
         if enddate:
             enddate = web.parsedate(enddate)
+
         stats = gaps = datasets = None
+
         if startdate and enddate:
-            gaps=[(startdate,enddate)]
+            gaps = [(startdate, enddate)]
+
         if siteid and (instrumentid or config):
             absfile = web.abspath(filename.strip('/'))
             adapter = di.get_adapter(absfile, web.user(), siteid, 
                                      instrumentid, startdate, enddate)
             adapter.errorstream = StringIO()
+
             if 'loadstat' in kwargs:
                 stats = adapter.get_statistic()
                 startdate = min(v.start for v in stats.itervalues())
                 enddate = max(v.end for v in stats.itervalues())
+
             if 'importdb' in kwargs and startdate and enddate:
-                gaps=None
+                gaps = None
                 datasets = di.importfile(absfile, web.user(), siteid,
                                          instrumentid, startdate, enddate)
             else:
-                gaps = di.finddateGaps(siteid, instrumentid, startdate, enddate)
+                gaps = di.finddateGaps(siteid, instrumentid, valuetype,
+                                       startdate, enddate)
                 error = adapter.errorstream.getvalue()
 
             adapter.errorstream.close()
@@ -85,7 +98,9 @@ class DBImportPage(object):
     def index(self,filename=None,**kwargs):
         if not filename:
             raise web.HTTPRedirect('/download/')
-        
+
+        print "\n>> Upload.py\n"
+
         # If the file ends with log.xls, import as log list
         if filename.endswith('log.xls'):
             return self.logimport(filename, kwargs)

@@ -15,7 +15,7 @@ CFG_DATETIME_DEFAULT_TIMEZONE = 'Europe/Berlin'
 # Database
 #
 
-CFG_DATABASE_NAME = 'schwingbach'
+CFG_DATABASE_NAME = 'schwingbach2'
 CFG_DATABASE_USERNAME = 'schwingbach-user'
 CFG_DATABASE_PASSWORD = 'VK1:SB0'
 CFG_DATABASE_HOST = 'fb09-pasig.umwelt.uni-giessen.de'
