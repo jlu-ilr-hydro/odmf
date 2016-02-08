@@ -1,0 +1,13 @@
+12% Speicherverbrauch * 3.9 RAM Speicher =
+0.468 Speicherverbrauch
+>>> 4 Maximalspeicher pasig / 0.468 Speicherverbrauch pro 96.6 Mb xlsx
+8 Instanzen/Faktoren für pasig
+>>> 8 * 96.6
+772.8 Megabyte maximale xlsx Datei
+
+26% Speicherverbrauch * 3.9 RAM Speicher =
+1.014 Speicherverbrauch
+4 Gb maximalspeicher pasig / 1.014 Speicherverbrauch pro 96 Mb xlsx
+3 Instanzen/Faktoren für pasig
+3 * 96.6 Mb
+289.8 Mb max xlsx
