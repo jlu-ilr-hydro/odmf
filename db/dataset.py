@@ -342,12 +342,14 @@ class Timeseries(Dataset):
             return value * self.calibration_slope + self.calibration_offset
         except TypeError:
             return None
+
     def maxrecordid(self):
         """Finds the highest record id for this dataset"""
         session = self.session()
-        q=session.query(sql.func.max(Record.id)).select_from(Record)
-        q=q.filter_by(dataset=self).scalar()
+        q = session.query(sql.func.max(Record.id)).select_from(Record)
+        q = q.filter_by(dataset=self).scalar()
         return q if not q is None else 1
+
     def addrecord(self,Id=None,value=None,time=None,comment=None,sample=None):
         """Adds a record to the dataset
         Id: id for the recordset, if None, a new id will be created

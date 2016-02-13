@@ -90,6 +90,7 @@ class SchwingbachExtension(markdown.Extension):
         md.inlinePatterns['link photo']=PatternLink(md,'(photo:)([0-9]+)',r'/picture/?id=\3',u'\u25B8'+r'\2\3')
         md.inlinePatterns['link log']=PatternLink(md,'(log:)([0-9]+)',r'/log/\3',u'\u25B8'+r'\2\3')
         md.inlinePatterns['link wiki']=PatternLink(md,'(wiki:)([\w/]+)',r'/wiki/\3',u'[\\3]')
+        md.inlinePatterns['link svn']=PatternLink(md,'(svn:)([\w/]+)',r'/snvlog/\3',u'[\\3]')
         md.inlinePatterns['replace rarrow']=SymbolPattern(md,r'(-->)',u'\u2192')
         md.inlinePatterns['replace larrow']=SymbolPattern(md,r'(<--)',u'\u2190')
         md.inlinePatterns['replace rarrow big']=SymbolPattern(md,r'(==>)',u'\u21D2')

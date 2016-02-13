@@ -12,71 +12,58 @@ from os import path as op
 import cherrypy
 import threading
 import json
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 
-from genshi.core import Stream
-from genshi.output import encode, get_serializer
 from genshi.template import Context, TemplateLoader
 from genshi.core import Markup
 
-import collections
 import auth
-from auth import expose_for, users, group, member_of
 from tools.parseMarkDown import MarkDown
 markdown = MarkDown()
+
+
 def jsonhandler(obj):
-    if hasattr(obj,'__jdict__'):
+    if hasattr(obj, '__jdict__'):
         return obj.__jdict__()
-    elif hasattr(obj,'isoformat'):
+    elif hasattr(obj, 'isoformat'):
         return obj.isoformat()
     else:
         return obj
 
+
 def as_json(obj):
-    return json.dumps(obj,sort_keys=True,indent=4,default=jsonhandler)
+    return json.dumps(obj, sort_keys=True, indent=4, default=jsonhandler)
 
 
 def abspath(fn):
     "Returns the absolute path to the relative filename fn"
     basepath = op.abspath(op.dirname(__file__))
     normpath = op.normpath(fn)
-    return op.join(basepath,normpath)
+    return op.join(basepath, normpath)
 
 
-config =  { '/': {
-                    'tools.staticdir.root' : abspath('.'),
+config = {'/': {'tools.staticdir.root': abspath('.')},
+          '/media': {'tools.staticdir.on': True,
+                     'tools.staticdir.dir': 'media',
+                     'tools.caching.on': False},
+          '/html': {'tools.staticdir.on': True,
+                    'tools.staticdir.dir': 'templates',
+                    'tools.caching.on': False},
+          '/datafiles': {'tools.staticdir.on': True,
+                         'tools.staticdir.dir': 'datafiles'},
+          }
 
-                  },
-            '/media': {
-                       'tools.staticdir.on': True,
-                       'tools.staticdir.dir': 'media',
-                       'tools.caching.on' : False,
-                       },
-           '/html': {
-                       'tools.staticdir.on': True,
-                       'tools.staticdir.dir': 'templates',
-                       'tools.caching.on' : False,
-                       },
-
-           '/datafiles' : {
-                       'tools.staticdir.on': True,
-                       'tools.staticdir.dir': 'datafiles'
-                       },
-           '/wikitude' : {
-                          'tools.staticdir.on': True,
-                          'tools.staticdir.dir': 'wikitude'
-                          }
-           }
 
 class mime:
-    json='application/json'
-    plain='text/plain'
-    xml='text/xml'
-    html='text/html'
-    jpeg='image/jpeg'
-    png='image/png'
-    csv='text/csv'
-    pdf='application/pdf'
+    json = 'application/json'
+    plain = 'text/plain'
+    xml = 'text/xml'
+    html = 'text/html'
+    jpeg = 'image/jpeg'
+    png = 'image/png'
+    csv = 'text/csv'
+    pdf = 'application/pdf'
+
 
 def mimetype(type):
     def decorate(func):
@@ -95,11 +82,17 @@ loader = TemplateLoader(abspath('templates'),
                             auto_reload=True)
 
 
-
 expose = cherrypy.expose
+postonly = cherrypy.tools.allow(methods=['POST'])  # @UndefinedVariable
+json_in = cherrypy.tools.json_in
+
 HTTPRedirect = cherrypy.HTTPRedirect
+
+
 def navigation(title=''):
     return Markup(render('navigation.html',title=unicode(title)).render('html',encoding=None))
+
+
 def attrcheck(kw,condition):
     if condition:
         return {kw:kw}

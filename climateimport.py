@@ -48,8 +48,8 @@ try:
     # Do the import
     ia.submit()
     # put out data to stdout
-    fin = file(path.absolute)
-    fout = file(sys.argv[3],'a')
+    fin = open(path.absolute)
+    fout = open(sys.argv[3],'a')
     for i,line in enumerate(fin):
         if i<config.skiplines:
             continue
