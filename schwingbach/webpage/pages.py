@@ -717,14 +717,14 @@ class Wiki(object):
         res = web.render('wiki.html',name=name,error='',wikitext=content,pages=pages).render('html',doctype='html')
         return res
         
-    @expose_for(web.group.editor)
+    @expose_for(group.editor)
     def save(self,name,newtext):
         try:
             fn = self.name2path(name)
             file(fn,'w').write(newtext.encode('utf-8',errors='replace'))
         except:
             return 'err:' + traceback()
-    @expose_for(web.group.admin)
+    @expose_for(group.admin)
     def delete(self,name):
         try:
             os.remove(self.name2path(name))
@@ -991,7 +991,7 @@ class Root(object):
     def robots_txt(self):
         web.setmime(web.mime.plain)
         return "User-agent: *\nDisallow: /\n"
-    @expose_for(web.group.admin)
+    @expose_for(group.admin)
     def freemem(self):
         web.setmime(web.mime.plain)
         import subprocess

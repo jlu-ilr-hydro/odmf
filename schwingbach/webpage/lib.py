@@ -21,7 +21,6 @@ import auth
 from tools.parseMarkDown import MarkDown
 markdown = MarkDown()
 
-
 def jsonhandler(obj):
     if hasattr(obj, '__jdict__'):
         return obj.__jdict__()
