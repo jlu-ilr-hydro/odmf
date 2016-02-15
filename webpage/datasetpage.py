@@ -21,7 +21,7 @@ class DatasetPage:
     """
     exposed = True
 
-    @expose_for()
+    @expose_for(group.guest)
     def index(self):
         """
         Returns the query page (datasetlist.html). Site logic is handled with ajax
@@ -124,7 +124,7 @@ class DatasetPage:
 
     @expose_for(group.editor)
     @web.postonly
-    @web.json_in
+    @web.json_in()
     def new_json(self):
         kwargs = cherrypy.request.json
         with db.session_scope() as session:

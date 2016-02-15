@@ -471,22 +471,23 @@ class Plot(object):
    
 import webpage.lib as web
 from webpage.preferences import Preferences
-plotgroup = web.group.logger
+from auth import group, expose_for
+plotgroup = group.logger
 
 class PlotPage(object):
     exposed=True
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def index(self,valuetype=None,site=None,error=''):
         plot=Plot.frompref(createplot=True)
         return web.render('plot.html',plot=plot,error=error).render('html')
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def loadplot(self,filename):
         try:
             plot = Plot.load(filename)
         except:
             return traceback()
         plot.topref() 
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def saveplot(self,filename,overwrite=False):
         if not filename:
             return 'No filename given'
@@ -494,16 +495,16 @@ class PlotPage(object):
             return 'Filename exists already. Choose another or delete this file'
         else:
             return Plot.frompref().save(filename)
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def deleteplotfile(self,filename):
         return Plot.killfile(filename)
         
     
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def listplotfiles(self):
         web.setmime(web.mime.json)
         return web.as_json(Plot.listdir())
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def describe(self,newdescription):
         try:
             plot = Plot.frompref(True)
@@ -512,14 +513,14 @@ class PlotPage(object):
         except:
             return traceback()
                     
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def image_png(self,**kwargs):
         web.setmime(web.mime.png)
         plot = Plot.frompref()   
         if not plot:
             raise web.HTTPRedirect('/plot?error=No plot available')        
         return plot.draw(format='png')
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def image_pdf(self,**kwargs):
         web.setmime(web.mime.pdf)
         plot = Plot.frompref()
@@ -527,7 +528,7 @@ class PlotPage(object):
             raise web.HTTPRedirect('/plot?error=No plot available')
         return plot.draw(format='pdf')
         
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def addsubplot(self):
         try:
             plot = Plot.frompref(createplot=True)
@@ -535,7 +536,7 @@ class PlotPage(object):
             plot.topref()
         except:
             return traceback()
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def removesubplot(self,subplotid):
         try:
             plot = Plot.frompref()
@@ -547,7 +548,7 @@ class PlotPage(object):
             return
         except:
             return traceback()
-    @web.expose(plotgroup)
+    @expose_for(plotgroup)
     def changeylim(self,subplotid,ymin=None,ymax=None):
         try:
             plot = Plot.frompref(createplot=True)
@@ -566,7 +567,7 @@ class PlotPage(object):
             return
         except:
             return traceback();
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def changelogsite(self,subplotid,logsite):
         try:
             plot = Plot.frompref(createplot=True)
@@ -579,7 +580,7 @@ class PlotPage(object):
         except:
             return traceback();
             
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def addline(self,subplot,valuetypeid,siteid,instrumentid,level,
                 color='k',linestyle='-',marker='',
                 usecache=False,aggfunc='mean'):
@@ -601,7 +602,7 @@ class PlotPage(object):
         except:
             return traceback()
     
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def removeline(self,subplot,line,savelineprops=False):
         plot = Plot.frompref()
         sp = plot.subplots[int(subplot)-1]
@@ -612,19 +613,19 @@ class PlotPage(object):
             plot.newlineprops = None
             del sp.lines[int(line)]
         plot.topref()
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def copyline(self,subplot,line):
         plot = Plot.frompref()
         sp = plot.subplots[int(subplot)-1]
         plot.newlineprops = sp.lines[int(line)]
         plot.topref()
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def reloadline(self,subplot,line):
         plot = Plot.frompref()
         sp = plot.subplots[int(subplot)-1]
         line = sp.lines[int(line)]
         line.killcache()
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def linedatasets_json(self,subplot,line):
         web.setmime(web.mime.json)
         plot=Plot.frompref()
@@ -635,7 +636,7 @@ class PlotPage(object):
         res = web.as_json(datasets)
         session.close()
         return res
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def export_csv(self,subplot,line):
         plot = Plot.frompref()
         sp = plot.subplots[int(subplot)-1]
@@ -645,7 +646,7 @@ class PlotPage(object):
         line.export_csv(io,plot.startdate,plot.enddate)
         io.seek(0)
         return io
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def export_json(self,subplot,line):
         plot = Plot.frompref()
         sp = plot.subplots[int(subplot)-1]
@@ -656,7 +657,7 @@ class PlotPage(object):
         io.seek(0)
         return io
 
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def exportall_csv(self,tolerance):
         plot = Plot.frompref()
 #         datasetids=[]
@@ -673,7 +674,7 @@ class PlotPage(object):
         exportLines(stream,lines,web.conv(float,tolerance,60))
         web.setmime(web.mime.csv)
         return stream.getvalue()            
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def RegularTimeseries_csv(self,tolerance=12,interpolation=''):
         plot = Plot.frompref()
         datasetids=[]
@@ -690,13 +691,13 @@ class PlotPage(object):
         createPandaDfs(lines,plot.startdate,plot.enddate,stream,interpolationtime=interpolation,tolerance=float(tolerance)) 
         web.setmime(web.mime.csv)
         return stream.getvalue()   
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def clf(self):
         plot = Plot.frompref()
         plot.killcache()
         plot = Plot()
         plot.topref()
-    @web.expose_for(plotgroup)
+    @expose_for(plotgroup)
     def changeplot(self,**kwargs):
         try:
             start = web.parsedate(kwargs.get('start'))
