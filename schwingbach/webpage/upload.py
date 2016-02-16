@@ -14,6 +14,8 @@ from genshi import escape, Markup
 from auth import group, expose_for
 from cStringIO import StringIO
 from tools import Path
+
+import conf
 datapath=web.abspath('datafiles')
 home = web.abspath('.')
 
@@ -117,8 +119,10 @@ class DownloadPage(object):
             directories.sort()
         else:
             error='%s is not a valid directory' % dir
-        return web.render('download.html',error=error,files=files,directories=directories,
-                      curdir=path).render('html',doctype='html')
+        return web.render('download.html', error=error, files=files,
+                          directories=directories, curdir=path,
+                          max_size=conf.CFG_UPLOAD_MAX_SIZE)\
+            .render('html', doctype='html')
 
     @expose_for(group.editor)
     def upload(self,dir,datafile,**kwargs):
