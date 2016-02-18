@@ -20,47 +20,94 @@ from sqlalchemy import func
 
 def findStartDate(siteid,instrumentid):
     session = db.Session()
-    ds=session.query(db.Dataset).filter(db.Dataset._site==siteid,db.Dataset._source==instrumentid).order_by(db.Dataset.end.desc()).first()
+    ds = session.query(db.Dataset).filter(db.Dataset._site == siteid,
+                                          db.Dataset._source == instrumentid)\
+        .order_by(db.Dataset.end.desc()).first()
     if ds:
         return ds.end
     else:
         return None
 
-def finddateGaps(siteid,instrumentid,startdate=None,enddate=None):
-    session = db.Session()
-    dss = session.query(db.Dataset).filter(db.Dataset._site==siteid,db.Dataset._source==instrumentid
-                                           ).order_by('"valuetype","start"')
-    if startdate:
-        dss=dss.filter(db.Dataset.end>startdate)
-    if enddate:
-        dss=dss.filter(db.Dataset.start<enddate)
-    # Filter for the first occuring valuetype
-    ds1 = dss.first()
-    if ds1 is None: 
-        return [(startdate,enddate)] if startdate and enddate else None
-    dss = dss.filter(db.Dataset._valuetype==ds1._valuetype).all()
-    # Make start and enddate if not present
-    if not startdate:
-        startdate=dss[0].start
-    if not enddate:
-        enddate=dss[-1].end
-    if dss:
-        res=[]
+def finddateGaps(siteid, instrumentid, valuetype, startdate=None, enddate=None):
+    """
+
+    Find gaps in with given params
+
+    :param siteid:
+    :param instrumentid:
+    :param valuetype:
+    :param startdate:
+    :param enddate:
+    :return:
+    """
+    print "[LOG] - finddateGaps - START"
+    print "[LOG] - finddateGaps - valutype(s) list=%s" % valuetype
+
+    with db.session_scope() as session:
+
+        dss = session.query(db.Dataset) \
+            .filter(db.Dataset._site == siteid,
+                    db.Dataset._source == instrumentid,
+                    db.Dataset._valuetype.in_(valuetype)) \
+            .order_by('"valuetype","start"')
+
+        print "[LOG] - finddateGaps - %d rows after query" % dss.count()
+
+        if dss.count() != 0:
+            # Filter for datasets which are in our period
+            if startdate:
+                dss = dss.filter(db.Dataset.end > startdate)
+                print "[LOG] - finddateGaps - %d rows after startdatefilter %s" % (dss.count(), startdate)
+            else:
+                print "[LOG] - finddateGaps - No startdate"
+            if enddate:
+                dss = dss.filter(db.Dataset.start < enddate)
+                print "[LOG] - finddateGaps - %d rows after enddatefilter %s" % (dss.count(), enddate)
+            else:
+                print "[LOG] - finddateGaps - No enddate"
+
+        # Check if their are datasets in our period
+        if dss is None or dss.count() == 0:
+            # There is no data. Allow full upload
+            if startdate and enddate:
+                print "[LOG] - finddateGaps - Full upload allowed / ", \
+                    startdate, " ", enddate, " /"
+                return [(startdate, enddate)]
+            else:
+                print "[LOG] - finddateGaps - No datasets"
+                return None
+
+        # Make start and enddate if not present
+        if not startdate:
+            print "[LOG] - finddateGaps - Create startdate at ", dss[0].start
+            startdate = dss[0].start
+        if not enddate:
+            print "[LOG] - finddateGaps - Create enddate at ", dss[-1].end
+            enddate = dss[-1].end
+
+        # Start search
+        res = []
+
         # Is there space before the first dataset?
-        if startdate<dss[0].start:
-            res.append((startdate,dss[0].start))
-        # Check for gaps>1 day between datasets 
-        for ds1,ds2 in zip(dss[:-1],dss[1:]):
+        if startdate < dss[0].start:
+            print "[LOG] - finddateGaps - Append %s - %s - v:%s" % (startdate, dss[0].start, dss[0].valuetype)
+            res.append((startdate, dss[0].start))
+
+        # Check for gaps>1 day between datasets
+        for ds1, ds2 in zip(dss[:-1], dss[1:]):
             # if there is a gap between
             if ds2.start - ds1.end >= timedelta(days=1):
-                res.append((ds1.end,ds2.start))
+                print "[LOG] - finddateGaps - Append %s - %s - v:%s - v:%s" % (ds1.end, ds2.start, ds1.valuetype, ds2.valuetype)
+                res.append((ds1.end, ds2.start))
+
         # Is there space after the last dataset
-        if enddate>dss[-1].end:
-            res.append((dss[-1].end,enddate))
+        if enddate > dss[-1].end:
+            print "[LOG] - finddateGaps - Append %s - %s - v:%s" % (dss[-1].end, enddate, dss[-1].valuetype)
+            res.append((dss[-1].end, enddate))
+
+        print "[LOG] - finddateGaps - Returning %d gap(s)" % len(res)
         return res
-            
-    else:
-        return [(startdate,enddate)] if startdate and enddate else None
+
 
 class ImportColumn:
     """Describes the content of a column in a delimited text file"""
@@ -118,9 +165,7 @@ class ImportColumn:
         if not self.access is None:
             config.set(section,'; Access property of the dataset. Default level is 1 (for loggers) but can set to 0 for public datasets or to a higher level for confidential datasets')
             config.set(section,'access',self.access)
-            
-            
-        
+
     @classmethod
     def from_config(cls,config,section):
         "Get the column description from a config-file"

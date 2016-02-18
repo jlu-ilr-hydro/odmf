@@ -163,12 +163,21 @@ class Line(object):
                 t.tofile(self.getcachename('t'))
                 v.tofile(self.getcachename('v'))
             print 'Load complete'
+
+            # There werre problems with arrays from length 0
+            if len(v) is 0 or len(t) is 0:
+                raise ValueError("No data to compute")
+
             #except Exception as e:
             #    raise e
             #finally:
-            print "size(v)=", v.size,"mean(v)=",v[np.isnan(v)==False].mean(),"std(v)=",v[np.isnan(v)==False].std()
-            print "size(t)=", t.size,"min(t)=",matplotlib.dates.num2date(t.min()),"max(t)=",matplotlib.dates.num2date(t.max())
-            return t,v
+            print "size(v)=", v.size, \
+                "mean(v)=", v[np.isnan(v) == False].mean(),\
+                "std(v)=", v[np.isnan(v) == False].std()
+            print "size(t)=", t.size, \
+                "min(t)=", matplotlib.dates.num2date(t.min()),\
+                "max(t)=", matplotlib.dates.num2date(t.max())
+            return t, v
     def draw(self,ax,startdate=None,enddate=None):
         """
         Draws the line to the matplotlib axis ax
