@@ -11,21 +11,31 @@
 
 	<script>
 	//<![CDATA[
+
 	var gg_site;
+	// Variable holds the actual site selection, this is important
+	// for the #siteselect change event listener
 
 	$(function() {
 		gg_site = $('#siteselect').val();
 
-
+		/*
+		 * Event listener for Site selection
+		 */
 		$('#siteselect').change( function () {
 
 			if(gg_site != $('#siteselect').val()) {
+				 // If site is not the chosen one ... disable import and reset
+				 // the periods
 				$('#importdb').prop('disabled', true);
 				$('#periodes').html('Click "Load statistics" for new periods');
+				gg_site = -1;
 			} else {
+				 // If otherwise enable import
                 $('#importdb').prop('disabled', false);
             }
 
+			// Reload datasets
 			onsiteselect();
 		});
 	});
