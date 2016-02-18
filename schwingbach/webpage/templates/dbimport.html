@@ -10,8 +10,28 @@
   <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
 
 	<script>
-			//<![CDATA[
-      function toggle(id) {
+	//<![CDATA[
+	var gg_site;
+
+	$(function() {
+		gg_site = $('#siteselect').val();
+
+
+		$('#siteselect').change( function () {
+
+			if(gg_site != $('#siteselect').val()) {
+				$('#importdb').prop('disabled', true);
+				$('#periodes').html('Click "Load statistics" for new periods');
+			} else {
+                $('#importdb').prop('disabled', false);
+            }
+
+			onsiteselect();
+		});
+	});
+
+
+	  function toggle(id) {
       	$('#'+id).slideToggle('fast');
       }
 
@@ -58,7 +78,7 @@
 						$('#loadstat').prop('disabled',false);
 					});
 				} else {
-					$('#loadstat').prop('disabled',true);
+					$('#loadstat').prop('disabled',false);
 				}
 				$('#startdate').val('');
 				$('#enddate').val('');
@@ -143,7 +163,7 @@
 	    			Site:
 	    		</td>
 	    		<td>
-						<select id="siteselect" name="site" onchange="submitform();">
+						<select id="siteselect" name="site">
 								<option value=""><i>Please select...</i></option>
 								<option py:if="siteid" value="${siteid}" selected="selected">#${siteid}</option>
 						</select>
@@ -154,7 +174,7 @@
 	    			Periodes:
 	    		</td>
 	    		<td>
-	    			<div py:for="g in (gaps or [])" class="small">
+	    			<div py:for="g in (gaps or [])" class="small" id="periodes">
 	    				<input type="radio" name="gap" value="${formatdate(g[0])} - ${formatdate(g[1])}"
 	    							 onclick="setdates('${formatdatetime(g[0])}','${formatdatetime(g[1])}')" />
 	    				${formatdate(g[0])} - ${formatdate(g[1])}
