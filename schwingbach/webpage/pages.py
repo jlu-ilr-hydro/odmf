@@ -431,7 +431,7 @@ class LogPage:
         raise web.HTTPRedirect('/log')
     
     
-    @expose_for()
+    @expose_for(group.logger)
     def json(self,siteid=None,user=None,old=None,until=None,days=None):
         session=db.Session()
         web.setmime('application/json')
