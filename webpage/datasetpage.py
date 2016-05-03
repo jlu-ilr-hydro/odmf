@@ -498,15 +498,15 @@ class DatasetPage:
             fig = plt.figure()
             ax = fig.gca()
             ax.plot_date(t, v, color + marker + line)
-            io = io.BytesIO()
+            bytesio = io.BytesIO()
             ax.grid()
             plt.xticks(rotation=15)
             plt.ylabel('%s [%s]' % (ds.valuetype.name, ds.valuetype.unit))
             plt.title(ds.site)
-            fig.savefig(io, dpi=100)
+            fig.savefig(bytesio, dpi=100)
         finally:
             session.close()
-        return io.getvalue()
+        return bytesio.getvalue()
 
     @expose_for(group.editor)
     def addrecord(self, datasetid, time, value, comment=None):

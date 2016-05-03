@@ -43,7 +43,10 @@ class DBImportPage(object):
         """
         Loads instrument data using a .conf file
         """
-        
+
+        # Error streams
+        errorstream = StringIO()
+
         # TODO: Major refactoring of this code logic, when to load gaps, etc.
         path = Path(web.abspath(filename.strip('/')))
         import dataimport as di
@@ -53,7 +56,13 @@ class DBImportPage(object):
         siteid = web.conv(int, kwargs.get('site'))
         instrumentid = web.conv(int, kwargs.get('instrument'))
         config = di.getconfig(path.absolute)
-        valuetype = [e.valuetype for e in config.columns]
+
+        if not config:
+            errorstream.write("No config available. Please provide a config for"
+                              " computing a decent result.")
+
+        if config:
+            valuetype = [e.valuetype for e in config.columns]
 
         if config:
             config.href = Path(config.filename).href
@@ -73,7 +82,7 @@ class DBImportPage(object):
             absfile = web.abspath(filename.strip('/'))
             adapter = di.get_adapter(absfile, web.user(), siteid, 
                                      instrumentid, startdate, enddate)
-            adapter.errorstream = StringIO()
+            adapter.errorstream = errorstream
             if 'loadstat' in kwargs:
                 stats = adapter.get_statistic()
                 startdate = min(v.start for v in stats.itervalues())
@@ -95,7 +104,7 @@ class DBImportPage(object):
             .render('html', doctype='html')
 
     @expose_for(group.editor)
-    def index(self,filename=None,**kwargs):
+    def index(self, filename=None, **kwargs):
         if not filename:
             raise web.HTTPRedirect('/download/')
 
@@ -107,17 +116,16 @@ class DBImportPage(object):
             return self.instrumentimport(filename, kwargs)
 
 
-            
-
 
 class DownloadPage(object):
     exposed=True
     to_db = DBImportPage()
+
     @expose_for(group.logger)
-    def index(self,dir='',error='',**kwargs):
-        path = Path(op.join(datapath,dir))
-        files=[]
-        directories=[]
+    def index(self, dir='', error='', **kwargs):
+        path = Path(op.join(datapath, dir))
+        files = []
+        directories = []
         if path.isdir() and path.is_legal:            
             for fn in path.listdir():
                 if not fn.startswith('.'):
