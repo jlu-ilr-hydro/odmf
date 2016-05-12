@@ -235,6 +235,7 @@ class MemRecord(object):
         self.comment=comment
         self.is_error=is_error
         self.rawvalue=rawvalue
+
 class Record(Base):
     """
     The record holds sinigle measured, quantitative values.
@@ -257,6 +258,11 @@ class Record(Base):
     sample=sql.Column(sql.String)
     comment = sql.Column(sql.String)
     is_error = sql.Column(sql.Boolean,nullable=False, default=False)    
+    
+    # CensorCode is from the CUAHSI ODM 1.1 and describes values that are not precisly measured
+    # see http://his.cuahsi.org/mastercvreg/cv11.aspx
+    # nc is not censored
+    censorcode = 'nc'
     
     @property
     def calibrated(self):
