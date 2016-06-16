@@ -489,7 +489,7 @@ class AbstractImport(object):
         """
         parses a string to float, using the decimal point from the descriptor
         """
-        s.replace(self.descriptor.decimalpoint,'.')
+        s = s.replace(self.descriptor.decimalpoint,'.')
         return float(s)
 
     def get_statistic(self):

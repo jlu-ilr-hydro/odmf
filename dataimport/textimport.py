@@ -94,7 +94,7 @@ class TextImport(AbstractImport):
                                 hasval=True
                         except Exception as e:
                             # On error, ignore the whole line
-                            self.errorstream.write('%s:%i: %s\n' % (os.path.basename(self.filename),lineno + self.descriptor.skiplines,e))
+                            self.errorstream.write('%s:%i:%i: %s\n' % (os.path.basename(self.filename),lineno + self.descriptor.skiplines, col.column,e))
                             res[k] = None
                     if hasval:
                         # If there is anything written, update lastraw to the actual values, for the next round
@@ -102,7 +102,7 @@ class TextImport(AbstractImport):
                         yield res
             except Exception as e:
                 # Write to StringIO Errorstream
-                self.errorstream.write('%s:%i: %s\n' % (os.path.basename(self.filename),lineno + self.descriptor.skiplines,e))
+                self.errorstream.write('%s:%i: %s\n' % (os.path.basename(self.filename),lineno + self.descriptor.skiplines, e))
 
     @staticmethod
     def extension_fits_to(filename):
