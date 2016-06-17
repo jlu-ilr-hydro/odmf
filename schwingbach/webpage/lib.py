@@ -8,6 +8,7 @@ from __future__ import division
 
 
 from os import path as op
+from cStringIO import StringIO
 
 import cherrypy
 import threading
@@ -33,6 +34,36 @@ def jsonhandler(obj):
 def as_json(obj):
     return json.dumps(obj, sort_keys=True, indent=4, default=jsonhandler)
 
+def log_as_json(logs):
+    res = StringIO('[')
+    for l in logs:
+        i = 0
+        res += '{'
+        keys = l.keys()
+        for k in keys:
+            res += "%s:%s" % (keys[i], l[i])
+            i += 1
+        res += '}'
+    res += ']'
+
+def log_as_array_str(logs):
+    res = StringIO()
+    res.write('[')
+    for l in logs:
+        first = True
+        res.write('[')
+        for e in l:
+            if first:
+                first = False
+                res.write("%s," % e)
+            else:
+                try:
+                    res.write("\"%s\"," % str(e).encode('utf-8', errors='replace'))
+                except UnicodeEncodeError:
+                    res.write("\"UnicodeEncodeError\"")
+        res.write('],')
+    res.write(']')
+    return res.getvalue()
 
 def abspath(fn):
     "Returns the absolute path to the relative filename fn"

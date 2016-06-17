@@ -45,7 +45,7 @@
 			<tr py:for="log in logs" class="small${' rowerror' if log['error'] else ''}">
 				<td py:content="log['row']" />
 				<td py:content="'yes' if log['error'] else 'no'" />
-				<td>${log['log']}</td> 
+				<td>${log['log']}</td>
 			</tr>
 		</table>
 	</div>

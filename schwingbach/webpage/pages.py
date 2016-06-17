@@ -388,9 +388,16 @@ class LogPage:
         else:
             until = datetime.today()
         days = web.conv(int,days, 30)
-        loglist = session.query(db.Log).filter(db.Log.time<=until,db.Log.time>=until-timedelta(days=days)).order_by(db.sql.desc(db.Log.time))
-        result = web.render('log.html',actuallog=log,error=error,db=db,session=session,loglist=loglist,
-                            ).render('html',doctype='html')
+        loglist = session.query(db.Log).filter(db.Log.time <= until,
+                                               db.Log.time >= until-timedelta(
+                                                   days=days))\
+            .order_by(db.sql.desc(db.Log.time))
+
+        sitelist = session.query(db.Site).order_by(db.sql.asc(db.Site.id))
+
+        result = web.render('log.html', actuallog=log, error=error, db=db,
+                            session=session, loglist=loglist, sites=sitelist
+                            ).render('html', doctype='html')
         session.close()
         return result    
     
@@ -432,41 +439,69 @@ class LogPage:
     
     
     @expose_for(group.logger)
-    def json(self,siteid=None,user=None,old=None,until=None,days=None):
-        session=db.Session()
+    def json(self, siteid=None, user=None, old=None, until=None, days=None,
+             _=None):
+        session = db.Session()
         web.setmime('application/json')
 
         logs = session.query(db.Log).order_by(db.sql.desc(db.Log.time))
-        if siteid:
-            logs=logs.filter_by(_site=int(siteid))
+
+        if siteid.isdigit():
+            logs = logs.filter_by(_site=int(siteid))
         if user:
-            logs=logs.filter_by(_user=user)
+            logs = logs.filter_by(_user=user)
         if until:
             until = web.parsedate(until)
-            logs=logs.filter(db.Log.time<=until)
+            logs = logs.filter(db.Log.time<=until)
         if old:
             old = web.parsedate(old)
-            logs=logs.filter(db.Log.time>=old)
+            logs = logs.filter(db.Log.time>=old)
         elif days:
             days = int(days)
             if until:
                 old = until - timedelta(days=days)
             else:
                 old = datetime.today() - timedelta(days=days)
-            logs=logs.filter(db.Log.time>=old)
-           
-            
+            logs = logs.filter(db.Log.time>=old)
+
         res = web.as_json(logs.all())
+        session.close()
+        return res
+
+    @expose_for()
+    def data(self, siteid=None, user=None, old=None, until=None, days=None,
+             _=None):
+
+        session = db.Session()
+
+        web.setmime('application/json')
+
+        logs = session.query(db.Log, db.Person).filter(db.Log._user
+                                                       == db.Person.username)
+
+        if until:
+            until = web.parsedate(until)
+            logs = logs.filter(db.Log.time <= until)
+
+        res = web.as_json(logs.all())
+
+        #logs = logs.values(db.Log.id, db.Log.message, db.Log.time, db.Log._user,
+        #            db.Person.email)
+
+        #res = web.log_as_array_str(logs)
+
         session.close()
         return res
     
     @expose_for(group.logger)
-    def fromclipboard(self,paste):
+    def fromclipboard(self, paste):
         web.setmime('text/html')
-        lines=paste.splitlines()
-        session=db.Session()
+        lines = paste.splitlines()
+        session = db.Session()
+
         def _raise(line,errormsg):
             raise RuntimeError("Could not create log from:\n'%s'\nReason:%s" % (line,errormsg))
+
         def parseline(line):
             line = line.replace('\t','|')
             ls = line.split('|')

@@ -61,6 +61,8 @@ class DatasetPage:
 
                 if active:  # save requested dataset as 'last'
                     web.cherrypy.session['dataset'] = id  # @UndefinedVariable
+                else:
+                    raise ValueError("Dataset %s is not existent" % (id))
 
             # Setting the project, for editing and ui navigation
             if active.project is not None:

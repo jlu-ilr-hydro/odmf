@@ -11,6 +11,11 @@ from glob import glob
 
 print sys.executable
 
+# set default encoding
+# remove when 2to3
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 from webpage import Root, HeapyPage
 from webpage import lib
 # Make autoreload

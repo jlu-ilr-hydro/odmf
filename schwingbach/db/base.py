@@ -14,6 +14,7 @@ import os.path as op
 import conf
 
 from contextlib import contextmanager
+from cherrypy import log
 
 
 def abspath(fn):
@@ -22,7 +23,8 @@ def abspath(fn):
     normpath = op.normpath(fn)
     return op.join(basepath,normpath)
 
-def newid(cls,session=None):
+
+def newid(cls, session=None):
     "Creates a new id for all mapped classes with an field called id, which is of integer type"
     if not session:
         session=Session()
@@ -31,12 +33,17 @@ def newid(cls,session=None):
         return max_id+1
     else:
         return 1
+
+
 def connect():
+    log("Connecting with database %s at %s ..." % (conf.CFG_DATABASE_NAME, conf.CFG_DATABASE_HOST))
     import psycopg2
-    return psycopg2.connect(user=conf.CFG_DATABASE_USERNAME,host=conf.CFG_DATABASE_HOST,password=conf.CFG_DATABASE_PASSWORD,
+    return psycopg2.connect(user=conf.CFG_DATABASE_USERNAME,
+                            host=conf.CFG_DATABASE_HOST,
+                            password=conf.CFG_DATABASE_PASSWORD,
                             database=conf.CFG_DATABASE_NAME)
 
-engine = sql.create_engine('postgresql://',creator=connect)
+engine = sql.create_engine('postgresql://', creator=connect)
 
 #createTables = op.exists('./file.db')
 

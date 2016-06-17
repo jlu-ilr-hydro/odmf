@@ -10,7 +10,6 @@ import os.path as op
 from base import AbstractImport, ImportDescription, ImportColumn
 
 
-
 class XlsImport (AbstractImport):
     """ Special class for importing xls files. """
     def __init__(self, filename, user, siteid, instrumentid=None,
@@ -21,7 +20,7 @@ class XlsImport (AbstractImport):
         self.descriptor = ImportDescription.from_file(self.filename)
         self.instrumentid = self.descriptor.instrument
         self.commitinterval = 10000
-        self.datasets={}
+        self.datasets = {}
 
     def loadvalues(self):
         """
@@ -107,7 +106,7 @@ class XlsImport (AbstractImport):
                 #    row[date_cols[0]], sheet.datemode)
                 #d = datetime(d[2], d[1], d[0])
             elif datetype == DOCUMENT_DATETYPE_TEXT_1C:
-                return datetime.strptime(row[date_cols[0]],
+                return datetime.strptime(row[date_cols[0]].value,
                                       self.descriptor.dateformat)
             elif datetype == DOCUMENT_DATETYPE_DATE_2C:
                 # TODO: Philipp nachfragen, reicht ein vergleich kleiner 0 groesser 0
@@ -179,7 +178,7 @@ class XlsImport (AbstractImport):
         # Opens the xlrd filestream
         # Using on_demand flag for resource saving
         # Using with statement for implicit call (Book)fin.release_resources()
-        #  cause of using the on_demand flag
+        # cause of using the on_demand flag
         with xlrd.open_workbook(self.filename, on_demand=True) as fin:
 
             # Holds the result
@@ -190,24 +189,8 @@ class XlsImport (AbstractImport):
 
             # Check if only one sheet
             # TODO: Write this down in a wiki entry that the first sheet will chosen
-            if fin.nsheets == 1:
-                sheet = fin.sheet_by_index(0)
-            elif fin.nsheets == 0:
-                self.errorstream.write("ERROR: Please make sure there is a "
-                                       "sheet. Xls file '%s' has no sheet "
-                                       "specified !\n"
-                                       % basename(self.filename))
-                # Stops the generator - see PEP 380
-                # https://www.python.org/dev/peps/pep-0380/
-                raise StopIteration("ERROR: Please make sure there is a sheet."
-                                    " Xls file '%s' has no sheet specified !\n"
-                                    % basename(self.filename))
-            else:
-                sheet = fin.sheet_by_index(0)
-                self.errorstream.write("WARNING: xls file with more than one "
-                                       "sheet specified at '%s'. Automatically "
-                                       "chose the first sheet.\n"
-                                       % self.descriptor.filename)
+            sheet = XlsImport.open_sheet(fin, self.descriptor.filename,
+                                         self.errorstream)
 
             # Ready to load data
 
@@ -280,8 +263,10 @@ class XlsImport (AbstractImport):
                 for c in self.descriptor.columns:
 
                     # Value validation
+                    # now added nodata validation
                     if row[c.column] is not None\
-                            and row[c.column] is not '':
+                            and row[c.column] is not ''\
+                            and row[c.column] in self.descriptor.nodata:
 
                         if inrange(c, row[c.column].value):
                             # TODO: Philip fragen (Ist das so ok?)
@@ -323,3 +308,29 @@ class XlsImport (AbstractImport):
         """
         name, ext = splitext(filename)
         return ext.lower() == '.xls' or ext.lower() == '.xlsx'
+
+    @staticmethod
+    def open_sheet(xlsfiledesc, filename, err):
+        """
+
+        :param xlsfiledesc:
+        :return:
+        """
+
+        if xlsfiledesc.nsheets != 0:
+            if xlsfiledesc.nsheets != 1:
+                err.write("WARNING: xls file with more than one "
+                                   "sheet specified at '%s'. "
+                                   "Chose the first sheet by default.\n"
+                                   % filename)
+            return xlsfiledesc.sheet_by_index(0)
+        else:
+            err.write("ERROR: Please make sure there is a "
+                                   "sheet. Xls file '%s' has no sheet "
+                                   "specified !\n"
+                                   % filename)
+                # Stops the generator - see PEP 380
+                # https://www.python.org/dev/peps/pep-0380/
+            raise StopIteration("ERROR: Please make sure there is a sheet."
+                                " Xls file '%s' has no sheet specified !\n"
+                                % filename)
