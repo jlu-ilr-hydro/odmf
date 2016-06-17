@@ -371,15 +371,16 @@ class Timeseries(Dataset):
         if time is None:
             time = datetime.now()
         if (not self.valuetype.inrange(value)):
-            raise ValueError('RECORD does not fit VALUETYPE: %(v)g %(u)s is out of range for %(vt)s' 
-                             % dict(v=value,u=self.valuetype.unit,vt=self.valuetype.name)) 
+            raise ValueError('RECORD does not fit VALUETYPE: %(v)g %(u)s is out of range for %(vt)s'
+                             % dict(v=value,u=self.valuetype.unit,vt=self.valuetype.name))
         if not (self.start <= time <= self.end):
             raise ValueError('RECORD does not fit DATASET: You tried to insert a record for date %s ' +
-                               'to dataset %s, which allows only records between %s and %s' 
+                               'to dataset %s, which allows only records between %s and %s'
                                % (time,self,self.start,self.end))
         result = Record(id=Id,time=time,value=value,dataset=self,comment=comment,sample=sample)
         session.add(result)
         return result
+
     def adjusttimespan(self):
         """
         Adjusts the start and end properties to match the timespan of the records

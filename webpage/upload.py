@@ -13,24 +13,39 @@ from traceback import format_exc as traceback
 from genshi import escape, Markup
 from auth import group, expose_for
 from cStringIO import StringIO
+
+from dataimport import ManualMeasurementsImport
+from dataimport.base import ImportDescription, LogImportDescription
+from dataimport.importlog import LogbookImport
 from tools import Path
 
 import conf
-datapath=web.abspath('datafiles')
+datapath = web.abspath('datafiles')
 home = web.abspath('.')
 
 
 class DBImportPage(object):
     exposed = True
     
-    def logimport(self, filename, kwargs):
+    def logimport(self, filename, kwargs, import_with_class=LogbookImport):
+        """
+
+        :param filename:
+        :param kwargs:
+        :param import_with_class:
+        :return:
+        """
         import dataimport.importlog as il
 
         absfile = web.abspath(filename.strip('/'))
         path = Path(absfile)
-        li = il.LogbookImport(absfile, web.user())
-        # TODO: Sometimes this is causing a delay
-        logs, cancommit = li('commit' in kwargs)
+        config = None
+        if import_with_class == ManualMeasurementsImport:
+            config = LogImportDescription.from_file(path.absolute)
+            print "path = %s;\nabsfile = %s" % (path, absfile)
+        li = import_with_class(absfile, web.user(), config=config)
+        logs, cancommit = li('commit' in kwargs)  # TODO: Sometimes this is causing a delay
+        # TODO: REFACTORING FOR MAINTAINABILITY
 
         if 'commit' in kwargs and cancommit:
             raise web.HTTPRedirect('/download?dir=' + escape(path.up()))
@@ -38,6 +53,15 @@ class DBImportPage(object):
             return web.render('logimport.html', filename=path, logs=logs,
                               cancommit=cancommit, error='')\
                 .render('html', doctype='html')
+
+    def mmimport(self, filename, kwargs):
+        """
+
+        :param filename:
+        :param kwargs:
+        :return:
+        """
+        return self.logimport(filename, kwargs, import_with_class=ManualMeasurementsImport)
         
     def instrumentimport(self, filename, kwargs):
         """
@@ -49,6 +73,7 @@ class DBImportPage(object):
 
         # TODO: Major refactoring of this code logic, when to load gaps, etc.
         path = Path(web.abspath(filename.strip('/')))
+        print "path = %s" % path
         import dataimport as di
         error = web.markdown(di.checkimport(path.absolute))
         startdate = kwargs.get('startdate')
@@ -74,6 +99,8 @@ class DBImportPage(object):
             enddate = web.parsedate(enddate)
 
         stats = gaps = datasets = None
+        sites = []
+        possible_datasets = []
 
         if startdate and enddate:
             gaps = [(startdate, enddate)]
@@ -88,7 +115,7 @@ class DBImportPage(object):
                 startdate = min(v.start for v in stats.itervalues())
                 enddate = max(v.end for v in stats.itervalues())
             if 'importdb' in kwargs and startdate and enddate:
-                gaps=None
+                gaps = None
                 datasets = di.importfile(absfile, web.user(), siteid,
                                          instrumentid, startdate, enddate)
             else:
@@ -100,7 +127,9 @@ class DBImportPage(object):
         return web.render('dbimport.html', di=di, error=error,
                           filename=filename, instrumentid=instrumentid,
                           dirlink=path.up(), siteid=siteid, gaps=gaps,
-                          stats=stats, datasets=datasets, config=config)\
+                          stats=stats, datasets=datasets, config=config,
+                          #mmimport=isinstance(config, di.mm.ImportManualMeasurementsDescription),
+                          sites=sites, possible_datasets=possible_datasets)\
             .render('html', doctype='html')
 
     @expose_for(group.editor)
@@ -108,11 +137,24 @@ class DBImportPage(object):
         if not filename:
             raise web.HTTPRedirect('/download/')
 
+        from cherrypy import log
+
+        print filename
+
+        print filename.endswith('log.xls')
+
+        print ManualMeasurementsImport.extension_fits_to(filename)
+
         # If the file ends with log.xls, import as log list
         if filename.endswith('log.xls'):
+            log("Import with logimport")
             return self.logimport(filename, kwargs)
         # else import as instrument file
+        elif ManualMeasurementsImport.extension_fits_to(filename):
+            log("Import with class %s" % ManualMeasurementsImport.__name__)
+            return self.mmimport(filename, kwargs)
         else:
+            log("Import with instrumentimport")
             return self.instrumentimport(filename, kwargs)
 
 

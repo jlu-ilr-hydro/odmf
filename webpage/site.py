@@ -99,6 +99,7 @@ class SitePage:
         res=web.as_json(sorted(inst))
         session.close()
         return res
+
     @expose_for()
     def getinstruments(self):
         web.setmime('application/json')
@@ -133,6 +134,7 @@ class SitePage:
         finally:
             session.close()
         return error
+
     @expose_for(group.editor)
     def removeinstrument(self,siteid,instrumentid,installationid,date=None):
         session=db.Session()
@@ -157,6 +159,7 @@ class SitePage:
         finally:
             session.close()
         return error
+
     @expose_for()
     def json(self):
         session=db.Session()
@@ -177,6 +180,7 @@ class SitePage:
         result = stream.render('xml')
         session.close()
         return result    
+
     @classmethod
     def kml_description(cls,site):
         host = "http://fb09-pasig.umwelt.uni-giessen.de:8081"
@@ -193,18 +197,21 @@ class SitePage:
             content=dict(id=ds.id,name=ds.name,start=web.formatdate(ds.start),end=web.formatdate(ds.end),vt=ds.valuetype,host=host)
             text.append(u'<li><a href="%(host)s/dataset/%(id)s">%(name)s, %(vt)s (%(start)s-%(end)s)</a></li>' % content)
         return '<br/>'.join(text)
+
     def geticons(self):
         path = web.abspath('media/mapicons')
         return [op.basename(p) for p in glob(op.join(path,'*.png')) if not op.basename(p)=='selection.png']
     
-    @expose_for()
-    def with_instrument(self,instrumentid):
+    @expose_for(group.guest)
+    def with_instrument(self, instrumentid):
         web.setmime(web.mime.json)
-        session=db.Session()
-        sites=[]
+        session = db.Session()
+        sites = []
+        print "instrument id %s" % instrumentid
         try:
-            inst =  db.Datasource.get(session,int(instrumentid))
+            inst = db.Datasource.get(session, int(instrumentid))
             sites = sorted(set(i.site for i in inst.sites))
+            print "Sites: %s" % sites.__len__()
         finally:
             session.close()
         return web.as_json(sites)

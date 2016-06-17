@@ -13,6 +13,7 @@ from cherrypy.lib.reprconf import as_dict
 from projection import LLtoUTM, dd_to_dms
 from collections import deque
 from traceback import format_exc as traceback
+
 from tools.mail import EMail
 
 class Site(Base):
