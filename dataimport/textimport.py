@@ -79,9 +79,12 @@ class TextImport(AbstractImport):
                         try:
                             # check for nodata values
                             if ls[k] in self.descriptor.nodata:
-                                raise ValueError("R%i:C%i is %s and therefore nodata" % (lineno, col.column, ls[k]))
-                            # get raw value of column using the parsefloat function
-                            raw[k] = self.parsefloat(ls[k])
+                                #raise ValueError("R%i:C%i is %s and therefore nodata" % (lineno, col.column, ls[k]))
+                                raw[k] = None
+                                res[k] = None
+                            else:
+                                # get raw value of column using the parsefloat function
+                                raw[k] = self.parsefloat(ls[k])
                             # check if raw value is out of bounds
                             if outofrange(col,raw[k]):
                                 raw[k]=None
