@@ -26,7 +26,7 @@ class PersonPage:
     exposed=True
     
     @expose_for(group.guest)
-    def default(self,act_user=None):
+    def default(self, act_user=None):
         session = db.Session()
         persons = session.query(db.Person).order_by(db.sql.desc(db.Person.can_supervise),db.Person.surname)
 
@@ -35,22 +35,24 @@ class PersonPage:
             persons = persons.filter(db.Person.access_level != 0)
             # TODO: url "host/guest" shouldn't be accessible for the guest user
 
-        supervisors = persons.filter(db.Person.can_supervise==True)
-        error=''
-        jobs=[]
+        supervisors = persons.filter(db.Person.can_supervise == True)
+        error = ''
+        jobs = []
         act_user = act_user or users.current.name
         if act_user == 'new':
             p_act = db.Person(active=True)
         else:
             try:
                 p_act = session.query(db.Person).get(act_user)
-                jobs=p_act.jobs.order_by(db.sql.asc(db.Job.done),db.sql.asc(db.Job.due))
+                if p_act is None:
+                    raise ValueError("There is no user with the name '%s'" % act_user)
+                jobs = p_act.jobs.order_by(db.sql.asc(db.Job.done),db.sql.asc(db.Job.due))
             except:
-                p_act=None
-                error=traceback()   
-        result = web.render('person.html', persons=persons,active_person=p_act,
-                          supervisors=supervisors,error=error,jobs=jobs,
-                            act_user=act_user, levels=get_levels, is_self=is_self).render('html',doctype='html')
+                p_act = session.query(db.Person).get(users.current.name)
+                error = traceback()
+        result = web.render('person.html', persons=persons, active_person=p_act, supervisors=supervisors, error=error,
+                            jobs=jobs, act_user=act_user, levels=get_levels, is_self=is_self)\
+            .render('html', doctype='html')
         session.close()
         return result
 
@@ -674,12 +676,14 @@ class CalendarPage(object):
         return res
 class svnlogPage(object):
     exposed=True
-    def logs(self,svnlogs):
+
+    def logs(self, svnlogs):
         for log in svnlogs:
             log['revno'] = log['revision'].number
             log['date'] = web.formatdatetime(datetime.fromtimestamp(log['date']))
             yield '### [%(revno)i](/svnlog/%(revno)i) - %(date)s\n\n*by %(author)s*\n\n * %(message)s' % log
-    def changes(self,revno,svnclient,work_path='.'):
+
+    def changes(self, revno, svnclient, work_path='.'):
             rev = pysvn.Revision(pysvn.opt_revision_kind.number,int(revno))
             log, = svnclient.log(work_path,rev,rev)           
             log['revno'] = log['revision'].number
@@ -707,6 +711,8 @@ class svnlogPage(object):
         svnclient = pysvn.Client()
         out = ''
         work_path = web.abspath('..')
+        print "TEST\n"
+        print work_path
         if not revno:
             svnlogs = svnclient.log(work_path)
             out = '\n\n'.join(self.logs(svnlogs))
