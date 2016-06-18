@@ -326,12 +326,10 @@ class ManualMeasurementsImport(LogbookImport):
         :param filename:
         :return:
         """
-        # webpage\/
-        pattern = '.*\/datafiles\/manual-measurements\/[a-zA-Z0-9]*\/.*\.(xls|xlsx)$'
 
         name, ext = splitext(filename)
         return (ext.lower() == '.xls' or ext.lower() == '.xlsx') and \
-               search(pattern, filename)
+               search(conf.CFG_PATTERN_MANUAL_MEASUREMENTS, filename)
 
     def get_date(self, row, date):
 
