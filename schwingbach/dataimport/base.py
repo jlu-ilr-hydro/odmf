@@ -203,7 +203,7 @@ class ImportColumn:
                    )
         
 
-class ImportDescription:
+class ImportDescription(object):
     """
     Describes the file format and content of a delimited text file for
     import to the database.
@@ -244,6 +244,7 @@ class ImportDescription:
         if isinstance(nodata, list):
             self.nodata = nodata
         else:
+            self.nodata = []
             raise ValueError("nodata value %s has to be an instance of a list" % nodata)
 
     def __str__(self):
@@ -410,7 +411,6 @@ class LogImportColumn(ImportColumn):
                    )
 
 
-
 class LogImportDescription(ImportDescription):
     """
     Temporary Helper Class
@@ -420,7 +420,7 @@ class LogImportDescription(ImportDescription):
     def __init__(self, instrument, skiplines=0, delimiter=',', decimalpoint='.',
                  dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
                  timezone=conf.CFG_DATETIME_DEFAULT_TIMEZONE, project=None, site=None, dataset=None,
-                 value=None, logtext=None, msg=None, sample=None):
+                 value=None, logtext=None, msg=None, sample=None, nodata=[]):
 
 
         """
@@ -428,34 +428,16 @@ class LogImportDescription(ImportDescription):
         skiplines: The number of lines prepending the actual data
         delimiter: The delimiter sign of the columns. Use TAB for tab-delimited columns, otherwise ',' or ';'
         """
-        self.name = ''
-        self.fileextension = ''
-        self.instrument = int(instrument)
-        self.skiplines = skiplines
-        self.delimiter = delimiter
-        # Replace space and tab keywords
-        if self.delimiter and self.delimiter.upper() == 'TAB':
-            self.delimiter = '\t'
-        elif self.delimiter and self.delimiter.upper() == 'SPACE':
-            self.delimiter = None
-        self.decimalpoint = decimalpoint
-        self.dateformat = dateformat
-        self.filename = ''
-        try:
-            self.datecolumns = tuple(datecolumns)
-        except:
-            self.datecolumns = datecolumns,
-        self.columns = []
 
-        # New added for feature
-        self.timezone = timezone  # Timezone for the dataset
-        self.project = project  # Project for the dataset
         self.site = site
         self.dataset = dataset
         self.value = value
         self.logtext = logtext
         self.msg = msg
         self.sample = sample
+
+        super(LogImportDescription, self).__init__(instrument, skiplines, delimiter, decimalpoint, dateformat,
+                                                   datecolumns, timezone, project, nodata=nodata)
 
     @classmethod
     def from_config(cls, config):
@@ -503,11 +485,11 @@ class LogImportDescription(ImportDescription):
                   decimalpoint=getvalue(sections[0], 'decimalpoint'),
                   dateformat=getvalue(sections[0], 'dateformat'),
                   datecolumns=eval(config.get(sections[0], 'datecolumns')),
-                  project=getvalue(sections[0], 'project'),
+                  project=getvalue(sections[0], 'project', int),
                   timezone=getvalue(sections[0], 'timezone'),
-                  site=getvalue(sections[0], 'sitecolumn'),
-                  dataset=getvalue(sections[0], 'dataset'),
-                  value=getvalue(sections[0], 'value'),
+                  site=getvalue(sections[0], 'sitecolumn', int),
+                  dataset=getvalue(sections[0], 'dataset', int),
+                  value=getvalue(sections[0], 'value', float),
                   logtext=getvalue(sections[0], 'logtext'),
                   msg=getvalue(sections[0], 'msg'),
                   sample=getvalue(sections[0], 'sample')
