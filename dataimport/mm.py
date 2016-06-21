@@ -143,10 +143,18 @@ class ManualMeasurementsImport(LogbookImport):
         elif not site:
             raise LogImportError(row, 'Missing site')
 
-        # Get datset (if existent)
-        ds, len, err = self.get_latest_dataset(session, valuetype_column.valuetype, site.id)
-        if err:
-            raise LogImportError(row, err)
+        # Dataset
+
+        # get dataset from column, if existent
+        if self.descr.dataset is not None:
+            ds, err = self.get_obj(session, db.Dataset, row, self.descr.dataset)
+
+        # otherwise compute it from valuetype and siteid out of the database
+        else:
+            # Get datset (if existent)
+            ds, len, err = self.get_latest_dataset(session, valuetype_column.valuetype, site.id)
+            if err:
+                raise LogImportError(row, err)
 
         # If dataset is not manual measured or dataset is not at site throw
         # error
@@ -329,7 +337,7 @@ class ManualMeasurementsImport(LogbookImport):
 
         name, ext = splitext(filename)
         return (ext.lower() == '.xls' or ext.lower() == '.xlsx') and \
-               search(conf.CFG_PATTERN_MANUAL_MEASUREMENTS, filename)
+               search(conf.CFG_MANUAL_MEASUREMENTS_PATTERN, filename)
 
     def get_date(self, row, date):
 
