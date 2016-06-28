@@ -181,7 +181,7 @@
 			</ul>					
 		</div>
 		<a href="javascript:toggle('logform')" py:if="is_member('logger')">Edit...</a>
-		<form id="logform" action="/log/saveitem" method="post" py:if="is_member('logger')" style="display:${'none' if actuallog.site else 'block'};">
+		<form id="logform" action="/log/saveitem" method="post" py:if="actuallog is not None and is_member('logger')" style="display:${'none' if actuallog.site else 'block'};">
 			<table style="width: 100%">
 				<tr>
 					<td>Id</td>
