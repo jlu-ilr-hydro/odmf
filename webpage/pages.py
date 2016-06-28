@@ -378,7 +378,7 @@ class LogPage:
                 log.site = session.query(db.Site).get(int(siteid))
             log.time=datetime.today()
         elif logid is None:
-            log=session.query(db.Log).order_by(db.sql.desc(db.Log.time)).first()
+            log = session.query(db.Log).order_by(db.sql.desc(db.Log.time)).first()
         else:
             try:
                 log = session.query(db.Log).get(int(logid))
