@@ -157,7 +157,11 @@
     			<!--<a href="to_db?filename=${f.href}" title="import in data base" class="dbimport"> </a>-->
     			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" /> 
     			<span class="box" py:if="is_member('admin')">
-    				<a href="javascript:removefile('${f.basename}')">&#x2718;</a>
+                    <form method="post" action="/download/removefile" style="display: inline;">
+                            <input name="dir" type="hidden" value="${curdir}" />
+				    	    <input name="filename" type="hidden" value="${f.basename}" />
+							<input type="submit" style="" value="&#x2718;"/>
+					</form>
 						
     			</span>
 
