@@ -216,27 +216,7 @@ class DownloadPage(object):
             url = '/download?dir='+escape(dir)
             if error: url+='&error='+escape(error)
         raise web.HTTPRedirect(url)
-    @expose_for(group.editor)
-    def newfolder(self,dir,newfolder):
-        error=''
-        if newfolder:
-            if ' ' in newfolder:
-                error="The folder name may not include a space!"
-            else:
-                try:
-                    path=Path(op.join(datapath,dir,newfolder))
-                    if not path:
-                        path.make()
-                        path.setownergroup()
-                    else:
-                        error="Folder %s exists already!" % newfolder
-                except:
-                    error=traceback()
-        else:
-            error='Forgotten to give your new folder a name?'
-        url = '/download?dir='+escape(dir)
-        if error: url+='&error='+escape(error)
-        return self.index(dir=dir,error=error)
+
     @expose_for(group.logger)
     def saveindex(self,dir,s):
         """Saves the string s to index.html
@@ -247,6 +227,7 @@ class DownloadPage(object):
         f.write(s)
         f.close()   
         return web.markdown(s)
+
     @expose_for()
     def getindex(self,dir):
         index = Path(op.join(datapath,dir,'index.html'))
@@ -260,17 +241,46 @@ class DownloadPage(object):
                 ls = l.split(',',3)
                 io.write(' * file:%s/%s imported by user:%s at %s into %s\n' % tuple([imphist.up()]+ls))
         return web.markdown(io.getvalue())
+
+    @expose_for(group.editor)
+    def newfolder(self, dir, newfolder):
+        error = ''
+        if newfolder:
+            if ' ' in newfolder:
+                error = "The folder name may not include a space!"
+            else:
+                try:
+                    path = Path(op.join(datapath, dir, newfolder))
+                    if not path:
+                        path.make()
+                        path.setownergroup()
+                    else:
+                        error = "Folder %s exists already!" % newfolder
+                except:
+                    error = traceback()
+        else:
+            error = 'Forgotten to give your new folder a name?'
+        url = '/download?dir=' + escape(dir)
+        if error: url += '&error=' + escape(error)
+        return self.index(dir=dir, error=error)
+
+    # @TODO: Is the usage of a dir post variable safe through foreign access?
     @expose_for(group.admin)
-    def removefile(self,link):
-        path = Path(op.join(datapath,link))
+    def removefile(self, dir, filename):
+        path = Path(op.join(datapath, filename))
+        error = ''
+
         if path.exists():
             try:
                 os.remove(path.absolute)
             except:
-                return "Could not delete the file. A good reason would be a mismatch of user rights on the server file system" 
-            return None
+                error = "Could not delete the file. A good reason would be a mismatch of user rights on the server " \
+                        "file system"
         else:
-            return "File not found. Is it already deleted?"
+            error = "File not found. Is it already deleted?"
+
+        return self.index(dir=dir, error=error)
+
 if __name__=='__main__':
     class Root:
         download=DownloadPage()
