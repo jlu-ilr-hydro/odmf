@@ -96,6 +96,16 @@
 		li.folder {
 			list-style-image: url(/media/shimmer/folder_add_32.png)
 		}
+
+        form.remove-form input[type="submit"] {
+            border-radius: 10px;
+            border: 1px #000;
+            box-shadow: #fff 3px 3px 7px;
+        }
+
+        .remove-button:hover{
+            cursor: pointer;
+        }
 	</style>
 </head>
 <body>
@@ -157,10 +167,10 @@
     			<!--<a href="to_db?filename=${f.href}" title="import in data base" class="dbimport"> </a>-->
     			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" /> 
     			<span class="box" py:if="is_member('admin')">
-                    <form method="post" action="/download/removefile" style="display: inline;">
+                    <form class="remove-form" method="post" action="/download/removefile" style="display: inline;">
                             <input name="dir" type="hidden" value="${curdir}" />
 				    	    <input name="filename" type="hidden" value="${f.basename}" />
-							<input type="submit" style="" value="&#x2718;"/>
+							<input type="submit" class="remove-button" value="&#x2718;"/>
 					</form>
 						
     			</span>
