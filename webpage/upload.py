@@ -145,14 +145,15 @@ class DBImportPage(object):
 
         print ManualMeasurementsImport.extension_fits_to(filename)
 
-        # If the file ends with log.xls, import as log list
-        if filename.endswith('log.xls'):
-            log("Import with logimport")
-            return self.logimport(filename, kwargs)
         # else import as instrument file
-        elif ManualMeasurementsImport.extension_fits_to(filename):
+        if ManualMeasurementsImport.extension_fits_to(filename):
             log("Import with class %s" % ManualMeasurementsImport.__name__)
             return self.mmimport(filename, kwargs)
+        # If the file ends with log.xls, import as log list
+        elif filename.endswith('log.xls'):
+            log("Import with logimport")
+            return self.logimport(filename, kwargs)
+
         else:
             log("Import with instrumentimport")
             return self.instrumentimport(filename, kwargs)

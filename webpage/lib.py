@@ -253,9 +253,9 @@ def start_server(root,autoreload=False, port=8080):
     cherrypy.config["tools.encode.on"] = True
     cherrypy.config["tools.encode.decode"] = True
 
-    cherrypy.server.socket_host="0.0.0.0"
-    cherrypy.server.socket_port=port
-    cherrypy.quickstart(root=root,config=config)
+    cherrypy.server.socket_host = "0.0.0.0"
+    cherrypy.server.socket_port = port
+    cherrypy.quickstart(root=root, config=config)
 
 def is_selected(a1, a2):
     """
