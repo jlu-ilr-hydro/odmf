@@ -719,7 +719,7 @@ class AbstractImport(object):
         a file can be processed by this class
 
         :param: filename
-        :return: Returns if a file is applicable for an import class
+        :return: Returns true if a file is applicable for an import class
         """
         raise NotImplementedError("Use an implementation class")
 
