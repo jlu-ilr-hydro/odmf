@@ -283,6 +283,24 @@
 											value="${site.id}"></option>
 								</select><br/>
 
+
+			<!-- Site list TODO: remove this awful <br/> tags i made here quick and dirty -->
+			<br/>and only for the site number(s) <br/>
+
+			<span class="tooltip"><input id="sitelist" type="text"
+										 class="tooltip"/>
+				<span>Specify your site id(s) in a comma separated list</span>
+			</span>
+
+			<img style="cursor: pointer;" src="media/plus-small.png"
+				 onclick="appendSiteToSiteList();" />
+			<select id="sitepicker">
+									<option py:for="site in sites"
+											py:content="site"
+											py:attrs="markoption(site.id == sites[0].id)"
+											value="${site.id}"></option>
+								</select><br/>
+
 			<button onclick="listlogs();">go</button>
 
 			<table id="table-loglist">
