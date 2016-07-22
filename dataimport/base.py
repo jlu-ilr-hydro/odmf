@@ -723,6 +723,49 @@ class AbstractImport(object):
         """
         raise NotImplementedError("Use an implementation class")
 
+    def upload(self, new_dataset, dataset):
+
+        MAX_ROWS = 100
+
+        # TODO: Move this to the dataset.py
+        def overlap(d1, d2):
+            if d2.start < d1.start < d2.end:
+                return True
+            elif d2.end > d1.end > d2.start:
+                return True
+            return False
+
+        def get_report():
+            pass
+
+        # new_dataset, dataset are valid datasets
+        # dataset.start < dataset.end
+
+        if not overlap(new_dataset, dataset):
+            # upload
+            print "Upload completed successful"
+        else:
+            print "Report conflicts"
+            if new_dataset.count() > MAX_ROWS:
+
+                if dataset.count() > MAX_ROWS:
+
+                    print "Normally no upload allowed"
+                    # Only for Admins
+                    # Except other
+
+                else:
+                    uploadable, conflicts = get_report(dataset, new_dataset)
+            else:
+                uploadable, conflicts = get_report(new_dataset, dataset)
+
+            if conflicts.real == 0:
+                print "Allow normal merge"
+
+            else:
+                print "Print multiple choice"
+
+
 
 def savetoimports(filename, user, datasets=None):
     """
