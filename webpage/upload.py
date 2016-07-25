@@ -43,6 +43,10 @@ class DBImportPage(object):
         if import_with_class == ManualMeasurementsImport:
             config = LogImportDescription.from_file(path.absolute)
             print "path = %s;\nabsfile = %s" % (path, absfile)
+
+        from cherrypy import log
+        log("Import with class %s" % import_with_class.__name__)
+
         li = import_with_class(absfile, web.user(), config=config)
         logs, cancommit = li('commit' in kwargs)  # TODO: Sometimes this is causing a delay
         # TODO: REFACTORING FOR MAINTAINABILITY
