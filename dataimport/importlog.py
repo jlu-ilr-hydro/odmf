@@ -103,7 +103,7 @@ class LogbookImport(object):
     # for the import. Like:
     # __init__( ... , importWithClass=<Class Identifier>)
     # test interface in mm.py
-    def __init__(self, filename, user, sheetname=None, import_with_class=None):
+    def __init__(self, filename, user, sheetname=None, import_with_class=None, config=None):
         self.filename = filename
         self.workbook = xlrd.open_workbook(filename)
         session = db.Session()
