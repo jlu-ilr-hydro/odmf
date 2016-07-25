@@ -110,8 +110,6 @@ class LogbookImport(object):
         self.user = db.Person.get(session, user)
         session.close()
 
-        from cherrypy import log
-        log("Import with class %s" % import_with_class.__name__)
         self.columns = import_with_class()
 
         if not self.user:
