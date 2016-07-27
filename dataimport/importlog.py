@@ -239,9 +239,16 @@ class LogbookImport(object):
         # TODO: Refactor this into new class hierachy
         try:
             # TODO: Nodata comparison here
-            v = float(self.get_value(row, self.columns.value))
+            value = self.get_value(row, self.columns.value)
+            if value is None or value is '':
+                v = None
+            else:
+                v = float(value)
 
         except TypeError:
+            v = None
+        except ValueError:
+            raise LogImportError(row, "String value '%s' can't be converted to float" % self.get_value(row, self.columns.value))
             v = None
 
         if (not v is None) and ds is None:
