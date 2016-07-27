@@ -103,14 +103,14 @@ class LogbookImport(object):
     # for the import. Like:
     # __init__( ... , importWithClass=<Class Identifier>)
     # test interface in mm.py
-    def __init__(self, filename, user, sheetname=None, import_with_class=None, config=None):
+    def __init__(self, filename, user, sheetname=None, import_with_class=LogColumns, config=None):
         self.filename = filename
         self.workbook = xlrd.open_workbook(filename)
         session = db.Session()
         self.user = db.Person.get(session, user)
         session.close()
 
-        self.columns = import_with_class()
+        self.columns = import_with_class
 
         if not self.user:
             raise RuntimeError('%s is not a valid user' % user)
