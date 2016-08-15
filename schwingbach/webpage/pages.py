@@ -459,6 +459,7 @@ class LogPage:
             until = web.parsedate(until)
             logs = logs.filter(db.Log.time<=until)
         if keywords:
+            # TODO: Implement pgsql full text search
             keywords = keywords.strip().split(" ")
             for keyword in keywords:
                 logs = logs.filter(db.Log.message.like("%%%s%%" % keyword))
