@@ -21,7 +21,7 @@
 	
 	function formatiso(isostr) { //from http://dev.enekoalonso.com/2010/09/21/date-from-iso-8601-string/
 		var parts = isostr.match(/\d+/g);
-		return parts[2] + '.' + parts[1] + '.' + parts[0];
+		return parts[2] + '.' + parts[1] + '.' + parts[0] + ' ' + parts[3] + ':' + parts[4] + ':' + parts[5];
 	}
 	function toggle(id) {
   	var obj = $('#'+id) 
@@ -36,7 +36,8 @@
 		until = $('#lastlogdate').val();
 		days = $('#days').val();
         siteid = $('#siteid').val();
-		$.getJSON('/log/json',{until:until, days:days, siteid:siteid}, function(data) {
+        keywords = $('#keywords').val();
+		$.getJSON('/log/json',{until:until, days:days, siteid:siteid, keywords:keywords}, function(data) {
 			html='';
 			//templ='<li><a href="#href#">#text#</a></li>';
 
@@ -283,23 +284,8 @@
 											value="${site.id}"></option>
 								</select><br/>
 
-
-			<!-- Site list TODO: remove this awful <br/> tags i made here quick and dirty -->
-			<br/>and only for the site number(s) <br/>
-
-			<span class="tooltip"><input id="sitelist" type="text"
-										 class="tooltip"/>
-				<span>Specify your site id(s) in a comma separated list</span>
-			</span>
-
-			<img style="cursor: pointer;" src="media/plus-small.png"
-				 onclick="appendSiteToSiteList();" />
-			<select id="sitepicker">
-									<option py:for="site in sites"
-											py:content="site"
-											py:attrs="markoption(site.id == sites[0].id)"
-											value="${site.id}"></option>
-								</select><br/>
+            And with keywords (case sensitive) in comments
+            <input type="text" name="keywords" id="keywords"/>
 
 			<button onclick="listlogs();">go</button>
 

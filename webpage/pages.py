@@ -363,10 +363,13 @@ class JobPage:
         res = web.as_json(jobs.all())
         session.close()
         return res
+
+
 class LogPage:
-    exposed=True
+    exposed = True
+
     @expose_for(group.guest)
-    def default(self,logid=None,siteid=None,lastlogdate=None,days=None):
+    def default(self, logid=None, siteid=None, lastlogdate=None, days=None):
         session=db.Session()
         error=''
         if logid=='new':
@@ -442,7 +445,7 @@ class LogPage:
     
     @expose_for(group.logger)
     def json(self, siteid=None, user=None, old=None, until=None, days=None,
-             _=None):
+             _=None, keywords=None):
         session = db.Session()
         web.setmime('application/json')
 
@@ -455,6 +458,10 @@ class LogPage:
         if until:
             until = web.parsedate(until)
             logs = logs.filter(db.Log.time<=until)
+        if keywords:
+            keywords = keywords.strip().split(" ")
+            for keyword in keywords:
+                logs = logs.filter(db.Log.message.like("%%%s%%" % keyword))
         if old:
             old = web.parsedate(old)
             logs = logs.filter(db.Log.time>=old)
@@ -464,9 +471,12 @@ class LogPage:
                 old = until - timedelta(days=days)
             else:
                 old = datetime.today() - timedelta(days=days)
-            logs = logs.filter(db.Log.time>=old)
+            logs = logs.filter(db.Log.time >= old)
 
         res = web.as_json(logs.all())
+
+        print "Res ", res
+
         session.close()
         return res
 
