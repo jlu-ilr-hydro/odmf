@@ -182,7 +182,7 @@ class ManualMeasurementsImport(LogbookImport):
         # now check if a record is already in the database for that special timestamp
         record = session.query(db.Record).filter(db.Record.dataset == ds,
                                                  db.Record.time == dt,
-                                                 db.Record.is_error is False).count()
+                                                 db.Record.is_error == False).count()
         if record == 1:
             raise LogImportError(row, "For dataset '%s' and time '%s', there is already a record in database" %
                                  (ds, dt))
