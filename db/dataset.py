@@ -50,7 +50,7 @@ class ValueType(Base):
     minvalue=sql.Column(sql.Float)
     maxvalue=sql.Column(sql.Float)
     def __str__(self):
-        return "%s [%s]" % (self.name,self.unit)
+        return "%s [%s] #%s" % (self.name, self.unit, self.id)
     def __cmp__(self,other):
         
         return cmp(self.__str__().upper(),other.__str__().upper())

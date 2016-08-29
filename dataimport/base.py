@@ -386,7 +386,9 @@ class LogImportColumn(ImportColumn):
 
     @classmethod
     def from_config(cls, config, section):
-        """Get the column description from a config-file"""
+        """
+        Get the column description from a config-file
+        """
         ImportColumn.from_config(config, section)
 
 
@@ -503,13 +505,18 @@ class LogImportDescription(ImportDescription):
     def to_columns(self):
 
         date = None
+        time = None
 
         if len(self.datecolumns) == 1:
             date = self.datecolumns[0]
 
+        if len(self.datecolumns) == 2:
+            date = self.datecolumns[0]
+            time = self.datecolumns[1]
+
         res = LogColumns(
             date=date,
-            time=None,
+            time=time,
             datetime=None,
             site=self.site,
             dataset=self.dataset,
@@ -518,7 +525,6 @@ class LogImportDescription(ImportDescription):
             msg=self.msg,
             sample=self.sample
         )
-        print res
         return res
 
 

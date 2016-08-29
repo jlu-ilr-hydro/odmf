@@ -4,7 +4,7 @@ from pprint import pprint
 import xlrd
 from os.path import basename, splitext
 from datetime import datetime, timedelta
-from cherrypy import log
+import cherrypy
 
 from base import AbstractImport, ImportDescription, ImportColumn, ImportStat, LogImportDescription
 from dataimport.importlog import LogbookImport, LogImportError
@@ -79,11 +79,10 @@ class ManualMeasurementsImport(LogbookImport):
         start = 0 + self.descr.skiplines
         end = self.sheet.nrows
 
-        print "Rows in calling mm: %d" % self.sheet.nrows
+        cherrypy.log("Rows in calling mm: %d" % self.sheet.nrows)
 
         try:
             for row in xrange(start, end):
-                print self.sheet.cell_value(row, 1)
                 if self.sheet.cell_value(row, 1):
                     row_has_error = False
                     for valuetype_column in self.descr.columns:
@@ -108,11 +107,6 @@ class ManualMeasurementsImport(LogbookImport):
         finally:
             session.close()
 
-        print "LOGS"
-        pprint(logs)
-        print "ERRORS"
-        pprint(errors)
-
         return logs, not errors
 
     # TODO: rename LogColumns -> self.columns (holding (an instance of) class
@@ -124,13 +118,12 @@ class ManualMeasurementsImport(LogbookImport):
         :param session: Database session connector
         :param row: Data to be imported
         """
-        print "IMPORTROW ####### Manual Measurements ###### ROW %s" % row
 
         # Get date and time
         try:
             date = self.get_date(row, self.columns.date)
-            time = self.get_time(row, self.columns.time)
-            print "DATE %s - TIME %s" % (date, time)
+            time = self.get_date(row, self.columns.time)
+            dt = self.get_datetime(row)
 
         except:
             raise LogImportError(row, 'Could not read date and time')
@@ -185,6 +178,19 @@ class ManualMeasurementsImport(LogbookImport):
         if (not v is None) and ds is None:
             raise LogImportError(row, "A value is given, but no dataset")
 
+        # all record attributes ok
+        # now check if a record is already in the database for that special timestamp
+        record = session.query(db.Record).filter(db.Record.dataset == ds,
+                                                 db.Record.time == dt,
+                                                 db.Record.is_error is False).count()
+        if record == 1:
+            raise LogImportError(row, "For dataset '%s' and time '%s', there is already a record in database" %
+                                 (ds, dt))
+        elif record > 1:
+            raise LogImportError(row, "For dataset '%s' and the time '%s', there are multiple records already in the "
+                                      "database" % (ds, dt))
+
+
         # Get logtype and message (for logs or as record comment)
         logtype = None
         msg = None
@@ -236,10 +242,6 @@ class ManualMeasurementsImport(LogbookImport):
 
                 if msg: logmsg += ', ' + msg
 
-                ttt = type(site)
-                if ttt is db.Site:
-                    print ttt
-
                 newlog = db.Log(id=db.newid(db.Log, session),
                                 user=self.user,
                                 time=date,
@@ -248,7 +250,7 @@ class ManualMeasurementsImport(LogbookImport):
                                 type='measurement')
                 session.add(newlog)
             return "Add value %g %s to %s (%s)".encode('utf-8') % (v,
-                                                    ds.valuetype.unit,
+                                                    ds.valuetype,
                                                     ds,
                                                     date)
 
@@ -275,7 +277,6 @@ class ManualMeasurementsImport(LogbookImport):
             job.make_done(self, date)
 
     def get_value(self, row, col):
-        print "GET_VALUE(row='%s', columns='%s')" % (row, col)
 
         if isinstance(row, str):
             if row.isdigit():
@@ -342,8 +343,12 @@ class ManualMeasurementsImport(LogbookImport):
     def get_date(self, row, date):
 
         value = self.get_value(row, date)
+        if type(value) in [str, unicode]:
+            return datetime.strptime(value, self.descr.dateformat)
+        elif type(value) == float:
+            return self.get_time(value, value)
 
-        return datetime.strptime(value, self.descr.dateformat)
+        raise ValueError("Couldn't read date time")
 
     def get_latest_dataset(self, session, valuetype, siteid):
 
@@ -365,3 +370,12 @@ class ManualMeasurementsImport(LogbookImport):
         length = datasets.count()
 
         return dataset, length, ''
+
+    def get_datetime(self, row):
+
+        date = self.get_value(row, self.columns.date)
+        time = self.get_value(row, self.columns.time)
+
+        datetime = self.t0 + timedelta(date + time)
+
+        return datetime
