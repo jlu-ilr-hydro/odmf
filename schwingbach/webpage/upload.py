@@ -5,6 +5,7 @@ Created on 15.02.2012
 
 @author: philkraf
 '''
+import time
 
 import lib as web
 from os import path as op
@@ -13,6 +14,7 @@ from traceback import format_exc as traceback
 from genshi import escape, Markup
 from auth import group, expose_for
 from cStringIO import StringIO
+from cherrypy import log
 
 from dataimport import ManualMeasurementsImport
 from dataimport.base import ImportDescription, LogImportDescription
@@ -37,6 +39,8 @@ class DBImportPage(object):
         """
         import dataimport.importlog as il
 
+        t0 = time.time()
+
         absfile = web.abspath(filename.strip('/'))
         path = Path(absfile)
         config = None
@@ -50,6 +54,10 @@ class DBImportPage(object):
         li = import_with_class(absfile, web.user(), config=config)
         logs, cancommit = li('commit' in kwargs)  # TODO: Sometimes this is causing a delay
         # TODO: REFACTORING FOR MAINTAINABILITY
+
+        t1 = time.time()
+
+        log("Imported in %.2f s" % (t1 - t0))
 
         if 'commit' in kwargs and cancommit:
             raise web.HTTPRedirect('/download?dir=' + escape(path.up()))
@@ -71,6 +79,8 @@ class DBImportPage(object):
         """
         Loads instrument data using a .conf file
         """
+
+        t0 = time.time()
 
         # Error streams
         errorstream = StringIO()
@@ -128,6 +138,11 @@ class DBImportPage(object):
                 error = adapter.errorstream.getvalue()
 
             adapter.errorstream.close()
+
+        t1 = time.time()
+
+        log("Imported in %.2f s" % (t1 - t0))
+
         return web.render('dbimport.html', di=di, error=error,
                           filename=filename, instrumentid=instrumentid,
                           dirlink=path.up(), siteid=siteid, gaps=gaps,
@@ -140,14 +155,6 @@ class DBImportPage(object):
     def index(self, filename=None, **kwargs):
         if not filename:
             raise web.HTTPRedirect('/download/')
-
-        from cherrypy import log
-
-        print filename
-
-        print filename.endswith('log.xls')
-
-        print ManualMeasurementsImport.extension_fits_to(filename)
 
         # else import as instrument file
         if ManualMeasurementsImport.extension_fits_to(filename):
