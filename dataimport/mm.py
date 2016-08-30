@@ -121,9 +121,19 @@ class ManualMeasurementsImport(LogbookImport):
 
         # Get date and time
         try:
+            # TODO: Rework date/time determination, make it consistent for all types of imports
+            # TODO: Build test cases for date/time determination
             date = self.get_date(row, self.columns.date)
             time = self.get_date(row, self.columns.time)
             dt = self.get_datetime(row)
+	    
+	    if dt.days != None and dt.date != None:
+		if dt.day == date.day and dt.month == date.month and dt.year == date.year:
+		    date = dt
+		else:
+		    print "Something went wrong while parsing the datetime"
+                
+            		
 
         except:
             raise LogImportError(row, 'Could not read date and time')
