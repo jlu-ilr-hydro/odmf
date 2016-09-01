@@ -119,21 +119,26 @@ class ManualMeasurementsImport(LogbookImport):
         :param row: Data to be imported
         """
 
+        time = None
+
         # Get date and time
         try:
             # TODO: Rework date/time determination, make it consistent for all types of imports
             # TODO: Build test cases for date/time determination
             date = self.get_date(row, self.columns.date)
-            time = self.get_date(row, self.columns.time)
+
+            if self.columns.time:
+                time = self.get_date(row, self.columns.time)
+
             dt = self.get_datetime(row)
-	    
-	    if dt.days != None and dt.date != None:
-		if dt.day == date.day and dt.month == date.month and dt.year == date.year:
-		    date = dt
-		else:
-		    print "Something went wrong while parsing the datetime"
+
+            if dt.minute != None and dt.hour != None:
+                if dt.day == date.day and dt.month == date.month and dt.year == date.year:
+                    date = dt
+                else:
+                    print "Warning: Something went wrong while parsing the datetime"
                 
-            		
+
 
         except:
             raise LogImportError(row, 'Could not read date and time')
@@ -384,7 +389,11 @@ class ManualMeasurementsImport(LogbookImport):
     def get_datetime(self, row):
 
         date = self.get_value(row, self.columns.date)
-        time = self.get_value(row, self.columns.time)
+
+        if self.columns.time:
+            time = self.get_value(row, self.columns.time)
+        else:
+            time = 0
 
         datetime = self.t0 + timedelta(date + time)
 
