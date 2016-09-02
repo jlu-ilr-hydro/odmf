@@ -279,7 +279,7 @@ class DownloadPage(object):
     # @TODO: Is the usage of a dir post variable safe through foreign access?
     @expose_for(group.admin)
     def removefile(self, dir, filename):
-        path = Path(op.join(datapath, filename))
+        path = Path(op.join(datapath + '/' + dir, filename))
         error = ''
 
         if path.exists():
@@ -291,7 +291,11 @@ class DownloadPage(object):
         else:
             error = "File not found. Is it already deleted?"
 
-        return self.index(dir=dir, error=error)
+        if dir == '.' and error == '':
+            return self.index()
+        else:
+            # TODO: Remove this hack
+            raise web.HTTPRedirect("/download/?dir=%s&error=%s" % (dir, error))
 
 if __name__=='__main__':
     class Root:
