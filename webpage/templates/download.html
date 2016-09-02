@@ -30,6 +30,14 @@
             $('.upload').prop('disabled', !$(this).val());
         });
 
+        $('form.remove-form').submit( function( e ) {
+            if (window.confirm("Do you really want to delete this file?")) {
+
+            } else {
+                e.preventDefault()
+            }
+        })
+
 		$('#help').load('getindex?dir=${curdir}');
   		$('.help').click(function() {
   			if ($('#help').html().substring(0,9)!='<textarea') {
@@ -163,14 +171,14 @@
     	</ul> 
     	<ul style="list-style: none;padding-left: 0px;">
     		<li py:for="f in files">
-    			<span onclick="window.location='to_db?filename=${f.href}'" title="import in data base" class="dbimport">.</span>
+    			<span  title="import in data base" class="dbimport">.</span>
     			<!--<a href="to_db?filename=${f.href}" title="import in data base" class="dbimport"> </a>-->
     			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" /> 
     			<span class="box" py:if="is_member('admin')">
                     <form class="remove-form" method="post" action="/download/removefile" style="display: inline;">
                             <input name="dir" type="hidden" value="${curdir}" />
 				    	    <input name="filename" type="hidden" value="${f.basename}" />
-							<input type="submit" class="remove-button" value="&#x2718;"/>
+							<input type="submit" id="remove-button-id" class="remove-button" value="&#x2718;"/>
 					</form>
 						
     			</span>
