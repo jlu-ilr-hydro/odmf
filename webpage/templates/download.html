@@ -30,6 +30,7 @@
             $('.upload').prop('disabled', !$(this).val());
         });
 
+        // Delete button
         $('form.remove-form').submit( function( e ) {
             if (window.confirm("Do you really want to delete this file?")) {
 
@@ -75,6 +76,7 @@
 		.dbimport:hover {
 			background-image: url(/media/shimmer/document_add_32.png);
 			color:#32739D;
+            cursor: pointer;
 		}
 		a:hover {
 			background-color: #4665A2;
@@ -171,7 +173,7 @@
     	</ul> 
     	<ul style="list-style: none;padding-left: 0px;">
     		<li py:for="f in files">
-    			<span  title="import in data base" class="dbimport">.</span>
+    			<span onclick="window.location='to_db?filename=${f.href}'" title="import in data base" class="dbimport">.</span>
     			<!--<a href="to_db?filename=${f.href}" title="import in data base" class="dbimport"> </a>-->
     			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" /> 
     			<span class="box" py:if="is_member('admin')">
