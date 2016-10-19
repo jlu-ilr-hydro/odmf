@@ -223,5 +223,5 @@ def dms_to_dd(d,m,s):
 
 if __name__ == '__main__':
     (z, e, n) = LLtoUTM(23, 40 + (6 + 18.3591/60)/60, -(88 + (13 + 9.52349/60)/60))
-    print z, e, n
-    print UTMtoLL(23, e, n, z)
+    #print z, e, n
+    #print UTMtoLL(23, e, n, z)
