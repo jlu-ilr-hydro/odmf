@@ -120,7 +120,7 @@ class ImportColumn:
 
     def __init__(self, column, name, valuetype, factor=1.0, comment=None,
                  difference=None, minvalue=-1e308, maxvalue=+1e308, append=None,
-                 level=None, access=None):
+                 level=None, access=None, ds_column=None):
         """
         Creates a column description in a delimited text file.
         upon import, the column will be saved as a dataset in the database
@@ -133,7 +133,10 @@ class ImportColumn:
         minvalue: This is the allowed lowest value (not converted). Lower values will not be imported
         maxvalue: This is the allowed highest value. Higher values will not be converted
         comment: The new dataset can be commented by this comment
-        append: For automatic import, append to this datasetid 
+        append: For automatic import, append to this datasetid
+        level: ...
+        access: ...
+        ds_column: explicit dataset for uploading column @see: mm.py
         """
         self.column = int(column)
         self.name = name
@@ -146,6 +149,7 @@ class ImportColumn:
         self.append = append
         self.level = level
         self.access = access
+        self.ds_column = ds_column
 
     def __str__(self):
         return "%s[%s]:column=%i" % ('d' if self.difference else '', self.name,
@@ -199,7 +203,10 @@ class ImportColumn:
                    maxvalue=getvalue('maxvalue',float),
                    append=getvalue('append',int),
                    level=getvalue('level',float),
-                   access=getvalue('access',int)
+                   access=getvalue('access',int),
+
+                   # Added as lab import (mm.py) feature
+                   ds_column=getvalue('ds_column', int)
                    )
         
 
@@ -211,7 +218,8 @@ class ImportDescription(object):
 
     def __init__(self, instrument, skiplines=0, delimiter=',', decimalpoint='.',
                  dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
-                 timezone=conf.CFG_DATETIME_DEFAULT_TIMEZONE, project=None, nodata=[]):
+                 timezone=conf.CFG_DATETIME_DEFAULT_TIMEZONE, project=None,
+                 nodata=[], worksheet=1):
         """
         instrument: the database id of the instrument that produced this file
         skiplines: The number of lines prepending the actual data
@@ -247,6 +255,12 @@ class ImportDescription(object):
             self.nodata = []
             raise ValueError("nodata value %s has to be an instance of a list" % nodata)
 
+        # added after some issues with xls-files where the data worksheet
+        # wasn't the first one
+        if worksheet is None:
+            worksheet = 1
+        self.worksheet = worksheet
+
     def __str__(self):
         io = StringIO()
         self.to_config().write(io)
@@ -281,6 +295,7 @@ class ImportDescription(object):
         config.set(section, 'project', self.project)
         config.set(section, 'timezone', self.timezone)
         config.set(section, 'nodata', self.nodata)
+        config.set(section, 'worksheet', self.worksheet)
         if self.fileextension:
             config.set(section, 'fileextension', self.fileextension)
         for col in self.columns:
@@ -341,7 +356,8 @@ class ImportDescription(object):
                   datecolumns=config_getlist(sections[0], 'datecolumns'),
                   project=getvalue(sections[0], 'project'),
                   timezone=getvalue(sections[0], 'timezone'),
-                  nodata=config_getlist(sections[0], 'nodata')
+                  nodata=config_getlist(sections[0], 'nodata'),
+                  worksheet=getvalue(sections[0], 'worksheet')
                   )
         tid.name = sections[0]
         for section in sections[1:]:
@@ -421,10 +437,9 @@ class LogImportDescription(ImportDescription):
 
     def __init__(self, instrument, skiplines=0, delimiter=',', decimalpoint='.',
                  dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
-                 timezone=conf.CFG_DATETIME_DEFAULT_TIMEZONE, project=None, site=None, dataset=None,
-                 value=None, logtext=None, msg=None, sample=None, nodata=[]):
-
-
+                 timezone=conf.CFG_DATETIME_DEFAULT_TIMEZONE, project=None,
+                 site=None, dataset=None, value=None, logtext=None, msg=None,
+                 worksheet=1, nodata=[]):
         """
         instrument: the database id of the instrument that produced this file
         skiplines: The number of lines prepending the actual data
@@ -436,10 +451,11 @@ class LogImportDescription(ImportDescription):
         self.value = value
         self.logtext = logtext
         self.msg = msg
-        self.sample = sample
 
-        super(LogImportDescription, self).__init__(instrument, skiplines, delimiter, decimalpoint, dateformat,
-                                                   datecolumns, timezone, project, nodata=nodata)
+        super(LogImportDescription, self)\
+            .__init__(instrument, skiplines, delimiter, decimalpoint,
+                      dateformat, datecolumns, timezone, project, nodata=nodata,
+                      worksheet=worksheet)
 
     @classmethod
     def from_config(cls, config):
@@ -494,7 +510,7 @@ class LogImportDescription(ImportDescription):
                   value=getvalue(sections[0], 'value', float),
                   logtext=getvalue(sections[0], 'logtext'),
                   msg=getvalue(sections[0], 'msg'),
-                  sample=getvalue(sections[0], 'sample')
+                  worksheet=getvalue(sections[0], 'worksheet')
                   )
         tid.name = sections[0]
         for section in sections[1:]:
@@ -523,7 +539,7 @@ class LogImportDescription(ImportDescription):
             value=self.value,
             logtext=self.logtext,
             msg=self.msg,
-            sample=self.sample
+            sample=None
         )
         return res
 
@@ -735,9 +751,15 @@ class AbstractImport(object):
 
         # TODO: Move this to the dataset.py
         def overlap(d1, d2):
+            # d1 is inside d2
             if d2.start < d1.start < d2.end:
                 return True
             elif d2.end > d1.end > d2.start:
+                return True
+            # d2 is inside d1
+            if d1.start < d2.start < d1.end:
+                return True
+            elif d1.end > d2.end > d1.start:
                 return True
             return False
 

@@ -190,6 +190,7 @@ class XlsImport (AbstractImport):
             # Check if only one sheet
             # TODO: Write this down in a wiki entry that the first sheet will chosen
             sheet = XlsImport.open_sheet(fin, self.descriptor.filename,
+                                         self.descriptor.worksheet,
                                          self.errorstream)
 
             # Ready to load data
@@ -310,24 +311,23 @@ class XlsImport (AbstractImport):
         return ext.lower() == '.xls' or ext.lower() == '.xlsx'
 
     @staticmethod
-    def open_sheet(xlsfiledesc, filename, err):
+    def open_sheet(xlsfiledesc, filename, worksheet_index, err):
         """
 
         :param xlsfiledesc:
         :return:
         """
-
         if xlsfiledesc.nsheets != 0:
             if xlsfiledesc.nsheets != 1:
                 err.write("WARNING: xls file with more than one "
                                    "sheet specified at '%s'. "
-                                   "Chose the first sheet by default.\n"
-                                   % filename)
-            return xlsfiledesc.sheet_by_index(0)
+                                   "Chose the sheet at index '%i'.\n"
+                                   % (filename, worksheet_index-1))
+            return xlsfiledesc.sheet_by_index(worksheet_index-1)
         else:
+
             err.write("ERROR: Please make sure there is a "
-                                   "sheet. Xls file '%s' has no sheet "
-                                   "specified !\n"
+                                   "sheet. Xls file '%s' has no sheets!\n"
                                    % filename)
                 # Stops the generator - see PEP 380
                 # https://www.python.org/dev/peps/pep-0380/
