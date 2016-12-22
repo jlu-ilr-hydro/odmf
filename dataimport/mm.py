@@ -25,7 +25,6 @@ class ILogColumn():
     value = None
     logtext = None
     msg = None
-    sample = None
 
 
 class ManualMeasurementsColumns(ILogColumn):
@@ -51,23 +50,34 @@ class ManualMeasurementsColumns(ILogColumn):
         self.level = getvalue('level', float),
         self.access = getvalue('access', int)
 
+        self.dataset = config.getint(section, 'dataset')
+
+
+
 
 class ManualMeasurementsImport(LogbookImport):
     """
     Importclass for Manual Measurements
     """
 
-    def __init__(self, filename, user, configfile=None, sheetName=None, config=None):
+    def __init__(self, filename, user, configfile=None, sheetName=None, config=None, descr=None):
 
         err = StringIO()
         self.filename = filename
-        self.sheet = XlsImport.open_sheet(xlrd.open_workbook(filename, on_demand=True), filename, err)
+
         with db.session_scope() as session:
             self.user = db.Person.get(session, user)
         self.sheetName = sheetName
 
-        self.descr = LogImportDescription.from_file(filename)
+        if descr:
+            self.descr = descr
+        else:
+            self.descr = LogImportDescription.from_file(filename)
+
         self.columns = self.descr.to_columns()
+
+        self.sheet = XlsImport.open_sheet(
+            xlrd.open_workbook(filename, on_demand=True), filename, self.descr.worksheet, err)
 
         #self.filename = configfile.file
 
@@ -80,6 +90,12 @@ class ManualMeasurementsImport(LogbookImport):
         end = self.sheet.nrows
 
         cherrypy.log("Rows in calling mm: %d" % self.sheet.nrows)
+
+        # TODO: Make the importrow more performant
+        if self.sheet.nrows > 50:
+            raise ValueError("Your file has more than 50 rows. This can lead to"
+                             "a server timeout. Please split your file and "
+                             "proceed!")
 
         try:
             for row in xrange(start, end):
@@ -117,6 +133,8 @@ class ManualMeasurementsImport(LogbookImport):
 
         :param session: Database session connector
         :param row: Data to be imported
+        :param valuetype_column: {ImportColumn} a single column, since
+                                 importrow is used here to import column-wise
         """
 
         time = None
@@ -151,11 +169,23 @@ class ManualMeasurementsImport(LogbookImport):
         elif not site:
             raise LogImportError(row, 'Missing site')
 
+        # valuetype
+        #valuetype, err = self.get_obj(session, db.ValueType, row, valuetype_column)
+        #if err:
+        #    raise LogbookImport(row, err)
+
         # Dataset
 
         # get dataset from column, if existent
-        if self.descr.dataset is not None:
-            ds, err = self.get_obj(session, db.Dataset, row, self.descr.dataset)
+        #if self.descr.dataset is not None:
+        #    ds, err = self.get_obj(session, db.Dataset, row, self.descr.dataset)
+
+        if valuetype_column.ds_column is not None:
+            ds, err = self.get_obj(session, db.Dataset, row, valuetype_column.ds_column)
+
+            if err:
+                raise LogbookImport(row, err)
+
 
         # otherwise compute it from valuetype and siteid out of the database
         else:
@@ -173,7 +203,10 @@ class ManualMeasurementsImport(LogbookImport):
                                  % ds)
 
         elif ds and ds.site != site:
-            raise LogImportError(row, '%s is not at site #%i' % (ds, site.id))
+            raise LogImportError(row, '#%s is not at site #%i' % (ds, site.id))
+
+        elif ds and ds._valuetype != valuetype_column.valuetype:
+            raise LogImportError(row, 'Target: #%s has no valuetype #%i' % (ds, valuetype_column.valuetype))
 
         # Get value
         v = None
@@ -188,6 +221,9 @@ class ManualMeasurementsImport(LogbookImport):
                 v = float(self.get_value(row, valuetype_column.column))
 
         except TypeError:
+            v = None
+
+        except ValueError:
             v = None
 
         if (not v is None) and ds is None:
@@ -217,11 +253,7 @@ class ManualMeasurementsImport(LogbookImport):
         job = None
 
         # Get the sample name if present
-        try:
-            sample = self.get_value(row, self.columns.sample)
-
-        except:
-            sample = None
+        sample = None
 
         # TODO: Is this really necessary (low pri)
         # If dataset and value present (import as record)
@@ -388,13 +420,25 @@ class ManualMeasurementsImport(LogbookImport):
 
     def get_datetime(self, row):
 
-        date = self.get_value(row, self.columns.date)
+        #date = self.get_value(row, self.columns.date)
 
+        date = self.get_date(row, self.columns.date)
+
+        # if a time column is given, determine time
         if self.columns.time:
             time = self.get_value(row, self.columns.time)
-        else:
-            time = 0
 
-        datetime = self.t0 + timedelta(date + time)
+            date = date + timedelta(time)
+        # otherwise not
+        #else:
+            #time = 0
 
-        return datetime
+        #datetime = self.t0 + timedelta(date + time)
+
+        #return datetime
+        return date
+
+    @classmethod
+    def from_file(cls, path):
+
+        return LogImportDescription.from_file(path)
