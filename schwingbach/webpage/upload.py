@@ -45,7 +45,7 @@ class DBImportPage(object):
         path = Path(absfile)
         config = None
         if import_with_class == ManualMeasurementsImport:
-            config = LogImportDescription.from_file(path.absolute)
+            config = ManualMeasurementsImport.from_file(path.absolute)
             print "path = %s;\nabsfile = %s" % (path, absfile)
 
         from cherrypy import log
