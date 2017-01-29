@@ -236,6 +236,8 @@ class MemRecord(object):
         self.is_error=is_error
         self.rawvalue=rawvalue
 
+record_id_seq = sql.Sequence('record_id_seq', Base)
+
 class Record(Base):
     """
     The record holds sinigle measured, quantitative values.
@@ -365,9 +367,11 @@ class Timeseries(Dataset):
         """
         value=float(value)
         session = self.session()
-        if Id is None:
-            maxid = self.maxrecordid()
-            Id=maxid+1
+        # After perfomance issues with maxrecordid, TODO: delete this
+        #if Id is None:
+            #maxid = self.maxrecordid()
+            #Id = record_id_seq.next_value()
+            #Id=maxid+1
         if time is None:
             time = datetime.now()
         if (not self.valuetype.inrange(value)):
@@ -377,7 +381,7 @@ class Timeseries(Dataset):
             raise ValueError('RECORD does not fit DATASET: You tried to insert a record for date %s ' +
                                'to dataset %s, which allows only records between %s and %s'
                                % (time,self,self.start,self.end))
-        result = Record(id=Id,time=time,value=value,dataset=self,comment=comment,sample=sample)
+        result = Record(time=time,value=value,dataset=self,comment=comment,sample=sample)
         session.add(result)
         return result
 

@@ -357,7 +357,7 @@ class ImportDescription(object):
                   project=getvalue(sections[0], 'project'),
                   timezone=getvalue(sections[0], 'timezone'),
                   nodata=config_getlist(sections[0], 'nodata'),
-                  worksheet=getvalue(sections[0], 'worksheet')
+                  worksheet=getvalue(sections[0], 'worksheet', int)
                   )
         tid.name = sections[0]
         for section in sections[1:]:
@@ -510,7 +510,7 @@ class LogImportDescription(ImportDescription):
                   value=getvalue(sections[0], 'value', float),
                   logtext=getvalue(sections[0], 'logtext'),
                   msg=getvalue(sections[0], 'msg'),
-                  worksheet=getvalue(sections[0], 'worksheet')
+                  worksheet=getvalue(sections[0], 'worksheet', int)
                   )
         tid.name = sections[0]
         for section in sections[1:]:

@@ -165,6 +165,7 @@ class ManualMeasurementsImport(LogbookImport):
                         db.Record.time <= self._times[ds][1] + td,
                         db.Record.is_error == False).count()
 
+            # if logs are in interval from start - timedelta until end + timedelta
             self._times[ds][3] = session.query(db.Log)\
                    .filter(db.Log.site == self._datasets[ds].site,
                            db.sql.between(db.Log.time,
@@ -181,7 +182,7 @@ class ManualMeasurementsImport(LogbookImport):
                     row_has_error = False
                     for valuetype_column in self.descr.columns:
                         try:
-                            log = self.importrow(session, row, valuetype_column=valuetype_column)
+                            log = self.importrow(session, row, valuetype_column=valuetype_column, commit=commit)
                             logs.append(dict(row=row,
                                              error=False,
                                              log=log))
@@ -196,6 +197,8 @@ class ManualMeasurementsImport(LogbookImport):
                             row_has_error = True
 
             if commit and not errors:
+                s = "Commited approx. %s" % len(logs)
+                cherrypy.log(s)
                 session.commit()
 
         finally:
@@ -205,7 +208,7 @@ class ManualMeasurementsImport(LogbookImport):
 
     # TODO: rename LogColumns -> self.columns (holding (an instance of) class
     # with attributes for importrow (check if all attributes are set))
-    def importrow(self, session, row, valuetype_column=None):
+    def importrow(self, session, row, valuetype_column=None, commit=False):
         """
         Imports a row from the excel file as log or record
 
@@ -322,7 +325,7 @@ class ManualMeasurementsImport(LogbookImport):
         # all record attributes ok
         # now check if a record is already in the database for that special timestamp
         if self._times[ds.id][2] > 0:
-            print "No cache"
+
             record = session.query(db.Record).filter(db.Record.dataset == ds,
                                                      db.Record.time == dt,
                                                      db.Record.is_error == False).count()
@@ -358,24 +361,22 @@ class ManualMeasurementsImport(LogbookImport):
             if ds.end < date or ds.records.count() == 0:
                 ds.end = date
 
-            # Check for duplicate record
-            #if self.recordexists(ds, date):
-            #    raise LogImportError(row, '%s has already a record at %s' % (ds, date))
 
-            else:
-                try:
+            try:
+                # if commit to database (as record)
+                if commit:
                     ds.addrecord(value=v,
                                  time=date,
                                  comment=msg,
                                  sample=(sample if sample else None))
 
-                except ValueError as e:
-                    raise LogImportError(row, e.message)
+            except ValueError as e:
+                raise LogImportError(row, e.message)
 
             # Check for duplicate log. If log exists, go on quitely
             if self._times[ds.id][3] > 0:
                 if self.logexists(session, site, date):
-                    return
+                    raise LogImportError(row, "%s has already a log at %s" % (site, date))
 
             logmsg = 'Measurement:%s=%g %s with %s' % (ds.valuetype.name,
                                                        v,
