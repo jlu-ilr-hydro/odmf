@@ -81,7 +81,7 @@ class ManualMeasurementsImport(LogbookImport):
 
         #self.filename = configfile.file
 
-    def __call__(self, commit=False):
+    def __call__(self, commit=False, preload=False):
         session = db.Session()
         logs = []
         errors = {}
@@ -97,6 +97,51 @@ class ManualMeasurementsImport(LogbookImport):
         #                     "a server timeout. Please split your file and "
         #                     "proceed!")
 
+        if preload:
+            self.preload()
+
+        self._preload = preload
+
+        try:
+            for row in xrange(start, end):
+                print row, " / ", end
+                if self.sheet.cell_value(row, 1):
+                    row_has_error = False
+                    for valuetype_column in self.descr.columns:
+                        try:
+                            log = self.importrow(session, row, valuetype_column=valuetype_column, commit=commit)
+                            logs.append(dict(row=row,
+                                             error=False,
+                                             log=log))
+
+                        except LogImportError as e:
+                            if not e.is_valuetype_error and row_has_error:
+                                continue
+                            errors[e.row] = e.text.decode('utf-8')
+                            logs.append(dict(row=row,
+                                             error=True,
+                                             log=e.text))
+                            row_has_error = True
+
+            if commit and not errors:
+                s = "Commited approx. %s" % len(logs)
+                cherrypy.log(s)
+                session.commit()
+
+        finally:
+            session.close()
+
+        return logs, not errors
+
+    #TODO: no signifcant performance throughout preload phase, TEST THIS @chris
+    def preload(self, session, start, end):
+        """
+        Preloads ds_columns and site columns
+
+        :param start:
+        :param end:
+        :return:
+        """
         print "Preload starts ..."
 
         t0 = time.time()
@@ -139,7 +184,7 @@ class ManualMeasurementsImport(LogbookImport):
                     if _dataset not in self._datasets.keys():
                         self._datasets[int(_dataset)] = session.query(db.Dataset).get(_dataset)
 
-                    #check time intervals of records of a dataset
+                    # check time intervals of records of a dataset
                     _time = self.get_datetime(row)
 
                     if _time:
@@ -159,52 +204,21 @@ class ManualMeasurementsImport(LogbookImport):
 
         for ds in self._times.keys():
             # if records are in interval from start - td until end + td
-            self._times[ds][2] = session.query(db.Record)\
+            self._times[ds][2] = session.query(db.Record) \
                 .filter(db.Record.dataset == self._datasets[ds],
                         db.Record.time >= self._times[ds][0] - td,
                         db.Record.time <= self._times[ds][1] + td,
                         db.Record.is_error == False).count()
 
             # if logs are in interval from start - timedelta until end + timedelta
-            self._times[ds][3] = session.query(db.Log)\
-                   .filter(db.Log.site == self._datasets[ds].site,
-                           db.sql.between(db.Log.time,
-                                          self._times[ds][0] - td,
-                                          self._times[ds][1] + td)).count()
+            self._times[ds][3] = session.query(db.Log) \
+                .filter(db.Log.site == self._datasets[ds].site,
+                        db.sql.between(db.Log.time,
+                                       self._times[ds][0] - td,
+                                       self._times[ds][1] + td)).count()
         t1 = time.time()
 
         cherrypy.log("Preload in %.2f s" % (t1 - t0))
-
-        try:
-            for row in xrange(start, end):
-                print row, " / ", end
-                if self.sheet.cell_value(row, 1):
-                    row_has_error = False
-                    for valuetype_column in self.descr.columns:
-                        try:
-                            log = self.importrow(session, row, valuetype_column=valuetype_column, commit=commit)
-                            logs.append(dict(row=row,
-                                             error=False,
-                                             log=log))
-
-                        except LogImportError as e:
-                            if not e.is_valuetype_error and row_has_error:
-                                continue
-                            errors[e.row] = e.text.decode('utf-8')
-                            logs.append(dict(row=row,
-                                             error=True,
-                                             log=e.text))
-                            row_has_error = True
-
-            if commit and not errors:
-                s = "Commited approx. %s" % len(logs)
-                cherrypy.log(s)
-                session.commit()
-
-        finally:
-            session.close()
-
-        return logs, not errors
 
     # TODO: rename LogColumns -> self.columns (holding (an instance of) class
     # with attributes for importrow (check if all attributes are set))
@@ -244,47 +258,53 @@ class ManualMeasurementsImport(LogbookImport):
         site = self.get_value(row, self.columns.site)
 
         # use cache
-        if site not in self._sites.keys():
-            raise LogImportError(row, 'Cache error')
+        if self._preload:
+            if site not in self._sites.keys():
+                raise LogImportError(row, 'Cache error')
+            else:
+                site = self._sites[site]
         else:
-            site = self._sites[site]
-
-
-        #site, err = self.get_obj(session, db.Site, row, self.columns.site)
-        #if err:
-        #    raise LogImportError(row, err)
+            site, err = self.get_obj(session, db.Site, row, self.columns.site)
+            if err:
+                raise LogImportError(row, err)
 
         if not site:
             raise LogImportError(row, 'Missing site')
 
 
         # valuetype
-        #valuetype, err = self.get_obj(session, db.ValueType, row, valuetype_column)
-        #if err:
-        #    raise LogbookImport(row, err)
+        valuetype, err = self.get_obj(session, db.ValueType, row, valuetype_column)
+        if err:
+            raise LogbookImport(row, err)
 
         # Dataset
 
         # get dataset from column, if existent
-        #if self.descr.dataset is not None:
-        #    ds, err = self.get_obj(session, db.Dataset, row, self.descr.dataset)
+        if self.descr.dataset is not None:
+            ds, err = self.get_obj(session, db.Dataset, row, self.descr.dataset)
 
-        #if valuetype_column.ds_column is not None:
-        #    ds, err = self.get_obj(session, db.Dataset, row, valuetype_column.ds_column)
+        if valuetype_column.ds_column is not None:
+            ds, err = self.get_obj(session, db.Dataset, row, valuetype_column.ds_column)
 
-            #if err:
-            #    raise LogbookImport(row, err)
+            if err:
+                raise LogbookImport(row, err)
 
 
         # otherwise compute it from valuetype and siteid out of the database
-        #else:
+        else:
             # Get datset (if existent)
-        #    ds, len, err = self.get_latest_dataset(session, valuetype_column.valuetype, site.id)
-        #    if err:
-        #        raise LogImportError(row, err)
 
-        ds = int(self.get_value(row, valuetype_column.ds_column))
-        ds = self._datasets[ds]
+            if type(site) == float:
+                ds, len, err = self.get_latest_dataset(session, valuetype_column.valuetype, site)
+            else:
+                ds, len, err = self.get_latest_dataset(session, valuetype_column.valuetype, site.id)
+
+            if err:
+                raise LogImportError(row, err)
+
+        #if valuetype_column.ds_column:
+        #    ds = int(self.get_value(row, valuetype_column.ds_column))
+        #    ds = self._datasets[ds]
 
 
         # If dataset is not manual measured or dataset is not at site throw
@@ -324,17 +344,17 @@ class ManualMeasurementsImport(LogbookImport):
 
         # all record attributes ok
         # now check if a record is already in the database for that special timestamp
-        if self._times[ds.id][2] > 0:
+        #if self._times[ds.id][2] > 0:
 
-            record = session.query(db.Record).filter(db.Record.dataset == ds,
-                                                     db.Record.time == dt,
-                                                     db.Record.is_error == False).count()
-            if record == 1:
-                raise LogImportError(row, "For dataset '%s' and time '%s', there is already a record in database" %
-                                     (ds, dt))
-            elif record > 1:
-                raise LogImportError(row, "For dataset '%s' and the time '%s', there are multiple records already in the "
-                                          "database" % (ds, dt))
+        record = session.query(db.Record).filter(db.Record.dataset == ds,
+                                                 db.Record.time == dt,
+                                                 db.Record.is_error == False).count()
+        if record == 1:
+            raise LogImportError(row, "For dataset '%s' and time '%s', there is already a record in database" %
+                                 (ds, dt))
+        elif record > 1:
+            raise LogImportError(row, "For dataset '%s' and the time '%s', there are multiple records already in the "
+                                      "database" % (ds, dt))
 
 
         # Get logtype and message (for logs or as record comment)
@@ -374,9 +394,10 @@ class ManualMeasurementsImport(LogbookImport):
                 raise LogImportError(row, e.message)
 
             # Check for duplicate log. If log exists, go on quitely
-            if self._times[ds.id][3] > 0:
-                if self.logexists(session, site, date):
-                    raise LogImportError(row, "%s has already a log at %s" % (site, date))
+            #if self._times[ds.id][3] > 0:
+            # TODO: Davids aenderungen goes here
+            if self.logexists(session, site, date):
+                raise LogImportError(row, "%s has already a log at %s" % (site, date))
 
             logmsg = 'Measurement:%s=%g %s with %s' % (ds.valuetype.name,
                                                        v,
@@ -401,9 +422,9 @@ class ManualMeasurementsImport(LogbookImport):
         else:
             if not msg:
                 raise LogImportError(row, 'No message to log')
-
-            if self._times[ds.id][3] == 0:
-            #if self.logexists(session, site, date):
+            # TODO: Davids aenderungen
+            #if self._times[ds.id][3] == 0:
+            if self.logexists(session, site, date):
                 raise LogImportError(row, 'Log for %s at %s exists already' % (date, site))
 
             else:
