@@ -345,6 +345,7 @@ class ManualMeasurementsImport(LogbookImport):
         # all record attributes ok
         # now check if a record is already in the database for that special timestamp
         #if self._times[ds.id][2] > 0:
+        #TODO: check for preload, uncomment line above
 
         record = session.query(db.Record).filter(db.Record.dataset == ds,
                                                  db.Record.time == dt,
@@ -393,50 +394,16 @@ class ManualMeasurementsImport(LogbookImport):
             except ValueError as e:
                 raise LogImportError(row, e.message)
 
-            # Check for duplicate log. If log exists, go on quitely
-            #if self._times[ds.id][3] > 0:
-            # TODO: Davids aenderungen goes here
-            if self.logexists(session, site, date):
-                raise LogImportError(row, "%s has already a log at %s" % (site, date))
-
-            logmsg = 'Measurement:%s=%g %s with %s' % (ds.valuetype.name,
-                                                       v,
-                                                       ds.valuetype.unit,
-                                                       ds.source.name)
-
-            if msg: logmsg += ', ' + msg
-
-            newlog = db.Log(id=db.newid(db.Log, session),
-                            user=self.user,
-                            time=date,
-                            message=logmsg,
-                            site=site,
-                            type='measurement')
-            session.add(newlog)
             return "Add value %g %s to %s (%s)".encode('utf-8') % (v,
                                                             ds.valuetype,
                                                             ds,
                                                             date)
-
-        # if dataset or value are not present, import row as log only
+        # if dataset exsist but the value is None the value will not be imported and a warning will be shown
+        elif (not ds is None) and v is None:
+            return "Warning: None-Value for Site %s at %s will not be added to %s" % (site, date, ds)
+        # rais error in case the dataset is none
         else:
-            if not msg:
-                raise LogImportError(row, 'No message to log')
-            # TODO: Davids aenderungen
-            #if self._times[ds.id][3] == 0:
-            if self.logexists(session, site, date):
-                raise LogImportError(row, 'Log for %s at %s exists already' % (date, site))
-
-            else:
-
-                newlog = db.Log(id=db.newid(db.Log, session),
-                                user=self.user,
-                                time=date,
-                                message=msg,
-                                type=logtype,
-                                site=site)
-                session.add(newlog)
-            return u"Log: %s" % newlog
+            raise LogImportError(row, "A value is given, but no dataset")
 
         if job:
             job.make_done(self, date)
