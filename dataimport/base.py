@@ -799,6 +799,7 @@ def savetoimports(filename, user, datasets=None):
     """
     Adds the filename to the import history file .import.hist
     """
+    print ("savetoimports:", filename)
     d = os.path.dirname(filename)
     f = file(os.path.join(d,'.import.hist'),'a')
     f.write(u'%s,%s,%s' % (os.path.basename(filename),user,datetime.now()))
@@ -808,8 +809,9 @@ def savetoimports(filename, user, datasets=None):
     f.close()
 
 
-# TODO: Rebuild this with database mechanism. Make things more undependent
+# TODO: Rebuild this with database mechanism. Make things more independent
 def checkimport(filename):
+    print ("checkimport:", filename)
     d = os.path.dirname(filename)
     fn = os.path.join(d, '.import.hist')
     if os.path.exists(fn):

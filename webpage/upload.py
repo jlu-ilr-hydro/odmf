@@ -28,7 +28,7 @@ home = web.abspath('.')
 
 class DBImportPage(object):
     exposed = True
-    
+
     def logimport(self, filename, kwargs, import_with_class=LogbookImport):
         """
 
@@ -43,6 +43,10 @@ class DBImportPage(object):
 
         absfile = web.abspath(filename.strip('/'))
         path = Path(absfile)
+
+        import dataimport as di
+        error = web.markdown(di.checkimport(path.absolute))
+
         config = None
         if import_with_class == ManualMeasurementsImport:
             config = ManualMeasurementsImport.from_file(path.absolute)
@@ -60,10 +64,11 @@ class DBImportPage(object):
         log("Imported in %.2f s" % (t1 - t0))
 
         if 'commit' in kwargs and cancommit:
+            di.savetoimports(absfile, web.user(), ["_various_as_its_manual"])
             raise web.HTTPRedirect('/download?dir=' + escape(path.up()))
         else:
             return web.render('logimport.html', filename=path, logs=logs,
-                              cancommit=cancommit, error='')\
+                              cancommit=cancommit, error=error)\
                 .render('html', doctype='html')
 
     def mmimport(self, filename, kwargs):
@@ -74,7 +79,7 @@ class DBImportPage(object):
         :return:
         """
         return self.logimport(filename, kwargs, import_with_class=ManualMeasurementsImport)
-        
+
     def instrumentimport(self, filename, kwargs):
         """
         Loads instrument data using a .conf file
@@ -121,7 +126,7 @@ class DBImportPage(object):
 
         if siteid and (instrumentid or config):
             absfile = web.abspath(filename.strip('/'))
-            adapter = di.get_adapter(absfile, web.user(), siteid, 
+            adapter = di.get_adapter(absfile, web.user(), siteid,
                                      instrumentid, startdate, enddate)
             adapter.errorstream = errorstream
             if 'loadstat' in kwargs:
@@ -156,15 +161,15 @@ class DBImportPage(object):
         if not filename:
             raise web.HTTPRedirect('/download/')
 
-        # else import as instrument file
+        # the lab import only fits on CFG_MANNUAL_MEASUREMENTS_PATTERN
         if ManualMeasurementsImport.extension_fits_to(filename):
-            log("Import with class %s" % ManualMeasurementsImport.__name__)
+            log("Import with labimport ( %s )" % ManualMeasurementsImport.__name__)
             return self.mmimport(filename, kwargs)
         # If the file ends with log.xls, import as log list
         elif filename.endswith('log.xls'):
             log("Import with logimport")
             return self.logimport(filename, kwargs)
-
+        # else import as instrument file
         else:
             log("Import with instrumentimport")
             return self.instrumentimport(filename, kwargs)
@@ -180,14 +185,14 @@ class DownloadPage(object):
         path = Path(op.join(datapath, dir))
         files = []
         directories = []
-        if path.isdir() and path.is_legal:            
+        if path.isdir() and path.is_legal:
             for fn in path.listdir():
                 if not fn.startswith('.'):
                     child = path.child(fn)
                     if child.isdir():
                         directories.append(child)
                     elif child.isfile():
-                        files.append(child)    
+                        files.append(child)
             files.sort()
             directories.sort()
         else:
@@ -237,7 +242,7 @@ class DownloadPage(object):
         s=s.replace('\r','')
         f=file(path.absolute,'wb')
         f.write(s)
-        f.close()   
+        f.close()
         return web.markdown(s)
 
     @expose_for()
