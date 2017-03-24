@@ -13,7 +13,7 @@
    height="297mm"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.4 r9939"
+   inkscape:version="0.91 r13725"
    sodipodi:docname="mapicons.svg">
   <defs
      id="defs4">
@@ -33,14 +33,14 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="15.839192"
-     inkscape:cx="169.97638"
-     inkscape:cy="11.78672"
+     inkscape:cx="245.56807"
+     inkscape:cy="11.728038"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1856"
-     inkscape:window-height="1058"
-     inkscape:window-x="56"
+     inkscape:window-width="1858"
+     inkscape:window-height="1177"
+     inkscape:window-x="54"
      inkscape:window-y="-8"
      inkscape:window-maximized="1" />
   <metadata
@@ -51,7 +51,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -59,550 +59,670 @@
      inkscape:label="Ebene 1"
      inkscape:groupmode="layer"
      id="layer1">
-    <path
-       style="fill:#d7eef4;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       d="m 12.4375,1028.4062 c -6.3512746,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.8372814,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.8900112,1.3627 4.1794401,2.1874 6.6875,2.1874 6.351275,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.148725,-11.5 -11.5,-11.5 z"
-       id="path2985"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137"
-       inkscape:connector-curvature="0" />
-    <path
-       style="fill:#c87137;fill-opacity:1;stroke:#000000;stroke-width:0.99999994000000003;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       d="M 0.96875 1039.375 C 0.96078066 1039.5507 0.9375 1039.7286 0.9375 1039.9062 C 0.9375 1042.4332 1.7747814 1044.7586 3.15625 1046.6562 L 0.53125 1051.8125 L 5.75 1049.2188 C 7.6400112 1050.5814 9.9294401 1051.4062 12.4375 1051.4062 C 18.788775 1051.4062 23.9375 1046.2576 23.9375 1039.9062 C 23.9375 1039.7286 23.914219 1039.5507 23.90625 1039.375 L 0.96875 1039.375 z "
-       id="path3768"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       d="m 9.6160715,1036.4554 0,11.875 c -0.00264,0.018 0,0.044 0,0.062 0,0.5192 1.0890065,0.9375 2.4374995,0.9375 1.348493,0 2.4375,-0.4183 2.4375,-0.9375 0,-0.018 0.0026,-0.045 0,-0.062 l 0,-11.875 -4.8749995,0 z"
-       id="rect3760"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:#0000ff;fill-opacity:1;stroke:none"
-       d="m 10.111608,1042.9872 1.947088,0 1.93684,0 0,5.4018 c 0,0 -0.613523,0.4705 -1.95319,0.4688 -1.339667,0 -1.930738,-0.4688 -1.930738,-0.4688 z"
-       id="rect3779"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cccczcc"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       d="m 12.053571,1035.4241 c -1.348493,0 -2.4374995,0.4496 -2.4374995,0.9688 0,0.5192 1.0890065,0.9375 2.4374995,0.9375 1.348493,0 2.4375,-0.4183 2.4375,-0.9375 0,-0.5192 -1.089007,-0.9688 -2.4375,-0.9688 z"
-       id="path3764"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       id="path3782"
-       d="m 38.4375,1028.4062 c -6.351275,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.837281,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.890011,1.3627 4.17944,2.1874 6.6875,2.1874 6.351275,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.148725,-11.5 -11.5,-11.5 z"
-       style="fill:#b3ff80;fill-opacity:1;stroke:#000000;stroke-width:0.99999994000000003;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\weir.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:#c87137;fill-opacity:1;stroke:#000000;stroke-opacity:1.0"
-       d="M 26.96875 1040.9375 C 27.162781 1043.0649 27.964995 1045.0199 29.15625 1046.6562 L 26.53125 1051.8125 L 31.75 1049.2188 C 33.640011 1050.5814 35.92944 1051.4062 38.4375 1051.4062 C 44.443907 1051.4062 49.357222 1046.8094 49.875 1040.9375 L 26.96875 1040.9375 z "
-       id="rect3792"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\weir.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 27.410714,1040.9336 8.482143,0 3.129264,5.4201 3.177755,-5.5041 7.353696,0"
-       id="path3784"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\weir.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:#0000ff;stroke:none"
-       d="m 36.222667,1041.38 2.705904,4.9108 2.705905,-4.9108 z"
-       id="path3786"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cccc"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\weir.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:#0000ff;stroke:none"
-       d="m 36.785714,1041.8264 c 0,0 1.875,-1.0714 2.410714,-3.2142 0.535715,-2.1429 0.357143,-2.5 -1.25,-3.9286 -1.607142,-1.4286 -4.107142,-0.8929 -3.214285,-2.5893 0.892857,-1.6964 4.642857,-3.4821 4.642857,-3.4821 0,0 -3.035714,1.875 -2.946429,2.9464 0.08929,1.0714 3.303572,2.0536 3.928572,3.2143 0.625,1.1607 1.964285,3.5714 1.517857,4.375 -0.446429,0.8035 -0.714286,2.7678 -0.714286,2.7678 z"
-       id="path3788"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\weir.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       id="path3797"
-       d="m 66.4375,1028.4062 c -6.351275,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.837281,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.890011,1.3627 4.17944,2.1874 6.6875,2.1874 6.351275,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.148725,-11.5 -11.5,-11.5 z"
-       style="fill:#d7eef4;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <rect
-       style="fill:#ffff00;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       id="rect3799"
-       width="7.5892859"
-       height="18.571428"
-       x="62.67857"
-       y="1030.4872"
-       ry="3.7946429"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 70.178572,1033.88 -5.089286,0"
-       id="path3803"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path3809"
-       d="m 70.178572,1035.88 -2.630656,0"
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 70.178572,1037.88 -2.630656,0"
-       id="path3811"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path3813"
-       d="m 70.178572,1039.88 -2.630656,0"
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path3815"
-       d="m 70.178572,1041.88 -5.089286,0"
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 70.178572,1043.88 -2.630656,0"
-       id="path3817"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:export-ydpi="86.292137"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
-       inkscape:connector-curvature="0"
-       style="fill:#d7eef4;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       d="m 94.4375,1028.4062 c -6.351275,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.837281,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.890011,1.3627 4.17944,2.1874 6.6875,2.1874 6.35128,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.14872,-11.5 -11.5,-11.5 z"
-       id="path3819" />
-    <path
-       sodipodi:type="arc"
-       style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.6005919;stroke-opacity:1"
-       id="path3894"
-       sodipodi:cx="114.93642"
-       sodipodi:cy="1038.6304"
-       sodipodi:rx="6.5344243"
-       sodipodi:ry="2.7463522"
-       d="m 121.47084,1038.6304 a 6.5344243,2.7463522 0 1 1 -13.06885,0 6.5344243,2.7463522 0 1 1 13.06885,0 z"
-       transform="matrix(0.85454269,0,0,0.81104936,-5.9796026,198.3027)"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 89.587904,1037.2099 -0.795677,2.9695"
-       id="path3870"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path3872"
-       d="m 91.587904,1037.2099 -0.795677,2.9695"
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 93.587904,1037.2099 -0.795677,2.9695"
-       id="path3874"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:#b7bec8;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       d="M 97.25 1029.0312 C 96.419272 1029.0312 95.675505 1029.4642 95.28125 1030.125 C 94.877382 1029.755 94.343404 1029.5312 93.75 1029.5312 C 93.168337 1029.5312 92.65113 1029.7679 92.25 1030.125 C 91.84887 1029.7679 91.331663 1029.5312 90.75 1029.5312 C 89.733521 1029.5312 88.880554 1030.2112 88.59375 1031.125 C 87.671647 1031.4092 87 1032.2426 87 1033.25 C 87 1034.2574 87.671647 1035.122 88.59375 1035.4062 C 88.880554 1036.3201 89.733521 1037 90.75 1037 C 91.331663 1037 91.84887 1036.7634 92.25 1036.4062 C 92.65113 1036.7634 93.168337 1037 93.75 1037 C 94.343404 1037 94.877382 1036.7763 95.28125 1036.4062 C 95.675505 1037.067 96.419272 1037.5 97.25 1037.5 C 98.428396 1037.5 99.391513 1036.6085 99.5 1035.4688 C 100.62611 1035.3386 101.5 1034.4009 101.5 1033.25 C 101.5 1032.0991 100.62611 1031.1926 99.5 1031.0625 C 99.399742 1029.9145 98.434371 1029.0312 97.25 1029.0312 z "
-       id="path3821"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path3876"
-       d="m 95.587904,1037.2099 -0.795677,2.9695"
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 97.587904,1037.2099 -0.795677,2.9695"
-       id="path3878"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path3880"
-       d="m 88.724326,1040.8311 -0.795677,2.9695"
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 90.724326,1040.8311 -0.795677,2.9695"
-       id="path3882"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path3884"
-       d="m 92.724326,1040.8311 -0.795677,2.9695"
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 94.724326,1040.8311 -0.795677,2.9695"
-       id="path3886"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path3888"
-       d="m 96.724326,1040.8311 -0.795677,2.9695"
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:connector-curvature="0"
-       id="rect3892"
-       d="m 86.65581,1040.6927 0,4.4549 c 0,1.2302 2.500014,2.2274 5.583945,2.2274 3.08393,0 5.583944,-0.9972 5.583944,-2.2274 l 0,-4.4549 c 0,1.2302 -2.500017,2.2275 -5.583944,2.2275 -3.083928,0 -5.583945,-0.9973 -5.583945,-2.2275 z"
-       style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.5;stroke-opacity:1"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:#0000ff;fill-opacity:1;stroke:#000000;stroke-width:0.5;stroke-opacity:1"
-       d="m 86.65581,1042.6927 0,4.4549 c 0,1.2302 2.500014,2.2274 5.583945,2.2274 3.08393,0 5.583944,-0.9972 5.583944,-2.2274 l 0,-4.4549 c 0,1.2302 -2.500017,2.2275 -5.583944,2.2275 -3.083928,0 -5.583945,-0.9973 -5.583945,-2.2275 z"
-       id="path3927"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       id="path3929"
-       d="m 120.4375,1028.4062 c -6.35127,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.83728,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.89001,1.3627 4.17944,2.1874 6.6875,2.1874 6.35128,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.14872,-11.5 -11.5,-11.5 z"
-       style="fill:#d7eef4;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path3933"
-       d="m 115.5879,1037.2099 -0.79567,2.9695"
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 117.5879,1037.2099 -0.79567,2.9695"
-       id="path3935"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path3937"
-       d="m 119.5879,1037.2099 -0.79567,2.9695"
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       id="path3939"
-       d="m 123.25,1029.0312 c -0.83073,0 -1.57449,0.433 -1.96875,1.0938 -0.40387,-0.37 -0.93785,-0.5938 -1.53125,-0.5938 -0.58166,0 -1.09887,0.2367 -1.5,0.5938 -0.40113,-0.3571 -0.91834,-0.5938 -1.5,-0.5938 -1.01648,0 -1.86945,0.68 -2.15625,1.5938 -0.9221,0.2842 -1.59375,1.1176 -1.59375,2.125 0,1.0074 0.67165,1.872 1.59375,2.1562 0.2868,0.9139 1.13977,1.5938 2.15625,1.5938 0.58166,0 1.09887,-0.2366 1.5,-0.5938 0.40113,0.3572 0.91834,0.5938 1.5,0.5938 0.5934,0 1.12738,-0.2237 1.53125,-0.5938 0.39426,0.6608 1.13802,1.0938 1.96875,1.0938 1.1784,0 2.14151,-0.8915 2.25,-2.0312 1.12611,-0.1302 2,-1.0679 2,-2.2188 0,-1.1509 -0.87389,-2.0574 -2,-2.1875 -0.10026,-1.148 -1.06563,-2.0313 -2.25,-2.0313 z"
-       style="fill:#b7bec8;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 121.5879,1037.2099 -0.79567,2.9695"
-       id="path3941"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path3943"
-       d="m 123.5879,1037.2099 -0.79567,2.9695"
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 114.72433,1040.8311 -0.79568,2.9695"
-       id="path3945"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path3947"
-       d="m 116.72433,1040.8311 -0.79568,2.9695"
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 118.72433,1040.8311 -0.79568,2.9695"
-       id="path3949"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path3951"
-       d="m 120.72433,1040.8311 -0.79568,2.9695"
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 122.72433,1040.8311 -0.79568,2.9695"
-       id="path3953"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
     <g
-       id="g3963"
-       transform="matrix(0.3729553,0,0,0.3729553,67.8357,657.25602)"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137">
+       id="g4218"
+       inkscape:export-xdpi="862.69"
+       inkscape:export-ydpi="862.69">
       <path
-         sodipodi:type="arc"
-         style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.61035895;stroke-opacity:1"
-         id="path3959"
-         sodipodi:cx="114.93642"
-         sodipodi:cy="1038.6304"
-         sodipodi:rx="6.5344243"
-         sodipodi:ry="2.7463522"
-         d="m 121.47084,1038.6304 c 0,1.5167 -2.92556,2.7463 -6.53442,2.7463 -3.60887,0 -6.53443,-1.2296 -6.53443,-2.7463 0,-1.5168 2.92556,-2.7464 6.53443,-2.7464 3.60886,0 6.53442,1.2296 6.53442,2.7464 z"
-         transform="matrix(0.85454269,0,0,0.81104936,26.020397,198.3027)" />
-      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\weir.png"
          inkscape:connector-curvature="0"
-         id="path3961"
-         d="m 118.65581,1040.6927 0,4.4549 c 0,1.2302 2.50001,2.2274 5.58395,2.2274 3.08392,0 5.58394,-0.9972 5.58394,-2.2274 l 0,-4.4549 c 0,1.2302 -2.50002,2.2275 -5.58394,2.2275 -3.08393,0 -5.58395,-0.9973 -5.58395,-2.2275 z"
-         style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.34064329;stroke-opacity:1" />
+         style="fill:#b3ff80;fill-opacity:1;stroke:#000000;stroke-width:0.99999994000000003;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         d="m 38.4375,1028.4062 c -6.351275,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.837281,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.890011,1.3627 4.17944,2.1874 6.6875,2.1874 6.351275,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.148725,-11.5 -11.5,-11.5 z"
+         id="path3782" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\weir.png"
+         id="rect3792"
+         d="M 26.96875 1040.9375 C 27.162781 1043.0649 27.964995 1045.0199 29.15625 1046.6562 L 26.53125 1051.8125 L 31.75 1049.2188 C 33.640011 1050.5814 35.92944 1051.4062 38.4375 1051.4062 C 44.443907 1051.4062 49.357222 1046.8094 49.875 1040.9375 L 26.96875 1040.9375 z "
+         style="fill:#c87137;fill-opacity:1;stroke:#000000;stroke-opacity:1.0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\weir.png"
+         sodipodi:nodetypes="cccc"
+         inkscape:connector-curvature="0"
+         id="path3786"
+         d="m 32.383381,1041.38 5.116618,8.8394 5.11662,-8.8394 z"
+         style="fill:#0000ff;stroke:#000000" />
+      <path
+         sodipodi:nodetypes="czzczccc"
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\weir.png"
+         inkscape:connector-curvature="0"
+         id="path3788"
+         d="m 33.151317,1041.8711 c 0,0 4.082675,-2.6972 5.121271,-4.4196 1.038595,-1.7224 -4.251919,-2.7417 -4.462337,-4.7768 -0.210419,-2.0352 5.856903,-4.0625 5.856903,-4.0625 0,0 -5.146514,2.0121 -3.702287,3.8839 1.444227,1.8718 8.513475,2.6525 7.333338,6.6518 -0.68258,2.12 -1.649688,2.9398 -1.649688,2.7455 z"
+         style="fill:#0000ff;stroke:none" />
     </g>
     <g
-       transform="matrix(0.3729553,0,0,0.3729553,77.8357,655.25602)"
-       id="g3967"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137">
+       id="g4224"
+       inkscape:export-xdpi="862.69"
+       inkscape:export-ydpi="862.69">
       <path
-         transform="matrix(0.85454269,0,0,0.81104936,26.020397,198.3027)"
-         d="m 121.47084,1038.6304 c 0,1.5167 -2.92556,2.7463 -6.53442,2.7463 -3.60887,0 -6.53443,-1.2296 -6.53443,-2.7463 0,-1.5168 2.92556,-2.7464 6.53443,-2.7464 3.60886,0 6.53442,1.2296 6.53442,2.7464 z"
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
+         inkscape:connector-curvature="0"
+         style="fill:#d7eef4;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         d="m 66.4375,1028.4062 c -6.351275,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.837281,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.890011,1.3627 4.17944,2.1874 6.6875,2.1874 6.351275,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.148725,-11.5 -11.5,-11.5 z"
+         id="path3797" />
+      <rect
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
+         ry="3.7946429"
+         y="1030.4872"
+         x="62.67857"
+         height="18.571428"
+         width="7.5892859"
+         id="rect3799"
+         style="fill:#ffff00;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
+         inkscape:connector-curvature="0"
+         id="path3803"
+         d="m 70.178572,1033.88 -5.089286,0"
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 70.178572,1035.88 -2.630656,0"
+         id="path3809"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
+         inkscape:connector-curvature="0"
+         id="path3811"
+         d="m 70.178572,1037.88 -2.630656,0"
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 70.178572,1039.88 -2.630656,0"
+         id="path3813"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 70.178572,1041.88 -5.089286,0"
+         id="path3815"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\climate.png"
+         inkscape:connector-curvature="0"
+         id="path3817"
+         d="m 70.178572,1043.88 -2.630656,0"
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    </g>
+    <g
+       id="g4234"
+       inkscape:export-xdpi="862.69"
+       inkscape:export-ydpi="862.69">
+      <path
+         id="path3819"
+         d="m 94.4375,1028.4062 c -6.351275,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.837281,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.890011,1.3627 4.17944,2.1874 6.6875,2.1874 6.35128,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.14872,-11.5 -11.5,-11.5 z"
+         style="fill:#d7eef4;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-ydpi="86.292137" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
+         transform="matrix(0.85454269,0,0,0.81104936,-5.9796026,198.3027)"
+         d="m 121.47084,1038.6304 a 6.5344243,2.7463522 0 1 1 -13.06885,0 6.5344243,2.7463522 0 1 1 13.06885,0 z"
          sodipodi:ry="2.7463522"
          sodipodi:rx="6.5344243"
          sodipodi:cy="1038.6304"
          sodipodi:cx="114.93642"
-         id="path3969"
-         style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.61035895;stroke-opacity:1"
+         id="path3894"
+         style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.6005919;stroke-opacity:1"
          sodipodi:type="arc" />
       <path
-         style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.34064329;stroke-opacity:1"
-         d="m 118.65581,1040.6927 0,4.4549 c 0,1.2302 2.50001,2.2274 5.58395,2.2274 3.08392,0 5.58394,-0.9972 5.58394,-2.2274 l 0,-4.4549 c 0,1.2302 -2.50002,2.2275 -5.58394,2.2275 -3.08393,0 -5.58395,-0.9973 -5.58395,-2.2275 z"
-         id="path3971"
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
+         inkscape:connector-curvature="0"
+         id="path3870"
+         d="m 89.587904,1037.2099 -0.795677,2.9695"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 91.587904,1037.2099 -0.795677,2.9695"
+         id="path3872"
          inkscape:connector-curvature="0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
+         inkscape:connector-curvature="0"
+         id="path3874"
+         d="m 93.587904,1037.2099 -0.795677,2.9695"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
+         id="path3821"
+         d="M 97.25 1029.0312 C 96.419272 1029.0312 95.675505 1029.4642 95.28125 1030.125 C 94.877382 1029.755 94.343404 1029.5312 93.75 1029.5312 C 93.168337 1029.5312 92.65113 1029.7679 92.25 1030.125 C 91.84887 1029.7679 91.331663 1029.5312 90.75 1029.5312 C 89.733521 1029.5312 88.880554 1030.2112 88.59375 1031.125 C 87.671647 1031.4092 87 1032.2426 87 1033.25 C 87 1034.2574 87.671647 1035.122 88.59375 1035.4062 C 88.880554 1036.3201 89.733521 1037 90.75 1037 C 91.331663 1037 91.84887 1036.7634 92.25 1036.4062 C 92.65113 1036.7634 93.168337 1037 93.75 1037 C 94.343404 1037 94.877382 1036.7763 95.28125 1036.4062 C 95.675505 1037.067 96.419272 1037.5 97.25 1037.5 C 98.428396 1037.5 99.391513 1036.6085 99.5 1035.4688 C 100.62611 1035.3386 101.5 1034.4009 101.5 1033.25 C 101.5 1032.0991 100.62611 1031.1926 99.5 1031.0625 C 99.399742 1029.9145 98.434371 1029.0312 97.25 1029.0312 z "
+         style="fill:#b7bec8;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 95.587904,1037.2099 -0.795677,2.9695"
+         id="path3876"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
+         inkscape:connector-curvature="0"
+         id="path3878"
+         d="m 97.587904,1037.2099 -0.795677,2.9695"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 88.724326,1040.8311 -0.795677,2.9695"
+         id="path3880"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
+         inkscape:connector-curvature="0"
+         id="path3882"
+         d="m 90.724326,1040.8311 -0.795677,2.9695"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 92.724326,1040.8311 -0.795677,2.9695"
+         id="path3884"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
+         inkscape:connector-curvature="0"
+         id="path3886"
+         d="m 94.724326,1040.8311 -0.795677,2.9695"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 96.724326,1040.8311 -0.795677,2.9695"
+         id="path3888"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
+         style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.5;stroke-opacity:1"
+         d="m 86.65581,1040.6927 0,4.4549 c 0,1.2302 2.500014,2.2274 5.583945,2.2274 3.08393,0 5.583944,-0.9972 5.583944,-2.2274 l 0,-4.4549 c 0,1.2302 -2.500017,2.2275 -5.583944,2.2275 -3.083928,0 -5.583945,-0.9973 -5.583945,-2.2275 z"
+         id="rect3892"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\rainbucket.png"
+         inkscape:connector-curvature="0"
+         id="path3927"
+         d="m 86.65581,1042.6927 0,4.4549 c 0,1.2302 2.500014,2.2274 5.583945,2.2274 3.08393,0 5.583944,-0.9972 5.583944,-2.2274 l 0,-4.4549 c 0,1.2302 -2.500017,2.2275 -5.583944,2.2275 -3.083928,0 -5.583945,-0.9973 -5.583945,-2.2275 z"
+         style="fill:#0000ff;fill-opacity:1;stroke:#000000;stroke-width:0.5;stroke-opacity:1" />
+    </g>
+    <g
+       id="g4251"
+       inkscape:export-xdpi="863.0658"
+       inkscape:export-ydpi="863.0658">
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         inkscape:connector-curvature="0"
+         style="fill:#d7eef4;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         d="m 120.4375,1028.4062 c -6.35127,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.83728,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.89001,1.3627 4.17944,2.1874 6.6875,2.1874 6.35128,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.14872,-11.5 -11.5,-11.5 z"
+         id="path3929" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 115.5879,1037.2099 -0.79567,2.9695"
+         id="path3933"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         inkscape:connector-curvature="0"
+         id="path3935"
+         d="m 117.5879,1037.2099 -0.79567,2.9695"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 119.5879,1037.2099 -0.79567,2.9695"
+         id="path3937"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         inkscape:connector-curvature="0"
+         style="fill:#b7bec8;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         d="m 123.25,1029.0312 c -0.83073,0 -1.57449,0.433 -1.96875,1.0938 -0.40387,-0.37 -0.93785,-0.5938 -1.53125,-0.5938 -0.58166,0 -1.09887,0.2367 -1.5,0.5938 -0.40113,-0.3571 -0.91834,-0.5938 -1.5,-0.5938 -1.01648,0 -1.86945,0.68 -2.15625,1.5938 -0.9221,0.2842 -1.59375,1.1176 -1.59375,2.125 0,1.0074 0.67165,1.872 1.59375,2.1562 0.2868,0.9139 1.13977,1.5938 2.15625,1.5938 0.58166,0 1.09887,-0.2366 1.5,-0.5938 0.40113,0.3572 0.91834,0.5938 1.5,0.5938 0.5934,0 1.12738,-0.2237 1.53125,-0.5938 0.39426,0.6608 1.13802,1.0938 1.96875,1.0938 1.1784,0 2.14151,-0.8915 2.25,-2.0312 1.12611,-0.1302 2,-1.0679 2,-2.2188 0,-1.1509 -0.87389,-2.0574 -2,-2.1875 -0.10026,-1.148 -1.06563,-2.0313 -2.25,-2.0313 z"
+         id="path3939" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         inkscape:connector-curvature="0"
+         id="path3941"
+         d="m 121.5879,1037.2099 -0.79567,2.9695"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 123.5879,1037.2099 -0.79567,2.9695"
+         id="path3943"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         inkscape:connector-curvature="0"
+         id="path3945"
+         d="m 114.72433,1040.8311 -0.79568,2.9695"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 116.72433,1040.8311 -0.79568,2.9695"
+         id="path3947"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         inkscape:connector-curvature="0"
+         id="path3949"
+         d="m 118.72433,1040.8311 -0.79568,2.9695"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 120.72433,1040.8311 -0.79568,2.9695"
+         id="path3951"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         inkscape:connector-curvature="0"
+         id="path3953"
+         d="m 122.72433,1040.8311 -0.79568,2.9695"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <g
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         transform="matrix(0.3729553,0,0,0.3729553,67.8357,657.25602)"
+         id="g3963">
+        <path
+           transform="matrix(0.85454269,0,0,0.81104936,26.020397,198.3027)"
+           d="m 121.47084,1038.6304 a 6.5344243,2.7463522 0 0 1 -6.53442,2.7463 6.5344243,2.7463522 0 0 1 -6.53443,-2.7463 6.5344243,2.7463522 0 0 1 6.53443,-2.7464 6.5344243,2.7463522 0 0 1 6.53442,2.7464 z"
+           sodipodi:ry="2.7463522"
+           sodipodi:rx="6.5344243"
+           sodipodi:cy="1038.6304"
+           sodipodi:cx="114.93642"
+           id="path3959"
+           style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.61035895;stroke-opacity:1"
+           sodipodi:type="arc" />
+        <path
+           style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.34064329;stroke-opacity:1"
+           d="m 118.65581,1040.6927 0,4.4549 c 0,1.2302 2.50001,2.2274 5.58395,2.2274 3.08392,0 5.58394,-0.9972 5.58394,-2.2274 l 0,-4.4549 c 0,1.2302 -2.50002,2.2275 -5.58394,2.2275 -3.08393,0 -5.58395,-0.9973 -5.58395,-2.2275 z"
+           id="path3961"
+           inkscape:connector-curvature="0" />
+      </g>
+      <g
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         id="g3967"
+         transform="matrix(0.3729553,0,0,0.3729553,77.8357,655.25602)">
+        <path
+           sodipodi:type="arc"
+           style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.61035895;stroke-opacity:1"
+           id="path3969"
+           sodipodi:cx="114.93642"
+           sodipodi:cy="1038.6304"
+           sodipodi:rx="6.5344243"
+           sodipodi:ry="2.7463522"
+           d="m 121.47084,1038.6304 a 6.5344243,2.7463522 0 0 1 -6.53442,2.7463 6.5344243,2.7463522 0 0 1 -6.53443,-2.7463 6.5344243,2.7463522 0 0 1 6.53443,-2.7464 6.5344243,2.7463522 0 0 1 6.53442,2.7464 z"
+           transform="matrix(0.85454269,0,0,0.81104936,26.020397,198.3027)" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3971"
+           d="m 118.65581,1040.6927 0,4.4549 c 0,1.2302 2.50001,2.2274 5.58395,2.2274 3.08392,0 5.58394,-0.9972 5.58394,-2.2274 l 0,-4.4549 c 0,1.2302 -2.50002,2.2275 -5.58394,2.2275 -3.08393,0 -5.58395,-0.9973 -5.58395,-2.2275 z"
+           style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.34064329;stroke-opacity:1" />
+      </g>
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         inkscape:connector-curvature="0"
+         id="path3973"
+         d="m 123.86996,1045.7962 -9.53332,2.2097"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
+         transform="translate(3.3461303,-8.0180858)"
+         inkscape:transform-center-y="-0.51701941"
+         d="m 118.21109,1058.005 -1.79101,0 -1.79101,0 0.89551,-1.5511 0.8955,-1.551 0.89551,1.551 z"
+         inkscape:randomized="0"
+         inkscape:rounded="0"
+         inkscape:flatsided="false"
+         sodipodi:arg2="1.5707963"
+         sodipodi:arg1="0.52359878"
+         sodipodi:r2="1.0340388"
+         sodipodi:r1="2.0680778"
+         sodipodi:cy="1056.9709"
+         sodipodi:cx="116.42008"
+         sodipodi:sides="3"
+         id="path3977"
+         style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         sodipodi:type="star" />
+    </g>
+    <g
+       id="g4210"
+       inkscape:export-xdpi="862.69"
+       inkscape:export-ydpi="862.69">
+      <path
+         inkscape:connector-curvature="0"
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
+         id="path2985"
+         d="m 12.4375,1028.4062 c -6.3512746,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.8372814,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.8900112,1.3627 4.17944,2.1874 6.6875,2.1874 6.351275,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.148725,-11.5 -11.5,-11.5 z"
+         style="fill:#d7eef4;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
+         id="path3768"
+         d="M 0.96875 1039.375 C 0.96078066 1039.5507 0.9375 1039.7286 0.9375 1039.9062 C 0.9375 1042.4332 1.7747814 1044.7586 3.15625 1046.6562 L 0.53125 1051.8125 L 5.75 1049.2188 C 7.6400112 1050.5814 9.9294401 1051.4062 12.4375 1051.4062 C 18.788775 1051.4062 23.9375 1046.2576 23.9375 1039.9062 C 23.9375 1039.7286 23.914219 1039.5507 23.90625 1039.375 L 0.96875 1039.375 z "
+         style="fill:#c87137;fill-opacity:1;stroke:#000000;stroke-width:0.99999994000000003;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
+         inkscape:connector-curvature="0"
+         id="rect3760"
+         d="m 7.6184189,1032.2803 0,15.7266 c -0.00476,0.024 0,0.058 0,0.082 0,0.6876 1.9654061,1.2416 4.3991261,1.2416 2.43372,0 4.399128,-0.554 4.399128,-1.2416 0,-0.024 0.0047,-0.06 0,-0.082 l 0,-15.7266 -8.7982541,0 z"
+         style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
+         sodipodi:nodetypes="cccczcc"
+         inkscape:connector-curvature="0"
+         id="rect3779"
+         d="m 8.0216766,1040.77 3.9840354,0 3.963063,0 0,7.4824 c 0,0 -1.255359,0.6517 -3.996519,0.6494 -2.7411589,0 -3.9505794,-0.6494 -3.9505794,-0.6494 z"
+         style="fill:#0000ff;fill-opacity:1;stroke:none" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
+         inkscape:connector-curvature="0"
+         id="path3764"
+         d="m 12.017545,1030.9145 c -2.43372,0 -4.3991261,0.5954 -4.3991261,1.283 0,0.6876 1.9654061,1.2416 4.3991261,1.2416 2.43372,0 4.399128,-0.554 4.399128,-1.2416 0,-0.6876 -1.965408,-1.283 -4.399128,-1.283 z"
+         style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         transform="matrix(3.3995042,0,0,2.8351174,-29.360712,-1910.0214)"
+         inkscape:transform-center-y="0.61443475"
+         d="m 12.186785,1040.817 -0.375322,-0.6501 -0.375323,-0.6501 0.750645,0 0.750644,0 -0.375322,0.6501 z"
+         inkscape:randomized="0"
+         inkscape:rounded="0"
+         inkscape:flatsided="false"
+         sodipodi:arg2="2.6179939"
+         sodipodi:arg1="1.5707963"
+         sodipodi:r2="0.4333846"
+         sodipodi:r1="0.86676931"
+         sodipodi:cy="1039.9502"
+         sodipodi:cx="12.186785"
+         sodipodi:sides="3"
+         id="path3981"
+         style="fill:#0000ff;fill-opacity:1;stroke:none"
+         sodipodi:type="star" />
+    </g>
+    <g
+       id="g4273"
+       inkscape:export-xdpi="862.69"
+       inkscape:export-ydpi="862.69">
+      <path
+         id="path3036"
+         d="m 148.4375,1028.4062 c -6.35127,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.83728,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.89001,1.3627 4.17944,2.1874 6.6875,2.1874 6.35128,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.14872,-11.5 -11.5,-11.5 z"
+         style="fill:#ffffff;fill-opacity:0.50196081;stroke:#000000;stroke-width:0.99999994000000003;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\unknown.png"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-ydpi="86.292137" />
+      <text
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\unknown.png"
+         transform="scale(0.9881545,1.0119875)"
+         sodipodi:linespacing="125%"
+         id="text3038"
+         y="1036.0024"
+         x="144.66243"
+         style="font-size:15.0753212px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:justify;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Calibri;-inkscape-font-specification:Calibri"
+         xml:space="preserve"><tspan
+           style="font-size:25.12553596px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Comic Sans MS;-inkscape-font-specification:Comic Sans MS"
+           y="1036.0024"
+           x="144.66243"
+           id="tspan3040"
+           sodipodi:role="line">?</tspan></text>
     </g>
     <path
-       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 123.86996,1045.7962 -9.53332,2.2097"
-       id="path3973"
-       inkscape:connector-curvature="0"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       sodipodi:type="star"
-       style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       id="path3977"
-       sodipodi:sides="3"
-       sodipodi:cx="116.42008"
-       sodipodi:cy="1056.9709"
-       sodipodi:r1="2.0680778"
-       sodipodi:r2="1.0340388"
-       sodipodi:arg1="0.52359878"
-       sodipodi:arg2="1.5707963"
-       inkscape:flatsided="false"
-       inkscape:rounded="0"
-       inkscape:randomized="0"
-       d="m 118.21109,1058.005 -1.79101,0 -1.79101,0 0.89551,-1.5511 0.8955,-1.551 0.89551,1.551 z"
-       inkscape:transform-center-y="-0.51701941"
-       transform="translate(3.3461303,-8.0180858)"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\raingauge.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <path
-       sodipodi:type="star"
-       style="fill:#0000ff;fill-opacity:1;stroke:none"
-       id="path3981"
-       sodipodi:sides="3"
-       sodipodi:cx="11.332649"
-       sodipodi:cy="1041.2505"
-       sodipodi:r1="0.50900692"
-       sodipodi:r2="0.25450343"
-       sodipodi:arg1="1.5707963"
-       sodipodi:arg2="2.6179939"
-       inkscape:flatsided="false"
-       inkscape:rounded="0"
-       inkscape:randomized="0"
-       d="m 11.332649,1041.7595 -0.220406,-0.3818 -0.220407,-0.3817 0.440813,0 0.440813,0 -0.220406,0.3817 z"
-       inkscape:transform-center-y="0.21675045"
-       transform="matrix(1.7028635,0,0,1.7028635,-7.2450991,-730.95198)" />
-    <path
-       inkscape:export-ydpi="86.292137"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\unknown.png"
-       inkscape:connector-curvature="0"
-       style="fill:#ffffff;fill-opacity:0.50196081;stroke:#000000;stroke-width:0.99999994000000003;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       d="m 148.4375,1028.4062 c -6.35127,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.83728,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.89001,1.3627 4.17944,2.1874 6.6875,2.1874 6.35128,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.14872,-11.5 -11.5,-11.5 z"
-       id="path3036" />
-    <text
-       xml:space="preserve"
-       style="font-size:15.0753212px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:justify;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Calibri;-inkscape-font-specification:Calibri"
-       x="144.66243"
-       y="1036.0024"
-       id="text3038"
-       sodipodi:linespacing="125%"
-       transform="scale(0.9881545,1.0119875)"
-       inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\unknown.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137"><tspan
-         sodipodi:role="line"
-         id="tspan3040"
-         x="144.66243"
-         y="1036.0024"
-         style="font-size:25.12553596px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Comic Sans MS;-inkscape-font-specification:Comic Sans MS">?</tspan></text>
-    <path
-       style="fill:#ffff00;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       d="m 11.516925,1022.0913 c -0.42441,0.013 -0.85675,0.049 -1.28125,0.094 -11.3889504,0.8917 -18.6835404,14.6459 -14.2812504,24.6875 -2.62299,3.3652 -5.73723,10.8587 0.375,12.4688 4.44487995,1.5243 7.42242,-6.1343 11.5625,-2.7813 13.9673904,4.8608 27.9213804,-13.6566 19.4375004,-25.75 -3.19572,-5.562 -9.44634,-8.9095 -15.8125,-8.7187 z m 0.71875,6.0624 c 6.35128,0 11.5,5.1488 11.5,11.5 0,6.3514 -5.14872,11.5 -11.5,11.5 -2.5080604,0 -4.7974904,-0.8248 -6.6875004,-2.1874 l -5.21875005,2.5937 2.62500005,-5.1563 c -1.38147,-1.8976 -2.21875005,-4.223 -2.21875005,-6.75 0,-6.3512 5.14873005,-11.5 11.50000045,-11.5 z"
+       style="fill:#ffff00;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 37.780891,975.11921 c -0.42441,0.013 -0.85675,0.049 -1.28125,0.094 -11.38895,0.8917 -18.68354,14.6459 -14.28125,24.6875 -2.62299,3.36519 -5.73723,10.85869 0.375,12.46879 4.44488,1.5243 7.42242,-6.1343 11.5625,-2.7813 13.96739,4.8608 27.92138,-13.65659 19.4375,-25.74999 -3.19572,-5.562 -9.44634,-8.9095 -15.8125,-8.7187 z m 0.71875,6.0624 c 6.35128,0 11.5,5.1488 11.5,11.5 0,6.3514 -5.14872,11.49999 -11.5,11.49999 -2.50806,0 -4.79749,-0.8248 -6.6875,-2.1874 l -5.21875,2.5937 2.625,-5.15629 c -1.38147,-1.8976 -2.21875,-4.223 -2.21875,-6.75 0,-6.3512 5.14873,-11.5 11.5,-11.5 z"
        id="path3814"
        inkscape:connector-curvature="0"
        inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\selection.png"
        inkscape:export-xdpi="86.292137"
        inkscape:export-ydpi="86.292137" />
-    <path
-       inkscape:export-ydpi="86.292137"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-filename="Y:\schwingbach\webpage\media\mapicons\tracgas.png"
-       inkscape:connector-curvature="0"
-       style="fill:#ffffff;fill-opacity:0.50196078;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       d="m 175.46459,1028.7897 c -6.35127,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.83728,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.89001,1.3627 4.17944,2.1874 6.6875,2.1874 6.35128,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.14872,-11.5 -11.5,-11.5 z"
-       id="path3036-1" />
-    <rect
-       style="fill:#999999;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linejoin:round;stroke-miterlimit:9;stroke-opacity:1;stroke-dasharray:none"
-       id="rect3074"
-       width="13.863314"
-       height="8.6409454"
-       x="166.3622"
-       y="1038.2968"
-       inkscape:export-filename="Y:\schwingbach\webpage\media\mapicons\tracgas.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <rect
-       y="1187.823"
-       x="-239.13492"
-       height="8.6409454"
-       width="4.4324074"
-       id="rect3844"
-       style="fill:#999999;fill-opacity:1;stroke:#000000;stroke-width:1.13920343;stroke-linejoin:round;stroke-miterlimit:9;stroke-opacity:1;stroke-dasharray:none"
-       transform="matrix(-0.77054405,0.63738675,0,1,0,0)"
-       inkscape:export-filename="Y:\schwingbach\webpage\media\mapicons\tracgas.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <rect
-       y="-1868.7328"
-       x="1720.222"
-       height="4.7345004"
-       width="14.150599"
-       id="rect3846"
-       style="fill:#999999;fill-opacity:1;stroke:#000000;stroke-width:1.34182799;stroke-linejoin:round;stroke-miterlimit:9;stroke-opacity:1;stroke-dasharray:none"
-       transform="matrix(1,0,0.83158279,-0.55540081,0,0)"
-       inkscape:export-filename="Y:\schwingbach\webpage\media\mapicons\tracgas.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137" />
-    <text
-       xml:space="preserve"
-       style="font-size:7.96557567px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold;font-stretch:normal;font-variant:normal;text-anchor:start;text-align:start;writing-mode:lr"
-       x="191.56004"
-       y="907.16119"
-       id="text3853"
-       sodipodi:linespacing="125%"
-       transform="scale(0.86782851,1.1523014)"
-       inkscape:export-filename="Y:\schwingbach\webpage\media\mapicons\tracgas.png"
-       inkscape:export-xdpi="86.292137"
-       inkscape:export-ydpi="86.292137"><tspan
-         sodipodi:role="line"
-         id="tspan3855"
+    <g
+       id="g4278"
+       inkscape:export-xdpi="862.69"
+       inkscape:export-ydpi="862.69">
+      <path
+         id="path3036-1"
+         d="m 175.46459,1028.7897 c -6.35127,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.83728,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.89001,1.3627 4.17944,2.1874 6.6875,2.1874 6.35128,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.14872,-11.5 -11.5,-11.5 z"
+         style="fill:#ffffff;fill-opacity:0.50196078;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="Y:\schwingbach\webpage\media\mapicons\tracgas.png"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-ydpi="86.292137" />
+      <rect
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="Y:\schwingbach\webpage\media\mapicons\tracgas.png"
+         y="1038.2968"
+         x="166.3622"
+         height="8.6409454"
+         width="13.863314"
+         id="rect3074"
+         style="fill:#999999;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linejoin:round;stroke-miterlimit:9;stroke-opacity:1;stroke-dasharray:none" />
+      <rect
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="Y:\schwingbach\webpage\media\mapicons\tracgas.png"
+         transform="matrix(-0.77054405,0.63738675,0,1,0,0)"
+         style="fill:#999999;fill-opacity:1;stroke:#000000;stroke-width:1.13920343;stroke-linejoin:round;stroke-miterlimit:9;stroke-opacity:1;stroke-dasharray:none"
+         id="rect3844"
+         width="4.4324074"
+         height="8.6409454"
+         x="-239.13492"
+         y="1187.823" />
+      <rect
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="Y:\schwingbach\webpage\media\mapicons\tracgas.png"
+         transform="matrix(1,0,0.83158279,-0.55540081,0,0)"
+         style="fill:#999999;fill-opacity:1;stroke:#000000;stroke-width:1.34182799;stroke-linejoin:round;stroke-miterlimit:9;stroke-opacity:1;stroke-dasharray:none"
+         id="rect3846"
+         width="14.150599"
+         height="4.7345004"
+         x="1720.222"
+         y="-1868.7328" />
+      <text
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="Y:\schwingbach\webpage\media\mapicons\tracgas.png"
+         transform="scale(0.86782851,1.1523014)"
+         sodipodi:linespacing="125%"
+         id="text3853"
+         y="907.16119"
          x="191.56004"
-         y="907.16119">N<tspan
-   style="font-size:7.96557567px;baseline-shift:sub;fill:#ffffff;-inkscape-font-specification:Sans Bold;font-family:Sans;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;text-anchor:start;text-align:start;writing-mode:lr;line-height:125%"
-   id="tspan3857">2</tspan>O</tspan></text>
+         style="font-size:7.96557567px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold;font-stretch:normal;font-variant:normal;text-anchor:start;text-align:start;writing-mode:lr"
+         xml:space="preserve"><tspan
+           y="907.16119"
+           x="191.56004"
+           id="tspan3855"
+           sodipodi:role="line">N<tspan
+   id="tspan3857"
+   style="font-size:7.96557567px;baseline-shift:sub;fill:#ffffff;-inkscape-font-specification:Sans Bold;font-family:Sans;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;text-anchor:start;text-align:start;writing-mode:lr;line-height:125%">2</tspan>O</tspan></text>
+    </g>
+    <g
+       id="g4287"
+       inkscape:export-xdpi="862.69"
+       inkscape:export-ydpi="862.69">
+      <path
+         style="fill:#d7eef4;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 204.4375,1028.4062 c -6.35127,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.83728,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.89001,1.3627 4.17944,2.1874 6.6875,2.1874 6.35128,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.14872,-11.5 -11.5,-11.5 z"
+         id="path4813"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-ydpi="86.292137"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#c87137;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 192.96875,1039.375 c -0.008,0.1757 -0.0312,0.3536 -0.0312,0.5312 0,2.527 0.83728,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.89001,1.3626 4.17944,2.1874 6.6875,2.1874 6.35128,0 11.5,-5.1486 11.5,-11.5 0,-0.1776 -0.0233,-0.3555 -0.0312,-0.5312 l -22.9375,0 z"
+         id="path4815"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-ydpi="86.292137" />
+      <path
+         style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 199.61842,1032.2803 0,15.7266 c -0.005,0.024 0,0.058 0,0.082 0,0.6876 1.96541,1.2416 4.39912,1.2416 2.43372,0 4.39913,-0.554 4.39913,-1.2416 0,-0.024 0.005,-0.06 0,-0.082 l 0,-15.7266 -8.79825,0 z"
+         id="path4817"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-ydpi="86.292137" />
+      <path
+         style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 204.01754,1030.9145 c -2.43372,0 -4.39912,0.5954 -4.39912,1.283 0,0.6876 1.96541,1.2416 4.39912,1.2416 2.43372,0 4.39913,-0.554 4.39913,-1.2416 0,-0.6876 -1.96541,-1.283 -4.39913,-1.283 z"
+         id="path4821"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-ydpi="86.292137" />
+    </g>
+    <g
+       id="g4284"
+       inkscape:export-xdpi="862.69"
+       inkscape:export-ydpi="862.69">
+      <path
+         inkscape:connector-curvature="0"
+         inkscape:export-ydpi="86.292137"
+         inkscape:export-xdpi="86.292137"
+         inkscape:export-filename="D:\Code\schwingbach\webpage\media\mapicons\piezometer.png"
+         id="path4234"
+         d="m 232.4375,1028.4062 c -6.35127,0 -11.5,5.1488 -11.5,11.5 0,2.5269 0.83728,4.8524 2.21875,6.75 l -2.625,5.1563 5.21875,-2.5937 c 1.89001,1.3627 4.17944,2.1874 6.6875,2.1874 6.35128,0 11.5,-5.1487 11.5,-11.5 0,-6.3512 -5.14872,-11.5 -11.5,-11.5 z"
+         style="fill:#d7eef4;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <path
+         id="path4246"
+         d="M 221.85938 1035.3926 C 221.26727 1036.7785 220.9375 1038.3039 220.9375 1039.9062 C 220.9375 1042.4332 221.77478 1044.7587 223.15625 1046.6562 L 220.53125 1051.8125 L 225.75 1049.2188 C 227.64001 1050.5814 229.92944 1051.4063 232.4375 1051.4062 C 238.78878 1051.4062 243.9375 1046.2576 243.9375 1039.9062 C 243.9375 1038.3039 243.60773 1036.7785 243.01562 1035.3926 L 221.85938 1035.3926 z "
+         style="fill:#c87137;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <path
+         id="rect4256"
+         d="m 224.875,1039.4909 0,7.7945 a 4.5,2.1651575 0 0 0 4.5,2.1652 4.5,2.1651575 0 0 0 4.5,-2.1652 l 0,-7.7945 a 4.5,2.1651575 0 0 1 -4.5,2.1651 4.5,2.1651575 0 0 1 -4.5,-2.1651 z"
+         style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         inkscape:connector-curvature="0" />
+      <ellipse
+         ry="2.1651576"
+         rx="4.5"
+         cy="1039.4916"
+         cx="229.375"
+         id="path4258"
+         style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <path
+         transform="matrix(0.3816608,0,0,0.14511901,147.23126,893.72737)"
+         d="m 214.40488,1005.0114 c 0.29122,0.3925 -0.38543,0.5862 -0.65239,0.484 -0.72346,-0.2769 -0.70176,-1.2529 -0.31568,-1.7888 0.69062,-0.9586 2.10263,-0.8737 2.92524,-0.1473 1.2072,1.066 1.05268,2.9646 -0.0211,4.0617 -1.43111,1.4622 -3.83095,1.2347 -5.19807,-0.1894 -1.72038,-1.7922 -1.41848,-4.6995 0.35776,-6.3345 2.15125,-1.98027 5.56918,-1.60316 7.47092,0.5261 2.24112,2.5092 1.78838,6.4396 -0.69448,8.6073 -2.86656,2.5027 -7.31063,1.9741 -9.74376,-0.8628 -2.76469,-3.2234 -2.15996,-8.182 1.03119,-10.88019 3.57999,-3.027 9.05353,-2.34608 12.01661,1.19955 3.28957,3.93634 2.53236,9.92534 -1.36791,13.15304"
+         sodipodi:t0="0"
+         sodipodi:argument="-17.91708"
+         sodipodi:radius="9.7481031"
+         sodipodi:revolution="3"
+         sodipodi:expansion="1"
+         sodipodi:cy="1005.0114"
+         sodipodi:cx="214.40488"
+         id="path4230"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1.69964814;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         sodipodi:type="spiral" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path4270"
+         d="m 229.19643,1041.9197 0,5.1809"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.99999994px;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         sodipodi:nodetypes="cc"
+         inkscape:connector-curvature="0"
+         id="path4278"
+         d="m 229.3749,1047.0495 c 0,0 11.16551,0.1284 11.3393,-11.3393"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.99999994px;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1" />
+    </g>
   </g>
 </svg>
