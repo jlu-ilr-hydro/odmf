@@ -1,0 +1,154 @@
+<html>
+<head>
+    
+    
+    <title>Berechnung der Abflussmenge</title>
+<script language="JavaScript">
+<!-- Hiding
+function berechnen() {
+var a = (document.Abflussmenge.x.value);
+var b = (document.Abflussmenge.y.value);
+var c = (document.Abflussmenge.v.value);
+ 
+// Strings in Zahlen umwandeln           
+x = parseFloat (a);
+y = parseFloat (b);
+v = parseFloat (c);
+ 
+(document.Abflussmenge.ergebnis.value) = (y/x)*(v)*1000;  
+  
+}
+//-->
+</script>
+</HEAD>
+ 
+<BODY bgcolor="white">
+
+ 
+ 
+<form name="Abflussmenge">
+<table border="1" cellspacing="0" cellpadding="0" align="center">
+<tr>
+    <th colspan="4"><div align="center"><span style="font-family:Verdana">Probieren Sie aus, die Abflussmenge selbst zu messen:</span></div></th>
+</tr>
+<tr>
+    <td align="center"><span style="font-family:Verdana">Zeit</span></td>
+    <td align="center"><span style="font-family:Verdana">Wasserstand</span></td>
+    <td align="center"><span style="font-family:Verdana">Strecke</span></td>
+    <td align="center"><span style="font-family:Verdana">Abflussmenge</span></td>
+</tr>
+<tr>
+    <td align="center">
+        <div id="display">
+                       <label id="SekundenLabel" size="10"><span style="font-family:Verdana">00</span></label>s
+        </div>
+                <input type="text" id="Sekunden" name="x"> 
+                <input type="button" value="Start" id="gobutton" alt="Go Button" onclick="startTimer()">
+                <input type="button" value="Pause/Stop" id="stopbutton" alt="Go Button" onclick="stopTimer()"></td>
+    <td align="center"><select name="v" id="Querschnitt">
+    <option value="0.25"><span style="font-family:Verdana">5 cm</span></option>
+    <option value="0.5"><span style="font-family:Verdana">10 cm</span></option>
+    <option value="0.76"><span style="font-family:Verdana">15 cm</span></option>
+    <option value="1.01"><span style="font-family:Verdana">20 cm</span></option>
+    <option value="1.51"><span style="font-family:Verdana">30 cm</span></option>
+    <option value="2.01"><span style="font-family:Verdana">40 cm</span></option>
+                                        </select></td>
+    <td align="center"><input type="text" value="5" name="y" size="10"><span style="font-family:Verdana"> m</span></td>
+    <td align="center"><input type="text" name="ergebnis" size="10"><span style="font-family:Verdana"> l/s</span></td>	
+</tr>
+<tr>
+    
+    <td align="center">
+	<input type="button" value="Berechnen" OnClick="berechnen()";>&nbsp;&nbsp;</td>
+    <td align="center">	
+	<input type="reset" value="Neue Eingabe"></td>
+</tr>
+</table>
+ 
+ 
+</form>
+
+<!-- Skript für die Stoppuhr//-->
+<!--Skript auf der Basis von http://www.overclock.net/t/1354355/javascript-start-stop-pause-button-for-setinterval//-->
+ <script type="text/javascript">
+                        <!--
+                        var SekundenLabel = document.getElementById("SekundenLabel");
+                        var totalSekunden = 0;
+                        var counter;
+                        var timerOn;
+                        var htmlResets;
+                        var totalMills = 0;
+                        
+                        function startTimer()
+                        {
+                                if(timerOn == 1)
+                                {
+                                        return;
+                                }
+                                else
+                                {
+                                        counter = setInterval(setTime, 10);
+                                        timerOn = 1;
+                                        htmlResets = 0;
+                                } 
+                         
+                        }
+                        
+                        function stopTimer()
+                        {      
+                                if(timerOn == 1)
+                                {
+                                        clearInterval(counter);
+                                        timerOn = 0;
+                                }
+                                
+                                if(htmlResets == 1)
+                                {
+                                        SekundenLabel.innerHTML = "00";
+                                        totalMills = 0;
+                                        totalSekunden = 0;
+                                }
+                                else
+                                {
+                                        htmlResets = 1;
+                                }
+                                document.getElementById("Sekunden").value = totalSekunden;
+                        }
+                        
+                        function setTime()
+                        {
+                                ++totalMills;
+                                if(totalSekunden == 60)
+                                {
+                                        totalSekunden = 0;
+                                        SekundenLabel.innerHTML = "00";
+                                        clearInterval(counter);
+                                }
+                                if(totalMills == 100)
+                                {
+                                        totalSekunden++;
+                                        SekundenLabel.innerHTML = pad(totalSekunden%60);
+                                        totalMills = 0;
+                                }
+                                
+                        }
+                        
+                        function pad(val)
+                        {
+                                var valString = val + "";
+                                if(valString.length < 2)
+                                {
+                                        return "0" + valString;
+                                }
+                                else
+                                {
+                                        return valString;
+                                }
+                        }
+                </script>
+
+<div align="center"><span style="font-family:Verdana">Weitere Informationen zum Thema Abfluss finden Sie z.B. hier: 
+<br><a href="http://de.wikipedia.org/wiki/Abfluss">Wikipedia - Abfluss </a><br></span><br></div>
+<br></span>
+</body>
+</HTML>

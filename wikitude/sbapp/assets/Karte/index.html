@@ -1,0 +1,81 @@
+<html>
+<head>
+ <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Studienlandschaft Schwingbachtal</title>
+    <style>
+      html, body, #map-canvas {
+        height: 100%;
+        margin: 0px;
+        padding: 0px
+      }
+    </style>
+ <script src="https://maps.googleapis.com/maps/api/js?sensor=true"></script>
+<script>
+// Script unterliegt http://creativecommons.org/licenses/by-sa/3.0/,wurde auf http://stackoverflow.com/ von user3398326 erstellt, von geocodezip bearbeitet und liegt hier in einer modifizierten Form vor. Die verwendeten Google Maps Code-Beispiele unterliegen der Apache 2.0-Lizenz, Copyright 2014 Google Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. https://developers.google.com/maps/tutorials/kml/#your_kml_file.
+
+var map;
+function initialize() {
+  var schwiba = new google.maps.LatLng(50.500882, 8.550753);
+  var mapOptions = {
+    zoom: 14,
+    center: schwiba,
+    mapTypeId: google.maps.MapTypeId.SATELLITE
+  }
+
+  map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+  var POIS = new google.maps.KmlLayer({
+    url: 'http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/Karte/Schwingbachtal-App.kml',
+    preserveViewport: true
+
+
+  });
+  POIS.setMap(map);
+
+  if(navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      var pos = new google.maps.LatLng(position.coords.latitude,
+                                       position.coords.longitude);
+
+      var infowindow = new google.maps.Marker({
+        map: map,
+        position: pos,
+        title: 'Ihr Standort'
+      });
+
+      map.setCenter(pos);
+    }, function() {
+      handleNoGeolocation(true);
+    });
+  } else {
+    // Der Browser unterstützt keinen Abruf von Geodaten
+    handleNoGeolocation(false);
+  }
+}
+
+function handleNoGeolocation(errorFlag) {
+  if (errorFlag) {
+    var content = 'Fehler: Ihr Standort konnte nicht bestimmt werden.';
+  } else {
+    var content = 'Fehler: Ihr Browser unterstützt keine Standortinformationen.';
+  }
+
+  var options = {
+    map: map,
+    position: new google.maps.LatLng(60, 105),
+    mapTypeId: google.maps.MapTypeId.SATELLITE,
+    content: content
+  };
+
+  var infowindow = new google.maps.InfoWindow(options);
+  map.setCenter(options.position);
+}
+
+
+google.maps.event.addDomListener(window, 'load', initialize);
+</script>
+</head>
+<body>
+  <div id="map-canvas"></div>
+</body>
+</html>
