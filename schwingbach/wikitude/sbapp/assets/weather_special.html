@@ -1,0 +1,44 @@
+<html>
+<head>
+<meta name="viewport" content="target-densitydpi=device-dpi, width = 320, user-scalable = 0">
+<style>
+      p  {font-size: 1.4em;}
+      a  {font-size: 0.7cm;}
+    </style>
+<script type="text/javascript">
+function runden(zahl){
+	t=Math.round(zahl*100)/100;
+	st=t.toString();
+	for(i=0;i<st.length-1;i++){
+		if(st.charAt(i)=="."){
+			st=st.substr(0,st.length-1);
+			st=st.substr(0,i)+","+st.substr(i+1,1);
+		}
+	}
+	return st;
+}
+function ajax_get_json(){
+    var hr = new XMLHttpRequest();
+    hr.open("GET", "actualclimate.json", true);
+    hr.setRequestHeader("Content-type", "application/json", true);
+    hr.onreadystatechange = function() {
+	   if(hr.readyState == 4 && hr.status == 200) {
+		    var data = JSON.parse(hr.responseText);
+			var results = document.getElementById("results"); 
+			results.innerHTML = "<font face=Verdana><p>Die aktuelle mittlere Windgeschwindigkeit liegt bei " +runden(data.Wind_speed.mean) +" Metern je Sekunde.</p><p>Die mittlere Sonneneinstrahlung der vergangenen Stunden betr&auml;gt " +runden(data.Solar_radiation.mean)+ " Watt je Quadratmeter.</p><p>Die Niederschlagsmenge der letzten 24 Stunden liegt bei " +runden(data.Rainfall.mean)+ " Litern pro Quadratmeter.</p><p>&Uuml;ber den Link erhalten Sie viele weitere Daten der Station.</p></font>";
+	
+		}
+	}
+    
+    hr.send(null);
+    results.innerHTML = "Livedaten werden gelesen...";
+}
+</script>
+</head>
+<body>
+<span style="display: block !important; width: 320px; text-align: left; font-family: sans-serif; font-size: 13.5px;">
+<div id="results"></div>
+<script type="text/javascript">ajax_get_json();</script>
+<br></span>
+</body>
+</html>
