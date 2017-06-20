@@ -1350,7 +1350,7 @@ var World = {
 
         $.ajax({
             dataType: "json",
-            url: "http://evolution.uni-giessen.de/sbapp/Poidata.json",
+            url: "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/Poidata.json",
             success: function (data) {
                 var poiData = [];
                 for(var i in data)
