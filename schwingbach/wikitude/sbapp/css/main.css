@@ -1,0 +1,258 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('../fonts/lato/Lato-Reg-webfont.eot');
+    src: url('../fonts/lato/Lato-Reg-webfont.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/lato/Lato-Reg-webfont.woff') format('woff'),
+    url('../fonts/lato/Lato-Reg-webfont.ttf') format('truetype'),
+    url('../fonts/lato/Lato-Reg-webfont.svg#LatoRegular') format('svg');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('../fonts/lato/Lato-Bol-webfont.eot');
+    src: url('../fonts/lato/Lato-Bol-webfont.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/lato/Lato-Bol-webfont.woff') format('woff'),
+    url('../fonts/lato/Lato-Bol-webfont.ttf') format('truetype'),
+    url('../fonts/lato/Lato-Bol-webfont.svg#LatoBold') format('svg');
+    font-weight: 700;
+    font-style: normal;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    background-repeat: no-repeat;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Lato', 'Roboto', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.4em;
+}
+
+/* Dialog */
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 80;
+    background: rgba(0,0,0,0.15);
+}
+
+.disableExtendedTracking {
+    margin: 0.5em;
+}
+
+.dialog {
+    background: #fff;
+    border-radius: 4px;
+    min-width: 240px;
+    width: 80%;
+    max-width: 600px;
+    max-height: 90%;
+    box-shadow: 0 7px 8px -4px rgba(0,0,0,.2),0 13px 19px 2px rgba(0,0,0,.14),0 5px 24px 4px rgba(0,0,0,.12);
+    position: relative;
+    margin: 0 auto;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    overflow: scroll;
+}
+
+.dialog_content {
+    padding: 20px;
+    overflow: hidden;
+}
+
+.dialog_content .title {
+    font-size: 1.4em;
+    line-height: 1.2em;
+    font-weight: 700;
+    margin-bottom: 0.8em;
+}
+
+.dialog_content .message {
+    margin: 1em 0;
+}
+
+.dialog_content .buttons {
+    text-align: right;
+    margin-top: 1em;
+}
+
+.dialog_content .buttons .button {
+    display: inline-block;
+    background: #303030;
+    border-radius: 4px;
+    color: #fff;
+    padding: 9px 20px 11px;
+    text-align: center;
+    margin: 4px;
+}
+
+.closeButton {
+    display: inline-block;
+    background: #303030;
+    border-radius: 4px;
+    color: #fff;
+    padding: 9px 20px 11px;
+    text-align: center;
+    margin: 4px;
+}
+
+.dialog .button:hover {
+    background: #707070;
+    cursor: pointer;
+}
+
+/* Loading */
+
+.loadingDiv,
+.loadingDivAug {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+.indicatorDiv,
+.indicatorDivAug {
+    display: inline-block;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 8px;
+    width: 80px;
+    height: 80px;
+    color: #fff;
+    text-shadow: 0 0 3px rgba(0,0,0,.8);
+}
+
+.indicatorDivAug {
+    height: 120px;
+}
+
+.loadingDiv > .indicatorDiv > .spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 10px;
+}
+
+.loadingDiv > .indicatorDiv > .spinner > div {
+    background-color: #ffbf2d;
+    height: 100%;
+    width: 6px;
+    float: left;
+    margin: 1px;
+    box-shadow: 0 0 3px rgba(0,0,0,.8);
+    -webkit-animation: sk-stretchdelay 1.2s infinite ease-in-out;
+    animation: sk-stretchdelay 1.2s infinite ease-in-out;
+}
+
+.loadingDiv > .indicatorDiv > .spinner .rect2 {
+    -webkit-animation-delay: -1.1s;
+    animation-delay: -1.1s;
+}
+
+.loadingDiv > .indicatorDiv > .spinner .rect3 {
+    -webkit-animation-delay: -1.0s;
+    animation-delay: -1.0s;
+}
+
+.loadingDiv > .indicatorDiv > .spinner .rect4 {
+    -webkit-animation-delay: -0.9s;
+    animation-delay: -0.9s;
+}
+
+.loadingDiv > .indicatorDiv > .spinner .rect5 {
+    -webkit-animation-delay: -0.8s;
+    animation-delay: -0.8s;
+}
+
+@-webkit-keyframes sk-stretchdelay {
+    0%, 40%, 100% { -webkit-transform: scaleY(0.4) }
+    20% { -webkit-transform: scaleY(1.0) }
+}
+
+@keyframes sk-stretchdelay {
+    0%, 40%, 100% {
+        transform: scaleY(0.4);
+        -webkit-transform: scaleY(0.4);
+    }  20% {
+           transform: scaleY(1.0);
+           -webkit-transform: scaleY(1.0);
+       }
+}
+
+.loadingDivProgress {
+    margin-top: 1em;
+}
+
+.loadingDivAug > .indicatorDivAug > .spinner {
+    margin: 0 auto;
+    width: 66px;
+    height: 66px;
+    position: relative;
+}
+
+.loadingDivAug > .indicatorDivAug > .spinner > .cube1, .cube2 {
+    background-color: #ffbf2d;
+    border-radius: 2px;
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-shadow: 0 0 3px rgba(0,0,0,.8);
+    -webkit-animation: sk-cubemove 1.8s infinite ease-in-out;
+    animation: sk-cubemove 1.8s infinite ease-in-out;
+}
+
+.loadingDivAug > .indicatorDivAug > .spinner > .cube2 {
+    -webkit-animation-delay: -0.9s;
+    animation-delay: -0.9s;
+}
+
+@-webkit-keyframes sk-cubemove {
+    25% { -webkit-transform: translateX(50px) rotate(-90deg) scale(0.5) }
+    50% { -webkit-transform: translateX(50px) translateY(50px) rotate(-180deg) }
+    75% { -webkit-transform: translateX(0px) translateY(50px) rotate(-270deg) scale(0.5) }
+    100% { -webkit-transform: rotate(-360deg) }
+}
+
+@keyframes sk-cubemove {
+    25% {
+        transform: translateX(50px) rotate(-90deg) scale(0.5);
+        -webkit-transform: translateX(50px) rotate(-90deg) scale(0.5);
+    } 50% {
+          transform: translateX(50px) translateY(50px) rotate(-179deg);
+          -webkit-transform: translateX(50px) translateY(50px) rotate(-179deg);
+      } 50.1% {
+            transform: translateX(50px) translateY(50px) rotate(-180deg);
+            -webkit-transform: translateX(50px) translateY(50px) rotate(-180deg);
+        } 75% {
+              transform: translateX(0px) translateY(50px) rotate(-270deg) scale(0.5);
+              -webkit-transform: translateX(0px) translateY(50px) rotate(-270deg) scale(0.5);
+          } 100% {
+                transform: rotate(-360deg);
+                -webkit-transform: rotate(-360deg);
+            }
+}
+
