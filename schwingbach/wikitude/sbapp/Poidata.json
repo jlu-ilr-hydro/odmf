@@ -1,210 +1,5 @@
 [ 
     {
-        "comment": "Face 2 Face Versuchsflächen",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/urtica_dioica.jpg",
-        "web": "http://de.wikipedia.org/wiki/Eutrophierung",
-        "id": 856,
-        "lat": 50.533651,
-        "lon": 8.684618,
-        "category": "Wasser",
-        "name": "FACE2FACE",
-        "video": "lutzvid3"
-        
-    },
-    {
-        "comment": "An diesem Punkt erklärt der Hydrologie-Experte Professor Breuer die Eintragspfade von Nährstoffen in Gewässer. Ganz in Ihrer Nähe befindet sich der Zulauf des Regenwasser-Rückhaltebeckens in den Vollnkirchener-Bach, der z.B. eine Punktquelle für den Eintrag von Nährstoffen in Gewässer darstellt. Eine Zeiger-Pflanze für ein erhöhtes Vorkommen von Stickstoff stellt die Brennnessel dar - wie hier im Uferbereich zu sehen.<br>Das Video starten Sie, indem Sie Ihr Smartphone über die am Pfahl befestigte Abbildung der Brennnessel halten.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/urtica_dioica.jpg",
-        "web": "http://de.wikipedia.org/wiki/Eutrophierung",
-        "id": 855,
-        "lat": 50.496134,
-        "lon": 8.551554,
-        "category": "Wasser",
-        "name": "Nährstoffeintrag in Gewässer",
-        "video": "lutzvid1"
-    },
-    {
-        "comment": "Finden Sie weitere Informationen in Form von Links zu Videos zum Thema Bodenerosion. Halten Sie Ihr Smartphone über die beiden Bilder der Schautafel (siehe unten) und öffnen Sie die Linkliste mit einem Klick. Mit dem Link auf dieser Seite erhalten Sie weitere Informationen von Wikipedia zum Thema Bodenerosion.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/tafel_boden_erosion.jpg",
-        "web": "http://de.wikipedia.org/wiki/Bodenerosion",
-        "id": 655,
-        "lat": 50.51473,
-        "lon": 8.60298,
-        "category": "Boden",
-        "name": "Schautafel Bodenerosion"
-    },
-    {
-        "comment": "Suchen Sie die Schautafel <b>Der Lebensraum Streuobstwiese</b> auf und halten Sie, um zu erfahren, welches Tier welches Geräusch macht, Ihr Smartphone über die Abbildung eines Tieres! Lauschen Sie aufmerksam den Stimmen der Tiere, denn einige der zu hörenden Laute sind nur sehr leise!  Es sind Geräusche von Steinkauz, Siebenschläfer, Igel, Buntspecht und Kleiber. Alle verwendeten Stimmen entstammen dem Tierstimmen-Archiv des Naturkundemuseums in Berlin, sind unter CC-Lizenz 3.0 verfügbar und wurden von Prof. em. Dr. rer. nat., Dr. h. c. Günter Tembrock erstellt.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/tafel_streuobstwiese_lebensraum.jpg",
-        "web": "http://de.wikipedia.org/wiki/Streuobstwiese",
-        "id": 955,
-        "lat": 50.51493,
-        "lon": 8.60147,
-        "category": "Landschaft",
-        "name": "Wer lebt denn da in der Streuobstwiese? Lernen Sie die Stimmen der Tiere kennen!"
-    },
-    {
-        "comment": "Suchen Sie an diesem Punkt das Insektenhotel auf, das eine Station des Eselspfades darstellt. Halten Sie, um eine kleine Link-Sammlung zu Bauprojekten von Insektenhotels anzuzeigen, Ihr Smartphone über das aufgebaute Insektenhotel.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/insektenhotel_klein.jpg",
-        "web": "http://de.wikipedia.org/wiki/Insektenhotel",
-        "id": 755,
-        "lat": 50.499258,
-        "lon": 8.551282,
-        "category": "Eselspfad",
-        "name": "Ein Heim für Krabbler - Das Insektenhotel"
-    },
-    {
-        "comment": "Erfahren Sie an dieser Tafel mehr über den Artenreichtum in Wiese, Weide und Acker und spielen Sie, indem Sie Ihr Smartphone über die Abbildung (unten dargestellt) auf der Tafel halten, das Acker-Wildkraut-Merkspiel.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/tafel_ackerwildkraeuter.jpg",
-        "web": "http://www.schutzaecker.de/?ackerwildkraeuter",
-        "id": 355,
-        "lat": 50.50030,
-        "lon": 8.55040,
-        "category": "Landschaft",
-        "name": "Lebensräume in der Agrarlandschaft"
-    },
-    {
-        "comment": "Vergleichen Sie doch einmal die auf dieser Schautafel notierten Werte mit den aktuell durch die Klimastation erhobenen Daten. Hierfür nehmen Sie den markierten Bereich der Tafel in das Live-Bild ihres Smartphones. Blicken Sie nun abwechselnd auf die abgedruckten Werte auf der Tafel und auf die Live-Daten Ihres Smartphones. Außerdem können Sie durch Scannen des Fotos der Wetterstation die abgebildeten Sensoren in Kombination mit den aktuell erhobenen Daten betrachten. Über den Link können Sie weitere Erklärungen zu der Funktionsweise der Sensoren abrufen.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/tafel_wind_weht.jpg",
-        "id": 455,
-        "lat": 50.51577,
-        "lon": 8.59963,
-        "category": "Wasser",
-        "name": "Wie weht der Wind am Schwingbach?"
-    },
-    {
-        "comment": "Starten Sie hier den geführten Rundweg 3 durch die Studienlandschaft Schwingbachtal.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/tafel_rundweg3.jpg",
-        "web": "http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/studienlandschaft/startseite/lernpfad",
-        "id": 555,
-        "lat": 50.51692,
-        "lon": 8.59934,
-        "category": "Rundweg",
-        "name": "Wasser und intensive Landnutzung - Startpunkt des Rundweges 3"
-    },
-    {
-        "comment": "Lassen Sie sich von dem Hydrologie-Experten Professor Breuer die Zusammensetzung des Abflusses in einem Bach wie dem Vollnkirchener erklären. Das Video starten Sie, indem Sie Ihr Smartphone über den an der Schautafel <b>Das ewige Rauschen des Baches</b> angebrachten QR-Code halten.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/tafel_wasser_abfluss_zusammensetz.jpg",
-        "id": 199,
-        "lat": 50.50032,
-        "lon": 8.55068,
-        "category": "Wasser",
-        "name": "Wie setzt sich der Abfluss in einem Bach zusammen?"
-    },
-    {
-        "comment": "An diesem Brückenprofil können Sie selbstständig den Abfluss des Schwingbachs mithilfe des Abfluss-Rechners bestimmen. Hierfür suchen Sie die Schautafel <b>Jeder Tropfen zählt</b> auf, halten Ihr Smartphone über die Kartenabbildung (Bild unten) der Tafel und öffnen mit einem Klick diesen Rechner. Mit dem erscheinenden Rechner zur Bestimmung des Abflusses ist lediglich die Zeit zu stoppen, die z.B. ein kleines Stöckchen benötigt, um von der einen Seite der Brücke auf die andere zu schwimmen. Darüber hinaus ist der Wasserstand zu schätzen und annäherungsweise in den Rechner einzutragen. Mit einem Klick auf <b>Berechnen</b> erhalten Sie die aktuelle Abfluss-Menge. Eine neue Berechnung können Sie über das Feld <b>Neue Eingabe</b> tätigen.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/wasser_tropfen_abflussrechner_klein.jpg",
-        "id": 599,
-        "lat": 50.50082,
-        "lon": 8.55017,
-        "category": "Wasser",
-        "name": "Jeder Tropfen zählt – Starten Sie Ihre eigene Abfluss-Berechnung"
-    },
-    {
-        "comment": "Suchen Sie die Schautafel <b>Der Löss</b> auf und halten Sie Ihr Smartphone auf jeweils eine der beiden Abbildungen (Europäische Lössgebiete oder Entwicklung der Lössböden in der Neuzeit). So können Sie Videos zur Geologie der Böden der Studienlandschaft und zum Bodentyp Parabraunerde anschauen. Die Bodenkunde-Expertin Frau Drahorad wird Sie dabei durch die zwei kurzen Videos leiten.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/der_loess_klein.jpg",
-        "id": 299,
-        "lat": 50.51563,
-        "lon": 8.60019,
-        "category": "Boden",
-        "name": "Geologie der Böden und der Bodentyp Parabraunerde"
-    },
-    {
-        "comment": "An diesem Standort wird die Bodenkunde-Expertin Frau Drahorad Ihnen die drei unterschiedlichen Landnutzungsformen des Schwingbachtales in einem Video erläutern. In einem weiteren Video erhalten Sie Informationen über das Thema Boden. Um die Videos anzeigen zu lassen, halten Sie Ihr Smartphone über jeweils eine der Abbildungen auf der Tafel <b>Böden sind vielfältig</b>.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/tafel_boden_vielfalt.jpg",
-        "id": 399,
-        "lat": 50.49793,
-        "lon": 8.55078,
-        "category": "Boden",
-        "name": "Böden sind vielfältig"
-    },
-    {
-        "comment": "An diesem Punkt befindet sich die Schautafel: <b>Der Wasserhaushalt eines Waldes</b>. Halten Sie Ihr Smartphone über die vier Abbildungen auf der Tafel und der Hydrologie-Experte Professor Breuer wird Ihnen in einem Video den Wasserhaushalt des Waldes erklären.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/wald_wasserhaushalt.jpg",
-        "web":"http://www.lwf.bayern.de/boden-klima/wasserhaushalt/index.php",
-        "id": 899,
-        "lat": 50.501596,
-        "lon": 8.553629,
-        "category": "Wasser",
-        "name": "Der Wasserhaushalt des Waldes"
-    },
-    {
-        "comment": "An dieser Station können Sie den Text der Schautafel auch hören. Dafür halten Sie Ihr Smartphone über den auf der Tafel gekennzeichneten Bereich und lassen sich die Inhalte der Tafel vorlesen. Unter <b>Weitere Informationen</b> finden Sie einen Link zur Europäischen Wasserrahmenrichtlinie.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/tafel_wasser_strukturguete.jpg",
-        "web": "http://www.nabu.de/themen/fluesse/wasserrahmenrichtlinie/",
-        "id": 699,
-        "lat": 50.503229,
-        "lon": 8.555052,
-        "category": "Wasser",
-        "name": "Schautafel - So fließt der Schwingbach"
-    },
-    {
-        "comment": "An dieser Station können Sie den Text der Schautafel auch hören. Dafür halten Sie Ihr Smartphone über die Abbildung des Piezometers und lassen sich die Inhalte der Tafel vorlesen. Weitere, detaillierte Informationen zur Funktionsweise eines Piezometers erhalten Sie über den unten stehenden Link zu einem Video (auf Englisch).",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/tafel_piezometer.jpg",
-        "web": "http://www.youtube.com/watch?v=Ci6Za_F-w4Q",
-        "id": 799,
-        "lat": 50.51569,
-        "lon": 8.59988,
-        "category": "Wasser",
-        "name": "Schautafel - Mehr als nur ein Loch im Boden"
-    },
-    {
-        "comment": "An diesem Punkt finden Sie den Einstieg in den Rundweg 2 der Studienlandschaft Schwingbachtal. Der Rundweg 2 thematisiert, wie z.B. Mensch, Boden und Wasser eine Landschaft prägen. Außerdem startet an dieser Schautafel ein eigens für die Studienlandschaft eingerichteter Geocache. Diesen starten Sie, indem Sie die Schautafel in den Fokus ihres Smartphones nehmen.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/tafel_kulturlandschaft.jpg",
-        "web": "http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/studienlandschaft/startseite/lernpfad/R2",
-        "id": 499,
-        "lat": 50.50131,
-        "lon": 8.54973,
-        "category": "Rundweg",
-        "name": "Elemente einer Kulturlandschaft"
-    },
-    {
-        "comment": "An dieser Stelle befindet sich der Hochwasser-Überlauf der Gemeinde Vollnkirchen in den Vollnkirchener Bach. Dieser Überlauf wird im Falle von Starkregenereignissen genutzt, wenn die Kanalisation die anfallenden Niederschläge nicht mehr aufnehmen kann. Der Überlauf der Kanalisation stellt in diesen seltenen Fällen eine Punktquelle für die Einleitung von Nährstoffen in den Bach dar. Vielleicht erkennen Sie auch noch Reste von Toilettenpapier am Gitter des Zuflusses.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/kanalisation_ueberlauf.jpg",
-        "web": "http://www.umweltbundesamt.de/daten/gewaesserbelastung/fliessgewaesser/eintraege-von-naehr-schadstoffen-in-die",
-        "id": 78,
-        "lat": 50.495995,
-        "lon": 8.551466,
-        "category": "Wasser",
-        "name": "Hochwasser-Überlauf einer Kanalisation in den Vollnkirchener Bach"
-    },
-    {
-        "comment": "Am Mündungsbereich des Vollnkirchener Baches in den Schwingbach befindet sich eine Wetterstation. Umweltveränderungen werden oft durch klimatische Einwirkungen hervorgerufen  - deshalb werden hier zu Referenzzwecken Klimadaten aufgezeichnet und in Relation zu den anderen erhobenen Messwerten gesetzt.<br><br>Neben den Wetterdaten wird hier mit Hilfe einer in den Vollnkirchener Bach eingebrachten Messsonde in einem 15-minütigen Intervall die Stickstoffkonzentration im Wasser analysiert. Die Bestimmung des Stickstoffgehaltes erfolgt mittels einer photometrischen Messung. Die Messdaten werden über einen am Ufer aufgestellten Speicher festgehalten und analysiert. Gemessene Stickstoffwerte im Schwingbach können stündlich an die Universität via Mobilfunk übermittelt werden.<br><br>An diesem POI können Sie sich die durch die Wetterstation erhobenen Live-Daten anzeigen lassen. Hierfür halten Sie Ihr Smartphone über den QR-Code an der Station.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/klima_vkb.jpg",
-        "id": 71,
-        "lat": 50.50088,
-        "lon": 8.550654,
-        "category": "Wasser",
-        "name": "Klimastation Vollnkirchener-Bach/Schwingbach"
-    },
-    {
-        "comment": "Auf dem Hochwasserrückhaltebecken, das zwischen den Gemeinden Rechtenbach und Hüttenberg am Schwingbach liegt, befindet sich eine Wetterstation, die Daten aufzeichnet, verarbeitet und drahtlos an die Universität weiterleitet. <br> Umweltveränderungen werden oft durch klimatische Einwirkungen hervorgerufen  - deshalb werden hier zu Referenzzwecken Klimadaten aufgezeichnet und in Relation zu den anderen erhobenen Messwerten gesetzt.<br>An diesem POI können Sie sich die durch die Wetterstation erhobenen Live-Daten anzeigen lassen. Hierfür halten Sie Ihr Smartphone über den QR-Code am Geländer der Klimastation. ",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/klima_rueckhaltebecken.jpg",
-        "id": 47,
-        "lat": 50.51613,
-        "lon": 8.59937,
-        "category": "Wasser",
-        "name": "Klimastation am Hochwasserrückhaltebecken"
-    },
-    {
         "comment": "An dieser Stelle befindet sich die obere Abfluss-Messrinne. Im Vollnkirchener Bach befinden sich zwei fest installierte rbc-Messrinnen. Hier ist der Wasserstand und die damit verbundene Menge des Abflusses kontinuierlich über eine Messskala abzulesen. Gleichzeitig wird über einen verbundenen Drucksensor die Pegelhöhe erfasst und in einem Datenspeicher aufgezeichnet. Mitarbeiter der Universität Gießen lesen diesen Speicher in regelmäßigen Abständen aus. Mithilfe des bekannten Querschnittes des Rinnenprofiles und einer am Boden der Messrinne installierten Verengung, durch welche sich ein Pegel unterhalb der Schwelle einstellt, der von der Wassermenge bestimmt wird, kann aus der Wasserstandshöhe die Abflussmenge bestimmt werden. Aus der Wasserstandshöhe lässt sich somit nun die Abflussmenge bestimmen. Versuchen Sie doch einmal selbst den Wasserstand (mm) und den Abfluss (l/s) abzulesen.",
         "height": 245.926,
         "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/messrinne.png",
@@ -226,8 +21,132 @@
         "category": "Wasser",
         "name": "Untere Messrinne - Vollnkirchener-Bach"
     },
+
     {
-        "comment": "Hier befindet sich eine Grundwassermessstelle. An verschiedenen Stellen im Einzugsgebiet des Schwingbachtales befinden sich Grundwassermessstationen – sogenannte Piezometer. Diese Grundwassermessstationen bestehen aus einem perforierten Rohr, welches so tief in den Boden eingebracht ist, dass es ständig Kontakt mit den grundwasserleitenden Schichten des Bodens hat. So stellt sich in diesem Rohr ein Wasserpegel ein – der des Grundwassers. Je höher der Wasserpegel im Rohr, desto höher der Druck der Wassersäule. Dieser Druck und die Veränderung über die Zeit wird von einem Sensor mit Speicher am unteren Ende des Rohres aufgezeichnet. Aus diesen aufgezeichneten Druckdaten lassen sich später die Grundwasserstände berechnen. Aufgrund einer bestimmten Verteilung der Grundwassermessstellen, z.B. auf der Wiese an der Mündungsstelle des Vollnkirchener Baches in den Schwingbach, kann ein Trend der Bewegung des Grundwassers ermittelt werden und darüber hinaus auch eine Verbindung mit den Wasserständen der beiden Bäche gezogen werden. <br>Um nun nicht nur den Grundwasserpegel an einem Punkt zu kennen, sondern aus den an verschiedenen Stellen ermittelten Pegeln weitere Informationen ziehen zu können, bedient man sich eines Vergleiches der Werte an verschiedenen Messstellen. Werden die Grundwasserstände dreier Messstellen zu <i>einem</i> Zeitpunkt betrachtet, so kann ein hydrologisches Dreieck erstellt und daraus die Grundwasserfließrichtung ermittelt werden. So findet ein Fluss des Wassers zu niedrigeren Messpegeln statt. Mithilfe dieses Vergleiches kann eine Aussage über die Wasserversorgung getroffen werden – speist das Grundwasser der Quellzone (Aue) den Bach oder umgekehrt.",
+        "comment": "Am Mündungsbereich des Vollnkirchener Baches in den Schwingbach befindet sich eine Wetterstation. Umweltveränderungen werden oft durch klimatische Einwirkungen hervorgerufen  - deshalb werden hier zu Referenzzwecken Klimadaten aufgezeichnet und in Relation zu den anderen erhobenen Messwerten gesetzt.<br><br>Neben den Wetterdaten wird hier mit Hilfe einer in den Vollnkirchener Bach eingebrachten Messsonde in einem 15-minütigen Intervall die Stickstoffkonzentration im Wasser analysiert. Die Bestimmung des Stickstoffgehaltes erfolgt mittels einer photometrischen Messung. Die Messdaten werden über einen am Ufer aufgestellten Speicher festgehalten und analysiert. Gemessene Stickstoffwerte im Schwingbach können stündlich an die Universität via Mobilfunk übermittelt werden.<br><br>An diesem POI können Sie sich die durch die Wetterstation erhobenen Live-Daten anzeigen lassen. Hierfür halten Sie Ihr Smartphone über den QR-Code an der Station.",
+        "height": 0,
+        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/klima_vkb.jpg",
+        "id": 71,
+        "lat": 50.50088,
+        "lon": 8.550654,
+        "category": "Wasser",
+        "name": "Klimastation Vollnkirchener-Bach/Schwingbach"
+    },
+     {
+        "comment": "An dieser Stelle befindet sich der Hochwasser-Überlauf der Gemeinde Vollnkirchen in den Vollnkirchener Bach. Dieser Überlauf wird im Falle von Starkregenereignissen genutzt, wenn die Kanalisation die anfallenden Niederschläge nicht mehr aufnehmen kann. Der Überlauf der Kanalisation stellt in diesen seltenen Fällen eine Punktquelle für die Einleitung von Nährstoffen in den Bach dar. Vielleicht erkennen Sie auch noch Reste von Toilettenpapier am Gitter des Zuflusses.",
+        "height": 0,
+        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/kanalisation_ueberlauf.jpg",
+        "web": "http://www.umweltbundesamt.de/daten/gewaesserbelastung/fliessgewaesser/eintraege-von-naehr-schadstoffen-in-die",
+        "id": 78,
+        "lat": 50.495995,
+        "lon": 8.551466,
+        "category": "Wasser",
+        "name": "Hochwasser-Überlauf einer Kanalisation in den Vollnkirchener Bach"
+    },
+    {
+        "comment": "Lassen Sie sich von dem Hydrologie-Experten Professor Breuer die Zusammensetzung des Abflusses in einem Bach wie dem Vollnkirchener erklären. Das Video starten Sie, indem Sie Ihr Smartphone über den an der Schautafel <b>Das ewige Rauschen des Baches</b> angebrachten QR-Code halten.",
+        "height": 0,
+        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/tafel_wasser_abfluss_zusammensetz.jpg",
+        "id": 199,
+        "lat": 50.50032,
+        "lon": 8.55068,
+        "category": "Wasser",
+        "name": "Wie setzt sich der Abfluss in einem Bach zusammen?"
+    },
+    {
+        "comment": "Erfahren Sie an dieser Tafel mehr über den Artenreichtum in Wiese, Weide und Acker und spielen Sie, indem Sie Ihr Smartphone über die Abbildung (unten dargestellt) auf der Tafel halten, das Acker-Wildkraut-Merkspiel.",
+        "height": 0,
+        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/tafel_ackerwildkraeuter.jpg",
+        "web": "http://www.schutzaecker.de/?ackerwildkraeuter",
+        "id": 355,
+        "lat": 50.50030,
+        "lon": 8.55040,
+        "category": "Landschaft",
+        "name": "Lebensräume in der Agrarlandschaft"
+    },
+    {
+        "comment": "An diesem Standort wird die Bodenkunde-Expertin Frau Drahorad Ihnen die drei unterschiedlichen Landnutzungsformen des Schwingbachtales in einem Video erläutern. In einem weiteren Video erhalten Sie Informationen über das Thema Boden. Um die Videos anzeigen zu lassen, halten Sie Ihr Smartphone über jeweils eine der Abbildungen auf der Tafel <b>Böden sind vielfältig</b>.",
+        "height": 0,
+        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/tafel_boden_vielfalt.jpg",
+        "id": 399,
+        "lat": 50.49793,
+        "lon": 8.55078,
+        "category": "Boden",
+        "name": "Böden sind vielfältig"
+    },
+     {
+        "comment": "An diesem Brückenprofil können Sie selbstständig den Abfluss des Schwingbachs mithilfe des Abfluss-Rechners bestimmen. Hierfür suchen Sie die Schautafel <b>Jeder Tropfen zählt</b> auf, halten Ihr Smartphone über die Kartenabbildung (Bild unten) der Tafel und öffnen mit einem Klick diesen Rechner. Mit dem erscheinenden Rechner zur Bestimmung des Abflusses ist lediglich die Zeit zu stoppen, die z.B. ein kleines Stöckchen benötigt, um von der einen Seite der Brücke auf die andere zu schwimmen. Darüber hinaus ist der Wasserstand zu schätzen und annäherungsweise in den Rechner einzutragen. Mit einem Klick auf <b>Berechnen</b> erhalten Sie die aktuelle Abfluss-Menge. Eine neue Berechnung können Sie über das Feld <b>Neue Eingabe</b> tätigen.",
+        "height": 0,
+        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/wasser_tropfen_abflussrechner_klein.jpg",
+        "id": 599,
+        "lat": 50.50082,
+        "lon": 8.55017,
+        "category": "Wasser",
+        "name": "Jeder Tropfen zählt – Starten Sie Ihre eigene Abfluss-Berechnung"
+    },
+    {
+        "comment": "An dieser Stelle wurde der Vollnkirchner Bach renaturiert um die Europäischen Wasserrahmenrichtlinie zu erfüllen. Wenn Sie dass Bild scannen, hören Sie den Text einer Tafel, die weiter unten im Schwingbachtal ausgestellt ist und vor der Renaturierungsmaßnahme aufgestellt wurde, unter dem Link gibt es weitere Informationen zur EU Wasserrahmenrichtlinie",
+        "height": 0,
+        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/tafel_wasser_strukturguete.jpg",
+        "web": "http://www.nabu.de/themen/fluesse/wasserrahmenrichtlinie/",
+        "id": 17,
+        "lat": 50.497394,
+        "lon": 8.551306,
+        "category": "Wasser",
+        "name": "Schautafel - So fließt der Schwingbach"
+    },
+	    {
+        "comment": "An dieser Station können Sie den Text der Schautafel auch hören. Dafür halten Sie Ihr Smartphone über die Abbildung des Piezometers und lassen sich die Inhalte der Tafel vorlesen. Weitere, detaillierte Informationen zur Funktionsweise eines Piezometers erhalten Sie über den unten stehenden Link zu einem Video (auf Englisch).",
+        "height": 0,
+        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/tafel_piezometer.jpg",
+        "web": "http://www.youtube.com/watch?v=Ci6Za_F-w4Q",
+        "id": 799,
+        "lat": 50.51569,
+        "lon": 8.59988,
+        "category": "Wasser",
+        "name": "Schautafel - Mehr als nur ein Loch im Boden"
+    },
+
+   {
+        "comment": "An diesem Punkt erklärt der Hydrologie-Experte Professor Breuer die Eintragspfade von Nährstoffen in Gewässer. Ganz in Ihrer Nähe befindet sich der Zulauf des Regenwasser-Rückhaltebeckens in den Vollnkirchener-Bach, der z.B. eine Punktquelle für den Eintrag von Nährstoffen in Gewässer darstellt. Eine Zeiger-Pflanze für ein erhöhtes Vorkommen von Stickstoff stellt die Brennnessel dar - wie hier im Uferbereich zu sehen.<br>Das Video starten Sie, indem Sie Ihr Smartphone über die am Pfahl befestigte Abbildung der Brennnessel halten.",
+        "height": 0,
+        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/urtica_dioica.jpg",
+        "web": "http://de.wikipedia.org/wiki/Eutrophierung",
+        "id": 855,
+        "lat": 50.496134,
+        "lon": 8.551554,
+        "category": "Wasser",
+        "name": "Nährstoffeintrag in Gewässer",
+        "video": "lutzvid1"
+    },
+    {
+        "comment": "An diesem Punkt befindet sich die Schautafel: <b>Der Wasserhaushalt eines Waldes</b>. Halten Sie Ihr Smartphone über die vier Abbildungen auf der Tafel und der Hydrologie-Experte Professor Breuer wird Ihnen in einem Video den Wasserhaushalt des Waldes erklären.",
+        "height": 0,
+        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/wald_wasserhaushalt.jpg",
+        "web":"http://www.lwf.bayern.de/boden-klima/wasserhaushalt/index.php",
+        "id": 899,
+        "lat": 50.501596,
+        "lon": 8.553629,
+        "category": "Wasser",
+        "name": "Der Wasserhaushalt des Waldes"
+    },
+
+	
+	
+	
+    {
+        "comment": "Suchen Sie an diesem Punkt das Insektenhotel auf, das eine Station des Eselspfades darstellt. Halten Sie, um eine kleine Link-Sammlung zu Bauprojekten von Insektenhotels anzuzeigen, Ihr Smartphone über das aufgebaute Insektenhotel.",
+        "height": 0,
+        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/insektenhotel_klein.jpg",
+        "web": "http://de.wikipedia.org/wiki/Insektenhotel",
+        "id": 755,
+        "lat": 50.499258,
+        "lon": 8.551282,
+        "category": "Eselspfad",
+        "name": "Ein Heim für Krabbler - Das Insektenhotel"
+    },
+     {
+        "comment": "Hier befindet sich eine Grundwassermessstelle. An verschiedenen Stellen im Einzugsgebiet des Schwingbachtales befinden sich Grundwassermessstationen – sogenannte Piezometer. Diese Grundwassermessstationen bestehen aus einem perforierten Rohr, welches so tief in den Boden eingebracht ist, dass es ständig Kontakt mit den grundwasserleitenden Schichten des Bodens hat. So stellt sich in diesem Rohr ein Wasserpegel ein – der des Grundwassers. Je höher der Wasserpegel im Rohr, desto höher der Druck der Wassersäule. Dieser Druck und die Veränderung über die Zeit wird von einem Sensor mit Speicher am unteren Ende des Rohres aufgezeichnet. Aus diesen aufgezeichneten Druckdaten lassen sich später die Grundwasserstände berechnen. Aufgrund einer bestimmten Verteilung der Grundwassermessstellen, z.B. auf der Wiese an der Mündungsstelle des Vollnkirchener Baches in den Schwingbach, kann ein Trend der Bewegung des Grundwassers ermittelt werden und darüber hinaus auch eine Verbindung mit den Wasserständen der beiden Bäche gezogen werden. <br>Um nun nicht nur den Grundwasserpegel an einem Punkt zu kennen, sondern aus den an verschiedenen Stellen ermittelten Pegeln weitere Informationen ziehen zu können, bedient man sich eines Vergleiches der Werte an verschiedenen Messstellen. Werden die Grundwasserstände dreier Messstellen zu <i>einem</i> Zeitpunkt betrachtet, so kann ein hydrologisches Dreieck erstellt und daraus die Grundwasserfließrichtung ermittelt werden. So findet ein Fluss des Wassers zu niedrigeren Messpegeln statt. Mithilfe dieses Vergleiches kann eine Aussage über die Wasserversorgung getroffen werden – speist das Grundwasser der Quellzone (Aue) den Bach oder umgekehrt. Wenn Sie das aufgestellte Foto scannen, können Sie sich den Text einer Schautafel zu Piezometern, die unterhalb von Rechtenbach angebracht ist anhören",
         "height": 234.189,
         "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/piezometer_c_buchen.jpg",
         "web": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/Piezometer_transparent.png",
@@ -248,37 +167,4 @@
         "category": "Wasser",
         "name": "Ein Niederschlagssensor - Kippwaagenzähler"
     },
-    {
-        "comment": "Hier finden Sie ein V-Wehr. Das V-Wehr ist eine fest installierte Messeinrichtung im Bach zur Bestimmung der Abflussmengen. Die Konstruktion dieser Rinne staut das Wasser des Baches zunächst auf und lässt es dann über den V-förmigen bzw. dreieckigen Auslass mit bekannter Größe kontrolliert abfließen. Mithilfe des so aufgestauten Wasserstandes kann die Menge des Durchflusses bestimmt werden. Weitere Informationen zu diesem und anderen Messverfahren gibt es über den Link weiter unten.",
-        "height": 295,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/dreieckswehr.png",
-        "web": "http://www.leimegger.de/Ingenieur/wasserbest.html",
-        "id": 64,
-        "lat": 50.480720,
-        "lon": 8.542840,
-        "category": "Wasser",
-        "name": "Ein Dreieckswehr oder V-Wehr"
-    },
-    {
-        "comment": "Der Mensch stößt z.B. durch Intensivtierhaltung, Düngung und die Verbrennung von fossilen Energieträgern vermehrt reaktiven Stickstoff aus. Der Stickstoff hat, wenn er sich in überhöhtem Maße anreichert, eine versauernde und eutrophierende Wirkung. Über die Luft werden die Stickstoffverbindungen, zum Teil an kleine Partikel gebunden, transportiert. Durch den Regen werden diese Stickstoffverbindungen einerseits aus der Luft und andererseits von Blattoberseiten der Pflanzen gewaschen und landen so letztlich im Ökosystem. Sie können das Gleichgewicht des Ökosystems empfindlich stören und eine Verdrängung von ansässigen Pflanzen fördern.<br> Um Unterschiede in der Verteilung der Stickstoffeinträge durch Niederschläge zu erkennen, werden Niederschlagssammler unter verschiedenen Baumarten und im Freiland aufgestellt. Hierbei lässt sich ein klarer Unterschied erkennen: Unter Nadelbäumen (wie hier den Fichten) finden sich höhere Stickstoffkonzentrationen als unter Laubbäumen (vgl. Wegpunkt zur Messung der Stickstoffverbindungen im Niederschlag unter Eichen) oder im Freiland. Höhere Stickstoffkonzentrationen bei Nadelbäumen sind u.a. dadurch begründet, dass sie ganzjährig Nadeln tragen und eine größere Nadeloberfläche besitzen. Im Frühjahr und Sommer lassen sich an allen Messpunkten generell höhere Konzentrationen von Stickstoff nachweisen. <br><br> Neben der Analyse des Stickstoffs werden hier auch der pH-Wert, also der Säuregehalt, die Leitfähigkeit und weitere Parameter in den gesammelten Niederschlägen bestimmt. Schauen Sie sich doch mal vor Ort den Niederschlagssammler unter den Fichten an. <br><br>Für weitere Informationen zum Thema Stickstoff-Eintrag und seine Folgen gibt es über den Link weiter unten eine tolle Internetseite des Umweltbundesamtes.",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/niederschlagssammler_g_dehler.jpg",
-        "web": "http://www.umweltbundesamt.de/publikationen/stickstoff-zuviel-des-guten",
-        "id": 79,
-        "lat": 50.477950,
-        "lon": 8.551600,
-        "category": "Wasser",
-        "name": "Niederschlagssammler zur Bestimmung von Stickstoff-Deposition unter Fichten"
-    },
-    {
-        "comment": "Der Mensch stößt z.B. durch Intensivtierhaltung, Düngung und die Verbrennung von fossilen Energieträgern vermehrt reaktiven Stickstoff aus. Der Stickstoff hat, wenn er sich in überhöhtem Maße anreichert, eine versauernde und eutrophierende Wirkung. Über die Luft werden die Stickstoffverbindungen, zum Teil an kleine Partikel gebunden, transportiert. Durch den Regen werden diese Stickstoffverbindungen einerseits aus der Luft und andererseits von Blattoberseiten der Pflanzen gewaschen und landen so letztlich im Ökosystem. Sie können das Gleichgewicht des Ökosystems empfindlich stören und eine Verdrängung von ansässigen Pflanzen fördern. <br> <br> Um Unterschiede in der Verteilung der Stickstoffeinträge durch Niederschläge zu erkennen, werden Niederschlagssammler unter verschiedenen Baumarten und im Freiland aufgestellt. Hierbei lässt sich ein klarer Unterschied erkennen: Unter Laubbäumen (wie hier den Eichen) finden sich geringere Stickstoffkonzentrationen als unter Nadelbäumen (vgl. Wegpunkt zur Messung der Stickstoffverbindungen im Niederschlag unter Fichten). Niedrigere Stickstoffkonzentrationen bei Laubbäumen sind u.a. dadurch begründet, dass sie ihre Blätter nicht ganzjährig tragen und eine geringere Blattoberfläche besitzen. Im Frühjahr und Sommer lassen sich an allen Messpunkten generell höhere Konzentrationen von Stickstoff nachweisen. <br> <br> Neben der Analyse des Stickstoffs werden hier auch der pH-Wert, also der Säuregehalt, die Leitfähigkeit und weitere Parameter in den gesammelten Niederschlägen bestimmt. Schauen Sie sich doch mal vor Ort den Niederschlagssammler unter den Eichen an. <br><br> Für weitere Informationen zum Thema Stickstoff-Eintrag und seine Folgen gibt es über den Link weiter unten eine tolle Internetseite des Umweltbundesamtes",
-        "height": 0,
-        "icon": "http://fb09-pasig.umwelt.uni-giessen.de/sbapp/app/assets/niederschlagssammler_g_dehler.jpg",
-        "web": "http://www.umweltbundesamt.de/publikationen/stickstoff-zuviel-des-guten",
-        "id": 88,
-        "lat": 50.488467,
-        "lon": 8.557150,
-        "category": "Wasser",
-        "name": "Niederschlagssammler zur Bestimmung von Stickstoff-Deposition unter Eichen"
-    }
-]
+ ]
