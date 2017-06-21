@@ -4,16 +4,20 @@ Created on 13.07.2012
 
 @author: philkraf
 '''
+from collections import namedtuple
+
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
-from base import Base,Session, newid
+from base import Base,Session
 from sqlalchemy.schema import ForeignKey
-from datetime import datetime,timedelta
-from dbobjects import newid, Person, Datasource
-from collections import deque
-from math import sqrt
+from datetime import datetime
+from dbobjects import newid
 import pytz
 from pandas import Series
+
+import importlib
+import inspect
+
 tzberlin = pytz.timezone('Europe/Berlin')
 tzwinter = pytz.FixedOffset(60)
 tzutc = pytz.utc
@@ -291,8 +295,12 @@ class Record(Base):
 transforms_table = sql.Table('transforms',Base.metadata,
                              sql.Column('target',sql.Integer,ForeignKey('transformed_timeseries.id'),primary_key=True),
                              sql.Column('source',sql.Integer,ForeignKey('dataset.id'),primary_key=True))
-class Timeseries(Dataset):    
+
+
+class Timeseries(Dataset):
+
     __mapper_args__ = dict(polymorphic_identity='timeseries')
+
     def split(self,time):
         """Creates a new dataset using copy and assignes all records after
         time to the new dataset. Useful """
@@ -300,7 +308,7 @@ class Timeseries(Dataset):
         next = self.records.filter(Record.time>=time,Record.value != None).order_by(Record.time).first()
         last = self.records.filter(Record.time<=time,Record.value != None).order_by(sql.desc(Record.time)).first()
         if not next or not last:
-            raise RuntimeError("Split time %s is not between two records of %s" % (t,self))
+            raise RuntimeError("Split time %s is not between two records of %s" % (time, self))
         self.comment= unicode(self.comment) + u'Dataset is splitted at %s to allow for different calibration' % time
         dsnew = self.copy(id=newid(Dataset,session))
         self.comment+='. Other part of the dataset is ds%03i\n' % dsnew.id
@@ -311,6 +319,7 @@ class Timeseries(Dataset):
         records.update({'dataset':dsnew.id})
         session.commit()
         return self,dsnew
+
     def findjumps(self,threshold,start=None,end=None):
         """Returns an iterator to find all jumps greater than threshold
         
@@ -325,6 +334,7 @@ class Timeseries(Dataset):
                 if threshold==0.0 or (last and abs(rec.value-last.value)>threshold):
                     yield rec
                 last=rec
+
     def findvalue(self,time):
         """Finds the linear interpolated value for the given time in the record"""
         next = self.records.filter(Record.time>=time,Record.value != None,~Record.is_error).order_by(Record.time).first()
@@ -447,27 +457,43 @@ class TransformedTimeseries(Dataset):
     expression = sql.Column(sql.String)
     latex = sql.Column(sql.String)
     sources = orm.relationship("Timeseries", secondary=transforms_table,order_by="Timeseries.start")
+
     def sourceids(self):
         return [s.id for s in self.sources]
+
     def size(self):
         return self.session().query(Record).filter(Record._dataset.in_(self.sourceids())).count()
+
+    def get_transformation_class(self):
+        mod = importlib.import_module(self.expression)
+
+
     def asseries(self,start=None,end=None):
         datasets = self.sources
         data=Series()
-        for src in datasets:
-            t,v = src.asarray(start,end)
-            v = self.transform(v)
-            data=data.append(Series(v,index=t))
-        data=data.sort_index()
+        if self.expression.startswith('plugin.transformation'):
+            # This is a plugin transformation
+            # import transformation module
+            pass
+        else:
+            for src in datasets:
+                t,v = src.asarray(start,end)
+                v = self.transform(v)
+                data=data.append(Series(v,index=t))
+            data=data.sort_index()
         return data
+
     def asarray(self,start=None,end=None):
         data = self.asseries(start, end)
         return np.array(data.index,dtype=float), np.array(data,dtype=float)
+
     def updatetime(self):
         self.start = min(ds.start for ds in self.sources)
         self.end = max(ds.end for ds in self.sources)
+
     def transform(self,x):
         return eval(self.expression,{'x':x},np.__dict__)
+
     def iterrecords(self, witherrors=False,start=None,end=None):
         session = self.session()
         srcrecords = session.query(Record).filter(Record._dataset.in_(self.sourceids())).order_by(Record.time)
@@ -521,4 +547,51 @@ class DatasetGroup(object):
                 yield r
         
         
-        
+
+
+
+class Transformation(object):
+    """
+    The transformation object transforms multiple valuetypes together for a new result
+    
+    the content is defined in a plugin module with a list of tuples 'variables' 
+    and a function f getting t (time) as the first argument and the variables in the variable list
+    as the next argument. See plugin.transformation.example module as an example
+    """
+
+    def __init__(self, modulename):
+        # Make sure the cache is cleaned, importlib.invalidate_cache in python3
+        # For python2 use imp.find_module & imp.load_module
+        module = importlib.import_module(modulename)
+        self.variables = getattr(module, 'variables')
+        self.f = getattr(module, 'f')
+        # Check if variables and function signature fit together
+        assert '|'.join(inspect.getargspec(self.f).args) == '|'.join(['t'] + [v[0] for v in self.variables])
+        self.doc = inspect.getdoc(module)
+
+    def calculate(self, datasets, start, end):
+        """
+        Loops through the first variable
+        :param datasets: 
+        :return: A panda timeseries with the right data
+        """
+
+        # make for each variable a datasetgroup from the datasets
+        variables = {v: DatasetGroup([ds.id for ds in datasets if ds.valuetype.id == vt],
+                              start=start,
+                              end=end)
+                        for v, vt in self.variables}
+        # Load the master timeseries
+        dsg0 = variables[self.variables[0]].asseries()
+        series_out = Series()
+        # Load all variables as series
+        for v, vt in self.variables:
+            dsg = variables[v]
+            # interpolate is not the right choice, but something similar
+            #values = [ds.interpolate(t1) for ds in self.datasets]
+            #series_out.append(t1, self.f(*values))
+        pass
+
+
+
+
