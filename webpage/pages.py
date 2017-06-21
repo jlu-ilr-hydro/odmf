@@ -685,6 +685,8 @@ class CalendarPage(object):
         res = web.as_json(events)
         session.close()
         return res
+
+
 class svnlogPage(object):
     exposed=True
 
@@ -1051,6 +1053,7 @@ class Root(object):
             return subprocess.Popen(['free','-m'],stdout=subprocess.PIPE).communicate()[0]
         else:
             return 'Memory storage information is not available at your platform'
+
     @expose_for()
     def actualclimate_json(self,site=47):
         session = db.Session()
@@ -1064,6 +1067,24 @@ class Root(object):
             res[ds.name.split(',')[0].strip().replace(' ','_')] = {'min':v.min(),'max':v.max(),'mean':v.mean()}
         return web.as_json(res)
 
+    @expose_for()
+    @web.mimetype(web.mime.html)
+    def actualclimate_html(self):
+        s = StringIO()
+        s.write(u'<table>')
+        with db.scoped_session() as session:
+            ds = session.query(db.Dataset).filter(db.Dataset.id.in_(list(range(1493, 1502))))
+            for d in ds:
+                r = d.records.order_by(db.Record.time.desc()).limit(1).scalar()
+                s.write(u"""<tr>
+                <td>{d.valuetype.name_html}</td>
+                <td>{r.value:10.6g}</td>
+                <td>{d.valuetype.unit_html}</td>
+                <td>{r.time:%d.%m.%Y %H:%M}</td>
+                </tr>
+                """.format(d=d, r=r))
+        s.write(u'</table>')
+        return s.getvalue()
 
 #if __name__=='__main__':
 #    web.start_server(Root(), autoreload=False, port=8081)

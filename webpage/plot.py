@@ -18,7 +18,7 @@ import numpy as np
 import db
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
-from cStringIO import StringIO
+from io import StringIO
 import time
 from base64 import b64encode
 from pandas import to_datetime, TimeGrouper
@@ -753,3 +753,4 @@ class PlotPage(object):
         plot64 = b64encode(plot.draw(format='png'))
         
         return web.render('climateplot.html',climateplot=plot64,plot=plot).render('html')
+

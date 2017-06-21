@@ -43,7 +43,7 @@ class SitePage:
         return result    
     
     @expose_for(group.editor)
-    def new(self,lat=None,lon=None,name=None,error=''):
+    def new(self, lat=None, lon=None, name=None, error=''):
         session=db.Session()
         try:
             actualsite=db.Site(id=db.newid(db.Site,session),
@@ -66,29 +66,28 @@ class SitePage:
         try:
             siteid=web.conv(int,kwargs.get('id'),'')
         except:
-            return web.render(error=traceback(),title='site #%s' % kwargs.get('id'))
+            return web.render(error=traceback(), title='site #%s' % kwargs.get('id'))
         if 'save' in kwargs:
-            try:
-                session = db.Session()        
-                site = session.query(db.Site).get(int(siteid))
-                if not site:
-                    site=db.Site(id=int(siteid))
-                    session.add(site)
-                site.lon=web.conv(float,kwargs.get('lon'))
-                site.lat=web.conv(float,kwargs.get('lat'))
-                if site.lon>180 or site.lat>180:
-                    site.lat,site.lon = proj.UTMtoLL(23, site.lat, site.lon, '32N')
-                    
-                site.name=kwargs.get('name')
-                site.height=web.conv(float,kwargs.get('height'))
-                site.icon = kwargs.get('icon')
-                site.comment=kwargs.get('comment')
-                session.commit()
-                session.close()
+            with db.scoped_session() as session:
+                try:
+                    site = session.query(db.Site).get(int(siteid))
+                    if not site:
+                        site=db.Site(id=int(siteid))
+                        session.add(site)
+                    site.lon = web.conv(float, kwargs.get('lon'))
+                    site.lat = web.conv(float, kwargs.get('lat'))
+                    if None in (site.lon, site.lat):
+                        raise ValueError('The site has no coordinates')
+                    if site.lon>180 or site.lat>180:
+                        site.lat, site.lon = proj.UTMtoLL(23, site.lat, site.lon, '32N')
 
-            except:
-                return web.render('empty.html',error=traceback(),title='site #%s' % siteid
-                                  ).render('html',doctype='html')
+                    site.name = kwargs.get('name')
+                    site.height = web.conv(float, kwargs.get('height'))
+                    site.icon = kwargs.get('icon')
+                    site.comment = kwargs.get('comment')
+                except:
+                    return web.render('empty.html',error=traceback(),title='site #%s' % siteid
+                                      ).render('html',doctype='html')
         raise web.HTTPRedirect('./%s' % siteid)
     
     @expose_for()
@@ -230,6 +229,3 @@ class SitePage:
             st.write((u'%s,%f,%f,%0.1f,%0.1f,%s,"%s","%s"\n' % (s.id, s.lon,s.lat,x,y,h,s.name,c)).encode('latin1'))
         session.close()
         return st.getvalue()
-        
-        
-        
