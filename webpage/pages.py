@@ -1071,6 +1071,16 @@ class Root(object):
     @web.mimetype(web.mime.html)
     def actualclimate_html(self):
         s = StringIO()
+        s.write(u"""
+        <html>
+            <head>
+                <link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                <title>Actual climate</title>
+            </head>
+            <body>
+        """)
+        s.write(u'<h1>Climate data from #47</h1>')
         s.write(u'<table>')
         with db.session_scope() as session:
             ds = session.query(db.Dataset).filter(db.Dataset.id.in_(list(range(1493, 1502))))
@@ -1083,7 +1093,7 @@ class Root(object):
                 <td>{r.time:%d.%m.%Y %H:%M}</td>
                 </tr>
                 """.format(d=d, r=r))
-        s.write(u'</table>')
+        s.write(u'</table></body></html>')
         return s.getvalue()
 
 #if __name__=='__main__':
