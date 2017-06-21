@@ -232,6 +232,7 @@ class ManualMeasurementsImport(LogbookImport):
                                  importrow is used here to import column-wise
         """
 
+	print("valuetype_column '%s'" % (valuetype_column))
         time = None
 
         # Get date and time

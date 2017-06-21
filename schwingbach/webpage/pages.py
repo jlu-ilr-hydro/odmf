@@ -1072,14 +1072,14 @@ class Root(object):
     def actualclimate_html(self):
         s = StringIO()
         s.write(u'<table>')
-        with db.scoped_session() as session:
+        with db.session_scope() as session:
             ds = session.query(db.Dataset).filter(db.Dataset.id.in_(list(range(1493, 1502))))
             for d in ds:
                 r = d.records.order_by(db.Record.time.desc()).limit(1).scalar()
                 s.write(u"""<tr>
-                <td>{d.valuetype.name_html}</td>
+                <td>{d.valuetype.name}</td>
                 <td>{r.value:10.6g}</td>
-                <td>{d.valuetype.unit_html}</td>
+                <td>{d.valuetype.unit}</td>
                 <td>{r.time:%d.%m.%Y %H:%M}</td>
                 </tr>
                 """.format(d=d, r=r))

@@ -97,7 +97,12 @@ class LogbookImport(object):
             return [self.sheet.cell_value(row, col) for col in columns]
 
         except:
-            return self.sheet.cell_value(row, columns)
+            try:
+		return self.sheet.cell_value(row, columns)
+	    except TypeError:
+		
+		raise TypeError("List indices row '%s' and col '%s' must be integers" % (row, columns))
+
 
     # TODO: Add mechanism to choose a "static" class or a config file
     # for the import. Like:
