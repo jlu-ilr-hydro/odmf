@@ -413,7 +413,7 @@
 								Project
 							</td>
 							<td>
-								<a py:if="not is_member('supervisor')" href="/project/${activeproject.id}">${activeproject.name}</a>
+								<a py:if="activeproject and not is_member('supervisor')" href="/project/${activeproject.id}">${activeproject.name}</a>
 								<select py:if="is_member('supervisor')" name="project">
 									<option value="0" >No Project</option>
 									<option value="${p.id}"
