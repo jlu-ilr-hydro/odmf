@@ -18,7 +18,7 @@ import numpy as np
 import db
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
-from io import StringIO
+from cStringIO import StringIO
 import time
 from base64 import b64encode
 from pandas import to_datetime, TimeGrouper
