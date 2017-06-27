@@ -5,17 +5,25 @@
 body { margin:0; padding:0; height:320px; }
 div { border:0px solid #888; }
 
-#a1 { background-color: red; position:absolute; top:20px; left:170px; width:100; height:100; border:3px solid black; text-align:center; border-radius:150px; 
+#a1 {
+    background-color: red;
+    position:absolute;
+    top:20px; left:170px;
+    width:100px; height:100px;
+    border:3px solid black;
+    text-align:center;
+    border-radius:150px;
+    z-index:1;
+}
+#a2 { background-color: red; position:absolute; top:50px; left:40px; width:100px; height:100px; border:3px solid black; text-align:center; border-radius:150px;
       z-index:1; }
-#a2 { background-color: red; position:absolute; top:50px; left:40px; width:100; height:100; border:3px solid black; text-align:center; border-radius:150px;
+#a3 { background-color: red; position:absolute; top:155px; left:10px; width:80px; height:80px; border:3px solid black; text-align:center; border-radius:150px;
       z-index:1; }
-#a3 { background-color: red; position:absolute; top:155px; left:10px; width:80; height:80; border:3px solid black; text-align:center; border-radius:150px;
+#a4 { background-color: red; position:absolute; top:155px; left:95px; width:80px; height:80; border:3px solid black; text-align:center; border-radius:150px;
       z-index:1; }
-#a4 { background-color: red; position:absolute; top:155px; left:95px; width:80; height:80; border:3px solid black; text-align:center; border-radius:150px;
+#a5 { background-color: red; position:absolute; top:140px; left:200px; width:100px; height:100px; border:3px solid black; text-align:center; border-radius:150px;
       z-index:1; }
-#a5 { background-color: red; position:absolute; top:140px; left:200px; width:100; height:100; border:3px solid black; text-align:center; border-radius:150px;
-      z-index:1; }
-#a6 { background-color: red; position:absolute; top:230px; left:53px; width:80; height:80; border:3px solid black; text-align:center; border-radius:150px;
+#a6 { background-color: red; position:absolute; top:230px; left:53px; width:80px; height:80px; border:3px solid black; text-align:center; border-radius:150px;
       z-index:1; }
 </style>
 <meta name="viewport" content="target-densitydpi=device-dpi, width = 320, user-scalable = 0">
@@ -100,7 +108,7 @@ function ajax_get_temperature(){
 	   if(hr.readyState == 4 && hr.status == 200) {
 		    var data = JSON.parse(hr.responseText);
 			var temperature = document.getElementById("temperature"); 
-			temperature.innerHTML = "<font face=Verdana><p>" +runden(data.temperature.mean) +"</font></p>";
+			temperature.innerHTML = "<p>" +runden(data.temperature.mean) +"</p>";
 	
 		}
 	}
@@ -111,7 +119,6 @@ function ajax_get_temperature(){
 </head>
 <body>
 	<span style="display: block !important; width: 320px; text-align: center; font-family: sans-serif; font-size: 12px;">
-<font color="#000204"><font face="sans-serif, Arial, Verdana, Trebuchet MS"><font style="font-size: 12pt">
 <div id="a1"><div id="wind"></div>[m/s]</div>
 <script type="text/javascript">ajax_get_wind();</script>
 <div id="a2"><div id="sun"></div>[W/m&sup2;]</div>
@@ -120,13 +127,12 @@ function ajax_get_temperature(){
 <script type="text/javascript">ajax_get_temperature();</script>
 <div id="a4"><div id="humidity"></div>[%rel.]</div>
 <script type="text/javascript">ajax_get_humidity();</script>
-<div id="a5"><div id="rain"></div>[l/m&sup2;*Tag]</div>
+<div id="a5"><div id="rain"></div>[mm/day]</div>
 <script type="text/javascript">ajax_get_rain();</script>
-<div id="a6"><br>Erkl&auml;rung Sensoren</div>
+<div id="a6"><br>Erkl&auml&auml;rung Sensoren</div>
 
 <br></span>
 
-</font></font></font>
 </body>
 
 </body>
