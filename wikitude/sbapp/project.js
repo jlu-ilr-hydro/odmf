@@ -724,6 +724,36 @@ var projectJSONOffline =
             "nrOfTargets": 24,
             "version": "5.3",
             "creDat": 1497878818090
+        },
+        {
+            "url": "augmentation-trackers/4.1/tracker.wtc",
+            "nrOfTargets": 25,
+            "version": "4.1",
+            "creDat": 1498561000275
+        },
+        {
+            "url": "augmentation-trackers/4.1/tracker.wtc",
+            "nrOfTargets": 25,
+            "version": "5.0",
+            "creDat": 1498561000275
+        },
+        {
+            "url": "augmentation-trackers/4.1/tracker.wtc",
+            "nrOfTargets": 25,
+            "version": "5.1",
+            "creDat": 1498561000275
+        },
+        {
+            "url": "augmentation-trackers/4.1/tracker.wtc",
+            "nrOfTargets": 25,
+            "version": "5.2",
+            "creDat": 1498561000275
+        },
+        {
+            "url": "augmentation-trackers/4.1/tracker.wtc",
+            "nrOfTargets": 25,
+            "version": "5.3",
+            "creDat": 1498561000275
         }
     ],
     "targets": [
@@ -2384,6 +2414,75 @@ var projectJSONOffline =
                     },
                     "fileSize": 3423485,
                     "id": "5947afdb42c227672b4ec7b0"
+                }
+            ]
+        },
+        {
+            "name": "qr_code_LiveDaten_SB",
+            "augmentations": [
+                {
+                    "type": "Button",
+                    "height": 0.3,
+                    "uri": "augmentation-assets/1633496078_qr_code_LiveDaten_SB/59523a0bd5e9d0d32a7f4a2b/image.jpeg",
+                    "targetId": "595239e1d5e9d0d32a7f4a25",
+                    "modDat": 1498561096898,
+                    "creDat": 1498561035334,
+                    "properties": {
+                        "clickUrl": "http://fb09-pasig.umwelt.uni-giessen.de:8081/actualclimate.html",
+                        "forceNativeBrowser": "false",
+                        "ignoreInAR": false,
+                        "opacity": 1,
+                        "rotate": {
+                            "x": 0,
+                            "y": 0,
+                            "z": 0
+                        },
+                        "scale": {
+                            "x": 2.17,
+                            "y": 2.17,
+                            "z": 2.17
+                        },
+                        "translate": {
+                            "x": -0.003851116497237017,
+                            "y": 0.1636475812690289,
+                            "z": 0.0008696181820360138
+                        },
+                        "zOrder": 1
+                    },
+                    "fileSize": 10936,
+                    "id": "59523a0bd5e9d0d32a7f4a2b"
+                },
+                {
+                    "type": "Button",
+                    "height": 0.3,
+                    "uri": "augmentation-assets/1633496078_qr_code_LiveDaten_SB/59523a2d1d330cc41455854f/image.png",
+                    "targetId": "595239e1d5e9d0d32a7f4a25",
+                    "modDat": 1498561113150,
+                    "creDat": 1498561069578,
+                    "properties": {
+                        "clickUrl": "http://fb09-pasig.umwelt.uni-giessen.de:8081/actualclimate.html",
+                        "forceNativeBrowser": "false",
+                        "ignoreInAR": false,
+                        "opacity": 1,
+                        "rotate": {
+                            "x": 0,
+                            "y": 0,
+                            "z": 0
+                        },
+                        "scale": {
+                            "x": 1,
+                            "y": 1,
+                            "z": 1
+                        },
+                        "translate": {
+                            "x": 0,
+                            "y": -0.34,
+                            "z": 0
+                        },
+                        "zOrder": 0
+                    },
+                    "fileSize": 2203,
+                    "id": "59523a2d1d330cc41455854f"
                 }
             ]
         }
