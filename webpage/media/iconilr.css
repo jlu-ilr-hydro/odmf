@@ -46,7 +46,7 @@ h2 {
 	font-size: 120%;
 	color: #32739d;
 	font-style: italic;
-	font-weight: bold; 
+	font-weight: bold;
     padding: 2px;
 	box-shadow: 2px 2px 3px #32739d;;
 }
@@ -99,18 +99,24 @@ div.navigate {
     margin: 0px 0px 0px 0px;
     width: 189px;
     height: 100%;
- 
+
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
-    overflow: hidden; 
+    overflow: hidden;
 }
 
 div.navigate li {
 	list-style: none;
 	width: 100%;
 }
+
+/* Fixing bootstrap body line-height */
+div.navigate ul {
+	line-height: none;
+}
+
 div.navigate a {
 	color: white;
 	font-weight: bold;
@@ -133,8 +139,8 @@ div.content {
 
 }
 .error {
-    background-color: red; 
-    color: white; 
+    background-color: red;
+    color: white;
     font-family: monospace;
     font-weight: bold;
     white-space: pre;
@@ -145,7 +151,7 @@ div.content {
     font-family: monospace;
     white-space: pre;
     border: solid 1px black;
-    box-shadow: 5px 5px 5px #888;	
+    box-shadow: 5px 5px 5px #888;
     padding: 1em;
 }
 .warning {
@@ -154,7 +160,7 @@ div.content {
 		border: solid 1px orangered;
 		border-radius: 5px;
 		box-shadow: 5px 5px 8px darkred;
-} 
+}
 .box {
 	background-color: #E8F0FF;
 	border: solid 1px #32739d;
@@ -170,7 +176,7 @@ span.box {
 }
 span.box a{
 	padding: 0px 2px;
- 	cursor: pointer; 
+ 	cursor: pointer;
 }
 span.box a:hover {
 	background-color:#32739D;
@@ -224,13 +230,13 @@ ul#Inhalt li{
 }
 div.rightpane {
 	margin-right: 21em;
-}   
+}
 tr.underline {border-bottom: 1px solid #32739d;}
 td.right {text-align: right;}
 td.top {vertical-align: top;}
-td.highlight 
+td.highlight
 {
-    background-color: #E8F0FF; 
+    background-color: #E8F0FF;
     font-weight: bold;
 }
 
@@ -251,16 +257,16 @@ textarea {
 	font-family: sans-serif;
 	font-size: small;
 }
-.topimage {    text-align: center; 
-		  padding: 0px 0px 0px 0px; 
-		  margin: 0px 0px 0px 0px;			
+.topimage {    text-align: center;
+		  padding: 0px 0px 0px 0px;
+		  margin: 0px 0px 0px 0px;
 }
-.topimage img { width: 32%; 
-		   padding: 0px 0px 0px 0px; 
-		   margin: 0px 0px 0px 0px;			
+.topimage img { width: 32%;
+		   padding: 0px 0px 0px 0px;
+		   margin: 0px 0px 0px 0px;
 }
 input[type=text][readonly] {
-	color: #888888; 
+	color: #888888;
 	border: none;
 }
 
@@ -270,40 +276,40 @@ a.filelink {
 	padding-left: 16px;
 }
 
- .tooltip {outline:none; } 
- .tooltip strong {line-height:30px;} 
- .tooltip:hover {text-decoration:none;} 
- .tooltip span { 
+ .tooltip {outline:none; }
+ .tooltip strong {line-height:30px;}
+ .tooltip:hover {text-decoration:none;}
+ .tooltip span {
  		z-index:10;
- 		display:none; 
- 		padding:5px 5px; 
- 		margin-top:-5px; 
- 		margin-left:5px; 
- 		/*width:240px; 
- 		line-height:16px; */} 
+ 		display:none;
+ 		padding:5px 5px;
+ 		margin-top:-5px;
+ 		margin-left:5px;
+ 		/*width:240px;
+ 		line-height:16px; */}
  .tooltip span a {
  		color:#3D578C;
  }
- .tooltip:hover span{ 
- 		display:inline; 
- 		position:absolute; 
- 		/*color:#111;*/ 
- 		border:1px solid #DCA; 
+ .tooltip:hover span{
+ 		display:inline;
+ 		position:absolute;
+ 		/*color:#111;*/
+ 		border:1px solid #DCA;
  		background:#fffAF0;
  		z-index: 100;
- 	} 
+ 	}
  .callout {
  		z-index:20;
  		position:absolute;
  		top:30px;
  		border:0;
  		left:-12px;
- 		} 
- 	/*CSS3 extras*/ 
- .tooltip span { 
- 	border-radius:4px; 
- 	box-shadow: 5px 5px 8px #888; 
+ 		}
+ 	/*CSS3 extras*/
+ .tooltip span {
+ 	border-radius:4px;
+ 	box-shadow: 5px 5px 8px #888;
  	}
  	textarea.markdown {
- 		
+
  	}
