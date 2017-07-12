@@ -108,7 +108,7 @@
 					<tr>
 						<td>Phone:</td>
 						<py:choose>
-							<td py:when="act_user=='new' or is_self(active_person.username)">
+							<td py:when="act_user=='new' or is_self(active_person.username) or is_member('admin')">
 								<input type="text" name="telephone" value="${active_person.telephone}" /></td>
 							<td py:otherwise="">
 								<input readonly="true" type="text" name="telephone" value="${active_person.telephone}" />
