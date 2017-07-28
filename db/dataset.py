@@ -294,8 +294,8 @@ class Record(Base):
 # TODO: Put foreign_key to timeseries
 transforms_table = sql.Table('transforms',Base.metadata,
                              sql.Column('target',sql.Integer,ForeignKey('transformed_timeseries.id'),primary_key=True),
-                             sql.Column('source',sql.Integer,ForeignKey('dataset.id'),primary_key=True))
-
+                             sql.Column('source',sql.Integer,ForeignKey('dataset.id'),primary_key=True),
+                             sql.Column('automatic_added', sql.Boolean, default=False))
 
 class Timeseries(Dataset):
 
@@ -375,7 +375,7 @@ class Timeseries(Dataset):
         time: time of the record
         comment: comments for this new record
         """
-        value=float(value)
+        value = float(value)
         session = self.session()
         # After perfomance issues with maxrecordid, TODO: delete this
         #if Id is None:
