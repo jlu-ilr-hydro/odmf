@@ -120,7 +120,7 @@ class ImportColumn:
 
     def __init__(self, column, name, valuetype, factor=1.0, comment=None,
                  difference=None, minvalue=-1e308, maxvalue=+1e308, append=None,
-                 level=None, access=None, ds_column=None):
+                 level=None, access=None, ds_column=None, trans_dataset_id=None):
         """
         Creates a column description in a delimited text file.
         upon import, the column will be saved as a dataset in the database
@@ -137,6 +137,7 @@ class ImportColumn:
         level: ...
         access: ...
         ds_column: explicit dataset for uploading column @see: mm.py
+        trans_dataset_id: (optional) explicit dataset for automatic adding to transforms list
         """
         self.column = int(column)
         self.name = name
@@ -150,6 +151,7 @@ class ImportColumn:
         self.level = level
         self.access = access
         self.ds_column = ds_column
+        self.trans_dataset_id = trans_dataset_id
 
     def __str__(self):
         return "%s[%s]:column=%i" % ('d' if self.difference else '', self.name,
@@ -185,6 +187,11 @@ class ImportColumn:
             config.set(section, '; Access property of the dataset. Default level is 1 (for loggers) but can set to 0 for public datasets or to a higher level for confidential datasets')
             config.set(section, 'access', self.access)
 
+        if self.trans_dataset_id:
+            config.set(section, '; dataset id of special "transformed_timeseries" dataset, which is used as source for automatic insert of transforms table and upload to the database')
+            config.set(section, 'trans_dataset_id', self.trans_dataset_id)
+
+
     @classmethod
     def from_config(cls,config,section):
         "Get the column description from a config-file"
@@ -206,7 +213,10 @@ class ImportColumn:
                    access=getvalue('access',int),
 
                    # Added as lab import (mm.py) feature
-                   ds_column=getvalue('ds_column', int)
+                   ds_column=getvalue('ds_column', int),
+
+                   #
+                   trans_dataset_id=getvalue('trans_dataset_id', int)
                    )
         
 
@@ -387,6 +397,7 @@ class ImportDescription(object):
         descr = cls.from_config(config)
         descr.filename = path
         return descr
+
 
 class LogImportColumn(ImportColumn):
 
@@ -571,6 +582,7 @@ class ImportStat(object):
     def __jsondict__(self):
         return dict(mean=self.mean,min=self.min,max=self.max,n=self.n,start=self.start,end=self.end)
 
+
 class AbstractImport(object):
     """ This class imports provides functionality for importing files to the
     database, using a config file. The config file describes the format and
@@ -675,6 +687,7 @@ class AbstractImport(object):
             vt = session.query(db.ValueType).get(col.valuetype)
             id = db.newid(db.Dataset,session)
             # New dataset with metadata from above
+
             ds = db.Timeseries(id=id, measured_by=user, valuetype=vt, site=site, name=col.name,
                                filename=self.filename, comment=col.comment, source=inst, quality=raw,
                                start=self.startdate, end=datetime.today(), level=col.level,
@@ -683,6 +696,22 @@ class AbstractImport(object):
                                timezone=self.descriptor.timezone or conf.CFG_DATETIME_DEFAULT_TIMEZONE,
                                project=self.descriptor.project)
             self.datasets[col.column] = ds.id
+
+            # automatic transforms append
+            #
+            # already existing transformed timeseries dataset = target
+            # new created dataset = source
+            if col.trans_dataset_id is not None:
+                print("Transform dataset id keyword found ...")
+                # estimate transforms.source dataset
+                target = session.query(db.TransformedTimeseries).get(col.trans_dataset_id)
+
+                if target is None:
+                    raise ValueError('No existing dataset for specified trans_dataset_id \'{}\''
+                                     .format(col.trans_dataset_id))
+
+                auto_add_transforms(session, ds, target=target)
+
         session.commit()
         session.close()
 
@@ -823,3 +852,43 @@ def checkimport(filename):
                 d = dict(fn=ls[0], dt=ls[2], u=ls[1], ds=ls[3])
                 return "%(u)s has already imported %(fn)s at %(dt)s as %(ds)s" % d
     return ''
+
+
+def auto_add_transforms(session, source, target):
+    """
+    Adds source, target tuple to transforms database
+    Checks with source.id/site/level/source and target attributes
+
+    :param session: active database session
+    :param source: transformed time dataset
+    :param target: source dataset (commonly no transformed timeseries)
+    :raises ValueError
+    """
+    source_exists_and_metadata_matches = session.query(db.TransformedTimeseries)\
+        .filter(db.TransformedTimeseries.id == source.id)\
+        .filter(db.TransformedTimeseries.site == source.site)\
+        .filter(db.TransformedTimeseries.level == source.level)\
+        .filter(db.TransformedTimeseries.source == source.source).count() == 1
+
+    if source_exists_and_metadata_matches:
+
+        no_transforms_entry_for_tuple = lambda x, y: session.query(db.transforms_table)\
+            .filter(db.transforms_table.c.source == x)\
+            .filter(db.transforms_table.c.target == y).count() == 0
+
+        if no_transforms_entry_for_tuple(source.id, target.id):
+
+            # add record to transforms
+            db.transforms_table.insert((target.id, source.id, True))
+            insert = db.transforms_table.insert().values(target=target.id, source=source.id, automatic_added=True)
+            insert_result = session.execute(insert)
+            if insert_result.rowcount == 0:
+                raise RuntimeError('Error with SQL orm, could not execute insertion statement properly')
+
+            print("AUTO_ADD_TRANSFORMS ({}, {})".format(target.id, source.id))
+        else:
+            raise ValueError('There is already an entry for ({}, {}) in \'transforms\''.format(source.id, target.id))
+
+    else:
+        raise ValueError('Site, Level, or Source of the specificied \'trans_dataset_id\' do not match with new'
+                         ' dataset')

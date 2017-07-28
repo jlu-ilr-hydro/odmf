@@ -54,7 +54,6 @@ class ManualMeasurementsColumns(ILogColumn):
 
 
 
-
 class ManualMeasurementsImport(LogbookImport):
     """
     Importclass for Manual Measurements
@@ -166,7 +165,7 @@ class ManualMeasurementsImport(LogbookImport):
 
         for row in xrange(start, end):
 
-            # check site and add to lut
+            # check site and add to look-up-table
             _site = int(self.sheet.cell_value(row, self.descr.site))
             if _site not in self._sites.keys():
                 self._sites[int(_site)] = session.query(db.Site).get(_site)
@@ -232,7 +231,7 @@ class ManualMeasurementsImport(LogbookImport):
                                  importrow is used here to import column-wise
         """
 
-	print("valuetype_column '%s'" % (valuetype_column))
+        print("valuetype_column '%s'" % (valuetype_column))
         time = None
 
         # Get date and time
@@ -251,6 +250,8 @@ class ManualMeasurementsImport(LogbookImport):
                     date = dt
                 else:
                     print "Warning: Something went wrong while parsing the datetime"
+                    print "datetime = %s" % (dt)
+                    print "date = %s" % (date)
 
         except:
             raise LogImportError(row, 'Could not read date and time')
@@ -258,7 +259,7 @@ class ManualMeasurementsImport(LogbookImport):
         # Get site
         site = self.get_value(row, self.columns.site)
 
-        # use cache
+        # use cache if it is written into
         if self._preload:
             if site not in self._sites.keys():
                 raise LogImportError(row, 'Cache error')

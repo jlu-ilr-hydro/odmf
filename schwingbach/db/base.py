@@ -25,7 +25,10 @@ def abspath(fn):
 
 
 def newid(cls, session=None):
-    "Creates a new id for all mapped classes with an field called id, which is of integer type"
+    """
+    Creates a new id for all mapped classes with an field called id, which is of integer type
+    @TODO: Should be deprecated deleted since r1400
+    """
     if not session:
         session=Session()
     max_id = session.query(sql.func.max(cls.id)).select_from(cls).scalar()
@@ -103,5 +106,3 @@ def primarykey():
     return sql.Column(sql.Integer, primary_key=True)
 def stringcol():
     return sql.Column(sql.String)
-
-
