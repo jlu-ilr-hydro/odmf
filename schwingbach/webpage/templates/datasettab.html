@@ -114,7 +114,8 @@
 							if (data) {
 								$('.error').html(data);
 							} else {
-								window.back();
+							    alert('Dataset ' + dsid + ' successfully deleted. You now will be redirected.');
+								location.href = '/dataset';
 							}
 						});
 					}

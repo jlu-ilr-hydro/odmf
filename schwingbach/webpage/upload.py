@@ -31,10 +31,13 @@ class DBImportPage(object):
 
     def logimport(self, filename, kwargs, import_with_class=LogbookImport):
         """
+        Imports specific file as "log" into database
+
+        See http://fb09-pasig.umwelt.uni-giessen.de:8081/wiki/logimport
 
         :param filename:
         :param kwargs:
-        :param import_with_class:
+        :param import_with_class: Specifies the importing class. This
         :return:
         """
         import dataimport.importlog as il
@@ -73,16 +76,25 @@ class DBImportPage(object):
 
     def mmimport(self, filename, kwargs):
         """
+        Imports manual measurements (several distinct dataset rows) with specific configuration-file into the
+        database
+
+        For information of special config keywords see:
+        http://fb09-pasig.umwelt.uni-giessen.de:8081/wiki/download.manual-measurements
 
         :param filename:
         :param kwargs:
         :return:
         """
+
+        # Wrapper of logimport
         return self.logimport(filename, kwargs, import_with_class=ManualMeasurementsImport)
 
     def instrumentimport(self, filename, kwargs):
         """
         Loads instrument data using a .conf file
+
+        This covers the normal import process
         """
 
         t0 = time.time()
