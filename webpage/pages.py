@@ -73,6 +73,10 @@ class PersonPage:
             p_act.car_available=kwargs.get('car_available')
             p_act.telephone=kwargs.get('telephone')
             p_act.mobile=kwargs.get('mobile')
+            p_act.street = kwargs.get('street')
+            p_act.postcode = kwargs.get('postcode')
+            p_act.city = kwargs.get('city')
+            p_act.country = kwargs.get('country')
             p_act.comment=kwargs.get('comment')
             if kwargs.get('status') == 'on':
                 p_act.active = True

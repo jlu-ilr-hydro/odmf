@@ -144,6 +144,36 @@
 						</py:choose>
 
 					</tr>
+
+                    <div py:if="is_member('admin') or act_user=='new'">
+                    <tr><td colspan="2">&nbsp;</td></tr>
+                    <!--
+                    <//  "Bless me father, for I have sinned" cf. DRY http://www.artima.com/intv/dry.html
+                    <//  TODO: Sorry for redesign nightmare with hacky html blankspace using for "table paddings"
+                    <//
+                    -->
+                    <tr><td colspan="2">Institutes current address</td></tr>
+
+                    <tr>
+                        <td>Street + No.</td>
+                        <td><input type="text" name="street" value="${active_person.street}"/></td>
+                    </tr>
+                    <tr>
+                        <td>Postcode</td>
+                        <td><input type="text" name="postcode" value="${active_person.postcode}" /></td>
+                    </tr>
+                    <tr>
+                        <td>City</td>
+                        <td><input type="text" name="city" value="${active_person.city}" /></td>
+                    </tr>
+                    <tr>
+                        <td>Country</td>
+                        <td><input type="text" name="country" value="${active_person.country}" /></td>
+                    </tr>
+
+                    <tr><td colspan="2">&nbsp;</td></tr>
+                    </div>
+
 					<tr>
 						<td>Access Level:</td>
 						<td py:if="(act_user=='new' or is_member('supervisor') and not is_self(active_person.username)) and not active_person.access_level == '0'">
