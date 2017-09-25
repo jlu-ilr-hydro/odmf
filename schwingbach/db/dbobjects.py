@@ -130,6 +130,15 @@ class Person(Base):
     can_supervise=sql.Column(sql.Boolean, default=False)
     mobile=sql.Column(sql.String)
     car_available=sql.Column(sql.Integer,default=0)
+
+    # Institue adress
+    #  for default values see server.conf
+    #  more info see docs/wiki
+    street = sql.Column(sql.String)
+    postcode = sql.Column(sql.String)
+    city = sql.Column(sql.String)
+    country = sql.Column(sql.String)
+
     password = sql.Column(sql.VARCHAR)
     access_level = sql.Column(sql.INTEGER)
     active = sql.Column(sql.Boolean, default=True, nullable=False)
