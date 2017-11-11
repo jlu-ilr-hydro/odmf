@@ -68,7 +68,7 @@ class SitePage:
         except:
             return web.render(error=traceback(), title='site #%s' % kwargs.get('id'))
         if 'save' in kwargs:
-            with db.scoped_session() as session:
+            with db.session_scope() as session:
                 try:
                     site = session.query(db.Site).get(int(siteid))
                     if not site:
