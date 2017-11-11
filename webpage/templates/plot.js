@@ -120,7 +120,7 @@
 			killplot();
 		}
 		function editline(subplot,line) {
-			$.post('removeline',{subplot:subplot,line:line,savelineprops:true},seterror);
+			$.post('removeline',{subplot:subplot, line:line, savelineprops:true}, seterror);
 		}
 		function copyline(subplot,line) {
 			$.post('copyline',{subplot:subplot,line:line},seterror);
@@ -164,8 +164,10 @@
 		    return foo;
 		}
 
-		function popSelect(subplotpos,newlineprops) {
+		function popSelect(subplotpos, newlineprops) {
+
 			if ($('#vtselect_'+ subplotpos).length) {
+
 				var vt = $('#vtselect_' + subplotpos).val();
 				var site = $('#siteselect_' + subplotpos).val();
 				var instrument = $('#instrumentselect_' + subplotpos).val();

@@ -4,11 +4,10 @@
 
 Author: Philipp Kraft
 """
-from __future__ import division
 
 
 from os import path as op
-from cStringIO import StringIO
+from io import StringIO
 
 import cherrypy
 import threading
@@ -18,9 +17,12 @@ from datetime import datetime, timedelta
 from genshi.template import Context, TemplateLoader
 from genshi.core import Markup
 
-import auth
+from . import auth
 from tools.parseMarkDown import MarkDown
+
+from base64 import b64encode
 markdown = MarkDown()
+
 
 def jsonhandler(obj):
     if hasattr(obj, '__jdict__'):
@@ -32,19 +34,21 @@ def jsonhandler(obj):
 
 
 def as_json(obj):
-    return json.dumps(obj, sort_keys=True, indent=4, default=jsonhandler)
+    return json.dumps(obj, sort_keys=True, indent=4, default=jsonhandler).encode('utf-8')
+
 
 def log_as_json(logs):
     res = StringIO('[')
     for l in logs:
         i = 0
         res += '{'
-        keys = l.keys()
+        keys = list(l.keys())
         for k in keys:
             res += "%s:%s" % (keys[i], l[i])
             i += 1
         res += '}'
     res += ']'
+
 
 def log_as_array_str(logs):
     res = StringIO()
@@ -58,12 +62,18 @@ def log_as_array_str(logs):
                 res.write("%s," % e)
             else:
                 try:
-                    res.write("\"%s\"," % str(e).encode('utf-8', errors='replace'))
+                    res.write("\"%s\"," % str(e).encode(
+                        'utf-8', errors='replace'))
                 except UnicodeEncodeError:
                     res.write("\"UnicodeEncodeError\"")
         res.write('],')
     res.write(']')
     return res.getvalue()
+
+
+def memoryview_to_b64str(mview):
+    return b64encode(mview.tobytes()).decode('ascii')
+
 
 def abspath(fn):
     "Returns the absolute path to the relative filename fn"
@@ -109,7 +119,7 @@ def setmime(type):
 
 
 loader = TemplateLoader(abspath('templates'),
-                            auto_reload=True)
+                        auto_reload=True)
 
 
 expose = cherrypy.expose
@@ -120,16 +130,19 @@ HTTPRedirect = cherrypy.HTTPRedirect
 
 
 def navigation(title=''):
-    return Markup(render('navigation.html',title=unicode(title)).render('html',encoding=None))
+    return Markup(render('navigation.html', title=str(title)).render('html', encoding=None))
 
 
-def attrcheck(kw,condition):
+def attrcheck(kw, condition):
     if condition:
-        return {kw:kw}
+        return {kw: kw}
     else:
-        return {kw:None}
+        return {kw: None}
+
+
 def markoption(condition):
-    return attrcheck('selected',condition)
+    return attrcheck('selected', condition)
+
 
 def formatdate(t=None):
     if not t:
@@ -138,70 +151,83 @@ def formatdate(t=None):
         return t.strftime('%d.%m.%Y')
     except:
         return None
-def formattime(t,showseconds=True):
+
+
+def formattime(t, showseconds=True):
 
     try:
         return t.strftime('%H:%M:%S' if showseconds else '%H:%M')
     except:
         return None
-def formatdatetime(t=None,fmt='%d.%m.%Y %H:%M:%S'):
+
+
+def formatdatetime(t=None, fmt='%d.%m.%Y %H:%M:%S'):
     if not t:
-        t=datetime.now()
+        t = datetime.now()
     try:
         return t.strftime(fmt)
     except:
         return None
-def formatfloat(v,style='%g'):
+
+
+def formatfloat(v, style='%g'):
     try:
         return style % v
     except:
         return 'N/A'
-def parsedate(s,raiseerror=True):
-    res=None
-    formats = ('%d.%m.%Y %H:%M:%S','%d.%m.%Y %H:%M','%d.%m.%Y',
-               '%Y/%m/%dT%H:%M:%S','%Y-%m-%dT%H:%M:%S.%f','%Y-%m-%dT%H:%M:%S')
+
+
+def parsedate(s, raiseerror=True):
+    res = None
+    formats = ('%d.%m.%Y %H:%M:%S', '%d.%m.%Y %H:%M', '%d.%m.%Y',
+               '%Y/%m/%dT%H:%M:%S', '%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S')
     for fmt in formats:
         try:
-            res=datetime.strptime(s,fmt)
-        except ValueError, TypeError:
+            res = datetime.strptime(s, fmt)
+        except ValueError as TypeError:
             pass
     if not res and raiseerror:
         raise ValueError('%s is not a valid date/time format' % s)
     else:
         return res
-def abbrtext(s,maxlen=50):
+
+
+def abbrtext(s, maxlen=50):
     if s:
-        s = unicode(s).replace('\n',' ')
-        if len(s)>maxlen:
-            idx = s.rfind(' ',0,maxlen-4)
-            s=s[:idx] + ' ...'
+        s = str(s).replace('\n', ' ')
+        if len(s) > maxlen:
+            idx = s.rfind(' ', 0, maxlen - 4)
+            s = s[:idx] + ' ...'
         return s
     else:
         return ''
+
+
 def user():
     return cherrypy.request.login
 
 
 class Renderer(object):
     def __init__(self):
-        self.functions = {'attrcheck' : attrcheck,
-                          'navigation' : navigation,
-                          'markoption' : markoption,
-                          'formatdate' : formatdate,
-                          'formattime' : formattime,
-                          'formatdatetime' : formatdatetime,
-                          'formatfloat' : formatfloat,
-                          'datetime' : datetime,
-                          'timedelta' : timedelta,
-                          'user' : user,
+        self.functions = {'attrcheck': attrcheck,
+                          'navigation': navigation,
+                          'markoption': markoption,
+                          'formatdate': formatdate,
+                          'formattime': formattime,
+                          'formatdatetime': formatdatetime,
+                          'formatfloat': formatfloat,
+                          'datetime': datetime,
+                          'timedelta': timedelta,
+                          'user': user,
                           'users': auth.users,
                           'is_member': auth.is_member,
-                          'bool2js' : lambda b : str(b).lower(),
-                          'markdown' : markdown,
-                          'as_json' : as_json,
-                          'abbrtext' : abbrtext
+                          'bool2js': lambda b: str(b).lower(),
+                          'markdown': markdown,
+                          'as_json': as_json,
+                          'abbrtext': abbrtext
                           }
-    def __call__(self,*args,**kwargs):
+
+    def __call__(self, *args, **kwargs):
         """Function to render the given data to the template specified via the
         ``@output`` decorator.
         """
@@ -216,6 +242,7 @@ class Renderer(object):
         ctxt.push(self.functions)
         return template.generate(ctxt)
 
+
 render = Renderer()
 
 
@@ -223,21 +250,22 @@ class httpServer(threading.Thread):
     """The cherrypy quickstart server in a seperate thread. You can kill the thread
     but not stop it.
     """
+
     def run(self):
-        self.server = cherrypy.quickstart(root=self.root,config=self.config)
-    def __init__(self,root,config=config,autoreload=False):
-        cherrypy.config.update({"engine.autoreload.on":autoreload})
-        super(httpServer,self).__init__()
-        self.server=None
+        self.server = cherrypy.quickstart(root=self.root, config=self.config)
+
+    def __init__(self, root, config=config, autoreload=False):
+        cherrypy.config.update({"engine.autoreload.on": autoreload})
+        super(httpServer, self).__init__()
+        self.server = None
         self.root = root
-        cherrypy.server.socket_host="0.0.0.0"
+        cherrypy.server.socket_host = "0.0.0.0"
         self.config = config
         self.daemon = True
         self.start()
 
 
-
-def conv(cls,s,default=None):
+def conv(cls, s, default=None):
     if cls is datetime:
         return parsedate(s)
     try:
@@ -246,9 +274,8 @@ def conv(cls,s,default=None):
         return default
 
 
-
-def start_server(root,autoreload=False, port=8080):
-    cherrypy.config.update({"engine.autoreload.on":autoreload})
+def start_server(root, autoreload=False, port=8080):
+    cherrypy.config.update({"engine.autoreload.on": autoreload})
     cherrypy.config["tools.encode.encoding"] = "utf-8"
     cherrypy.config["tools.encode.on"] = True
     cherrypy.config["tools.encode.decode"] = True
@@ -256,6 +283,7 @@ def start_server(root,autoreload=False, port=8080):
     cherrypy.server.socket_host = "0.0.0.0"
     cherrypy.server.socket_port = port
     cherrypy.quickstart(root=root, config=config)
+
 
 def is_selected(a1, a2):
     """

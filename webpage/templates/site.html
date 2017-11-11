@@ -155,7 +155,7 @@
 	</style>	
 </head>
 <body>
-	${navigation(unicode(actualsite) if actualsite else 'New site')}
+	${navigation(str(actualsite) if actualsite else 'New site')}
   <div class="content"> 
 
 		<div class="error" id="errordiv" />

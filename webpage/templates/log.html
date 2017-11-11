@@ -99,19 +99,6 @@
 		listlogs(null,30);
 	});
 
-	/* Initialising Datatables */
-	/*$(document).ready( function () {
-    	$('#newloglist').DataTable( {
-			"sAjaxSource": '/log/data?until=01.01.2012&days=1',
-			"sAjaxDataProp": '',
-			"columns": [
-				{ data: 'message'},
-				{ data: 'site.id'},
-				{ data: 'time'},
-				{ data: 'user.label'}
-			]});
-	} );*/
-
 	  // ]]>
 
   </script>
@@ -181,8 +168,13 @@
 				</li>
 			</ul>					
 		</div>
-		<a href="javascript:toggle('logform')" py:if="is_member('logger')">Edit...</a>
-		<form id="logform" action="/log/saveitem" method="post" py:if="actuallog is not None and is_member('logger')" style="display:${'none' if actuallog.site else 'block'};">
+
+        <a href="javascript:toggle('logform')" py:if="is_member('logger')">Edit...</a>
+
+        <!--<div >--><!-- Begin hacky wrapper
+         to fix bug https://genshi.edgewall.org/ticket/582
+         -->
+        <form id="logform" action="/log/saveitem" method="post" py:if="actuallog and is_member('logger')" style="display:${'none' if actuallog.site else 'block'};">
 			<table style="width: 100%">
 				<tr>
 					<td>Id</td>
@@ -237,8 +229,9 @@
 				</tr>
 			</table>
 		<input py:if="is_member('logger')" type="submit" name="save" value="Save..." style="width: 10em;"/>
-			
+
 		</form>
+        <!--</div>--><!-- End hacky wrapper -->
 
 		<ul>
 			<li style="list-style-image:url(/media/minus-small.png);" py:if="is_member('supervisor') and actuallog" >

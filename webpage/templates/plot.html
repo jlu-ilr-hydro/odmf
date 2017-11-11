@@ -27,7 +27,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
 			$(".timepicker").autocomplete({source: timerange(15)});
 			for (var i=0;i<10;i++) {
-				popSelect(i,${as_json(plot.newlineprops)});
+				popSelect(i,${as_json(plot.newlineprops).decode('utf-8')});
 			}
 			$('#addsubplot').removeProp('disabled');
   		
@@ -161,7 +161,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 		
 </head>
 <body>
-	<datalist id="numbers"><option py:for="i in xrange(10)" value="${i}"/></datalist>
+	<datalist id="numbers"><option py:for="i in range(10)" value="${i}"/></datalist>
 	${navigation('Plot')}
 	<div class="content">
 		<div class="error" id="error">${error}</div>

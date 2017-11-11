@@ -114,8 +114,7 @@
 							if (data) {
 								$('.error').html(data);
 							} else {
-							    alert('Dataset ' + dsid + ' successfully deleted. You now will be redirected.');
-								location.href = '/dataset';
+								window.back();
 							}
 						});
 					}
@@ -285,7 +284,7 @@
 	  	</ul> 
 			<div id="edit" py:if="is_member('editor') and users.current.level>=activedataset.access">
 				<button py:if="is_member('admin')" class="tooltip small"
-						onclick="javascript:removeds(${activedataset.id},'${unicode(activedataset)}',${n});">
+						onclick="javascript:removeds(${activedataset.id},'${str(activedataset)}',${n});">
 					&#x2718;
 					<span>remove dataset</span>
 				</button>

@@ -74,10 +74,10 @@
 			</li>
 			<li py:for="inst in instruments">
 				<a href="${'/instrument/%s' % inst.id}" py:content="inst"/>
-				<a py:if="actualinstrument.manuallink" href="${actualinstrument.manuallink}" class="small tooltip">
+				<a py:if="inst.manuallink" href="${actualinstrument.manuallink}" class="small tooltip">
 					<img src="/media/shimmer/document_16.png" alt="documentation"/>
 					<span>
-						Show manual for ${actualinstrument.name}
+						Show manual for ${inst.name}
 					</span>
 				</a>							
 			</li>
