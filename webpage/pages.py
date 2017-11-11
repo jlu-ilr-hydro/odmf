@@ -968,7 +968,9 @@ class Root(object):
                   'tools.sessions.timeout':24*60, # One day
                   'tools.sessions.storage_type':'file',
                   'tools.sessions.storage_path':web.abspath('sessions'), 
-                  'tools.auth.on': True}
+                  'tools.auth.on': True,
+		  'tools.response_headers.on': True,
+                  'tools.response_headers.headers': [('Access-Control-Allow-Origin', 'http://fb09-pasig.umwelt.uni-giessen.de')]}
 
     site=SitePage()
     user=PersonPage()
@@ -1076,7 +1078,7 @@ class Root(object):
     def actualclimate_html(self):
         with db.session_scope() as session:
             ds = session.query(db.Dataset).filter(db.Dataset.id.in_(list(range(1493, 1502))))
-            return web.render('actualclimate.html', ds=ds).render('html', doctype='html')
+            return web.render('actualclimate.html', ds=ds, db=db).render('html', doctype='html')
 
 #if __name__=='__main__':
 #    web.start_server(Root(), autoreload=False, port=8081)
