@@ -10,7 +10,7 @@ from glob import glob
 import os.path as op
 import os
 from configparser import RawConfigParser
-from cStringIO import StringIO
+from io import StringIO
 
 import ast
 
@@ -23,7 +23,7 @@ from sqlalchemy import func
 from dataimport.importlog import LogColumns
 
 
-def findStartDate(siteid,instrumentid):
+def findStartDate(siteid, instrumentid):
     session = db.Session()
     ds = session.query(db.Dataset).filter(db.Dataset._site == siteid,
                                           db.Dataset._source == instrumentid)\
@@ -32,6 +32,7 @@ def findStartDate(siteid,instrumentid):
         return ds.end
     else:
         return None
+
 
 def finddateGaps(siteid, instrumentid, valuetype, startdate=None, enddate=None):
     """
@@ -45,8 +46,8 @@ def finddateGaps(siteid, instrumentid, valuetype, startdate=None, enddate=None):
     :param enddate:
     :return:
     """
-    print "[LOG] - finddateGaps - START"
-    print "[LOG] - finddateGaps - valutype(s) list=%s" % valuetype
+    print("[LOG] - finddateGaps - START")
+    print("[LOG] - finddateGaps - valutype(s) list=%s" % valuetype)
 
     with db.session_scope() as session:
 
@@ -56,38 +57,40 @@ def finddateGaps(siteid, instrumentid, valuetype, startdate=None, enddate=None):
                     db.Dataset._valuetype.in_(valuetype)) \
             .order_by('"valuetype","start"')
 
-        print "[LOG] - finddateGaps - %d rows after query" % dss.count()
+        print("[LOG] - finddateGaps - %d rows after query" % dss.count())
 
         if dss.count() != 0:
             # Filter for datasets which are in our period
             if startdate:
                 dss = dss.filter(db.Dataset.end > startdate)
-                print "[LOG] - finddateGaps - %d rows after startdatefilter %s" % (dss.count(), startdate)
+                print("[LOG] - finddateGaps - %d rows after startdatefilter %s" %
+                      (dss.count(), startdate))
             else:
-                print "[LOG] - finddateGaps - No startdate"
+                print("[LOG] - finddateGaps - No startdate")
             if enddate:
                 dss = dss.filter(db.Dataset.start < enddate)
-                print "[LOG] - finddateGaps - %d rows after enddatefilter %s" % (dss.count(), enddate)
+                print("[LOG] - finddateGaps - %d rows after enddatefilter %s" %
+                      (dss.count(), enddate))
             else:
-                print "[LOG] - finddateGaps - No enddate"
+                print("[LOG] - finddateGaps - No enddate")
 
         # Check if their are datasets in our period
         if dss is None or dss.count() == 0:
             # There is no data. Allow full upload
             if startdate and enddate:
-                print "[LOG] - finddateGaps - Full upload allowed / ", \
-                    startdate, " ", enddate, " /"
+                print("[LOG] - finddateGaps - Full upload allowed / ",
+                      startdate, " ", enddate, " /")
                 return [(startdate, enddate)]
             else:
-                print "[LOG] - finddateGaps - No datasets"
+                print("[LOG] - finddateGaps - No datasets")
                 return None
 
         # Make start and enddate if not present
         if not startdate:
-            print "[LOG] - finddateGaps - Create startdate at ", dss[0].start
+            print("[LOG] - finddateGaps - Create startdate at ", dss[0].start)
             startdate = dss[0].start
         if not enddate:
-            print "[LOG] - finddateGaps - Create enddate at ", dss[-1].end
+            print("[LOG] - finddateGaps - Create enddate at ", dss[-1].end)
             enddate = dss[-1].end
 
         # Start search
@@ -95,23 +98,27 @@ def finddateGaps(siteid, instrumentid, valuetype, startdate=None, enddate=None):
 
         # Is there space before the first dataset?
         if startdate < dss[0].start:
-            print "[LOG] - finddateGaps - Append %s - %s - v:%s" % (startdate, dss[0].start, dss[0].valuetype)
+            print("[LOG] - finddateGaps - Append %s - %s - v:%s" %
+                  (startdate, dss[0].start, dss[0].valuetype))
             res.append((startdate, dss[0].start))
 
         # Check for gaps>1 day between datasets
         for ds1, ds2 in zip(dss[:-1], dss[1:]):
             # if there is a gap between
             if ds2.start - ds1.end >= timedelta(days=1):
-                print "[LOG] - finddateGaps - Append %s - %s - v:%s - v:%s" % (ds1.end, ds2.start, ds1.valuetype, ds2.valuetype)
+                print("[LOG] - finddateGaps - Append %s - %s - v:%s - v:%s" %
+                      (ds1.end, ds2.start, ds1.valuetype, ds2.valuetype))
                 res.append((ds1.end, ds2.start))
 
         # Is there space after the last dataset
         if enddate > dss[-1].end:
-            print "[LOG] - finddateGaps - Append %s - %s - v:%s" % (dss[-1].end, enddate, dss[-1].valuetype)
+            print("[LOG] - finddateGaps - Append %s - %s - v:%s" %
+                  (dss[-1].end, enddate, dss[-1].valuetype))
             res.append((dss[-1].end, enddate))
 
-        print "[LOG] - finddateGaps - Returning %d gap(s)" % len(res)
+        print("[LOG] - finddateGaps - Returning %d gap(s)" % len(res))
         return res
+
 
 class ImportColumn:
     """
@@ -120,11 +127,11 @@ class ImportColumn:
 
     def __init__(self, column, name, valuetype, factor=1.0, comment=None,
                  difference=None, minvalue=-1e308, maxvalue=+1e308, append=None,
-                 level=None, access=None, ds_column=None, trans_dataset_id=None):
+                 level=None, access=None, ds_column=None):
         """
         Creates a column description in a delimited text file.
         upon import, the column will be saved as a dataset in the database
-        
+
         column: Position of the column in the file. Note: The first column is 0
         name: Name of the column and name of the dataset
         valuetype: Id of the value type stored in the column.
@@ -137,7 +144,6 @@ class ImportColumn:
         level: ...
         access: ...
         ds_column: explicit dataset for uploading column @see: mm.py
-        trans_dataset_id: (optional) explicit dataset for automatic adding to transforms list
         """
         self.column = int(column)
         self.name = name
@@ -151,7 +157,6 @@ class ImportColumn:
         self.level = level
         self.access = access
         self.ds_column = ds_column
-        self.trans_dataset_id = trans_dataset_id
 
     def __str__(self):
         return "%s[%s]:column=%i" % ('d' if self.difference else '', self.name,
@@ -163,7 +168,8 @@ class ImportColumn:
         """
         config.set(section, '; 0 based column number')
         config.set(section, 'column', self.column)
-        config.set(section, '; name of the field, will become name of the dataset')
+        config.set(
+            section, '; name of the field, will become name of the dataset')
         config.set(section, 'name', self.name)
         config.set(section, '; id of the valuetype in this field')
         config.set(section, 'valuetype', self.valuetype)
@@ -173,52 +179,46 @@ class ImportColumn:
         if self.comment:
             config.set(section, 'comment', self.comment)
 
-        if not self.difference is None:
-            config.set(section, '; if Yes, the import will save the difference to the last value')
+        if self.difference is not None:
+            config.set(
+                section, '; if Yes, the import will save the difference to the last value')
             config.set(section, 'difference', self.difference)
         config.set(section, '; lowest allowed value, use this for NoData values')
         config.set(section, 'minvalue', self.minvalue)
         config.set(section, '; highest allowed value, use this for NoData values')
         config.set(section, 'maxvalue', self.maxvalue)
         if self.level:
-            config.set(section, '; Level property of the dataset. Use this for Instruments measuring at one site in different depth')
+            config.set(
+                section, '; Level property of the dataset. Use this for Instruments measuring at one site in different depth')
             config.set(section, 'level', self.level)
-        if not self.access is None:
+        if self.access is not None:
             config.set(section, '; Access property of the dataset. Default level is 1 (for loggers) but can set to 0 for public datasets or to a higher level for confidential datasets')
             config.set(section, 'access', self.access)
 
-        if self.trans_dataset_id:
-            config.set(section, '; dataset id of special "transformed_timeseries" dataset, which is used as source for automatic insert of transforms table and upload to the database')
-            config.set(section, 'trans_dataset_id', self.trans_dataset_id)
-
-
     @classmethod
-    def from_config(cls,config,section):
+    def from_config(cls, config, section):
         "Get the column description from a config-file"
-        def getvalue(option,type=str):
-            if config.has_option(section,option):
-                return type(config.get(section,option))
+        def getvalue(option, type=str):
+            if config.has_option(section, option):
+                return type(config.get(section, option))
             else:
                 return None
-        return cls(column=config.getint(section,'column'),
-                   name=config.get(section,'name'),
-                   valuetype=config.getint(section,'valuetype'),
-                   factor=config.getfloat(section,'factor'),
+        return cls(column=config.getint(section, 'column'),
+                   name=config.get(section, 'name'),
+                   valuetype=config.getint(section, 'valuetype'),
+                   factor=config.getfloat(section, 'factor'),
                    comment=getvalue('comment'),
                    difference=getvalue('difference'),
-                   minvalue=getvalue('minvalue',float),
-                   maxvalue=getvalue('maxvalue',float),
-                   append=getvalue('append',int),
-                   level=getvalue('level',float),
-                   access=getvalue('access',int),
+                   minvalue=getvalue('minvalue', float),
+                   maxvalue=getvalue('maxvalue', float),
+                   append=getvalue('append', int),
+                   level=getvalue('level', float),
+                   access=getvalue('access', int),
 
                    # Added as lab import (mm.py) feature
-                   ds_column=getvalue('ds_column', int),
-
-                   #
-                   trans_dataset_id=getvalue('trans_dataset_id', int)
+                   ds_column=getvalue('ds_column', int)
                    )
-        
+
 
 class ImportDescription(object):
     """
@@ -263,7 +263,8 @@ class ImportDescription(object):
             self.nodata = nodata
         else:
             self.nodata = []
-            raise ValueError("nodata value %s has to be an instance of a list" % nodata)
+            raise ValueError(
+                "nodata value %s has to be an instance of a list" % nodata)
 
         # added after some issues with xls-files where the data worksheet
         # wasn't the first one
@@ -276,11 +277,12 @@ class ImportDescription(object):
         self.to_config().write(io)
         return io.getvalue()
 
-    def addcolumn(self,column,name,valuetype,factor=1.0,comment=None,difference=None,minvalue=-1e308,maxvalue=1e308):
+    def addcolumn(self, column, name, valuetype, factor=1.0, comment=None, difference=None, minvalue=-1e308, maxvalue=1e308):
         """
         Adds the description of a column to the file format description
         """
-        self.columns.append(ImportColumn(column,name,valuetype,factor,comment,difference))
+        self.columns.append(ImportColumn(
+            column, name, valuetype, factor, comment, difference))
         return self.columns[-1]
 
     def to_config(self):
@@ -291,14 +293,16 @@ class ImportDescription(object):
         session = db.Session()
         inst = session.query(db.Datasource).get(self.instrument)
         if not inst:
-            raise ValueError('Error in import description: %s is not a valid instrument id')
+            raise ValueError(
+                'Error in import description: %s is not a valid instrument id')
         session.close()
-        section = unicode(inst)
+        section = str(inst)
         config.add_section(section)
         config.set(section, 'instrument', self.instrument)
         config.set(section, 'skiplines', self.skiplines)
         # Replace space and tab by keywords
-        config.set(section, 'delimiter',{' ':'SPACE','\t':'TAB'}.get(self.delimiter,self.delimiter))
+        config.set(section, 'delimiter', {' ': 'SPACE', '\t': 'TAB'}.get(
+            self.delimiter, self.delimiter))
         config.set(section, 'decimalpoint', self.decimalpoint)
         config.set(section, 'dateformat', self.dateformat)
         config.set(section, 'datecolumns', str(self.datecolumns).strip('(), '))
@@ -315,7 +319,7 @@ class ImportDescription(object):
         return config
 
     @classmethod
-    def from_config(cls,config):
+    def from_config(cls, config):
         """
         Creates a TextImportDescriptor from a ConfigParser.RawConfigParser
         by parsing its content
@@ -371,28 +375,28 @@ class ImportDescription(object):
                   )
         tid.name = sections[0]
         for section in sections[1:]:
-            tid.columns.append(ImportColumn.from_config(config,section))
+            tid.columns.append(ImportColumn.from_config(config, section))
         return tid
-    
+
     @classmethod
     def from_file(cls, path, stoppath='datafiles', pattern='*.conf'):
         """
         Searches in the parent directories of the given path for .conf file
         until the stoppath is reached.
         """
-        # As long as no *.conf file is in the path 
+        # As long as no *.conf file is in the path
         while not glob(op.join(path, pattern)):
             # Go to the parent directory
-            path = op.dirname(path) 
+            path = op.dirname(path)
             # if stoppath is found raise an error
-            if op.basename(path)==stoppath:
+            if op.basename(path) == stoppath:
                 raise IOError('Could not find .conf file for file description')
         # Use the first .conf file in the directory
-        path = glob(op.join(path,pattern))[0]
+        path = glob(op.join(path, pattern))[0]
         # Create a config
         config = RawConfigParser()
         # Load from the file
-        config.readfp(file(path))
+        config.readfp(open(path))
         # Return the descriptor
         descr = cls.from_config(config)
         descr.filename = path
@@ -417,8 +421,6 @@ class LogImportColumn(ImportColumn):
         Get the column description from a config-file
         """
         ImportColumn.from_config(config, section)
-
-
 
         def getvalue(option, type=str):
             if config.has_option(section, option):
@@ -526,7 +528,7 @@ class LogImportDescription(ImportDescription):
         tid.name = sections[0]
         for section in sections[1:]:
             tid.columns.append(ImportColumn.from_config(config, section))
-            print tid.columns
+            print(tid.columns)
         return tid
 
     def to_columns(self):
@@ -556,8 +558,8 @@ class LogImportDescription(ImportDescription):
 
 
 class ImportStat(object):
-    def __init__(self,sum=0.0,min=1e308,max=-1e308,n=0,start=datetime(2100,1,1),end=datetime(1900,1,1)):
-        self.sum, self.min,self.max,self.n,self.start,self.end = sum,min,max,n,start,end
+    def __init__(self, sum=0.0, min=1e308, max=-1e308, n=0, start=datetime(2100, 1, 1), end=datetime(1900, 1, 1)):
+        self.sum, self.min, self.max, self.n, self.start, self.end = sum, min, max, n, start, end
 
     @property
     def mean(self):
@@ -580,7 +582,7 @@ class ImportStat(object):
         return repr(d)
 
     def __jsondict__(self):
-        return dict(mean=self.mean,min=self.min,max=self.max,n=self.n,start=self.start,end=self.end)
+        return dict(mean=self.mean, min=self.min, max=self.max, n=self.n, start=self.start, end=self.end)
 
 
 class AbstractImport(object):
@@ -608,13 +610,14 @@ class AbstractImport(object):
         session = db.Session()
 
         # Get the dataset objects for the columns
-        datasets={}
+        datasets = {}
         for k in self.datasets:
             datasets[k] = db.Dataset.get(session, self.datasets[k])
 
         # A dict to hold the current record id for each column k
-        newid = lambda k: (session.query(db.sql.func.max(db.Record.id)).filter(db.Record._dataset == datasets[k].id)
-                           .scalar() or 0)+1
+        def newid(k):
+            return (session.query(db.sql.func.max(db.Record.id))
+                    .filter(db.Record._dataset == datasets[k].id).scalar() or 0) + 1
         recid = dict((k, newid(k)) for k in self.datasets)
 
         # A dict to cache the value entries for committing for each column k
@@ -633,22 +636,25 @@ class AbstractImport(object):
 
                     # If there is a value for column k
                     if not d[k] is None:
-                        records[k].append(dict(dataset=datasets[k].id, id=recid[k], time=t, value=d[k]))
+                        records[k].append(
+                            dict(dataset=datasets[k].id, id=recid[k], time=t, value=d[k]))
 
                         # Next id for column k
                         recid[k] += 1
 
                 # To protected the memory, commit every 10000 items
-                if (i+1) % self.commitinterval == 0:
+                if (i + 1) % self.commitinterval == 0:
                     records = self.raw_commit(records)
 
             # Commit remaining records
             records = self.raw_commit(records)
 
             # Update start and end of the datasets
-            for k, ds in datasets.iteritems():
-                ds.start = session.query(db.sql.func.min(db.Record.time)).filter_by(dataset=ds).scalar()
-                ds.end = session.query(db.sql.func.max(db.Record.time)).filter_by(dataset=ds).scalar()
+            for k, ds in datasets.items():
+                ds.start = session.query(db.sql.func.min(
+                    db.Record.time)).filter_by(dataset=ds).scalar()
+                ds.end = session.query(db.sql.func.max(
+                    db.Record.time)).filter_by(dataset=ds).scalar()
             # Commit changes to the session
             session.commit()
 
@@ -661,13 +667,13 @@ class AbstractImport(object):
             session.close()
 
     # Use sqlalchemy.core for better performance
-    def raw_commit(self,records):
+    def raw_commit(self, records):
         "Commits the records to the Record table, and clears the records-lists"
-        for k, rec in records.iteritems():
+        for k, rec in records.items():
             if rec:
-                db.engine.execute(db.Record.__table__.insert(),rec)
+                db.engine.execute(db.Record.__table__.insert(), rec)
         # Return a dict like records, but with empty lists
-        return dict((r,[]) for r in records)
+        return dict((r, []) for r in records)
 
     def createdatasets(self, comment='', verbose=False):
         """
@@ -685,33 +691,16 @@ class AbstractImport(object):
         for col in self.descriptor.columns:
             # Get the valuetype (vt) from db
             vt = session.query(db.ValueType).get(col.valuetype)
-            id = db.newid(db.Dataset,session)
+            id = db.newid(db.Dataset, session)
             # New dataset with metadata from above
-
             ds = db.Timeseries(id=id, measured_by=user, valuetype=vt, site=site, name=col.name,
                                filename=self.filename, comment=col.comment, source=inst, quality=raw,
                                start=self.startdate, end=datetime.today(), level=col.level,
-                               access=col.access if not col.access is None else 1,
+                               access=col.access if col.access is not None else 1,
                                # Get timezone from descriptor or, if not present from global conf
                                timezone=self.descriptor.timezone or conf.CFG_DATETIME_DEFAULT_TIMEZONE,
                                project=self.descriptor.project)
             self.datasets[col.column] = ds.id
-
-            # automatic transforms append
-            #
-            # already existing transformed timeseries dataset = target
-            # new created dataset = source
-            if col.trans_dataset_id is not None:
-                print("Transform dataset id keyword found ...")
-                # estimate transforms.source dataset
-                target = session.query(db.TransformedTimeseries).get(col.trans_dataset_id)
-
-                if target is None:
-                    raise ValueError('No existing dataset for specified trans_dataset_id \'{}\''
-                                     .format(col.trans_dataset_id))
-
-                auto_add_transforms(session, ds, target=target)
-
         session.commit()
         session.close()
 
@@ -734,30 +723,31 @@ class AbstractImport(object):
                 seconds = round((float(timestr[1]) % 1) * 86400)
                 return t0 + timedelta(days=days, seconds=seconds)
         else:
-            return datetime.strptime(timestr,self.descriptor.dateformat)
+            return datetime.strptime(timestr, self.descriptor.dateformat)
 
-    def parsefloat(self,s):
+    def parsefloat(self, s):
         """
         parses a string to float, using the decimal point from the descriptor
         """
-        s = s.replace(self.descriptor.decimalpoint,'.')
+        s = s.replace(self.descriptor.decimalpoint, '.')
         return float(s)
 
     def get_statistic(self):
         """
         Returns a column name - ImportStat dictionary with the statistics for each import column
         """
-        stats = dict((col.column,ImportStat()) for col in self.descriptor.columns)
+        stats = dict((col.column, ImportStat())
+                     for col in self.descriptor.columns)
         for d in self.loadvalues():
             for col in self.descriptor.columns:
                 k = col.column
                 if not d[k] is None:
                     stats[k].sum += d[k]
-                    stats[k].max = max(stats[k].max,d[k])
-                    stats[k].min = min(stats[k].min,d[k])
+                    stats[k].max = max(stats[k].max, d[k])
+                    stats[k].min = min(stats[k].min, d[k])
                     stats[k].n += 1
-                    stats[k].start = min(d['d'],stats[k].start)
-                    stats[k].end = max(d['d'],stats[k].end)
+                    stats[k].start = min(d['d'], stats[k].start)
+                    stats[k].end = max(d['d'], stats[k].end)
         return dict((col.name, stats[col.column]) for col in self.descriptor.columns)
 
     def loadvalues(self):
@@ -800,14 +790,14 @@ class AbstractImport(object):
 
         if not overlap(new_dataset, dataset):
             # upload
-            print "Upload completed successful"
+            print("Upload completed successful")
         else:
-            print "Report conflicts"
+            print("Report conflicts")
             if new_dataset.count() > MAX_ROWS:
 
                 if dataset.count() > MAX_ROWS:
 
-                    print "Normally no upload allowed"
+                    print("Normally no upload allowed")
                     # Only for Admins
                     # Except other
 
@@ -817,34 +807,33 @@ class AbstractImport(object):
                 uploadable, conflicts = get_report(new_dataset, dataset)
 
             if conflicts.real == 0:
-                print "Allow normal merge"
+                print("Allow normal merge")
 
             else:
-                print "Print multiple choice"
-
+                print("Print multiple choice")
 
 
 def savetoimports(filename, user, datasets=None):
     """
     Adds the filename to the import history file .import.hist
     """
-    print ("savetoimports:", filename)
+    print(("savetoimports:", filename))
     d = os.path.dirname(filename)
-    f = file(os.path.join(d,'.import.hist'),'a')
-    f.write(u'%s,%s,%s' % (os.path.basename(filename),user,datetime.now()))
+    f = open(os.path.join(d, '.import.hist'), 'a')
+    f.write('%s,%s,%s' % (os.path.basename(filename), user, datetime.now()))
     for ds in datasets:
-        f.write(u',ds%s' % ds)
+        f.write(',ds%s' % ds)
     f.write('\n')
     f.close()
 
 
 # TODO: Rebuild this with database mechanism. Make things more independent
 def checkimport(filename):
-    print ("checkimport:", filename)
+    print(("checkimport:", filename))
     d = os.path.dirname(filename)
     fn = os.path.join(d, '.import.hist')
     if os.path.exists(fn):
-        f = file(fn)
+        f = open(fn)
         b = os.path.basename(filename)
         for l in f:
             ls = l.split(',', 3)
@@ -852,43 +841,3 @@ def checkimport(filename):
                 d = dict(fn=ls[0], dt=ls[2], u=ls[1], ds=ls[3])
                 return "%(u)s has already imported %(fn)s at %(dt)s as %(ds)s" % d
     return ''
-
-
-def auto_add_transforms(session, source, target):
-    """
-    Adds source, target tuple to transforms database
-    Checks with source.id/site/level/source and target attributes
-
-    :param session: active database session
-    :param source: transformed time dataset
-    :param target: source dataset (commonly no transformed timeseries)
-    :raises ValueError
-    """
-    source_exists_and_metadata_matches = session.query(db.TransformedTimeseries)\
-        .filter(db.TransformedTimeseries.id == source.id)\
-        .filter(db.TransformedTimeseries.site == source.site)\
-        .filter(db.TransformedTimeseries.level == source.level)\
-        .filter(db.TransformedTimeseries.source == source.source).count() == 1
-
-    if source_exists_and_metadata_matches:
-
-        no_transforms_entry_for_tuple = lambda x, y: session.query(db.transforms_table)\
-            .filter(db.transforms_table.c.source == x)\
-            .filter(db.transforms_table.c.target == y).count() == 0
-
-        if no_transforms_entry_for_tuple(source.id, target.id):
-
-            # add record to transforms
-            db.transforms_table.insert((target.id, source.id, True))
-            insert = db.transforms_table.insert().values(target=target.id, source=source.id, automatic_added=True)
-            insert_result = session.execute(insert)
-            if insert_result.rowcount == 0:
-                raise RuntimeError('Error with SQL orm, could not execute insertion statement properly')
-
-            print("AUTO_ADD_TRANSFORMS ({}, {})".format(target.id, source.id))
-        else:
-            raise ValueError('There is already an entry for ({}, {}) in \'transforms\''.format(source.id, target.id))
-
-    else:
-        raise ValueError('Site, Level, or Source of the specificied \'trans_dataset_id\' do not match with new'
-                         ' dataset')

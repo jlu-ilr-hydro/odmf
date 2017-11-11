@@ -7,13 +7,14 @@ from glob import glob
 from configparser import RawConfigParser
 import os.path as op
 
-from base import AbstractImport, ImportDescription, ImportColumn
+from .base import AbstractImport, ImportDescription, ImportColumn
 
 
 class XlsImport (AbstractImport):
     """ Special class for importing xls files. """
+
     def __init__(self, filename, user, siteid, instrumentid=None,
-                 startdate=None,enddate=None):
+                 startdate=None, enddate=None):
         AbstractImport.__init__(self, filename, user, siteid, instrumentid,
                                 startdate, enddate)
 
@@ -67,7 +68,7 @@ class XlsImport (AbstractImport):
                 if time > 1.000001:
                     time -= int(time)
                     date = int(date)
-                    return t0 + timedelta(date+time)
+                    return t0 + timedelta(date + time)
 
         def intime(time):
             """
@@ -101,25 +102,25 @@ class XlsImport (AbstractImport):
             :return: datetime object
             """
             if datetype == DOCUMENT_DATETYPE_DATE_1C:
-                return get_time(row[date_cols[0]].value,None)
-                #d = xlrd.xldate_as_tuple(
+                return get_time(row[date_cols[0]].value, None)
+                # d = xlrd.xldate_as_tuple(
                 #    row[date_cols[0]], sheet.datemode)
                 #d = datetime(d[2], d[1], d[0])
             elif datetype == DOCUMENT_DATETYPE_TEXT_1C:
                 return datetime.strptime(row[date_cols[0]].value,
-                                      self.descriptor.dateformat)
+                                         self.descriptor.dateformat)
             elif datetype == DOCUMENT_DATETYPE_DATE_2C:
                 # TODO: Philipp nachfragen, reicht ein vergleich kleiner 0 groesser 0
                 if datepos == DATETYPE_TIME_AT_COL1:
                     return get_time(row[date_cols[1]].value,
-                                           row[date_cols[0]].value)
+                                    row[date_cols[0]].value)
                 elif datepos == DATETYPE_TIME_AT_COL2:
                     return get_time(row[date_cols[0]].value,
-                                           row[date_cols[1]].value)
+                                    row[date_cols[1]].value)
             elif datetype == DOCUMENT_DATETYPE_TEXT_2C:
-                    return datetime.strptime(row[date_cols[0]] +
-                                          row[date_cols[1]],
-                                          self.descriptor.dateformat)
+                return datetime.strptime(row[date_cols[0]] +
+                                         row[date_cols[1]],
+                                         self.descriptor.dateformat)
 
         def determine_datetype(data_row, cols):
             '''
@@ -211,7 +212,7 @@ class XlsImport (AbstractImport):
             # Check if there are rows to process
             if n >= sheet.nrows:
                 for s in fin.sheets():
-                    print s.nrows, "Rows in sheet ", s
+                    print(s.nrows, "Rows in sheet ", s)
                 raise ValueError("Fatal, no rows to process n = %d and rows = "
                                  "%d. Check if you save in a supported excel "
                                  "version" % (n, sheet.nrows))
@@ -291,14 +292,14 @@ class XlsImport (AbstractImport):
                 n += 1
                 yield res
 
-            print "Function 'loadvalues' successfully!\n" \
-                  "  Stats\n" \
-                  "  ->\tRows total:\t\t%d\n"\
-                  "  ->\tCells not_inrange:\t%d\n"\
+            print("Function 'loadvalues' successfully!\n"
+                  "  Stats\n"
+                  "  ->\tRows total:\t\t%d\n"
+                  "  ->\tCells not_inrange:\t%d\n"
                   "  ->\tRows not_intime:\t%d\n" % (stats['total_rows'] -
-                                               self.descriptor.skiplines,
-                                               stats['not_inrange'],
-                                               stats['not_intime'])
+                                                    self.descriptor.skiplines,
+                                                    stats['not_inrange'],
+                                                    stats['not_intime']))
 
     @staticmethod
     def extension_fits_to(filename):
@@ -320,17 +321,17 @@ class XlsImport (AbstractImport):
         if xlsfiledesc.nsheets != 0:
             if xlsfiledesc.nsheets != 1:
                 err.write("WARNING: xls file with more than one "
-                                   "sheet specified at '%s'. "
-                                   "Chose the sheet at index '%i'.\n"
-                                   % (filename, worksheet_index-1))
-            return xlsfiledesc.sheet_by_index(worksheet_index-1)
+                          "sheet specified at '%s'. "
+                          "Chose the sheet at index '%i'.\n"
+                          % (filename, worksheet_index - 1))
+            return xlsfiledesc.sheet_by_index(worksheet_index - 1)
         else:
 
             err.write("ERROR: Please make sure there is a "
-                                   "sheet. Xls file '%s' has no sheets!\n"
-                                   % filename)
-                # Stops the generator - see PEP 380
-                # https://www.python.org/dev/peps/pep-0380/
+                      "sheet. Xls file '%s' has no sheets!\n"
+                      % filename)
+            # Stops the generator - see PEP 380
+            # https://www.python.org/dev/peps/pep-0380/
             raise StopIteration("ERROR: Please make sure there is a sheet."
                                 " Xls file '%s' has no sheet specified !\n"
                                 % filename)

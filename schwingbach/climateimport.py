@@ -5,28 +5,36 @@ Created on 21.05.2014
 '''
 import sys
 import os
-from dataimport.textimport import TextImport
-from tools import Path
+from .dataimport.textimport import TextImport
+from .tools import Path
 import time
 from datetime import datetime
 from traceback import format_exc as traceback
-def log(msg,stream = sys.stdout):
+
+
+def log(msg, stream=sys.stdout):
     stream.write(nowstr() + ' ' + msg + '\n')
     stream.flush()
 
-if len(sys.argv)!=4:
-    print "usage: climateimport.py [newfile.dat] [siteid] [archivefile.dat]"
+
+if len(sys.argv) != 4:
+    print("usage: climateimport.py [newfile.dat] [siteid] [archivefile.dat]")
 
 # Get filename for import from cmdline
-nowstr = lambda : datetime.now().strftime('%Y-%m-%d %H:%M')
+
+
+def nowstr():
+    return datetime.now().strftime('%Y-%m-%d %H:%M')
+
+
 path = Path(sys.argv[1])
-i=0
+i = 0
 log('Wait for ' + path.absolute)
 while not path.exists():
     time.sleep(60)
-    i+=1
-    if i>20:
-        log('After 20 tries does ' + path.basename + ' not exist',sys.stderr)
+    i += 1
+    if i > 20:
+        log('After 20 tries does ' + path.basename + ' not exist', sys.stderr)
         sys.exit(1)
 try:
 
@@ -35,10 +43,10 @@ try:
     log('Process settings for ' + path.basename)
 
     # Create a TextImport
-    ia = TextImport(path.absolute, 'philipp', siteid) 
+    ia = TextImport(path.absolute, 'philipp', siteid)
 
     # get the configuration of the text import adapter
-    config =  ia.descriptor
+    config = ia.descriptor
     # get the datasets o which the imported data is appended
     for col in config.columns:
         ia.datasets[col.column] = col.append
@@ -49,9 +57,9 @@ try:
     ia.submit()
     # put out data to stdout
     fin = open(path.absolute)
-    fout = open(sys.argv[3],'a')
-    for i,line in enumerate(fin):
-        if i<config.skiplines:
+    fout = open(sys.argv[3], 'a')
+    for i, line in enumerate(fin):
+        if i < config.skiplines:
             continue
         else:
             fout.write(line)
@@ -59,6 +67,7 @@ try:
     fout.close()
     # Kill data file
     os.remove(path.absolute)
-    log(path.basename + ' imported, copied to %s and killed' % Path(sys.argv[3]).basename)
+    log(path.basename + ' imported, copied to %s and killed' %
+        Path(sys.argv[3]).basename)
 except:
-    log(traceback(),sys.stderr)
+    log(traceback(), sys.stderr)

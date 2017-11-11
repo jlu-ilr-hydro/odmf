@@ -31,7 +31,7 @@
 		</ul>
     <div class="rightpane">
 			<div py:if="actualvaluetype">
-				<h2 py:content="unicode(actualvaluetype)" />
+				<h2 py:content="str(actualvaluetype)" />
 				<table style="width: 100%">
 					<tr>
 						<td style="width: 7em">ID:</td>
@@ -56,7 +56,7 @@
 					</tr>
 					<tr>
 						<td>Comment:</td>
-						<td py:content="markdown(actualvaluetype.comment)" />
+						<td py:content="actualvaluetype.comment" />
 					</tr>
 				</table>
 			</div>
@@ -102,7 +102,7 @@
 				<ul>
 					<li py:for="ds in actualvaluetype.datasets">
 						<a href="/dataset/${ds.id}" 
-						py:content="'%s #%i(%s-%s)' % (unicode(ds),ds.id,formatdate(ds.start),formatdate(ds.end))" />
+						py:content="'%s #%i(%s-%s)' % (str(ds),ds.id,formatdate(ds.start),formatdate(ds.end))" />
 					</li>
 					<li>
 						<a href="/dataset/new?vt_id=${actualvaluetype.id}"

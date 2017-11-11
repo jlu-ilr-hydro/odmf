@@ -3,16 +3,18 @@ Created on 18.07.2012
 
 @author: philkraf
 '''
-import lib as web
+from . import lib as web
 import db
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 import io
-from auth import group, expose_for, users
+from .auth import group, expose_for, users
 import codecs
 from tools.calibration import Calibration, CalibrationSource
 from pytz import common_timezones
 import cherrypy
+
+from pprint import pprint
 
 
 class DatasetPage:
@@ -46,7 +48,8 @@ class DatasetPage:
         datasets = {}
         try:
             site = session.query(db.Site).get(site_id) if site_id else None
-            valuetype = session.query(db.ValueType).get(vt_id) if vt_id else None
+            valuetype = session.query(db.ValueType).get(
+                vt_id) if vt_id else None
             # All projects
             projects = session.query(db.Project)
 
@@ -73,7 +76,7 @@ class DatasetPage:
             try:
                 # load data for datasettab.html:
                 # similar datasets (same site and same type)
-                similar_datasets = self.subset(session, valuetype=active.valuetype.id, 
+                similar_datasets = self.subset(session, valuetype=active.valuetype.id,
                                                site=active.site.id)
                 # parallel dataset (same site and same time, different type)
                 parallel_datasets = session.query(db.Dataset).filter_by(site=active.site).filter(
@@ -102,7 +105,7 @@ class DatasetPage:
                                 # The project
                                 activeproject=project,
                                 # All available timezones
-                               timezones=common_timezones + ['Fixed/60'] ,
+                                timezones=common_timezones + ['Fixed/60'],
                                 # The title of the page
                                 title='Schwingbach-Datensatz #' + str(id)
                                 ).render('html', doctype='html')
@@ -147,7 +150,7 @@ class DatasetPage:
                 ds.valuetype = vt
                 ds.quality = q
 
-                # TODO: Is it necessary to protect this of being modified by 
+                # TODO: Is it necessary to protect this of being modified by
                 # somebody who isn't a supervisor or higher?
                 if kwargs.get('project') == '0':
                     ds.project = None
@@ -163,11 +166,14 @@ class DatasetPage:
                 # Timeseries only arguments
                 if ds.is_timeseries():
                     if kwargs.get('start'):
-                        ds.start = datetime.strptime(kwargs['start'], '%d.%m.%Y')
+                        ds.start = datetime.strptime(
+                            kwargs['start'], '%d.%m.%Y')
                     if kwargs.get('end'):
                         ds.end = datetime.strptime(kwargs['end'], '%d.%m.%Y')
-                    ds.calibration_offset = web.conv(float, kwargs.get('calibration_offset'), 0.0)
-                    ds.calibration_slope = web.conv(float, kwargs.get('calibration_slope'), 1.0)
+                    ds.calibration_offset = web.conv(
+                        float, kwargs.get('calibration_offset'), 0.0)
+                    ds.calibration_slope = web.conv(
+                        float, kwargs.get('calibration_slope'), 1.0)
                     ds.access = web.conv(int, kwargs.get('access'), 1)
                 # Transformation only arguments
                 if ds.is_transformed():
@@ -182,7 +188,7 @@ class DatasetPage:
 
     @expose_for(group.editor)
     @web.postonly
-    def addrecord_json(self, dsid, recid, time, value, 
+    def addrecord_json(self, dsid, recid, time, value,
                        sample=None, comment=None):
         with db.session_scope() as session:
             try:
@@ -229,7 +235,7 @@ class DatasetPage:
                 ds.valuetype = vt
                 ds.quality = q
 
-                # TODO: Is it necessary to protect this 
+                # TODO: Is it necessary to protect this
                 # of being modified by somebody who isn't a supervisor or higher?
                 if kwargs.get('project') == '0':
                     ds.project = None
@@ -245,11 +251,14 @@ class DatasetPage:
                 # Timeseries only arguments
                 if ds.is_timeseries():
                     if kwargs.get('start'):
-                        ds.start = datetime.strptime(kwargs['start'], '%d.%m.%Y')
+                        ds.start = datetime.strptime(
+                            kwargs['start'], '%d.%m.%Y')
                     if kwargs.get('end'):
                         ds.end = datetime.strptime(kwargs['end'], '%d.%m.%Y')
-                    ds.calibration_offset = web.conv(float, kwargs.get('calibration_offset'), 0.0)
-                    ds.calibration_slope = web.conv(float, kwargs.get('calibration_slope'), 1.0)
+                    ds.calibration_offset = web.conv(
+                        float, kwargs.get('calibration_offset'), 0.0)
+                    ds.calibration_slope = web.conv(
+                        float, kwargs.get('calibration_slope'), 1.0)
                     ds.access = web.conv(int, kwargs.get('access'), 1)
                 # Transformation only arguments
                 if ds.is_transformed():
@@ -297,8 +306,8 @@ class DatasetPage:
         except Exception as e:
             return str(e)
 
-    def subset(self, session, valuetype=None, user=None, 
-               site=None, date=None, instrument=None, 
+    def subset(self, session, valuetype=None, user=None,
+               site=None, date=None, instrument=None,
                type=None, level=None, onlyaccess=False):
         """
         A not exposed helper function to get a subset of available datasets using filter
@@ -312,7 +321,8 @@ class DatasetPage:
             datasets = datasets.filter_by(site=site)
         if date:
             date = web.parsedate(date)
-            datasets = datasets.filter(db.Dataset.start <= date, db.Dataset.end >= date)
+            datasets = datasets.filter(
+                db.Dataset.start <= date, db.Dataset.end >= date)
         if valuetype:
             vt = session.query(db.ValueType).get(int(valuetype))
             datasets = datasets.filter_by(valuetype=vt)
@@ -328,12 +338,12 @@ class DatasetPage:
             datasets = datasets.filter_by(level=level)
         if onlyaccess:
             lvl = users.current.level  # @UndefinedVariable
-            datasets = datasets.filter(lvl >= db.Dataset.access)  
+            datasets = datasets.filter(lvl >= db.Dataset.access)
         return datasets.join(db.ValueType).order_by(db.ValueType.name, db.sql.desc(db.Dataset.end))
 
     @expose_for()
-    def attrjson(self, attribute, valuetype=None, user=None, 
-                 site=None, date=None, instrument=None, 
+    def attrjson(self, attribute, valuetype=None, user=None,
+                 site=None, date=None, instrument=None,
                  type=None, level=None, onlyaccess=False):
         """
         Gets the attributes for a dataset filter. Returns json. Used for many filters using ajax.
@@ -347,23 +357,26 @@ class DatasetPage:
             raise AttributeError("Dataset has no attribute '%s'" % attribute)
         session = db.Session()
         res = ''
-        try:
+        with db.session_scope() as session:
             # Get dataset for filter
-            datasets = self.subset(session, valuetype, user, 
-                                   site, date, instrument, 
+            datasets = self.subset(session, valuetype, user,
+                                   site, date, instrument,
                                    type, level, onlyaccess)
-            # Make a set of the attribute items
-            items = set(getattr(ds, attribute) for ds in datasets)
+
+            # Make a set of the attribute items and cull out None elements
+            items = set(getattr(ds, attribute)
+                        for ds in datasets if ds is not None)
+
+            # Not reasonable second iteration for eliminating None elements
+            items = set(e for e in items if e)
+
             # Convert object set to json
             res = web.as_json(sorted(items))
-            session.close()
-        finally:
-            session.close()
         return res
 
     @expose_for()
-    def json(self, valuetype=None, user=None, site=None, 
-             date=None, instrument=None, type=None, 
+    def json(self, valuetype=None, user=None, site=None,
+             date=None, instrument=None, type=None,
              level=None, onlyaccess=False):
         """
         Gets a json file of available datasets with filter
@@ -406,8 +419,8 @@ class DatasetPage:
             ds, dsnew = ds.split(rec.time)
             if ds.comment:
                 ds.comment += '\n'
-            ds.comment += ('splitted by ' + web.user() + 
-                           ' at ' + web.formatdate() + 
+            ds.comment += ('splitted by ' + web.user() +
+                           ' at ' + web.formatdate() +
                            '. New dataset is ' + str(dsnew))
             if dsnew.comment:
                 dsnew.comment += '\n'
@@ -430,40 +443,43 @@ class DatasetPage:
         ds = session.query(db.Dataset).get(dataset)
         st = io.BytesIO()
         st.write(codecs.BOM_UTF8)
-        st.write((u'"Dataset","ID","time","%s","site","comment"\n' % 
+        st.write(('"Dataset","ID","time","%s","site","comment"\n' %
                   (ds.valuetype)).encode('utf-8'))
         for r in ds.iterrecords(raw):
-            d = dict(c=unicode(r.comment).replace('\r', '').replace('\n', ' / '),
+            d = dict(c=str(r.comment).replace('\r', '').replace('\n', ' / '),
                      v=r.calibrated if raw else r.value,
-                     time=web.formatdate(r.time) + ' ' + web.formattime(r.time),
+                     time=web.formatdate(r.time) + ' ' +
+                     web.formattime(r.time),
                      id=r.id,
                      ds=ds.id,
                      s=ds.site.id)
 
-            st.write((u'%(ds)i,%(id)i,%(time)s,%(v)s,%(s)i,"%(c)s"\n' % d).encode('utf-8'))
+            st.write(('%(ds)i,%(id)i,%(time)s,%(v)s,%(s)i,"%(c)s"\n' %
+                      d).encode('utf-8'))
         session.close()
         return st.getvalue()
 
     @expose_for(group.logger)
-    def multirecords_csv(self, valuetype=None, user=None, site=None, 
-                         date=None, instrument=None, 
-                         type=None, level=None, onlyaccess=False, 
+    def multirecords_csv(self, valuetype=None, user=None, site=None,
+                         date=None, instrument=None,
+                         type=None, level=None, onlyaccess=False,
                          witherrors=False):
         web.setmime('text/csv')
         session = db.scoped_session()
-        datasets = self.subset(session, valuetype, user, 
-                               site, date, instrument, 
+        datasets = self.subset(session, valuetype, user,
+                               site, date, instrument,
                                type, level, onlyaccess)
         datagroup = db.DatasetGroup([ds.id for ds in datasets])
         st = io.BytesIO()
         st.write(codecs.BOM_UTF8)
-        st.write((u'"Dataset","ID","time","{vt} calibrated","{vt} raw",' +
-                  u'"site","comment","is error?"\n')
+        st.write(('"Dataset","ID","time","{vt} calibrated","{vt} raw",' +
+                  '"site","comment","is error?"\n')
                  .format(vt=ds.valuetype)
                  .encode('utf-8'))
         for r in datagroup.iterrecords(session, witherrors):
             d = dict(
-                c=(unicode(r.comment).replace('\r', '').replace('\n', ' / ')) if r.comment else '',
+                c=(str(r.comment).replace('\r', '').replace(
+                    '\n', ' / ')) if r.comment else '',
                 vc=r.value if witherrors and not r.is_error else '',
                 vr=r.rawvalue,
                 time=web.formatdate(r.time) + ' ' + web.formattime(r.time),
@@ -471,8 +487,8 @@ class DatasetPage:
                 ds=ds.id,
                 s=ds.site.id,
                 e=int(r.is_error))
-            st.write((u'{ds:i},{id:i},{time},{vc:s0,{vr:s},{s:i},' +
-                      u'"{c}",{e}\n').format(**d).encode('utf-8'))
+            st.write(('{ds:i},{id:i},{time},{vc:s0,{vr:s},{s:i},' +
+                      '"{c}",{e}\n').format(**d).encode('utf-8'))
         session.close()
         return st.getvalue()
 
@@ -531,11 +547,11 @@ class DatasetPage:
         finally:
             session.close()
         return ''
-    
+
     @web.expose
     @web.mimetype(web.mime.json)
-    def records_json(self, dataset, 
-                     mindate=None, maxdate=None, minvalue=None, maxvalue=None, 
+    def records_json(self, dataset,
+                     mindate=None, maxdate=None, minvalue=None, maxvalue=None,
                      threshold=None, limit=None, witherror=False):
         """
         Returns the records of the dataset as JSON
@@ -543,7 +559,7 @@ class DatasetPage:
         with db.scoped_session() as session:
             ds = session.query(db.Dataset).get(int(dataset))
             if web.user.current.level < ds.access:  # @UndefinedVariable
-                raise cherrypy.HTTPError(403, 'User privileges not sufficient to access ds:' + 
+                raise cherrypy.HTTPError(403, 'User privileges not sufficient to access ds:' +
                                          str(dataset))
             records = ds.records.order_by(db.Record.time)
             if witherror:
@@ -561,14 +577,16 @@ class DatasetPage:
                     if tend:
                         records = records.filter(db.Record.time <= tend)
                     if minvalue:
-                        records = records.filter(db.Record.value > float(minvalue))
+                        records = records.filter(
+                            db.Record.value > float(minvalue))
                     if maxvalue:
-                        records = records.filter(db.Record.value < float(maxvalue))
+                        records = records.filter(
+                            db.Record.value < float(maxvalue))
                     records = records.limit(limit)
             except:
                 raise cherrypy.HTTPError(500, traceback())
             return web.as_json({'error': None, 'data': records.all()})
-        
+
     @expose_for(group.editor)
     def records(self, dataset, mindate, maxdate, minvalue, maxvalue, threshold=None, limit=None):
         """
@@ -579,7 +597,8 @@ class DatasetPage:
         """
         session = db.scoped_session()
         ds = session.query(db.Dataset).get(int(dataset))
-        records = ds.records.order_by(db.Record.time).filter(~db.Record.is_error)
+        records = ds.records.order_by(
+            db.Record.time).filter(~db.Record.is_error)
         tstart = web.parsedate(mindate.strip(), raiseerror=False)
         tend = web.parsedate(maxdate.strip(), raiseerror=False)
         threshold = web.conv(float, threshold)
@@ -603,9 +622,9 @@ class DatasetPage:
                 currentcount = records.count()
         except:
             return web.Markup('<div class="error">' + traceback() + '</div>')
-        res = web.render('record.html', records=records, currentcount=currentcount, 
+        res = web.render('record.html', records=records, currentcount=currentcount,
                          totalrecords=totalcount, dataset=ds, actionname="split dataset",
-                         action="/dataset/setsplit", 
+                         action="/dataset/setsplit",
                          action_help='/wiki/dataset/split').render('xml')
         session.close()
         return res
@@ -630,12 +649,14 @@ class DatasetPage:
             # return 'left=' + str(left) + ' right=' + str(right) + ' btm=' + str(btm)
             fig = plt.figure()
             ax = fig.gca()
-            ax.barh(left=left, width=right - left, bottom=btm, height=0.9, fc='0.75', ec='0.5')
+            ax.barh(left=left, width=right - left, bottom=btm,
+                    height=0.9, fc='0.75', ec='0.5')
             for l, b, d in zip(left, btm, ds):
                 ax.text(l, b + .5, '#%i' % d.id, color='k', va='center')
             ax.xaxis_date()
             ax.set_yticks(btm + .5)
-            ax.set_yticklabels([d.source.name + '/' + d.valuetype.name for d in ds])
+            ax.set_yticklabels(
+                [d.source.name + '/' + d.valuetype.name for d in ds])
             ax.set_position([0.3, 0.05, 0.7, 0.9])
             ax.set_title('Site #' + siteid)
             ax.set_ylim(-len(ds) - .5, .5)
@@ -742,7 +763,8 @@ class CalibratePage(object):
         result = Calibration()
         try:
             if sourceid:
-                source = CalibrationSource([sourceid], target.start - day, target.end + day)
+                source = CalibrationSource(
+                    [sourceid], target.start - day, target.end + day)
                 sourcerecords = source.records(session)
                 sourcecount = sourcerecords.count()
 
@@ -788,5 +810,6 @@ class CalibratePage(object):
         finally:
             session.close()
             return error
+
 
 DatasetPage.calibration = CalibratePage()

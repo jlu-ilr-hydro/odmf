@@ -7,13 +7,13 @@ Created on 15.02.2012
 '''
 import time
 
-import lib as web
+from . import lib as web
 from os import path as op
 import os
 from traceback import format_exc as traceback
 from genshi import escape, Markup
-from auth import group, expose_for
-from cStringIO import StringIO
+from .auth import group, expose_for
+from io import StringIO
 from cherrypy import log
 
 from dataimport import ManualMeasurementsImport
@@ -31,13 +31,10 @@ class DBImportPage(object):
 
     def logimport(self, filename, kwargs, import_with_class=LogbookImport):
         """
-        Imports specific file as "log" into database
-
-        See http://fb09-pasig.umwelt.uni-giessen.de:8081/wiki/logimport
 
         :param filename:
         :param kwargs:
-        :param import_with_class: Specifies the importing class. This
+        :param import_with_class:
         :return:
         """
         import dataimport.importlog as il
@@ -53,13 +50,14 @@ class DBImportPage(object):
         config = None
         if import_with_class == ManualMeasurementsImport:
             config = ManualMeasurementsImport.from_file(path.absolute)
-            print "path = %s;\nabsfile = %s" % (path, absfile)
+            print("path = %s;\nabsfile = %s" % (path, absfile))
 
         from cherrypy import log
         log("Import with class %s" % import_with_class.__name__)
 
         li = import_with_class(absfile, web.user(), config=config)
-        logs, cancommit = li('commit' in kwargs)  # TODO: Sometimes this is causing a delay
+        # TODO: Sometimes this is causing a delay
+        logs, cancommit = li('commit' in kwargs)
         # TODO: REFACTORING FOR MAINTAINABILITY
 
         t1 = time.time()
@@ -76,25 +74,16 @@ class DBImportPage(object):
 
     def mmimport(self, filename, kwargs):
         """
-        Imports manual measurements (several distinct dataset rows) with specific configuration-file into the
-        database
-
-        For information of special config keywords see:
-        http://fb09-pasig.umwelt.uni-giessen.de:8081/wiki/download.manual-measurements
 
         :param filename:
         :param kwargs:
         :return:
         """
-
-        # Wrapper of logimport
         return self.logimport(filename, kwargs, import_with_class=ManualMeasurementsImport)
 
     def instrumentimport(self, filename, kwargs):
         """
         Loads instrument data using a .conf file
-
-        This covers the normal import process
         """
 
         t0 = time.time()
@@ -104,7 +93,7 @@ class DBImportPage(object):
 
         # TODO: Major refactoring of this code logic, when to load gaps, etc.
         path = Path(web.abspath(filename.strip('/')))
-        print "path = %s" % path
+        print("path = %s" % path)
         import dataimport as di
         error = web.markdown(di.checkimport(path.absolute))
         startdate = kwargs.get('startdate')
@@ -143,8 +132,8 @@ class DBImportPage(object):
             adapter.errorstream = errorstream
             if 'loadstat' in kwargs:
                 stats = adapter.get_statistic()
-                startdate = min(v.start for v in stats.itervalues())
-                enddate = max(v.end for v in stats.itervalues())
+                startdate = min(v.start for v in stats.values())
+                enddate = max(v.end for v in stats.values())
             if 'importdb' in kwargs and startdate and enddate:
                 gaps = None
                 datasets = di.importfile(absfile, web.user(), siteid,
@@ -175,7 +164,8 @@ class DBImportPage(object):
 
         # the lab import only fits on CFG_MANNUAL_MEASUREMENTS_PATTERN
         if ManualMeasurementsImport.extension_fits_to(filename):
-            log("Import with labimport ( %s )" % ManualMeasurementsImport.__name__)
+            log("Import with labimport ( %s )" %
+                ManualMeasurementsImport.__name__)
             return self.mmimport(filename, kwargs)
         # If the file ends with log.xls, import as log list
         elif filename.endswith('log.xls'):
@@ -187,9 +177,8 @@ class DBImportPage(object):
             return self.instrumentimport(filename, kwargs)
 
 
-
 class DownloadPage(object):
-    exposed=True
+    exposed = True
     to_db = DBImportPage()
 
     @expose_for(group.logger)
@@ -208,28 +197,28 @@ class DownloadPage(object):
             files.sort()
             directories.sort()
         else:
-            error='%s is not a valid directory' % dir
+            error = '%s is not a valid directory' % dir
         return web.render('download.html', error=error, files=files,
                           directories=directories, curdir=path,
                           max_size=conf.CFG_UPLOAD_MAX_SIZE)\
             .render('html', doctype='html')
 
     @expose_for(group.editor)
-    def upload(self,dir,datafile,**kwargs):
-        error=''
-        fn=''
+    def upload(self, dir, datafile, **kwargs):
+        error = ''
+        fn = ''
         if datafile:
-            path=Path(op.join(datapath,dir))
+            path = Path(op.join(datapath, dir))
             if not path:
                 path.make()
             fn = path + datafile.filename
             if not fn.is_legal:
-                error="'%s' is not legal"
-            if fn and not 'overwrite' in kwargs:
-                error="'%s' exists already, if you want to overwrite the old version, check allow overwrite" % fn.name
+                error = "'%s' is not legal"
+            if fn and 'overwrite' not in kwargs:
+                error = "'%s' exists already, if you want to overwrite the old version, check allow overwrite" % fn.name
             else:
                 try:
-                    fout = file(fn.absolute,'wb')
+                    fout = open(fn.absolute, 'wb')
                     while True:
                         data = datafile.file.read(8192)
                         if not data:
@@ -238,37 +227,39 @@ class DownloadPage(object):
                     fout.close()
                     fn.setownergroup()
                 except:
-                    error=traceback()
+                    error = traceback()
         if "uploadimport" in kwargs and not error:
-            url= '/download/to_db?filename='+escape(fn.href)
+            url = '/download/to_db?filename=' + escape(fn.href)
         else:
-            url = '/download?dir='+escape(dir)
-            if error: url+='&error='+escape(error)
+            url = '/download?dir=' + escape(dir)
+            if error:
+                url += '&error=' + escape(error)
         raise web.HTTPRedirect(url)
 
     @expose_for(group.logger)
-    def saveindex(self,dir,s):
+    def saveindex(self, dir, s):
         """Saves the string s to index.html
         """
-        path = Path(op.join(datapath,dir,'index.html'))
-        s=s.replace('\r','')
-        f=file(path.absolute,'wb')
+        path = Path(op.join(datapath, dir, 'index.html'))
+        s = s.replace('\r', '')
+        f = open(path.absolute, 'wb')
         f.write(s)
         f.close()
         return web.markdown(s)
 
     @expose_for()
-    def getindex(self,dir):
-        index = Path(op.join(datapath,dir,'index.html'))
-        io=StringIO()
+    def getindex(self, dir):
+        index = Path(op.join(datapath, dir, 'index.html'))
+        io = StringIO()
         if index.exists():
-            io.write(file(index.absolute).read())
-        imphist = Path(op.join(datapath,dir,'.import.hist'))
+            io.write(open(index.absolute).read())
+        imphist = Path(op.join(datapath, dir, '.import.hist'))
         if imphist.exists():
             io.write('\n')
-            for l in file(imphist.absolute):
-                ls = l.split(',',3)
-                io.write(' * file:%s/%s imported by user:%s at %s into %s\n' % tuple([imphist.up()]+ls))
+            for l in open(imphist.absolute):
+                ls = l.split(',', 3)
+                io.write(' * file:%s/%s imported by user:%s at %s into %s\n' %
+                         tuple([imphist.up()] + ls))
         return web.markdown(io.getvalue())
 
     @expose_for(group.editor)
@@ -290,7 +281,8 @@ class DownloadPage(object):
         else:
             error = 'Forgotten to give your new folder a name?'
         url = '/download?dir=' + escape(dir)
-        if error: url += '&error=' + escape(error)
+        if error:
+            url += '&error=' + escape(error)
         return self.index(dir=dir, error=error)
 
     # @TODO: Is the usage of a dir post variable safe through foreign access?
@@ -314,7 +306,8 @@ class DownloadPage(object):
             # TODO: Remove this hack
             raise web.HTTPRedirect("/download/?dir=%s&error=%s" % (dir, error))
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     class Root:
-        download=DownloadPage()
+        download = DownloadPage()
     web.start_server(Root(), autoreload=False, port=8081)
