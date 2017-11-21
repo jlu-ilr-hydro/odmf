@@ -5,8 +5,13 @@ Created on 21.05.2014
 '''
 import sys
 import os
-from .dataimport.textimport import TextImport
-from .tools import Path
+
+# Fixes db error
+# TODO: Find a consistent import process (ff)
+from webpage import auth
+
+from dataimport.textimport import TextImport
+from tools import Path
 import time
 from datetime import datetime
 from traceback import format_exc as traceback
@@ -25,7 +30,6 @@ if len(sys.argv) != 4:
 
 def nowstr():
     return datetime.now().strftime('%Y-%m-%d %H:%M')
-
 
 path = Path(sys.argv[1])
 i = 0
