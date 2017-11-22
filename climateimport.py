@@ -6,6 +6,9 @@ Created on 21.05.2014
 import sys
 import os
 
+if not sys.version_info >= (3,5):
+    raise Exception("This script is for Python 3 usage only. Please use \"python3\" instead of \"python\" to execute this script.")
+
 # Fixes db error
 # TODO: Find a consistent import process (ff)
 from webpage import auth
