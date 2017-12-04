@@ -769,7 +769,8 @@ class PlotPage(object):
         session.close()
         stream = StringIO()
         from tools.ExportRegularData import createPandaDfs
-        stream.write(codecs.BOM_UTF8)
+        # explicit decode() for byte to string
+        stream.write(codecs.BOM_UTF8.decode())
         createPandaDfs(lines, plot.startdate, plot.enddate, stream,
                        interpolationtime=interpolation, tolerance=float(tolerance))
         web.setmime(web.mime.csv)
