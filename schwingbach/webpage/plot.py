@@ -228,7 +228,7 @@ class Line(object):
         t, v = self.load(startdate, enddate)
         # Epoch for excel dates
         stream.write(codecs.BOM_UTF8.decode())
-        stream.write('Time,' + str(self.valuetype).encode('UTF-8') + '\n')
+        stream.write('Time,' + str(self.valuetype) + '\n')
         for t, v in zip(matplotlib.dates.num2date(t), v):
             stream.write('%s,%f\n' % (t.strftime('%Y-%m-%d %H:%M:%S'), v))
 
