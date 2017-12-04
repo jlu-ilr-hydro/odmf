@@ -118,7 +118,7 @@ class User(object):
         # Input password and the salt out of the db
         hashed_password = hashpw(password, salt)
 
-        return hashed_password == str.encode(self.password)
+        return hashed_password == self.password
 
     def as_tuple(self):
         return self.name, self.level, self.password
@@ -268,7 +268,8 @@ def hashpw(password, salt=None):
     else:
         hashed_password = bcrypt.hashpw(password, bcrypt.gensalt())
 
-    return hashed_password
+    # important to decode again, is byte otherwise
+    return hashed_password.decode()
 
 
 def get_bcrypt_salt(hashed):
