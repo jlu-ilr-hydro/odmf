@@ -11,6 +11,7 @@ import os.path as op
 import os
 from configparser import RawConfigParser
 from io import StringIO
+from math import isnan
 
 import ast
 
@@ -738,16 +739,23 @@ class AbstractImport(object):
         """
         stats = dict((col.column, ImportStat())
                      for col in self.descriptor.columns)
+
         for d in self.loadvalues():
+            alreadyWarned = False
             for col in self.descriptor.columns:
                 k = col.column
-                if not d[k] is None:
-                    stats[k].sum += d[k]
-                    stats[k].max = max(stats[k].max, d[k])
-                    stats[k].min = min(stats[k].min, d[k])
-                    stats[k].n += 1
-                    stats[k].start = min(d['d'], stats[k].start)
-                    stats[k].end = max(d['d'], stats[k].end)
+                if d[k] is not None:
+                    if isnan(d[k]):
+                        if not alreadyWarned:
+                            self.errorstream.write("WARNING: Nan value present for row {}\n".format(d['d']))
+                            alreadyWarned = True
+                    else:
+                        stats[k].sum += d[k]
+                        stats[k].max = max(stats[k].max, d[k])
+                        stats[k].min = min(stats[k].min, d[k])
+                        stats[k].n += 1
+                        stats[k].start = min(d['d'], stats[k].start)
+                        stats[k].end = max(d['d'], stats[k].end)
         return dict((col.name, stats[col.column]) for col in self.descriptor.columns)
 
     def loadvalues(self):

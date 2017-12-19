@@ -10,6 +10,7 @@ The file format is described in the ImportDescription, an saved in a config file
 import os
 
 from .base import AbstractImport, ImportDescription
+from math import isnan
 
 
 class TextImport(AbstractImport):
@@ -48,7 +49,7 @@ class TextImport(AbstractImport):
                 '.conf file for text import needs to have a decimal point and delimiter defined')
 
         def intime(time):
-            "Checks if time is between startdate and enddate"
+            """Checks if time is between startdate and enddate"""
             return (
                 (not self.startdate) or d >= self.startdate
             ) and (
@@ -56,7 +57,7 @@ class TextImport(AbstractImport):
             )
 
         def outofrange(col, v):
-            "Tests if the value is inside the boundaries given by the column description"
+            """Tests if the value is inside the boundaries given by the column description"""
             return ((col.minvalue is not None and v < col.minvalue) or
                     (col.maxvalue is not None and v > col.maxvalue))
         fin = open(self.filename, 'r', errors='replace')
@@ -89,6 +90,10 @@ class TextImport(AbstractImport):
                             else:
                                 # get raw value of column using the parsefloat function
                                 raw[k] = self.parsefloat(ls[k])
+
+                                if isnan(raw[k]):
+                                    #self.errorstream.write("WARNING:{}:{} Nan value present\n".format(lineno, k))
+                                    print("WARNING:{}:{} Nan value present\n".format(lineno, k))
                             # check if raw value is out of bounds
                             if outofrange(col, raw[k]):
                                 raw[k] = None
