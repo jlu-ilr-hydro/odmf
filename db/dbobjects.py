@@ -20,6 +20,7 @@ from tools.mail import EMail
 
 from functools import total_ordering
 
+from io import BytesIO
 
 @total_ordering
 class Site(Base):
@@ -246,11 +247,10 @@ class Image(Base):
 
     def __PIL_to_stream(self, img, height, format):
         from PIL import Image as pil
-        from io import StringIO
         print('piltostream %s' % self.id)
         lores = img.resize(
             (height * img.size[0] // img.size[1], height), pil.ANTIALIAS)
-        buffer = StringIO()
+        buffer = BytesIO()
         lores.save(buffer, format)
         return buffer
 
