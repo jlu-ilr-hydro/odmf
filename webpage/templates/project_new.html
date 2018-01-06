@@ -20,6 +20,16 @@
 	div.short {
 		width: 40em;
 	}
+
+    /*<!-- Only for the note --> */
+    #commentnote > div.col-sm-8 {
+        margin-top:1.5rem;
+    }
+
+    /*Fix Bootstrap overwride*/
+    body {
+        line-height: normal;
+    }
 </style>
 <body>
 	${navigation('New project')}
@@ -47,13 +57,27 @@
 			<div class="form-group">
 				<label for="comment" class="col-sm-2 control-label">Comment</label><br/>
 				<div class="col-sm-10">
-                    <textarea name="comment" id="comment" class="form-control"></textarea>
-				</div>
+                    <textarea name="comment" id="comment" class="form-control"
+                        placeholder="Can be seen when downloading data of this project from the CUAHSI webinterface"></textarea>
+                </div>
 
+			</div>
+
+            <!-- Comment -->
+            <div id="commentnote" class="row from-group">
+                <div class="col-sm-8 col-sm-offset-2">
+                    <strong>Note:</strong> The comment is a description, which is part of the reponse, when
+                    requesting webservice methods of the <a href="/wof">WaterOneFlow interface</a>. E.g. it can be
+                    seen when downloading data from this project over the CUAHSI-Applications.
+                </div>
+            </div>
+
+            <div class="form-group">
 				<div class="col-sm-2">
                     <button type="submit" name="save" value="Save" class="btn btn-success">Save</button>
 				</div>
-			</div>
+            </div>
+
 		</form>
 
 	</div>
