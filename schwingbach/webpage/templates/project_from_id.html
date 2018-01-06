@@ -19,6 +19,11 @@
 	input {
 		width: 100%;
 	}
+
+    /*Fix Bootstrap overwride*/
+    body {
+        line-height: normal;
+    }
 </style>
 <body>
 	${navigation('Project: ' + project.name)}
@@ -56,12 +61,22 @@
 				</div>
 			</div>
 
+            <!-- Comment -->
+            <div class="row from-group">
+                <div class="col-sm-8 col-sm-offset-2" >
+                    <strong>Note:</strong> The comment is a description, which is part of the reponse, when
+                    requesting webservice methods of the <a href="/wof">WaterOneFlow interface</a>. E.g. it can be
+                    seen when downloading data from this project over the CUAHSI-Applications.
+                </div>
+            </div>
+            <div class="row form-group">
 				<div class="col-sm-offset-2 col-sm-1">
 					<div id="btn-edit" class="btn btn-default">Edit</div>
                     <button id="btn-save" type="submit"
                     class="btn btn-success" style="display: none;">Save</button>
                     <input type="hidden" id="project_id" name="project_id" value="${project.id}" />
 				</div>
+            </div>
 		</form>
 				<div class="col-sm-2">
 				<form method="post" action="/project/delete" style="display: inline;">
