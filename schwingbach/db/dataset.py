@@ -345,8 +345,8 @@ class Timeseries(Dataset):
         time to the new dataset. Useful """
         session = self.session()
         next = self.records.filter(
-            Record.time >= time, Record.value is not None).order_by(Record.time).first()
-        last = self.records.filter(Record.time <= time, Record.value is not None).order_by(
+            Record.time >= time, Record.value.isnot(None)).order_by(Record.time).first()
+        last = self.records.filter(Record.time <= time, Record.value.isnot(None)).order_by(
             sql.desc(Record.time)).first()
         if not next or not last:
             raise RuntimeError(
@@ -370,7 +370,7 @@ class Timeseries(Dataset):
         between records (ordered by time). If the difference is greater than threshold,
         the later record is returned as a jump
         """
-        records = self.records.order_by(Record.time).filter(Record.value is not None, ~Record.is_error).filter(
+        records = self.records.order_by(Record.time).filter(Record.value.isnot(None), ~Record.is_error).filter(
             Record.time >= (start or self.start)).filter(Record.time <= (end or self.end))
         last = None
         for rec in records:
@@ -382,9 +382,9 @@ class Timeseries(Dataset):
     def findvalue(self, time):
         """Finds the linear interpolated value for the given time in the record"""
         next = self.records.filter(
-            Record.time >= time, Record.value is not None, ~Record.is_error).order_by(Record.time).first()
+            Record.time >= time, Record.value.isnot(None), ~Record.is_error).order_by(Record.time).first()
         last = self.records.filter(
-            Record.time <= time, Record.value is not None, ~Record.is_error).order_by(sql.desc(Record.time)).first()
+            Record.time <= time, Record.value.isnot(None), ~Record.is_error).order_by(sql.desc(Record.time)).first()
         if next and last:
             dt_next = (next.time - time).total_seconds()
             dt_last = (time - last.time).total_seconds()
