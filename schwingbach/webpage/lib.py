@@ -72,7 +72,9 @@ def log_as_array_str(logs):
 
 
 def memoryview_to_b64str(mview):
-    return b64encode(mview.tobytes()).decode('ascii')
+    if type(mview) is not bytes:
+        mview = mview.tobytes()
+    return b64encode(mview).decode('ascii')
 
 
 def abspath(fn):
