@@ -617,7 +617,7 @@ class PicturePage(object):
         res = img.image
         session.close()
 
-        return res.tobytes()
+        return res
 
     @expose_for()
     def thumbnail(self, id):
@@ -626,7 +626,7 @@ class PicturePage(object):
         web.setmime(img.mime)
         res = img.thumbnail
         session.close()
-        return res.tobytes()
+        return res
 
     @expose_for()
     def imagelist_json(self, site=None, by=None):
