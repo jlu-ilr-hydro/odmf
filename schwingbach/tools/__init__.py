@@ -8,7 +8,10 @@ datapath = op.abspath(op.join(op.dirname(__file__),
 home = op.dirname(datapath)
 try:
     import grp
-    osgroup = gid = grp.getgrnam("users").gr_gid
+    try:
+        osgroup = gid = grp.getgrnam("users").gr_gid
+    except:
+        osgroup = None
 except ImportError:
     osgroup = None
 

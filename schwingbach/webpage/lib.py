@@ -84,7 +84,10 @@ def abspath(fn):
     return op.join(basepath, normpath)
 
 
-config = {'/': {'tools.staticdir.root': abspath('.')},
+config = {'/': {'tools.staticdir.root': abspath('.'),
+          'tools.response_headers.on': True,
+                'tools.response_headers.headers': [('Access-Control-Allow-Origin','https://fb09-pasig.umwelt.uni-giessen.de:8080/')],
+                },
           '/media': {'tools.staticdir.on': True,
                      'tools.staticdir.dir': 'media',
                      'tools.caching.on': False},
@@ -130,6 +133,12 @@ json_in = cherrypy.tools.json_in
 
 HTTPRedirect = cherrypy.HTTPRedirect
 
+sslconfig={
+'server.ssl_certificate' : 'letsencrypt/cert.pem',
+'server.ssl_private_key' : 'letsencrypt/privkey.pem',
+}
+
+cherrypy.config.update(sslconfig)
 
 def navigation(title=''):
     return Markup(render('navigation.html', title=str(title)).render('html', encoding=None))
@@ -208,6 +217,8 @@ def abbrtext(s, maxlen=50):
 def user():
     return cherrypy.request.login
 
+def not_external():
+    return not ("external" in cherrypy.url())
 
 class Renderer(object):
     def __init__(self):
@@ -226,7 +237,8 @@ class Renderer(object):
                           'bool2js': lambda b: str(b).lower(),
                           'markdown': markdown,
                           'as_json': as_json,
-                          'abbrtext': abbrtext
+                          'abbrtext': abbrtext,
+                          'not_external': not_external
                           }
 
     def __call__(self, *args, **kwargs):
