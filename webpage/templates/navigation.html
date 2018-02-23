@@ -29,7 +29,7 @@
 </div>
   </div>
 	<div style="vertical-align: middle;">
-		<h1 style="position: absolute; top: 0px; left: 189px; z-index: 1000; right: 0px;" id="title">
+		<h1 py:if="not_external()" style="position: absolute; top: 0px; left: 189px; z-index: 1000; right: 0px;" id="title">
 			${title} 
 			<a href="javascript:window.location.href='/wiki/' + window.location.pathname.split('/')[1]"
 					style="padding-left: 0.5em;">

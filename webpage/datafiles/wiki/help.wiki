@@ -78,7 +78,18 @@ Results in:
 !!! box "A box"
     And some more text  
 	
-	
+
+Videos
+----------------
+
+* Use `video:path/to/video.mp4` to include a normal html5 video. Result will be:
+
+video:http://fb09-pasig.umwelt.uni-giessen.de/sbapp2/assets/so_fliesst_sb.mp4
+
+* Use `alpha-video:path/to/video.mp4` to include a alpha-transparent video which gets encoded to a transparent video. Result will be:
+alpha-video:http://fb09-pasig.umwelt.uni-giessen.de/sbapp2/assets/Lutz_wald.mp4
+
+
 -------
 
  [1]: http://de.wikipedia.org/wiki/Markdown

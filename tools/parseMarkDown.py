@@ -42,6 +42,70 @@ class PatternLink(markdown.inlinepatterns.Pattern):
         return el
 
 
+class VideoPattern(markdown.inlinepatterns.Pattern):
+    def __init__(self, md, pattern):
+        super(VideoPattern, self).__init__(pattern, md)
+
+    def parseOption(self, o):
+        return str(o).replace("[", "").replace("]", "")
+
+    def handleMatch(self, m):
+        """
+        Simply extraxt regex groups and push information to the video element, which is nested in a div-wrapper.
+        A width and height can be set, but is not supported from javascript, yet. Maybe never will be, because
+        we need a correct working canvas with teh exact dimension of the video.
+        :param m:
+        :return:
+        """
+        el = markdown.util.etree.Element("video")
+        el.set('src', m.group(3))
+        el.set('controls', "controls")
+        el.set('type', "video/mp4")
+
+        return el
+
+
+class VideoAlphaPattern(markdown.inlinepatterns.Pattern):
+    """
+    This Creates a HTML-5-Element with an extra wrapper div, to handle alpha-formated Video.
+    Later a javscript function will convert this alpha videos in videos with transparent background
+    and therefor needs a speciall html / class structure
+    """
+    def __init__(self, md, pattern):
+        super(VideoAlphaPattern, self).__init__(pattern, md)
+
+    def parseOption(self,o):
+        return str(o).replace("[","").replace("]","")
+
+    def handleMatch(self, m):
+        """
+        Simply extraxt regex groups and push information to the video element, which is nested in a div-wrapper.
+        A width and height can be set, but is not supported from javascript, yet. Maybe never will be, because
+        we need a correct working canvas with teh exact dimension of the video.
+        :param m:
+        :return:
+        """
+        el = markdown.util.etree.Element("video")
+        el.set('src', m.group(3))
+        el.set('controls',"")
+        el.set('type', "video/mp4")
+        el.set('class', "html5AlphaVideo_video")
+
+        if m.group(4) is not None:
+            #el.set("width", self.parseOption(m.group(4)))
+            pass
+
+        if m.group(5) is not None:
+            #el.set("height", self.parseOption(m.group(5)))
+            pass
+
+
+        par_el = markdown.util.etree.Element("div")
+        par_el.set("class","html5AlphaVideo_wrapperDiv")
+        par_el.append(el)
+        #el.text = markdown.util.AtomicString(text)
+        return par_el
+
 class SymbolPattern(markdown.inlinepatterns.Pattern):
     def __init__(self, md, pattern, out):
         super(SymbolPattern, self).__init__(pattern, md)
@@ -71,17 +135,19 @@ class UrlizePattern(markdown.inlinepatterns.Pattern):
             url = url[1:-1]
 
         text = url
+        if text.find("video") == -1:
+            if not url.split('://')[0] in ('http', 'https', 'ftp'):
+                if '@' in url and '/' not in url:
+                    url = 'mailto:' + url
+                else:
+                    url = 'http://' + url
 
-        if not url.split('://')[0] in ('http', 'https', 'ftp'):
-            if '@' in url and '/' not in url:
-                url = 'mailto:' + url
-            else:
-                url = 'http://' + url
-
-        el = markdown.util.etree.Element("a")
-        el.set('href', url)
-        el.text = markdown.util.AtomicString(text)
-        return el
+            el = markdown.util.etree.Element("a")
+            el.set('href', url)
+            el.text = markdown.util.AtomicString(text)
+            return el
+        else:
+            return None
 
 
 class SchwingbachExtension(markdown.Extension):
@@ -118,6 +184,12 @@ class SchwingbachExtension(markdown.Extension):
             md, r'(==>)', '\u21D2')
         md.inlinePatterns['replace larrow big'] = SymbolPattern(
             md, r'(<==)', '\u21D0')
+        md.inlinePatterns['alphavideo'] = VideoAlphaPattern(
+            md, r'(alpha-video:)([\w\.\:\-\/]*)(\[\d+\])?(\[\d+\])?')
+        md.inlinePatterns['video'] = VideoPattern(
+            md, r'(video:)([\w\.\:\-\/]*)')
+
+
 
 
 class UrlizeExtension(markdown.Extension):
