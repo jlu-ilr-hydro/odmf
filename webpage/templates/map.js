@@ -238,27 +238,36 @@
 
     function initMap(site) {
 			map=null;
+
 			$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
- 	    $.getJSON('/preferences',{},function(data){
- 	    	if (site) {
- 	    		data.site = site.id;
- 	    		data.map.zoom = 20;
- 	    		data.map.lat = site.lat;
- 	    		data.map.lng = site.lon;
- 	    	}
+
+			$.getJSON('/preferences', {}, function( data ) {
+				if (site) {
+					data.site = site.id;
+					data.map.zoom = 20;
+					data.map.lat = site.lat;
+					data.map.lng = site.lon;
+				}
+
 		    map = createmap(data.map.lat,data.map.lng,data.map.zoom,data.map.type);
+
 		    markers = [];
 				$('.filter').val('');
 				$('#dateselect').val('');
 				$('#datasetsonly').prop('checked',false);
+
  	    	if (data.site) {
 	          selectsite(data.site);
     		}
+
 	    	popSelect();
+
     	}).fail(function( jqxhr, textStatus, error){
+
     		$('#map_canvas').html('JSONerror:' + textStatus + ',' + error);
     	});
-	    $(window).unload(savemappref);
+
+		$(window).unload(savemappref);
 	    $('#openinfo>button').click(toggleInfo);
 	    // Get map preferences 
     }
