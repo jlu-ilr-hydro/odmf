@@ -18,7 +18,10 @@ class MapPage(object):
             site = 'null'
         else:
             session = db.Session()
-            site = web.as_json(db.Site.get(session, int(site)))
+
+            # decode for valid json string
+            site = web.as_json(db.Site.get(session, int(site))).decode('utf-8')
+
             session.close()
         return web.render('map.html', site=site).render('html', doctype='html')
 
