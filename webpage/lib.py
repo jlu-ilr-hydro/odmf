@@ -138,7 +138,6 @@ sslconfig={
 'server.ssl_private_key' : 'letsencrypt/privkey.pem',
 }
 
-cherrypy.config.update(sslconfig)
 
 def navigation(title=''):
     return Markup(render('navigation.html', title=str(title)).render('html', encoding=None))
@@ -289,6 +288,10 @@ def conv(cls, s, default=None):
 
 
 def start_server(root, autoreload=False, port=8080):
+
+    # enable SSL
+    #cherrypy.config.update(sslconfig)
+
     cherrypy.config.update({"engine.autoreload.on": autoreload})
     cherrypy.config["tools.encode.encoding"] = "utf-8"
     cherrypy.config["tools.encode.on"] = True
