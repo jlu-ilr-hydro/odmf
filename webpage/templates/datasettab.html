@@ -2,6 +2,8 @@
       xmlns:py="http://genshi.edgewall.org/">
 
 <head>
+    <!-- Server configuration, see conf.py for HEAD_BASE -->
+    <base href="${head_base}" />
 	
 	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
 	<link href="/media/jqmath/jqmath-0.4.0.css" rel="stylesheet" type="text/css"/>
@@ -181,6 +183,12 @@
 			width: 3em;
 			height: 2em;
 		}
+        #transformation {
+            line-height: 2.5em;
+        }
+        #transformation td.big {
+            padding-left: 10px;
+        }
 	</style>
 </head>
 <!--
@@ -259,7 +267,7 @@
 						<td class="bold">Calibration: </td>
 						<td py:content="'v\' = %g * v + %g' % (activedataset.calibration_slope,activedataset.calibration_offset)" />
 					</tr>
-					<tr py:if="activedataset.is_transformed()">
+					<tr py:if="activedataset.is_transformed()" id="transformation">
 						<td class="bold">Transformation:</td>
 						<td class="big">\(f(x)=${activedataset.latex}\)</td>
 					</tr>
