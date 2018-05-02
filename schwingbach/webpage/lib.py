@@ -23,6 +23,8 @@ from tools.parseMarkDown import MarkDown
 from base64 import b64encode
 markdown = MarkDown()
 
+import conf
+
 
 def jsonhandler(obj):
     if hasattr(obj, '__jdict__'):
@@ -253,6 +255,10 @@ class Renderer(object):
         ctxt = Context(url=cherrypy.url)
         ctxt.push(kwargs)
         ctxt.push(self.functions)
+
+        # head base for all templates
+        # see conf.py
+        ctxt.push({'head_base': conf.HEAD_BASE})
         return template.generate(ctxt)
 
 
@@ -286,19 +292,24 @@ def conv(cls, s, default=None):
     except:
         return default
 
+from cherrypy.lib.cptools import referer
 
 def start_server(root, autoreload=False, port=8080):
-
-    # enable SSL
-    #cherrypy.config.update(sslconfig)
 
     cherrypy.config.update({"engine.autoreload.on": autoreload})
     cherrypy.config["tools.encode.encoding"] = "utf-8"
     cherrypy.config["tools.encode.on"] = True
     cherrypy.config["tools.encode.decode"] = True
 
-    cherrypy.server.socket_host = "0.0.0.0"
-    cherrypy.server.socket_port = port
+    cherrypy.config['server.socket_host'] = "0.0.0.0"
+    cherrypy.config['server.socket_port'] = port
+
+    # enable SSL
+    # cherrypy.config.update(sslconfig)
+    # cherrypy.config['server.ssl_module'] = 'builtin'
+    # cherrypy.config['server.ssl_certificate'] = 'letsencrypt/cert.pem'
+    # cherrypy.config['ssl_private_key'] = 'letsencrypt/privkey.pem'
+
     cherrypy.quickstart(root=root, config=config)
 
 
