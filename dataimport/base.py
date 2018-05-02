@@ -13,6 +13,8 @@ from configparser import RawConfigParser
 from io import StringIO
 from math import isnan
 
+import chardet
+
 import ast
 
 import conf
@@ -397,7 +399,16 @@ class ImportDescription(object):
         # Create a config
         config = RawConfigParser()
         # Load from the file
-        config.readfp(open(path))
+
+        try:
+            config.read_file(open(path))
+        except UnicodeDecodeError:
+            rawdata = open(path)
+            result = chardet.detect(rawdata)
+            msg = "Your config at {} is encoded in {}. Please make sure you encode your config in ascii or utf-8"\
+                .format(path, result.encoding)
+            raise RuntimeError(msg)
+
         # Return the descriptor
         descr = cls.from_config(config)
         descr.filename = path
@@ -628,6 +639,10 @@ class AbstractImport(object):
             # Loop through all values
 
             for i, d in enumerate(self.loadvalues()):
+
+                # TODO: Fix possibilty that nan-values can uploaded into the database
+                # see self.get_statistics
+
                 # Get time of record
                 t = d['d']
 
