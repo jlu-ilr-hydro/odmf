@@ -406,7 +406,7 @@ class ImportDescription(object):
             rawdata = open(path, 'rb').read()
             result = chardet.detect(rawdata)
             msg = "Your config at {} is encoded in {}. Please make sure you encode your config in ascii or utf-8"\
-                .format(path, result.encoding)
+                .format(path, result['encoding'])
             raise RuntimeError(msg)
 
         # Return the descriptor
