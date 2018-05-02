@@ -9,10 +9,26 @@ import sys
 import os
 from glob import glob
 
-from webpage import Root, HeapyPage
-from webpage import lib
 
 print(sys.executable)
+
+
+# System checks !before project imports
+if not os.path.isfile('conf.py'):
+    raise RuntimeError('Consider providing a configuration file at \'conf.py\'!')
+else:
+    import conf
+
+    # TODO: outsource mandatory config items
+    if conf.CFG_DATABASE_NAME is '' \
+        or conf.CFG_DATABASE_USERNAME is '' \
+        or conf.CFG_DATABASE_PASSWORD is '' \
+        or conf.CFG_DATABASE_HOST is '':
+        raise RuntimeError('Server cannot start! There are mandatory config attributes which are empty.')
+
+# Start with project imports
+from webpage import Root, HeapyPage
+from webpage import lib
 
 # Make autoreload
 autoreload = 'noreload' not in sys.argv
@@ -32,6 +48,8 @@ if 'heapy' in sys.argv:
     hp = hpy()
     hp.setrelheap()
     root.heapy = HeapyPage(hp)
+
+#config="server.conf"
 
 # Start the server
 lib.start_server(root, autoreload=autoreload, port=8081)
