@@ -15,10 +15,10 @@ CFG_DATETIME_DEFAULT_TIMEZONE = 'Europe/Berlin'
 # Database
 #
 
-CFG_DATABASE_NAME = 'schwingbach'
+CFG_DATABASE_NAME = 'schwingbach2'
 CFG_DATABASE_USERNAME = 'schwingbach-user'
 CFG_DATABASE_PASSWORD = 'VK1:SB0'
-CFG_DATABASE_HOST = 'localhost'
+CFG_DATABASE_HOST = 'fb09-pasig.umwelt.uni-giessen.de'
 
 #
 # Media
@@ -44,3 +44,8 @@ CFG_MAP_DEFAULT = {
 # Upload
 #
 CFG_UPLOAD_MAX_SIZE = 25000000  # 25 mb
+
+# Sets the value of a base directive of a head tag.
+# This is necessary due to special server configuration
+#HEAD_BASE = 'https://fb09.pasig.umwelt.uni-giessen.de/schwingbach'
+HEAD_BASE = ''
