@@ -45,6 +45,10 @@ CFG_MAP_DEFAULT = {
 #
 CFG_UPLOAD_MAX_SIZE = 25000000  # 25 mb
 
+# TODO: Is this the right place?
+CFG_SERVER_SSL = False
+CFG_SERVER_EXPOSE_WOF_INTERFACE = True
+
 # Sets the value of a base directive of a head tag.
 # This is necessary due to special server configuration
 #HEAD_BASE = 'https://fb09.pasig.umwelt.uni-giessen.de/schwingbach'
