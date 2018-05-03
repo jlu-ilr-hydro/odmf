@@ -217,6 +217,7 @@ class DownloadPage(object):
                 error = "'%s' is not legal"
             if fn and 'overwrite' not in kwargs:
                 error = "'%s' exists already, if you want to overwrite the old version, check allow overwrite" % fn.name
+
             if datafile.file:
                 # Check file encodings
                 # TODO: outsource valid encodings
@@ -224,7 +225,6 @@ class DownloadPage(object):
                 if result['encoding'].lower() not in ['utf-8', 'ascii']:
                     error = 'Only files with UTF8 or ASCII encoding are allowed to be uploaded. Please change the '\
                             + 'encoding first!'
-
             else:
                 try:
                     fout = open(fn.absolute, 'wb')
