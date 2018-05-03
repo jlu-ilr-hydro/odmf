@@ -15,6 +15,7 @@ from genshi import escape, Markup
 from .auth import group, expose_for
 from io import StringIO
 from cherrypy import log
+import chardet
 
 from dataimport import ManualMeasurementsImport
 from dataimport.base import ImportDescription, LogImportDescription
@@ -216,6 +217,14 @@ class DownloadPage(object):
                 error = "'%s' is not legal"
             if fn and 'overwrite' not in kwargs:
                 error = "'%s' exists already, if you want to overwrite the old version, check allow overwrite" % fn.name
+            if datafile.file:
+                # Check file encodings
+                # TODO: outsource valid encodings
+                result = chardet.detect(datafile.file.read())
+                if result['encoding'].lower() not in ['utf-8', 'ascii']:
+                    error = 'Only files with UTF8 or ASCII encoding are allowed to be uploaded. Please change the '\
+                            + 'encoding first!'
+
             else:
                 try:
                     fout = open(fn.absolute, 'wb')
