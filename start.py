@@ -52,4 +52,4 @@ if 'heapy' in sys.argv:
 #config="server.conf"
 
 # Start the server
-lib.start_server(root, autoreload=autoreload, port=8081)
+lib.start_server(root, autoreload=autoreload, port=conf.CFG_SERVER_PORT)

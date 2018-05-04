@@ -48,6 +48,7 @@ CFG_UPLOAD_MAX_SIZE = 25000000  # 25 mb
 # TODO: Is this the right place?
 CFG_SERVER_SSL = False
 CFG_SERVER_EXPOSE_WOF_INTERFACE = True
+CFG_SERVER_PORT = 8081
 
 # Sets the value of a base directive of a head tag.
 # This is necessary due to special server configuration
