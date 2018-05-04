@@ -1,4 +1,5 @@
+# Schwingbach
 conf.py
-
-# Intellj
-.idea
+webpage/datafiles/**
+webpage/sessions/**
+webpage/preferences/**
