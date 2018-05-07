@@ -6,23 +6,17 @@ from .auth import users, require, member_of, has_level, group, expose_for, hashp
 import db
 import sys
 import os
-try:
-    import svn
-except ImportError:
-    import svn as pysvn
-    #    pysvn = None
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from genshi import escape
 from io import StringIO
+
 from webpage.upload import DownloadPage
 from webpage.map import MapPage
 from webpage.site import SitePage
 from webpage.datasetpage import DatasetPage
 from webpage.preferences import Preferences
 from webpage.plot import PlotPage
-
-import bcrypt
 
 
 class PersonPage:
@@ -741,76 +735,6 @@ class CalendarPage(object):
         return res
 
 
-class svnlogPage(object):
-    exposed = True
-
-    def svn_to_date(self, datetime):
-        return datetime.strftime('%Y-%m-%d %H:%M:%S')
-
-    def logs(self, svnlogs):
-        """Get all logs in markdown format"""
-        for log in svnlogs:
-            revision = log.revision
-            date = self.svn_to_date(log.date)
-            author = log.author
-            message = log.msg
-            yield '### [{0}](/svnlog/{0}) - {1}\n\n*by {2}*\n\n * {3}'.format(revision, date, author, message)
-
-    def changes(self, revno, svn_client=None, work_path='.'):
-        """
-         Get all changes in markdown format
-
-        :param revno:
-        :param svnclient:
-        :param work_path:
-        :return:
-        """
-        log = svn_client.log_default(
-            revision_to=revno, revision_from=revno, changelist=True)
-        log = next(log)
-        date = self.svn_to_date(log.date)
-
-        yield '*[back to revision list](/svnlog)*\n'
-        yield '## [{0}](/svnlog/{0}) -{1}\n\n{2}\n'.format(log.revision, date, log.msg)
-        yield '</br>'
-        yield '*by user:{0}*\n'.format(log.author)
-        yield '</br>\n</br>\n### Changed paths\n'
-
-        for mode, path in log.changelist:
-            yield ' * **%s** - %s' % (mode, path)
-	
-	# TODO: all paths
-        #file_list = [e for e in svn_client.list_recursive()]
-        # for path, info in file_list:
-        #    if info['commit_revision'] == revno and info['kind'] == svn.constants.K_FILE:
-        #        yield ' * `%s/%s`' % (path, info.name)
-        yield '\n### All paths\n\nNot yet implemented'
-        # for path,info in file_list:
-        #    if info['kind'] == svn.constants.K_FILE and (info['name'].endswith('py') or info['name'].endswith('html')):
-        #        absp = "%s/%s" % (path, info['name'])
-        #        date = self.svn_to_date(info['date'])
-        #        rev = info['commit_revision']
-        #        yield ' * `{0}` [REV{1} ](/svnlog/{1})({2})'.format(absp, rev, date)
-
-    @expose_for(group.admin)
-    def default(self, revno=None):
-        import svn.local
-
-        out = ''
-        path = '.'
-        work_path = path
-        print(work_path)
-        client = svn.local.LocalClient(path)
-        if not revno:
-            svnlogs = client.log_default()
-            out = '\n\n'.join(self.logs(svnlogs))
-        else:
-            out = '\n'.join(self.changes(revno, client))
-        res = web.render('empty.html', title="svn log",
-                         error='').render('html', doctype='html')
-        return res.replace('<!--content goes here-->', web.markdown(out))
-
-
 class Wiki(object):
     exposed = True
 
@@ -1103,8 +1027,6 @@ class Root(object):
     preferences = Preferences()
     plot = PlotPage()
     calendar = CalendarPage()
-    # if pysvn:
-    svnlog = svnlogPage()
     wiki = Wiki()
 
     @expose_for()
