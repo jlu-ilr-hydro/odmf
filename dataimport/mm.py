@@ -398,10 +398,7 @@ class ManualMeasurementsImport(LogbookImport):
             except ValueError as e:
                 raise LogImportError(row, e.message)
 
-            return "Add value %g %s to %s (%s)".encode('utf-8') % (v,
-                                                                   ds.valuetype,
-                                                                   ds,
-                                                                   date)
+            return ("Add value %g %s to %s (%s)" % (v, ds.valuetype, ds, date))
         # if dataset exsist but the value is None the value will not be imported and a warning will be shown
         elif (ds is not None) and v is None:
             return "Warning: None-Value for Site %s at %s will not be added to %s" % (site, date, ds)
