@@ -26,7 +26,6 @@ else:
     if parseConf(conf):
         print("✔ Config is valid")
 
-exit()
 # Start with project imports
 from webpage import Root, HeapyPage
 from webpage import lib
