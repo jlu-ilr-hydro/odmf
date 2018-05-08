@@ -359,7 +359,7 @@ class ManualMeasurementsImport(LogbookImport):
         if record == 1:
             if commit:
                 # happens when the database has already a record at this time, in the session
-                raise LogImportError(row, "Can't commit possible duplicate row for dataset '%s' and time '%s'"\
+                raise LogImportError(row, "Can't commit possible duplicate row for dataset '%s' and time '%s' "\
                                           "Please inspect your file." % (ds, dt))
             raise LogImportError(row, "For dataset '%s' and time '%s', there is already a record in database" %
                                  (ds, dt))

@@ -234,6 +234,7 @@ class SitePage:
         session = db.Session()
         query = session.query(db.Site).order_by(db.Site.id)
         st = StringIO()
+        # TODO: Py3 encoding
         st.write(
             '"ID","long","lat","x_proj","y_proj","height","name","comment"\n'.encode('latin1'))
         for s in query:
