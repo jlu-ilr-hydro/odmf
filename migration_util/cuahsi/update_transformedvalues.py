@@ -35,6 +35,20 @@ def transform(record, transformation):
     # TODO: transfomation
     return record
 
+# Stepwise
+#
+# 1. Delete all records which have ids of transformed timeseries (and so shouldn't exists by definition of the
+#    schwingbach database schema)
+#
+# 2. Create all records of all transformed timeseries datasets.
+#    For this
+#    1. Get all source datasets
+#    2. Get all target datasets
+#    3. Get all source records
+#    4. Compute target transformation (target-wise)
+#
+#       target = transformation(source_record, source_dataset)
+
 with psycopg2.connect(database="schwingbach2", user=conf.CFG_DATABASE_USER, password=conf.CFG_DATABASE_PASSWORD,
                      host=conf.CFG_DATABASE_HOST) as connection:
     cur = connection.cursor()
