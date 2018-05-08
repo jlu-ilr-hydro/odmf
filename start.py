@@ -9,9 +9,12 @@ import sys
 import os
 from glob import glob
 
+from tools.parseConf import parseConf
 
-print(sys.executable)
+print("Starting schwingbachserver using {}".format(sys.executable))
 
+if sys.version_info[0] < 3:
+    raise Exception("Must be using Python 3")
 
 # System checks !before project imports
 if not os.path.isfile('conf.py'):
@@ -19,13 +22,11 @@ if not os.path.isfile('conf.py'):
 else:
     import conf
 
-    # TODO: outsource mandatory config items
-    if conf.CFG_DATABASE_NAME is '' \
-        or conf.CFG_DATABASE_USERNAME is '' \
-        or conf.CFG_DATABASE_PASSWORD is '' \
-        or conf.CFG_DATABASE_HOST is '':
-        raise RuntimeError('Server cannot start! There are mandatory config attributes which are empty.')
+    # Check for mandatory attributes
+    if parseConf(conf):
+        print("✔ Config is valid")
 
+exit()
 # Start with project imports
 from webpage import Root, HeapyPage
 from webpage import lib
