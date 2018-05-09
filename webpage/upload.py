@@ -222,10 +222,14 @@ class DownloadPage(object):
                 # Check file encodings
                 # TODO: outsource valid encodings
                 result = chardet.detect(datafile.file.read())
-                if result['encoding'].lower() not in ['utf-8', 'ascii']:
-                    error = 'Only files with UTF8 or ASCII encoding are allowed to be uploaded. Please change the '\
-                            + 'encoding first!'
-            else:
+                
+                if result:
+                    file_encoding = result['encoding'].lower()
+                    if not (file_encoding in ['utf-8', 'ascii'] or 'utf-8' in file_encoding):
+                        error = 'Only files with UTF8 or ASCII encoding are allowed to be uploaded. Please change the '\
+                                + 'encoding first!'
+
+            if not error:
                 try:
                     fout = open(fn.absolute, 'wb')
                     while True:
