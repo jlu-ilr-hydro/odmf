@@ -35,7 +35,7 @@ def transform(record, transformation):
     if not type(result).__name__ == 'float':
         if type(result).__name__ == 'ndarray':
             result = result.flatten()[0]
-        if type(result).__name__ == 'complex128':
+        if type(result).__name__ in ['complex128', 'complex']:
             result = float(result)
     return result
 
@@ -123,7 +123,7 @@ print("{}/{} Download finished".format(n, s_size))
 
 # then iterate over the sources and insert the transformation into the respective target into the record table
 try:
-    t_size = len(targets)
+    t_size = len(targets_only)
     j = 0
     for target in targets_only:
         j+=1
