@@ -8,7 +8,7 @@
 # 1. Delete already existing temporary records of transformed timeseries
 #
 # 2. Create records in the record-table from transformed timeseries datasets
-#  and from recent values, which the transformation is applied on
+#  and from recent values, which the transformation is then applied on
 
 import psycopg2
 import psycopg2.extras
@@ -33,6 +33,8 @@ _log.info('Start')
 def transform(record, transformation):
     # value = 3
     result = eval(transformation, {'x': record[3]}, np.__dict__)
+
+    # type saftey due to np mapping
     if not type(result).__name__ == 'float':
         if type(result).__name__ == 'ndarray':
             result = result.flatten()[0]
@@ -42,7 +44,7 @@ def transform(record, transformation):
     return result
 
 
-# Stepwise
+# Stepwise algorithm
 #
 # 1. Delete all records which have ids of transformed timeseries (and so shouldn't exists by definition of the
 #    schwingbach database schema)
@@ -60,15 +62,15 @@ connection = psycopg2.connect(database="schwingbach2", user=conf.CFG_DATABASE_US
                  host=conf.CFG_DATABASE_HOST)
 cur = connection.cursor()
 
-cur.execute("SELECT * FROM record WHERE dataset in (SELECT DISTINCT id FROM transformed_timeseries)")
-
 # all transformed timeseries that may be already hold records in the record table for deletion
+cur.execute("SELECT * FROM record WHERE dataset in (SELECT DISTINCT id FROM transformed_timeseries)")
 all_possible_transformed_timeseries = cur.fetchall()
 
+# If records are present, delete them
 tt_size = len(all_possible_transformed_timeseries)
 print("Found {} transformed records in the records table for deletion.".format(tt_size))
 if tt_size > 0:
-    # Delete all transforms records
+
     print("Start deletion ...")
     try:
         transformed_records = cur.execute("DELETE FROM record WHERE dataset in (SELECT id FROM transformed_timeseries)")
@@ -81,18 +83,15 @@ if tt_size > 0:
         print("Deletion of {} records was successfull.".format(cur.rowcount))
         cur.close()
 
-        # TODO: is this neccessary?
 
-#
 # Creating new transformed timeseries records
-#
 cur = connection.cursor()
 
 # fetch all sources
-# TODO: add target to source
 cur.execute("""SELECT DISTINCT source FROM transformed_timeseries tt LEFT JOIN transforms t """\
                           + """ON tt.id = t.target""")
 sources = cur.fetchall()
+#TODO: add debugging console arguments (with explicit source and target ids etc)
 #sources = [(_source,)]
 
 cur.execute("""SELECT DISTINCT target, source, expression FROM transformed_timeseries tt LEFT JOIN transforms t """\
@@ -105,14 +104,14 @@ targets_only = cur.fetchall()
 
 cur.execute("""SELECT target, source FROM transforms""")
 transformations = defaultdict(list)
+
 # key: target
 # value: source [list]
 for e in cur.fetchall():
     transformations[e[0]].append(e[1])
 
-records = dict()
-
 # fetch all affected source records (cache them locally)
+records = dict()
 s_size = len(sources)
 n = 0
 for source in sources:
@@ -124,26 +123,31 @@ print("{}/{} Download finished".format(n, s_size))
 
 # then iterate over the sources and insert the transformation into the respective target into the record table
 try:
+
     t_size = len(targets_only)
+
+    # Iterate all targets
     j = 0
     for target in targets_only:
-        j+=1
+
+        j += 1
         ids = 0
         print("Target {} of {}".format(j, t_size))
 
         sources = transformations[target[0]]
-#        sources = [_source]
+        # TODO: debugging arguments
+        # sources = [_source]
         expression = target[1]
-        #print("Targtet: ", target)
-        #print("Sources: ", sources)
-        #print("Expression: ", expression)
+
+        # Iter all sources, related to the iterated target at the moment
         s_size = len(sources)
         n = 0
         for source in sources:
+
             n+=1
-            #print("Source {} to Target {}\n".format(source, target)\
             print("Source {}/{}".format(n, s_size), end='\r')
 
+            # Iter all source records cached locally and transform them
             arglist = []
             for rec in records[source]:
 
@@ -154,10 +158,12 @@ try:
                 # inc ids
                 ids += 1
 
+            # TODO: how big arglist can become, for maximum performance?
             # Batch execution for performance improvement
             psycopg2.extras.execute_batch(cur, """INSERT INTO record VALUES (%(id)s, %(dataset)s, %(time)s, %(value)s, %(sample)s,"""
                           + """%(comment)s, %(is_error)s);""", arglist)
     connection.commit()
+
 except RuntimeError as e:
     print(e)
     print(target, source)
@@ -167,3 +173,5 @@ except RuntimeError as e:
 print("Everything went fine!")
 connection.commit()
 cur.close()
+
+# TODO: Add monitoring/debugging behaviour
