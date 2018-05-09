@@ -10,8 +10,6 @@
 # 2. Create records in the record-table from transformed timeseries datasets
 #  and from recent values, which the transformation is applied on
 
-import sys
-
 import psycopg2
 import conf
 
@@ -123,6 +121,7 @@ try:
     j = 0
     for target in targets:
         j+=1
+        ids = 0
         print("Target {} of {}".format(j, t_size))
 
         sources = transformations[target[0]]
@@ -135,8 +134,8 @@ try:
         n = 0
         for source in sources:
             n+=1
-            print("Source {} to Target {}".format(source, target))
-            print("Source {}/{}\nSource length: {}".format(n, s_size, len(records[source])), end='\r')
+            print("Source {} to Target {}\n".format(source, target)\
+                  +"Source {}/{}\nSource length: {}".format(n, s_size, len(records[source])), end='\r')
 
             for rec in records[source]:
 
@@ -144,9 +143,13 @@ try:
 
                 # TODO: execute_batch
                 cur.execute("""INSERT INTO record VALUES (%(id)s, %(dataset)s, %(time)s, %(value)s, %(sample)s,"""\
-                + """%(comment)s, %(is_error)s);""", {'id': rec[0], 'dataset': target[0], 'time': rec[2],\
+                + """%(comment)s, %(is_error)s);""", {'id': ids, 'dataset': target[0], 'time': rec[2],\
                                                      'value': transformed_value, 'sample': rec[4], 'comment': rec[5],
                                                      'is_error': rec[6]})
+
+                # inc ids
+                ids += 1
+
                 # TODO: bulk inserting?
     connection.commit()
 except RuntimeError as e:
