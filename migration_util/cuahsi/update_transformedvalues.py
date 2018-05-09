@@ -12,7 +12,6 @@
 
 import psycopg2
 import psycopg2.extras
-
 import conf
 
 import numpy as np
@@ -156,7 +155,6 @@ try:
                 ids += 1
 
             # Batch execution for performance improvement
-
             psycopg2.extras.execute_batch(cur, """INSERT INTO record VALUES (%(id)s, %(dataset)s, %(time)s, %(value)s, %(sample)s,"""
                           + """%(comment)s, %(is_error)s);""", arglist)
     connection.commit()
