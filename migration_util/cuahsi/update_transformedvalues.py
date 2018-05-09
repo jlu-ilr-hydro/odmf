@@ -36,7 +36,8 @@ def transform(record, transformation):
         if type(result).__name__ == 'ndarray':
             result = result.flatten()[0]
         if type(result).__name__ in ['complex128', 'complex']:
-            result = float(result)
+            # return the real part of a complex number
+            result = result.real
     return result
 
 
