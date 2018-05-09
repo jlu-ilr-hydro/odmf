@@ -32,8 +32,11 @@ _log.info('Start')
 def transform(record, transformation):
     # value = 3
     result = eval(transformation, {'x': record[3]}, np.__dict__)
-    if type(result).__name__ == 'ndarray':
-        result = result.flatten()[0]
+    if not type(result).__name__ == 'float':
+        if type(result).__name__ == 'ndarray':
+            result = result.flatten()[0]
+        if type(result).__name__ == 'complex128':
+            result = float(result)
     return result
 
 
