@@ -13,7 +13,7 @@ import os
 from traceback import format_exc as traceback
 from genshi import escape, Markup
 from .auth import group, expose_for
-from io import StringIO
+from io import StringIO, BytesIO
 from cherrypy import log
 import chardet
 
@@ -218,29 +218,38 @@ class DownloadPage(object):
             if fn and 'overwrite' not in kwargs:
                 error = "'%s' exists already, if you want to overwrite the old version, check allow overwrite" % fn.name
 
-            if datafile.file:
+            # Buffer file for first check ecncoding and secondly upload file
+            with BytesIO(datafile.file.read()) as filebuffer:
                 # Check file encodings
-                # TODO: outsource valid encodings
-                result = chardet.detect(datafile.file.read())
-                
+
+                result = chardet.detect(filebuffer.read())
+
+                # Reset file buffer
+                filebuffer.seek(0)
                 if result:
                     file_encoding = result['encoding'].lower()
+                    # TODO: outsource valid encodings
                     if not (file_encoding in ['utf-8', 'ascii'] or 'utf-8' in file_encoding):
                         error = 'Only files with UTF8 or ASCII encoding are allowed to be uploaded. Please change the '\
                                 + 'encoding first!'
+                else:
+                    # Not commonly executed branch
+                    error = 'Warning: Couldn\'t determine the encoding of the uploaded file'
 
-            if not error:
-                try:
-                    fout = open(fn.absolute, 'wb')
-                    while True:
-                        data = datafile.file.read(8192)
-                        if not data:
-                            break
-                        fout.write(data)
-                    fout.close()
-                    fn.setownergroup()
-                except:
-                    error = traceback()
+                if not error:
+                    try:
+                        fout = open(fn.absolute, 'wb')
+                        while True:
+                            data = filebuffer.read(8192)
+                            if not data:
+                                break
+                            fout.write(data)
+                        fout.close()
+                        fn.setownergroup()
+                    except:
+                        error = traceback()
+                        print(error)
+
         if "uploadimport" in kwargs and not error:
             url = '/download/to_db?filename=' + escape(fn.href)
         else:
