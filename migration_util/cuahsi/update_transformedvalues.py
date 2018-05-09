@@ -141,8 +141,8 @@ try:
         n = 0
         for source in sources:
             n+=1
-            print("Source {} to Target {}\n".format(source, target)\
-                  +"Source {}/{}\nSource length: {}".format(n, s_size, len(records[source])), end='\r')
+            #print("Source {} to Target {}\n".format(source, target)\
+            print("Source {}/{}".format(n, s_size), end='\r')
 
             for rec in records[source]:
 
