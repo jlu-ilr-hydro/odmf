@@ -87,7 +87,6 @@ if tt_size > 0:
 #
 cur = connection.cursor()
 
-
 # fetch all sources
 # TODO: add target to source
 cur.execute("""SELECT DISTINCT source FROM transformed_timeseries tt LEFT JOIN transforms t """\
@@ -144,20 +143,19 @@ try:
             #print("Source {} to Target {}\n".format(source, target)\
             print("Source {}/{}".format(n, s_size), end='\r')
 
+            arglist = []
             for rec in records[source]:
 
                 transformed_value = transform(rec, expression)
-
-                # TODO: execute_batch
-                cur.execute("""INSERT INTO record VALUES (%(id)s, %(dataset)s, %(time)s, %(value)s, %(sample)s,"""\
-                + """%(comment)s, %(is_error)s);""", {'id': ids, 'dataset': target[0], 'time': rec[2],\
-                                                     'value': transformed_value, 'sample': rec[4], 'comment': rec[5],
-                                                     'is_error': rec[6]})
-
+                # appends parameters for batch execution
+                arglist += [{'id': ids, 'dataset': target[0], 'time': rec[2], 'value': transformed_value, \
+                             'sample': rec[4], 'comment': rec[5], 'is_error': rec[6]}]
                 # inc ids
                 ids += 1
 
-                # TODO: bulk inserting?
+            # Batch execution for performance improvement
+            cur.execute_batch("""INSERT INTO record VALUES (%(id)s, %(dataset)s, %(time)s, %(value)s, %(sample)s,""" \
+                              + """%(comment)s, %(is_error)s);""", arglist)
     connection.commit()
 except RuntimeError as e:
     print(e)
