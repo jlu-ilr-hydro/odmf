@@ -89,15 +89,18 @@ cur = connection.cursor()
 
 # fetch all sources
 # TODO: add target to source
-all_sources = cur.execute("""SELECT DISTINCT source FROM transformed_timeseries tt LEFT JOIN transforms t """\
+cur.execute("""SELECT DISTINCT source FROM transformed_timeseries tt LEFT JOIN transforms t """\
                           + """ON tt.id = t.target""")
 sources = cur.fetchall()
 #sources = [(_source,)]
 
-all_targets = cur.execute("""SELECT DISTINCT target, source, expression FROM transformed_timeseries tt LEFT JOIN transforms t """\
+cur.execute("""SELECT DISTINCT target, source, expression FROM transformed_timeseries tt LEFT JOIN transforms t """\
                           + """ON tt.id = t.target""")# WHERE target = %s AND source = %s""", (_target, _source))
-
 targets = cur.fetchall()
+
+cur.execute("""SELECT DISTINCT target, expression FROM transformed_timeseries tt LEFT JOIN transforms t """\
+                          + """ON tt.id = t.target""")# WHERE target = %s AND source = %s""", (_target, _source))
+targets_only = cur.fetchall()
 
 cur.execute("""SELECT target, source FROM transforms""")
 transformations = defaultdict(list)
@@ -122,14 +125,14 @@ print("{}/{} Download finished".format(n, s_size))
 try:
     t_size = len(targets)
     j = 0
-    for target in targets:
+    for target in targets_only:
         j+=1
         ids = 0
         print("Target {} of {}".format(j, t_size))
 
         sources = transformations[target[0]]
 #        sources = [_source]
-        expression = target[2]
+        expression = target[1]
         #print("Targtet: ", target)
         #print("Sources: ", sources)
         #print("Expression: ", expression)
