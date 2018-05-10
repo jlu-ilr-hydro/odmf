@@ -22,9 +22,14 @@ if not os.path.isfile('conf.py'):
 else:
     import conf
 
-    # Check for mandatory attributes
-    if parseConf(conf):
+    try:
+        # Check for mandatory attributes
+        parseConf(conf)
         print("✔ Config is valid")
+    except Exception as e:
+        print("Error in config validation: {}".format(e))
+        exit(1)
+
 
 # Start with project imports
 from webpage import Root, HeapyPage
