@@ -16,18 +16,35 @@ import conf
 
 import numpy as np
 
-import logging as _log
+import logging
 
 from collections import defaultdict
 import time
+import datetime
 
-def log(msg):
-    t0 = time.strftime("%c")
-    print("[LOG] {}: {}".format(t0, msg))
+# Logger configuration
+_log = logging.getLogger('update_tranformedvalues')
+_log.setLevel(logging.INFO)
+
+fh = logging.FileHandler('update.log')
+fh.setLevel(logging.INFO)
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+
+# add handler
+_log.addHandler(fh)
+_log.addHandler(ch)
 
 
-_log.basicConfig(level=_log.INFO)
-_log.info('Start')
+t0 = datetime.datetime.now()
+
+_log.info('Start routine')
 
 
 def transform(record, transformation):
@@ -58,9 +75,11 @@ def transform(record, transformation):
 #
 #       target = transformation(source_record, source_dataset)
 
+
 connection = psycopg2.connect(database="schwingbach2", user=conf.CFG_DATABASE_USERNAME, password=conf.CFG_DATABASE_PASSWORD,
                  host=conf.CFG_DATABASE_HOST)
 cur = connection.cursor()
+
 
 # all transformed timeseries that may be already hold records in the record table for deletion
 cur.execute("SELECT * FROM record WHERE dataset in (SELECT DISTINCT id FROM transformed_timeseries)")
@@ -68,7 +87,7 @@ all_possible_transformed_timeseries = cur.fetchall()
 
 # If records are present, delete them
 tt_size = len(all_possible_transformed_timeseries)
-print("Found {} transformed records in the records table for deletion.".format(tt_size))
+_log.info("Found {} transformed records in the records table for deletion.".format(tt_size))
 if tt_size > 0:
 
     print("Start deletion ...")
@@ -77,11 +96,13 @@ if tt_size > 0:
         connection.commit()
     except RuntimeError as e:
         print(e)
-        print("Error while deleting already existing transformed records. Database operations rolled back.")
+        _log.error("Error while deleting already existing transformed records. Database operations rolled back.")
         connection.rollback()
+        exit(1)
     finally:
-        print("Deletion of {} records was successfull.".format(cur.rowcount))
         cur.close()
+
+_log.info("Deletion of {} records was successfull.".format(cur.rowcount))
 
 
 # Creating new transformed timeseries records
@@ -120,6 +141,7 @@ for source in sources:
     cur.execute("SELECT * FROM record WHERE dataset = %s", (source))
     records[source[0]] = cur.fetchall()
 print("{}/{} Download finished".format(n, s_size))
+_log.info("Downloaded {} sources".format(s_size))
 
 # then iterate over the sources and insert the transformation into the respective target into the record table
 try:
@@ -164,14 +186,16 @@ try:
                           + """%(comment)s, %(is_error)s);""", arglist)
     connection.commit()
 
-except RuntimeError as e:
+except Exception as e:
     print(e)
     print(target, source)
+    _log.error('Error while inserting transformed rows. Rolling back operations and exiting!')
     connection.rollback()
     exit(1)
 
-print("Everything went fine!")
-connection.commit()
+t1 = datetime.datetime.now()
+_log.info("Last commit")
+_log.info("Update of transformed series was successful. Took {} to complete".format(t1-t0))
 cur.close()
 
 # TODO: Add monitoring/debugging behaviour
