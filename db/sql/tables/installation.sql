@@ -9,7 +9,7 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 
-SET search_path = "public", pg_catalog;
+SET search_path = public, pg_catalog;
 
 SET default_tablespace = '';
 
@@ -19,30 +19,30 @@ SET default_with_oids = false;
 -- Name: installation; Type: TABLE; Schema: public; Owner: schwingbach-user; Tablespace: 
 --
 
-CREATE TABLE "installation" (
-    "datasource_id" integer NOT NULL,
-    "site_id" integer NOT NULL,
-    "installation_id" integer NOT NULL,
-    "installdate" timestamp without time zone,
-    "removedate" timestamp without time zone,
-    "comment" character varying
+CREATE TABLE installation (
+    datasource_id integer NOT NULL,
+    site_id integer NOT NULL,
+    installation_id integer NOT NULL,
+    installdate timestamp without time zone,
+    removedate timestamp without time zone,
+    comment character varying
 );
 
 
-ALTER TABLE "public"."installation" OWNER TO "schwingbach-user";
+ALTER TABLE public.installation OWNER TO "schwingbach-user";
 
 --
--- Name: TABLE "installation"; Type: COMMENT; Schema: public; Owner: schwingbach-user
+-- Name: TABLE installation; Type: COMMENT; Schema: public; Owner: schwingbach-user
 --
 
-COMMENT ON TABLE "installation" IS 'The installation of an instrument (datasource) at a site. Has a set up and remove time';
+COMMENT ON TABLE installation IS 'The installation of an instrument (datasource) at a site. Has a set up and remove time';
 
 
 --
 -- Name: installation_installation_id_seq; Type: SEQUENCE; Schema: public; Owner: schwingbach-user
 --
 
-CREATE SEQUENCE "installation_installation_id_seq"
+CREATE SEQUENCE installation_installation_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -50,44 +50,44 @@ CREATE SEQUENCE "installation_installation_id_seq"
     CACHE 1;
 
 
-ALTER TABLE "public"."installation_installation_id_seq" OWNER TO "schwingbach-user";
+ALTER TABLE public.installation_installation_id_seq OWNER TO "schwingbach-user";
 
 --
 -- Name: installation_installation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: schwingbach-user
 --
 
-ALTER SEQUENCE "installation_installation_id_seq" OWNED BY "installation"."installation_id";
+ALTER SEQUENCE installation_installation_id_seq OWNED BY installation.installation_id;
 
 
 --
 -- Name: installation_id; Type: DEFAULT; Schema: public; Owner: schwingbach-user
 --
 
-ALTER TABLE ONLY "installation" ALTER COLUMN "installation_id" SET DEFAULT "nextval"('"installation_installation_id_seq"'::"regclass");
+ALTER TABLE ONLY installation ALTER COLUMN installation_id SET DEFAULT nextval('installation_installation_id_seq'::regclass);
 
 
 --
 -- Name: installation_pkey; Type: CONSTRAINT; Schema: public; Owner: schwingbach-user; Tablespace: 
 --
 
-ALTER TABLE ONLY "installation"
-    ADD CONSTRAINT "installation_pkey" PRIMARY KEY ("datasource_id", "site_id", "installation_id");
+ALTER TABLE ONLY installation
+    ADD CONSTRAINT installation_pkey PRIMARY KEY (datasource_id, site_id, installation_id);
 
 
 --
 -- Name: installation_datasource_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: schwingbach-user
 --
 
-ALTER TABLE ONLY "installation"
-    ADD CONSTRAINT "installation_datasource_id_fkey" FOREIGN KEY ("datasource_id") REFERENCES "datasource"("id");
+ALTER TABLE ONLY installation
+    ADD CONSTRAINT installation_datasource_id_fkey FOREIGN KEY (datasource_id) REFERENCES datasource(id);
 
 
 --
 -- Name: installation_site_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: schwingbach-user
 --
 
-ALTER TABLE ONLY "installation"
-    ADD CONSTRAINT "installation_site_id_fkey" FOREIGN KEY ("site_id") REFERENCES "site"("id");
+ALTER TABLE ONLY installation
+    ADD CONSTRAINT installation_site_id_fkey FOREIGN KEY (site_id) REFERENCES site(id);
 
 
 --

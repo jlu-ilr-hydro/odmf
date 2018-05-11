@@ -9,7 +9,7 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 
-SET search_path = "public", pg_catalog;
+SET search_path = public, pg_catalog;
 
 SET default_tablespace = '';
 
@@ -19,26 +19,26 @@ SET default_with_oids = false;
 -- Name: speciationcv; Type: TABLE; Schema: public; Owner: schwingbach-user; Tablespace: 
 --
 
-CREATE TABLE "speciationcv" (
-    "term" character varying(255) NOT NULL,
-    "definition" character varying
+CREATE TABLE speciationcv (
+    term character varying(255) NOT NULL,
+    definition character varying
 );
 
 
-ALTER TABLE "public"."speciationcv" OWNER TO "schwingbach-user";
+ALTER TABLE public.speciationcv OWNER TO "schwingbach-user";
 
 --
--- Name: TABLE "speciationcv"; Type: COMMENT; Schema: public; Owner: schwingbach-user
+-- Name: TABLE speciationcv; Type: COMMENT; Schema: public; Owner: schwingbach-user
 --
 
-COMMENT ON TABLE "speciationcv" IS '*** Controlled Vocabulary WOF interface required ***';
+COMMENT ON TABLE speciationcv IS '*** Controlled Vocabulary WOF interface required ***';
 
 
 --
--- Name: COLUMN "speciationcv"."definition"; Type: COMMENT; Schema: public; Owner: schwingbach-user
+-- Name: COLUMN speciationcv.definition; Type: COMMENT; Schema: public; Owner: schwingbach-user
 --
 
-COMMENT ON COLUMN "speciationcv"."definition" IS 'Definition of the Speciation controlled vocabulary term. The definition is 
+COMMENT ON COLUMN speciationcv.definition IS 'Definition of the Speciation controlled vocabulary term. The definition is 
 optional if the term is self explanatory.';
 
 
@@ -46,8 +46,8 @@ optional if the term is self explanatory.';
 -- Name: speciationcv_pkey; Type: CONSTRAINT; Schema: public; Owner: schwingbach-user; Tablespace: 
 --
 
-ALTER TABLE ONLY "speciationcv"
-    ADD CONSTRAINT "speciationcv_pkey" PRIMARY KEY ("term");
+ALTER TABLE ONLY speciationcv
+    ADD CONSTRAINT speciationcv_pkey PRIMARY KEY (term);
 
 
 --
