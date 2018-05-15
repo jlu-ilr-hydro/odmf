@@ -304,6 +304,9 @@ def start_server(root, autoreload=False, port=8080):
     cherrypy.config['server.socket_host'] = "0.0.0.0"
     cherrypy.config['server.socket_port'] = port
 
+    cherrypy.config['log.access_file'] = './access.log'
+    cherrypy.config['log.error_file'] = './error.log'
+
     # enable SSL
     # cherrypy.config.update(sslconfig)
     # cherrypy.config['server.ssl_module'] = 'builtin'
