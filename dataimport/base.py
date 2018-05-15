@@ -405,6 +405,11 @@ class ImportDescription(object):
         except UnicodeDecodeError:
             rawdata = open(path, 'rb').read()
             result = chardet.detect(rawdata)
+
+            # if chardet can't detect encoding
+            if result['encoding'] is None:
+                result['encoding'] = 'unknown'
+
             msg = "Your config at {} is encoded in {}. Please make sure you encode your config in ascii or utf-8"\
                 .format(path, result['encoding'])
             raise RuntimeError(msg)
