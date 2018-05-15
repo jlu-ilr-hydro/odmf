@@ -226,7 +226,8 @@ class DownloadPage(object):
                 # Reset file buffer
                 filebuffer.seek(0)
 
-                # check file encoding
+                # if chardet can determine file encoding, check it and warn respectively
+                # otherwise state not detecting
                 # TODO: chardet cannot determine sufficent amount of encodings, such as utf-16-le
                 if result['encoding']:
                     file_encoding = result['encoding'].lower()
