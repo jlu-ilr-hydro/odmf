@@ -221,17 +221,25 @@ class DownloadPage(object):
             # Buffer file for first check ecncoding and secondly upload file
             with BytesIO(datafile.file.read()) as filebuffer:
                 # Check file encodings
+                print(filebuffer.read())
+                filebuffer.seek(0)
+                print(filebuffer.read())
+                filebuffer.seek(0)
 
                 result = chardet.detect(filebuffer.read())
 
                 # Reset file buffer
                 filebuffer.seek(0)
                 if result:
-                    file_encoding = result['encoding'].lower()
-                    # TODO: outsource valid encodings
-                    if not (file_encoding in ['utf-8', 'ascii'] or 'utf-8' in file_encoding):
-                        error = 'Only files with UTF8 or ASCII encoding are allowed to be uploaded. Please change the '\
-                                + 'encoding first!'
+                    if result['encoding'] is None:
+                        log.error("WARNING: encoding of file {} not detectable".format(datafile.filename))
+                        error = 'Warning: Couldn\'t determine the encoding of the uploaded file'
+                    else:
+                        file_encoding = result['encoding'].lower()
+                        # TODO: outsource valid encodings
+                        if not (file_encoding in ['utf-8', 'ascii'] or 'utf-8' in file_encoding):
+                            error = 'Only files with UTF8 or ASCII encoding are allowed to be uploaded. Please change' \
+                                    ' the encoding first!'
                 else:
                     # Not commonly executed branch
                     error = 'Warning: Couldn\'t determine the encoding of the uploaded file'
