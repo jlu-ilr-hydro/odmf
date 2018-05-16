@@ -64,7 +64,9 @@ def if_errors_email(errors, to=receiver):
         msg += """Method {} has {} response code\n""".format(e[0], e[1].status_code)
 
     msg += "\n\n"
-    msg += "Check <a href=\"{}\">{}</a>".format(endpoint_url[:-30], endpoint_url[:-30])
+    msg += "Check your endpoint at {}".format(endpoint_url[:-30], endpoint_url[:-30])
+
+    msg += "\nThis message is automatically generated."
 
     mail.EMail(sender, [receiver], subject, msg).send()
 
