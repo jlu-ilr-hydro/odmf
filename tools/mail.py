@@ -6,9 +6,10 @@ Created on 20.03.2013
 import smtplib
 from email.mime.text import MIMEText
 
+from context import conf
 
 def send(mails):
-    s = smtplib.SMTP('mailout.uni-giessen.de')
+    s = smtplib.SMTP(conf.SMTP_SERVERURL)
     for mail in mails:
         msg = MIMEText(mail.text.encode('utf-8'), 'plain', 'utf-8')
         msg['Subject'] = mail.subject
