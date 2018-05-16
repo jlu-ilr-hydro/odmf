@@ -6,7 +6,7 @@ Created on 20.03.2013
 import smtplib
 from email.mime.text import MIMEText
 
-from context import conf
+import conf
 
 def send(mails):
     s = smtplib.SMTP(conf.SMTP_SERVERURL)
