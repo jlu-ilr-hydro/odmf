@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <tns:GetValuesForASiteObject xmlns="http://www.cuahsi.org/his/1.1/ws/">
+      <tns:site>Schwingbach:9</tns:site>
+      <tns:startDate>2016-04-19</tns:startDate>
+      <tns:endDate>2016-04-20</tns:endDate>
+      <tns:authToken></tns:authToken>
+    </tns:GetValuesForASiteObject>
+  </soap:Body>
+</soap:Envelope>
