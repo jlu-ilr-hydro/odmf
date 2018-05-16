@@ -63,6 +63,9 @@ def if_errors_email(errors, to=receiver):
     for e in errors:
         msg += """Method {} has {} response code\n""".format(e[0], e[1].status_code)
 
+    msg += "\n\n"
+    msg += "Check <a href=\"{}\">{}</a>".format(endpoint_url[:-30], endpoint_url[:-30])
+
     mail.EMail(sender, [receiver], subject, msg).send()
 
 
