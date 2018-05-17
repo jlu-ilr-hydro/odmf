@@ -11,4 +11,4 @@
 ./vacuum.sh
 
 # Validate the CUAHSI/SBO data
-/check_validity.py
+./check_validity.py
