@@ -55,7 +55,7 @@ CREATE VIEW seriescatalog AS
      LEFT JOIN project p ON ((d.project = p.id)))
      LEFT JOIN units tu ON ((tu.unitsid = 100)))
      LEFT JOIN series ON ((d.id = series.dataset)))
-  WHERE (((d.access = 0) AND (v.id <> 30)) AND (series.count > 0))
+  WHERE ((((d.access = 0) AND (v.id <> 30)) AND (series.count > 0)) AND (d.id NOT IN (SELECT id FROM sbo_odm_invalid_datasets)))
   ORDER BY d.id;
 
 
