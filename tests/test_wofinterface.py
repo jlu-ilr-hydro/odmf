@@ -9,11 +9,36 @@ from context import conf
 from tools import mail
 
 from lxml import etree
+import logging
 
-receiver = conf.CFG_WOFTESTER_RECEIVER_MAIL
+# TODO: Centralize logging
+# Logger configuration
+logger = logging.getLogger('test_wofinterface')
+logger.setLevel(logging.DEBUG)
+
+fh = logging.FileHandler('tests.log')
+fh.setLevel(logging.DEBUG)
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+
+# add handler
+logger.addHandler(fh)
+logger.addHandler(ch)
+
+# configuration
+receivers = conf.CFG_WOFTESTER_RECEIVER_MAIL
 sender = conf.CFG_WOFTESTER_SENDER_MAIL
 endpoint_url = conf.CFG_CUAHSI_WSDL_ENDPOINT
 
+success_msg = 'TEST_WOFINTERFACE successful'
+
+# TODO: Make this as a unit-test
 
 def parse_wsdl():
     """ Returns wsdl methods """
@@ -38,21 +63,25 @@ def do_request(method_name=None):
                'SOAPAction': 'http://www.cuahsi.org/his/1.1/ws/{}'.format(method_name)}
 
     # Load SOAP xml request files
+    # TODO: extend xml requests in the xml folder with boundary cases
     files = {'file': open('wateroneflow/xml/{}-request.xml'.format(method_name.lower()), 'rb')}
 
     r = requests.post(endpoint_url,
                       headers=headers,
                       files=files)
-
+    logger.debug('%s returned %s', method_name, r.status_code)
+    # TODO: implement additional methods for checking the xml response
     if r.status_code is not 200:
         # Response should be 200, if not generate error
+        logger.error('%s returned %s', method_name, r.status_code)
+        logger.debug('Content was \'%s\'', r.content[:30])
         return method_name, r
 
     # Return with no error
     return None
 
 
-def if_errors_email(errors, to=receiver):
+def if_errors_email(errors, to=receivers):
 
     # filter None values
     errors = [e for e in errors if e is not None]
@@ -68,7 +97,16 @@ def if_errors_email(errors, to=receiver):
 
     msg += "\nThis message is automatically generated."
 
-    mail.EMail(sender, [receiver], subject, msg).send()
+#    mail.EMail(sender, to, subject, msg).send()
+
+
+def if_no_errors_insert_log(errors, msg=success_msg):
+
+    # filter None
+    errors = [e for e in errors if e is not None]
+
+    if errors is []:
+        logger.info(msg)
 
 
 if __name__ == '__main__':
@@ -79,18 +117,21 @@ if __name__ == '__main__':
     # called either
     methods = parse_wsdl()
 
-    print('Requesting {} methods'.format(len(methods)))
+    logger.debug('Requesting {} methods'.format(len(methods)))
 
     if methods is None:
         # Then the HydroServer isn't running
-        mail.EMail(sender, [receiver],
+        mail.EMail(sender, receivers,
                    'Could not fetch wsdl methods',
                    'The WSDL file on {} could not be fetched. Please check your HydroServerLite'.format(endpoint_url))\
             .send()
 
     for name in methods:
-        print('Request wtih {} ...'.format(name), end='')
+        logger.debug('Request wtih {} ...'.format(name))
         all_errors += [do_request(method_name=name)]
-        print('Done.')
 
-    if_errors_email(all_errors, to=receiver)
+    if_errors_email(all_errors, to=receivers)
+
+    if_no_errors_insert_log(all_errors)
+
+    logger.debug('DONE')
