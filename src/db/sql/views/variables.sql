@@ -15,18 +15,18 @@ SET search_path = public, pg_catalog;
 -- Name: variables; Type: VIEW; Schema: public; Owner: schwingbach-user
 --
 
-CREATE VIEW variables AS
+CREATE OR REPLACE VIEW variables AS
  SELECT DISTINCT concat(v.id, '-', upper((d.cv_datatype)::text)) AS variablecode,
     v.id AS variableid,
     v.cv_variable_name AS variablename,
     v.cv_speciation AS speciation,
     v.cv_unit AS variableunitsid,
     v.cv_sample_medium AS samplemedium,
-    CASE WHEN "type" == 'timeseries'
+    CASE WHEN "type" = 'timeseries'
      THEN 'Field Observation'
-     WHEN "type" == 'transformed_timeseries'
+     WHEN "type" = 'transformed_timeseries'
       THEN 'Derived Value'
-      ELSE 'Unknown' AS valuetype,
+      ELSE 'Unknown' END AS valuetype,
     false AS isregular,
     0 AS timesupport,
     103 AS timeunitsid,
