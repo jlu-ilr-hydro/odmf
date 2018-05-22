@@ -15,7 +15,8 @@ SET search_path = public, pg_catalog;
 -- Name: variables; Type: VIEW; Schema: public; Owner: schwingbach-user
 --
 
-SELECT DISTINCT concat(v.id, '-', upper((d.cv_datatype)::text), '-',
+CREATE OR REPLACE VIEW variables AS
+ SELECT DISTINCT concat(v.id, '-', upper((d.cv_datatype)::text), '-',
                         CASE WHEN "type" = 'timeseries'
                           THEN 'FIELDOB'
                           WHEN "type" = 'transformed_timeseries'
