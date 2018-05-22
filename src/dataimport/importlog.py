@@ -73,12 +73,15 @@ class LogbookImport(object):
 
         return self.t0 + timedelta(date + time)
 
-    def get_obj(self, session, cls, row, col):
+    def get_obj(self, session, cls, row=None, col=None, strvalue=None):
         id = None
 
         # noinspection PyBroadException
         try:
-            id = self.sheet.cell_value(row, col)
+            if row and col:
+                id = self.sheet.cell_value(row, col)
+            elif strvalue:
+                id = strvalue
 
         except:
             pass
