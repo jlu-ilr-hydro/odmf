@@ -14,28 +14,30 @@ SET search_path = public, pg_catalog;
 --
 -- Name: seriescatalog; Type: VIEW; Schema: public; Owner: schwingbach-user
 --
+-- TODO: better join cuahsi views for non-redundant code (such as variablecode)
 
-CREATE VIEW seriescatalog AS
+--DROP VIEW seriescatalog;
+  CREATE VIEW seriescatalog AS
  SELECT d.id AS seriesid,
     d.site AS siteid,
     d.site AS sitecode,
     s.name AS sitename,
-    v.id AS variableid,
-    ((v.id || '-'::text) || upper((d.cv_datatype)::text)) AS variablecode,
+    _vr.variableid AS variableid,
+    _vr.variablecode AS variablecode,
     v.name AS variablename,
     (u.unitsname)::text AS variableunitsname,
-    v.id AS valuetype,
+    _vr.valuetype AS valuetype,
     v.cv_speciation AS speciation,
     v.cv_unit AS variableunitsid,
     v.cv_sample_medium AS samplemedium,
     d.project AS sourceid,
     p.name AS sourcedescription,
-    'ILR Gießen'::text AS organization,
-    'None'::text AS citation,
+    p.organization AS organization,
+    p.citation AS citation,
     tu.unitsid AS timeunitsid,
     tu.unitsname AS timeunitsname,
     (0.0)::real AS timesupport,
-    'Sporadic'::text AS datatype,
+    d.cv_datatype AS datatype,
     (v.cv_general_category)::text AS generalcategory,
     d.datacollectionmethod AS methodid,
     dm.description AS methoddescription,
@@ -46,9 +48,10 @@ CREATE VIEW seriescatalog AS
     d.start AS begindatetimeutc,
     d."end" AS enddatetimeutc,
     series.count AS valuecount
-   FROM ((((((((dataset d
+   FROM (((((((((dataset d
      LEFT JOIN site s ON ((d.site = s.id)))
-     LEFT JOIN valuetype v ON ((d.valuetype = v.id)))
+     LEFT JOIN valuetype v ON (d.valuetype = v.id))
+     INNER JOIN _variables _vr ON (_vr._sbo_valuetype = v.id AND _vr._sbo_dataset_type = d.type))
      LEFT JOIN quality q ON ((d.quality = q.id)))
      LEFT JOIN datacollectionmethod dm ON ((d.datacollectionmethod = dm.id)))
      LEFT JOIN units u ON ((v.cv_unit = u.unitsid)))
