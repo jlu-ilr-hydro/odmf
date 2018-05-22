@@ -1,7 +1,9 @@
-# schwingbach project
+
+
+# Observatory Data Management Framework
 
 This project provides a webinterface for managing scientific data measurement based on 
-[cherrypy](https://github.com/cherrypy/cherrypy).
+[cherrypy](https://github.com/cherrypy/cherrypy) and [postgres](https://www.postgresql.org/).
 
 TBD.
 
