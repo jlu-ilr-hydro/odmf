@@ -122,7 +122,6 @@ def finddateGaps(siteid, instrumentid, valuetype, startdate=None, enddate=None):
         print("[LOG] - finddateGaps - Returning %d gap(s)" % len(res))
         return res
 
-
 class ImportColumn:
     """
     Describes the content of a column in a delimited text file
@@ -223,6 +222,24 @@ class ImportColumn:
                    )
 
 
+def config_getdict(config, section, option):
+    """
+    Helper method to parse map values in .conf files
+
+    :param config:
+    :param section:
+    :param option:
+    :return:
+    """
+    try:
+        if config.has_option(section, option):
+            return ast.literal_eval(config.get(section, option))
+        else:
+            return {}
+    except ValueError:
+        raise ValueError('Config file attribute {} is no valid dict type'.format(option))
+
+
 class ImportDescription(object):
     """
     Describes the file format and content of a delimited text file for
@@ -232,7 +249,7 @@ class ImportDescription(object):
     def __init__(self, instrument, skiplines=0, delimiter=',', decimalpoint='.',
                  dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
                  timezone=conf.CFG_DATETIME_DEFAULT_TIMEZONE, project=None,
-                 nodata=[], worksheet=1):
+                 nodata=[], worksheet=1, sample_mapping=None):
         """
         instrument: the database id of the instrument that produced this file
         skiplines: The number of lines prepending the actual data
@@ -275,6 +292,9 @@ class ImportDescription(object):
             worksheet = 1
         self.worksheet = worksheet
 
+        # Sample mapping can be None
+        self.sample_mapping = sample_mapping
+
     def __str__(self):
         io = StringIO()
         self.to_config().write(io)
@@ -313,6 +333,8 @@ class ImportDescription(object):
         config.set(section, 'timezone', self.timezone)
         config.set(section, 'nodata', self.nodata)
         config.set(section, 'worksheet', self.worksheet)
+        if self.sample_mapping:
+            config.set(section, 'sample_mapping', self.sample_mapping)
         if self.fileextension:
             config.set(section, 'fileextension', self.fileextension)
         for col in self.columns:
@@ -374,8 +396,8 @@ class ImportDescription(object):
                   project=getvalue(sections[0], 'project'),
                   timezone=getvalue(sections[0], 'timezone'),
                   nodata=config_getlist(sections[0], 'nodata'),
-                  worksheet=getvalue(sections[0], 'worksheet', int)
-                  )
+                  worksheet=getvalue(sections[0], 'worksheet', int),
+                  sample_mapping=config_getdict(config, sections[0], 'sample_mapping'))
         tid.name = sections[0]
         for section in sections[1:]:
             tid.columns.append(ImportColumn.from_config(config, section))
@@ -469,7 +491,7 @@ class LogImportDescription(ImportDescription):
                  dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
                  timezone=conf.CFG_DATETIME_DEFAULT_TIMEZONE, project=None,
                  site=None, dataset=None, value=None, logtext=None, msg=None,
-                 worksheet=1, nodata=[]):
+                 worksheet=1, nodata=[], sample_mapping=None):
         """
         instrument: the database id of the instrument that produced this file
         skiplines: The number of lines prepending the actual data
@@ -485,7 +507,7 @@ class LogImportDescription(ImportDescription):
         super(LogImportDescription, self)\
             .__init__(instrument, skiplines, delimiter, decimalpoint,
                       dateformat, datecolumns, timezone, project, nodata=nodata,
-                      worksheet=worksheet)
+                      worksheet=worksheet, sample_mapping=sample_mapping)
 
     @classmethod
     def from_config(cls, config):
@@ -540,7 +562,8 @@ class LogImportDescription(ImportDescription):
                   value=getvalue(sections[0], 'value', float),
                   logtext=getvalue(sections[0], 'logtext'),
                   msg=getvalue(sections[0], 'msg'),
-                  worksheet=getvalue(sections[0], 'worksheet', int)
+                  worksheet=getvalue(sections[0], 'worksheet', int),
+                  sample_mapping=config_getdict(config, sections[0], 'sample_mapping')
                   )
         tid.name = sections[0]
         for section in sections[1:]:

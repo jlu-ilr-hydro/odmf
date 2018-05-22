@@ -7,6 +7,7 @@ import time
 import cherrypy
 
 from .base import AbstractImport, ImportDescription, ImportColumn, ImportStat, LogImportDescription
+from .base import config_getdict
 from dataimport.importlog import LogbookImport, LogImportError
 from .xls import XlsImport
 import conf
@@ -39,6 +40,8 @@ class ManualMeasurementsColumns(ILogColumn):
             else:
                 return None
 
+
+
         self.column = config.getint(section, 'column'),
         self.name = config.get(section, 'name'),
         self.valuetype = config.getint(section, 'valuetype'),
@@ -49,7 +52,8 @@ class ManualMeasurementsColumns(ILogColumn):
         self.maxvalue = getvalue('maxvalue', float),
         self.append = getvalue('append', int),
         self.level = getvalue('level', float),
-        self.access = getvalue('access', int)
+        self.access = getvalue('access', int),
+        self.sample_mapping = config_getdict(config, section, 'sample_mapping')
 
         self.dataset = config.getint(section, 'dataset')
 
@@ -260,6 +264,15 @@ class ManualMeasurementsImport(LogbookImport):
         # Get site
         site = self.get_value(row, self.columns.site)
 
+        # Use mapping if provided by .conf file
+        if self.descr.sample_mapping:
+            try:
+                key = site
+                site = self.descr.sample_mapping[key]
+            except KeyError:
+                raise LogImportError(row, 'Key {} cannot be found in the .conf file provided mapping'.format(key))
+
+
         # use cache
         if self._preload:
             if site not in list(self._sites.keys()):
@@ -267,7 +280,12 @@ class ManualMeasurementsImport(LogbookImport):
             else:
                 site = self._sites[site]
         else:
-            site, err = self.get_obj(session, db.Site, row, self.columns.site)
+            # Use value fetched from key value mapping from .conf
+            if self.descr.sample_mapping:
+                site, err = self.get_obj(session, db.Site, row=None, col=None, strvalue=site)
+            # Use row, col value else
+            else:
+                site, err = self.get_obj(session, db.Site, row, self.columns.site)
             if err:
                 raise LogImportError(row, err)
 
@@ -425,7 +443,7 @@ class ManualMeasurementsImport(LogbookImport):
 
         return super(ManualMeasurementsImport, self).get_value(row, col)
 
-    def get_obj(self, session, cls, row, col):
+    def get_obj(self, session, cls, row=None, col=None, strvalue=None):
 
         if isinstance(row, str):
             if row.isdigit():
@@ -434,7 +452,7 @@ class ManualMeasurementsImport(LogbookImport):
         if isinstance(col, str):
             if col.isdigit():
                 col = int(col)
-        return super(ManualMeasurementsImport, self).get_obj(session, cls, row, col)
+        return super(ManualMeasurementsImport, self).get_obj(session, cls, row, col, strvalue)
 
     def get_time(self, date, time):
         if time is None:
