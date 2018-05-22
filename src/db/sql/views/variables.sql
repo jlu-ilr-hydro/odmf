@@ -15,9 +15,13 @@ SET search_path = public, pg_catalog;
 -- Name: variables; Type: VIEW; Schema: public; Owner: schwingbach-user
 --
 
-CREATE OR REPLACE VIEW variables AS
- SELECT DISTINCT concat(v.id, '-', upper((d.cv_datatype)::text)) AS variablecode,
-    v.id AS variableid,
+SELECT DISTINCT concat(v.id, '-', upper((d.cv_datatype)::text), '-',
+                        CASE WHEN "type" = 'timeseries'
+                          THEN 'FIELDOB'
+                          WHEN "type" = 'transformed_timeseries'
+                            THEN 'DERIVED'
+                          ELSE 'Unknown' END) as variablecode,
+    ROW_NUMBER() OVER (ORDER BY v.id) AS variableid,
     v.cv_variable_name AS variablename,
     v.cv_speciation AS speciation,
     v.cv_unit AS variableunitsid,
@@ -35,8 +39,9 @@ CREATE OR REPLACE VIEW variables AS
     '-9999'::text AS nodatavalue
    FROM dataset d,
     valuetype v
-  WHERE ((d.valuetype = v.id) AND (v.id <> 30))
-  ORDER BY v.id;
+  WHERE ((d.valuetype = v.id) AND (v.id <> 30) AND (v.cv_variable_name <> ''))
+  GROUP BY v.id, d.cv_datatype, d.type
+  ORDER BY variableid;
 
 
 ALTER TABLE public.variables OWNER TO "schwingbach-user";
