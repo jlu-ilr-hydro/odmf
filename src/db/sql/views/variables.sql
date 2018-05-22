@@ -16,7 +16,12 @@ SET search_path = public, pg_catalog;
 --
 
 CREATE OR REPLACE VIEW variables AS
- SELECT DISTINCT concat(v.id, '-', upper((d.cv_datatype)::text)) AS variablecode,
+ SELECT DISTINCT concat(v.id, '-', upper((d.cv_datatype)::text), '-',
+                        CASE WHEN "type" = 'timeseries'
+                          THEN 'FIELDOB'
+                          WHEN "type" = 'transformed_timeseries'
+                            THEN 'DERIVED'
+                          ELSE 'Unknown' END) as variablecode,
     v.id AS variableid,
     v.cv_variable_name AS variablename,
     v.cv_speciation AS speciation,
@@ -35,7 +40,7 @@ CREATE OR REPLACE VIEW variables AS
     '-9999'::text AS nodatavalue
    FROM dataset d,
     valuetype v
-  WHERE ((d.valuetype = v.id) AND (v.id <> 30))
+  WHERE ((d.valuetype = v.id) AND (v.id <> 30) AND (v.cv_variable_name <> ''))
   ORDER BY v.id;
 
 
