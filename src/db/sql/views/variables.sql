@@ -22,7 +22,11 @@ CREATE VIEW variables AS
     v.cv_speciation AS speciation,
     v.cv_unit AS variableunitsid,
     v.cv_sample_medium AS samplemedium,
-    d.cv_valuetype AS valuetype,
+    CASE WHEN "type" == 'timeseries'
+     THEN 'Field Observation'
+     WHEN "type" == 'transformed_timeseries'
+      THEN 'Derived Value'
+      ELSE 'Unknown' AS valuetype,
     false AS isregular,
     0 AS timesupport,
     103 AS timeunitsid,
