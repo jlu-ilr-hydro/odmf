@@ -76,7 +76,7 @@ def transform(record, transformation):
 #       target = transformation(source_record, source_dataset)
 
 
-connection = psycopg2.connect(database="schwingbach2", user=conf.CFG_DATABASE_USERNAME, password=conf.CFG_DATABASE_PASSWORD,
+connection = psycopg2.connect(database=conf.CFG_DATABASE_NAME, user=conf.CFG_DATABASE_USERNAME, password=conf.CFG_DATABASE_PASSWORD,
                  host=conf.CFG_DATABASE_HOST)
 cur = connection.cursor()
 
