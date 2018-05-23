@@ -115,6 +115,7 @@ div.navigate li {
 /* Fixing bootstrap body line-height */
 body > xml > div.navigate > ul{
 	line-height: 16px;
+	margin-top: 15px;
 }
 
 div.navigate a {
