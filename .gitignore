@@ -1,5 +1,6 @@
 # Schwingbach
 conf.py
-webpage/datafiles/**
-webpage/sessions/**
-webpage/preferences/**
+**/webpage/datafiles/**
+**/webpage/sessions/**
+**/webpage/preferences/**
+
