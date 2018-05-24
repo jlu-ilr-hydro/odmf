@@ -5,6 +5,11 @@
 This project provides a webinterface for managing scientific data measurement based on 
 [cherrypy](https://github.com/cherrypy/cherrypy) and [postgres](https://www.postgresql.org/).
 
+[![License][license-image]][license-link]
+
+[license-image]: https://img.shields.io/badge/license-MIT-blue.png
+[license-link]: http://opensource.org/licenses/MIT
+
 TBD.
 
 [Visit the institiute homepage](http://www.uni-giessen.de/faculties/f09/institutes/ilr/hydro?set_language=en)
