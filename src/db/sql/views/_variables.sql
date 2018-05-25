@@ -1,6 +1,8 @@
 -- Materialized view to gain more control over published valuetypes in case of updates of the tables
 --  dataset or valuetype
 
+DROP MATERIALIZED VIEW IF EXISTS _variables;
+
 CREATE MATERIALIZED VIEW _variables AS
 SELECT DISTINCT concat(v.id, '-', upper((d.cv_datatype)::text), '-',
                         CASE WHEN "type" = 'timeseries'
@@ -28,6 +30,10 @@ SELECT DISTINCT concat(v.id, '-', upper((d.cv_datatype)::text), '-',
     '-9999'::text AS nodatavalue
    FROM dataset d
    LEFT JOIN valuetype v ON d.valuetype = v.id
-  WHERE ((v.id <> 30) AND (v.cv_variable_name <> ''))
+  WHERE v.id NOT IN (SELECT id FROM sbo_odm_invalid_valuetypes)
+    AND d.id NOT IN (SELECT id FROM sbo_odm_invalid_datasets)
   GROUP BY v.id, d.cv_datatype, d.type
-  ORDER BY variableid;
+  ORDER BY variableid
+WITH DATA;
+
+ALTER MATERIALIZED VIEW _variables OWNER TO "schwingbach-user";
