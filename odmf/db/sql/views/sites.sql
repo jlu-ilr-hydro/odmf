@@ -15,6 +15,8 @@ SET search_path = public, pg_catalog;
 -- Name: sites; Type: VIEW; Schema: public; Owner: schwingbach-user
 --
 
+DROP VIEW IF EXISTS sites;
+
 CREATE VIEW sites AS
  SELECT s.id AS siteid,
     s.id AS sitecode,
@@ -32,10 +34,15 @@ CREATE VIEW sites AS
     3 AS latlongdatumid,
     3 AS localprojectionid
    FROM site s
+  JOIN dataset d ON (s.id = d.site
+                 AND d.id NOT IN (SELECT id FROM sbo_odm_invalid_datasets)
+                 AND d.valuetype NOT IN (SELECT id FROM sbo_odm_invalid_valuetypes))
+  JOIN series ss ON (d.id = ss.dataset
+                 AND ss.count > 0)
+  GROUP BY s.id
   ORDER BY s.id;
 
-
-ALTER TABLE public.sites OWNER TO "schwingbach-user";
+ALTER VIEW sites OWNER TO "schwingbach-user";
 
 --
 -- PostgreSQL database dump complete

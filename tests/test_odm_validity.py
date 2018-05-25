@@ -33,5 +33,27 @@ with connection.cursor() as cursor:
         # send mail
         print('Not Valid: There are series with valuecount = 0')
 
+    # checks for similar rowcounts
+    cursor.execute("""SELECT DISTINCT(variableid) FROM seriescatalog""")
+    catalog_count = cursor.rowcount
+
+    cursor.execute("""SELECT * FROM variables""")
+
+    if cursor.rowcount != catalog_count:
+        validity = False
+        print('Not Valid: There are differences in variables published in the catalog and accessible via variables')
+
+
+    # checks for similar rowcounts
+    cursor.execute("""SELECT DISTINCT(siteid) FROM seriescatalog""")
+    catalog_count = cursor.rowcount
+
+    cursor.execute("""SELECT * FROM sites""")
+
+    if cursor.rowcount != catalog_count:
+        validity = False
+        print('Not Valid: There are differences in sites published in the catalog and accessible via sites')
+
+
 if validity:
     print("CUAHSI WOF Data of database {} is valid".format(conf.CFG_DATABASE_NAME))
