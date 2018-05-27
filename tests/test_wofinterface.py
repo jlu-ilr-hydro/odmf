@@ -70,6 +70,10 @@ def do_request(method_name=None):
                       headers=headers,
                       files=files)
     logger.debug('%s returned %s', method_name, r.status_code)
+    
+    # Parse for well formed xml
+    t = etree.XML(r.content, etree.XMLParser())
+
     # TODO: implement additional methods for checking the xml response
     if r.status_code is not 200:
         # Response should be 200, if not generate error
@@ -135,3 +139,4 @@ if __name__ == '__main__':
     if_no_errors_insert_log(all_errors)
 
     logger.debug('DONE')
+    
