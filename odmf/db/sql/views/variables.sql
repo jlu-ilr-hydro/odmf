@@ -15,6 +15,8 @@ SET search_path = public, pg_catalog;
 -- Name: variables; Type: VIEW; Schema: public; Owner: schwingbach-user
 --
 
+DROP VIEW IF EXISTS variables;
+
 CREATE OR REPLACE VIEW variables AS
   SELECT
     variablecode,
