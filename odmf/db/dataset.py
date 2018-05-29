@@ -359,7 +359,11 @@ class Timeseries(Dataset):
         self.end = last.time
         dsnew.start = next.time
         records = self.records.filter(Record.time >= next.time)
-        records.update({'dataset': dsnew.id})
+
+        # updates records with orm reference
+        for record in records:
+            record.dataset = dsnew
+
         session.commit()
         return self, dsnew
 
