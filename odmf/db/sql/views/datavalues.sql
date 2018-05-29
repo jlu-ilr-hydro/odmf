@@ -19,7 +19,6 @@ CREATE VIEW datavalues AS
  SELECT r.id AS valueid,
     d.calibration_offset,
     d.calibration_slope,
-    d.id AS datasetid,
     ((r.value * d.calibration_slope) + d.calibration_offset) AS datavalue,
     (r."time")::character varying AS localdatetime,
     2 AS utcoffset,

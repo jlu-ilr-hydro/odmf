@@ -16,10 +16,10 @@ SET search_path = public, pg_catalog;
 --
 -- TODO: better join cuahsi views for non-redundant code (such as variablecode)
 
-DROP VIEW IF EXISTS seriescatalog;
+DROP MATERIALIZED VIEW IF EXISTS seriescatalog;
 
-CREATE VIEW seriescatalog AS
- SELECT d.id AS seriesid,
+CREATE MATERIALIZED VIEW seriescatalog AS
+ SELECT MIN(d.id) as seriesid, -- changes are unusual
     d.site AS siteid,
     d.site AS sitecode,
     s.name AS sitename,
@@ -35,8 +35,8 @@ CREATE VIEW seriescatalog AS
     p.name AS sourcedescription,
     p.organization AS organization,
     p.citation AS citation,
-    tu.unitsid AS timeunitsid,
-    tu.unitsname AS timeunitsname,
+    u.unitsid AS timeunitsid,
+    u.unitsname AS timeunitsname,
     (0.0)::real AS timesupport,
     d.cv_datatype AS datatype,
     _vr.generalcategory AS generalcategory,
@@ -44,11 +44,17 @@ CREATE VIEW seriescatalog AS
     dm.description AS methoddescription,
     d.quality AS qualitycontrollevelid,
     q.name AS qualitycontrollevelcode,
-    d.start AS begindatetime,
-    d."end" AS enddatetime,
-    d.start AS begindatetimeutc,
-    d."end" AS enddatetimeutc,
-    series.count AS valuecount
+    MIN(d.start) AS begindatetime,
+    MAX(d."end") AS enddatetime,
+    -- adds utcdatetime
+    MIN(CASE WHEN pg_tz.utc_offset IS NOT NULL THEN
+         d.start AT TIME ZONE pg_tz.name AT TIME ZONE 'UTC'
+         ELSE d.start END) as begindatetimeutc,
+    MIN(CASE WHEN pg_tz.utc_offset IS NOT NULL THEN
+         d."end" AT TIME ZONE pg_tz.name AT TIME ZONE 'UTC'
+         ELSE d."end" END) as enddatetimeutc,
+    --MIN(d.timezone) as timezone,
+    SUM(series.count) AS valuecount
    FROM dataset d
      JOIN site s ON d.site = s.id
      JOIN _variables _vr ON _vr._sbo_valuetype = d.valuetype
@@ -58,10 +64,16 @@ CREATE VIEW seriescatalog AS
      JOIN units u ON _vr.variableunitsid = u.unitsid
      JOIN project p ON d.project = p.id
      JOIN series ON d.id = series.dataset
+     JOIN pg_timezone_names pg_tz ON pg_tz.name = d.timezone
   WHERE d.valuetype NOT IN (SELECT id FROM sbo_odm_invalid_valuetypes)
     AND series.count > 0
     AND d.id NOT IN (SELECT id FROM sbo_odm_invalid_datasets)
-  ORDER BY d.id;
+  GROUP BY siteid, sitename, variableid, variablecode, variablename, variableunitsname, u.unitsid, _vr.valuetype, speciation,
+    variableunitsid, samplemedium, sourceid, sourcedescription, organization,
+    citation, timeunitsid, timeunitsname, timesupport, d.cv_datatype, generalcategory, methodid, methoddescription,
+    qualitycontrollevelid, qualitycontrollevelcode, methodid
+  ORDER BY seriesid
+WITH DATA;
 
 
 ALTER TABLE public.seriescatalog OWNER TO "schwingbach-user";
@@ -70,7 +82,7 @@ ALTER TABLE public.seriescatalog OWNER TO "schwingbach-user";
 -- Name: VIEW seriescatalog; Type: COMMENT; Schema: public; Owner: schwingbach-user
 --
 
-COMMENT ON VIEW seriescatalog IS 'WHERE clause excludes odm incompatible valuetypes / incompatible rows broadly speaking';
+COMMENT ON MATERIALIZED VIEW seriescatalog IS 'WHERE clause excludes odm incompatible valuetypes / incompatible rows broadly speaking';
 
 
 --
