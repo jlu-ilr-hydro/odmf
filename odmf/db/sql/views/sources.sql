@@ -15,10 +15,13 @@ SET search_path = public, pg_catalog;
 -- Name: sources; Type: VIEW; Schema: public; Owner: schwingbach-user
 --
 
+DROP VIEW sources;
+
 CREATE VIEW sources AS
  SELECT p.id AS sourceid,
     (p.organization)::character varying(255) AS organization,
-    (p.comment)::character varying(255) AS sourcedescription,
+    -- removes new lines and carriage returns
+    regexp_replace(p.comment, E'[\\n\\r]+', ' ', 'g' )::character varying(255) AS sourcedescription,
     (p.sourcelink)::character varying(500) AS sourcelink,
     concat(pn.title, pn.firstname, ' ', pn.surname) AS contactname,
     (pn.phone)::character varying(255) AS phone,
@@ -27,6 +30,7 @@ CREATE VIEW sources AS
     (pn.city)::character varying(255) AS city,
     (pn.country)::character varying(255) AS state,
     (pn.postcode)::character varying(255) AS zipcode,
+    -- TODO: possible occurance of new lines and carriage returns?
     p.citation,
     NULL::integer AS metadataid
    FROM (project p

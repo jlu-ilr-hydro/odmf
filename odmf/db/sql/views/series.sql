@@ -8,6 +8,7 @@ CREATE MATERIALIZED VIEW series AS
    FROM record r
      RIGHT JOIN dataset d ON r.dataset = d.id
   WHERE r.id IS NULL
+  GROUP BY d.id
 UNION
  SELECT count(*) AS count,
     d.id AS dataset

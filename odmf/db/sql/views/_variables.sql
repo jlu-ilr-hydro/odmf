@@ -39,4 +39,4 @@ WITH DATA;
 ALTER TABLE _variables
   OWNER TO "schwingbach-user";
 
-COMMENT ON MATERIALIZED VIEW variables IS 'inner view for wrapper view "variables"';
+COMMENT ON MATERIALIZED VIEW _variables IS 'inner view for wrapper view "variables"';

@@ -15,24 +15,31 @@ SET search_path = public, pg_catalog;
 -- Name: datavalues; Type: VIEW; Schema: public; Owner: schwingbach-user
 --
 
+DROP VIEW IF EXISTS datavalues;
+
 CREATE VIEW datavalues AS
- SELECT r.id AS valueid,
+ SELECT r.id AS valueid, -- TODO: identifier
+    d.id as datasetid,
     d.calibration_offset,
     d.calibration_slope,
     ((r.value * d.calibration_slope) + d.calibration_offset) AS datavalue,
     (r."time")::character varying AS localdatetime,
-    2 AS utcoffset,
-    (r."time" + ('01:00:00'::time without time zone)::interval) AS datetimeutc,
+    CASE WHEN pg_tz.name IS NOT NULL THEN EXTRACT(epoch FROM pg_tz.utc_offset)/3600 ELSE 0 END AS utcoffset,
+    CASE WHEN pg_tz.name IS NOT NULL THEN r."time" AT TIME ZONE pg_tz.name AT TIME ZONE 'UTC' ELSE r."time" END AS datetimeutc,
     d.site AS siteid,
-    d.valuetype AS variableid,
+    _v.variableid AS variableid,
     'nc'::character varying AS censorcode,
     d.datacollectionmethod AS methodid,
     d.project AS sourceid,
     NULL::integer AS sampleid,
     d.quality AS qualitycontrollevelid
-   FROM record r,
-    dataset d
-  WHERE (r.dataset = d.id);
+   FROM record r
+    JOIN dataset d ON r.dataset = d.id
+    JOIN _variables _v ON (_v._sbo_valuetype = d.valuetype
+                       AND _v._sbo_dataset_type = d.type)
+    LEFT JOIN pg_timezone_names pg_tz ON pg_tz.name = d.timezone
+    WHERE r.dataset NOT IN (SELECT id FROM sbo_odm_invalid_datasets)
+      AND d.valuetype NOT IN (SELECT id FROM sbo_odm_invalid_valuetypes);
 
 
 ALTER TABLE public.datavalues OWNER TO "schwingbach-user";

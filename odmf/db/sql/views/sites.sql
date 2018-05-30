@@ -23,14 +23,15 @@ CREATE VIEW sites AS
     s.name AS sitename,
     s.lat AS latitude,
     s.lon AS longitude,
-    NULL::real AS localx,
-    NULL::real AS localy,
+    NULL::real AS localx, -- can be null after spec
+    NULL::real AS localy, -- can be null after spec
     s.height AS elevation_m,
     'Unknown'::character varying AS verticaldatum,
     'Hessen'::character varying AS state,
     'Giessen'::character varying AS county,
-    (s.comment)::text AS comments,
-    NULL::real AS posaccuracy_m,
+    -- removes newlines and carriage returns
+    regexp_replace(s.comment, E'[\\n\\r]+', ' ', 'g' )::text AS comments,
+    NULL::real AS posaccuracy_m, -- can be null after spec
     3 AS latlongdatumid,
     3 AS localprojectionid
    FROM site s

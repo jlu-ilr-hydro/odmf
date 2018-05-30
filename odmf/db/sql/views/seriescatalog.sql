@@ -64,7 +64,7 @@ CREATE MATERIALIZED VIEW seriescatalog AS
      JOIN units u ON _vr.variableunitsid = u.unitsid
      JOIN project p ON d.project = p.id
      JOIN series ON d.id = series.dataset
-     JOIN pg_timezone_names pg_tz ON pg_tz.name = d.timezone
+     LEFT JOIN pg_timezone_names pg_tz ON pg_tz.name = d.timezone
   WHERE d.valuetype NOT IN (SELECT id FROM sbo_odm_invalid_valuetypes)
     AND series.count > 0
     AND d.id NOT IN (SELECT id FROM sbo_odm_invalid_datasets)
