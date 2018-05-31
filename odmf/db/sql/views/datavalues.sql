@@ -15,17 +15,17 @@ SET search_path = public, pg_catalog;
 -- Name: datavalues; Type: VIEW; Schema: public; Owner: schwingbach-user
 --
 
-DROP VIEW IF EXISTS datavalues;
+DROP MATERIALIZED VIEW IF EXISTS datavalues;
 
-CREATE VIEW datavalues AS
- SELECT r.id AS valueid, -- TODO: identifier
+CREATE MATERIALIZED VIEW datavalues AS
+ SELECT row_number() OVER (ORDER BY r."time") AS valueid,
     d.id as datasetid,
-    d.calibration_offset,
-    d.calibration_slope,
-    ((r.value * d.calibration_slope) + d.calibration_offset) AS datavalue,
+    d.calibration_offset as offsetvalue,
+    --d.calibration_slope,
+    ((r.value * d.calibration_slope) + d.calibration_offset)::real AS datavalue,
     (r."time")::character varying AS localdatetime,
-    CASE WHEN pg_tz.name IS NOT NULL THEN EXTRACT(epoch FROM pg_tz.utc_offset)/3600 ELSE 0 END AS utcoffset,
-    CASE WHEN pg_tz.name IS NOT NULL THEN r."time" AT TIME ZONE pg_tz.name AT TIME ZONE 'UTC' ELSE r."time" END AS datetimeutc,
+    (CASE WHEN pg_tz.name IS NOT NULL THEN EXTRACT(epoch FROM pg_tz.utc_offset)/3600 ELSE 0 END)::real AS utcoffset,
+    (CASE WHEN pg_tz.name IS NOT NULL THEN r."time" AT TIME ZONE pg_tz.name AT TIME ZONE 'UTC' ELSE r."time" END)::character varying AS datetimeutc,
     d.site AS siteid,
     _v.variableid AS variableid,
     'nc'::character varying AS censorcode,
@@ -39,7 +39,9 @@ CREATE VIEW datavalues AS
                        AND _v._sbo_dataset_type = d.type)
     LEFT JOIN pg_timezone_names pg_tz ON pg_tz.name = d.timezone
     WHERE r.dataset NOT IN (SELECT id FROM sbo_odm_invalid_datasets)
-      AND d.valuetype NOT IN (SELECT id FROM sbo_odm_invalid_valuetypes);
+      AND d.valuetype NOT IN (SELECT id FROM sbo_odm_invalid_valuetypes)
+      ORDER BY row_number() OVER (ORDER BY r."time")
+  WITH DATA;
 
 
 ALTER TABLE public.datavalues OWNER TO "schwingbach-user";
