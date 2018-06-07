@@ -3,6 +3,10 @@ import cherrypy
 
 from . import lib as web
 from .auth import users, require, member_of, has_level, group, expose_for, hashpw, is_self, get_levels
+from .upload import write_to_file
+import tools
+from tools import Path
+
 import db
 import sys
 import os
@@ -1004,6 +1008,57 @@ class ProjectPage:
             .render('html', doctype='html')
 
 
+class AdminPage:
+    """
+    Displays forms and utilites for runtime configuration of the application, which will be made persistent
+    """
+    expose = True
+
+    @expose_for(group.admin)
+    def default(self, error='', success=''):
+
+        return web.render('admin.html', error=error)\
+            .render('html', doctype='html')
+
+    def upload(self, imgfile, imgtype):
+
+        runtimedir = os.path.realpath('.') + '/'
+
+        fn = Path(runtimedir)
+
+        def _save_to_location(location, file):
+            """
+            Helper function
+            """
+            error = ''
+
+            if os.path.isfile(location.absolute):
+                try:
+                    write_to_file(location.absolute, imgfile)
+                except:
+                    error += '\n' + traceback()
+                    print(error)
+                    return error
+
+        if imgtype is 'logo':
+            # save to logo location
+            error = _save_to_location(fn + '/media/log.png', imgfile)
+
+        elif imgtype is 'leftbanner':
+            # save to leftbanner location
+            error = _save_to_location(fn + '/media/leftbanner.png', imgfile)
+
+        else:
+            error = ''
+            cherrypy.log.error('Adminpage Formular value imgtype is wrong')
+
+        if error is '':
+            msg = 'Successfully uploaded image'
+            raise web.HTTPRedirect('/admin?success=%s' % msg)
+        else:
+            raise web.HTTPRedirect('/admin/?error=%s' % error)
+
+
 class Root(object):
     _cp_config = {'tools.sessions.on': True,
                   'tools.sessions.timeout': 24 * 60, # One day
@@ -1028,6 +1083,7 @@ class Root(object):
     plot = PlotPage()
     calendar = CalendarPage()
     wiki = Wiki()
+    admin = AdminPage()
 
     @expose_for()
     def index(self):

@@ -1,0 +1,54 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+    <!-- Server configuration, see conf.py for HEAD_BASE -->
+    <base href="${head_base}" />
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous" />
+
+    <link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+    <link href="/media/monitoring.css" rel="stylesheet" type="text/css" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript"></script>
+
+	<title>Monitoring</title>
+</head>
+<body>
+	${navigation('Admin')}
+  <div class="content">
+		<div class="error" id="errordiv"></div>
+        <div class="success" id="successdiv"></div>
+
+      <div class="container-fluid">
+          <div class="col">
+
+            <!-- Left banner Logo -->
+            <div class="row">
+                <form method="post" enctype="multipart/form-data" action="/admin/upload">
+                  <div class="form-group" id="logofile-form">
+                    <label for="logofile">Left banner logo file input</label>
+                    <input type="file" name="imgfile" class="form-control-file" id="logofile"/>
+                    <input type="hidden" name="imgtype" value="logo" />
+                  </div>
+                </form>
+            </div>
+
+            <!-- Left banner Background -->
+            <div class="row">
+                <form method="post" enctype="multipart/form-data" action="/admin/upload">
+                  <div class="form-group">
+                    <label for="leftbannerfile">Left banner background image file input</label>
+                    <input type="file" name="imgfile" class="form-control-file" id="leftbannerfile" />
+                    <input type="hidden" name="imgtype" value="leftbanner" />
+                  </div>
+                </form>
+            </div>
+
+          </div>
+      </div><!-- div.container-fluid end -->
+  </div><!-- div.content end -->
+
+</body>
+</html>
