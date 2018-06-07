@@ -40,14 +40,14 @@ def write_to_file(fn, fin):
     :return:
     """
 
-    fout = open(fn.absolute, 'wb')
+    fout = open(fn, 'wb')
     while True:
         data = fin.read(8192)
         if not data:
             break
         fout.write(data)
     fout.close()
-    fn.setownergroup()
+
 
 
 class DBImportPage(object):
@@ -263,7 +263,8 @@ class DownloadPage(object):
                     error = msg
 
                 try:
-                    write_to_file(fn.absolute, filebuffer)
+                    write_to_file(fn, filebuffer)
+                    fn.setownergroup()
                 except:
                     error += '\n' + traceback()
                     print(error)

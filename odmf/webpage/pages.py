@@ -23,6 +23,13 @@ from webpage.preferences import Preferences
 from webpage.plot import PlotPage
 
 
+
+MEDIA_PATH = {
+    'logo': '/media/schwingbachlogo.png',
+    'banner-left': '/media/navigation-background.jpg'
+}
+
+
 class PersonPage:
     exposed = True
 
@@ -1008,7 +1015,7 @@ class ProjectPage:
             .render('html', doctype='html')
 
 
-class AdminPage:
+class AdminPage(object):
     """
     Displays forms and utilites for runtime configuration of the application, which will be made persistent
     """
@@ -1017,14 +1024,15 @@ class AdminPage:
     @expose_for(group.admin)
     def default(self, error='', success=''):
 
-        return web.render('admin.html', error=error)\
+        return web.render('admin.html', error=error, success=success, MEDIA_PATH=MEDIA_PATH)\
             .render('html', doctype='html')
 
-    def upload(self, imgfile, imgtype):
+    @expose_for(group.admin)
+    def upload(self, imgtype, imgfile, **kwargs):
 
         runtimedir = os.path.realpath('.') + '/'
 
-        fn = Path(runtimedir)
+        fn = runtimedir + 'webpage'
 
         def _save_to_location(location, file):
             """
@@ -1032,28 +1040,33 @@ class AdminPage:
             """
             error = ''
 
-            if os.path.isfile(location.absolute):
-                try:
-                    write_to_file(location.absolute, imgfile)
-                except:
-                    error += '\n' + traceback()
-                    print(error)
-                    return error
+            if not os.path.isfile(location):
+                cherrypy.log.error('No image present at \'%s\'. Creating it now!')
 
-        if imgtype is 'logo':
+            try:
+                write_to_file(location, imgfile.file)
+            except:
+                error += '\n' + traceback()
+                print(error)
+
+            return error
+
+        # check for image types to determine location
+        if imgtype == 'logo':
             # save to logo location
-            error = _save_to_location(fn + '/media/log.png', imgfile)
+            error = _save_to_location(fn + MEDIA_PATH['logo'], imgfile)
 
-        elif imgtype is 'leftbanner':
+        elif imgtype == 'leftbanner':
             # save to leftbanner location
-            error = _save_to_location(fn + '/media/leftbanner.png', imgfile)
+            error = _save_to_location(fn + MEDIA_PATH['banner-left'], imgfile)
 
         else:
-            error = ''
-            cherrypy.log.error('Adminpage Formular value imgtype is wrong')
+            cherrypy.log.error('Adminpage form value imgtype is wrong')
+            cherrypy.response.status = 400
+            raise cherrypy.HTTPError(status=400, message='Bad Request')
 
         if error is '':
-            msg = 'Successfully uploaded image'
+            msg = 'Successfully uploaded image. Reload page to view results'
             raise web.HTTPRedirect('/admin?success=%s' % msg)
         else:
             raise web.HTTPRedirect('/admin/?error=%s' % error)
