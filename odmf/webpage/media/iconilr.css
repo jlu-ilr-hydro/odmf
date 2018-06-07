@@ -139,6 +139,7 @@ div.content {
 	overflow:auto;
 
 }
+
 .error {
     background-color: red;
     color: white;
@@ -146,6 +147,15 @@ div.content {
     font-weight: bold;
     white-space: pre;
     border-radius: 5px;
+}
+
+.success {
+	background-color: green;
+	color: white;
+	font-family: monospace;
+	font-weight: bold;
+	white-space: pre;
+	border-radius: 5px;
 }
 .code {
 		background-color: white;

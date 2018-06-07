@@ -26,6 +26,28 @@ import conf
 datapath = web.abspath('datafiles')
 home = web.abspath('.')
 
+#
+# Shared utility
+#
+
+
+def write_to_file(dest, src):
+    """
+    Write data of src (file in) into location of dest (filename)
+
+    :param dest:  filename on the server system
+    :param src: file contents input buffer
+    :return:
+    """
+
+    fout = open(dest, 'wb')
+    while True:
+        data = src.read(8192)
+        if not data:
+            break
+        fout.write(data)
+    fout.close()
+
 
 class DBImportPage(object):
     exposed = True
@@ -240,13 +262,7 @@ class DownloadPage(object):
                     error = msg
 
                 try:
-                    fout = open(fn.absolute, 'wb')
-                    while True:
-                        data = filebuffer.read(8192)
-                        if not data:
-                            break
-                        fout.write(data)
-                    fout.close()
+                    write_to_file(fn.absolute, filebuffer)
                     fn.setownergroup()
                 except:
                     error += '\n' + traceback()
