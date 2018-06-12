@@ -5,11 +5,10 @@
 LOGFILE=./db.log
 DATABASE=schwingbach
 
-psql -c "REFRESH MATERIALIZED VIEW series;" -L $LOGFILE $DATABASE
+psql -c "REFRESH MATERIALIZED VIEW series; REFRESH MATERIALIZED VIEW _variables; REFRESH MATERIALIZED VIEW seriescatalog;" -L $LOGFILE $DATABASE
 
-status=$?
-
-if [[$status -ne 0]]; then
+# checks status
+if [ "$?" -ne 0 ]; then
     time=`date +%Y-%m-%d\ %H:%M:%S`
     echo "Materializing exited with $status at $time" >> error.log
 fi

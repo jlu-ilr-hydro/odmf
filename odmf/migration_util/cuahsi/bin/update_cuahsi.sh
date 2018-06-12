@@ -1,6 +1,9 @@
 #!/bin/bash
 # update_cuahsi.sh
 
+#change working dir
+cd $(dirname "$0")
+
 # Refresh rows of materialized view series
 ./refresh_series.sh
 
@@ -10,5 +13,6 @@
 # Optimize datastructure of new records
 ./vacuum.sh
 
+# TODO
 # Validate the CUAHSI/SBO data
-./check_validity.py
+#./check_validity.py
