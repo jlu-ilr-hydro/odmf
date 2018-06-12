@@ -21,7 +21,7 @@ DROP MATERIALIZED VIEW IF EXISTS seriescatalog;
 CREATE MATERIALIZED VIEW seriescatalog AS
  SELECT MIN(d.id) as seriesid, -- changes are unusual
     d.site AS siteid,
-    d.site AS sitecode,
+    d.site::character varying AS sitecode,
     s.name AS sitename,
     _vr.variableid AS variableid,
     _vr.variablecode AS variablecode,

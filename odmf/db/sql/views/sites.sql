@@ -19,7 +19,7 @@ DROP VIEW IF EXISTS sites;
 
 CREATE VIEW sites AS
  SELECT s.id AS siteid,
-    s.id AS sitecode,
+    s.id::character varying AS sitecode,
     s.name AS sitename,
     s.lat AS latitude,
     s.lon AS longitude,
