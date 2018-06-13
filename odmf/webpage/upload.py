@@ -257,9 +257,8 @@ class DownloadPage(object):
                     if not (file_encoding in ['utf-8', 'ascii'] or 'utf-8' in file_encoding):
                         log.error("WARNING: encoding of file {} is {}".format(datafile.filename, file_encoding))
                 else:
-                    msg = "WARNING: encoding of file {} not detectable".format(datafile.filename)
+                    msg = "WARNING: encoding of file {} is not detectable".format(datafile.filename)
                     log.error(msg)
-                    error = msg
 
                 try:
                     write_to_file(fn.absolute, filebuffer)
