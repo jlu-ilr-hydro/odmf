@@ -11,11 +11,9 @@ install:
 
 script:
   - cd odmf
-  - mv tests/conf-test-local.py conf.py
+  - cp ../tests/conf-test-local.py conf.py
   - python start.py &
   # Timouts to let the server start up
   - sleep 5
-  - cd ../tests
-  - python test_
 # test via sqlitedb, mit guest user, jeweils alle "exposed" seiten
 # TODO: postgres-scripts
