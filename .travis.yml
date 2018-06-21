@@ -1,7 +1,6 @@
 language: python
 python:
   - "3.6"
-  - "pypy3.5"
 
 os:
   - linux
@@ -12,8 +11,10 @@ install:
 script:
   - cd odmf
   - cp ../tests/conf-test-local.py conf.py
+  # make os environment ready
+  - ./install.sh
   - python start.py &
   # Timouts to let the server start up
-  - sleep 5
+  - sleep 7
 # test via sqlitedb, mit guest user, jeweils alle "exposed" seiten
 # TODO: postgres-scripts
