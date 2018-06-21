@@ -1,6 +1,7 @@
 # may be outdated
 
 bcrypt
+chardet
 cherrypy
 configparser==3.5
 genshi==0.7
