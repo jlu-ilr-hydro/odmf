@@ -11,6 +11,7 @@ from tools import mail
 from lxml import etree
 import logging
 
+# TODO: argparse
 # TODO: Centralize logging
 # Logger configuration
 logger = logging.getLogger('test_wofinterface')
@@ -55,6 +56,17 @@ def parse_wsdl():
     return [ptype.attrib.get('name') for ptype in portType]
 
 
+def check_validity(xml):
+    """Checks for common patterns, which break the harvester"""
+    is_invalid = False
+    error = None
+    
+    if re.match('\<[a-zA-Z]+\>\<\/[a-zA-Z>', xml):
+        return True, 'Potential harvester break cause found, no empty tags'
+
+    return is_invalid, error
+
+
 def do_request(method_name=None):
 
     # Set necessary headers
@@ -80,6 +92,15 @@ def do_request(method_name=None):
         logger.error('%s returned %s', method_name, r.status_code)
         logger.debug('Content was \'%s\'', r.content[:30])
         return method_name, r
+
+    # status code is obviously 200
+    # check for xml validity
+    #xml_is_not_valid, error = check_validity(r)
+    #if xml_is_not_valid:
+        # xml should be valid, generate error
+    #    logger.error('%s response xml not valid')
+    #    logger.debug('Error was \'%s\''), error)
+    #    return method_name, error
 
     # Return with no error
     return None

@@ -16,5 +16,7 @@ script:
   - python start.py &
   # Timouts to let the server start up
   - sleep 7
-# test via sqlitedb, mit guest user, jeweils alle "exposed" seiten
-# TODO: postgres-scripts
+  # Run acceptance tests
+  - cd ../tests; ./run_tests
+
+# TODO: also include postgres-scripts
