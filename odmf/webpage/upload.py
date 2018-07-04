@@ -107,6 +107,12 @@ class DBImportPage(object):
     def instrumentimport(self, filename, kwargs):
         """
         Loads instrument data using a .conf file
+
+        Wheter 'loadstat' or 'impordb' is in kwargs, the method returns the import page with the stats or with a commit
+        message
+
+        :param filename:
+        :param kwargs:
         """
 
         t0 = time.time()

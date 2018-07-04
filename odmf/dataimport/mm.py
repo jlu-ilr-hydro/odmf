@@ -8,7 +8,7 @@ import cherrypy
 
 from .base import AbstractImport, ImportDescription, ImportColumn, ImportStat, LogImportDescription
 from .base import config_getdict
-from dataimport.importlog import LogbookImport, LogImportError
+from dataimport.importlog import LogbookImport, LogImportError, ILogColumn
 from .xls import XlsImport
 import conf
 from re import search, sub
@@ -17,19 +17,12 @@ import db
 from pytz import common_timezones_set
 
 
-class ILogColumn():
-
-    date = None
-    time = None
-    datetime = None
-    site = None
-    dataset = None
-    value = None
-    logtext = None
-    msg = None
-
-
 class ManualMeasurementsColumns(ILogColumn):
+    """
+    More specific LogColumn with full filling the requirements of @ManualMeasurementsImport
+
+    FIXME: Why this derives from ILogColumn when no super class attributes are used?
+    """
 
     def __init__(self, config, section):
 
@@ -39,8 +32,6 @@ class ManualMeasurementsColumns(ILogColumn):
 
             else:
                 return None
-
-
 
         self.column = config.getint(section, 'column'),
         self.name = config.get(section, 'name'),
@@ -236,6 +227,7 @@ class ManualMeasurementsImport(LogbookImport):
         :param row: Data to be imported
         :param valuetype_column: {ImportColumn} a single column, since
                                  importrow is used here to import column-wise
+        :param commit: boolean, True if imported rows are commited to the database
         """
 
         print(("valuetype_column '%s'" % (valuetype_column)))
@@ -271,7 +263,6 @@ class ManualMeasurementsImport(LogbookImport):
                 site = self.descr.sample_mapping[key]
             except KeyError:
                 raise LogImportError(row, 'Key {} cannot be found in the .conf file provided mapping'.format(key))
-
 
         # use cache
         if self._preload:
@@ -420,7 +411,7 @@ class ManualMeasurementsImport(LogbookImport):
             except ValueError as e:
                 raise LogImportError(row, e.message)
 
-            return ("Add value %g %s to %s (%s)" % (v, ds.valuetype, ds, date))
+            return "Add value %g %s to %s (%s)" % (v, ds.valuetype, ds, date)
         # if dataset exsist but the value is None the value will not be imported and a warning will be shown
         elif (ds is not None) and v is None:
             return "Warning: None-Value for Site %s at %s will not be added to %s" % (site, date, ds)
@@ -432,7 +423,13 @@ class ManualMeasurementsImport(LogbookImport):
             job.make_done(self, date)
 
     def get_value(self, row, col):
-
+        """
+        Calls super get values, casts row and col to int index first
+        :param row: excel row index int
+        :param col: excel col index int
+        :raises TypeError:
+        :return: value at excel row and col index
+        """
         if isinstance(row, str):
             if row.isdigit():
                 row = int(row)
@@ -444,7 +441,15 @@ class ManualMeasurementsImport(LogbookImport):
         return super(ManualMeasurementsImport, self).get_value(row, col)
 
     def get_obj(self, session, cls, row=None, col=None, strvalue=None):
-
+        """
+        Calls super get obj, casts row and col to int index first
+        :param session: sqlalchemy session object
+        :param cls: orm class from odmf.db
+        :param row: excel row index
+        :param col: excel col index
+        :param strvalue:
+        :return: orm database obj from id
+        """
         if isinstance(row, str):
             if row.isdigit():
                 row = int(row)
@@ -452,17 +457,23 @@ class ManualMeasurementsImport(LogbookImport):
         if isinstance(col, str):
             if col.isdigit():
                 col = int(col)
+
         return super(ManualMeasurementsImport, self).get_obj(session, cls, row, col, strvalue)
 
     def get_time(self, date, time):
+        """
+        Wrapper for calling the super method
+        """
         if time is None:
             return None
 
         return super(ManualMeasurementsImport, self).get_time(date, time)
 
+    @classmethod
     def from_config(cls, config, section):
         """
         Get the column description from a config-file
+        :param config:
         """
         def getvalue(option, t=str):
             if config.has_option(section, option):
@@ -486,9 +497,9 @@ class ManualMeasurementsImport(LogbookImport):
     @staticmethod
     def extension_fits_to(filename):
         """
-
-        :param filename:
-        :return:
+        Determines if a given filename extension fits to the import
+        :param filename: abs filename str
+        :return: Boolean, True if filename extension fits to import
         """
 
         name, ext = splitext(filename)
@@ -506,6 +517,9 @@ class ManualMeasurementsImport(LogbookImport):
         raise ValueError("Couldn't read date time")
 
     def get_latest_dataset(self, session, valuetype, siteid):
+        """
+        Helper method
+        """
 
         # get manual sources
         sources = session.query(db.Datasource).filter(
@@ -528,6 +542,9 @@ class ManualMeasurementsImport(LogbookImport):
         return dataset, length, ''
 
     def get_datetime(self, row):
+        """
+        Helper method
+        """
 
         #date = self.get_value(row, self.columns.date)
 
@@ -535,9 +552,9 @@ class ManualMeasurementsImport(LogbookImport):
 
         # if a time column is given, determine time
         if self.columns.time:
-            time = self.get_value(row, self.columns.time)
+            act_time = self.get_value(row, self.columns.time)
 
-            date = date + timedelta(time)
+            date = date + timedelta(act_time)
         # otherwise not
         # else:
             #time = 0
@@ -549,5 +566,6 @@ class ManualMeasurementsImport(LogbookImport):
 
     @classmethod
     def from_file(cls, path):
-
+        # call "super" from file
+        # TODO: Inheritance should be super(ManualMeasurementsImport).from_file. See DbImport.logimport()
         return LogImportDescription.from_file(path)
