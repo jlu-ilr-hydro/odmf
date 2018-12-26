@@ -1,0 +1,31 @@
+Data upload
+===========
+
+Several types of use cases evolves when working with different kind of measurement
+instruments. So the raw input data of each measuring device can change in e.g. structure
+and/or value units. In some cases the upload happes complete automatic. In the other cases
+the data upload is done by humans, who firstly fetch the data files from our measurment devices and
+secondly transfer them via our web interface into the database. When uploading data into the database,
+we distinguish three types of upload mechanisms.
+
+*(Insert picture of pseuso classes)*
+
+Upload type 1: Normal data
+**************************
+
+This is the most common way to upload. All other upload mechanism derives from this kind of upload protocol.
+
+
+
+Upload Type 2: Manual measured data
+***********************************
+
+
+
+Upload type 3: Log data
+***********************
+
+This is the most special way of uploading data. There are no real time series of data, rather
+there are much more single data rows that are identified either with tuple of `dataset.valuetype`,
+`dataset.site` and so on (Further informations :ref:`see dataset <schema-dataset>`), or with
+an explicit `dataset.id`, to determine one matching dataset where the data row is appended to.
