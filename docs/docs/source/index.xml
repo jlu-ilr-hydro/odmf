@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?asciidoc-toc?>
+<?asciidoc-numbered?>
+<article xmlns="http://docbook.org/ns/docbook" xmlns:xl="http://www.w3.org/1999/xlink" version="5.0" xml:lang="en">
+<info>
+<title>ODMF Docs</title>
+<date>2018-07-06</date>
+</info>
+<section xml:id="odmf-docs">
+<title>ODMF Docs</title>
+<simpara>To provide information on the installation, the database schema and
+usage of the functionality of the spatial data measurement observation
+software.</simpara>
+<simpara>The documentation starts with a chapter about the platform, which covers
+the authors motivation and a brief overview about the software
+components. After this a chapter with detailed instruction on how to
+install the software follows. When having the platform installed and
+ready running, the chapter with information on how to use the individual
+tools can be of great help.</simpara>
+<simpara>If you want to contribute to the code base, you can get a grasp of the
+software coherences in studying the chapter on development of the
+platform, where issues including the code base, the database model of
+ODMF and the migration to the CUAHSI WaterOneFlow interface are
+described.</simpara>
+</section>
+<section xml:id="indices-and-tables">
+<title>Indices and tables</title>
+<itemizedlist>
+<listitem>
+<simpara>genindex</simpara>
+</listitem>
+<listitem>
+<simpara>modindex</simpara>
+</listitem>
+<listitem>
+<simpara>search</simpara>
+</listitem>
+</itemizedlist>
+</section>
+</article>
