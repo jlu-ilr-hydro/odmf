@@ -34,14 +34,27 @@ To connect more of the ideas under the hood of the server there are diagrams des
 * CUAHSI WOF transactions diagram
 * Views a. CV-Tables extending ODMF data schema
 
-### Database erm
+### Database (ERM)
 
 ![Picture of the ODMF database schema]( ../../images/schwingbach.png "ODMF database schema")
 
 
-## Database orm mapping
+## Database (ORM mapping)
+
+The Python ORM framework [SQLalchemy](https://www.sqlalchemy.org) is used for handling data transactions for user
+administration, field data import and metadata annotation.
+
+In the relation `dataset` many foreign keys are stored, which point to other relations and additional metadata.
+The most important are `site`, `valuetype` and `source`, of which the primary key of dataset consists.
+The other foreign keys affiliation is straight forward.
+
+The `record` relation keeps the essential data rows, that describe the measured data. Each row belongs to a `dataset` relation, which then extends the known data about it.
+
+In the relation `person` all the user data is stored. Further the relation `job` contains a metadata to tasks, that are
+assigned to a person. A element of relation `dataset` is assigned via `measured_by` to a `person` too.
+
 ### Dataset
-Distinction between timeseries and transformed_timeseries.
+Distinction between `timeseries` and `transformed_timeseries`.
 
 A dataset object has a so called back reference to records with a `lazy` join on the records, regarding the dataset.
 [See sqlalchemy docs](http://docs.sqlalchemy.org/en/latest/orm/backref.html) on backref.
@@ -51,8 +64,7 @@ A dataset object has a so called back reference to records with a `lazy` join on
 ### Job
 
 
-## Database SQL
-
+## Database (SQL)
 ### ODMF Schema Model
 Elaborate on the ODMF (NOT ODM Schema model)
 
