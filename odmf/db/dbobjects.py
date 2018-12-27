@@ -9,6 +9,13 @@ import sqlalchemy.orm as orm
 from .base import Base, Session, newid, engine
 from sqlalchemy.schema import ForeignKey
 from datetime import datetime, timedelta
+
+import cherrypy
+print(cherrypy)
+print(cherrypy.lib)
+print(cherrypy.lib.reprconf)
+print(cherrypy.lib.reprconf.as_dict)
+
 from cherrypy.lib.reprconf import as_dict
 from .projection import LLtoUTM, dd_to_dms
 from collections import deque
