@@ -21,7 +21,21 @@ and ui tests, but no unit tests.
 
 *
 
-The code base
+The code base is divided in three main parts. **Server**, **automated import** and
+**database communication**.
+
+* Most of the **server** functionality is in the `webpage` module. It covers starting
+  and stopping the server. Exposing of webpages and data endpoints.
+
+  * Module `pages` contains all pages, unless they are `plot`, `site`, `upload`, `dataset` or `map`.
+    In `webpage/lib.py` is utility code.
+  * The `auth` module is based on the `bcrypt` hashing implementation.
+
+* **automated import** functions reside in `dataimport` module.
+
+* **database** and ORM code is in `db` the module.
+
+Utility code for calibration, conf and markdown parsing are saved in the `tools` module.
 
 ## Core thoughts behind design decisions
 

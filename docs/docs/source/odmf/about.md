@@ -13,6 +13,8 @@ TBD by Philipp
 * Integration of Google Maps UI panel
 
 ## Development
+
+Further explanation is in [development chapter](development.html). 
 (Architecture/ Components) Link to Development
 Mentales Gerüst (optional)
 
