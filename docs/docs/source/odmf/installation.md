@@ -56,7 +56,7 @@ $ odm-start
 
 ### Configuration
 
-Describes more sophisticated server configurations
+Describes more sophisticated server configurations via one file.
 
 * Configure database connections, timezones, admin accounts, host/wsdl urls
 

@@ -5,14 +5,14 @@ it let you understand the database schema which is essential to the development,
 So this chapter should be referred to, when developing the platform.
 At the beginning there is a brief introduction to the design of the server system. After getting a overview of the
 platform and its coherences, the [database](development.html#database-erm) is described briefly and the
-[ORM mapping](development.html#database-orm-mapping) is explained in detail, so a when developing you can make use of
+[ORM mapping](development.html#database-orm-mapping) is explained in detail, so when developing you can make use of
 the `odmf.db`-package.
 
-In the following picture the server stack, consisting of a Backend framework [cherrypy](https://cherrypy.org), which
-connects the [postgres](https://postgres.org) database and renders the contents with the help of
-[genshi](https://genshi.edgewall.org/) and a bit [jquery](https://jquery.org). Speaking of the server code, the database
-is accessed consistently via the ORM-mapping framework [sqlalchemy](https://www.sqlalchemy.org). The Cherrypy server
-also exposes some methods as JSON exports for a rest-like use of data retrieval.
+In the following picture the server stack, consisting of the backend framework [cherrypy](https://cherrypy.org), which
+connects the [postgres](https://postgres.org) database and renders with the help of templating engine
+[genshi](https://genshi.edgewall.org/) the HTML content and a bit of [jquery](https://jquery.org).
+Speaking of the server code, the database is accessed consistently via the ORM-mapping framework [sqlalchemy](https://www.sqlalchemy.org).
+The Cherrypy server also exposes some methods as JSON exports for a rest-like use of data retrieval.
 
 ![Picture of the ODMF database schema]( ../../images/umls/server-stack.jpg "ODMF server stack")
 
@@ -50,6 +50,7 @@ A dataset object has a so called back reference to records with a `lazy` join on
 
 ### Job
 
+
 ## Database SQL
 
 ### ODMF Schema Model
@@ -67,7 +68,11 @@ timezones.
 Corresponds to the `/odmf/dataimport` directory.
 
 This directory holds the files `__init__.py` and `base.py` which mainly provide some kind of abstract skeleton for the
-data import. The other files go along with a descriptive filename, which is similar to names of the file including class.
+data import. The other files go along with a descriptive filename, which is similar to names of the file including
+class. For example `XlsImport` is for the import of `xls(x)` files.
+
+Upload and data import is part of the *automated import* and is further explained in the
+ [usage](usage.html#import-data) chapter.
 
 [//]: # (TODO: Add UML diagram of LogImport etc.)
 

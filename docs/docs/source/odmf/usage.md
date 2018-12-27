@@ -20,7 +20,10 @@ Here all users can upload files for importing or just uploading
 
 The user can customize the logo (1) and the background image (2).
 
-<img src="../\_images/landing-page.png" alt="landing page" width="550"/>
+<!--<img src="../../images/landing-page.png" alt="landing page" width="550"/>-->
+
+![landing page](../../images/installation/landing-page.png "Landing page")
+
 
 Therefore to change (1) the path `webpage/media/schwingbach-logo.png` and for (2) the path at
 `webpage/media/navigation-background.jpg` has to be altered.
@@ -35,13 +38,31 @@ Already imported data can be further altered (split) and reused (transformations
 
 #### Upload datafiles
 
-Data files can be uploaded as xlsx format.
+Data files are uploaded via the `datafiles` tab. A data file has a maximum file size that it cannot exceed, otherwise
+the import algorithm will time out.
 
 #### Import
+
+It's only possible to import files with `xls`,`xlsx`,`csv` as file extension.
+
 #### Manipulate datasets
 ##### Split datasets
 
 #### `.conf` files
+
+The configuration file is a definition of the import process of all files in a directory.
+This file includes variable attributes that all import data files have in common.
+The concept of a configuration file assumes, that in general each data files import information can be covered by a
+description and multiple column descriptions.
+A description contains information that depict the import on file level and the column descriptions on column level.
+The descriptions made by the user once, contain all information to automatically import the data of multiple files.
+So the user is able to omit most of the configuration of future imports for this folder.
+
+File specific attributes of the import process are `skiplines`.
+Data specific attributes are `dateformat`, `datecolumn` or `sitecolumn`
+If no `{*}.conf` file is present in a folder, the parent directory is searched for a configuration file.
+
+<!-- standard configuration (?) -->
 
 These files are processed with the `configparser` module, the module requires that a file is encoded in `utf-8` or a subset.
 If a config file is not encoded in `utf-8` or a subset, when the file import is initiated with this kind of config file,
