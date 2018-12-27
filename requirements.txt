@@ -2,7 +2,7 @@
 
 bcrypt
 chardet
-cherrypy
+cherrypy==14.1.0
 configparser==3.5
 genshi==0.7
 markdown==2.3.1
