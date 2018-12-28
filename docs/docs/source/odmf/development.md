@@ -19,8 +19,6 @@ The Cherrypy server also exposes some methods as JSON exports for a rest-like us
 The development was done between 2013-today partially by a team of one or two developers. There are some acceptance
 and ui tests, but no unit tests.
 
-*
-
 The code base is divided in three main parts. **Server**, **automated import** and
 **database communication**.
 
@@ -119,6 +117,13 @@ is returned to the user, as part of an error message.
 ## Migration
 Differences of the database schemas of ODMF and ODM:
 * odmf.dataset attributes start and end, can be identical in the rare case of a size of just one record.
+
+### WaterOneFlow
+
+Details on the implementation of the WaterOneFlow interface for ODMF server software.
+
+* What parts communicate how
+* SQL Views as mapping from ODMF schema to ODM schema
 
 ### Schema mapping validity
 

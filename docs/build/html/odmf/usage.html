@@ -204,7 +204,7 @@
 <div class="section" id="logo-and-image">
 <span id="logo-and-image"></span><h3>Logo and image<a class="headerlink" href="#logo-and-image" title="Permalink to this headline">¶</a></h3>
 <p>The user can customize the logo (1) and the background image (2).</p>
-<p><img src="../\_images/landing-page.png" alt="landing page" width="550"/></p>
+<!--<img src="../../images/landing-page.png" alt="landing page" width="550"/>--><p><img alt="landing page" src="../_images/landing-page.png" /></p>
 <p>Therefore to change (1) the path <code class="docutils literal notranslate"><span class="pre">webpage/media/schwingbach-logo.png</span></code> and for (2) the path at
 <code class="docutils literal notranslate"><span class="pre">webpage/media/navigation-background.jpg</span></code> has to be altered.</p>
 </div>
@@ -217,10 +217,12 @@ The process consists of several steps, (1) upload files into the file system of 
 Already imported data can be further altered (split) and reused (transformations).</p>
 <div class="section" id="upload-datafiles">
 <span id="upload-datafiles"></span><h3>Upload datafiles<a class="headerlink" href="#upload-datafiles" title="Permalink to this headline">¶</a></h3>
-<p>Data files can be uploaded as xlsx format.</p>
+<p>Data files are uploaded via the <code class="docutils literal notranslate"><span class="pre">datafiles</span></code> tab. A data file has a maximum file size that it cannot exceed, otherwise
+the import algorithm will time out.</p>
 </div>
 <div class="section" id="import">
 <span id="import"></span><h3>Import<a class="headerlink" href="#import" title="Permalink to this headline">¶</a></h3>
+<p>It’s only possible to import files with <code class="docutils literal notranslate"><span class="pre">xls</span></code>,<code class="docutils literal notranslate"><span class="pre">xlsx</span></code>,<code class="docutils literal notranslate"><span class="pre">csv</span></code> as file extension.</p>
 </div>
 <div class="section" id="manipulate-datasets">
 <span id="manipulate-datasets"></span><h3>Manipulate datasets<a class="headerlink" href="#manipulate-datasets" title="Permalink to this headline">¶</a></h3>
@@ -230,7 +232,17 @@ Already imported data can be further altered (split) and reused (transformations
 </div>
 <div class="section" id="conf-files">
 <span id="conf-files"></span><h3><code class="docutils literal notranslate"><span class="pre">.conf</span></code> files<a class="headerlink" href="#conf-files" title="Permalink to this headline">¶</a></h3>
-<p>These files are processed with the <code class="docutils literal notranslate"><span class="pre">configparser</span></code> module, the module requires that a file is encoded in <code class="docutils literal notranslate"><span class="pre">utf-8</span></code> or a subset.
+<p>The configuration file is a definition of the import process of all files in a directory.
+This file includes variable attributes that all import data files have in common.
+The concept of a configuration file assumes, that in general each data files import information can be covered by a
+description and multiple column descriptions.
+A description contains information that depict the import on file level and the column descriptions on column level.
+The descriptions made by the user once, contain all information to automatically import the data of multiple files.
+So the user is able to omit most of the configuration of future imports for this folder.</p>
+<p>File specific attributes of the import process are <code class="docutils literal notranslate"><span class="pre">skiplines</span></code>.
+Data specific attributes are <code class="docutils literal notranslate"><span class="pre">dateformat</span></code>, <code class="docutils literal notranslate"><span class="pre">datecolumn</span></code> or <code class="docutils literal notranslate"><span class="pre">sitecolumn</span></code>
+If no <code class="docutils literal notranslate"><span class="pre">{*}.conf</span></code> file is present in a folder, the parent directory is searched for a configuration file.</p>
+<!-- standard configuration (?) --><p>These files are processed with the <code class="docutils literal notranslate"><span class="pre">configparser</span></code> module, the module requires that a file is encoded in <code class="docutils literal notranslate"><span class="pre">utf-8</span></code> or a subset.
 If a config file is not encoded in <code class="docutils literal notranslate"><span class="pre">utf-8</span></code> or a subset, when the file import is initiated with this kind of config file,
 a error message is displayed to the user.</p>
 <div class="highlight-pacmanconf notranslate"><div class="highlight"><pre><span></span>TBD.

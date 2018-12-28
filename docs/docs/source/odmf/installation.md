@@ -1,4 +1,4 @@
-## Installation
+# Installation
 
 1. Clone github repository and install python dependencies
     ```
@@ -54,7 +54,7 @@ We have now finished the installation process and are able to start the server w
 $ odm-start
 ```
 
-### Configuration
+## Configuration
 
 Describes more sophisticated server configurations via one file.
 
@@ -62,7 +62,21 @@ Describes more sophisticated server configurations via one file.
 
 * whats with media, css, images, logos
 
-#### The ```conf.py``` File
+### The ```conf.py``` File
 
 In the root directory there is the main configuration file, called `.conf.py`. Via this file you configure the variable
 parts of the ODMF installation.
+
+
+## WaterOneFlow
+
+This covers the installation of the PHP server [HydroServerLite](https://github.com/CUAHSI/HydroServerLite)
+and the deployment of SQL Views. This views are used on the side of the ODMF schema to map it to the relations which
+are used with the HydroServer.
+
+### HydroServerLite
+
+The code is downloaded from Github and exposed via an Apache instance.
+
+Possible alternative to PHP based server is this python solution [WOFpy](https://github.com/ODM2/WOFpy). It relies on
+the ODM schema 2.0.

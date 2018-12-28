@@ -90,6 +90,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#the-conf-py-file">The <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> File</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#wateroneflow">WaterOneFlow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hydroserverlite">HydroServerLite</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage/ Tutorial/ Wiki</a></li>
@@ -214,7 +218,7 @@ odmf-server/
 </div>
 <div class="section" id="configuration">
 <span id="configuration"></span><h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
-<p>Describes more sophisticated server configurations</p>
+<p>Describes more sophisticated server configurations via one file.</p>
 <ul class="simple">
 <li>Configure database connections, timezones, admin accounts, host/wsdl urls</li>
 <li>whats with media, css, images, logos</li>
@@ -223,6 +227,18 @@ odmf-server/
 <span id="the-conf-py-file"></span><h3>The <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> File<a class="headerlink" href="#the-conf-py-file" title="Permalink to this headline">¶</a></h3>
 <p>In the root directory there is the main configuration file, called <code class="docutils literal notranslate"><span class="pre">.conf.py</span></code>. Via this file you configure the variable
 parts of the ODMF installation.</p>
+</div>
+</div>
+<div class="section" id="wateroneflow">
+<span id="wateroneflow"></span><h2>WaterOneFlow<a class="headerlink" href="#wateroneflow" title="Permalink to this headline">¶</a></h2>
+<p>This covers the installation of the PHP server <a class="reference external" href="https://github.com/CUAHSI/HydroServerLite">HydroServerLite</a>
+and the deployment of SQL Views. This views are used on the side of the ODMF schema to map it to the relations which
+are used with the HydroServer.</p>
+<div class="section" id="hydroserverlite">
+<span id="hydroserverlite"></span><h3>HydroServerLite<a class="headerlink" href="#hydroserverlite" title="Permalink to this headline">¶</a></h3>
+<p>The code is downloaded from Github and exposed via an Apache instance.</p>
+<p>Possible alternative to PHP based server is this python solution <a class="reference external" href="https://github.com/ODM2/WOFpy">WOFpy</a>. It relies on
+the ODM schema 2.0.</p>
 </div>
 </div>
 </div>
