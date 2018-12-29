@@ -88,6 +88,7 @@
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage/ Tutorial/ Wiki</a></li>
 <li class="toctree-l1"><a class="reference internal" href="views.html">Views</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#structure">Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#core-thoughts-behind-design-decisions">Core thoughts behind design decisions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#database-erm">Database (ERM)</a></li>
 </ul>
@@ -195,9 +196,12 @@ connects the <a class="reference external" href="https://postgres.org">postgres<
 <a class="reference external" href="https://genshi.edgewall.org/">genshi</a> the HTML content and a bit of <a class="reference external" href="https://jquery.org">jquery</a>.
 Speaking of the server code, the database is accessed consistently via the ORM-mapping framework <a class="reference external" href="https://www.sqlalchemy.org">sqlalchemy</a>.
 The Cherrypy server also exposes some methods as JSON exports for a rest-like use of data retrieval.</p>
-<p><img alt="Picture of the ODMF database schema" src="../_images/server-stack.jpg" /></p>
+<!-- TODO very high level fmc --><p><img alt="High level server stack" src="../_images/fmc-highlevel.png" /></p>
 <p>The development was done between 2013-today partially by a team of one or two developers. There are some acceptance
 and ui tests, but no unit tests.</p>
+<div class="section" id="structure">
+<span id="structure"></span><h2>Structure<a class="headerlink" href="#structure" title="Permalink to this headline">¶</a></h2>
+<p><img alt="ODMF software components" src="../_images/fmc-odmf.png" /></p>
 <p>The code base is divided in three main parts. <strong>Server</strong>, <strong>automated import</strong> and
 <strong>database communication</strong>.</p>
 <ul class="simple">
@@ -212,6 +216,7 @@ In <code class="docutils literal notranslate"><span class="pre">webpage/lib.py</
 <li><strong>database</strong> and ORM code is in <code class="docutils literal notranslate"><span class="pre">db</span></code> the module.</li>
 </ul>
 <p>Utility code for calibration, conf and markdown parsing are saved in the <code class="docutils literal notranslate"><span class="pre">tools</span></code> module.</p>
+</div>
 <div class="section" id="core-thoughts-behind-design-decisions">
 <span id="core-thoughts-behind-design-decisions"></span><h2>Core thoughts behind design decisions<a class="headerlink" href="#core-thoughts-behind-design-decisions" title="Permalink to this headline">¶</a></h2>
 <p>To connect more of the ideas under the hood of the server there are diagrams describing the user interaction for the most important functions of the platform.</p>

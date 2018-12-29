@@ -17,7 +17,7 @@ the CUAHSI organization. For example to inspect or download data via the [Data.C
 
 ## Development
 
-Further explanation is in [development chapter](development.html).
+Further explanation on the code structure and software components in [development chapter](development.html).
 (Architecture/ Components) Link to Development
 Mentales Gerüst (optional)
 
@@ -30,7 +30,11 @@ Mentales Gerüst (optional)
 
 ### How does it work
 
-Elements are HydroServerLite (a) which implements the WaterOneFlow interface, the PostgreSQL database (b) which fullfills the ODM schema, via SQL views. And the ODMF (c) server is mainly used to write data into the database.
+The important elements are HydroServerLite (a) which implements the WaterOneFlow interface,
+the PostgreSQL database (b) which fullfills the ODM schema, via SQL views. Additionally there
+is the ODMF (c) server, which is mainly used to write data into the database.
+
+![FMC diagram of whole system]( ../../images/fmc-cuahsi.png "Different components (FMC diagram)")
 
 1. A request is send to the HydroServer.
 
@@ -41,9 +45,7 @@ Elements are HydroServerLite (a) which implements the WaterOneFlow interface, th
 Data writes from the import mechanism from the ODMF server are an ongoing process and can result in an hourly changing
 data base.
 
-<!-- TODO fmc diagram (a) - (b) - (c) -->
-
-<!-- TODO fmc transaction diagram -->
+![UML transaction diagram]( ../../images/fmc-wof-views-2.png "UML transactions from request (FMC Diagram)")
 
 ### Implementation
 

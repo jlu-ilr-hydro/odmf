@@ -182,7 +182,7 @@ the CUAHSI organization. For example to inspect or download data via the <a clas
 </div>
 <div class="section" id="development">
 <span id="development"></span><h2>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h2>
-<p>Further explanation is in <a class="reference external" href="development.html">development chapter</a>.
+<p>Further explanation on the code structure and software components in <a class="reference external" href="development.html">development chapter</a>.
 (Architecture/ Components) Link to Development
 Mentales Gerüst (optional)</p>
 <ul class="simple">
@@ -194,7 +194,10 @@ Mentales Gerüst (optional)</p>
 <span id="cuahsi-wateroneflow-interface"></span><h2>CUAHSI WaterOneFlow Interface<a class="headerlink" href="#cuahsi-wateroneflow-interface" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="how-does-it-work">
 <span id="how-does-it-work"></span><h3>How does it work<a class="headerlink" href="#how-does-it-work" title="Permalink to this headline">¶</a></h3>
-<p>Elements are HydroServerLite (a) which implements the WaterOneFlow interface, the PostgreSQL database (b) which fullfills the ODM schema, via SQL views. And the ODMF (c) server is mainly used to write data into the database.</p>
+<p>The important elements are HydroServerLite (a) which implements the WaterOneFlow interface,
+the PostgreSQL database (b) which fullfills the ODM schema, via SQL views. Additionally there
+is the ODMF (c) server, which is mainly used to write data into the database.</p>
+<p><img alt="FMC diagram of whole system" src="../_images/fmc-cuahsi.png" /></p>
 <ol class="simple">
 <li>A request is send to the HydroServer.</li>
 <li>The responses are build of information from one ore more views, which the server middleware will compose.</li>
@@ -202,7 +205,8 @@ Mentales Gerüst (optional)</p>
 </ol>
 <p>Data writes from the import mechanism from the ODMF server are an ongoing process and can result in an hourly changing
 data base.</p>
-<!-- TODO fmc diagram (a) - (b) - (c) --><!-- TODO fmc transaction diagram --></div>
+<p><img alt="UML transaction diagram" src="../_images/fmc-wof-views-2.png" /></p>
+</div>
 <div class="section" id="implementation">
 <span id="implementation"></span><h3>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h3>
 <p>Details on this topic are written down in <a class="reference external" href="development.html#wateroneflow">development chapter</a></p>

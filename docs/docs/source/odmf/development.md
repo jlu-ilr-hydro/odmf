@@ -14,10 +14,16 @@ connects the [postgres](https://postgres.org) database and renders with the help
 Speaking of the server code, the database is accessed consistently via the ORM-mapping framework [sqlalchemy](https://www.sqlalchemy.org).
 The Cherrypy server also exposes some methods as JSON exports for a rest-like use of data retrieval.
 
-![Picture of the ODMF database schema]( ../../images/umls/server-stack.jpg "ODMF server stack")
+<!-- TODO very high level fmc -->
+
+![High level server stack]( ../../images/fmc-highlevel.png "ODMF high level server stack (FMC diagram)")
 
 The development was done between 2013-today partially by a team of one or two developers. There are some acceptance
 and ui tests, but no unit tests.
+
+## Structure
+
+![ODMF software components](../../images/fmc-odmf.png "ODMF software components (FMC diagram)")
 
 The code base is divided in three main parts. **Server**, **automated import** and
 **database communication**.
