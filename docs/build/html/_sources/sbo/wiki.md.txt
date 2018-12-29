@@ -1,3 +1,0 @@
-# Wiki
-
-**TODO:** Porting *wiki* from fb09-pasig server

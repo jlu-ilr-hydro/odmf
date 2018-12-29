@@ -27,6 +27,7 @@ CUAHSI WaterOneFlow interface are described.
    odmf/usage
    odmf/views
    odmf/development
+   odmf/wiki
 
 Indices and tables
 ==================

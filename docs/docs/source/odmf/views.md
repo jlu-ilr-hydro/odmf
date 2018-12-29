@@ -5,8 +5,6 @@ This section describes the different views of the web interface
 ## Map
 Accessible via `/map`
 
-[//]: # (TODO: Picture with numbers referring to main features)
-
 In this view a user can browse the installations of field instruments, which are called sites.
 Or the user can create new sites. Sites are meta data, which can be attached to measurement data.
 The sites are integrated into a large Google Map element on the right.

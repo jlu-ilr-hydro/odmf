@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Usage/ Tutorial/ Wiki &mdash; ODMF Docs 0.1.1 documentation</title>
+  <title>Usage &mdash; ODMF Docs 0.1.1 documentation</title>
   
 
   
@@ -86,14 +86,17 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="about.html">What is ODMF</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage/ Tutorial/ Wiki</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#views">Views</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#folders">Folders</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#datafiles-folder"><code class="docutils literal notranslate"><span class="pre">datafiles</span></code> folder</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#media-folder"><code class="docutils literal notranslate"><span class="pre">media</span></code> folder</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#preferences-folder"><code class="docutils literal notranslate"><span class="pre">preferences</span></code> folder</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#server-operation">Server operation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#folders">Folders</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#datafiles-folder"><code class="docutils literal notranslate"><span class="pre">datafiles</span></code> folder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#media-folder"><code class="docutils literal notranslate"><span class="pre">media</span></code> folder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#preferences-folder"><code class="docutils literal notranslate"><span class="pre">preferences</span></code> folder</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#views">Views</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#customization">Customization</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#logo-and-image">Logo and image</a></li>
 </ul>
@@ -101,17 +104,19 @@
 <li class="toctree-l2"><a class="reference internal" href="#import-data">Import data</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#upload-datafiles">Upload datafiles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#import">Import</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#manipulate-datasets">Manipulate datasets</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#split-datasets">Split datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#manipulate-datasets">Manipulate datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configuration-files">Configuration files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#import-description-keywords">Import description keywords</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#column-description-keywords">Column description keywords</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#conf-files"><code class="docutils literal notranslate"><span class="pre">.conf</span></code> files</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="views.html">Views</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wiki.html">Wiki</a></li>
 </ul>
 
             
@@ -157,7 +162,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>Usage/ Tutorial/ Wiki</li>
+      <li>Usage</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -176,28 +181,29 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="usage-tutorial-wiki">
-<span id="usage-tutorial-wiki"></span><h1>Usage/ Tutorial/ Wiki<a class="headerlink" href="#usage-tutorial-wiki" title="Permalink to this headline">¶</a></h1>
-<p>How to use the html/views and functionalities</p>
-<div class="section" id="views">
-<span id="views"></span><h2>Views<a class="headerlink" href="#views" title="Permalink to this headline">¶</a></h2>
-<p>All links from the leftside navigation bar are listed:</p>
-<ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">download</span></code> (see the datafiles section in )</li>
-</ul>
-</div>
+  <div class="section" id="usage">
+<span id="usage"></span><h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="server-operation">
+<span id="server-operation"></span><h2>Server operation<a class="headerlink" href="#server-operation" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="folders">
-<span id="folders"></span><h2>Folders<a class="headerlink" href="#folders" title="Permalink to this headline">¶</a></h2>
+<span id="folders"></span><h3>Folders<a class="headerlink" href="#folders" title="Permalink to this headline">¶</a></h3>
+<p>The purpose of directories are explained.</p>
 <div class="section" id="datafiles-folder">
-<span id="datafiles-folder"></span><h3><code class="docutils literal notranslate"><span class="pre">datafiles</span></code> folder<a class="headerlink" href="#datafiles-folder" title="Permalink to this headline">¶</a></h3>
-<p>Here all users can upload files for importing or just uploading</p>
+<span id="datafiles-folder"></span><h4><code class="docutils literal notranslate"><span class="pre">datafiles</span></code> folder<a class="headerlink" href="#datafiles-folder" title="Permalink to this headline">¶</a></h4>
+<p>All files that are uploaded via the <code class="docutils literal notranslate"><span class="pre">download</span></code> view are placed in this folder.</p>
 </div>
 <div class="section" id="media-folder">
-<span id="media-folder"></span><h3><code class="docutils literal notranslate"><span class="pre">media</span></code> folder<a class="headerlink" href="#media-folder" title="Permalink to this headline">¶</a></h3>
+<span id="media-folder"></span><h4><code class="docutils literal notranslate"><span class="pre">media</span></code> folder<a class="headerlink" href="#media-folder" title="Permalink to this headline">¶</a></h4>
+<p>CSS styles, images that are part of the software and JavaScript files that are included in the templates.</p>
 </div>
 <div class="section" id="preferences-folder">
-<span id="preferences-folder"></span><h3><code class="docutils literal notranslate"><span class="pre">preferences</span></code> folder<a class="headerlink" href="#preferences-folder" title="Permalink to this headline">¶</a></h3>
+<span id="preferences-folder"></span><h4><code class="docutils literal notranslate"><span class="pre">preferences</span></code> folder<a class="headerlink" href="#preferences-folder" title="Permalink to this headline">¶</a></h4>
 </div>
+</div>
+</div>
+<div class="section" id="views">
+<span id="views"></span><h2>Views<a class="headerlink" href="#views" title="Permalink to this headline">¶</a></h2>
+<p>See <a class="reference external" href="views.html">views chapter</a> for all views, that are displayed on the left side navigation bar of the user interface.</p>
 </div>
 <div class="section" id="customization">
 <span id="customization"></span><h2>Customization<a class="headerlink" href="#customization" title="Permalink to this headline">¶</a></h2>
@@ -212,42 +218,70 @@
 <div class="section" id="import-data">
 <span id="import-data"></span><h2>Import data<a class="headerlink" href="#import-data" title="Permalink to this headline">¶</a></h2>
 <p>The data import is one of the core features of the platform.
-The process consists of several steps, (1) upload files into the file system of the server and
-(2) create import configuration file and (3) import via configuration into database.
+The import saves the measured data into a structured database schema.</p>
+<p>The data import process consists of several steps, (1) upload files into the file system of the server and
+(2) create import <a class="reference external" href="usage.html#configuration-files">configuration file (see)</a> and (3) import via configuration into
+database.
 Already imported data can be further altered (split) and reused (transformations).</p>
 <div class="section" id="upload-datafiles">
 <span id="upload-datafiles"></span><h3>Upload datafiles<a class="headerlink" href="#upload-datafiles" title="Permalink to this headline">¶</a></h3>
-<p>Data files are uploaded via the <code class="docutils literal notranslate"><span class="pre">datafiles</span></code> tab. A data file has a maximum file size that it cannot exceed, otherwise
-the import algorithm will time out.</p>
+<p>Data files are uploaded via the <code class="docutils literal notranslate"><span class="pre">datafiles</span></code> tab. Measurement data can only imported by file. Therefore measurement files are uploaded onto the servers file system. Any file can be uploaded onto the servers file system.</p>
 </div>
 <div class="section" id="import">
 <span id="import"></span><h3>Import<a class="headerlink" href="#import" title="Permalink to this headline">¶</a></h3>
-<p>It’s only possible to import files with <code class="docutils literal notranslate"><span class="pre">xls</span></code>,<code class="docutils literal notranslate"><span class="pre">xlsx</span></code>,<code class="docutils literal notranslate"><span class="pre">csv</span></code> as file extension.</p>
+<p>It’s only possible to import files with <code class="docutils literal notranslate"><span class="pre">xls</span></code>,<code class="docutils literal notranslate"><span class="pre">xlsx</span></code>,<code class="docutils literal notranslate"><span class="pre">csv</span></code> as file extension.
+A data file has a maximum file size that it cannot exceed, otherwise the import algorithm will time out.</p>
 </div>
 <div class="section" id="manipulate-datasets">
 <span id="manipulate-datasets"></span><h3>Manipulate datasets<a class="headerlink" href="#manipulate-datasets" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="split-datasets">
-<span id="split-datasets"></span><h4>Split datasets<a class="headerlink" href="#split-datasets" title="Permalink to this headline">¶</a></h4>
+<p><strong>Split datasets:</strong></p>
 </div>
-</div>
-<div class="section" id="conf-files">
-<span id="conf-files"></span><h3><code class="docutils literal notranslate"><span class="pre">.conf</span></code> files<a class="headerlink" href="#conf-files" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="configuration-files">
+<span id="configuration-files"></span><h3>Configuration files<a class="headerlink" href="#configuration-files" title="Permalink to this headline">¶</a></h3>
+<p>The import saves the measured data into a structured database schema. Unfortunately all measurement output of
+instruments in the field have different structures. Therefore a solution is that the user has to provide a configuration
+file, for each instrument-specific structure. A configuration file specify a key-value pairs-like mapping of
+instruments data schema that’s about to be written into the database schema.
+The pair of keywords and their values (full list see below) have to be consistent, so the server can import the measured data.</p>
 <p>The configuration file is a definition of the import process of all files in a directory.
-This file includes variable attributes that all import data files have in common.
 The concept of a configuration file assumes, that in general each data files import information can be covered by a
 description and multiple column descriptions.
-A description contains information that depict the import on file level and the column descriptions on column level.
-The descriptions made by the user once, contain all information to automatically import the data of multiple files.
-So the user is able to omit most of the configuration of future imports for this folder.</p>
-<p>File specific attributes of the import process are <code class="docutils literal notranslate"><span class="pre">skiplines</span></code>.
-Data specific attributes are <code class="docutils literal notranslate"><span class="pre">dateformat</span></code>, <code class="docutils literal notranslate"><span class="pre">datecolumn</span></code> or <code class="docutils literal notranslate"><span class="pre">sitecolumn</span></code>
-If no <code class="docutils literal notranslate"><span class="pre">{*}.conf</span></code> file is present in a folder, the parent directory is searched for a configuration file.</p>
-<!-- standard configuration (?) --><p>These files are processed with the <code class="docutils literal notranslate"><span class="pre">configparser</span></code> module, the module requires that a file is encoded in <code class="docutils literal notranslate"><span class="pre">utf-8</span></code> or a subset.
-If a config file is not encoded in <code class="docutils literal notranslate"><span class="pre">utf-8</span></code> or a subset, when the file import is initiated with this kind of config file,
-a error message is displayed to the user.</p>
+A <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">description</span></code> contains information that depict the import on file level and the <code class="docutils literal notranslate"><span class="pre">column</span> <span class="pre">descriptions</span></code> on column level.
+All descriptions of the configuration, are made by the user once, contain all information to automatically import the data of multiple files.
+So the user is able to omit most of the configuration of future imports for data files in this folder.</p>
+<!-- TODO all keywords --><div class="section" id="import-description-keywords">
+<span id="import-description-keywords"></span><h4>Import description keywords<a class="headerlink" href="#import-description-keywords" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><strong>skiplines</strong>: The amount of lines, which the import algorithm will skip, before reading data rows.</li>
+<li><strong>delimiter</strong>: Symbol used to separate the columns.</li>
+<li><strong>decimalpoint</strong>: Symbol used to separate decimal place</li>
+<li><strong>datecolumns</strong>: Number of column(s), which contains the date in <strong>dateformat</strong>.</li>
+<li><strong>sitecolumn</strong>: Number of column, which contains the site as character sequence.</li>
+</ul>
+</div>
+<div class="section" id="column-description-keywords">
+<span id="column-description-keywords"></span><h4>Column description keywords<a class="headerlink" href="#column-description-keywords" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><strong>name</strong>: name of the type of data, as defined for the <a class="reference external" href="wiki.html#valuetypes">value type number</a></li>
+<li><strong>column</strong>:</li>
+<li><strong>valuetype</strong>:</li>
+<li><strong>factor</strong>:</li>
+<li><strong>minvalue</strong>:</li>
+<li><strong>maxvalue</strong>:</li>
+<li><strong>dataset</strong>:</li>
+</ul>
+<p>If no <code class="docutils literal notranslate"><span class="pre">{*}.conf</span></code> file is present in a folder, the parent directory is searched for a configuration file.</p>
+<p>There should be only one configuration file per folder.</p>
+<!-- TODO: standard configuration (?) --><div class="note admonition">
+  <p class="first admonition-title">File encoding</p>
+  <p class="last">
+  Configuration files are processed with the `configparser` module. This module requires that a file is encoded in `utf-8` or a subset.
+  If a config file is not encoded in `utf-8` or a subset, when the file import is initiated in the config files directory
+  a error message is displayed to the user.</p>
+</div><p>Configuration file example:</p>
 <div class="highlight-pacmanconf notranslate"><div class="highlight"><pre><span></span>TBD.
 ; description part
-<span class="k">[IC]</span>
+<span class="k">[IC (Name of the config file)]</span>
 ; TBD
 <span class="na">instrument</span> <span class="o">=</span> 30
 <span class="na">skiplines</span> <span class="o">=</span> 1
@@ -276,7 +310,7 @@ a error message is displayed to the user.</p>
  &#39;K3&#39;: &#39;84&#39;}
 
 ; column part
-<span class="k">[N-Nitrat]</span>
+<span class="k">[N-Nitrat (descriptor of the column)]</span>
 <span class="na">column</span> <span class="o">=</span> 5
 <span class="na">name</span> <span class="o">=</span> N-Nitrat
 <span class="na">valuetype</span> <span class="o">=</span> 16
@@ -284,6 +318,7 @@ a error message is displayed to the user.</p>
 <span class="na">minvalue</span> <span class="o">=</span> 0
 <span class="na">maxvalue</span> <span class="o">=</span> 100
 </pre></div>
+</div>
 </div>
 </div>
 </div>

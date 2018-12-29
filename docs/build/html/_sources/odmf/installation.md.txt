@@ -34,8 +34,8 @@ When all prerequesites are met, you navigate to the `odmf-server` folder and typ
 $ odmf-install .
 ```
 Note the `.` at the end.
-If you set everything up correctly, this script should set up (1) you initial database contents and (2) the folder structure
-for your server-files.
+If you set everything up correctly, this script should set up (1) you initial database contents and (2) the folder
+structure for your server-files.
 
 Your directory should now look like this:
 ```
@@ -53,6 +53,8 @@ We have now finished the installation process and are able to start the server w
 ```
 $ odm-start
 ```
+
+More details on the usage of the platform can be found in the [usage chapter](usage.html).
 
 ## Configuration
 
