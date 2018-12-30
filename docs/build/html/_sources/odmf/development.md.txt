@@ -124,7 +124,7 @@ is returned to the user, as part of an error message.
 
 
 ## Migration
-Differences of the database schemas of ODMF and ODM:
+Differences of the database schemas of ODMF (Observatory Data Management Framework) and ODM (Observation Data Model).
 * odmf.dataset attributes start and end, can be identical in the rare case of a size of just one record.
 
 ### WaterOneFlow
@@ -139,9 +139,15 @@ Details on the implementation of the WaterOneFlow interface for ODMF server soft
 It's important to check on the schema mapping validity, since the Schwingbach database schema is extended through different
 database views to fit CUAHSI ODM schema, which is used with the HydroServerLite instance.
 
-The helper view `sbo_odm_invalid_datasets` returns all `dataset`s which will break the ODM schema constraints, when these
-datasets are extended through the database views. To prevent this break, the view `seriescatalog` filters based on
-this helper view invalid datasets from being published through itself.
+The helper view `sbo_odm_invalid_datasets` returns all `dataset`s which will break the ODM schema constraints.
+
+The ODM schema constraints are:
+
+* Constraint 1
+* Constraint 2
+* Constraint 3
+
+The view `seriescatalog` is pointer where all series are published. So to prevent the ODM schema views on the ODMF schema tables to break, the view `seriescatalog` filters based on `sbo_odm_invalid_datasets` helper view all invalid datasets.
 
 ### Daily jobs
 

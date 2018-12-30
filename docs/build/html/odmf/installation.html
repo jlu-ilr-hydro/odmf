@@ -86,8 +86,11 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="about.html">What is ODMF</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#the-conf-py-file">The <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#odmf-server">ODMF Server</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#configuration">Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-conf-py-file">The <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> File</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#wateroneflow">WaterOneFlow</a><ul>
@@ -166,6 +169,9 @@
             
   <div class="section" id="installation">
 <span id="installation"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="odmf-server">
+<span id="odmf-server"></span><h2>ODMF Server<a class="headerlink" href="#odmf-server" title="Permalink to this headline">¶</a></h2>
+<p>How to install the ODMF server software to maintain measurement data.</p>
 <ol>
 <li><p class="first">Clone github repository and install python dependencies</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/jlu-ilr-hydro/odmf.git
@@ -219,16 +225,36 @@ odmf-server/
 </div>
 <p>More details on the usage of the platform can be found in the <a class="reference external" href="usage.html">usage chapter</a>.</p>
 <div class="section" id="configuration">
-<span id="configuration"></span><h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<span id="configuration"></span><h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
 <p>Describes more sophisticated server configurations via one file.</p>
 <ul class="simple">
 <li>Configure database connections, timezones, admin accounts, host/wsdl urls</li>
 <li>whats with media, css, images, logos</li>
 </ul>
 <div class="section" id="the-conf-py-file">
-<span id="the-conf-py-file"></span><h3>The <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> File<a class="headerlink" href="#the-conf-py-file" title="Permalink to this headline">¶</a></h3>
-<p>In the root directory there is the main configuration file, called <code class="docutils literal notranslate"><span class="pre">.conf.py</span></code>. Via this file you configure the variable
+<span id="the-conf-py-file"></span><h4>The <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> File<a class="headerlink" href="#the-conf-py-file" title="Permalink to this headline">¶</a></h4>
+<p>In the root directory is the main configuration file located. It’s called <code class="docutils literal notranslate"><span class="pre">.conf.py</span></code> and it configures the variable
 parts of the ODMF installation.</p>
+<p><strong>Keywords</strong>:</p>
+<p><em>Mandatory Keywords</em></p>
+<ul class="simple">
+<li><strong>CFG_SERVER_PORT</strong>: Port number where the server instance is listening for requests.</li>
+<li><strong>CFG_DATABASE_NAME</strong>: Database name where schema is deployed and used.</li>
+<li><strong>CFG_DATABASE_USERNAME</strong>: Database user credentials name.</li>
+<li><strong>CFG_DATABASE_PASSWORD</strong>: Database user credentials password.</li>
+<li><strong>CFG_DATABASE_HOST</strong>: Database host url.</li>
+</ul>
+<p><em>Optional Keywords</em></p>
+<ul class="simple">
+<li><strong>CFG_DATETIME_DEFAULT_TIMEZONE</strong>: Timezone in pytz compatible format</li>
+<li><strong>CFG_MEDIA_IMAGE_PATH</strong>: Path relative to server script. See <a class="reference external" href="usage.html#media-folder">usage</a></li>
+<li><strong>CFG_MANUAL_MEASUREMENTS_PATTERN</strong>: Regular expression pattern, where in the relative path of datafiles
+(<a class="reference external" href="usage.html#datafiles-folder">see usage</a>) manual measurements files are stored. This folder and the subfolders get
+a special treatment from dataimport/mm.py</li>
+<li><strong>CFG_MAP_DEFAULT</strong>: Default location where the map is pointing when hitting the landing page</li>
+<li><strong>CFG_UPLOAD_MAX_SIZE</strong>: Maximum file size for files uploaded into the <a class="reference external" href="views.html#download">download view</a>.</li>
+</ul>
+</div>
 </div>
 </div>
 <div class="section" id="wateroneflow">

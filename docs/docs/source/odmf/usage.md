@@ -6,13 +6,13 @@
 
 The purpose of directories are explained.
 
-#### `datafiles` folder
+#### datafiles-folder
 All files that are uploaded via the `download` view are placed in this folder.
 
-#### `media` folder
+#### media-folder
 CSS styles, images that are part of the software and JavaScript files that are included in the templates.
 
-#### `preferences` folder
+#### preferences-folder
 
 
 ## Views

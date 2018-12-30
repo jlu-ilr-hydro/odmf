@@ -1,5 +1,9 @@
 # Installation
 
+## ODMF Server
+
+How to install the ODMF server software to maintain measurement data.
+
 1. Clone github repository and install python dependencies
     ```
     $ git clone https://github.com/jlu-ilr-hydro/odmf.git
@@ -56,7 +60,7 @@ $ odm-start
 
 More details on the usage of the platform can be found in the [usage chapter](usage.html).
 
-## Configuration
+### Configuration
 
 Describes more sophisticated server configurations via one file.
 
@@ -64,10 +68,28 @@ Describes more sophisticated server configurations via one file.
 
 * whats with media, css, images, logos
 
-### The ```conf.py``` File
+#### The ```conf.py``` File
 
-In the root directory there is the main configuration file, called `.conf.py`. Via this file you configure the variable
+In the root directory is the main configuration file located. It's called `.conf.py` and it configures the variable
 parts of the ODMF installation.
+
+**Keywords**:
+
+*Mandatory Keywords*
+* **CFG_SERVER_PORT**: Port number where the server instance is listening for requests.
+* **CFG_DATABASE_NAME**: Database name where schema is deployed and used.
+* **CFG_DATABASE_USERNAME**: Database user credentials name.
+* **CFG_DATABASE_PASSWORD**: Database user credentials password.
+* **CFG_DATABASE_HOST**: Database host url.
+
+*Optional Keywords*
+* **CFG_DATETIME_DEFAULT_TIMEZONE**: Timezone in pytz compatible format
+* **CFG_MEDIA_IMAGE_PATH**: Path relative to server script. See [usage](usage.html#media-folder)
+* **CFG_MANUAL_MEASUREMENTS_PATTERN**: Regular expression pattern, where in the relative path of datafiles
+  ([see usage](usage.html#datafiles-folder)) manual measurements files are stored. This folder and the subfolders get
+  a special treatment from dataimport/mm.py
+* **CFG_MAP_DEFAULT**: Default location where the map is pointing when hitting the landing page
+* **CFG_UPLOAD_MAX_SIZE**: Maximum file size for files uploaded into the [download view](views.html#download).
 
 
 ## WaterOneFlow

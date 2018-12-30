@@ -300,7 +300,7 @@ is returned to the user, as part of an error message.</p>
 </div>
 <div class="section" id="migration">
 <span id="migration"></span><h2>Migration<a class="headerlink" href="#migration" title="Permalink to this headline">¶</a></h2>
-<p>Differences of the database schemas of ODMF and ODM:</p>
+<p>Differences of the database schemas of ODMF (Observatory Data Management Framework) and ODM (Observation Data Model).</p>
 <ul class="simple">
 <li>odmf.dataset attributes start and end, can be identical in the rare case of a size of just one record.</li>
 </ul>
@@ -316,9 +316,14 @@ is returned to the user, as part of an error message.</p>
 <span id="schema-mapping-validity"></span><h3>Schema mapping validity<a class="headerlink" href="#schema-mapping-validity" title="Permalink to this headline">¶</a></h3>
 <p>It’s important to check on the schema mapping validity, since the Schwingbach database schema is extended through different
 database views to fit CUAHSI ODM schema, which is used with the HydroServerLite instance.</p>
-<p>The helper view <code class="docutils literal notranslate"><span class="pre">sbo_odm_invalid_datasets</span></code> returns all <code class="docutils literal notranslate"><span class="pre">dataset</span></code>s which will break the ODM schema constraints, when these
-datasets are extended through the database views. To prevent this break, the view <code class="docutils literal notranslate"><span class="pre">seriescatalog</span></code> filters based on
-this helper view invalid datasets from being published through itself.</p>
+<p>The helper view <code class="docutils literal notranslate"><span class="pre">sbo_odm_invalid_datasets</span></code> returns all <code class="docutils literal notranslate"><span class="pre">dataset</span></code>s which will break the ODM schema constraints.</p>
+<p>The ODM schema constraints are:</p>
+<ul class="simple">
+<li>Constraint 1</li>
+<li>Constraint 2</li>
+<li>Constraint 3</li>
+</ul>
+<p>The view <code class="docutils literal notranslate"><span class="pre">seriescatalog</span></code> is pointer where all series are published. So to prevent the ODM schema views on the ODMF schema tables to break, the view <code class="docutils literal notranslate"><span class="pre">seriescatalog</span></code> filters based on <code class="docutils literal notranslate"><span class="pre">sbo_odm_invalid_datasets</span></code> helper view all invalid datasets.</p>
 </div>
 <div class="section" id="daily-jobs">
 <span id="daily-jobs"></span><h3>Daily jobs<a class="headerlink" href="#daily-jobs" title="Permalink to this headline">¶</a></h3>
