@@ -9,6 +9,8 @@ import re
 from markdown.preprocessors import Preprocessor
 from genshi.core import Markup
 
+import bleach
+
 
 class PatternLink(markdown.inlinepatterns.Pattern):
     """
@@ -213,6 +215,16 @@ class MarkDown:
                 pass
             elif not type(s) is str:
                 s = str(s, error='replace')
-            return Markup(self.md.convert(s))
+
+            html = self.md.convert(s)
+            # TODO: Rework with full list of tags
+            cleaned_html = bleach.clean(html, tags=bleach.ALLOWED_TAGS + ['h1', 'h2', 'p', 'a', 'h3', 'pre', 'div', 'hr', 'video', 'img'],
+                                        styles=bleach.ALLOWED_STYLES + ['admonition', 'warning'],
+                                        attributes={'div': 'class',
+                                                    'video': ['class', 'controls', 'src', 'type'],
+                                                    'img': ['alt', 'src'],
+                                                    'a': ['href', 'alt']})
+
+            return Markup(cleaned_html)
         else:
             return s
