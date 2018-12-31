@@ -218,6 +218,7 @@ class MarkDown:
 
             html = self.md.convert(s)
             # TODO: Rework with full list of tags
+            # TODO: <img>, <a> and <video> are exploitable too
             cleaned_html = bleach.clean(html, tags=bleach.ALLOWED_TAGS + ['h1', 'h2', 'p', 'a', 'h3', 'pre', 'div', 'hr', 'video', 'img'],
                                         styles=bleach.ALLOWED_STYLES + ['admonition', 'warning'],
                                         attributes={'div': 'class',
