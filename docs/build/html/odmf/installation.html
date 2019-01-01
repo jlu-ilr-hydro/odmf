@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Usage/ Tutorial/ Wiki" href="usage.html" />
+    <link rel="next" title="Usage" href="usage.html" />
     <link rel="prev" title="What is ODMF" href="about.html" /> 
 
   
@@ -86,15 +86,23 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="about.html">What is ODMF</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#the-conf-py-file">The <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#odmf-server">ODMF Server</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#configuration">Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-conf-py-file">The <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> File</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage/ Tutorial/ Wiki</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#wateroneflow">WaterOneFlow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hydroserverlite">HydroServerLite</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="views.html">Views</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wiki.html">Wiki</a></li>
 </ul>
 
             
@@ -161,6 +169,9 @@
             
   <div class="section" id="installation">
 <span id="installation"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="odmf-server">
+<span id="odmf-server"></span><h2>ODMF Server<a class="headerlink" href="#odmf-server" title="Permalink to this headline">¶</a></h2>
+<p>How to install the ODMF server software to maintain measurement data.</p>
 <ol>
 <li><p class="first">Clone github repository and install python dependencies</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/jlu-ilr-hydro/odmf.git
@@ -196,8 +207,8 @@ See the HydroServerLite tutorial for this.</p>
 </pre></div>
 </div>
 <p>Note the <code class="docutils literal notranslate"><span class="pre">.</span></code> at the end.
-If you set everything up correctly, this script should set up (1) you initial database contents and (2) the folder structure
-for your server-files.</p>
+If you set everything up correctly, this script should set up (1) you initial database contents and (2) the folder
+structure for your server-files.</p>
 <p>Your directory should now look like this:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ tree .
 odmf-server/
@@ -212,17 +223,50 @@ odmf-server/
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ odm-start
 </pre></div>
 </div>
+<p>More details on the usage of the platform can be found in the <a class="reference external" href="usage.html">usage chapter</a>.</p>
 <div class="section" id="configuration">
-<span id="configuration"></span><h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
-<p>Describes more sophisticated server configurations</p>
+<span id="configuration"></span><h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
+<p>Describes more sophisticated server configurations via one file.</p>
 <ul class="simple">
 <li>Configure database connections, timezones, admin accounts, host/wsdl urls</li>
 <li>whats with media, css, images, logos</li>
 </ul>
 <div class="section" id="the-conf-py-file">
-<span id="the-conf-py-file"></span><h3>The <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> File<a class="headerlink" href="#the-conf-py-file" title="Permalink to this headline">¶</a></h3>
-<p>In the root directory there is the main configuration file, called <code class="docutils literal notranslate"><span class="pre">.conf.py</span></code>. Via this file you configure the variable
+<span id="the-conf-py-file"></span><h4>The <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> File<a class="headerlink" href="#the-conf-py-file" title="Permalink to this headline">¶</a></h4>
+<p>In the root directory is the main configuration file located. It’s called <code class="docutils literal notranslate"><span class="pre">.conf.py</span></code> and it configures the variable
 parts of the ODMF installation.</p>
+<p><strong>Keywords</strong>:</p>
+<p><em>Mandatory Keywords</em></p>
+<ul class="simple">
+<li><strong>CFG_SERVER_PORT</strong>: Port number where the server instance is listening for requests.</li>
+<li><strong>CFG_DATABASE_NAME</strong>: Database name where schema is deployed and used.</li>
+<li><strong>CFG_DATABASE_USERNAME</strong>: Database user credentials name.</li>
+<li><strong>CFG_DATABASE_PASSWORD</strong>: Database user credentials password.</li>
+<li><strong>CFG_DATABASE_HOST</strong>: Database host url.</li>
+</ul>
+<p><em>Optional Keywords</em></p>
+<ul class="simple">
+<li><strong>CFG_DATETIME_DEFAULT_TIMEZONE</strong>: Timezone in pytz compatible format</li>
+<li><strong>CFG_MEDIA_IMAGE_PATH</strong>: Path relative to server script. See <a class="reference external" href="usage.html#media-folder">usage</a></li>
+<li><strong>CFG_MANUAL_MEASUREMENTS_PATTERN</strong>: Regular expression pattern, where in the relative path of datafiles
+(<a class="reference external" href="usage.html#datafiles-folder">see usage</a>) manual measurements files are stored. This folder and the subfolders get
+a special treatment from dataimport/mm.py</li>
+<li><strong>CFG_MAP_DEFAULT</strong>: Default location where the map is pointing when hitting the landing page</li>
+<li><strong>CFG_UPLOAD_MAX_SIZE</strong>: Maximum file size for files uploaded into the <a class="reference external" href="views.html#download">download view</a>.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="wateroneflow">
+<span id="wateroneflow"></span><h2>WaterOneFlow<a class="headerlink" href="#wateroneflow" title="Permalink to this headline">¶</a></h2>
+<p>This covers the installation of the PHP server <a class="reference external" href="https://github.com/CUAHSI/HydroServerLite">HydroServerLite</a>
+and the deployment of SQL Views. This views are used on the side of the ODMF schema to map it to the relations which
+are used with the HydroServer.</p>
+<div class="section" id="hydroserverlite">
+<span id="hydroserverlite"></span><h3>HydroServerLite<a class="headerlink" href="#hydroserverlite" title="Permalink to this headline">¶</a></h3>
+<p>The code is downloaded from Github and exposed via an Apache instance.</p>
+<p>Possible alternative to PHP based server is this python solution <a class="reference external" href="https://github.com/ODM2/WOFpy">WOFpy</a>. It relies on
+the ODM schema 2.0.</p>
 </div>
 </div>
 </div>
@@ -235,7 +279,7 @@ parts of the ODMF installation.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="usage.html" class="btn btn-neutral float-right" title="Usage/ Tutorial/ Wiki" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="about.html" class="btn btn-neutral" title="What is ODMF" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

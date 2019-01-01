@@ -87,12 +87,19 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">What is ODMF</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#features-of-odmf">Features of ODMF</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#development">Development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cuahsi-wateroneflow-interface">CUAHSI WaterOneFlow Interface</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#how-does-it-work">How does it work</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#implementation">Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configuration">Configuration</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage/ Tutorial/ Wiki</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="views.html">Views</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wiki.html">Wiki</a></li>
 </ul>
 
             
@@ -171,15 +178,44 @@
 <li>Augment measurement data gathered from the work in the field via meta data, such as logs and pictures</li>
 <li>Integration of Google Maps UI panel</li>
 </ul>
+<p>Also it can be integrated into the <a class="reference external" href="https://www.cuahsi.org">CUAHSI</a> network and used with the tools provided by
+the CUAHSI organization. For example to inspect or download data via the <a class="reference external" href="https://data.cuahsi.org">Data.CUAHSI</a> page.</p>
 </div>
 <div class="section" id="development">
 <span id="development"></span><h2>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h2>
-<p>(Architecture/ Components) Link to Development
+<p>Further explanation on the code structure and software components in <a class="reference external" href="development.html">development chapter</a>.
+(Architecture/ Components) Link to Development
 Mentales Gerüst (optional)</p>
 <ul class="simple">
 <li>Schwingbach FMC (Overall)</li>
 </ul>
 <p><img alt="Picture of the ODMF architecture" src="../_images/schwingbach-architecture.svg" /></p>
+</div>
+<div class="section" id="cuahsi-wateroneflow-interface">
+<span id="cuahsi-wateroneflow-interface"></span><h2>CUAHSI WaterOneFlow Interface<a class="headerlink" href="#cuahsi-wateroneflow-interface" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="how-does-it-work">
+<span id="how-does-it-work"></span><h3>How does it work<a class="headerlink" href="#how-does-it-work" title="Permalink to this headline">¶</a></h3>
+<p>The important elements are HydroServerLite (a) which implements the WaterOneFlow interface,
+the PostgreSQL database (b) which fullfills the ODM schema, via SQL views. Additionally there
+is the ODMF (c) server, which is mainly used to write data into the database.</p>
+<p><img alt="FMC diagram of whole system" src="../_images/fmc-cuahsi.png" /></p>
+<ol class="simple">
+<li>A request is send to the HydroServer.</li>
+<li>The responses are build of information from one ore more views, which the server middleware will compose.</li>
+<li>The middleware calls request the database for the respective views.</li>
+</ol>
+<p>Data writes from the import mechanism from the ODMF server are an ongoing process and can result in an hourly changing
+data base.</p>
+<p><img alt="UML transaction diagram" src="../_images/fmc-wof-views-2.png" /></p>
+</div>
+<div class="section" id="implementation">
+<span id="implementation"></span><h3>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h3>
+<p>Details on this topic are written down in <a class="reference external" href="development.html#wateroneflow">development chapter</a></p>
+</div>
+<div class="section" id="configuration">
+<span id="configuration"></span><h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
+<p>The configuration of the WaterOneFlow interface can be found in the <a class="reference external" href="installation.html#wateroneflow">installation</a> chapter.</p>
+</div>
 </div>
 </div>
 

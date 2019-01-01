@@ -1,6 +1,6 @@
 # Observatory Data Management Framework
 
-This project provides a webinterface for managing scientific data measurement based on 
+This project provides a webinterface for managing scientific data measurement based on
 [cherrypy](https://github.com/cherrypy/cherrypy) and [postgres](https://www.postgresql.org/).
 
 [![License][license-image]][license-link]
@@ -10,6 +10,11 @@ This project provides a webinterface for managing scientific data measurement ba
 [license-link]: http://opensource.org/licenses/MIT
 [build-image]: https://travis-ci.org/jlu-ilr-hydro/odmf.svg?branch=master
 [build-link]: https://travis-ci.org/jlu-ilr-hydro/odmf
+
+The data is made usable by the [CUAHSI WaterOneFlow](http://his.cuahsi.org/wofws.html)
+interface, implemented by the [HydroServer](https://github.com/CUAHSI/HydroServerLite).
+
+For further information please visit the [documenation](https://jlu-ilr-hydro.github.io/odmf).
 
 # Installation
 
@@ -25,4 +30,3 @@ When the configuration is edited to meet your requirements, start the server and
     $ python3 start.py
 
 [Visit the institiute homepage](http://www.uni-giessen.de/faculties/f09/institutes/ilr/hydro?set_language=en)
-

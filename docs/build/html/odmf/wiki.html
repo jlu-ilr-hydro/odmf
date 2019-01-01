@@ -27,7 +27,8 @@
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Development" href="development.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -81,12 +82,17 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../odmf/about.html">What is ODMF</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../odmf/installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../odmf/usage.html">Usage/ Tutorial/ Wiki</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../odmf/views.html">Views</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../odmf/development.html">Development</a></li>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="about.html">What is ODMF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="views.html">Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Wiki</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#valuetypes">Valuetypes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#access-levels">Access Levels</a></li>
+</ul>
+</li>
 </ul>
 
             
@@ -138,7 +144,7 @@
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/sbo/wiki.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/odmf/wiki.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -152,8 +158,71 @@
            <div itemprop="articleBody">
             
   <div class="section" id="wiki">
-<span id="wiki"></span><h1>Wiki<a class="headerlink" href="#wiki" title="Permalink to this headline">¶</a></h1>
-<p><strong>TODO:</strong> Porting <em>wiki</em> from fb09-pasig server</p>
+<h1>Wiki<a class="headerlink" href="#wiki" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="valuetypes">
+<h2>Valuetypes<a class="headerlink" href="#valuetypes" title="Permalink to this headline">¶</a></h2>
+<p>Standard value types, which are default part of the ODMF database schema.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="14%" />
+<col width="57%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Valuetype</th>
+<th class="head">Code</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Metre</td>
+<td>3</td>
+<td>Describes length</td>
+</tr>
+</tbody>
+</table>
+<p>TBD.</p>
+</div>
+<div class="section" id="access-levels">
+<h2>Access Levels<a class="headerlink" href="#access-levels" title="Permalink to this headline">¶</a></h2>
+<p>List of all access levels that can be assigned to a user role.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="23%" />
+<col width="56%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Role name</th>
+<th class="head">Integer code</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Guest</td>
+<td>0</td>
+<td>tbd</td>
+</tr>
+<tr class="row-odd"><td>Logger</td>
+<td>1</td>
+<td>tbd</td>
+</tr>
+<tr class="row-even"><td>Editor</td>
+<td>2</td>
+<td>tbd</td>
+</tr>
+<tr class="row-odd"><td>Supervisor</td>
+<td>3</td>
+<td>tbd</td>
+</tr>
+<tr class="row-even"><td>Admin</td>
+<td>4</td>
+<td>tbd</td>
+</tr>
+</tbody>
+</table>
+<p>End.</p>
+</div>
 </div>
 
 
@@ -161,6 +230,13 @@
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="development.html" class="btn btn-neutral" title="Development" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

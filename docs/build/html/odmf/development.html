@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Wiki" href="wiki.html" />
     <link rel="prev" title="Views" href="views.html" /> 
 
   
@@ -85,37 +86,38 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="about.html">What is ODMF</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage/ Tutorial/ Wiki</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="views.html">Views</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Development</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#core-thoughts-behind-design-decisions">Core thoughts behind design decisions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#database-erm">Database erm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#core-thoughts-behind-design-decisions">Core thoughts behind design decisions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data">Data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#odmf-schema">ODMF schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#orm-mapping">ORM mapping</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dataset">Dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#valuetype">Valuetype</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#job">Job</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#database-orm-mapping">Database orm mapping</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#dataset">Dataset</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#valuetype">Valuetype</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#job">Job</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#database-sql">Database SQL</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#odmf-schema-model">ODMF Schema Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extending-odmf-schema">Extending ODMF schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#view-odm-seriescatalog">View <code class="docutils literal notranslate"><span class="pre">ODM.Seriescatalog</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#upload-or-dataimport">Upload or Dataimport</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#import-process">Import process</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#xlsimport">XlsImport</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#conf-files"><code class="docutils literal notranslate"><span class="pre">.conf</span></code>-files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configuration-files">configuration-files</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#migration">Migration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#wateroneflow">WaterOneFlow</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#schema-mapping-validity">Schema mapping validity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#daily-jobs">Daily jobs</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="wiki.html">Wiki</a></li>
 </ul>
 
             
@@ -187,20 +189,34 @@ it let you understand the database schema which is essential to the development,
 So this chapter should be referred to, when developing the platform.
 At the beginning there is a brief introduction to the design of the server system. After getting a overview of the
 platform and its coherences, the <a class="reference external" href="development.html#database-erm">database</a> is described briefly and the
-<a class="reference external" href="development.html#database-orm-mapping">ORM mapping</a> is explained in detail, so a when developing you can make use of
+<a class="reference external" href="development.html#database-orm-mapping">ORM mapping</a> is explained in detail, so when developing you can make use of
 the <code class="docutils literal notranslate"><span class="pre">odmf.db</span></code>-package.</p>
-<p>In the following picture the server stack, consisting of a Backend framework <a class="reference external" href="https://cherrypy.org">cherrypy</a>, which
-connects the <a class="reference external" href="https://postgres.org">postgres</a> database and renders the contents with the help of
-<a class="reference external" href="https://genshi.edgewall.org/">genshi</a> and a bit <a class="reference external" href="https://jquery.org">jquery</a>. Speaking of the server code, the database
-is accessed consistently via the ORM-mapping framework <a class="reference external" href="https://www.sqlalchemy.org">sqlalchemy</a>. The Cherrypy server
-also exposes some methods as JSON exports for a rest-like use of data retrieval.</p>
-<p><img alt="Picture of the ODMF database schema" src="../_images/server-stack.jpg" /></p>
+<p>In the following picture the server stack, consisting of the backend framework <a class="reference external" href="https://cherrypy.org">cherrypy</a>, which
+connects the <a class="reference external" href="https://postgres.org">postgres</a> database and renders with the help of templating engine
+<a class="reference external" href="https://genshi.edgewall.org/">genshi</a> the HTML content and a bit of <a class="reference external" href="https://jquery.org">jquery</a>.
+Speaking of the server code, the database is accessed consistently via the ORM-mapping framework <a class="reference external" href="https://www.sqlalchemy.org">sqlalchemy</a>.
+The Cherrypy server also exposes some methods as JSON exports for a rest-like use of data retrieval.</p>
+<!-- TODO very high level fmc --><p><img alt="High level server stack" src="../_images/fmc-highlevel.png" /></p>
 <p>The development was done between 2013-today partially by a team of one or two developers. There are some acceptance
 and ui tests, but no unit tests.</p>
+<div class="section" id="structure">
+<span id="structure"></span><h2>Structure<a class="headerlink" href="#structure" title="Permalink to this headline">¶</a></h2>
+<p><img alt="ODMF software components" src="../_images/fmc-odmf.png" /></p>
+<p>The code base is divided in three main parts. <strong>Server</strong>, <strong>automated import</strong> and
+<strong>database communication</strong>.</p>
 <ul class="simple">
-<li></li>
+<li>Most of the <strong>server</strong> functionality is in the <code class="docutils literal notranslate"><span class="pre">webpage</span></code> module. It covers starting
+and stopping the server. Exposing of webpages and data endpoints.<ul>
+<li>Module <code class="docutils literal notranslate"><span class="pre">pages</span></code> contains all pages, unless they are <code class="docutils literal notranslate"><span class="pre">plot</span></code>, <code class="docutils literal notranslate"><span class="pre">site</span></code>, <code class="docutils literal notranslate"><span class="pre">upload</span></code>, <code class="docutils literal notranslate"><span class="pre">dataset</span></code> or <code class="docutils literal notranslate"><span class="pre">map</span></code>.
+In <code class="docutils literal notranslate"><span class="pre">webpage/lib.py</span></code> is utility code.</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">auth</span></code> module is based on the <code class="docutils literal notranslate"><span class="pre">bcrypt</span></code> hashing implementation.</li>
 </ul>
-<p>The code base</p>
+</li>
+<li><strong>automated import</strong> functions reside in <code class="docutils literal notranslate"><span class="pre">dataimport</span></code> module.</li>
+<li><strong>database</strong> and ORM code is in <code class="docutils literal notranslate"><span class="pre">db</span></code> the module.</li>
+</ul>
+<p>Utility code for calibration, conf and markdown parsing are saved in the <code class="docutils literal notranslate"><span class="pre">tools</span></code> module.</p>
+</div>
 <div class="section" id="core-thoughts-behind-design-decisions">
 <span id="core-thoughts-behind-design-decisions"></span><h2>Core thoughts behind design decisions<a class="headerlink" href="#core-thoughts-behind-design-decisions" title="Permalink to this headline">¶</a></h2>
 <p>To connect more of the ideas under the hood of the server there are diagrams describing the user interaction for the most important functions of the platform.</p>
@@ -214,31 +230,42 @@ and ui tests, but no unit tests.</p>
 <li>CUAHSI WOF transactions diagram</li>
 <li>Views a. CV-Tables extending ODMF data schema</li>
 </ul>
-<div class="section" id="database-erm">
-<span id="database-erm"></span><h3>Database erm<a class="headerlink" href="#database-erm" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="data">
+<span id="data"></span><h2>Data<a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h2>
+<p>This chapter describes the database schema, the differences and limitations of the ORM mapping and finally extending
+the ODMF schema with SQL views to fullfill the
+<a class="reference external" href="https://github.com/CUAHSI/HydroServer/wiki/Observations-Data-Model">ODM schema</a>.</p>
+<div class="section" id="odmf-schema">
+<span id="odmf-schema"></span><h3>ODMF schema<a class="headerlink" href="#odmf-schema" title="Permalink to this headline">¶</a></h3>
+<p>In the relation <code class="docutils literal notranslate"><span class="pre">dataset</span></code> many foreign keys are stored, which point to other relations and additional metadata.
+The most important are <code class="docutils literal notranslate"><span class="pre">site</span></code>, <code class="docutils literal notranslate"><span class="pre">valuetype</span></code> and <code class="docutils literal notranslate"><span class="pre">source</span></code>, of which the primary key of dataset consists.
+The other foreign keys affiliation is straight forward.</p>
 <p><img alt="Picture of the ODMF database schema" src="../_images/schwingbach1.png" /></p>
+<p>The <code class="docutils literal notranslate"><span class="pre">record</span></code> relation keeps the essential data rows, that describe the measured data. Each row belongs to a <code class="docutils literal notranslate"><span class="pre">dataset</span></code> relation, which then extends the known data about it.</p>
+<p>In the relation <code class="docutils literal notranslate"><span class="pre">person</span></code> all the user data is stored. Further the relation <code class="docutils literal notranslate"><span class="pre">job</span></code> contains a metadata to tasks, that are
+assigned to a person. A element of relation <code class="docutils literal notranslate"><span class="pre">dataset</span></code> is assigned via <code class="docutils literal notranslate"><span class="pre">measured_by</span></code> to a <code class="docutils literal notranslate"><span class="pre">person</span></code> too.</p>
 </div>
-</div>
-<div class="section" id="database-orm-mapping">
-<span id="database-orm-mapping"></span><h2>Database orm mapping<a class="headerlink" href="#database-orm-mapping" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="orm-mapping">
+<span id="orm-mapping"></span><h3>ORM mapping<a class="headerlink" href="#orm-mapping" title="Permalink to this headline">¶</a></h3>
+<p>The Python ORM framework <a class="reference external" href="https://www.sqlalchemy.org">SQLalchemy</a> is used for handling data transactions for user
+administration, field data import and metadata annotation.</p>
 <div class="section" id="dataset">
-<span id="dataset"></span><h3>Dataset<a class="headerlink" href="#dataset" title="Permalink to this headline">¶</a></h3>
-<p>Distinction between timeseries and transformed_timeseries.</p>
+<span id="dataset"></span><h4>Dataset<a class="headerlink" href="#dataset" title="Permalink to this headline">¶</a></h4>
+<p>Distinction between <code class="docutils literal notranslate"><span class="pre">timeseries</span></code> and <code class="docutils literal notranslate"><span class="pre">transformed_timeseries</span></code>.</p>
 <p>A dataset object has a so called back reference to records with a <code class="docutils literal notranslate"><span class="pre">lazy</span></code> join on the records, regarding the dataset.
 <a class="reference external" href="http://docs.sqlalchemy.org/en/latest/orm/backref.html">See sqlalchemy docs</a> on backref.</p>
 </div>
 <div class="section" id="valuetype">
-<span id="valuetype"></span><h3>Valuetype<a class="headerlink" href="#valuetype" title="Permalink to this headline">¶</a></h3>
+<span id="valuetype"></span><h4>Valuetype<a class="headerlink" href="#valuetype" title="Permalink to this headline">¶</a></h4>
 </div>
 <div class="section" id="job">
-<span id="job"></span><h3>Job<a class="headerlink" href="#job" title="Permalink to this headline">¶</a></h3>
+<span id="job"></span><h4>Job<a class="headerlink" href="#job" title="Permalink to this headline">¶</a></h4>
 </div>
 </div>
-<div class="section" id="database-sql">
-<span id="database-sql"></span><h2>Database SQL<a class="headerlink" href="#database-sql" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="odmf-schema-model">
-<span id="odmf-schema-model"></span><h3>ODMF Schema Model<a class="headerlink" href="#odmf-schema-model" title="Permalink to this headline">¶</a></h3>
-<p>Elaborate on the ODMF (NOT ODM Schema model)</p>
+<div class="section" id="extending-odmf-schema">
+<span id="extending-odmf-schema"></span><h3>Extending ODMF schema<a class="headerlink" href="#extending-odmf-schema" title="Permalink to this headline">¶</a></h3>
+<p>Elaborate on the ODMF (NOT ODM Schema model) and how to map</p>
 </div>
 <div class="section" id="view-odm-seriescatalog">
 <span id="view-odm-seriescatalog"></span><h3>View <code class="docutils literal notranslate"><span class="pre">ODM.Seriescatalog</span></code><a class="headerlink" href="#view-odm-seriescatalog" title="Permalink to this headline">¶</a></h3>
@@ -252,7 +279,10 @@ timezones.</p>
 <span id="upload-or-dataimport"></span><h2>Upload or Dataimport<a class="headerlink" href="#upload-or-dataimport" title="Permalink to this headline">¶</a></h2>
 <p>Corresponds to the <code class="docutils literal notranslate"><span class="pre">/odmf/dataimport</span></code> directory.</p>
 <p>This directory holds the files <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> and <code class="docutils literal notranslate"><span class="pre">base.py</span></code> which mainly provide some kind of abstract skeleton for the
-data import. The other files go along with a descriptive filename, which is similar to names of the file including class.</p>
+data import. The other files go along with a descriptive filename, which is similar to names of the file including
+class. For example <code class="docutils literal notranslate"><span class="pre">XlsImport</span></code> is for the import of <code class="docutils literal notranslate"><span class="pre">xls(x)</span></code> files.</p>
+<p>Upload and data import is part of the <em>automated import</em> and is further explained in the
+<a class="reference external" href="usage.html#import-data">usage</a> chapter.</p>
 <div class="section" id="import-process">
 <span id="import-process"></span><h3>Import process<a class="headerlink" href="#import-process" title="Permalink to this headline">¶</a></h3>
 </div>
@@ -260,26 +290,40 @@ data import. The other files go along with a descriptive filename, which is simi
 <span id="xlsimport"></span><h3>XlsImport<a class="headerlink" href="#xlsimport" title="Permalink to this headline">¶</a></h3>
 <p>Corresponds to <code class="docutils literal notranslate"><span class="pre">odmf/dataimport/xls.py</span></code></p>
 </div>
-<div class="section" id="conf-files">
-<span id="conf-files"></span><h3><code class="docutils literal notranslate"><span class="pre">.conf</span></code>-files<a class="headerlink" href="#conf-files" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="configuration-files">
+<span id="configuration-files"></span><h3>configuration-files<a class="headerlink" href="#configuration-files" title="Permalink to this headline">¶</a></h3>
 <p>The conf file upload is implemented in <code class="docutils literal notranslate"><span class="pre">dataimport.ImportDescription</span></code> and <code class="docutils literal notranslate"><span class="pre">dataimport.ImportColumn</span></code>.</p>
+<p><strong>How to add a new configuration keyword:</strong></p>
 <p>If the configparser module cannot parse a file, the <code class="docutils literal notranslate"><span class="pre">UnicodeDecodeError</span></code> is catched and a the estimated encoding
 is returned to the user, as part of an error message.</p>
 </div>
 </div>
 <div class="section" id="migration">
 <span id="migration"></span><h2>Migration<a class="headerlink" href="#migration" title="Permalink to this headline">¶</a></h2>
-<p>Differences of the database schemas of ODMF and ODM:</p>
+<p>Differences of the database schemas of ODMF (Observatory Data Management Framework) and ODM (Observation Data Model).</p>
 <ul class="simple">
 <li>odmf.dataset attributes start and end, can be identical in the rare case of a size of just one record.</li>
 </ul>
+<div class="section" id="wateroneflow">
+<span id="wateroneflow"></span><h3>WaterOneFlow<a class="headerlink" href="#wateroneflow" title="Permalink to this headline">¶</a></h3>
+<p>Details on the implementation of the WaterOneFlow interface for ODMF server software.</p>
+<ul class="simple">
+<li>What parts communicate how</li>
+<li>SQL Views as mapping from ODMF schema to ODM schema</li>
+</ul>
+</div>
 <div class="section" id="schema-mapping-validity">
 <span id="schema-mapping-validity"></span><h3>Schema mapping validity<a class="headerlink" href="#schema-mapping-validity" title="Permalink to this headline">¶</a></h3>
 <p>It’s important to check on the schema mapping validity, since the Schwingbach database schema is extended through different
 database views to fit CUAHSI ODM schema, which is used with the HydroServerLite instance.</p>
-<p>The helper view <code class="docutils literal notranslate"><span class="pre">sbo_odm_invalid_datasets</span></code> returns all <code class="docutils literal notranslate"><span class="pre">dataset</span></code>s which will break the ODM schema constraints, when these
-datasets are extended through the database views. To prevent this break, the view <code class="docutils literal notranslate"><span class="pre">seriescatalog</span></code> filters based on
-this helper view invalid datasets from being published through itself.</p>
+<p>The helper view <code class="docutils literal notranslate"><span class="pre">sbo_odm_invalid_datasets</span></code> returns all <code class="docutils literal notranslate"><span class="pre">dataset</span></code>s which will break the ODM schema constraints.</p>
+<p>The ODM schema constraints are:</p>
+<ul class="simple">
+<li>Constraint 1</li>
+<li>Constraint 2</li>
+<li>Constraint 3</li>
+</ul>
+<p>The view <code class="docutils literal notranslate"><span class="pre">seriescatalog</span></code> is pointer where all series are published. So to prevent the ODM schema views on the ODMF schema tables to break, the view <code class="docutils literal notranslate"><span class="pre">seriescatalog</span></code> filters based on <code class="docutils literal notranslate"><span class="pre">sbo_odm_invalid_datasets</span></code> helper view all invalid datasets.</p>
 </div>
 <div class="section" id="daily-jobs">
 <span id="daily-jobs"></span><h3>Daily jobs<a class="headerlink" href="#daily-jobs" title="Permalink to this headline">¶</a></h3>
@@ -295,6 +339,8 @@ this helper view invalid datasets from being published through itself.</p>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="wiki.html" class="btn btn-neutral float-right" title="Wiki" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="views.html" class="btn btn-neutral" title="Views" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
