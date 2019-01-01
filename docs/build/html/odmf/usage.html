@@ -252,23 +252,40 @@ So the user is able to omit most of the configuration of future imports for data
 <!-- TODO all keywords --><div class="section" id="import-description-keywords">
 <span id="import-description-keywords"></span><h4>Import description keywords<a class="headerlink" href="#import-description-keywords" title="Permalink to this headline">¶</a></h4>
 <ul class="simple">
-<li><strong>skiplines</strong>: The amount of lines, which the import algorithm will skip, before reading data rows.</li>
-<li><strong>delimiter</strong>: Symbol used to separate the columns.</li>
-<li><strong>decimalpoint</strong>: Symbol used to separate decimal place</li>
-<li><strong>datecolumns</strong>: Number of column(s), which contains the date in <strong>dateformat</strong>.</li>
-<li><strong>sitecolumn</strong>: Number of column, which contains the site as character sequence.</li>
+<li><strong>instrument</strong> <em>int</em>: The database id from the instrument that produces that file. Is Mandatory and has no default.</li>
+<li><strong>skiplines</strong> <em>int</em>: The amount of lines, which the import algorithm will skip, before reading data rows. Is optional
+and default ist 0.</li>
+<li><strong>delimiter</strong> <em>str</em>: Symbol used to separate the columns. Is Optional and default is <code class="docutils literal notranslate"><span class="pre">,</span></code>.</li>
+<li><strong>decimalpoint</strong> <em>str</em>: Symbol used to separate decimal place. Is Optional and defalt is <code class="docutils literal notranslate"><span class="pre">.</span></code>.</li>
+<li><strong>dateformat</strong> <em>str</em>: Format of the date in the <strong>datecolumns</strong>. Default is <code class="docutils literal notranslate"><span class="pre">%d/%m/%Y</span> <span class="pre">%H:%M:%S</span></code></li>
+<li><strong>datecolumns</strong> <em>list or int</em>: Number of column(s), which contains the date in <strong>dateformat</strong>, first column is 1.</li>
+<li><strong>project</strong> <em>str</em>: Links to project from database</li>
+<li><strong>timezone</strong> <em>str</em>: In pytz format</li>
+<li><strong>nodata</strong> <em>list</em>: list of values that don’t represent valid data. E.g. [‘NaN’]</li>
+<li><strong>worksheet</strong> <em>int</em>: <em>XlsImport only</em> The position of the worksheet of an excel file. Optional and default is the first (1)</li>
+<li><strong>sitecolumn</strong> <em>int</em>: <em>LogImport only</em> Number of column, which contains the site as character sequence.</li>
+<li><strong>value</strong> <em>float</em>: <em>LogImport only</em></li>
+<li><strong>logtext</strong> <em>str</em>: <em>LogImport only</em></li>
+<li><strong>msg</strong> <em>str</em>: <em>LogImport only</em></li>
 </ul>
 </div>
 <div class="section" id="column-description-keywords">
 <span id="column-description-keywords"></span><h4>Column description keywords<a class="headerlink" href="#column-description-keywords" title="Permalink to this headline">¶</a></h4>
 <ul class="simple">
-<li><strong>name</strong>: name of the type of data, as defined for the <a class="reference external" href="wiki.html#valuetypes">value type number</a></li>
-<li><strong>column</strong>:</li>
-<li><strong>valuetype</strong>:</li>
-<li><strong>factor</strong>:</li>
-<li><strong>minvalue</strong>:</li>
-<li><strong>maxvalue</strong>:</li>
-<li><strong>dataset</strong>:</li>
+<li><strong>name</strong> <em>str</em>: Name of the column and name of the dataset. Also name of the type of data, as defined for the <a class="reference external" href="wiki.html#valuetypes">value type number</a></li>
+<li><strong>column</strong> <em>int</em>: Position of the column in the file. Note: The first column is 0</li>
+<li><strong>valuetype</strong> <em>int</em>: Id of the value type stored in the column.</li>
+<li><strong>factor</strong> <em>float</em>: If the units of the column and the valuetype differ, use factor for conversion</li>
+<li><strong>comment</strong> <em>str</em>: The new dataset can be commented by this comment</li>
+<li><strong>difference</strong> <em>str</em>: If True, the stored values will be the difference to the value of the last row</li>
+<li><strong>minvalue</strong> <em>float</em>: This is the allowed lowest value (not converted). Lower values will not be imported</li>
+<li><strong>maxvalue</strong> <em>float</em>: This is the allowed highest value. Higher values will not be converted</li>
+<li><strong>append</strong> <em>int</em>: For automatic import, append to this datasetid</li>
+<li><strong>level</strong> <em>float</em>: Level property of the dataset. Use this for Instruments measuring at one site in different depth</li>
+<li><strong>access</strong> <em>int</em>: Access property of the dataset. See <a class="reference external" href="wiki.html#access-levels">wiki</a> for a list of all access levels.</li>
+<li><strong>ds_column</strong> <em>int</em>: <em>ManualMeasurementImport only</em> explicit dataset for the uploading column</li>
+<li><strong>sample_mapping</strong> <em>dict</em>: <em>ManualMeasurements and LogImport only</em> Special keyword for manual measurements to map
+labcodes to site ids. E.g. <code class="docutils literal notranslate"><span class="pre">{'keywords':</span> <span class="pre">'value'}</span></code></li>
 </ul>
 <p>If no <code class="docutils literal notranslate"><span class="pre">{*}.conf</span></code> file is present in a folder, the parent directory is searched for a configuration file.</p>
 <p>There should be only one configuration file per folder.</p>

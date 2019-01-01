@@ -75,21 +75,41 @@ So the user is able to omit most of the configuration of future imports for data
 
 #### Import description keywords
 
-  * **skiplines**: The amount of lines, which the import algorithm will skip, before reading data rows.
-  * **delimiter**: Symbol used to separate the columns.
-  * **decimalpoint**: Symbol used to separate decimal place
-  * **datecolumns**: Number of column(s), which contains the date in **dateformat**.
-  * **sitecolumn**: Number of column, which contains the site as character sequence.
+* **instrument** *int*: The database id from the instrument that produces that file. Is Mandatory and has no default.
+* **skiplines** *int*: The amount of lines, which the import algorithm will skip, before reading data rows. Is optional
+  and default ist 0.
+* **delimiter** *str*: Symbol used to separate the columns. Is Optional and default is `,`.
+* **decimalpoint** *str*: Symbol used to separate decimal place. Is Optional and defalt is `.`.
+* **dateformat** *str*: Format of the date in the **datecolumns**. Default is `%d/%m/%Y %H:%M:%S`
+* **datecolumns** *list or int*: Number of column(s), which contains the date in **dateformat**, first column is 1.
+
+* **project** *str*: Links to project from database
+* **timezone** *str*: In pytz format
+* **nodata** *list*: list of values that don't represent valid data. E.g. ['NaN']
+
+* **worksheet** *int*: *XlsImport only* The position of the worksheet of an excel file. Optional and default is the first (1)
+
+* **sitecolumn** *int*: *LogImport only* Number of column, which contains the site as character sequence.
+* **value** *float*: *LogImport only*
+* **logtext** *str*: *LogImport only*
+* **msg** *str*: *LogImport only*
 
 #### Column description keywords
-* **name**: name of the type of data, as defined for the [value type number](wiki.html#valuetypes)
-* **column**:
-* **valuetype**:
-* **factor**:
-* **minvalue**:
-* **maxvalue**:
-* **dataset**:
+* **name** *str*: Name of the column and name of the dataset. Also name of the type of data, as defined for the [value type number](wiki.html#valuetypes)
+* **column** *int*: Position of the column in the file. Note: The first column is 0
+* **valuetype** *int*: Id of the value type stored in the column.
+* **factor** *float*: If the units of the column and the valuetype differ, use factor for conversion
+* **comment** *str*: The new dataset can be commented by this comment
+* **difference** *str*: If True, the stored values will be the difference to the value of the last row
+* **minvalue** *float*: This is the allowed lowest value (not converted). Lower values will not be imported
+* **maxvalue** *float*: This is the allowed highest value. Higher values will not be converted
+* **append** *int*: For automatic import, append to this datasetid
+* **level** *float*: Level property of the dataset. Use this for Instruments measuring at one site in different depth
+* **access** *int*: Access property of the dataset. See [wiki](wiki.html#access-levels) for a list of all access levels.
 
+* **ds_column** *int*: *ManualMeasurementImport only* explicit dataset for the uploading column
+* **sample_mapping** *dict*: *ManualMeasurements and LogImport only* Special keyword for manual measurements to map
+  labcodes to site ids. E.g. `{'keywords': 'value'}`
 
 If no `{*}.conf` file is present in a folder, the parent directory is searched for a configuration file.
 
