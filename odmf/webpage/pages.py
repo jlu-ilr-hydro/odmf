@@ -616,22 +616,27 @@ class PicturePage(object):
 
     @expose_for()
     def image(self, id):
-        session = db.Session()
-        img = db.Image.get(session, int(id))
-        web.setmime(img.mime)
-        res = img.image
-        session.close()
+        with db.session_scope() as session:
+            img = db.Image.get(session, int(id))
 
-        return res
+            if img:
+                web.setmime(img.mime)
+                res = img.image
+                return res
+            else:
+                raise cherrypy.HTTPError(404)
 
     @expose_for()
     def thumbnail(self, id):
-        session = db.Session()
-        img = db.Image.get(session, int(id))
-        web.setmime(img.mime)
-        res = img.thumbnail
-        session.close()
-        return res
+        with db.session_scope() as session:
+            img = db.Image.get(session, int(id))
+
+            if img:
+                web.setmime(img.mime)
+                res = img.thumbnail
+                return res
+            else:
+                raise cherrypy.HTTPError(404)
 
     @expose_for()
     def imagelist_json(self, site=None, by=None):
@@ -808,9 +813,9 @@ class Wiki(object):
             else:
                 content = '''
                 ## No content on %s
-                
+
                 !!! box "This page is empty. Please write some meaningful content with the edit button."
-                
+
                 To get some nice formatting, get wiki:help.
                 ''' % (title)
                 content = '\n'.join(l.strip() for l in content.split('\n'))
@@ -1077,7 +1082,7 @@ class Root(object):
                   'tools.sessions.timeout': 24 * 60, # One day
                   'tools.sessions.locking': 'early',
                   'tools.sessions.storage_type': 'file',
-                  'tools.sessions.storage_path': web.abspath('sessions'), 
+                  'tools.sessions.storage_path': web.abspath('sessions'),
                   'tools.auth.on': True,
                   'tools.sessions.locking': 'early'}
 
@@ -1154,7 +1159,7 @@ class Root(object):
 
     def markdownpage(self, content, title=''):
         """
-        Returns a fully rendered page with navigation including the rendered markdown content 
+        Returns a fully rendered page with navigation including the rendered markdown content
         """
         res = web.render('empty.html', title=title,
                          error='').render('html', doctype='html')
