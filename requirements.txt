@@ -12,6 +12,7 @@ psycopg2==2.7.4
 pytz==2016.10
 sqlalchemy==1.2.2
 xlrd==1.0.0
+bleach==2.1.2
 
 # woftester only
 lxml
