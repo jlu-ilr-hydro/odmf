@@ -83,16 +83,88 @@ A dataset object has a so called back reference to records with a `lazy` join on
 
 #### Job
 
+#### DataCollectionMethod
+
+#### Quality
+
+#### Record
+
+#### Site
+
+#### Project
+
+#### Person
+
 
 ### Extending ODMF schema
-Elaborate on the ODMF (NOT ODM Schema model) and how to map
+Elaborate on the ODMF (NOT ODM Schema model) and how to map.
 
-### View `ODM.Seriescatalog`
+The following picture describes the schema mapping between the ODM (grey) and the ODMF (green) database schemata. Additionally there are helper relations (blue) when the conventional tables are not sufficient.
+![Picture of the ODMF to ODM schema mapping](../../images/odmf-odm-mapping.jpg "ODMF to ODM mapping")
+
+#### View `ODM.Methods`
+
+Maps to the following ODMF entity [DataCollectionMethod](#datacollectionmethod).
+
+#### View `ODM.QualityControlLevel`
+
+Maps to the following ODMF entity [Quality](#quality).
+
+#### View `ODM.Sites`
+
+Maps to the following ODMF entities [Site](#site), [Dataset](#dataset) and uses from helper views
+[series](#materialized-view-series), [sbo_odm_invalid_datasets](#special-view-sbo-odm-invalid-datasets)
+and [sbo_odm_invalid_valuetypes](#special-view-sbo-odm-invalid-valuetypes).
+
+#### View `ODM.Sources`
+
+Maps to the following ODMF entities [Project](#project) and [Person](#project).
+
+#### View `ODM.SpatialReferences`
+
+Maps to no ODMF entities, since providing only one line of data from the Master Vocabulary.
+
+#### View `ODM.Variables`
+
+Maps to the ODMF helper view [\_variables](#materialized-view-variables).
+
+#### Materialized view `_variables`
+
+Maps to the following ODMF entities [Valuetype](#valuetype) and
+[Dataset](#dataset). Also the helpers [sbo_odm_invalid_datasets](#special-view-sbo-odm-invalid-datasets)
+and [sbo_odm_invalid_valuetypes](#special-view-sbo-odm-invalid-valuetypes) are used.
+The name `_variables` is not part of ODM schema defintion, therefore is not queried by the HydroServer software.
+
+#### Materialized view `ODM.Datavalues`
+
+Maps to the following ODMF entities [Record](#record) and [Dataset](#dataset).
+
+#### Materialized view `series`
+
+Maps to the following ODMF entities [Record](#record) and [Dataset](#dataset).
+The name `series` is not part of the ODM schema definition, therefore is not queried by the HydroServer software.
+
+#### Materialized view `ODM.Seriescatalog`
+
+Maps to the following ODMF entities: [Project](#project), [Quality](#quality), [Units](#units), [Site](#site), [Dataset](#dataset) and [DataCollectionMethod](#datacollectionmethod). Also to the following helpers
+[series](#materialized-view-series), [\_variables](#materialized-view-variables),
+[sbo_odm_invalid_datasets](#special-view-sbo-odm-invalid-datasets) and
+[sbo_odm_invalid_valuetypes](#special-view-sbo-odm-invalid-valuetypes) are used.
+
 To provide the `begindatetimeutc` and `enddatetimeutc` of `SBO.seriescatalog`, the attributes `start` and `end` of
 `SBO.dataset` are totalled up with `timezone` of `dataset` and the `pg_timezone_names.utc_offset`.
 [See Postgresql docs](https://www.postgresql.org/docs/current/static/datatype-datetime.html#DATATYPE-TIMEZONES) on
 timezones.
 
+#### Special view `sbo_odm_invalid_datasets`
+
+Uses the ODMF entity [Dataset](#dataset) with a set of invariant rules to produce only the result that is valid
+in the ODM schema.
+
+#### Special view `sbo_odm_invalid_valuetypes`
+
+Uses the ODMF entity [Valuetype](#valuetype) with a set of invariant rules to produce only the result that is valid
+in the ODM schema.
 
 
 ## Upload or Dataimport
@@ -129,20 +201,71 @@ Differences of the database schemas of ODMF (Observatory Data Management Framewo
 
 ### WaterOneFlow
 
-Details on the implementation of the WaterOneFlow interface for ODMF server software.
+To understand the details of the *How* on the concrete implementation of the WaterOneFlow interface for ODMF software system, using a dedicated server.
 
 * What parts communicate how
 * SQL Views as mapping from ODMF schema to ODM schema
+
+#### Architecture overview
+
+The system in use is a slightly modified version of the HydroServerLite, which can be found on
+[Github](https://www.github.com/CUAHSI/HydroServerLite).
+The application uses the PHP framework CodeIgniter and can work with several database backends, in the case of
+the Schwingbach project it connects to a PostgresQL endpoint.
+
+<!-- Componenten -->
+
+1. **Parsing client request:** The CodeIgniter middleware dispatches the client request and triggers the XML parsing
+   process of the interface.
+
+2. **Invoking helper methods with request parameters:** The parsed parameters from (1) are handed over to the respective
+   methods of the endpoint, that are responsible for building the XML response.
+
+3. **Building XML response:** The actual XML response is build, with usually calling more than one helper method.
+
+<!-- Code anschneiden -->
+
+The application code which defines the WaterOneFlow interface resides in `application/helpers/hydroservices_helper.php`. The methods are nested in two layers (1) `wof_METHODNAME` and `db_METHODNAME`, where METHODNAME substitutes a method name of the endpoint e.g. `GetSites` or `GetSiteInfo`.
+
+Further documentation can be found on the official [CUAHSI homepage](https://www.cuahsi.org/data-models/legacy-tools/)
+or just contact the CUAHSI staff.
+
+#### SQL views
+
+Mainly SQL views are used to provide the data of the ODMF schema in the form of the ODM 1.1 schema.
+
+* `methods`
+* `qualitycontrollevel`
+* `sites`
+* `sources`
+* `spatialreferences`
+* `variables`
+
+Additional materialized views are used to maximize performance for views producing larger result sets.
+List of materialized views:
+
+* `_variables`
+* `datavalues`
+* `series`
+* `seriescatalog`
+
+List of special views:
+
+* `sbo_odm_invalid_datasets`
+* `sbo_odm_invalid_valuetypes`
+
+A more detailed description of the views can be found in [Extending ODMF schema](#extending-odmf-schema).
 
 ### Schema mapping validity
 
 It's important to check on the schema mapping validity, since the Schwingbach database schema is extended through different
 database views to fit CUAHSI ODM schema, which is used with the HydroServerLite instance.
 
-The helper view `sbo_odm_invalid_datasets` returns all `dataset`s which will break the ODM schema constraints.
+The postgres helper view `sbo_odm_invalid_datasets` defines the invariants of the schema mapping. When selected it returns
+all `dataset`s which will break the ODM schema constraints.
 
 The ODM schema constraints are:
-
+TBD.
 * Constraint 1
 * Constraint 2
 * Constraint 3

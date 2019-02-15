@@ -17,7 +17,7 @@ the CUAHSI organization. For example to inspect or download data via the [Data.C
 
 ## Development
 
-Further explanation on the code structure and software components in [development chapter](development.html).
+Further explanation of the code structure and the software components can be found in the [development chapter](development.html).
 (Architecture/ Components) Link to Development
 Mentales Gerüst (optional)
 
@@ -30,17 +30,20 @@ Mentales Gerüst (optional)
 
 ### How does it work
 
-The important elements are HydroServerLite (a) which implements the WaterOneFlow interface,
-the PostgreSQL database (b) which fullfills the ODM schema, via SQL views. Additionally there
+The important elements, to understand the interface are the HydroServerLite (a), which implements the WaterOneFlow
+interface, the PostgreSQL database (b) which fullfills the ODM schema via SQL views and additionally there
 is the ODMF (c) server, which is mainly used to write data into the database.
 
 ![FMC diagram of whole system]( ../../images/fmc-cuahsi.png "Different components (FMC diagram)")
 
-1. A request is send to the HydroServer.
+1. A request is send the HydroServer instance. This request can be one of the methods of the endpoint, e.g.
+   `GetSites` which will return all published [Site](views.html#sites) objects.
 
-2. The responses are build of information from one ore more views, which the server middleware will compose.
+2. The XML response is build out calls to PHP methods [(see implementation chapter)](#implementation), which will fetch
+   data from one or more tables of the database. In the case of the Schwingbach project, instead of SQL tables, SQL  
+   views are in use.
 
-3. The middleware calls request the database for the respective views.
+3. The database then uses the corresponding tables of the respective views to provide the data.
 
 Data writes from the import mechanism from the ODMF server are an ongoing process and can result in an hourly changing
 data base.

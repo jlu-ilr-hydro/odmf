@@ -183,7 +183,7 @@ the CUAHSI organization. For example to inspect or download data via the <a clas
 </div>
 <div class="section" id="development">
 <span id="development"></span><h2>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h2>
-<p>Further explanation on the code structure and software components in <a class="reference external" href="development.html">development chapter</a>.
+<p>Further explanation of the code structure and the software components can be found in the <a class="reference external" href="development.html">development chapter</a>.
 (Architecture/ Components) Link to Development
 Mentales Gerüst (optional)</p>
 <ul class="simple">
@@ -195,14 +195,16 @@ Mentales Gerüst (optional)</p>
 <span id="cuahsi-wateroneflow-interface"></span><h2>CUAHSI WaterOneFlow Interface<a class="headerlink" href="#cuahsi-wateroneflow-interface" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="how-does-it-work">
 <span id="how-does-it-work"></span><h3>How does it work<a class="headerlink" href="#how-does-it-work" title="Permalink to this headline">¶</a></h3>
-<p>The important elements are HydroServerLite (a) which implements the WaterOneFlow interface,
-the PostgreSQL database (b) which fullfills the ODM schema, via SQL views. Additionally there
+<p>The important elements, to understand the interface are the HydroServerLite (a), which implements the WaterOneFlow
+interface, the PostgreSQL database (b) which fullfills the ODM schema via SQL views and additionally there
 is the ODMF (c) server, which is mainly used to write data into the database.</p>
 <p><img alt="FMC diagram of whole system" src="../_images/fmc-cuahsi.png" /></p>
 <ol class="simple">
-<li>A request is send to the HydroServer.</li>
-<li>The responses are build of information from one ore more views, which the server middleware will compose.</li>
-<li>The middleware calls request the database for the respective views.</li>
+<li>A request is send the HydroServer instance. This request can be one of the methods of the endpoint, e.g.
+<code class="docutils literal notranslate"><span class="pre">GetSites</span></code> which will return all published <a class="reference external" href="views.html#sites">Site</a> objects.</li>
+<li>The XML response is build out calls to PHP methods <a class="reference external" href="#implementation">(see implementation chapter)</a>, which will fetch
+data from one or more tables of the database. In the case of the Schwingbach project, instead of SQL tables, SQLviews are in use.</li>
+<li>The database then uses the corresponding tables of the respective views to provide the data.</li>
 </ol>
 <p>Data writes from the import mechanism from the ODMF server are an ongoing process and can result in an hourly changing
 data base.</p>
