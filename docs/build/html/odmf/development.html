@@ -126,7 +126,10 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#upload-or-dataimport">Upload or Dataimport</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#import-process">Import process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#import-process">Import process</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#data-upload">Data upload</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#xlsimport">XlsImport</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#configuration-files">configuration-files</a></li>
 </ul>
@@ -425,6 +428,25 @@ class. For example <code class="docutils literal notranslate"><span class="pre">
 <a class="reference external" href="usage.html#import-data">usage</a> chapter.</p>
 <div class="section" id="import-process">
 <span id="import-process"></span><h3>Import process<a class="headerlink" href="#import-process" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="data-upload">
+<span id="data-upload"></span><h4>Data upload<a class="headerlink" href="#data-upload" title="Permalink to this headline">¶</a></h4>
+<p>This is done by users of the software. This is usually not done automatically.</p>
+<div class="section" id="upload-type-1-normal-data">
+<span id="upload-type-1-normal-data"></span><h5>Upload type 1: Normal data<a class="headerlink" href="#upload-type-1-normal-data" title="Permalink to this headline">¶</a></h5>
+<p>This is the most common way to upload. All other upload mechanism derives from this kind of upload protocol.</p>
+</div>
+<div class="section" id="upload-type-2-manual-measured-data">
+<span id="upload-type-2-manual-measured-data"></span><h5>Upload Type 2: Manual measured data<a class="headerlink" href="#upload-type-2-manual-measured-data" title="Permalink to this headline">¶</a></h5>
+<p>TBD</p>
+</div>
+<div class="section" id="upload-type-3-log-data">
+<span id="upload-type-3-log-data"></span><h5>Upload type 3: Log data<a class="headerlink" href="#upload-type-3-log-data" title="Permalink to this headline">¶</a></h5>
+<p>This is the most special way of uploading data. There are no real time series of data, rather
+there are much more single data rows that are identified either with tuple of <code class="docutils literal notranslate"><span class="pre">dataset.valuetype</span></code>,
+<code class="docutils literal notranslate"><span class="pre">dataset.site</span></code> and so on (Further informations :ref:<code class="docutils literal notranslate"><span class="pre">see</span> <span class="pre">dataset</span> <span class="pre">&lt;schema-dataset&gt;</span></code>), or with
+an explicit <code class="docutils literal notranslate"><span class="pre">dataset.id</span></code>, to determine one matching dataset where the data row is appended to.</p>
+</div>
+</div>
 </div>
 <div class="section" id="xlsimport">
 <span id="xlsimport"></span><h3>XlsImport<a class="headerlink" href="#xlsimport" title="Permalink to this headline">¶</a></h3>

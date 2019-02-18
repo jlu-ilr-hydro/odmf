@@ -229,10 +229,27 @@ Upload and data import is part of the *automated import* and is further explaine
 
 ### Import process
 
+#### Data upload
+
+This is done by users of the software. This is usually not done automatically.
+
+##### Upload type 1: Normal data
+
+This is the most common way to upload. All other upload mechanism derives from this kind of upload protocol.
+
+##### Upload Type 2: Manual measured data
+
+TBD
+
+##### Upload type 3: Log data
+
+This is the most special way of uploading data. There are no real time series of data, rather
+there are much more single data rows that are identified either with tuple of `dataset.valuetype`,
+`dataset.site` and so on (Further informations :ref:`see dataset <schema-dataset>`), or with
+an explicit `dataset.id`, to determine one matching dataset where the data row is appended to.
+
 ### XlsImport
 Corresponds to `odmf/dataimport/xls.py`
-
-
 
 ### configuration-files
 The conf file upload is implemented in `dataimport.ImportDescription` and `dataimport.ImportColumn`.
