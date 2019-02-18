@@ -207,13 +207,14 @@
             
   <div class="section" id="development">
 <span id="development"></span><h1>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h1>
-<p>This chapter is intended to give an overview about the source code structure and the server stack used for ODMF. Also
-it let you understand the database schema which is essential to the development, since a ORM framework is in use.
-So this chapter should be referred to, when developing the platform.
+<p>This chapter is intended to give an overview about the source code structure and the server stack used for ODMF.
+Also it should let you understand the database schema, which is essential to the development since a ORM
+framework is in use. So this chapter should be referred to, when developing the platform.
 At the beginning there is a brief introduction to the design of the server system. After getting a overview of the
 platform and its coherences, the <a class="reference external" href="development.html#database-erm">database</a> is described briefly and the
 <a class="reference external" href="development.html#database-orm-mapping">ORM mapping</a> is explained in detail, so when developing you can make use of
-the <code class="docutils literal notranslate"><span class="pre">odmf.db</span></code>-package.</p>
+the <code class="docutils literal notranslate"><span class="pre">odmf.db</span></code>-package. A <a class="reference external" href="#migration">migration</a> part at the end explains the extension of the <code class="docutils literal notranslate"><span class="pre">ODMF</span></code> database
+schema to fit the <code class="docutils literal notranslate"><span class="pre">ODM</span> <span class="pre">1.1</span></code> schema.</p>
 <p>In the following picture the server stack, consisting of the backend framework <a class="reference external" href="https://cherrypy.org">cherrypy</a>, which
 connects the <a class="reference external" href="https://postgres.org">postgres</a> database and renders with the help of templating engine
 <a class="reference external" href="https://genshi.edgewall.org/">genshi</a> the HTML content and a bit of <a class="reference external" href="https://jquery.org">jquery</a>.

@@ -1,12 +1,13 @@
 # Development
 
-This chapter is intended to give an overview about the source code structure and the server stack used for ODMF. Also
-it let you understand the database schema which is essential to the development, since a ORM framework is in use.
-So this chapter should be referred to, when developing the platform.
+This chapter is intended to give an overview about the source code structure and the server stack used for ODMF.
+Also it should let you understand the database schema, which is essential to the development since a ORM
+framework is in use. So this chapter should be referred to, when developing the platform.
 At the beginning there is a brief introduction to the design of the server system. After getting a overview of the
 platform and its coherences, the [database](development.html#database-erm) is described briefly and the
 [ORM mapping](development.html#database-orm-mapping) is explained in detail, so when developing you can make use of
-the `odmf.db`-package.
+the `odmf.db`-package. A [migration](#migration) part at the end explains the extension of the `ODMF` database
+schema to fit the `ODM 1.1` schema.
 
 In the following picture the server stack, consisting of the backend framework [cherrypy](https://cherrypy.org), which
 connects the [postgres](https://postgres.org) database and renders with the help of templating engine
