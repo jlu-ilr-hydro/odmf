@@ -58,6 +58,7 @@ the ODMF schema with SQL views to fullfill the
 [ODM schema](https://github.com/CUAHSI/HydroServer/wiki/Observations-Data-Model).
 
 ### ODMF schema
+
 In the relation `dataset` many foreign keys are stored, which point to other relations and additional metadata.
 The most important are `site`, `valuetype` and `source`, of which the primary key of dataset consists.
 The other foreign keys affiliation is straight forward.
@@ -70,36 +71,62 @@ In the relation `person` all the user data is stored. Further the relation `job`
 assigned to a person. A element of relation `dataset` is assigned via `measured_by` to a `person` too.
 
 ### ORM mapping
+
 The Python ORM framework [SQLalchemy](https://www.sqlalchemy.org) is used for handling data transactions for user
 administration, field data import and metadata annotation.
 
 #### Dataset
-Distinction between `timeseries` and `transformed_timeseries`.
+
+A dataset describes a valuetype for a specific site and time frame.
+
+Distinction between `timeseries` and `transformed_timeseries`. Timeseries are realized data (concrete measured values)
+and transformed timeseries are unrealized data, which are generated at runtime and derive from timeseries.
 
 A dataset object has a so called back reference to records with a `lazy` join on the records, regarding the dataset.
 [See sqlalchemy docs](http://docs.sqlalchemy.org/en/latest/orm/backref.html) on backref.
 
 #### Valuetype
 
+Valuetype holds a descripiton for a physical unit.
+
 #### Job
+
+A job has a title, description, due date and can be assigned to a person.
+A job appears in the calendar view.
 
 #### DataCollectionMethod
 
+TBD.
+
 #### Quality
+
+TBD.`
 
 #### Record
 
+A record describes a dataset value for a specific timestamp.
+
 #### Site
+
+A site describes the location, where data is to be measured.
 
 #### Project
 
-#### Person
+A project is the highest distinction in the database. Datasets are assinged to a project.
 
+#### Person
+A person is a user of the database.
+There are [roles and permissions](wiki.html#access-levels).
 
 ### Extending ODMF schema
-Elaborate on the ODMF (NOT ODM Schema model) and how to map.
 
-The following picture describes the schema mapping between the ODM (grey) and the ODMF (green) database schemata. Additionally there are helper relations (blue) when the conventional tables are not sufficient.
+This section only describes the mapping of ODM to ODMF entities. ODM entities on their own,
+are described in more detail in a dedicated
+[design specification](https://www.cuahsi.org/uploads/pages/img/ODM1.1DesignSpecifications_.pdf).
+
+The following picture consists of relations as nodes and access from relations to relations as edges.
+It describes the schema mapping between the ODM (grey) and the ODMF (green) database relations.
+Additionally there are helper relations (blue) when the conventional tables are not sufficient.
 ![Picture of the ODMF to ODM schema mapping](../../images/odmf-odm-mapping.jpg "ODMF to ODM mapping")
 
 #### View `ODM.Methods`
@@ -151,20 +178,25 @@ Maps to the following ODMF entities: [Project](#project), [Quality](#quality), [
 [sbo_odm_invalid_datasets](#special-view-sbo-odm-invalid-datasets) and
 [sbo_odm_invalid_valuetypes](#special-view-sbo-odm-invalid-valuetypes) are used.
 
-To provide the `begindatetimeutc` and `enddatetimeutc` of `SBO.seriescatalog`, the attributes `start` and `end` of
-`SBO.dataset` are totalled up with `timezone` of `dataset` and the `pg_timezone_names.utc_offset`.
+The **Seriescatalog** is the big entity of the ODM schema, which stores all series data with the respective
+meta information.
+
+The `ODMF.dataset.id` is aggregated through `MIN` to `ODM.seriescatalog.seriesid`, to have only one id.
+Also joining `ODMF.series` data to omit rows with `series.count < 0`.
+To provide the `begindatetimeutc` and `enddatetimeutc` of `ODM.seriescatalog`, the attributes `start` and `end` of
+`ODMF.dataset` are totalled up with `timezone` of `dataset` and the `pg_timezone_names.utc_offset`.
 [See Postgresql docs](https://www.postgresql.org/docs/current/static/datatype-datetime.html#DATATYPE-TIMEZONES) on
 timezones.
 
 #### Special view `sbo_odm_invalid_datasets`
 
 Uses the ODMF entity [Dataset](#dataset) with a set of invariant rules to produce only the result that is valid
-in the ODM schema.
+in the ODM schema. After the invariant rules are applied, some rows can be ommited.
 
 #### Special view `sbo_odm_invalid_valuetypes`
 
 Uses the ODMF entity [Valuetype](#valuetype) with a set of invariant rules to produce only the result that is valid
-in the ODM schema.
+in the ODM schema. After the invariant rules are applied, some rows can be ommited.
 
 
 ## Upload or Dataimport
@@ -196,6 +228,7 @@ is returned to the user, as part of an error message.
 
 
 ## Migration
+
 Differences of the database schemas of ODMF (Observatory Data Management Framework) and ODM (Observation Data Model).
 * odmf.dataset attributes start and end, can be identical in the rare case of a size of just one record.
 
@@ -213,8 +246,6 @@ The system in use is a slightly modified version of the HydroServerLite, which c
 The application uses the PHP framework CodeIgniter and can work with several database backends, in the case of
 the Schwingbach project it connects to a PostgresQL endpoint.
 
-<!-- Componenten -->
-
 1. **Parsing client request:** The CodeIgniter middleware dispatches the client request and triggers the XML parsing
    process of the interface.
 
@@ -222,8 +253,6 @@ the Schwingbach project it connects to a PostgresQL endpoint.
    methods of the endpoint, that are responsible for building the XML response.
 
 3. **Building XML response:** The actual XML response is build, with usually calling more than one helper method.
-
-<!-- Code anschneiden -->
 
 The application code which defines the WaterOneFlow interface resides in `application/helpers/hydroservices_helper.php`. The methods are nested in two layers (1) `wof_METHODNAME` and `db_METHODNAME`, where METHODNAME substitutes a method name of the endpoint e.g. `GetSites` or `GetSiteInfo`.
 
@@ -258,20 +287,42 @@ A more detailed description of the views can be found in [Extending ODMF schema]
 
 ### Schema mapping validity
 
-It's important to check on the schema mapping validity, since the Schwingbach database schema is extended through different
-database views to fit CUAHSI ODM schema, which is used with the HydroServerLite instance.
+It's important to check on the schema mapping validity, since the Schwingbach database schema is extended through
+different database views to fit the CUAHSI ODM schema. The CUAHSI schema accessed via the HydroServerLite instance.
 
-The postgres helper view `sbo_odm_invalid_datasets` defines the invariants of the schema mapping. When selected it returns
-all `dataset`s which will break the ODM schema constraints.
+The postgres helper view `ODMF.sbo_odm_invalid_datasets` and `ODMF.sbo_odm_invalid_valuetypes` define the invariants
+of the schema mapping. When selected they return all `ODMF.dataset`s and `ODMF.valuetype`s which will break the ODM
+schema constraints.
 
-The ODM schema constraints are:
-TBD.
-* Constraint 1
-* Constraint 2
-* Constraint 3
+Items of `ODMF.dataset` are omitted when the following rules apply on them:
+
+* `dataset.start = dataset.end`
+* `dataset.access = 0`, data is only for internal use
+* `dataset.project is NULL`
+
+Items of `ODMF.valuetype` are omitted, when one of the following rules apply on them:
+
+* `valuetype.cv_unit is NULL` or `valuetype.cv_variable_name is ''`, therefore no mapping to items of the controlled vocabulary can be done.
+* `valuetype.id in (30)`, when the id is in list of integers, which to be omitted.
 
 The view `seriescatalog` is pointer where all series are published. So to prevent the ODM schema views on the ODMF schema tables to break, the view `seriescatalog` filters based on `sbo_odm_invalid_datasets` helper view all invalid datasets.
 
 ### Daily jobs
 
-Creation of the transformed timeseries
+The creation of the transformed timeseries is done via the `update_transformedvalues.py` in
+the `odmf.migration_util.cuahsi` namespace.
+The script fetches all datasets that are transformed_timeseries and creates the data record rows.
+This rows would usually not reside as realized data in the database. But this is done to improve
+the performance of the WaterOneFlow API, when requesting data, which is a transformed_timeseries
+in terms of the ODMF schema.
+
+Different phases described:
+
+1. Deletes all old realized transformed_timeseries records
+
+2. Fetches all tranformed_timeseries datsets and then records and caches them in python data structure
+
+3. Applies transformation to the values and persists tranformed record value in the `ODMF.record` table.
+
+The realized records cannot be queried by the ODMF software system. They are only visible to the WOF
+API, because the ORM layer only accesses records with `dataset.type` that are non-`transformed_timeseries`.

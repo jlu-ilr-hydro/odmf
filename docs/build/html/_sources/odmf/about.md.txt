@@ -39,14 +39,14 @@ is the ODMF (c) server, which is mainly used to write data into the database.
 1. A request is send the HydroServer instance. This request can be one of the methods of the endpoint, e.g.
    `GetSites` which will return all published [Site](views.html#sites) objects.
 
-2. The XML response is build out calls to PHP methods [(see implementation chapter)](#implementation), which will fetch
-   data from one or more tables of the database. In the case of the Schwingbach project, instead of SQL tables, SQL  
-   views are in use.
+2. The middlewares nested PHP methods [(see implementation chapter)](#implementation) start to build the XML
+   response, which will fetch data from one or more tables of the database. In the case of the Schwingbach
+   project SQL views instead of SQL tables are used.
 
 3. The database then uses the corresponding tables of the respective views to provide the data.
 
 Data writes from the import mechanism from the ODMF server are an ongoing process and can result in an hourly changing
-data base.
+data base. For details you can refer to [migration](development.html#migration) or [daily jobs](development.html#daily-jobs).
 
 ![UML transaction diagram]( ../../images/fmc-wof-views-2.png "UML transactions from request (FMC Diagram)")
 

@@ -74,27 +74,38 @@ The Python ORM framework [SQLalchemy](https://www.sqlalchemy.org) is used for ha
 administration, field data import and metadata annotation.
 
 #### Dataset
+A dataset describes a valuetype for a specific site and time frame.
+
 Distinction between `timeseries` and `transformed_timeseries`.
 
 A dataset object has a so called back reference to records with a `lazy` join on the records, regarding the dataset.
 [See sqlalchemy docs](http://docs.sqlalchemy.org/en/latest/orm/backref.html) on backref.
 
 #### Valuetype
+Valuetype holds a descripiton for a physical unit.
 
 #### Job
+A job has a title, description, due date and can be assigned to a person.
+A job appears in the calendar view.
 
 #### DataCollectionMethod
+TBD.
 
 #### Quality
+TBD.`
 
 #### Record
+A record describes a dataset value for a specific timestamp.
 
 #### Site
+A site describes the location, where data is to be measured.
 
 #### Project
+A project is the highest distinction in the database. Datasets are assinged to a project.
 
 #### Person
-
+A person is a user of the database.
+There are [roles and permissions](wiki.html#access-levels).
 
 ### Extending ODMF schema
 Elaborate on the ODMF (NOT ODM Schema model) and how to map.
@@ -151,20 +162,25 @@ Maps to the following ODMF entities: [Project](#project), [Quality](#quality), [
 [sbo_odm_invalid_datasets](#special-view-sbo-odm-invalid-datasets) and
 [sbo_odm_invalid_valuetypes](#special-view-sbo-odm-invalid-valuetypes) are used.
 
-To provide the `begindatetimeutc` and `enddatetimeutc` of `SBO.seriescatalog`, the attributes `start` and `end` of
-`SBO.dataset` are totalled up with `timezone` of `dataset` and the `pg_timezone_names.utc_offset`.
+The **Seriescatalog** is the big entity of the ODM schema, which stores all series data with the respective
+meta information.
+
+The `ODMF.dataset.id` is aggregated through `MIN` to `ODM.seriescatalog.seriesid`, to have only one id.
+Also joining `ODMF.series` data to omit rows with `series.count < 0`.
+To provide the `begindatetimeutc` and `enddatetimeutc` of `ODM.seriescatalog`, the attributes `start` and `end` of
+`ODMF.dataset` are totalled up with `timezone` of `dataset` and the `pg_timezone_names.utc_offset`.
 [See Postgresql docs](https://www.postgresql.org/docs/current/static/datatype-datetime.html#DATATYPE-TIMEZONES) on
 timezones.
 
 #### Special view `sbo_odm_invalid_datasets`
 
 Uses the ODMF entity [Dataset](#dataset) with a set of invariant rules to produce only the result that is valid
-in the ODM schema.
+in the ODM schema. After the invariant rules are applied, some rows can be ommited.
 
 #### Special view `sbo_odm_invalid_valuetypes`
 
 Uses the ODMF entity [Valuetype](#valuetype) with a set of invariant rules to produce only the result that is valid
-in the ODM schema.
+in the ODM schema. After the invariant rules are applied, some rows can be ommited.
 
 
 ## Upload or Dataimport
@@ -264,14 +280,35 @@ database views to fit CUAHSI ODM schema, which is used with the HydroServerLite 
 The postgres helper view `sbo_odm_invalid_datasets` defines the invariants of the schema mapping. When selected it returns
 all `dataset`s which will break the ODM schema constraints.
 
-The ODM schema constraints are:
-TBD.
-* Constraint 1
-* Constraint 2
-* Constraint 3
+Datasets are omitted when the following rules apply on them:
+
+* `dataset.start = dataset.end`
+* `dataset.access = 0`, data is only for internal use
+* `dataset.project is NULL`
+
+Valuetypes are omitted, when the following rules apply on them:
+
+* `valuetype.cv_unit is NULL` or `valuetype.cv_variable_name is ''`, therefore no mapping to items of the controlled vocabulary can be done.
+* `valuetype.id in (30)`, when the id is in list of integers, which to be omitted.
 
 The view `seriescatalog` is pointer where all series are published. So to prevent the ODM schema views on the ODMF schema tables to break, the view `seriescatalog` filters based on `sbo_odm_invalid_datasets` helper view all invalid datasets.
 
 ### Daily jobs
 
-Creation of the transformed timeseries
+The creation of the transformed timeseries is done via the `update_transformedvalues.py` in
+the `odmf.migration_util.cuahsi` namespace.
+The script fetches all datasets that are transformed_timeseries and creates the data record rows.
+This rows would usually not reside as realized data in the database. But this is done to improve
+the performance of the WaterOneFlow API, when requesting data, which is a transformed_timeseries
+in terms of the ODMF schema.
+
+Different phases described:
+
+1. Deletes all old realized transformed_timeseries records
+
+2. Fetches all tranformed_timeseries datsets and then records and caches them in python data structure
+
+3. Applies transformation to the values and persists tranformed record value in the `ODMF.record` table.
+
+The realized records cannot be queried by the ODMF software system. They are only visible to the WOF
+API, because the ORM layer only accesses records with `dataset.type` that are non-`transformed_timeseries`.
