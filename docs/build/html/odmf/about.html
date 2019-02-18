@@ -202,12 +202,13 @@ is the ODMF (c) server, which is mainly used to write data into the database.</p
 <ol class="simple">
 <li>A request is send the HydroServer instance. This request can be one of the methods of the endpoint, e.g.
 <code class="docutils literal notranslate"><span class="pre">GetSites</span></code> which will return all published <a class="reference external" href="views.html#sites">Site</a> objects.</li>
-<li>The XML response is build out calls to PHP methods <a class="reference external" href="#implementation">(see implementation chapter)</a>, which will fetch
-data from one or more tables of the database. In the case of the Schwingbach project, instead of SQL tables, SQLviews are in use.</li>
+<li>The middlewares nested PHP methods <a class="reference external" href="#implementation">(see implementation chapter)</a> start to build the XML
+response, which will fetch data from one or more tables of the database. In the case of the Schwingbach
+project SQL views instead of SQL tables are used.</li>
 <li>The database then uses the corresponding tables of the respective views to provide the data.</li>
 </ol>
 <p>Data writes from the import mechanism from the ODMF server are an ongoing process and can result in an hourly changing
-data base.</p>
+data base. For details you can refer to <a class="reference external" href="development.html#migration">migration</a> or <a class="reference external" href="development.html#daily-jobs">daily jobs</a>.</p>
 <p><img alt="UML transaction diagram" src="../_images/fmc-wof-views-2.png" /></p>
 </div>
 <div class="section" id="implementation">

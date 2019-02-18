@@ -275,33 +275,44 @@ assigned to a person. A element of relation <code class="docutils literal notran
 administration, field data import and metadata annotation.</p>
 <div class="section" id="dataset">
 <span id="dataset"></span><h4>Dataset<a class="headerlink" href="#dataset" title="Permalink to this headline">¶</a></h4>
+<p>A dataset describes a valuetype for a specific site and time frame.</p>
 <p>Distinction between <code class="docutils literal notranslate"><span class="pre">timeseries</span></code> and <code class="docutils literal notranslate"><span class="pre">transformed_timeseries</span></code>.</p>
 <p>A dataset object has a so called back reference to records with a <code class="docutils literal notranslate"><span class="pre">lazy</span></code> join on the records, regarding the dataset.
 <a class="reference external" href="http://docs.sqlalchemy.org/en/latest/orm/backref.html">See sqlalchemy docs</a> on backref.</p>
 </div>
 <div class="section" id="valuetype">
 <span id="valuetype"></span><h4>Valuetype<a class="headerlink" href="#valuetype" title="Permalink to this headline">¶</a></h4>
+<p>Valuetype holds a descripiton for a physical unit.</p>
 </div>
 <div class="section" id="job">
 <span id="job"></span><h4>Job<a class="headerlink" href="#job" title="Permalink to this headline">¶</a></h4>
+<p>A job has a title, description, due date and can be assigned to a person.
+A job appears in the calendar view.</p>
 </div>
 <div class="section" id="datacollectionmethod">
 <span id="datacollectionmethod"></span><h4>DataCollectionMethod<a class="headerlink" href="#datacollectionmethod" title="Permalink to this headline">¶</a></h4>
+<p>TBD.</p>
 </div>
 <div class="section" id="quality">
 <span id="quality"></span><h4>Quality<a class="headerlink" href="#quality" title="Permalink to this headline">¶</a></h4>
+<p>TBD.`</p>
 </div>
 <div class="section" id="record">
 <span id="record"></span><h4>Record<a class="headerlink" href="#record" title="Permalink to this headline">¶</a></h4>
+<p>A record describes a dataset value for a specific timestamp.</p>
 </div>
 <div class="section" id="site">
 <span id="site"></span><h4>Site<a class="headerlink" href="#site" title="Permalink to this headline">¶</a></h4>
+<p>A site describes the location, where data is to be measured.</p>
 </div>
 <div class="section" id="project">
 <span id="project"></span><h4>Project<a class="headerlink" href="#project" title="Permalink to this headline">¶</a></h4>
+<p>A project is the highest distinction in the database. Datasets are assinged to a project.</p>
 </div>
 <div class="section" id="person">
 <span id="person"></span><h4>Person<a class="headerlink" href="#person" title="Permalink to this headline">¶</a></h4>
+<p>A person is a user of the database.
+There are <a class="reference external" href="wiki.html#access-levels">roles and permissions</a>.</p>
 </div>
 </div>
 <div class="section" id="extending-odmf-schema">
@@ -357,20 +368,24 @@ The name <code class="docutils literal notranslate"><span class="pre">series</sp
 <a class="reference external" href="#materialized-view-series">series</a>, <a class="reference external" href="#materialized-view-variables">_variables</a>,
 <a class="reference external" href="#special-view-sbo-odm-invalid-datasets">sbo_odm_invalid_datasets</a> and
 <a class="reference external" href="#special-view-sbo-odm-invalid-valuetypes">sbo_odm_invalid_valuetypes</a> are used.</p>
-<p>To provide the <code class="docutils literal notranslate"><span class="pre">begindatetimeutc</span></code> and <code class="docutils literal notranslate"><span class="pre">enddatetimeutc</span></code> of <code class="docutils literal notranslate"><span class="pre">SBO.seriescatalog</span></code>, the attributes <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code> of
-<code class="docutils literal notranslate"><span class="pre">SBO.dataset</span></code> are totalled up with <code class="docutils literal notranslate"><span class="pre">timezone</span></code> of <code class="docutils literal notranslate"><span class="pre">dataset</span></code> and the <code class="docutils literal notranslate"><span class="pre">pg_timezone_names.utc_offset</span></code>.
+<p>The <strong>Seriescatalog</strong> is the big entity of the ODM schema, which stores all series data with the respective
+meta information.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">ODMF.dataset.id</span></code> is aggregated through <code class="docutils literal notranslate"><span class="pre">MIN</span></code> to <code class="docutils literal notranslate"><span class="pre">ODM.seriescatalog.seriesid</span></code>, to have only one id.
+Also joining <code class="docutils literal notranslate"><span class="pre">ODMF.series</span></code> data to omit rows with <code class="docutils literal notranslate"><span class="pre">series.count</span> <span class="pre">&lt;</span> <span class="pre">0</span></code>.
+To provide the <code class="docutils literal notranslate"><span class="pre">begindatetimeutc</span></code> and <code class="docutils literal notranslate"><span class="pre">enddatetimeutc</span></code> of <code class="docutils literal notranslate"><span class="pre">ODM.seriescatalog</span></code>, the attributes <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code> of
+<code class="docutils literal notranslate"><span class="pre">ODMF.dataset</span></code> are totalled up with <code class="docutils literal notranslate"><span class="pre">timezone</span></code> of <code class="docutils literal notranslate"><span class="pre">dataset</span></code> and the <code class="docutils literal notranslate"><span class="pre">pg_timezone_names.utc_offset</span></code>.
 <a class="reference external" href="https://www.postgresql.org/docs/current/static/datatype-datetime.html#DATATYPE-TIMEZONES">See Postgresql docs</a> on
 timezones.</p>
 </div>
 <div class="section" id="special-view-sbo-odm-invalid-datasets">
 <span id="special-view-sbo-odm-invalid-datasets"></span><h4>Special view <code class="docutils literal notranslate"><span class="pre">sbo_odm_invalid_datasets</span></code><a class="headerlink" href="#special-view-sbo-odm-invalid-datasets" title="Permalink to this headline">¶</a></h4>
 <p>Uses the ODMF entity <a class="reference external" href="#dataset">Dataset</a> with a set of invariant rules to produce only the result that is valid
-in the ODM schema.</p>
+in the ODM schema. After the invariant rules are applied, some rows can be ommited.</p>
 </div>
 <div class="section" id="special-view-sbo-odm-invalid-valuetypes">
 <span id="special-view-sbo-odm-invalid-valuetypes"></span><h4>Special view <code class="docutils literal notranslate"><span class="pre">sbo_odm_invalid_valuetypes</span></code><a class="headerlink" href="#special-view-sbo-odm-invalid-valuetypes" title="Permalink to this headline">¶</a></h4>
 <p>Uses the ODMF entity <a class="reference external" href="#valuetype">Valuetype</a> with a set of invariant rules to produce only the result that is valid
-in the ODM schema.</p>
+in the ODM schema. After the invariant rules are applied, some rows can be ommited.</p>
 </div>
 </div>
 </div>
@@ -460,18 +475,35 @@ List of materialized views:</p>
 database views to fit CUAHSI ODM schema, which is used with the HydroServerLite instance.</p>
 <p>The postgres helper view <code class="docutils literal notranslate"><span class="pre">sbo_odm_invalid_datasets</span></code> defines the invariants of the schema mapping. When selected it returns
 all <code class="docutils literal notranslate"><span class="pre">dataset</span></code>s which will break the ODM schema constraints.</p>
-<p>The ODM schema constraints are:
-TBD.</p>
+<p>Datasets are omitted when the following rules apply on them:</p>
 <ul class="simple">
-<li>Constraint 1</li>
-<li>Constraint 2</li>
-<li>Constraint 3</li>
+<li><code class="docutils literal notranslate"><span class="pre">dataset.start</span> <span class="pre">=</span> <span class="pre">dataset.end</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">dataset.access</span> <span class="pre">=</span> <span class="pre">0</span></code>, data is only for internal use</li>
+<li><code class="docutils literal notranslate"><span class="pre">dataset.project</span> <span class="pre">is</span> <span class="pre">NULL</span></code></li>
+</ul>
+<p>Valuetypes are omitted, when the following rules apply on them:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">valuetype.cv_unit</span> <span class="pre">is</span> <span class="pre">NULL</span></code> or <code class="docutils literal notranslate"><span class="pre">valuetype.cv_variable_name</span> <span class="pre">is</span> <span class="pre">''</span></code>, therefore no mapping to items of the controlled vocabulary can be done.</li>
+<li><code class="docutils literal notranslate"><span class="pre">valuetype.id</span> <span class="pre">in</span> <span class="pre">(30)</span></code>, when the id is in list of integers, which to be omitted.</li>
 </ul>
 <p>The view <code class="docutils literal notranslate"><span class="pre">seriescatalog</span></code> is pointer where all series are published. So to prevent the ODM schema views on the ODMF schema tables to break, the view <code class="docutils literal notranslate"><span class="pre">seriescatalog</span></code> filters based on <code class="docutils literal notranslate"><span class="pre">sbo_odm_invalid_datasets</span></code> helper view all invalid datasets.</p>
 </div>
 <div class="section" id="daily-jobs">
 <span id="daily-jobs"></span><h3>Daily jobs<a class="headerlink" href="#daily-jobs" title="Permalink to this headline">¶</a></h3>
-<p>Creation of the transformed timeseries</p>
+<p>The creation of the transformed timeseries is done via the <code class="docutils literal notranslate"><span class="pre">update_transformedvalues.py</span></code> in
+the <code class="docutils literal notranslate"><span class="pre">odmf.migration_util.cuahsi</span></code> namespace.
+The script fetches all datasets that are transformed_timeseries and creates the data record rows.
+This rows would usually not reside as realized data in the database. But this is done to improve
+the performance of the WaterOneFlow API, when requesting data, which is a transformed_timeseries
+in terms of the ODMF schema.</p>
+<p>Different phases described:</p>
+<ol class="simple">
+<li>Deletes all old realized transformed_timeseries records</li>
+<li>Fetches all tranformed_timeseries datsets and then records and caches them in python data structure</li>
+<li>Applies transformation to the values and persists tranformed record value in the <code class="docutils literal notranslate"><span class="pre">ODMF.record</span></code> table.</li>
+</ol>
+<p>The realized records cannot be queried by the ODMF software system. They are only visible to the WOF
+API, because the ORM layer only accesses records with <code class="docutils literal notranslate"><span class="pre">dataset.type</span></code> that are non-<code class="docutils literal notranslate"><span class="pre">transformed_timeseries</span></code>.</p>
 </div>
 </div>
 </div>
