@@ -276,37 +276,46 @@ administration, field data import and metadata annotation.</p>
 <div class="section" id="dataset">
 <span id="dataset"></span><h4>Dataset<a class="headerlink" href="#dataset" title="Permalink to this headline">¶</a></h4>
 <p>A dataset describes a valuetype for a specific site and time frame.</p>
-<p>Distinction between <code class="docutils literal notranslate"><span class="pre">timeseries</span></code> and <code class="docutils literal notranslate"><span class="pre">transformed_timeseries</span></code>.</p>
+<p>Distinction between <code class="docutils literal notranslate"><span class="pre">timeseries</span></code> and <code class="docutils literal notranslate"><span class="pre">transformed_timeseries</span></code>. Timeseries are realized data (concrete measured values)
+and transformed timeseries are unrealized data, which are generated at runtime and derive from timeseries.</p>
 <p>A dataset object has a so called back reference to records with a <code class="docutils literal notranslate"><span class="pre">lazy</span></code> join on the records, regarding the dataset.
 <a class="reference external" href="http://docs.sqlalchemy.org/en/latest/orm/backref.html">See sqlalchemy docs</a> on backref.</p>
 </div>
 <div class="section" id="valuetype">
 <span id="valuetype"></span><h4>Valuetype<a class="headerlink" href="#valuetype" title="Permalink to this headline">¶</a></h4>
 <p>Valuetype holds a descripiton for a physical unit.</p>
+<p>Valuetype holds a descripiton for a physical unit.</p>
 </div>
 <div class="section" id="job">
 <span id="job"></span><h4>Job<a class="headerlink" href="#job" title="Permalink to this headline">¶</a></h4>
+<p>A job has a title, description, due date and can be assigned to a person.
+A job appears in the calendar view.</p>
 <p>A job has a title, description, due date and can be assigned to a person.
 A job appears in the calendar view.</p>
 </div>
 <div class="section" id="datacollectionmethod">
 <span id="datacollectionmethod"></span><h4>DataCollectionMethod<a class="headerlink" href="#datacollectionmethod" title="Permalink to this headline">¶</a></h4>
 <p>TBD.</p>
+<p>TBD.</p>
 </div>
 <div class="section" id="quality">
 <span id="quality"></span><h4>Quality<a class="headerlink" href="#quality" title="Permalink to this headline">¶</a></h4>
+<p>TBD.`</p>
 <p>TBD.`</p>
 </div>
 <div class="section" id="record">
 <span id="record"></span><h4>Record<a class="headerlink" href="#record" title="Permalink to this headline">¶</a></h4>
 <p>A record describes a dataset value for a specific timestamp.</p>
+<p>A record describes a dataset value for a specific timestamp.</p>
 </div>
 <div class="section" id="site">
 <span id="site"></span><h4>Site<a class="headerlink" href="#site" title="Permalink to this headline">¶</a></h4>
 <p>A site describes the location, where data is to be measured.</p>
+<p>A site describes the location, where data is to be measured.</p>
 </div>
 <div class="section" id="project">
 <span id="project"></span><h4>Project<a class="headerlink" href="#project" title="Permalink to this headline">¶</a></h4>
+<p>A project is the highest distinction in the database. Datasets are assinged to a project.</p>
 <p>A project is the highest distinction in the database. Datasets are assinged to a project.</p>
 </div>
 <div class="section" id="person">
@@ -317,8 +326,12 @@ There are <a class="reference external" href="wiki.html#access-levels">roles and
 </div>
 <div class="section" id="extending-odmf-schema">
 <span id="extending-odmf-schema"></span><h3>Extending ODMF schema<a class="headerlink" href="#extending-odmf-schema" title="Permalink to this headline">¶</a></h3>
-<p>Elaborate on the ODMF (NOT ODM Schema model) and how to map.</p>
-<p>The following picture describes the schema mapping between the ODM (grey) and the ODMF (green) database schemata. Additionally there are helper relations (blue) when the conventional tables are not sufficient.
+<p>This section only describes the mapping of ODM to ODMF entities. ODM entities on their own,
+are described in more detail in a dedicated
+<a class="reference external" href="https://www.cuahsi.org/uploads/pages/img/ODM1.1DesignSpecifications_.pdf">design specification</a>.</p>
+<p>The following picture consists of relations as nodes and access from relations to relations as edges.
+It describes the schema mapping between the ODM (grey) and the ODMF (green) database relations.
+Additionally there are helper relations (blue) when the conventional tables are not sufficient.
 <img alt="Picture of the ODMF to ODM schema mapping" src="../_images/odmf-odm-mapping.jpg" /></p>
 <div class="section" id="view-odm-methods">
 <span id="view-odm-methods"></span><h4>View <code class="docutils literal notranslate"><span class="pre">ODM.Methods</span></code><a class="headerlink" href="#view-odm-methods" title="Permalink to this headline">¶</a></h4>
@@ -431,14 +444,14 @@ is returned to the user, as part of an error message.</p>
 <a class="reference external" href="https://www.github.com/CUAHSI/HydroServerLite">Github</a>.
 The application uses the PHP framework CodeIgniter and can work with several database backends, in the case of
 the Schwingbach project it connects to a PostgresQL endpoint.</p>
-<!-- Componenten --><ol class="simple">
+<ol class="simple">
 <li><strong>Parsing client request:</strong> The CodeIgniter middleware dispatches the client request and triggers the XML parsing
 process of the interface.</li>
 <li><strong>Invoking helper methods with request parameters:</strong> The parsed parameters from (1) are handed over to the respective
 methods of the endpoint, that are responsible for building the XML response.</li>
 <li><strong>Building XML response:</strong> The actual XML response is build, with usually calling more than one helper method.</li>
 </ol>
-<!-- Code anschneiden --><p>The application code which defines the WaterOneFlow interface resides in <code class="docutils literal notranslate"><span class="pre">application/helpers/hydroservices_helper.php</span></code>. The methods are nested in two layers (1) <code class="docutils literal notranslate"><span class="pre">wof_METHODNAME</span></code> and <code class="docutils literal notranslate"><span class="pre">db_METHODNAME</span></code>, where METHODNAME substitutes a method name of the endpoint e.g. <code class="docutils literal notranslate"><span class="pre">GetSites</span></code> or <code class="docutils literal notranslate"><span class="pre">GetSiteInfo</span></code>.</p>
+<p>The application code which defines the WaterOneFlow interface resides in <code class="docutils literal notranslate"><span class="pre">application/helpers/hydroservices_helper.php</span></code>. The methods are nested in two layers (1) <code class="docutils literal notranslate"><span class="pre">wof_METHODNAME</span></code> and <code class="docutils literal notranslate"><span class="pre">db_METHODNAME</span></code>, where METHODNAME substitutes a method name of the endpoint e.g. <code class="docutils literal notranslate"><span class="pre">GetSites</span></code> or <code class="docutils literal notranslate"><span class="pre">GetSiteInfo</span></code>.</p>
 <p>Further documentation can be found on the official <a class="reference external" href="https://www.cuahsi.org/data-models/legacy-tools/">CUAHSI homepage</a>
 or just contact the CUAHSI staff.</p>
 </div>
@@ -471,17 +484,18 @@ List of materialized views:</p>
 </div>
 <div class="section" id="schema-mapping-validity">
 <span id="schema-mapping-validity"></span><h3>Schema mapping validity<a class="headerlink" href="#schema-mapping-validity" title="Permalink to this headline">¶</a></h3>
-<p>It’s important to check on the schema mapping validity, since the Schwingbach database schema is extended through different
-database views to fit CUAHSI ODM schema, which is used with the HydroServerLite instance.</p>
-<p>The postgres helper view <code class="docutils literal notranslate"><span class="pre">sbo_odm_invalid_datasets</span></code> defines the invariants of the schema mapping. When selected it returns
-all <code class="docutils literal notranslate"><span class="pre">dataset</span></code>s which will break the ODM schema constraints.</p>
-<p>Datasets are omitted when the following rules apply on them:</p>
+<p>It’s important to check on the schema mapping validity, since the Schwingbach database schema is extended through
+different database views to fit the CUAHSI ODM schema. The CUAHSI schema accessed via the HydroServerLite instance.</p>
+<p>The postgres helper view <code class="docutils literal notranslate"><span class="pre">ODMF.sbo_odm_invalid_datasets</span></code> and <code class="docutils literal notranslate"><span class="pre">ODMF.sbo_odm_invalid_valuetypes</span></code> define the invariants
+of the schema mapping. When selected they return all <code class="docutils literal notranslate"><span class="pre">ODMF.dataset</span></code>s and <code class="docutils literal notranslate"><span class="pre">ODMF.valuetype</span></code>s which will break the ODM
+schema constraints.</p>
+<p>Items of <code class="docutils literal notranslate"><span class="pre">ODMF.dataset</span></code> are omitted when the following rules apply on them:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">dataset.start</span> <span class="pre">=</span> <span class="pre">dataset.end</span></code></li>
 <li><code class="docutils literal notranslate"><span class="pre">dataset.access</span> <span class="pre">=</span> <span class="pre">0</span></code>, data is only for internal use</li>
 <li><code class="docutils literal notranslate"><span class="pre">dataset.project</span> <span class="pre">is</span> <span class="pre">NULL</span></code></li>
 </ul>
-<p>Valuetypes are omitted, when the following rules apply on them:</p>
+<p>Items of <code class="docutils literal notranslate"><span class="pre">ODMF.valuetype</span></code> are omitted, when one of the following rules apply on them:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">valuetype.cv_unit</span> <span class="pre">is</span> <span class="pre">NULL</span></code> or <code class="docutils literal notranslate"><span class="pre">valuetype.cv_variable_name</span> <span class="pre">is</span> <span class="pre">''</span></code>, therefore no mapping to items of the controlled vocabulary can be done.</li>
 <li><code class="docutils literal notranslate"><span class="pre">valuetype.id</span> <span class="pre">in</span> <span class="pre">(30)</span></code>, when the id is in list of integers, which to be omitted.</li>

@@ -86,31 +86,39 @@ A dataset object has a so called back reference to records with a `lazy` join on
 [See sqlalchemy docs](http://docs.sqlalchemy.org/en/latest/orm/backref.html) on backref.
 
 #### Valuetype
+Valuetype holds a descripiton for a physical unit.
 
 Valuetype holds a descripiton for a physical unit.
 
 #### Job
+A job has a title, description, due date and can be assigned to a person.
+A job appears in the calendar view.
 
 A job has a title, description, due date and can be assigned to a person.
 A job appears in the calendar view.
 
 #### DataCollectionMethod
+TBD.
 
 TBD.
 
 #### Quality
+TBD.`
 
 TBD.`
 
 #### Record
+A record describes a dataset value for a specific timestamp.
 
 A record describes a dataset value for a specific timestamp.
 
 #### Site
+A site describes the location, where data is to be measured.
 
 A site describes the location, where data is to be measured.
 
 #### Project
+A project is the highest distinction in the database. Datasets are assinged to a project.
 
 A project is the highest distinction in the database. Datasets are assinged to a project.
 
