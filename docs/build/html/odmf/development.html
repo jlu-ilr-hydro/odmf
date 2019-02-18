@@ -89,7 +89,10 @@
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="views.html">Views</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Development</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#structure">Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#components">Components</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#core-thoughts-behind-design-decisions">Core thoughts behind design decisions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#data">Data</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#odmf-schema">ODMF schema</a></li>
@@ -225,6 +228,14 @@ The Cherrypy server also exposes some methods as JSON exports for a rest-like us
 and ui tests, but no unit tests.</p>
 <div class="section" id="structure">
 <span id="structure"></span><h2>Structure<a class="headerlink" href="#structure" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">tests</span></code> includes tests written to validate (1) the schwingbach server and (2) the HydroServerLite migration</li>
+<li><code class="docutils literal notranslate"><span class="pre">bin</span></code> has scripts for interacting with the database or the HydroServerLite</li>
+<li><code class="docutils literal notranslate"><span class="pre">src</span></code> contains the source files of the server</li>
+<li><code class="docutils literal notranslate"><span class="pre">docs</span></code> encloses the sphinx documentation sources</li>
+</ul>
+<div class="section" id="components">
+<span id="components"></span><h3>Components<a class="headerlink" href="#components" title="Permalink to this headline">¶</a></h3>
 <p><img alt="ODMF software components" src="../_images/fmc-odmf.png" /></p>
 <p>The code base is divided in three main parts. <strong>Server</strong>, <strong>automated import</strong> and
 <strong>database communication</strong>.</p>
@@ -240,6 +251,7 @@ In <code class="docutils literal notranslate"><span class="pre">webpage/lib.py</
 <li><strong>database</strong> and ORM code is in <code class="docutils literal notranslate"><span class="pre">db</span></code> the module.</li>
 </ul>
 <p>Utility code for calibration, conf and markdown parsing are saved in the <code class="docutils literal notranslate"><span class="pre">tools</span></code> module.</p>
+</div>
 </div>
 <div class="section" id="core-thoughts-behind-design-decisions">
 <span id="core-thoughts-behind-design-decisions"></span><h2>Core thoughts behind design decisions<a class="headerlink" href="#core-thoughts-behind-design-decisions" title="Permalink to this headline">¶</a></h2>

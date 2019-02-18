@@ -24,6 +24,13 @@ and ui tests, but no unit tests.
 
 ## Structure
 
+* `tests` includes tests written to validate (1) the schwingbach server and (2) the HydroServerLite migration
+* `bin` has scripts for interacting with the database or the HydroServerLite
+* `src` contains the source files of the server
+* `docs` encloses the sphinx documentation sources
+
+### Components
+
 ![ODMF software components](../../images/fmc-odmf.png "ODMF software components (FMC diagram)")
 
 The code base is divided in three main parts. **Server**, **automated import** and
