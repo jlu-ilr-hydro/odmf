@@ -11,7 +11,7 @@ import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
 from io import StringIO
 import os.path as op
-import conf
+from .. import conf
 
 from contextlib import contextmanager
 from cherrypy import log

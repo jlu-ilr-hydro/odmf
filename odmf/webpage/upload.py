@@ -17,12 +17,12 @@ from io import StringIO, BytesIO
 from cherrypy import log
 import chardet
 
-from dataimport import ManualMeasurementsImport
-from dataimport.base import ImportDescription, LogImportDescription
-from dataimport.importlog import LogbookImport
-from tools import Path
+from ..dataimport import ManualMeasurementsImport
+from ..dataimport.base import ImportDescription, LogImportDescription
+from ..dataimport.importlog import LogbookImport
+from ..tools import Path
 
-import conf
+from .. import conf
 datapath = web.abspath('datafiles')
 home = web.abspath('.')
 

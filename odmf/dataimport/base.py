@@ -17,13 +17,13 @@ import chardet
 
 import ast
 
-import conf
+from .. import conf
 # AbstractImport
 from traceback import format_exc as traceback
 from pytz import common_timezones_set
 from sqlalchemy import func
 
-from dataimport.importlog import LogColumns
+from ..dataimport.importlog import LogColumns
 
 
 def findStartDate(siteid, instrumentid):

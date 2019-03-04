@@ -24,8 +24,8 @@ from pandas import to_datetime, TimeGrouper
 import json
 from glob import iglob
 
-import webpage.lib as web
-from webpage.preferences import Preferences
+from . import lib as web
+from .preferences import Preferences
 from .auth import group, expose_for
 
 from .auth import users

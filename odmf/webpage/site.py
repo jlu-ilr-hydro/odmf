@@ -14,7 +14,7 @@ from glob import glob
 import os.path as op
 from .auth import users, expose_for, has_level, group
 from io import StringIO
-import db.projection as proj
+from ..db import projection as proj
 from .preferences import Preferences
 
 

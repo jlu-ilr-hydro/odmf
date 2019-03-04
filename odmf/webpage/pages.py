@@ -2,25 +2,21 @@
 import cherrypy
 
 from . import lib as web
-from .auth import users, require, member_of, has_level, group, expose_for, hashpw, is_self, get_levels
+from .auth import users, group, expose_for, hashpw, is_self, get_levels
 from .upload import write_to_file
-import tools
-from tools import Path
 
-import db
+from .. import db
 import sys
 import os
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
-from genshi import escape
-from io import StringIO
 
-from webpage.upload import DownloadPage
-from webpage.map import MapPage
-from webpage.site import SitePage
-from webpage.datasetpage import DatasetPage
-from webpage.preferences import Preferences
-from webpage.plot import PlotPage
+from .upload import DownloadPage
+from .map import MapPage
+from .site import SitePage
+from .datasetpage import DatasetPage
+from .preferences import Preferences
+from .plot import PlotPage
 
 
 

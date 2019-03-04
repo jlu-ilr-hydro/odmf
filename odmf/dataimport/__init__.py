@@ -13,7 +13,7 @@ from . import mm as _mm
 from .base import finddateGaps, findStartDate, savetoimports, checkimport, \
     ImportDescription
 
-from dataimport.mm import ManualMeasurementsImport
+from ..dataimport.mm import ManualMeasurementsImport
 #, \ImportManualMeasurementsDescription
 
 import re
