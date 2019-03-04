@@ -13,7 +13,7 @@ from .xls import XlsImport
 from .. import conf
 from re import search, sub
 
-import db
+from .. import db
 from pytz import common_timezones_set
 
 

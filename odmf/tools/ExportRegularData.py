@@ -4,7 +4,7 @@ Created on Fri Nov 22 11:29:07 2013
 
 @author: houska-t
 """
-import db
+from .. import db
 from traceback import format_exc as traceback
 import sys
 import pandas as pd

@@ -5,7 +5,7 @@ Created on 07.02.2013
 '''
 import sys
 from datetime import datetime, timedelta
-import db
+from .. import db
 from glob import glob
 import os.path as op
 import os

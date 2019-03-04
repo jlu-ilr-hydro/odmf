@@ -14,13 +14,18 @@ from .projection import LLtoUTM, dd_to_dms
 from collections import deque
 from traceback import format_exc as traceback
 
-from ..webpage import lib
 
 from ..tools.mail import EMail
 
 from functools import total_ordering
 
 from io import BytesIO
+
+def memoryview_to_b64str(mview):
+    if type(mview) is not bytes:
+        mview = mview.tobytes()
+    return b64encode(mview).decode('ascii')
+
 
 @total_ordering
 class Site(Base):
@@ -240,10 +245,10 @@ class Image(Base):
     thumbnailheight = 72
 
     def thumbnail64(self):
-        return lib.memoryview_to_b64str(self.thumbnail)
+        return memoryview_to_b64str(self.thumbnail)
 
     def image64(self):
-        return lib.memoryview_to_b64str(self.image)
+        return memoryview_to_b64str(self.image)
 
     def __PIL_to_stream(self, img, height, format):
         from PIL import Image as pil

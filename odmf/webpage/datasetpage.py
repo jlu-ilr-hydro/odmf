@@ -4,7 +4,7 @@ Created on 18.07.2012
 @author: philkraf
 '''
 from . import lib as web
-import db
+from .. import db
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 import io

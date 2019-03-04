@@ -13,7 +13,7 @@ import pylab as plt
 from matplotlib.ticker import MaxNLocator
 import matplotlib.dates
 import numpy as np
-import db
+from .. import db
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from io import StringIO

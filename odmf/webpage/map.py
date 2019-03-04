@@ -4,7 +4,7 @@ Created on 12.07.2012
 @author: philkraf
 '''
 from . import lib as web
-import db
+from .. import db
 from .datasetpage import DatasetPage
 from .preferences import Preferences
 
