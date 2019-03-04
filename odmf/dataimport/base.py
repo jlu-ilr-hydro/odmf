@@ -17,13 +17,13 @@ import chardet
 
 import ast
 
-import conf
+from .. import conf
 # AbstractImport
 from traceback import format_exc as traceback
 from pytz import common_timezones_set
 from sqlalchemy import func
 
-from dataimport.importlog import LogColumns
+from ..dataimport.importlog import LogColumns
 
 
 def findStartDate(siteid, instrumentid):
@@ -143,8 +143,8 @@ class ImportColumn:
         maxvalue: This is the allowed highest value. Higher values will not be converted
         comment: The new dataset can be commented by this comment
         append: For automatic import, append to this datasetid
-        level: ...
-        access: ...
+        level: Level property of the dataset. Use this for Instruments measuring at one site in different depth
+        access: Access property of the dataset
         ds_column: explicit dataset for uploading column @see: mm.py
         """
         self.column = int(column)
@@ -196,6 +196,9 @@ class ImportColumn:
         if self.access is not None:
             config.set(section, '; Access property of the dataset. Default level is 1 (for loggers) but can set to 0 for public datasets or to a higher level for confidential datasets')
             config.set(section, 'access', self.access)
+        if self.ds_column is not None:
+            config.set(section, '; Explicit dataset id for column to upload to')
+            config.set(section, 'ds_column', self.ds_column)
 
     @classmethod
     def from_config(cls, config, section):
@@ -253,7 +256,15 @@ class ImportDescription(object):
         """
         instrument: the database id of the instrument that produced this file
         skiplines: The number of lines prepending the actual data
-        delimiter: The delimiter sign of the columns. Use TAB for tab-delimited columns, otherwise ',' or ';'               
+        delimiter: The delimiter sign of the columns. Use TAB for tab-delimited columns, otherwise ',' or ';'
+        decimalpoint: Symbol used to separate decimal place
+        dateformat: ...
+        datecolumns: ...
+        timezone: str in pytz format
+        project: str project for the dataset to link to. Optional.
+        nodata: list of values that don't represent valid data. E.g. ['NaN']. Is optional and default is empty list.
+        worksheet: The position of the worksheet of an excel file. Optional and default is the first (1)
+        sample_mapping: Mapping of labcodes to site ids. Is Optional and default is None
         """
         self.name = ''
         self.fileextension = ''

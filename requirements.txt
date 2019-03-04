@@ -1,7 +1,8 @@
 # may be outdated
 
 bcrypt
-cherrypy
+chardet
+cherrypy==14.1.0
 configparser==3.5
 genshi==0.7
 markdown==2.3.1
@@ -11,6 +12,10 @@ psycopg2==2.7.4
 pytz==2016.10
 sqlalchemy==1.2.2
 xlrd==1.0.0
+bleach
 
 # woftester only
 lxml
+
+# tests only
+requests

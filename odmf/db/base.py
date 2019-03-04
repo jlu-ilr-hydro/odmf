@@ -11,7 +11,7 @@ import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
 from io import StringIO
 import os.path as op
-import conf
+from .. import conf
 
 from contextlib import contextmanager
 from cherrypy import log
@@ -45,13 +45,16 @@ def connect():
                             database=conf.CFG_DATABASE_NAME)
 
 
-engine = sql.create_engine('postgresql://', creator=connect)
+# FIXME: allow test suite to load sqlite
+# TODO: allow test suite to load postgres and import all sql files (compliance test for sql)
+if conf.DATABASE == 'postgres':
+    engine = sql.create_engine('postgresql://', creator=connect)
+elif conf.DATABASE == 'sqlite':
+    if op.exists(conf.SQLITE_PATH):
+        engine = sql.create_engine('sqlite:///data.sqlite')
+    else:
+        raise RuntimeError('Couldn\'t find offline database at \'%s\'.' % conf.SQLITE_PATH)
 
-#createTables = op.exists('./file.db')
-
-#from sqlite3 import dbapi2 as sqlite
-#engine = sql.create_engine('sqlite+pysqlite:///file.db', module=sqlite)
-#engine = sql.create_engine('sqlite:///file.db')
 Session = orm.sessionmaker(bind=engine)
 scoped_session = orm.scoped_session(Session)
 

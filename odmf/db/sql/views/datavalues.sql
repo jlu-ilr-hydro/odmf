@@ -20,7 +20,8 @@ DROP MATERIALIZED VIEW IF EXISTS datavalues;
 CREATE MATERIALIZED VIEW datavalues AS
  SELECT row_number() OVER (ORDER BY r."time") AS valueid,
     d.id as datasetid,
-    d.calibration_offset as offsetvalue,
+    d.level as offsetvalue,
+    (CASE WHEN d.level IS NOT NULL THEN 0 ELSE NULL END)::real as offsettypeid,
     --d.calibration_slope,
     ((r.value * d.calibration_slope) + d.calibration_offset)::real AS datavalue,
     (r."time")::character varying AS localdatetime,

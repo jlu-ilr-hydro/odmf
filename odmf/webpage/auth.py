@@ -11,7 +11,7 @@ import collections
 #import md5
 import cherrypy
 
-import db
+from .. import db
 from sqlalchemy import func
 import bcrypt
 
@@ -150,16 +150,16 @@ class Users(collections.Mapping):
         return user in self.dict
 
     def load(self):
-        session = db.Session()
+        with db.session_scope() as session:
 
-        q = session.query(db.Person).filter(db.Person.active == True)
+            q = session.query(db.Person).filter(db.Person.active == True)
 
-        self.dict = {}
-        allpersons = q.all()
+            self.dict = {}
+            allpersons = q.all()
 
-        for person in allpersons:
-            self.dict[person.username] = User(
-                person.username, person.access_level, person.password)
+            for person in allpersons:
+                self.dict[person.username] = User(
+                    person.username, person.access_level, person.password)
 
     def check(self, username, password):
 

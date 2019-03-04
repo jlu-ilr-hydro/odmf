@@ -50,7 +50,7 @@ CREATE MATERIALIZED VIEW seriescatalog AS
     MIN(CASE WHEN pg_tz.utc_offset IS NOT NULL THEN
          d.start AT TIME ZONE pg_tz.name AT TIME ZONE 'UTC'
          ELSE d.start END) as begindatetimeutc,
-    MIN(CASE WHEN pg_tz.utc_offset IS NOT NULL THEN
+    MAX(CASE WHEN pg_tz.utc_offset IS NOT NULL THEN
          d."end" AT TIME ZONE pg_tz.name AT TIME ZONE 'UTC'
          ELSE d."end" END) as enddatetimeutc,
     --MIN(d.timezone) as timezone,

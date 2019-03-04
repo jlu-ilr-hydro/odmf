@@ -1,0 +1,12 @@
+# Views
+
+This section describes the different views of the web interface
+
+## Monitor
+
+This is the monitoring view, which displays metrics regarding the Postgres database and eventually the HydroServerLite
+instance. The view is only accessible for a user with admin privileges.
+
+The view gives information about
+* Validity of the Schwingbach => ODM [schema mapping](development.md#schema-mapping-validity)
+* ...

@@ -22,7 +22,19 @@ class LogImportError(RuntimeError):
         self.is_valuetype_error = is_valuetype_error
 
 
-class LogColumns():
+class ILogColumn:
+
+    date = None
+    time = None
+    datetime = None
+    site = None
+    dataset = None
+    value = None
+    logtext = None
+    msg = None
+
+
+class LogColumns(ILogColumn):
     """
     Enum class a fixed column representation
     """
@@ -56,12 +68,20 @@ class LogColumns():
 
 class LogbookImport(object):
     """
-    Imports from an defined xls file messages to the logbook and append values
-    to datasets
+    Imports from an defined xls file messages to the logbook and append values to datasets
+
+    TODO: Difference to Abstract/Text/XLs-Import
     """
     t0 = datetime(1899, 12, 30)
 
     def get_time(self, date, time):
+        """
+        Returns the time
+        TODO: get_time
+        :param date:
+        :param time:
+        :return:
+        """
         if not time:
             return self.t0 + timedelta(date)
 
@@ -74,6 +94,15 @@ class LogbookImport(object):
         return self.t0 + timedelta(date + time)
 
     def get_obj(self, session, cls, row=None, col=None, strvalue=None):
+        """
+        Fetches orm object from id, supplied by row and col from the document or int(strvalue)
+        :param session: sqlalchemy session object
+        :param cls: orm database object from odmf.db
+        :param row: row index integer
+        :param col: col index integer
+        :param strvalue: id from callee, is cast to int. Is only used if row and col are not supplied or None
+        :return: orm object, error
+        """
         id = None
 
         # noinspection PyBroadException
@@ -84,20 +113,35 @@ class LogbookImport(object):
                 id = strvalue
 
         except:
+            # possible exceptions from cell_value
             pass
 
         try:
+            # strvalue is not supplied and cell value cannot be determined by row and col
             if not id:
                 return None, None
+
+            # if strvalue is supplied, cast to int and fetch database object
             obj = session.query(cls).get(int(id))
+
+            # id or strvalue could not resolve to a database id, respectively an object
             if not obj:
                 raise Exception('%s.get(%s) not found' % (id, cls))
+
+            # return results otherwise
             return obj, ''
+
         except Exception as e:
             return None, '%s is not a valid %s id: %s' % (id, cls, e)
 
     def get_value(self, row, columns):
-
+        """
+        Returns value of row and column index
+        :param row: row integer
+        :param columns: one int or a list of ints of column indices
+        :raises TypeError: row or columns is not integer
+        :return: one or a list of values
+        """
         try:
             return [self.sheet.cell_value(row, col) for col in columns]
 
@@ -108,8 +152,8 @@ class LogbookImport(object):
                 raise TypeError(
                     "List indices row '%s' and col '%s' must be integers" % (row, columns))
 
-    # TODO: Add mechanism to choose a "static" class or a config file
-    # for the import. Like:
+    # TODO: Add mechanism to choose a "static" class or a config file for the import.
+    # Like:
     # __init__( ... , importWithClass=<Class Identifier>)
     # test interface in mm.py
     def __init__(self, filename, user, sheetname=None, import_with_class=LogColumns, config=None):
@@ -126,8 +170,8 @@ class LogbookImport(object):
 
         if sheetname:
             self.sheet = self.workbook.sheet_by_name(sheetname)
-
         else:
+            # Choose sheet 0 by default
             self.sheet = self.workbook.sheet_by_index(0)
 
     def __call__(self, commit=False):
@@ -350,6 +394,7 @@ class LogbookImport(object):
 
 
 class RecordImport(object):
+    # TODO: Remove unused Code
 
     def __init__(self, filename, user, sheetname=None):
         self.filename = filename

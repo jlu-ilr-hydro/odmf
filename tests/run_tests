@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+#
+# author: Chris
+
+import argparse
+from enum import Enum
+import subprocess
+from subprocess import call
+
+
+def fail(return_value):
+    """If other than 0 fail, for process"""
+    if return_value != 0:
+        print("Failing with %s" % return_value)
+        exit(1)
+
+
+MODE_ODMF="odmf"
+MODE_ALL = "all"
+MODE_WOF = "wof"
+
+
+parser = argparse.ArgumentParser(description="Testing ODMF software components")
+parser.add_argument("-m", "--mode", dest="mode", default="odmf",
+                    help="defines the mode of testing. Available modes are all, wof (wateroneflow) or odmf", type=str)
+args = parser.parse_args()
+
+if args.mode:
+    print("Using mode %s ..." % args.mode)
+    if args.mode in [MODE_ODMF, MODE_ALL]:
+        # do test odmf
+        r = call(['./test_odmf_ui.py'])
+        fail(r)
+
+    if args.mode in [MODE_WOF, MODE_ALL]:
+        # do test wateroneflow
+        r = call(['./test_wofinterface.py'])
+        fail(r)
+
+else:
+    raise ValueError("Default argument for mode not supplied. Exit ...")

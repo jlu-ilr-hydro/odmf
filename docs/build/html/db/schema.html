@@ -1,0 +1,339 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en-EN" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en-EN" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Database schema &mdash; ODMF Docs 0.1.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> ODMF Docs
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../odmf/about.html">What is ODMF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../odmf/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../odmf/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../odmf/views.html">Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../odmf/development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../odmf/wiki.html">Wiki</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ODMF Docs</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Database schema</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/db/schema.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="database-schema">
+<h1>Database schema<a class="headerlink" href="#database-schema" title="Permalink to this headline">¶</a></h1>
+<p>The schwingbach database schema is build around the central <em>dataset</em> table.</p>
+<img alt="Picture of database schema schwingbach" src="../_images/schwingbach.png" />
+<p>The schwingbach database schema definition is a subset of the
+Observation Data Model (<a class="reference external" href="https://www.cuahsi.org/uploads/pages/img/ODM1.1DesignSpecifications_.pdf">ODM</a>) specification.
+developed by the organization <a class="reference external" href="https://cuahsi.org">CUAHSI</a>.</p>
+<p>A extended version of the schwingbach schema (<a class="reference internal" href="#odm-extension"><span class="std std-ref">documentation</span></a>)
+is enhanced by SQL tables, views and triggers to make use of the
+<a class="reference external" href="http://hydroserver.cuahsi.org/Account/Login">HydroServer</a> <a class="reference external" href="https://github.com/CUAHSI/HydroServerLite">Lite</a>
+to provide the <a class="reference external" href="http://his.cuahsi.org/wofws.html">WaterOneFlow</a> interface.</p>
+<p>For an complete overview of the original version, ODM extension and its
+differences <a class="reference external" href="http://fb09-pasig.umwelt.uni-giessen.de/">see PDF</a>.</p>
+<div class="section" id="table-dataset">
+<h2><strong>Table</strong> <em>dataset</em><a class="headerlink" href="#table-dataset" title="Permalink to this headline">¶</a></h2>
+<p id="schema-dataset">A dataset entry has 0-n <a class="reference internal" href="#table-trans-timeseries"><span class="std std-ref">transformed_timeseries</span></a>
+attached to it. And it should hold 1-* records.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="84%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Attribute</th>
+<th class="head">Definition</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>type</td>
+<td><p class="first">‘timeseries’ or ‘transformed_timeseries’</p>
+<p class="last">See <a class="reference internal" href="#table-trans-timeseries"><span class="std std-ref">transformed_timeseries</span></a></p>
+</td>
+</tr>
+<tr class="row-odd"><td>access</td>
+<td><p class="first">integer 0-4</p>
+<p class="last">See <a class="reference internal" href="#id1"><span class="std std-ref">Person access levels</span></a>
+for further information</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="dataset-type-transformed-timeseries">
+<h3><strong>dataset.type</strong> <em>transformed_timeseries</em><a class="headerlink" href="#dataset-type-transformed-timeseries" title="Permalink to this headline">¶</a></h3>
+<p id="table-trans-timeseries"><em>Note</em>: A transformed timeseries has an entry in the dataset table, but won’t
+have any entries in <code class="docutils literal notranslate"><span class="pre">record</span></code> attached to it.</p>
+</div>
+</div>
+<div class="section" id="table-transforms">
+<h2><strong>Table</strong> <em>transforms</em><a class="headerlink" href="#table-transforms" title="Permalink to this headline">¶</a></h2>
+<p>Consists of two main columns, <code class="docutils literal notranslate"><span class="pre">source</span></code> and <code class="docutils literal notranslate"><span class="pre">target</span></code>. So it can be read as
+<code class="docutils literal notranslate"><span class="pre">source</span></code> transforms into <code class="docutils literal notranslate"><span class="pre">target</span></code>. Third column <code class="docutils literal notranslate"><span class="pre">automatic_added</span></code> is set
+<code class="docutils literal notranslate"><span class="pre">true</span></code>, when the <code class="docutils literal notranslate"><span class="pre">trans_dataset_id</span></code> keyword in the config file is used.</p>
+</div>
+<div class="section" id="table-person">
+<h2><strong>Table</strong> <em>person</em><a class="headerlink" href="#table-person" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="access-levels">
+<h3><strong>Access levels</strong><a class="headerlink" href="#access-levels" title="Permalink to this headline">¶</a></h3>
+<p id="id1">Access levels define the access on datasets and their records, wheter the users
+intention is to read or to write. The levels have an integer range from 0 to 4.</p>
+<ul class="simple">
+<li><strong>Level 0:</strong> Guest</li>
+<li><strong>Level 1:</strong> Editor</li>
+<li><strong>Level 2:</strong> Logger</li>
+<li><strong>Level 3:</strong> Supervisor</li>
+<li><strong>Level 4:</strong> Admin</li>
+</ul>
+</div>
+<div class="section" id="odm-ddl-extension">
+<h3>ODM DDL extension<a class="headerlink" href="#odm-ddl-extension" title="Permalink to this headline">¶</a></h3>
+<p id="odm-extension"><strong>Tables</strong></p>
+<p>Most tables are part of the <em>ControlledVocabulary</em> which defines a shared definition
+of all ODM databases. See the <a class="reference external" href="https://www.cuahsi.org/uploads/pages/img/ODM1.1DesignSpecifications_.pdf">ODM</a> design specs or the master controlled vocabulary
+<a class="reference external" href="http://his.cuahsi.org/mastercvreg/cv11.aspx">website</a> for more information.</p>
+<p><strong>Views</strong></p>
+<ul class="simple">
+<li><strong>seriescatalog</strong>: Holds all <code class="docutils literal notranslate"><span class="pre">odm.series</span></code> of <code class="docutils literal notranslate"><span class="pre">odm.datavalues</span></code>. To build the
+analogy to Schwingbach. All <code class="docutils literal notranslate"><span class="pre">sbo.dataset</span></code> s grouped by its <code class="docutils literal notranslate"><span class="pre">site</span></code>, <code class="docutils literal notranslate"><span class="pre">valuetype</span></code>,
+<code class="docutils literal notranslate"><span class="pre">source</span></code>, <code class="docutils literal notranslate"><span class="pre">quality</span></code>, <code class="docutils literal notranslate"><span class="pre">project</span></code> and <code class="docutils literal notranslate"><span class="pre">datacollectionmethod</span></code>.</li>
+</ul>
+<p></p>
+<blockquote>
+<div><ul class="simple">
+<li><em>except</em>:<ul>
+<li>dataset.type = ‘transformed_timeseries’ (at the moment)</li>
+<li>dataset.access = 0 (Only guestlevel, <strong>NOT</strong> higher)</li>
+<li>valuetype.id = 30 (see variables for more information)</li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><strong>variables</strong>: Provides the content defined by <code class="docutils literal notranslate"><span class="pre">odm.variables</span></code>. Therefore it
+fetches it out of <code class="docutils literal notranslate"><span class="pre">sbo.valuetype</span></code> and <code class="docutils literal notranslate"><span class="pre">sbo.dataset</span></code>.</li>
+</ul>
+<dl class="docutils">
+<dt></dt>
+<dd><ul class="first last simple">
+<li><em>excludes</em> (Note this also affects the code of seriescatalog):<ul>
+<li>specific valuetypes that are not compatible with odm: ATM the following valuetypes:<ul>
+<li>30 - water amount</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+<p><strong>Materialized Views</strong></p>
+<p>There are views that are updated or materialized by a daily cronjob, to keep
+the data recent.</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">/home/gh1961/schwingbach/odm/bin/refresh_series.sh</span></code> for <cite>sbo.series</cite> for the valuecount data of series_catalog.</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="differences-that-affect-the-implementation">
+<h3>Differences that affect the implementation<a class="headerlink" href="#differences-that-affect-the-implementation" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">siteid</span></code> is an number attribute in all extending usages and not as the design document of ODM 1.1 states, a string</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Philipp Kraft, Chris Weber
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.1.1',
+              LANGUAGE:'en-EN',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

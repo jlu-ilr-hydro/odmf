@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en-EN" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en-EN" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation &mdash; ODMF Docs 0.1.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> ODMF Docs
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../odmf/about.html">What is ODMF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../odmf/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../odmf/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../odmf/views.html">Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../odmf/development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../odmf/wiki.html">Wiki</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ODMF Docs</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Installation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/install/db.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>Installation of the schwingbach observatory software.</p>
+<p>You can run the `` install.sh `` script in the root directory or you can work through
+this installation instructions. If you run into errors while executing `` install.sh <a href="#id1"><span class="problematic" id="id2">``</span></a>,
+check out the <a class="reference internal" href="#installation-troubleshooting"><span class="std std-ref">Troubleshoot</span></a>.</p>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><dl class="first docutils">
+<dt>Linux packages</dt>
+<dd><ul class="first last">
+<li><code class="docutils literal notranslate"><span class="pre">python-cherrypy{3}</span></code> - if your Python version is 2 or 3.</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li>Postgres-Server is 9.1 minimum, but we recommend to install the most recent version.</li>
+</ol>
+<p>In order to setup the SBO database application, navigate to the root directory of
+your source directory and just do <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-r</span> <span class="pre">requirements.txt</span></code>. Now you have
+all packages in place to run the server and its database.</p>
+<p>Now you need to initialize the database structure. To do this, execute the following script <code class="docutils literal notranslate"><span class="pre">database.sh</span></code>.</p>
+<p>Follow <a class="reference internal" href="#hs-installation"><span class="std std-ref">HydroServer installation</span></a> for instructions to setup the WaterOneFlow Interface.</p>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>This part describes the how to configure the server for your special needs.</p>
+</div>
+<div class="section" id="hydroserver-installation">
+<h2>Hydroserver-Installation<a class="headerlink" href="#hydroserver-installation" title="Permalink to this headline">¶</a></h2>
+<p id="hs-installation">Installation is only recommended if you decide to share data with the CUAHSI data network. Note that for this purpose
+you configure how the access to what kind of data is done.</p>
+<p>Download PHP-Repository</p>
+<ol class="arabic simple">
+<li>Extend the SQL-Schema (if needed)</li>
+</ol>
+<p>1.1 Enrich your data with MasterCV from CUAHSI (recommended)</p>
+<ol class="arabic simple" start="2">
+<li>Deploy the PHP Server</li>
+</ol>
+</div>
+<div class="section" id="id3">
+<h2>Requirements<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>All server functions of HydroServerLite work without a problem with PHP Verision <code class="docutils literal notranslate"><span class="pre">5.5.9</span></code></li>
+</ol>
+</div>
+<div class="section" id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="installation-troubleshooting"></span></div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Philipp Kraft, Chris Weber
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.1.1',
+              LANGUAGE:'en-EN',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

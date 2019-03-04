@@ -1,0 +1,22 @@
+language: python
+python:
+  - "3.6"
+
+os:
+  - linux
+
+install:
+  - pip install -r requirements.txt
+
+script:
+  - cd odmf
+  - cp ../tests/conf-test-local.py conf.py
+  # make os environment ready
+  - ./install.sh
+  - python start.py &
+  # Timouts to let the server start up
+  - sleep 7
+  # Run acceptance tests
+  - cd ../tests; ./run_tests
+
+# TODO: also include postgres-scripts
