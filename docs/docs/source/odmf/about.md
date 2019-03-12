@@ -5,12 +5,12 @@ TBD by Philipp
 
 ## Features of ODMF
 
-* Upload measurement data for future use
-* Data is persisted in an Postgres database in special schema structure
-* Analyze data via the platform or export in csv or plot format
+* Upload measurement data for future use e.g. analyze and download
+* Data is persisted in an Postgres database in specific schema structure
+* Analyze data via the platform, export it in CSV format and plot an image
 * Organization of different user roles within the online system
 * Augment measurement data gathered from the work in the field via meta data, such as logs and pictures
-* Integration of Google Maps UI panel
+* Integration of data into Google Maps interactive UI
 
 Also it can be integrated into the [CUAHSI](https://www.cuahsi.org) network and used with the tools provided by
 the CUAHSI organization. For example to inspect or download data via the [Data.CUAHSI](https://data.cuahsi.org) page.
@@ -28,9 +28,9 @@ Mentales Gerüst (optional)
 
 ## CUAHSI WaterOneFlow Interface
 
-To access the Schwingbach valley data with other software than the ODMF server, an interface is used.
+To access the Schwingbach valley data with other software than the ODMF server, a special interface is used.
 This interface is called WaterOneFlow interface. It makes public datasets accessible in the so called HIS Central network. All endpoints in this network can be accessed and utilized by tools, provided by the CUAHSI organziation.
-The integration of the WOF interface into the ODMF server system is described in the further chapter.
+The integration of the WOF interface into the ODMF server system is described in the following chapter.
 
 ### CUAHSI Tools
 

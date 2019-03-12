@@ -173,57 +173,27 @@
 <span id="odmf-server"></span><h2>ODMF Server<a class="headerlink" href="#odmf-server" title="Permalink to this headline">¶</a></h2>
 <p>How to install the ODMF server software to maintain measurement data.</p>
 <ol>
-<li><p class="first">Clone github repository and install python dependencies</p>
+<li><p class="first">Clone the github repository and install python dependencies</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/jlu-ilr-hydro/odmf.git
-$ cd odmf;
-$ pip install -r requirements.txt # if you want a dev install
-$ python setup.py install
-</pre></div>
-</div>
-<p>or install via pip</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install odmf
-</pre></div>
-</div>
-<p>After this create a directory, for later use we name it <code class="docutils literal notranslate"><span class="pre">odmf-server</span></code> and place a <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> into it.
-Your directory looks like this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ tree .
-odmf-server/
-└── conf.py
+$ cd odmf
+$ pip install -r requirements.txt
+$ cd odmf
+$ cp conf-template.py conf.py
 </pre></div>
 </div>
 </li>
-<li><p class="first">Install Postgres database</p>
-<p>We recommend the latest version but at least 9.5</p>
+<li><p class="first">If you havn’t already, install a postgres database.
+We recommend the latest version but at least 9.5</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo apt-get install postgresql-dev-9.5
 </pre></div>
 </div>
 </li>
-<li><p class="first">Optional you can set up the HydroServerLite too, if you want to publish your data into the CUAHSI network.
-See the HydroServerLite tutorial for this.</p>
+<li><p class="first">Change the config with the instructions from <a class="reference external" href="https://jlu-ilr-hydro.github.io/odmf/source/conf.py">conf.py</a> wiki page. When the configuration is changed to meet your requirements, start the server and browse to https://localhost:8080</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python3 start.py
+</pre></div>
+</div>
 </li>
 </ol>
-<p>When all prerequesites are met, you navigate to the <code class="docutils literal notranslate"><span class="pre">odmf-server</span></code> folder and type:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ odmf-install .
-</pre></div>
-</div>
-<p>Note the <code class="docutils literal notranslate"><span class="pre">.</span></code> at the end.
-If you set everything up correctly, this script should set up (1) you initial database contents and (2) the folder
-structure for your server-files.</p>
-<p>Your directory should now look like this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ tree .
-odmf-server/
-├── conf.py
-└── webpage
-    ├── datafiles
-    ├── preferences
-    └── sessions
-</pre></div>
-</div>
-<p>We have now finished the installation process and are able to start the server with:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ odm-start
-</pre></div>
-</div>
-<p>More details on the usage of the platform can be found in the <a class="reference external" href="usage.html">usage chapter</a>.</p>
 <div class="section" id="configuration">
 <span id="configuration"></span><h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
 <p>Describes more sophisticated server configurations via one file.</p>
@@ -249,24 +219,33 @@ parts of the ODMF installation.</p>
 <li><strong>CFG_DATETIME_DEFAULT_TIMEZONE</strong>: Timezone in pytz compatible format</li>
 <li><strong>CFG_MEDIA_IMAGE_PATH</strong>: Path relative to server script. See <a class="reference external" href="usage.html#media-folder">usage</a></li>
 <li><strong>CFG_MANUAL_MEASUREMENTS_PATTERN</strong>: Regular expression pattern, where in the relative path of datafiles
-(<a class="reference external" href="usage.html#datafiles-folder">see usage</a>) manual measurements files are stored. This folder and the subfolders get
-a special treatment from dataimport/mm.py</li>
+(<a class="reference external" href="usage.html#datafiles-folder">see usage</a>) manual measurements files are stored. This folder and the subfolders
+get a special treatment from dataimport/mm.py</li>
 <li><strong>CFG_MAP_DEFAULT</strong>: Default location where the map is pointing when hitting the landing page</li>
 <li><strong>CFG_UPLOAD_MAX_SIZE</strong>: Maximum file size for files uploaded into the <a class="reference external" href="views.html#download">download view</a>.</li>
 </ul>
+<p>Now your server is configured and you can start <a class="reference external" href="usage.html">using</a> it.</p>
 </div>
 </div>
 </div>
 <div class="section" id="wateroneflow">
 <span id="wateroneflow"></span><h2>WaterOneFlow<a class="headerlink" href="#wateroneflow" title="Permalink to this headline">¶</a></h2>
+<p>Optional you can set up the HydroServerLite too, if you want to publish your data via the CUAHSI network using
+the WaterOneFlow interface.</p>
 <p>This covers the installation of the PHP server <a class="reference external" href="https://github.com/CUAHSI/HydroServerLite">HydroServerLite</a>
-and the deployment of SQL Views. This views are used on the side of the ODMF schema to map it to the relations which
-are used with the HydroServer.</p>
+and the deployment of SQL Views. This views are used on the side of the ODMF schema to map it to the relations
+which are used with the HydroServer.</p>
 <div class="section" id="hydroserverlite">
 <span id="hydroserverlite"></span><h3>HydroServerLite<a class="headerlink" href="#hydroserverlite" title="Permalink to this headline">¶</a></h3>
-<p>The code is downloaded from Github and exposed via an Apache instance.</p>
-<p>Possible alternative to PHP based server is this python solution <a class="reference external" href="https://github.com/ODM2/WOFpy">WOFpy</a>. It relies on
-the ODM schema 2.0.</p>
+<p>If you set everything up correctly, this script should set up (1) you initial database contents and (2) the folder
+structure for your server-files.</p>
+<ol class="simple">
+<li>Migrate ODMF schema to ODM</li>
+<li>Create SQL views, materialized views and helper tables</li>
+<li>Register cron jobs for daily update of transformed timeseries</li>
+</ol>
+<p>Possible alternative to PHP based server is this python solution <a class="reference external" href="https://github.com/ODM2/WOFpy">WOFpy</a>.
+It relies on the ODM schema 2.0.</p>
 </div>
 </div>
 </div>

@@ -49,16 +49,6 @@ The code base is divided in three main parts. **Server**, **automated import** a
 
 Utility code for calibration, conf and markdown parsing are saved in the `tools` module.
 
-## Core thoughts behind design decisions
-To connect more of the ideas under the hood of the server there are diagrams describing the user interaction for the most important functions of the platform.
-
-* Schwingbach FMC (Detail)
-  - User interaction (WOF)
-  - User interaction (data import)
-  - ...
-* CUAHSI WOF transactions diagram
-* Views a. CV-Tables extending ODMF data schema
-
 ## Data
 
 This chapter describes the database schema, the differences and limitations of the ORM mapping and finally extending
@@ -245,7 +235,7 @@ TBD
 
 This is the most special way of uploading data. There are no real time series of data, rather
 there are much more single data rows that are identified either with tuple of `dataset.valuetype`,
-`dataset.site` and so on (Further informations :ref:`see dataset <schema-dataset>`), or with
+`dataset.site` and so on (Further information :ref:`see dataset <schema-dataset>`), or with
 an explicit `dataset.id`, to determine one matching dataset where the data row is appended to.
 
 ### XlsImport
@@ -262,8 +252,7 @@ is returned to the user, as part of an error message.
 
 ## Migration
 
-Differences of the database schemas of ODMF (Observatory Data Management Framework) and ODM (Observation Data Model).
-* odmf.dataset attributes start and end, can be identical in the rare case of a size of just one record.
+Differences of the database schemata of ODMF (Observatory Data Management Framework) and ODM (Observation Data Model).
 
 ### WaterOneFlow
 
@@ -271,6 +260,7 @@ To understand the details of the *How* on the concrete implementation of the Wat
 
 * What parts communicate how
 * SQL Views as mapping from ODMF schema to ODM schema
+* How to configure a HydroServerLite instance to fit your needs
 
 #### Architecture overview
 
@@ -329,7 +319,7 @@ schema constraints.
 
 Items of `ODMF.dataset` are omitted when the following rules apply on them:
 
-* `dataset.start = dataset.end`
+* `dataset.start = dataset.end` (`odmf.dataset` attributes start and end, can be identical in the rare case of a size of just one record.)
 * `dataset.access = 0`, data is only for internal use
 * `dataset.project is NULL`
 
@@ -359,3 +349,9 @@ Different phases described:
 
 The realized records cannot be queried by the ODMF software system. They are only visible to the WOF
 API, because the ORM layer only accesses records with `dataset.type` that are non-`transformed_timeseries`.
+
+### Configuration
+
+An easy way of configuration is not possible at the moment, because the deployment of the HydroServerLite
+is done via static SQL scripts. To configure the system, this scripts can be altered, but this is somehow
+impractical, when done more than once.

@@ -93,7 +93,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#components">Components</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#core-thoughts-behind-design-decisions">Core thoughts behind design decisions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#data">Data</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#odmf-schema">ODMF schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#orm-mapping">ORM mapping</a><ul>
@@ -142,6 +141,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#schema-mapping-validity">Schema mapping validity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#daily-jobs">Daily jobs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configuration">Configuration</a></li>
 </ul>
 </li>
 </ul>
@@ -255,20 +255,6 @@ In <code class="docutils literal notranslate"><span class="pre">webpage/lib.py</
 </ul>
 <p>Utility code for calibration, conf and markdown parsing are saved in the <code class="docutils literal notranslate"><span class="pre">tools</span></code> module.</p>
 </div>
-</div>
-<div class="section" id="core-thoughts-behind-design-decisions">
-<span id="core-thoughts-behind-design-decisions"></span><h2>Core thoughts behind design decisions<a class="headerlink" href="#core-thoughts-behind-design-decisions" title="Permalink to this headline">¶</a></h2>
-<p>To connect more of the ideas under the hood of the server there are diagrams describing the user interaction for the most important functions of the platform.</p>
-<ul class="simple">
-<li>Schwingbach FMC (Detail)<ul>
-<li>User interaction (WOF)</li>
-<li>User interaction (data import)</li>
-<li>…</li>
-</ul>
-</li>
-<li>CUAHSI WOF transactions diagram</li>
-<li>Views a. CV-Tables extending ODMF data schema</li>
-</ul>
 </div>
 <div class="section" id="data">
 <span id="data"></span><h2>Data<a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h2>
@@ -443,7 +429,7 @@ class. For example <code class="docutils literal notranslate"><span class="pre">
 <span id="upload-type-3-log-data"></span><h5>Upload type 3: Log data<a class="headerlink" href="#upload-type-3-log-data" title="Permalink to this headline">¶</a></h5>
 <p>This is the most special way of uploading data. There are no real time series of data, rather
 there are much more single data rows that are identified either with tuple of <code class="docutils literal notranslate"><span class="pre">dataset.valuetype</span></code>,
-<code class="docutils literal notranslate"><span class="pre">dataset.site</span></code> and so on (Further informations :ref:<code class="docutils literal notranslate"><span class="pre">see</span> <span class="pre">dataset</span> <span class="pre">&lt;schema-dataset&gt;</span></code>), or with
+<code class="docutils literal notranslate"><span class="pre">dataset.site</span></code> and so on (Further information :ref:<code class="docutils literal notranslate"><span class="pre">see</span> <span class="pre">dataset</span> <span class="pre">&lt;schema-dataset&gt;</span></code>), or with
 an explicit <code class="docutils literal notranslate"><span class="pre">dataset.id</span></code>, to determine one matching dataset where the data row is appended to.</p>
 </div>
 </div>
@@ -462,16 +448,14 @@ is returned to the user, as part of an error message.</p>
 </div>
 <div class="section" id="migration">
 <span id="migration"></span><h2>Migration<a class="headerlink" href="#migration" title="Permalink to this headline">¶</a></h2>
-<p>Differences of the database schemas of ODMF (Observatory Data Management Framework) and ODM (Observation Data Model).</p>
-<ul class="simple">
-<li>odmf.dataset attributes start and end, can be identical in the rare case of a size of just one record.</li>
-</ul>
+<p>Differences of the database schemata of ODMF (Observatory Data Management Framework) and ODM (Observation Data Model).</p>
 <div class="section" id="wateroneflow">
 <span id="wateroneflow"></span><h3>WaterOneFlow<a class="headerlink" href="#wateroneflow" title="Permalink to this headline">¶</a></h3>
 <p>To understand the details of the <em>How</em> on the concrete implementation of the WaterOneFlow interface for ODMF software system, using a dedicated server.</p>
 <ul class="simple">
 <li>What parts communicate how</li>
 <li>SQL Views as mapping from ODMF schema to ODM schema</li>
+<li>How to configure a HydroServerLite instance to fit your needs</li>
 </ul>
 <div class="section" id="architecture-overview">
 <span id="architecture-overview"></span><h4>Architecture overview<a class="headerlink" href="#architecture-overview" title="Permalink to this headline">¶</a></h4>
@@ -526,7 +510,7 @@ of the schema mapping. When selected they return all <code class="docutils liter
 schema constraints.</p>
 <p>Items of <code class="docutils literal notranslate"><span class="pre">ODMF.dataset</span></code> are omitted when the following rules apply on them:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">dataset.start</span> <span class="pre">=</span> <span class="pre">dataset.end</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">dataset.start</span> <span class="pre">=</span> <span class="pre">dataset.end</span></code> (<code class="docutils literal notranslate"><span class="pre">odmf.dataset</span></code> attributes start and end, can be identical in the rare case of a size of just one record.)</li>
 <li><code class="docutils literal notranslate"><span class="pre">dataset.access</span> <span class="pre">=</span> <span class="pre">0</span></code>, data is only for internal use</li>
 <li><code class="docutils literal notranslate"><span class="pre">dataset.project</span> <span class="pre">is</span> <span class="pre">NULL</span></code></li>
 </ul>
@@ -553,6 +537,12 @@ in terms of the ODMF schema.</p>
 </ol>
 <p>The realized records cannot be queried by the ODMF software system. They are only visible to the WOF
 API, because the ORM layer only accesses records with <code class="docutils literal notranslate"><span class="pre">dataset.type</span></code> that are non-<code class="docutils literal notranslate"><span class="pre">transformed_timeseries</span></code>.</p>
+</div>
+<div class="section" id="configuration">
+<span id="configuration"></span><h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
+<p>An easy way of configuration is not possible at the moment, because the deployment of the HydroServerLite
+is done via static SQL scripts. To configure the system, this scripts can be altered, but this is somehow
+impractical, when done more than once.</p>
 </div>
 </div>
 </div>
