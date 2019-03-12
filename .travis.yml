@@ -11,7 +11,7 @@ install:
 script:
   - cp tests/conf-test-local.py odmf/conf.py
   # make os environment ready
-  - (cd odmf; ./odmf/install.sh)
+  - (cd odmf; ./install.sh)
   - python odmf/start.py &
   # Timouts to let the server start up
   - sleep 7
