@@ -51,7 +51,7 @@ if conf.DATABASE == 'postgres':
     engine = sql.create_engine('postgresql://', creator=connect)
 elif conf.DATABASE == 'sqlite':
     if op.exists(conf.SQLITE_PATH):
-        engine = sql.create_engine('sqlite:///data.sqlite')
+        engine = sql.create_engine('sqlite:///%s' % conf.SQLITE_PATH)
     else:
         raise RuntimeError('Couldn\'t find offline database at \'%s\'.' % conf.SQLITE_PATH)
 
