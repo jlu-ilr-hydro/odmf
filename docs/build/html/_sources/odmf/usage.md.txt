@@ -24,9 +24,7 @@ See [views chapter](views.html) for all views, that are displayed on the left si
 
 The user can customize the logo (1) and the background image (2).
 
-<!--<img src="../../images/landing-page.png" alt="landing page" width="550"/>-->
-
-![landing page](../../images/installation/landing-page.png "Landing page")
+![landing page](../../images/installation/landing-page.jpg "Landing page")
 
 
 Therefore to change (1) the path `webpage/media/schwingbach-logo.png` and for (2) the path at
