@@ -6,7 +6,7 @@ Created on 12.02.2012
 @author: philkraf
 '''
 import sys
-sys.path.insert(0,'.')
+sys.path.insert(0,'..')
 import os
 from glob import glob
 
