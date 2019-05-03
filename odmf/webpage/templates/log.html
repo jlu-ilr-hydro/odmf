@@ -186,7 +186,7 @@
 					<td><a href="/user/${actuallog.user}">Who?</a></td>
 					<td>
 						<select name="user">
-							<option py:for="p in session.query(db.Person)"
+							<option py:for="p in persons"
 									py:attrs="markoption(p is actuallog.user)"
 									py:content="p"
 									value="${p.username}" />
@@ -204,7 +204,7 @@
 					<td>
 						<select name="site">
 							<option value=""><i>&lt;Please select...&gt;</i></option>
-							<option py:for="s in session.query(db.Site).order_by(db.Site.id)"
+							<option py:for="s in sites"
 									py:attrs="markoption(s is actuallog.site)"
 									py:content="s"
 									value="${s.id}" />

@@ -310,13 +310,18 @@ class JobPage:
             except:
                 error = traceback()
                 job = None
-        jobs = session.query(db.Job).order_by('done ,due DESC')
+        queries = dict(
+            persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname).all(),
+            jobtypes=session.query(db.Job.type).order_by(db.Job.type).distinct().all(),
+        )
+
+        jobs = session.query(db.Job).order_by(db.Job.done, db.Job.due.desc())
         if user != 'all':
             jobs = jobs.filter(db.Job._responsible == user)
         if onlyactive:
-            jobs = jobs.filter(db.Job.done == False)
-        result = web.render('job.html', jobs=jobs, job=job, error=error, db=db, session=session,
-                            username=user, onlyactive=onlyactive,
+            jobs = jobs.filter(not db.Job.done)
+        result = web.render('job.html', jobs=jobs, job=job, error=error, db=db,
+                            username=user, onlyactive=onlyactive, **queries
                             ).render('html', doctype='html')
         session.close()
         return result
@@ -397,6 +402,11 @@ class LogPage:
     def default(self, logid=None, siteid=None, lastlogdate=None, days=None):
         session = db.Session()
         error = ''
+        queries = dict(
+            persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname).all(),
+            sites=session.query(db.Site).order_by(db.Site.id).all(),
+        )
+
         if logid == 'new':
             log = db.Log(id=db.newid(db.Log, session),
                          message='<Log-Beschreibung>', time=datetime.today())
@@ -428,8 +438,8 @@ class LogPage:
         sitelist = session.query(db.Site).order_by(db.sql.asc(db.Site.id))
 
         result = web.render('log.html', actuallog=log, error=error, db=db,
-                            session=session, loglist=loglist, sites=sitelist)\
-            .render('html', doctype='html')
+                            loglist=loglist, sites=sitelist, **queries
+                            ).render('html', doctype='html')
 
         session.close()
         return result
