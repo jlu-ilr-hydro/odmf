@@ -195,8 +195,15 @@
 	Input variables:
 	error - string
 	activedataset - Dataset
-	session
-	db - module 
+	db - module
+	And a number of prepared queries:
+        valuetypes=session.query(db.ValueType).order_by(db.ValueType.name),
+        persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname),
+        sites=session.query(db.Site).order_by(db.Site.id),
+        quality=session.query(db.Quality).order_by(db.Quality.id),
+        datasources=session.query(db.Datasource),
+        projects = session.query(db.Project),
+
 -->
 <body>
 	${navigation('Data sets')}
@@ -315,7 +322,7 @@
 							<td>
 								<select name="measured_by">
 									<option value=""><i>Please select...</i></option>
-									<option py:for="p in session.query(db.Person).order_by('can_supervise DESC,surname')"
+									<option py:for="p in persons"
 											py:attrs="markoption(p is activedataset.measured_by)"
 											py:content="p"
 											value="${p.username}" />
@@ -327,7 +334,7 @@
 							<td>
 								<select name="valuetype">
 									<option value=""><i>Please select...</i></option>
-									<option py:for="vt in session.query(db.ValueType).order_by(db.ValueType.name)"
+									<option py:for="vt in valuetypes"
 											py:attrs="markoption(vt is activedataset.valuetype)"
 											py:content="vt"
 											value="${vt.id}" />
@@ -356,7 +363,7 @@
 							<td>
 								<select name="site">
 									<option value=""><i>Please select...</i></option>
-									<option py:for="s in session.query(db.Site).order_by(db.Site.id)"
+									<option py:for="s in sites"
 											py:attrs="markoption(s is activedataset.site)"
 											py:content="s"
 											value="${s.id}" />
@@ -376,7 +383,7 @@
 							<td>
 								<select name="quality">
 									<option value=""><i>Please select...</i></option>
-									<option py:for="q in session.query(db.Quality)"
+									<option py:for="q in quality"
 											py:attrs="markoption(q is activedataset.quality)"
 											py:content="q"
 											value="${q.id}" />
@@ -396,7 +403,7 @@
 							<td>
 								<select name="source">
 									<option value=""><i>Please select...</i></option>
-									<option py:for="datasource in session.query(db.Datasource)"
+									<option py:for="datasource in datasources"
 											py:attrs="markoption(datasource is activedataset.source)"
 											py:content="datasource"
 											value="${datasource.id}" />

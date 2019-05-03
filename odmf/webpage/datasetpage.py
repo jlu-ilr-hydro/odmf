@@ -51,7 +51,6 @@ class DatasetPage:
             valuetype = session.query(db.ValueType).get(
                 vt_id) if vt_id else None
             # All projects
-            projects = session.query(db.Project)
 
             if user is None:
                 user = web.user()
@@ -89,27 +88,32 @@ class DatasetPage:
                 datasets = {}
 
             # Render the resulting page
+            queries = dict(
+                valuetypes=session.query(db.ValueType).order_by(db.ValueType.name),
+                persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname),
+                sites=session.query(db.Site).order_by(db.Site.id),
+                quality=session.query(db.Quality).order_by(db.Quality.id),
+                datasources=session.query(db.Datasource),
+                projects=session.query(db.Project),
+            )
             result = web.render('datasettab.html',
                                 # activedataset is the current dataset (id or new)
                                 activedataset=active,
-                                # Use session to do queries during rendering
-                                session=session,
                                 # Render error messages
                                 error=error,
                                 # similar and parallel datasets
                                 datasets=datasets,
                                 # the db module for queries during rendering
                                 db=db,
-                                # The select options for all projects
-                                projects=projects,
                                 # The project
                                 activeproject=project,
                                 # All available timezones
                                 timezones=common_timezones + ['Fixed/60'],
                                 # The title of the page
-                                title='Schwingbach-Datensatz #' + str(id)
+                                title='Schwingbach-Datensatz #' + str(id),
+                                # A couple of prepared queries to fill select elements
+                                **queries
                                 ).render('html', doctype='html')
-
         except:
             # If anything above fails, render error message
             result = web.render('datasettab.html',
@@ -121,7 +125,8 @@ class DatasetPage:
                                 session=session,
                                 datasets=datasets,
                                 db=db,
-                                activedataset=None
+                                activedataset=None,
+                                **queries
                                 ).render('html', doctype='html')
         finally:
             session.close()
