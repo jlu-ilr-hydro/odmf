@@ -12,7 +12,7 @@ script:
   - cp tests/conf-test-local.py odmf/conf.py
   # make os environment ready
   - (cd odmf; ./install.sh)
-  - python odmf/start.py &
+  - (cd odmf; python start.py &)
   # Timouts to let the server start up
   - sleep 7
   # Run acceptance tests
