@@ -110,7 +110,7 @@ class DatasetPage:
                                 # All available timezones
                                 timezones=common_timezones + ['Fixed/60'],
                                 # The title of the page
-                                title='Schwingbach-Datensatz #' + str(id),
+                                title='ds' + str(id),
                                 # A couple of prepared queries to fill select elements
                                 **queries
                                 ).render('html', doctype='html')

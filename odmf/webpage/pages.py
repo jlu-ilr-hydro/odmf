@@ -303,7 +303,7 @@ class JobPage:
 
         elif jobid is None:
             job = session.query(db.Job).filter_by(
-                _responsible=web.user(), done=False).order_by('due').first()
+                _responsible=web.user(), done=False).order_by(db.Job.due).first()
         else:
             try:
                 job = session.query(db.Job).get(int(jobid))
@@ -376,7 +376,7 @@ class JobPage:
     @expose_for(group.logger)
     def json(self, responsible=None, author=None, onlyactive=False, dueafter=None):
         session = db.Session()
-        jobs = session.query(db.Job).order_by('done ,due DESC')
+        jobs = session.query(db.Job).order_by(db.Job.done ,db.Job.due.desc())
         web.setmime(web.mime.json)
         if responsible != 'all':
             if not responsible:
@@ -706,7 +706,7 @@ class CalendarPage(object):
     def jobs_json(self, start=None, end=None, responsible=None, author=None, onlyactive=False, dueafter=None):
         web.setmime(web.mime.json)
         session = db.Session()
-        jobs = session.query(db.Job).order_by('done ,due DESC')
+        jobs = session.query(db.Job).order_by(db.Job.done, db.Job.due.desc())
         if responsible != 'all':
             if not responsible:
                 responsible = web.user()

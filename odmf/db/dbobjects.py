@@ -6,13 +6,12 @@ Created on 31.01.2012
 '''
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
-from .base import Base, Session, newid, engine
-from sqlalchemy.schema import ForeignKey
+from .base import Base, newid
 from datetime import datetime, timedelta
-from cherrypy.lib.reprconf import as_dict
 from .projection import LLtoUTM, dd_to_dms
 from collections import deque
 from traceback import format_exc as traceback
+from base64 import b64encode
 
 
 from ..tools.mail import EMail
