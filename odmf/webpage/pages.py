@@ -17,8 +17,7 @@ from .site import SitePage
 from .datasetpage import DatasetPage
 from .preferences import Preferences
 from .plot import PlotPage
-
-
+from .api import API
 
 MEDIA_PATH = {
     'logo': '/media/schwingbachlogo.png',
@@ -58,7 +57,7 @@ class PersonPage:
                 p_act = session.query(db.Person).get(users.current.name)
                 error = traceback()
         result = web.render('person.html', persons=persons, active_person=p_act, supervisors=supervisors, error=error,
-                            jobs=jobs, act_user=act_user, levels=get_levels, is_self=is_self)\
+                            jobs=jobs, act_user=act_user, levels=get_levels, is_self=is_self) \
             .render('html', doctype='html')
         session.close()
         return result
@@ -369,7 +368,8 @@ class JobPage:
                 session.commit()
                 session.close()
             except:
-                return web.render('empty.html', error=('\n'.join('%s: %s' % it for it in kwargs.items())) + '\n' + traceback(),
+                return web.render('empty.html',
+                                  error=('\n'.join('%s: %s' % it for it in kwargs.items())) + '\n' + traceback(),
                                   title='Job #%s' % id
                                   ).render('html', doctype='html')
 
@@ -432,7 +432,7 @@ class LogPage:
         days = web.conv(int, days, 30)
         loglist = session.query(db.Log).filter(db.Log.time <= until,
                                                db.Log.time >= until - timedelta(
-                                                   days=days))\
+                                                   days=days)) \
             .order_by(db.sql.desc(db.Log.time))
 
         sitelist = session.query(db.Site).order_by(db.sql.asc(db.Site.id))
@@ -465,7 +465,8 @@ class LogPage:
                 session.commit()
                 session.close()
             except:
-                return web.render('empty.html', error=('\n'.join('%s: %s' % it for it in kwargs.items())) + '\n' + traceback(),
+                return web.render('empty.html',
+                                  error=('\n'.join('%s: %s' % it for it in kwargs.items())) + '\n' + traceback(),
                                   title='Log #%s' % id
                                   ).render('html', doctype='html')
         elif 'new' in kwargs:
@@ -540,7 +541,7 @@ class LogPage:
         # logs = logs.values(db.Log.id, db.Log.message, db.Log.time, db.Log._user,
         #            db.Person.email)
 
-        #res = web.log_as_array_str(logs)
+        # res = web.log_as_array_str(logs)
 
         session.close()
         return res
@@ -582,6 +583,7 @@ class LogPage:
                 user = session.query(db.Person).get(web.user())
             logid = db.newid(db.Log, session)
             return db.Log(id=logid, site=site, user=user, message=msg, time=date)
+
         errors = []
         logs = []
         for l in lines:
@@ -672,7 +674,7 @@ class PicturePage(object):
             if site:
                 imagelist = imagelist.filter_by(_site=site)
             if by:
-                imagelist = imagelist.filter_by(_by = by)
+                imagelist = imagelist.filter_by(_by=by)
         res = web.render('picture.html', image=img, error=error,
                          images=imagelist, site=site, by=by).render('html')
         session.close()
@@ -684,7 +686,7 @@ class PicturePage(object):
         session = db.Session()
         site = db.Site.get(session, int(siteid)) if siteid else None
         by = db.Person.get(session, user) if user else None
-        #io = StringIO()
+        # io = StringIO()
         # for l in imgfile:
         #    io.write(l)
         # io.seek(0)
@@ -796,8 +798,6 @@ class Wiki(object):
                                                                                                           doctype='html')
         return res
 
-
-
     @expose_for()
     def default(self, *args):
         from glob import glob
@@ -889,7 +889,6 @@ class ProjectPage:
     def add(self, error=''):
 
         with db.session_scope() as session:
-
             persons = session.query(db.Person)
             persons = persons.filter(db.Person.access_level > 3)
 
@@ -1013,7 +1012,7 @@ class ProjectPage:
         return dict(
             dataset=datasets.count(),
             record=session.query(db.Record)
-            .filter(db.Record.dataset.in_(datasets.all())).count())
+                .filter(db.Record.dataset.in_(datasets.all())).count())
 
     def render_projects(self, session, error=''):
 
@@ -1022,7 +1021,7 @@ class ProjectPage:
         projects = session.query(db.Project)
         projects = projects.order_by(db.sql.asc(db.Project.id))
 
-        return web.render('projects.html', error=error, projects=projects)\
+        return web.render('projects.html', error=error, projects=projects) \
             .render('html', doctype='html')
 
 
@@ -1035,7 +1034,7 @@ class AdminPage(object):
     @expose_for(group.admin)
     def default(self, error='', success=''):
 
-        return web.render('admin.html', error=error, success=success, MEDIA_PATH=MEDIA_PATH)\
+        return web.render('admin.html', error=error, success=success, MEDIA_PATH=MEDIA_PATH) \
             .render('html', doctype='html')
 
     @expose_for(group.admin)
@@ -1085,13 +1084,13 @@ class AdminPage(object):
 
 class Root(object):
     _cp_config = {'tools.sessions.on': True,
-                  'tools.sessions.timeout': 24 * 60, # One day
-                  'tools.sessions.locking': 'early',
+                  'tools.sessions.timeout': 24 * 60,  # One day
                   'tools.sessions.storage_type': 'file',
                   'tools.sessions.storage_path': web.abspath('sessions'),
                   'tools.auth.on': True,
                   'tools.sessions.locking': 'early'}
 
+    api = API()
     site = SitePage()
     user = PersonPage()
     valuetype = VTPage()
@@ -1130,6 +1129,7 @@ class Root(object):
         elif username and password:
             error = users.login(username, password)
             if error:
+                cherrypy.response.status = 401
                 return web.render('login.html', error=error, frompage=frompage).render('html', doctype='html')
             else:
                 raise web.HTTPRedirect(frompage or '/')

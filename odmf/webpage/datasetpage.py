@@ -14,8 +14,6 @@ from ..tools.calibration import Calibration, CalibrationSource
 from pytz import common_timezones
 import cherrypy
 
-from pprint import pprint
-
 
 class DatasetPage:
     """
@@ -132,77 +130,6 @@ class DatasetPage:
             session.close()
         return result
 
-    @expose_for(group.editor)
-    @web.postonly
-    @web.json_in()
-    def new_json(self):
-        kwargs = cherrypy.request.json
-        with db.session_scope() as session:
-            try:
-                pers = session.query(db.Person).get(kwargs.get('measured_by'))
-                vt = session.query(db.ValueType).get(kwargs.get('valuetype'))
-                q = session.query(db.Quality).get(kwargs.get('quality'))
-                s = session.query(db.Site).get(kwargs.get('site'))
-                src = session.query(db.Datasource).get(kwargs.get('source'))
-
-                ds = db.Timeseries(id=id)
-                # Get properties from the keyword arguments kwargs
-                ds.site = s
-                ds.filename = kwargs.get('filename')
-                ds.name = kwargs.get('name')
-                ds.comment = kwargs.get('comment')
-                ds.measured_by = pers
-                ds.valuetype = vt
-                ds.quality = q
-
-                # TODO: Is it necessary to protect this of being modified by
-                # somebody who isn't a supervisor or higher?
-                if kwargs.get('project') == '0':
-                    ds.project = None
-                else:
-                    ds.project = kwargs.get('project')
-
-                ds.timezone = kwargs.get('timezone')
-
-                if src:
-                    ds.source = src
-                if 'level' in kwargs:
-                    ds.level = web.conv(float, kwargs.get('level'))
-                # Timeseries only arguments
-                if ds.is_timeseries():
-                    if kwargs.get('start'):
-                        ds.start = datetime.strptime(
-                            kwargs['start'], '%d.%m.%Y')
-                    if kwargs.get('end'):
-                        ds.end = datetime.strptime(kwargs['end'], '%d.%m.%Y')
-                    ds.calibration_offset = web.conv(
-                        float, kwargs.get('calibration_offset'), 0.0)
-                    ds.calibration_slope = web.conv(
-                        float, kwargs.get('calibration_slope'), 1.0)
-                    ds.access = web.conv(int, kwargs.get('access'), 1)
-                # Transformation only arguments
-                if ds.is_transformed():
-                    ds.expression = kwargs.get('expression')
-                    ds.latex = kwargs.get('latex')
-                # Save changes
-                session.commit()
-            except:
-                # On error render the error message
-                return web.render('empty.html', error=traceback(), title='Dataset #%s' % id
-                                  ).render('html', doctype='html')
-
-    @expose_for(group.editor)
-    @web.postonly
-    def addrecord_json(self, dsid, recid, time, value,
-                       sample=None, comment=None):
-        with db.session_scope() as session:
-            try:
-                ds = session.query(db.Timeseries).get(int(dsid))
-                if not ds:
-                    return 'Timeseries ds:{} does not exist'.format(dsid)
-                ds.addrecord(Id=int(recid), time=time, value=value, comment=comment, sample=sample)
-            except:
-                return 'Could not add record, error:\n' + traceback()
 
     @expose_for(group.editor)
     def saveitem(self, **kwargs):
@@ -219,58 +146,58 @@ class DatasetPage:
         if 'save' in kwargs:
             try:
                 # get database session
-                session = db.Session()
-                pers = session.query(db.Person).get(kwargs.get('measured_by'))
-                vt = session.query(db.ValueType).get(kwargs.get('valuetype'))
-                q = session.query(db.Quality).get(kwargs.get('quality'))
-                s = session.query(db.Site).get(kwargs.get('site'))
-                src = session.query(db.Datasource).get(kwargs.get('source'))
+                with db.session_scope() as session:
+                    pers = session.query(db.Person).get(kwargs.get('measured_by'))
+                    vt = session.query(db.ValueType).get(kwargs.get('valuetype'))
+                    q = session.query(db.Quality).get(kwargs.get('quality'))
+                    s = session.query(db.Site).get(kwargs.get('site'))
+                    src = session.query(db.Datasource).get(kwargs.get('source'))
 
-                # get the dataset
-                ds = session.query(db.Dataset).get(int(id))
-                if not ds:
-                    # If no ds with id exists, create a new one
-                    ds = db.Timeseries(id=id)
-                # Get properties from the keyword arguments kwargs
-                ds.site = s
-                ds.filename = kwargs.get('filename')
-                ds.name = kwargs.get('name')
-                ds.comment = kwargs.get('comment')
-                ds.measured_by = pers
-                ds.valuetype = vt
-                ds.quality = q
+                    # get the dataset
+                    ds = session.query(db.Dataset).get(int(id))
+                    if not ds:
+                        # If no ds with id exists, create a new one
+                        ds = db.Timeseries(id=id)
+                    # Get properties from the keyword arguments kwargs
+                    ds.site = s
+                    ds.filename = kwargs.get('filename')
+                    ds.name = kwargs.get('name')
+                    ds.comment = kwargs.get('comment')
+                    ds.measured_by = pers
+                    ds.valuetype = vt
+                    ds.quality = q
 
-                # TODO: Is it necessary to protect this
-                # of being modified by somebody who isn't a supervisor or higher?
-                if kwargs.get('project') == '0':
-                    ds.project = None
-                else:
-                    ds.project = kwargs.get('project')
+                    # TODO: Is it necessary to protect this
+                    # of being modified by somebody who isn't a supervisor or higher?
+                    if kwargs.get('project') == '0':
+                        ds.project = None
+                    else:
+                        ds.project = kwargs.get('project')
 
-                ds.timezone = kwargs.get('timezone')
+                    ds.timezone = kwargs.get('timezone')
 
-                if src:
-                    ds.source = src
-                if 'level' in kwargs:
-                    ds.level = web.conv(float, kwargs.get('level'))
-                # Timeseries only arguments
-                if ds.is_timeseries():
-                    if kwargs.get('start'):
-                        ds.start = datetime.strptime(
-                            kwargs['start'], '%d.%m.%Y')
-                    if kwargs.get('end'):
-                        ds.end = datetime.strptime(kwargs['end'], '%d.%m.%Y')
-                    ds.calibration_offset = web.conv(
-                        float, kwargs.get('calibration_offset'), 0.0)
-                    ds.calibration_slope = web.conv(
-                        float, kwargs.get('calibration_slope'), 1.0)
-                    ds.access = web.conv(int, kwargs.get('access'), 1)
-                # Transformation only arguments
-                if ds.is_transformed():
-                    ds.expression = kwargs.get('expression')
-                    ds.latex = kwargs.get('latex')
-                # Save changes
-                session.commit()
+                    if src:
+                        ds.source = src
+                    if 'level' in kwargs:
+                        ds.level = web.conv(float, kwargs.get('level'))
+                    # Timeseries only arguments
+                    if ds.is_timeseries():
+                        if kwargs.get('start'):
+                            ds.start = datetime.strptime(
+                                kwargs['start'], '%d.%m.%Y')
+                        if kwargs.get('end'):
+                            ds.end = datetime.strptime(kwargs['end'], '%d.%m.%Y')
+                        ds.calibration_offset = web.conv(
+                            float, kwargs.get('calibration_offset'), 0.0)
+                        ds.calibration_slope = web.conv(
+                            float, kwargs.get('calibration_slope'), 1.0)
+                        ds.access = web.conv(int, kwargs.get('access'), 1)
+                    # Transformation only arguments
+                    if ds.is_transformed():
+                        ds.expression = kwargs.get('expression')
+                        ds.latex = kwargs.get('latex')
+                    # Save changes
+                    session.commit()
             except:
                 # On error render the error message
                 return web.render('empty.html', error=traceback(), title='Dataset #%s' % id
@@ -470,31 +397,31 @@ class DatasetPage:
                          type=None, level=None, onlyaccess=False,
                          witherrors=False):
         web.setmime('text/csv')
-        session = db.scoped_session()
-        datasets = self.subset(session, valuetype, user,
-                               site, date, instrument,
-                               type, level, onlyaccess)
-        datagroup = db.DatasetGroup([ds.id for ds in datasets])
-        st = io.BytesIO()
-        st.write(codecs.BOM_UTF8)
-        st.write(('"Dataset","ID","time","{vt} calibrated","{vt} raw",' +
-                  '"site","comment","is error?"\n')
-                 .format(vt=ds.valuetype)
-                 .encode('utf-8'))
-        for r in datagroup.iterrecords(session, witherrors):
-            d = dict(
-                c=(str(r.comment).replace('\r', '').replace(
-                    '\n', ' / ')) if r.comment else '',
-                vc=r.value if witherrors and not r.is_error else '',
-                vr=r.rawvalue,
-                time=web.formatdate(r.time) + ' ' + web.formattime(r.time),
-                id=r.id,
-                ds=ds.id,
-                s=ds.site.id,
-                e=int(r.is_error))
-            st.write(('{ds:i},{id:i},{time},{vc:s0,{vr:s},{s:i},' +
-                      '"{c}",{e}\n').format(**d).encode('utf-8'))
-        session.close()
+        with db.session_scope() as session:
+            datasets = self.subset(session, valuetype, user,
+                                   site, date, instrument,
+                                   type, level, onlyaccess).all()
+            datagroup = db.DatasetGroup([ds.id for ds in datasets])
+            ds = datasets[0]
+            st = io.BytesIO()
+            st.write(codecs.BOM_UTF8)
+            st.write(('"Dataset","ID","time","{vt} calibrated","{vt} raw",' +
+                      '"site","comment","is error?"\n')
+                     .format(vt=ds.valuetype)
+                     .encode('utf-8'))
+            for r in datagroup.iterrecords(session, witherrors):
+                d = dict(
+                    c=(str(r.comment).replace('\r', '').replace(
+                        '\n', ' / ')) if r.comment else '',
+                    vc=r.value if witherrors and not r.is_error else '',
+                    vr=r.rawvalue,
+                    time=web.formatdate(r.time) + ' ' + web.formattime(r.time),
+                    id=r.id,
+                    ds=ds.id,
+                    s=ds.site.id,
+                    e=int(r.is_error))
+                st.write(('{ds:i},{id:i},{time},{vc:s0,{vr:s},{s:i},' +
+                          '"{c}",{e}\n').format(**d).encode('utf-8'))
         return st.getvalue()
 
     @expose_for(group.logger)

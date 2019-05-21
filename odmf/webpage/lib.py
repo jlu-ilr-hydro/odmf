@@ -130,7 +130,13 @@ loader = TemplateLoader(abspath('templates'),
 
 
 expose = cherrypy.expose
-postonly = cherrypy.tools.allow(methods=['POST'])  # @UndefinedVariable
+
+class method:
+    post = cherrypy.tools.allow(methods=['POST'])
+    put = cherrypy.tools.allow(methods=['PUT'])
+    post_or_put = cherrypy.tools.allow(methods=['PUT', 'POST'])
+    get = cherrypy.tools.allow(methods=['GET'])
+
 json_in = cherrypy.tools.json_in
 
 HTTPRedirect = cherrypy.HTTPRedirect
