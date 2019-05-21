@@ -525,7 +525,7 @@ class DatasetPage:
             ax.grid()
             plt.xticks(rotation=15)
             plt.ylabel('%s [%s]' % (ds.valuetype.name, ds.valuetype.unit))
-            plt.title(ds.site)
+            plt.title(str(ds.site))
             fig.savefig(bytesio, dpi=100, format='png')
         finally:
             session.close()
