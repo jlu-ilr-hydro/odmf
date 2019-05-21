@@ -200,7 +200,7 @@ class DatasetPage:
                 ds = session.query(db.Timeseries).get(int(dsid))
                 if not ds:
                     return 'Timeseries ds:{} does not exist'.format(dsid)
-                ds.addrecord(int(recid), time, value, comment, sample)
+                ds.addrecord(Id=int(recid), time=time, value=value, comment=comment, sample=sample)
             except:
                 return 'Could not add record, error:\n' + traceback()
 
@@ -530,28 +530,6 @@ class DatasetPage:
         finally:
             session.close()
         return bytesio.getvalue()
-
-    @expose_for(group.editor)
-    def addrecord(self, datasetid, time, value, comment=None):
-        """
-        Adds a record to the dataset. Purge?
-        """
-        error = ''
-        session = db.Session()
-        try:
-            error = "Dataset %s not found" % datasetid
-            ds = session.query(db.Dataset).get(int(datasetid))
-            error = "'%s' is not a number. Use . as decimal sign." % value
-            value = float(value)
-            error = "'%s' is not a valid date." % time
-            time = web.parsedate(time)
-            error = "Could not create record for %s" % ds
-            ds.addrecord(value=value, time=time, comment=comment)
-        except Exception as e:
-            return error + '\n' + e.message
-        finally:
-            session.close()
-        return ''
 
     @web.expose
     @web.mimetype(web.mime.json)
