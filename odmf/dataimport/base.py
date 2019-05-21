@@ -58,7 +58,7 @@ def finddateGaps(siteid, instrumentid, valuetype, startdate=None, enddate=None):
             .filter(db.Dataset._site == siteid,
                     db.Dataset._source == instrumentid,
                     db.Dataset._valuetype.in_(valuetype)) \
-            .order_by('"valuetype","start"')
+            .order_by(db.Dataset._valuetype, db.Dataset.start)
 
         print("[LOG] - finddateGaps - %d rows after query" % dss.count())
 
