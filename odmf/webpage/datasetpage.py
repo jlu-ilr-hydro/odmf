@@ -526,7 +526,7 @@ class DatasetPage:
             plt.xticks(rotation=15)
             plt.ylabel('%s [%s]' % (ds.valuetype.name, ds.valuetype.unit))
             plt.title(ds.site)
-            fig.savefig(bytesio, dpi=100)
+            fig.savefig(bytesio, dpi=100, format='png')
         finally:
             session.close()
         return bytesio.getvalue()
