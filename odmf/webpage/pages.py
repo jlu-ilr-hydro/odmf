@@ -404,7 +404,6 @@ class LogPage:
         error = ''
         queries = dict(
             persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname).all(),
-            sites=session.query(db.Site).order_by(db.Site.id).all(),
         )
 
         if logid == 'new':
