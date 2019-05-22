@@ -108,7 +108,7 @@ class DatasetPage:
                                 # All available timezones
                                 timezones=common_timezones + ['Fixed/60'],
                                 # The title of the page
-                                title='Schwingbach-Datensatz #' + str(id),
+                                title='ds' + str(id),
                                 # A couple of prepared queries to fill select elements
                                 **queries
                                 ).render('html', doctype='html')
@@ -452,8 +452,8 @@ class DatasetPage:
             ax.grid()
             plt.xticks(rotation=15)
             plt.ylabel('%s [%s]' % (ds.valuetype.name, ds.valuetype.unit))
-            plt.title(ds.site)
-            fig.savefig(bytesio, dpi=100)
+            plt.title(str(ds.site))
+            fig.savefig(bytesio, dpi=100, format='png')
         finally:
             session.close()
         return bytesio.getvalue()
