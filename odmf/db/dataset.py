@@ -19,7 +19,7 @@ import importlib
 import inspect
 
 import numpy as np
-import conf
+from .. import conf
 
 
 tzberlin = pytz.timezone('Europe/Berlin')

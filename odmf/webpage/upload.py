@@ -17,12 +17,13 @@ from io import StringIO, BytesIO
 from cherrypy import log
 import chardet
 
-from dataimport import ManualMeasurementsImport
-from dataimport.base import ImportDescription, LogImportDescription
-from dataimport.importlog import LogbookImport
-from tools import Path
+from .. import dataimport as di
+from ..dataimport import ManualMeasurementsImport
+from ..dataimport.base import ImportDescription, LogImportDescription
+from ..dataimport.importlog import LogbookImport
+from ..tools import Path
 
-import conf
+from .. import conf
 datapath = web.abspath('datafiles')
 home = web.abspath('.')
 
@@ -60,14 +61,12 @@ class DBImportPage(object):
         :param import_with_class:
         :return:
         """
-        import dataimport.importlog as il
-
+        
         t0 = time.time()
 
         absfile = web.abspath(filename.strip('/'))
         path = Path(absfile)
 
-        import dataimport as di
         error = web.markdown(di.checkimport(path.absolute))
 
         config = None
@@ -123,7 +122,6 @@ class DBImportPage(object):
         # TODO: Major refactoring of this code logic, when to load gaps, etc.
         path = Path(web.abspath(filename.strip('/')))
         print("path = %s" % path)
-        import dataimport as di
         error = web.markdown(di.checkimport(path.absolute))
         startdate = kwargs.get('startdate')
         enddate = kwargs.get('enddate')

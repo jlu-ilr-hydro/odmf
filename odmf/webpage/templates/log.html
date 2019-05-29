@@ -11,22 +11,19 @@
   <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
     <link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
 
-	<!-- Datatables -->
-	<!--<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.11/css/jquery.dataTables.css"/>
-	<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.11/js/jquery.dataTables.js"></script>-->
   <script>
 	  // <![CDATA[
 	function setmsg(text,label) {
 		$('#message').text(text);
 		$('#msghint').html(label);
 	}
-	
+
 	function formatiso(isostr) { //from http://dev.enekoalonso.com/2010/09/21/date-from-iso-8601-string/
 		var parts = isostr.match(/\d+/g);
 		return parts[2] + '.' + parts[1] + '.' + parts[0] + ' ' + parts[3] + ':' + parts[4] + ':' + parts[5];
 	}
 	function toggle(id) {
-  	var obj = $('#'+id) 
+  	var obj = $('#'+id)
   	if (obj.css('display')=='none') {
   		obj.css('display','inline');
   	} else {
@@ -147,7 +144,7 @@
   	   	color: red;
   	   }
 
-	</style>	
+	</style>
 </head>
 <body>
 	${navigation('Logbook')}
@@ -160,15 +157,15 @@
 			<img src="/media/shimmer/brush_32.png" style="float: left; margin-top: 10px;"/>
 			<ul style="list-style: none;">
 				<li>
-					Message: <span style="font-style: italic; font-weight: bold;" py:content="markdown(actuallog.message)" />	
+					Message: <span style="font-style: italic; font-weight: bold;" py:content="markdown(actuallog.message)" />
 				</li>
 				<li py:if="actuallog.site">
-					Site: <a href="/site/${actuallog.site.id}" py:content="actuallog.site" />						
+					Site: <a href="/site/${actuallog.site.id}" py:content="actuallog.site" />
 				</li>
 				<li py:if="not actuallog.site">
-					Site: <span class="warning">Not set</span>						
+					Site: <span class="warning">Not set</span>
 				</li>
-			</ul>					
+			</ul>
 		</div>
 
         <a href="javascript:toggle('logform')" py:if="is_member('logger')">Edit...</a>
@@ -186,7 +183,7 @@
 					<td><a href="/user/${actuallog.user}">Who?</a></td>
 					<td>
 						<select name="user">
-							<option py:for="p in session.query(db.Person)"
+							<option py:for="p in persons"
 									py:attrs="markoption(p is actuallog.user)"
 									py:content="p"
 									value="${p.username}" />
@@ -204,7 +201,7 @@
 					<td>
 						<select name="site">
 							<option value=""><i>&lt;Please select...&gt;</i></option>
-							<option py:for="s in session.query(db.Site).order_by(db.Site.id)"
+							<option py:for="s in sites"
 									py:attrs="markoption(s is actuallog.site)"
 									py:content="s"
 									value="${s.id}" />
@@ -218,7 +215,7 @@
 				<tr>
 					<td>Note!</td>
 					<td>
-						<div class="msghint" id="msghint" /> 
+						<div class="msghint" id="msghint" />
 					</td>
 				</tr>
 				<tr>
@@ -250,7 +247,7 @@
 						<code>Message|SiteID|Date</code> (| means tab)<br />
 						<div id="pasteerror" class="error"></div>
 						<textarea id="pastebin" rows="10" cols="50">Message	12	02.08.2012</textarea><br />
-						
+
 						<button onclick="pastelogs()">Create Logs</button>
 					</div>
 				</div>

@@ -5,7 +5,7 @@ Created on 05.06.2013
 
 @author: kraft-p
 '''
-import db
+from .. import db
 from io import StringIO
 import codecs
 from traceback import format_exc as traceback

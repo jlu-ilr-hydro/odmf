@@ -4,7 +4,7 @@
 <head>
     <!-- Server configuration, see conf.py for HEAD_BASE -->
     <base href="${head_base}" />
-	
+
 	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
 	<link href="/media/jqmath/jqmath-0.4.0.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -28,14 +28,14 @@
 						$('#n').html(data.n);
 					});
 				}
-				
+
 				function loadrecords() {
 					var threshold = null;
 					var limit = $('#recordlimit').val();
 					if ($('#splitUseThreshold').prop('checked')) {
 							threshold = $('#splitthreshold').val();
 					}
-	
+
 					var params={dataset:dsid,
 											mindate:$('#recordmindate').val() + ' ' + $('#recordmintime').val(),
 											maxdate:$('#recordmaxdate').val() + ' ' + $('#recordmaxtime').val(),
@@ -46,7 +46,7 @@
 										};
 					$('#recordlist').load('/dataset/records',params);
 				}
-				
+
 				function timerange(step)
 				{
 				    if (step == null) {step=60;}
@@ -57,10 +57,10 @@
 				    	if (h<10) { h='0' + h;} else {h='' + h;}
 				    	if (m<10) { m='0' + m;} else {m='' + m;}
 				    	foo.push(h+':'+m);
-				    }	    		
+				    }
 				    return foo;
 				}
-		
+
         $(function() {
 					$(".datepicker").datepicker({dateFormat: 'dd.mm.yy' });
 					$(".timepicker").autocomplete({source: timerange(15), minLength: 0});
@@ -81,7 +81,7 @@
         		if (error.substring(0,5)=='goto:') {
         			window.location.href = error.substring(5);
         		} else {
-	        		$('.error').html(error);      			
+	        		$('.error').html(error);
         		}
         	} else {
         		window.location.reload(true);
@@ -97,7 +97,7 @@
     			}
     		}
 
-        function plotds(id) {	
+        function plotds(id) {
         	var url = '/dataset/plot'
 					        	+ '?id='+id
 					        	+ '&' + 'start='+$('#plotstart').val() + ' ' + $('#plotstart_t').val()
@@ -109,7 +109,7 @@
         }
 				function removeds(dsid,dsname,reccount) {
 					var msg = 'Are you absolutly sure to delete ' + dsname + '?' +
-					          'It has ' + reccount + ' records!' 
+					          'It has ' + reccount + ' records!'
 					var really=confirm(msg)
 					if (really) {
 						$.post('/dataset/remove/' + dsid, function(data) {
@@ -131,7 +131,7 @@
 			font-weight: bold;
 		}
 		a.toggle {
-			display: block; 			
+			display: block;
 		}
 		span.nobreak {
 			white-space: nowrap;
@@ -171,7 +171,7 @@
 		}
 		#trans_help {
 		 		z-index:10;
-		 		position:absolute; 
+		 		position:absolute;
 		 		background:#fffAF0;
 		}
 		#trans_help td {
@@ -195,8 +195,15 @@
 	Input variables:
 	error - string
 	activedataset - Dataset
-	session
-	db - module 
+	db - module
+	And a number of prepared queries:
+        valuetypes=session.query(db.ValueType).order_by(db.ValueType.name),
+        persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname),
+        sites=session.query(db.Site).order_by(db.Site.id),
+        quality=session.query(db.Quality).order_by(db.Quality.id),
+        datasources=session.query(db.Datasource),
+        projects = session.query(db.Project),
+
 -->
 <body>
 	${navigation('Data sets')}
@@ -242,7 +249,7 @@
 							<a href="${'/user/%s' % (activedataset.measured_by.username if activedataset.measured_by else '')}">
 								${activedataset.measured_by}
 							</a>
-						</td> 
+						</td>
 					</tr>
 					<tr>
 						<td class="bold">Quality:</td>
@@ -255,7 +262,7 @@
 							<a py:if="activedataset.source.manuallink" href="${activedataset.source.manuallink}" class="small">
 								<img src="/media/shimmer/document_16.png" alt="documentation"/>
 							</a>
-						</td> 
+						</td>
 					</tr>
 					<tr py:if="activedataset.project">
 						<td class="bold">Project:</td>
@@ -284,19 +291,19 @@
 	  	<ul id="tabheads">
 	  		<li py:if="activedataset.is_transformed()"><a href="#transforms">transforms</a></li>
 	  		<li><a href="#similar">similar</a></li>
-	  		<li py:if="activedataset.is_timeseries() and is_member('editor')"><a href="#records">records</a></li>	  		
+	  		<li py:if="activedataset.is_timeseries() and is_member('editor')"><a href="#records">records</a></li>
 	  		<li><a href="#plot" py:if="users.current.level>=activedataset.access">plot</a></li>
 	  		<li py:if="activedataset.is_timeseries() and is_member('editor') and users.current.level>=activedataset.access"><a href="/dataset/calibration?targetid=${activedataset.id}">calibrate</a></li>
 	  		<li py:if="is_member('logger') and users.current.level>=activedataset.access"><a href="#export">export</a></li>
 	  		<li py:if="is_member('editor')"><a href="#edit">edit</a></li>
-	  	</ul> 
+	  	</ul>
 			<div id="edit" py:if="is_member('editor') and users.current.level>=activedataset.access">
 				<button py:if="is_member('admin')" class="tooltip small"
 						onclick="javascript:removeds(${activedataset.id},'${str(activedataset)}',${n});">
 					&#x2718;
 					<span>remove dataset</span>
 				</button>
-				
+
 				<button py:if="activedataset.is_timeseries() and is_member('editor')"
 					 onclick="$.post('/dataset/create_transformation/',{sourceid:${activedataset.id}},reload)"
 					 class="tooltip small">
@@ -315,7 +322,7 @@
 							<td>
 								<select name="measured_by">
 									<option value=""><i>Please select...</i></option>
-									<option py:for="p in session.query(db.Person).order_by('can_supervise DESC,surname')"
+									<option py:for="p in persons"
 											py:attrs="markoption(p is activedataset.measured_by)"
 											py:content="p"
 											value="${p.username}" />
@@ -327,7 +334,7 @@
 							<td>
 								<select name="valuetype">
 									<option value=""><i>Please select...</i></option>
-									<option py:for="vt in session.query(db.ValueType).order_by(db.ValueType.name)"
+									<option py:for="vt in valuetypes"
 											py:attrs="markoption(vt is activedataset.valuetype)"
 											py:content="vt"
 											value="${vt.id}" />
@@ -342,7 +349,7 @@
 								</span>
 							</td>
 							<td>
-								<select name="accesss">
+								<select name="access">
 									<option value="0" py:attrs="markoption(activedataset.access==0)">Public dataset</option>
 									<option value="1" py:attrs="markoption(activedataset.access==1)">Only known users (logger)</option>
 									<option value="2" py:attrs="markoption(activedataset.access==2)">Only editing users (editor)</option>
@@ -356,7 +363,7 @@
 							<td>
 								<select name="site">
 									<option value=""><i>Please select...</i></option>
-									<option py:for="s in session.query(db.Site).order_by(db.Site.id)"
+									<option py:for="s in sites"
 											py:attrs="markoption(s is activedataset.site)"
 											py:content="s"
 											value="${s.id}" />
@@ -376,7 +383,7 @@
 							<td>
 								<select name="quality">
 									<option value=""><i>Please select...</i></option>
-									<option py:for="q in session.query(db.Quality)"
+									<option py:for="q in quality"
 											py:attrs="markoption(q is activedataset.quality)"
 											py:content="q"
 											value="${q.id}" />
@@ -396,7 +403,7 @@
 							<td>
 								<select name="source">
 									<option value=""><i>Please select...</i></option>
-									<option py:for="datasource in session.query(db.Datasource)"
+									<option py:for="datasource in datasources"
 											py:attrs="markoption(datasource is activedataset.source)"
 											py:content="datasource"
 											value="${datasource.id}" />
@@ -433,7 +440,7 @@
 						</tr>
 						<tr py:if="activedataset.is_timeseries()">
 							<td>
-								<a href="/dataset/calibration?targetid=${activedataset.id}">Calibrate</a>: 
+								<a href="/dataset/calibration?targetid=${activedataset.id}">Calibrate</a>:
 							</td>
 							<td>
 								v' = <input type="text" value="${formatfloat(activedataset.calibration_slope)}" name="calibration_slope" size="5" style="text-align: right;" />
@@ -494,19 +501,19 @@
 								</div>
 
 							</td>
-						</tr>					
+						</tr>
 						<tr>
 							<td>Comments<a href="/wiki.help" class="tooltip"><img src="/media/help.png" /><span>Get help for using links and formats</span></a></td>
 							<td>
-								<textarea name="comment" 
+								<textarea name="comment"
 									  style="width: 100%;"
-									  rows="10" 
+									  rows="10"
 									  py:content="activedataset.comment" />
 							</td>
 						</tr>
 					</table>
-					<input type="submit" name="save"  style="width: 10em;"/>			
-			
+					<input type="submit" name="save"  style="width: 10em;"/>
+
 				</form>
 			</div>
 			<div id="transforms" py:if="activedataset.is_transformed()">
@@ -533,16 +540,16 @@
 
 			<div id="plot" py:if="users.current.level>=activedataset.access">
 				<button onclick="plotds(${activedataset.id});">Plot</button>
-	
+
 				from:
 				<input type="text" class="datepicker" id="plotstart" size="10"
 							value="${formatdate(activedataset.start)}"
-							/> 
+							/>
 				<input type="text" class="timepicker" id="plotstart_t" size="5"
 							value=""
 							/>
 				until:
-				<input type="text" class="datepicker" id="plotend" size="10" 
+				<input type="text" class="datepicker" id="plotend" size="10"
 								value="${formatdate(activedataset.end + timedelta(days=1) if activedataset.end else activedataset.end)}"
 								/>
 				<input type="text" class="timepicker" id="plotend_t" size="5"
@@ -575,15 +582,15 @@
 					<option value="y" style="background-color: #FF0;">y</option>
 					<option value="c" style="background-color: #0FF;">c</option>
 					<option value="m" style="background-color: #F0F;">m</option>
-		
+
 				</select>
-		
+
 				<div>
 					<img id="plotimg" alt="" src=""/>
 				</div>
 
 			</div>
-			<div id="similar">		
+			<div id="similar">
 				<div py:for="dsname in datasets" >
 					<h3>${dsname}</h3>
 					<div id="${dsname.replace(' ','_')}">
@@ -591,19 +598,19 @@
 							<li py:for="ds in datasets[dsname]">
 								<a href="${ds.id}">${ds}</a>
 							</li>
-								
+
 						</ul>
 					</div>
 				</div>
 			</div>
 			<div id="records" class="small" py:if="is_member('editor') and activedataset and activedataset.is_timeseries() and users.current.level>=activedataset.access">
-				min.&nbsp;date=&nbsp;<input type="text" id="recordmindate" class="datepicker" size="10"/>&nbsp;<input type="text" id="recordmintime" class="timepicker" size="5" />			
+				min.&nbsp;date=&nbsp;<input type="text" id="recordmindate" class="datepicker" size="10"/>&nbsp;<input type="text" id="recordmintime" class="timepicker" size="5" />
 				max.&nbsp;date=&nbsp;<input type="text" id="recordmaxdate" class="datepicker" size="10"/>&nbsp;<input type="text" id="recordmaxtime" class="timepicker" size="5" />
 				min.&nbsp;value=&nbsp;<input type="text" id="recordminvalue"/>
 				max.&nbsp;value=&nbsp;<input type="text" id="recordmaxvalue"/>
 				<br/>
-				<input type="checkbox" id="splitUseThreshold"/> 
-				show only records with a jump from the last value greater than 
+				<input type="checkbox" id="splitUseThreshold"/>
+				show only records with a jump from the last value greater than
 				<a href="/wiki/split"><img src="/media/help.png"/></a>
 				<input id="splitthreshold" type="text" value="0.0" style="text-align: right;" />${activedataset.valuetype.unit if activedataset and activedataset.valuetype else '?'}
 				<br/>
@@ -615,17 +622,17 @@
 				<ul>
 					<li py:if="activedataset">
 					<button onclick="window.location='/dataset/records.csv?dataset=${activedataset.id}';">Export as CSV</button>
-						Get Values as csv-file. Open with Excel if English language settings are chosen in Windows.				
+						Get Values as csv-file. Open with Excel if English language settings are chosen in Windows.
 					</li>
 					<li>
 						<a href="/datafiles/daten-vorlage.xls" style="float:left;">
 							<img src="/media/excel-icon.gif" />
 						</a>
 						Download the excel template for data import
-						<a href="/datafiles/dataset-xxxx.xls">here</a>.				
+						<a href="/datafiles/dataset-xxxx.xls">here</a>.
 					</li>
 				</ul>
-			</div>  	
+			</div>
 		</div>
 
   </div>

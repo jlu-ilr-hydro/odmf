@@ -17,7 +17,7 @@ CFG_DATETIME_DEFAULT_TIMEZONE = 'Europe/Berlin'
 
 # sqlite | postgres
 DATABASE='sqlite'
-SQLITE_PATH = './data.sqlite'
+SQLITE_PATH = 'data.sqlite'
 
 #
 # Media

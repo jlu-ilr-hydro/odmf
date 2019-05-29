@@ -6,14 +6,14 @@ Created on 13.07.2012
 '''
 
 from . import base
-import db
+from .. import db
 from . import textimport as _ti
 from . import xls as _xl
 from . import mm as _mm
 from .base import finddateGaps, findStartDate, savetoimports, checkimport, \
     ImportDescription
 
-from dataimport.mm import ManualMeasurementsImport
+from ..dataimport.mm import ManualMeasurementsImport
 #, \ImportManualMeasurementsDescription
 
 import re

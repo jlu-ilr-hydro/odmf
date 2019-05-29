@@ -11,7 +11,7 @@ import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
 from io import StringIO
 import os.path as op
-import conf
+from .. import conf
 
 from contextlib import contextmanager
 from cherrypy import log
@@ -51,7 +51,7 @@ if conf.DATABASE == 'postgres':
     engine = sql.create_engine('postgresql://', creator=connect)
 elif conf.DATABASE == 'sqlite':
     if op.exists(conf.SQLITE_PATH):
-        engine = sql.create_engine('sqlite:///data.sqlite')
+        engine = sql.create_engine('sqlite:///%s' % conf.SQLITE_PATH)
     else:
         raise RuntimeError('Couldn\'t find offline database at \'%s\'.' % conf.SQLITE_PATH)
 

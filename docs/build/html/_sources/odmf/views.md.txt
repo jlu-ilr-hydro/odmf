@@ -10,12 +10,16 @@ Or the user can create new sites. Sites are meta data, which can be attached to 
 The sites are integrated into a large Google Map element on the right.
 There is the opportunity to filter the displayed sites.
 
+![map view](../../images/views/map.jpg "Map view")
+
 
 ## Plot
 Accessible via `/plot`
 
 The user is able to display or download measurement data in an customizable fashion. A once configured
  plot can be saved for future use.
+
+![plot view](../../images/views/plot.jpg "Plot view")
 
 #### The configuration of a plot image
 In this paragraph, the configuration of a plot image is described in depth.
@@ -29,7 +33,7 @@ Accessible via `/site`
 This pages gives insight to the locations in the field, where measurements are made.
 For e.g. there are all datasets listed, which are measured and later online registered at this location.
 
-[//]: # (TODO: Picture with numbers referring to main features)
+![sites view](../../images/views/sites.jpg "Sites view")
 
 
 ## Publications
@@ -133,7 +137,7 @@ TBD.
 ## Admin
 Accesible via `/admin`
 
-[//]: # (TODO: Picture with numbers referring to features)
+![admin view](../../images/views/monitoring.jpg "Monitoring view")
 
 This is the monitoring view, which displays metrics regarding the server platform, for example
 the Postgres database, hardware stats and eventually the HydroServerLite

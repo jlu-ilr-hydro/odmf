@@ -5,7 +5,7 @@ Created on 15.10.2012
 '''
 from math import sqrt
 
-import db
+from .. import db
 
 
 class Match:

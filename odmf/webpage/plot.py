@@ -13,7 +13,7 @@ import pylab as plt
 from matplotlib.ticker import MaxNLocator
 import matplotlib.dates
 import numpy as np
-import db
+from .. import db
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from io import StringIO
@@ -24,8 +24,8 @@ from pandas import to_datetime, TimeGrouper
 import json
 from glob import iglob
 
-import webpage.lib as web
-from webpage.preferences import Preferences
+from . import lib as web
+from .preferences import Preferences
 from .auth import group, expose_for
 
 from .auth import users
@@ -751,7 +751,7 @@ class PlotPage(object):
         for sp in plot.subplots:
             lines.extend(sp.lines)
         stream = StringIO()
-        from tools.exportdatasets import exportLines
+        from ..tools.exportdatasets import exportLines
         exportLines(stream, lines, web.conv(float, tolerance, 60))
         web.setmime(web.mime.csv)
         return stream.getvalue()
@@ -768,7 +768,7 @@ class PlotPage(object):
                 datasetids.extend(ds.id for ds in line.getdatasets(session))
         session.close()
         stream = StringIO()
-        from tools.ExportRegularData import createPandaDfs
+        from ..tools.ExportRegularData import createPandaDfs
         # explicit decode() for byte to string
         stream.write(codecs.BOM_UTF8.decode())
         createPandaDfs(lines, plot.startdate, plot.enddate, stream,

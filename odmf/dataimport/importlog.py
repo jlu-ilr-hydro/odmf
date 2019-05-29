@@ -5,7 +5,7 @@ Created on 19.02.2013
 """
 import xlrd
 import os
-import db
+from .. import db
 from datetime import datetime, timedelta
 
 

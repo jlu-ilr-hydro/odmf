@@ -6,10 +6,11 @@ Created on 12.02.2012
 @author: philkraf
 '''
 import sys
+sys.path.insert(0,'..')
 import os
 from glob import glob
 
-from tools.parseConf import parseConf
+from odmf.tools.parseConf import parseConf
 
 print("Starting schwingbachserver using {}".format(sys.executable))
 
@@ -17,23 +18,19 @@ if sys.version_info[0] < 3:
     raise Exception("Must be using Python 3")
 
 # System checks !before project imports
-if not os.path.isfile('conf.py'):
-    raise RuntimeError('Consider providing a configuration file at \'conf.py\'!')
-else:
-    import conf
-
-    try:
-        # Check for mandatory attributes
-        parseConf(conf)
-        print("✔ Config is valid")
-    except Exception as e:
-        print("Error in config validation: {}".format(e))
-        exit(1)
+import odmf.conf as conf
+try:
+    # Check for mandatory attributes
+    parseConf(conf)
+    print("✔ Config is valid")
+except Exception as e:
+    print("Error in config validation: {}".format(e))
+    exit(1)
 
 
 # Start with project imports
-from webpage import Root, HeapyPage
-from webpage import lib
+from odmf.webpage import Root, HeapyPage
+from odmf.webpage import lib
 
 # Make autoreload
 autoreload = 'noreload' not in sys.argv

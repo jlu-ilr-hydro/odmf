@@ -6,7 +6,7 @@ Created on 13.07.2012
 @author: philkraf
 '''
 from . import lib as web
-import db
+from .. import db
 from traceback import format_exc as traceback
 from datetime import datetime
 from genshi import escape
@@ -14,7 +14,7 @@ from glob import glob
 import os.path as op
 from .auth import users, expose_for, has_level, group
 from io import StringIO
-import db.projection as proj
+from ..db import projection as proj
 from .preferences import Preferences
 
 

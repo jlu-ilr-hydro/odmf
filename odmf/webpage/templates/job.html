@@ -85,7 +85,7 @@
 
 </head>
 <!--
-	session
+
 	db
 	job
 	jobs
@@ -111,7 +111,7 @@
 				<td>			
 					<select id="filterresponsible" class="filter" onchange="reload(${job.id if job else '\'\''});">
 						<option value="all" py:attrs="markoption(username=='all')">all users</option>
-						<option py:for="p in session.query(db.Person).order_by(db.sql.desc(db.Person.can_supervise),db.Person.surname)"
+						<option py:for="p in persons"
 								py:content="p"
 								py:if="p.jobs.count()"
 								py:attrs="markoption(p.username==username)"
@@ -195,7 +195,7 @@
 					<td>
 						<select id="editresponsible">
 							<option value=""><i> &lt;Please select...&gt;</i></option>
-							<option py:for="p in session.query(db.Person)"
+							<option py:for="p in persons"
 									py:attrs="markoption(p is job.responsible)"
 									py:content="p"
 									value="${p.username}" />
@@ -227,7 +227,7 @@
 					<td>type</td>
 					<td>
 						<select id="edittype">
-							<option py:for="t in session.query(db.Job.type).order_by(db.Job.type).distinct()"
+							<option py:for="t in jobtypes"
 											py:attrs="markoption(t[0]==job.type)"
 											value="${t}"
 											py:content="t">

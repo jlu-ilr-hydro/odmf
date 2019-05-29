@@ -5,7 +5,7 @@ Created on 07.02.2013
 '''
 import sys
 from datetime import datetime, timedelta
-import db
+from .. import db
 from glob import glob
 import os.path as op
 import os
@@ -17,13 +17,13 @@ import chardet
 
 import ast
 
-import conf
+from .. import conf
 # AbstractImport
 from traceback import format_exc as traceback
 from pytz import common_timezones_set
 from sqlalchemy import func
 
-from dataimport.importlog import LogColumns
+from ..dataimport.importlog import LogColumns
 
 
 def findStartDate(siteid, instrumentid):
@@ -58,7 +58,7 @@ def finddateGaps(siteid, instrumentid, valuetype, startdate=None, enddate=None):
             .filter(db.Dataset._site == siteid,
                     db.Dataset._source == instrumentid,
                     db.Dataset._valuetype.in_(valuetype)) \
-            .order_by('"valuetype","start"')
+            .order_by(db.Dataset._valuetype, db.Dataset.start)
 
         print("[LOG] - finddateGaps - %d rows after query" % dss.count())
 

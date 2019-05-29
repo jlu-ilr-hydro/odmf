@@ -4,13 +4,13 @@ Created on 18.07.2012
 @author: philkraf
 '''
 from . import lib as web
-import db
+from .. import db
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 import io
 from .auth import group, expose_for, users
 import codecs
-from tools.calibration import Calibration, CalibrationSource
+from ..tools.calibration import Calibration, CalibrationSource
 from pytz import common_timezones
 import cherrypy
 
@@ -51,7 +51,6 @@ class DatasetPage:
             valuetype = session.query(db.ValueType).get(
                 vt_id) if vt_id else None
             # All projects
-            projects = session.query(db.Project)
 
             if user is None:
                 user = web.user()
@@ -89,27 +88,32 @@ class DatasetPage:
                 datasets = {}
 
             # Render the resulting page
+            queries = dict(
+                valuetypes=session.query(db.ValueType).order_by(db.ValueType.name),
+                persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname),
+                sites=session.query(db.Site).order_by(db.Site.id),
+                quality=session.query(db.Quality).order_by(db.Quality.id),
+                datasources=session.query(db.Datasource),
+                projects=session.query(db.Project),
+            )
             result = web.render('datasettab.html',
                                 # activedataset is the current dataset (id or new)
                                 activedataset=active,
-                                # Use session to do queries during rendering
-                                session=session,
                                 # Render error messages
                                 error=error,
                                 # similar and parallel datasets
                                 datasets=datasets,
                                 # the db module for queries during rendering
                                 db=db,
-                                # The select options for all projects
-                                projects=projects,
                                 # The project
                                 activeproject=project,
                                 # All available timezones
                                 timezones=common_timezones + ['Fixed/60'],
                                 # The title of the page
-                                title='Schwingbach-Datensatz #' + str(id)
+                                title='ds' + str(id),
+                                # A couple of prepared queries to fill select elements
+                                **queries
                                 ).render('html', doctype='html')
-
         except:
             # If anything above fails, render error message
             result = web.render('datasettab.html',
@@ -121,7 +125,8 @@ class DatasetPage:
                                 session=session,
                                 datasets=datasets,
                                 db=db,
-                                activedataset=None
+                                activedataset=None,
+                                **queries
                                 ).render('html', doctype='html')
         finally:
             session.close()
@@ -195,7 +200,7 @@ class DatasetPage:
                 ds = session.query(db.Timeseries).get(int(dsid))
                 if not ds:
                     return 'Timeseries ds:{} does not exist'.format(dsid)
-                ds.addrecord(int(recid), time, value, comment, sample)
+                ds.addrecord(Id=int(recid), time=time, value=value, comment=comment, sample=sample)
             except:
                 return 'Could not add record, error:\n' + traceback()
 
@@ -520,33 +525,11 @@ class DatasetPage:
             ax.grid()
             plt.xticks(rotation=15)
             plt.ylabel('%s [%s]' % (ds.valuetype.name, ds.valuetype.unit))
-            plt.title(ds.site)
-            fig.savefig(bytesio, dpi=100)
+            plt.title(str(ds.site))
+            fig.savefig(bytesio, dpi=100, format='png')
         finally:
             session.close()
         return bytesio.getvalue()
-
-    @expose_for(group.editor)
-    def addrecord(self, datasetid, time, value, comment=None):
-        """
-        Adds a record to the dataset. Purge?
-        """
-        error = ''
-        session = db.Session()
-        try:
-            error = "Dataset %s not found" % datasetid
-            ds = session.query(db.Dataset).get(int(datasetid))
-            error = "'%s' is not a number. Use . as decimal sign." % value
-            value = float(value)
-            error = "'%s' is not a valid date." % time
-            time = web.parsedate(time)
-            error = "Could not create record for %s" % ds
-            ds.addrecord(value=value, time=time, comment=comment)
-        except Exception as e:
-            return error + '\n' + e.message
-        finally:
-            session.close()
-        return ''
 
     @web.expose
     @web.mimetype(web.mime.json)

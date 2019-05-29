@@ -2,25 +2,21 @@
 import cherrypy
 
 from . import lib as web
-from .auth import users, require, member_of, has_level, group, expose_for, hashpw, is_self, get_levels
+from .auth import users, group, expose_for, hashpw, is_self, get_levels
 from .upload import write_to_file
-import tools
-from tools import Path
 
-import db
+from .. import db
 import sys
 import os
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
-from genshi import escape
-from io import StringIO
 
-from webpage.upload import DownloadPage
-from webpage.map import MapPage
-from webpage.site import SitePage
-from webpage.datasetpage import DatasetPage
-from webpage.preferences import Preferences
-from webpage.plot import PlotPage
+from .upload import DownloadPage
+from .map import MapPage
+from .site import SitePage
+from .datasetpage import DatasetPage
+from .preferences import Preferences
+from .plot import PlotPage
 
 
 
@@ -307,20 +303,25 @@ class JobPage:
 
         elif jobid is None:
             job = session.query(db.Job).filter_by(
-                _responsible=web.user(), done=False).order_by('due').first()
+                _responsible=web.user(), done=False).order_by(db.Job.due).first()
         else:
             try:
                 job = session.query(db.Job).get(int(jobid))
             except:
                 error = traceback()
                 job = None
-        jobs = session.query(db.Job).order_by('done ,due DESC')
+        queries = dict(
+            persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname).all(),
+            jobtypes=session.query(db.Job.type).order_by(db.Job.type).distinct().all(),
+        )
+
+        jobs = session.query(db.Job).order_by(db.Job.done, db.Job.due.desc())
         if user != 'all':
             jobs = jobs.filter(db.Job._responsible == user)
         if onlyactive:
-            jobs = jobs.filter(db.Job.done == False)
-        result = web.render('job.html', jobs=jobs, job=job, error=error, db=db, session=session,
-                            username=user, onlyactive=onlyactive,
+            jobs = jobs.filter(not db.Job.done)
+        result = web.render('job.html', jobs=jobs, job=job, error=error, db=db,
+                            username=user, onlyactive=onlyactive, **queries
                             ).render('html', doctype='html')
         session.close()
         return result
@@ -375,7 +376,7 @@ class JobPage:
     @expose_for(group.logger)
     def json(self, responsible=None, author=None, onlyactive=False, dueafter=None):
         session = db.Session()
-        jobs = session.query(db.Job).order_by('done ,due DESC')
+        jobs = session.query(db.Job).order_by(db.Job.done ,db.Job.due.desc())
         web.setmime(web.mime.json)
         if responsible != 'all':
             if not responsible:
@@ -401,6 +402,10 @@ class LogPage:
     def default(self, logid=None, siteid=None, lastlogdate=None, days=None):
         session = db.Session()
         error = ''
+        queries = dict(
+            persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname).all(),
+        )
+
         if logid == 'new':
             log = db.Log(id=db.newid(db.Log, session),
                          message='<Log-Beschreibung>', time=datetime.today())
@@ -432,8 +437,8 @@ class LogPage:
         sitelist = session.query(db.Site).order_by(db.sql.asc(db.Site.id))
 
         result = web.render('log.html', actuallog=log, error=error, db=db,
-                            session=session, loglist=loglist, sites=sitelist)\
-            .render('html', doctype='html')
+                            loglist=loglist, sites=sitelist, **queries
+                            ).render('html', doctype='html')
 
         session.close()
         return result
@@ -701,7 +706,7 @@ class CalendarPage(object):
     def jobs_json(self, start=None, end=None, responsible=None, author=None, onlyactive=False, dueafter=None):
         web.setmime(web.mime.json)
         session = db.Session()
-        jobs = session.query(db.Job).order_by('done ,due DESC')
+        jobs = session.query(db.Job).order_by(db.Job.done, db.Job.due.desc())
         if responsible != 'all':
             if not responsible:
                 responsible = web.user()

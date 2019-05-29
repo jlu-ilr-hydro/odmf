@@ -18,12 +18,12 @@ from genshi.template import Context, TemplateLoader
 from genshi.core import Markup
 
 from . import auth
-from tools.parseMarkDown import MarkDown
+from ..tools.parseMarkDown import MarkDown
 
 from base64 import b64encode
 markdown = MarkDown()
 
-import conf
+from .. import conf
 
 
 def jsonhandler(obj):
