@@ -3,15 +3,34 @@ from io import BytesIO
 from pathlib import Path
 import chardet
 import datetime
+import inspect
 from traceback import format_exc as traceback
+from contextlib import contextmanager
 
 from . import lib as web
-from .auth import users, expose_for, group
+from .auth import users, expose_for, group, has_level
 from .. import db
 
 
 datapath = web.abspath('datafiles')
 home = web.abspath('.')
+
+
+def get_help(obj, url, append_to: dict = None):
+    append_to = append_to or {}
+
+    def is_api_or_method(obj):
+        return inspect.ismethod(obj) or isinstance(obj, BaseAPI) and hasattr(obj, 'exposed')
+
+    if inspect.ismethod(obj):
+        append_to[url] = url.split('/')[-1] + str(inspect.signature(obj)) + ': ' + inspect.getdoc(obj)
+    else:
+        append_to[url] = inspect.getdoc(obj)
+    for name, member in inspect.getmembers(obj, is_api_or_method):
+        if not name.startswith('_'):
+            append_to = get_help(member, '/'.join([url, name]), append_to)
+    return append_to
+
 
 def write_to_file(dest, src):
     """
@@ -30,13 +49,12 @@ def write_to_file(dest, src):
         fout.write(data)
     fout.close()
 
-
-def respond(status=200, message='OK'):
-    cherrypy.response.status = status
-    return message
+class BaseAPI:
+    ...
 
 
-class DatasetAPI:
+@cherrypy.popargs('dsid')
+class DatasetAPI(BaseAPI):
     """
     Provides an REST API to datasets
 
@@ -50,6 +68,30 @@ class DatasetAPI:
 
     """
     exposed = True
+    url = '/api/dataset'
+
+    @staticmethod
+    def parse_id(dsid: str) -> int:
+        if dsid[:2] != 'ds':
+            raise cherrypy.HTTPError(404, f'Dataset id does not start with ds. Got {dsid}')
+        try:
+            return int(dsid[2:])
+        except (TypeError, ValueError):
+            raise cherrypy.HTTPError(404, f'Last part of dataset id is not a number. Got {dsid}')
+
+    @staticmethod
+    @contextmanager
+    def get_dataset(dsid: str, check_access=True) -> db.Dataset:
+        dsid = DatasetAPI.parse_id(dsid)
+        with db.session_scope() as session:
+            ds = session.query(db.Dataset).get(dsid)
+            if not ds:
+                raise cherrypy.HTTPError(404, f'ds{dsid} does not exist')
+            elif check_access and not has_level(ds.access):
+                raise cherrypy.HTTPError(403, f'ds{dsid} is protected. Need a higher access level')
+            else:
+                yield ds
+
 
     @expose_for(group.guest)
     @web.method.get
@@ -59,26 +101,54 @@ class DatasetAPI:
         :param dsid: The Dataset id
         :return: json representation of the dataset metadata
         """
+        web.setmime(web.mime.json)
         if dsid is None:
-            with db.session_scope() as session:
-                return web.as_json(session.query(db.Dataset.id).all())
-        try:
-            dsid = int(dsid)
-        except (TypeError, ValueError):
-            raise cherrypy.HTTPError(400, f'"{dsid}" is not a valid dataset number')
+            res = get_help(self, self.url)
+            res[f'{self.url}/[n]'] = f"A dataset with the id [n]. See {self.url}/list method"
+            return web.as_json(res)
+        with self.get_dataset(dsid, False) as ds:
+            return web.as_json(ds)
 
+    @expose_for(group.guest)
+    def records(self, dsid, start=None, end=None):
+        """
+        :param dsid:
+        :param start:
+        :param end:
+        :return:
+        """
+        web.setmime(web.mime.json)
+        with self.get_dataset(dsid, False) as ds:
+            return web.as_json(ds.records.all())
+
+
+
+
+    @expose_for()
+    @web.method.get
+    def list(self):
+        """
+        Returns a JSON list of all available dataset url's
+        """
+        web.setmime(web.mime.json)
+        res = []
         with db.session_scope() as session:
-            ds = session.query(db.Dataset).get(dsid)
-            if not ds:
-                raise cherrypy.HTTPError(404, f'ds{dsid} does not exist')
-            else:
-                return web.as_json(ds)
+            for ds, in sorted(session.query(db.Dataset.id)):
+                res.append(f'{self.url}/ds{ds}')
+            return web.as_json(res)
 
 
     @expose_for(group.editor)
     @web.method.post_or_put
     @web.json_in()
     def new(self):
+        """
+        Creates a new dataset. Possible data fields:
+        measured_by, valuetype, quality, site, source, filename,
+        name, comment, project, timezone, level, etc.
+
+        """
+
         kwargs = cherrypy.request.json
         with db.session_scope() as session:
             try:
@@ -127,49 +197,97 @@ class DatasetAPI:
                     ds.latex = kwargs.get('latex')
                 # Save changes
                 session.commit()
-                return respond(200, f'ds{ds.id}')
+                return f'ds{ds.id}'
 
             except:
-
                 # On error render the error message
-                return respond(400, traceback())
+                raise cherrypy.HTTPError(400, traceback())
 
     @expose_for(group.editor)
     @web.method.post_or_put
-    def addrecord(self, dsid, value, time,
-                       sample=None, comment=None):
+    def addrecord(self, dsid: int, value: float, time: str,
+                       sample=None, comment=None, recid=None):
+        """
+        Adds a single record to a dataset
+
+        JQuery usage: $.put('/api/dataset/addrecord', {dsid=1000, value=1.5, time='2019-02-01T17:00:00'}, ...);
+
+        :param dsid: Dataset id
+        :param value: Value to add
+        :param time: Time of measurement
+        :param sample: A link to a sample name (if present)
+        :param comment: A comment about the measurement (if needed)
+        :param recid: A record id (will be created if missing)
+        :return: The id of the new record
+        """
         time = web.parsedate(time)
         with db.session_scope() as session:
             try:
-                ds = session.query(db.Timeseries).get(int(dsid))
+                dsid = self.parse_id(dsid)
+                ds = session.query(db.Timeseries).get(dsid)
                 if not ds:
                     return 'Timeseries ds:{} does not exist'.format(dsid)
-                new_rec = ds.addrecord(Id=int(recid), time=time, value=value, comment=comment, sample=sample)
-                return respond(200, new_rec.id)
+                new_rec = ds.addrecord(Id=recid, time=time, value=value, comment=comment, sample=sample)
+                return str(new_rec.id)
             except:
-                return respond(400, 'Could not add record, error:\n' + traceback())
+                raise cherrypy.HTTPError(400, 'Could not add record, error:\n' + traceback())
+
+    @web.json_in()
+    @expose_for(group.guest)
+    @web.method.post_or_put
+    def addrecords(self):
+        """
+        Adds a couple of records from a larger JSON list
+        JQuery usage:
+            $.put('/api/dataset/addrecord',
+                  [{dsid=1000, value=1.5, time='2019-02-01T17:00:00'},
+                   {dsid=1000, value=2.5, time='2019-02-01T17:00:05'},
+                   ...
+                  ], ...);
+        :return:
+        """
+        data = cherrypy.request.json
+        if not type(data) is list:
+            data = [data]
+        warnings = []
+        with db.session_scope() as session:
+            dataset: db.Dataset = None
+            for rec in data:
+                dsid = rec.get('dsid') or rec.get('dataset') or rec.get('dataset_id')
+                if not dsid:
+                    warnings.append(f'{rec} does not reference a valid dataset '
+                                    f'(allowed keywords are dsid, dataset and dataset_id)')
+                if not dataset or dataset.id != dsid:
+                    # load dataset from db
+                    dataset = session.query(db.Dataset).get(dsid)
+                else:
+                    ...  # reuse last dataset
+                if not dataset:
+                    warnings.append(f'ds{dsid} does not exist')
+                # get value, time, sample, comment and recid
 
     @expose_for()
     @web.method.get
-    def statistics(self, id):
+    def statistics(self, dsid):
         """
-        Returns a json file holding the statistics for the dataset (is loaded by page using ajax)
+        Returns a json object holding the statistics for the dataset
+        (is loaded by page using ajax)
         """
         web.setmime(web.mime.json)
-        with db.session_scope() as session:
-            ds = session.query(db.Dataset).get(int(id))
-            if ds:
-                # Get statistics
-                mean, std, n = ds.statistics()
-                # Convert to json
-                return respond(200, web.as_json(dict(mean=mean, std=std, n=n)))
-            else:
-                # Return empty dataset statistics
-                return respond(404, f'ds{id} does not exist')
+        with self.get_dataset(dsid, False) as ds:
+            # Get statistics
+            mean, std, n = ds.statistics()
+            if not n:
+                mean = 0.0
+                std = 0.0
+            # Convert to json
+            return web.as_json(dict(mean=mean, std=std, n=n))
 
 
-
-class API:
+class API(BaseAPI):
+    """
+    A RESTful API for machine to machine communication using json
+    """
 
     exposed = True
     dataset = DatasetAPI()
@@ -177,27 +295,42 @@ class API:
     @expose_for()
     @web.method.post
     def login(self, username, password):
+        """
+        Login for the web app (including API)
+
+        Usage with JQuery: $.post('/api/login',{username:'user', password:'secret'}, ...)
+        Usage with python / requests: See tools/post_new_record.py
+
+        returns Status 200 on success
+        """
         web.setmime(web.mime.plain)
         error = users.login(username, password)
         if error:
-            return respond(401, 'Username or password incorrect')
+            raise cherrypy.HTTPError(401, 'Username or password incorrect')
         else:
-            return respond(200, 'OK')
+            return 'OK'.encode('utf-8')
 
     @expose_for(group.editor)
-    @web.mime.put()
-    def upload(self, uri, datafile, overwrite=False):
+    @web.method.put
+    def upload(self, path, datafile, overwrite=False):
+        """
+        Uploads a file to the file server
+        :param path: The path of the directory, where this file should be stored
+        :param datafile: the file to upload
+        :param overwrite: If True, an existing file will be overwritten. Else an error is raised
+        :return: 200 OK / 400 Traceback
+        """
         errors = []
         fn = ''
         if datafile:
-            path = Path(datapath) / uri
+            path = Path(datapath) / path
             if not path:
                 path.make()
             fn = path + datafile.filename
             if not fn.is_legal:
-                return respond(400, f"'{fn}' is not legal")
+                raise cherrypy.HTTPError(400, f"'{fn}' is not legal")
             if fn and not overwrite:
-                return respond(400, f"'{fn}' exists already and overwrite is not allowed, set overwrite")
+                raise cherrypy.HTTPError(400, f"'{fn}' exists already and overwrite is not allowed, set overwrite")
 
             # Buffer file for first check encoding and secondly upload file
             with BytesIO(datafile.file.read()) as filebuffer:
@@ -220,13 +353,18 @@ class API:
                 try:
                     write_to_file(fn.absolute, filebuffer)
                     fn.setownergroup()
-                    return respond(200, '\n'.join(errors))
+                    return ('\n'.join(errors)).encode('utf-8')
                 except:
-                    return respond(400, traceback())
+                    return cherrypy.HTTPError(400, traceback())
 
-
-
-
+    @expose_for()
+    @web.method.get
+    def index(self):
+        """
+        Returns a JSON object containing the description of the API
+        """
+        web.setmime(web.mime.json)
+        return web.as_json(get_help(self, '/api'))
 
 
 

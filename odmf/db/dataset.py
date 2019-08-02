@@ -235,7 +235,10 @@ class Dataset(Base):
         """Calculates mean, stddev and number of records for this data set
         """
         t, v = self.asarray()
-        return np.mean(v), np.std(v), len(v)
+        if len(v) == 0:
+            return 0.0, 0.0, 0
+        else:
+            return np.mean(v), np.std(v), len(v)
 
     def iterrecords(self, witherrors=False):
         raise NotImplementedError(
