@@ -8,11 +8,11 @@ http://tools.cherrypy.org/wiki/AuthenticationAndAccessRestrictions
 from operator import le
 import os.path as op
 import collections
-#import md5
+
 import cherrypy
 
 from .. import db
-from sqlalchemy import func
+
 import bcrypt
 
 ACCESS_LEVELS = [["Guest", "0"],
