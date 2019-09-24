@@ -1,0 +1,68 @@
+import sys
+sys.path.append('.')
+from odmf import db
+from getpass import getpass
+from logging import warning
+
+def create_all_tables():
+    # Create all tables
+    db.Base.metadata.create_all(db.engine)
+
+def add_admin(password=None):
+    from odmf.webpage.auth import hashpw
+    password = password or getpass("Enter admin password:")
+    with db.session_scope() as session:
+        if session.query(db.Person).get('odmf.admin'):
+            warning('odmf.admin exists already')
+        else:
+            user = db.Person(username='odmf.admin', firstname='odmf', surname='admin',
+                             access_level=4)
+            user.password = hashpw(password)
+            session.add(user)
+
+
+def add_quality_data(data):
+    """
+    Adds the data quality items to the Quality Table
+    :param data: A list of dicts (quality_data below)
+    """
+    with db.session_scope() as session:
+        for q in data:
+            session.add(db.Quality(**q))
+
+
+quality_data = [
+    {
+        "comment": "Raw, unprocessed data",
+        "name": "raw",
+        "id": 0
+    },
+    {
+        "comment": "Raw data, but with adjustments to the data format (eg. date and timestamps corrected, NoData changed to Null)",
+        "name": "formal checked",
+        "id": 1
+    },
+    {
+        "comment": "Checked and recommended for further processing",
+        "name": "quality checked ok",
+        "id": 2
+    },
+    {
+        "comment": "Calculated value",
+        "name": "derived value",
+        "id": 10
+    },
+    {
+        "comment": "Dataset is calibrated against manual measurements",
+        "name": "calibrated",
+        "id": 3
+    }
+]
+
+
+
+if __name__ == '__main__':
+    create_all_tables()
+    add_admin()
+    add_quality_data(quality_data)
+

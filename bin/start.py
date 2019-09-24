@@ -6,7 +6,7 @@ Created on 12.02.2012
 @author: philkraf
 '''
 import sys
-sys.path.insert(0,'..')
+sys.path.append('.')
 import os
 from glob import glob
 
@@ -42,16 +42,6 @@ for fn in glob('webpage/sessions/*.lock'):
 
 # Create the URL root object
 root = Root()
-
-# Create a heapy page to view memory usage
-if 'heapy' in sys.argv:
-    print("Load heapy")
-    from guppy import hpy
-    hp = hpy()
-    hp.setrelheap()
-    root.heapy = HeapyPage(hp)
-
-#config="server.conf"
 
 # Start the server
 lib.start_server(root, autoreload=autoreload, port=conf.CFG_SERVER_PORT)
