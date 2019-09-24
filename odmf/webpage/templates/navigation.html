@@ -1,8 +1,9 @@
 <xml xmlns:py="http://genshi.edgewall.org/" >
 	<!--
 	</h1>-->
-	<div class="navigate" >
-		<img src="/media/schwingbachlogo.png"/>
+	<div class="navigate"
+         style="background-image: url(${background_image});">
+		<img src="${left_logo}"/>
 		<a href="javascript:window.location='/login?frompage='+window.location.pathname;"
 			 py:content="users.current if users.current else 'login'" title="login"/>
 		<ul>
@@ -34,9 +35,6 @@
 			</a>
 		</h1>	
 		<span style="position: absolute; top 0px; right: 0px; z-index: 2000">
-			<a href="http://www.ucuenca.edu.ec">
-                                <img src="/media/logo_ucuenca_kl.png" alt="Universidad de Cuenca"/>
-                        </a>
 			<a href="http://www.uni-giessen.de">
 				<img src="/media/jlu-logo-150.png" alt="University Giessen"/>
 			</a>

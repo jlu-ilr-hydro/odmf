@@ -26,7 +26,8 @@ CFG_DATABASE_HOST = ''
 
 # Relative path for storing the media
 CFG_MEDIA_IMAGE_PATH = 'webpage/media'
-
+CFG_NAV_BACKGROUND = '/media/navigation_background.jpg'
+CFG_NAV_LEFT_LOGO="/media/schwingbachlogo.png"
 # Pattern for the relative path storing manual measurements files and there and the subfolders their have special
 # treatments from dataimport/mm.py
 CFG_MANUAL_MEASUREMENTS_PATTERN = '(.+\/)*datafiles\/lab\/([a-zA-Z0-9]+\/)*.*\.(xls|xlsx)$'

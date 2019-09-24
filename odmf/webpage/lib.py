@@ -148,7 +148,11 @@ sslconfig={
 
 
 def navigation(title=''):
-    return Markup(render('navigation.html', title=str(title)).render('html', encoding=None))
+    return Markup(render('navigation.html',
+                         title=str(title),
+                         background_image=conf.CFG_NAV_BACKGROUND,
+                         left_logo=conf.CFG_NAV_LEFT_LOGO,
+                         ).render('html', encoding=None))
 
 
 def attrcheck(kw, condition):
