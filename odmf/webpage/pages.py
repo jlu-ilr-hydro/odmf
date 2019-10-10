@@ -319,7 +319,7 @@ class JobPage:
         if user != 'all':
             jobs = jobs.filter(db.Job._responsible == user)
         if onlyactive:
-            jobs = jobs.filter(not db.Job.done)
+            jobs = jobs.filter(~db.Job.done)
         result = web.render('job.html', jobs=jobs, job=job, error=error, db=db,
                             username=user, onlyactive=onlyactive, **queries
                             ).render('html', doctype='html')
