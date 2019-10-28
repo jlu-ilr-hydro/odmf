@@ -466,7 +466,7 @@ class DatasetPage:
         """
         Returns the records of the dataset as JSON
         """
-        with db.scoped_session() as session:
+        with db.session_scope() as session:
             ds = session.query(db.Dataset).get(int(dataset))
             if web.user.current.level < ds.access:  # @UndefinedVariable
                 raise cherrypy.HTTPError(403, 'User privileges not sufficient to access ds:' +
@@ -505,39 +505,38 @@ class DatasetPage:
         Needs change in datasettab.html to create DOM elements using 
         jquery from the delivered JSON
         """
-        session = db.scoped_session()
-        ds = session.query(db.Dataset).get(int(dataset))
-        records = ds.records.order_by(
-            db.Record.time).filter(~db.Record.is_error)
-        tstart = web.parsedate(mindate.strip(), raiseerror=False)
-        tend = web.parsedate(maxdate.strip(), raiseerror=False)
-        threshold = web.conv(float, threshold)
-        limit = web.conv(int, limit, 250)
-        try:
-            if threshold:
-                records = ds.findjumps(float(threshold), tstart, tend)
-                currentcount = None
-                totalcount = None
-            else:
-                if tstart:
-                    records = records.filter(db.Record.time >= tstart)
-                if tend:
-                    records = records.filter(db.Record.time <= tend)
-                if minvalue:
-                    records = records.filter(db.Record.value > float(minvalue))
-                if maxvalue:
-                    records = records.filter(db.Record.value < float(maxvalue))
-                totalcount = records.count()
-                records = records.limit(limit)
-                currentcount = records.count()
-        except:
-            return web.Markup('<div class="error">' + traceback() + '</div>')
-        res = web.render('record.html', records=records, currentcount=currentcount,
-                         totalrecords=totalcount, dataset=ds, actionname="split dataset",
-                         action="/dataset/setsplit",
-                         action_help='/wiki/dataset/split').render('xml')
-        session.close()
-        return res
+        with db.session_scope() as session:
+            ds = session.query(db.Dataset).get(int(dataset))
+            records = ds.records.order_by(
+                db.Record.time).filter(~db.Record.is_error)
+            tstart = web.parsedate(mindate.strip(), raiseerror=False)
+            tend = web.parsedate(maxdate.strip(), raiseerror=False)
+            threshold = web.conv(float, threshold)
+            limit = web.conv(int, limit, 250)
+            try:
+                if threshold:
+                    records = ds.findjumps(float(threshold), tstart, tend)
+                    currentcount = None
+                    totalcount = None
+                else:
+                    if tstart:
+                        records = records.filter(db.Record.time >= tstart)
+                    if tend:
+                        records = records.filter(db.Record.time <= tend)
+                    if minvalue:
+                        records = records.filter(db.Record.value > float(minvalue))
+                    if maxvalue:
+                        records = records.filter(db.Record.value < float(maxvalue))
+                    totalcount = records.count()
+                    records = records.limit(limit)
+                    currentcount = records.count()
+            except:
+                return web.Markup('<div class="error">' + traceback() + '</div>')
+            res = web.render('record.html', records=records, currentcount=currentcount,
+                             totalrecords=totalcount, dataset=ds, actionname="split dataset",
+                             action="/dataset/setsplit",
+                             action_help='/wiki/dataset/split').render('xml')
+            return res
 
     @expose_for(group.editor)
     def plot_coverage(self, siteid):

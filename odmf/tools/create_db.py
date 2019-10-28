@@ -5,10 +5,18 @@ from getpass import getpass
 from logging import warning
 
 def create_all_tables():
-    # Create all tables
+    """
+    Creates all database table necessary for the database from the codebase
+    :return:
+    """
     db.Base.metadata.create_all(db.engine)
 
 def add_admin(password=None):
+    """
+    Add an odmf.admin role to the person table
+    :param password: The password of the admin. If missing you will be prompted
+    :return:
+    """
     from odmf.webpage.auth import hashpw
     password = password or getpass("Enter admin password:")
     with db.session_scope() as session:

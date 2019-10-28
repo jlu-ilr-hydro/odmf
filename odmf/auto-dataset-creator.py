@@ -1,6 +1,6 @@
 import sys
 sys.path.insert(0, '.')
-from .tools.parseConf import parseConf
+from .tools.config import parseConf
 from . import conf
 parseConf(conf)
 

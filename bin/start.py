@@ -10,7 +10,7 @@ sys.path.append('.')
 import os
 from glob import glob
 
-from odmf.tools.parseConf import parseConf
+from odmf.tools.config import parseConf
 
 print("Starting schwingbachserver using {}".format(sys.executable))
 

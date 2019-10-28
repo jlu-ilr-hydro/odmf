@@ -346,17 +346,17 @@ class Subplot(object):
         # Draw only logs if logsite is a site of the subplot's lines
         if self.logsite in sites:
             # open session - trying the new scoped_session
-            session = db.scoped_session()
-            # Get logbook entries for logsite during the plot-time
-            logs = session.query(db.Log).filter_by(_site=self.logsite).filter(
-                db.Log.time >= self.plot.startdate).filter(db.Log.time <= self.plot.enddate)
-            # Traverse logs and draw them
-            for log in logs:
-                x = plt.date2num(log.time)
-                plt.axvline(x, linestyle='-', color='r',
-                            alpha=0.5, linewidth=3)
-                plt.text(x, plt.ylim()[0], log.type,
-                         ha='left', va='bottom', fontsize=8)
+            with db.session_scope() as session:
+                # Get logbook entries for logsite during the plot-time
+                logs = session.query(db.Log).filter_by(_site=self.logsite).filter(
+                    db.Log.time >= self.plot.startdate).filter(db.Log.time <= self.plot.enddate)
+                # Traverse logs and draw them
+                for log in logs:
+                    x = plt.date2num(log.time)
+                    plt.axvline(x, linestyle='-', color='r',
+                                alpha=0.5, linewidth=3)
+                    plt.text(x, plt.ylim()[0], log.type,
+                             ha='left', va='bottom', fontsize=8)
         plt.xlim(date2num(self.plot.startdate), date2num(self.plot.enddate))
         plt.xticks(rotation=15)
         ax.yaxis.set_major_locator(MaxNLocator(prune='upper'))
