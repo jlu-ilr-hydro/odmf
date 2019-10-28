@@ -62,7 +62,6 @@ def test_config():
 def test_db():
     """
     Tests if the system can be connected to the database
-    :return:
     """
     from .. import db
     with db.session_scope() as session:

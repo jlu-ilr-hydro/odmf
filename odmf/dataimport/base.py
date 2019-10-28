@@ -251,7 +251,7 @@ class ImportDescription(object):
 
     def __init__(self, instrument, skiplines=0, delimiter=',', decimalpoint='.',
                  dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
-                 timezone=conf.CFG_DATETIME_DEFAULT_TIMEZONE, project=None,
+                 timezone=conf.datetime_default_timezone, project=None,
                  nodata=[], worksheet=1, sample_mapping=None):
         """
         instrument: the database id of the instrument that produced this file
@@ -500,7 +500,7 @@ class LogImportDescription(ImportDescription):
 
     def __init__(self, instrument, skiplines=0, delimiter=',', decimalpoint='.',
                  dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
-                 timezone=conf.CFG_DATETIME_DEFAULT_TIMEZONE, project=None,
+                 timezone=conf.datetime_default_timezone, project=None,
                  site=None, dataset=None, value=None, logtext=None, msg=None,
                  worksheet=1, nodata=[], sample_mapping=None):
         """
@@ -753,7 +753,7 @@ class AbstractImport(object):
                                start=self.startdate, end=datetime.today(), level=col.level,
                                access=col.access if col.access is not None else 1,
                                # Get timezone from descriptor or, if not present from global conf
-                               timezone=self.descriptor.timezone or conf.CFG_DATETIME_DEFAULT_TIMEZONE,
+                               timezone=self.descriptor.timezone or conf.datetime_default_timezone,
                                project=self.descriptor.project)
             self.datasets[col.column] = ds.id
         session.commit()

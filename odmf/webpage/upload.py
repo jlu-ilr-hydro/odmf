@@ -227,8 +227,8 @@ class DownloadPage(object):
             error = '%s is not a valid directory' % dir
         return web.render('download.html', error=error, files=files,
                           directories=directories, curdir=path,
-                          max_size=conf.CFG_UPLOAD_MAX_SIZE)\
-            .render('html', doctype='html')
+                          max_size=conf.upload_max_size
+                          ).render('html', doctype='html')
 
     @expose_for(group.editor)
     def upload(self, dir, datafile, **kwargs):

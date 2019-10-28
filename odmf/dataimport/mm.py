@@ -504,7 +504,7 @@ class ManualMeasurementsImport(LogbookImport):
 
         name, ext = splitext(filename)
         return (ext.lower() == '.xls' or ext.lower() == '.xlsx') and \
-            search(conf.CFG_MANUAL_MEASUREMENTS_PATTERN, filename)
+            search(conf.manual_measurements_pattern, filename)
 
     def get_date(self, row, date):
 

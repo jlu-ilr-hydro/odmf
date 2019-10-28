@@ -10,7 +10,6 @@ sys.path.append('.')
 import os
 from glob import glob
 
-from odmf.tools.config import parseConf
 
 print("Starting schwingbachserver using {}".format(sys.executable))
 
@@ -18,18 +17,17 @@ if sys.version_info[0] < 3:
     raise Exception("Must be using Python 3")
 
 # System checks !before project imports
-import odmf.conf as conf
-try:
+from odmf import conf
+if conf:
     # Check for mandatory attributes
-    parseConf(conf)
     print("✔ Config is valid")
-except Exception as e:
-    print("Error in config validation: {}".format(e))
+else:
+    print("Error in config validation")
     exit(1)
 
 
 # Start with project imports
-from odmf.webpage import Root, HeapyPage
+from odmf.webpage import Root
 from odmf.webpage import lib
 
 # Make autoreload
@@ -44,4 +42,4 @@ for fn in glob('webpage/sessions/*.lock'):
 root = Root()
 
 # Start the server
-lib.start_server(root, autoreload=autoreload, port=conf.CFG_SERVER_PORT)
+lib.start_server(root, autoreload=autoreload, port=conf.server_port)

@@ -49,10 +49,10 @@ def connect():
 if conf.database_type == 'postgres':
     engine = sql.create_engine('postgresql://', creator=connect)
 elif conf.database_type == 'sqlite':
-    if op.exists(conf.SQLITE_PATH):
-        engine = sql.create_engine('sqlite:///%s' % conf.SQLITE_PATH)
+    if op.exists(conf.sqlite_path):
+        engine = sql.create_engine('sqlite:///%s' % conf.sqlite_path)
     else:
-        raise RuntimeError('Couldn\'t find offline database at \'%s\'.' % conf.SQLITE_PATH)
+        raise RuntimeError('Couldn\'t find offline database at \'%s\'.' % conf.sqlite_path)
 
 Session = orm.sessionmaker(bind=engine)
 

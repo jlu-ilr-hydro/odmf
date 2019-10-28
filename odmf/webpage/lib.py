@@ -153,8 +153,8 @@ sslconfig={
 def navigation(title=''):
     return Markup(render('navigation.html',
                          title=str(title),
-                         background_image=conf.CFG_NAV_BACKGROUND,
-                         left_logo=conf.CFG_NAV_LEFT_LOGO,
+                         background_image=conf.nav_background,
+                         left_logo=conf.nav_left_logo,
                          ).render('html', encoding=None))
 
 
@@ -271,7 +271,7 @@ class Renderer(object):
 
         # head base for all templates
         # see conf.py
-        ctxt.push({'head_base': conf.HEAD_BASE})
+        ctxt.push({'head_base': conf.head_base})
         return template.generate(ctxt)
 
 
