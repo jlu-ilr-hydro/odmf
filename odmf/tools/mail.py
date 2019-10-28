@@ -9,7 +9,7 @@ from email.mime.text import MIMEText
 from .. import conf
 
 def send(mails):
-    s = smtplib.SMTP(conf.SMTP_SERVERURL)
+    s = smtplib.SMTP(conf.smtp_serverurl)
     for mail in mails:
         msg = MIMEText(mail.text.encode('utf-8'), 'plain', 'utf-8')
         msg['Subject'] = mail.subject
