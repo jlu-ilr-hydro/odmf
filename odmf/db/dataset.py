@@ -144,7 +144,7 @@ class Dataset(Base):
     access = sql.Column(sql.Integer, default=1, nullable=False)
 
     timezone = sql.Column(sql.String,
-                          default=conf.CFG_DATETIME_DEFAULT_TIMEZONE)
+                          default=conf.datetime_default_timezone)
     project = sql.Column(sql.Integer, sql.ForeignKey('project.id'),
                          nullable=True)
 

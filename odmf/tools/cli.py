@@ -6,17 +6,19 @@ created with click, which is used as the entry poit of odmf
 """
 
 import click
-
+import humanize
 
 @click.group()
 def cli():
     ...
 
+
 @cli.command()
 @click.option('--dbname', help='Name of the database', prompt='database name')
 @click.option('--dbuser', help='Name of the database user', prompt='database user')
 @click.option('--dbpass', help='Password for the user', prompt='database password')
-@click.option('--dbhost', default='127.0.0.1', help='IP-Adress or DNS-Hostname of the database host. Default: localhost', prompt='database hostname:')
+@click.option('--dbhost', default='127.0.0.1',
+              help='IP-Adress or DNS-Hostname of the database host. Default: localhost', prompt='database hostname:')
 @click.option('--port', default=8080, help='Port to run the standalone server', type=int, prompt='server port')
 def configure(dbname, dbuser, dbpass, dbhost, port):
     """
@@ -47,7 +49,6 @@ def make_db(new_admin_pass):
     cdb.add_quality_data(cdb.quality_data)
 
 
-
 @cli.command()
 def test_config():
     """
@@ -59,10 +60,24 @@ def test_config():
 
 @cli.command()
 def test_db():
+    """
+    Tests if the system can be connected to the database
+    :return:
+    """
     from .. import db
     with db.session_scope() as session:
-        q = session.query(db.Person)
-        print(f'{q.count()} persons in database')
+        tables = [
+            (n, c)
+            for n, c in vars(db).items()
+            if (isinstance(c, type) and
+                issubclass(c, db.Base) and
+                c is not db.Base
+                )
+        ]
+        for name, table in tables:
+            print(f'db.{name}: ', end='')
+            q = session.query(table)
+            print(f'{humanize.intword(q.count())} {name} objects in database')
 
 
 if __name__ == '__main__':
