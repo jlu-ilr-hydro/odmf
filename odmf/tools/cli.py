@@ -56,8 +56,13 @@ def test_config():
     from .config import conf
     conf.to_yaml()
 
+
 @cli.command()
 def test_db():
+    from .. import db
+    with db.session_scope() as session:
+        q = session.query(db.Person)
+        print(f'{q.count()} persons in database')
 
 
 if __name__ == '__main__':
