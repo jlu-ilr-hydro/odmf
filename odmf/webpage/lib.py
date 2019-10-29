@@ -23,7 +23,7 @@ from ..tools.parseMarkDown import MarkDown
 from base64 import b64encode
 markdown = MarkDown()
 
-from .. import conf
+from ..config import conf
 
 
 def jsonhandler(obj):

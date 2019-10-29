@@ -17,7 +17,7 @@ import chardet
 
 import ast
 
-from .. import conf
+from ..config import conf
 # AbstractImport
 from traceback import format_exc as traceback
 from pytz import common_timezones_set

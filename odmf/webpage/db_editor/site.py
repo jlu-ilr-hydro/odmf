@@ -5,17 +5,15 @@ Created on 13.07.2012
 
 @author: philkraf
 '''
-from . import lib as web
-from .. import db
+from .. import lib as web
+from ... import db
 from traceback import format_exc as traceback
-from datetime import datetime
-from genshi import escape
 from glob import glob
 import os.path as op
-from .auth import users, expose_for, has_level, group
+from ..auth import expose_for, group
 from io import StringIO
-from ..db import projection as proj
-from .preferences import Preferences
+from ...db import projection as proj
+from ..preferences import Preferences
 
 
 class SitePage:

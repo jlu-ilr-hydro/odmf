@@ -26,7 +26,7 @@ class Configuration:
     database_password = ...
     database_host = '127.0.0.1'
 
-    static = 'lfe.static'
+    static = 'static'
     media_image_path = 'webpage/media'
     nav_background = '/media/gladbacherhof.jpg'
     nav_left_logo = '/media/lfe-logo.png'
@@ -81,9 +81,9 @@ def load_config():
     if not conf_file.exists():
         warning(f'{conf_file.absolute().as_posix()} '
                    f'not found. Create a template with "odmf configure". Using incomplete configuration')
-    if not conf_file.exists():
-        raise ConfigurationError(f'{conf_file.as_posix()} not found')
-    conf_dict = yaml.safe_load(conf_file.open())
+        conf_dict = {}
+    else:
+        conf_dict = yaml.safe_load(conf_file.open())
     return Configuration().update(conf_dict)
 
 conf = load_config()

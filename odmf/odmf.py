@@ -15,16 +15,24 @@ def cli():
     ...
 
 @cli.command()
-@click.option('--autoreload/--no-autoreload', '-a', default=False, show_default=True)
-def start(autoreload):
+@click.argument('workdir', default='.')
+@click.option('--autoreload/--no-autoreload', '-a', default=False, show_default=True,
+              help='Switch autoreload on for an automatic restart of the server if the code changes')
+def start(workdir, autoreload):
+    """
+    Starts a cherrypy server, with WORKDIR as the working directory (local ressources and configuration)
+    """
     from glob import glob
-    print("Starting odmf using {}".format(sys.executable))
+    os.chdir(workdir)
+    print("Starting odmf:\n",
+          f"  - interpreter: {sys.executable}\n",
+          f"  - workdir: {os.getcwd()}\n")
 
     if sys.version_info[0] < 3:
         raise Exception("Must be using Python 3")
 
     # System checks !before project imports
-    from odmf import conf
+    from .config import conf
     if conf:
         # Check for mandatory attributes
         print("✔ Config is valid")
@@ -79,7 +87,7 @@ def make_db(new_admin_pass):
     Creates in the database: all tables, a user odmf.admin
     and fills the data-quality table with some usable input
     """
-    from . import create_db as cdb
+    from .tools import create_db as cdb
     cdb.create_all_tables()
     cdb.add_admin(new_admin_pass)
     cdb.add_quality_data(cdb.quality_data)
@@ -98,7 +106,7 @@ def test_db():
     """
     Tests if the system can be connected to the database
     """
-    from .. import db
+    from . import db
     with db.session_scope() as session:
         tables = [
             (n, c)
@@ -117,7 +125,7 @@ def test_db():
 @cli.command()
 def test_static():
     from pathlib import Path
-    from .. import conf
+    from .config import conf
     candidates = Path(sys.prefix), Path(__file__).parents[2], Path(conf.static)
 
     for c in candidates:
@@ -130,7 +138,6 @@ def test_static():
                 sys.stderr.write(f'Incomplete static file directory found at: {p}, searching further\n')
         else:
             sys.stderr.write(f'{p} - does not exist\n')
-
 
 
 if __name__ == '__main__':

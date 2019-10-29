@@ -5,8 +5,6 @@ Created on 12.07.2012
 '''
 from . import lib as web
 from .. import db
-from .datasetpage import DatasetPage
-from .preferences import Preferences
 
 
 class MapPage(object):

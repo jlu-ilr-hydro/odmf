@@ -7,7 +7,7 @@ Created on 25.09.2012
 from .auth import expose_for, group, users
 from . import lib as web
 import json
-from .. import conf
+from ..config import conf
 import traceback
 
 import os.path as op

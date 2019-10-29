@@ -2,6 +2,7 @@ from setuptools import setup, find_packages
 import sys
 import os
 
+
 def get_requirements():
     """Reads the actual requirements from requirements.txt"""
     with open('requirements.txt') as req:
@@ -33,6 +34,6 @@ setup(name='odmf',
       data_files=get_datafiles('odmf.static'),
       entry_points='''
         [console_scripts]
-        odmf=odmf.tools.cli:cli
+        odmf=odmf.odmf:cli
       '''
       )

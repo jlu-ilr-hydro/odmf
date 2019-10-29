@@ -23,7 +23,7 @@ from ..dataimport.base import ImportDescription, LogImportDescription
 from ..dataimport.importlog import LogbookImport
 from ..tools import Path
 
-from .. import conf
+from ..config import conf
 datapath = web.abspath('datafiles')
 home = web.abspath('.')
 

@@ -10,7 +10,7 @@ from .base import AbstractImport, ImportDescription, ImportColumn, ImportStat, L
 from .base import config_getdict
 from ..dataimport.importlog import LogbookImport, LogImportError, ILogColumn
 from .xls import XlsImport
-from .. import conf
+from ..config import conf
 from re import search, sub
 
 from .. import db

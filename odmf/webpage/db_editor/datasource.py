@@ -1,0 +1,63 @@
+
+from .. import lib as web
+from ..auth import group, expose_for
+
+from ... import db
+
+from traceback import format_exc as traceback
+
+class DatasourcePage:
+    exposed = True
+
+    @expose_for(group.guest)
+    def default(self, id='new'):
+        session = db.Session()
+        instruments = session.query(db.Datasource).order_by(db.Datasource.id)
+        error = ''
+        if id == 'new':
+            newid = db.newid(db.Datasource, session)
+            inst = db.Datasource(id=newid,
+                                 name='<Name>')
+        else:
+            try:
+                inst = session.query(db.Datasource).get(int(id))
+            except:
+                error = traceback()
+                inst = None
+
+        result = web.render('instrument.html', instruments=instruments,
+                            actualinstrument=inst, error=error).render('html', doctype='html')
+        session.close()
+        return result
+
+    @expose_for(group.editor)
+    def saveitem(self, **kwargs):
+        try:
+            id = web.conv(int, kwargs.get('id'), '')
+        except:
+            return web.render(error=traceback(), title='Datasource #%s' % kwargs.get('id'))
+        if 'save' in kwargs:
+            try:
+                session = db.Session()
+                inst = session.query(db.Datasource).get(int(id))
+                if not inst:
+                    inst = db.Datasource(id=id)
+                    session.add(inst)
+                inst.name = kwargs.get('name')
+                inst.sourcetype = kwargs.get('sourcetype')
+                inst.comment = kwargs.get('comment')
+                inst.manuallink = kwargs.get('manuallink')
+                session.commit()
+                session.close()
+            except:
+                return web.render('empty.html', error=traceback(), title='valuetype #%s' % id
+                                  ).render('html', doctype='html')
+        raise web.HTTPRedirect('./%s' % id)
+
+    @expose_for()
+    def json(self):
+        session = db.Session()
+        web.setmime('application/json')
+        dump = web.as_json(session.query(db.Datasource).all())
+        session.close()
+        return dump
