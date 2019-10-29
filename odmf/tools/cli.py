@@ -7,10 +7,46 @@ created with click, which is used as the entry poit of odmf
 
 import click
 import humanize
+import sys
+import os
 
 @click.group()
 def cli():
     ...
+
+@cli.command()
+@click.option('--autoreload/--no-autoreload', '-a', default=False, show_default=True)
+def start(autoreload):
+    from glob import glob
+    print("Starting odmf using {}".format(sys.executable))
+
+    if sys.version_info[0] < 3:
+        raise Exception("Must be using Python 3")
+
+    # System checks !before project imports
+    from odmf import conf
+    if conf:
+        # Check for mandatory attributes
+        print("✔ Config is valid")
+    else:
+        print("Error in config validation")
+        exit(1)
+
+    # Start with project imports
+    from odmf.webpage import Root
+    from odmf.webpage import lib
+
+    print("autoreload =", autoreload)
+
+    print("Kill session lock files")
+    for fn in glob('webpage/sessions/*.lock'):
+        os.remove(fn)
+
+    # Create the URL root object
+    root = Root()
+
+    # Start the server
+    lib.start_server(root, autoreload=autoreload, port=conf.server_port)
 
 
 @cli.command()
@@ -48,7 +84,6 @@ def make_db(new_admin_pass):
     cdb.add_admin(new_admin_pass)
     cdb.add_quality_data(cdb.quality_data)
 
-
 @cli.command()
 def test_config():
     """
@@ -77,6 +112,25 @@ def test_db():
             print(f'db.{name}: ', end='')
             q = session.query(table)
             print(f'{humanize.intword(q.count())} {name} objects in database')
+
+
+@cli.command()
+def test_static():
+    from pathlib import Path
+    from .. import conf
+    candidates = Path(sys.prefix), Path(__file__).parents[2], Path(conf.static)
+
+    for c in candidates:
+        p = c / 'odmf.static'
+        if p.exists():
+            if all((p / d).exists() for d in ('templates', 'datafiles', 'media')):
+                sys.stdout.write(f'OK: Global static files found at: {p}\n')
+                break
+            else:
+                sys.stderr.write(f'Incomplete static file directory found at: {p}, searching further\n')
+        else:
+            sys.stderr.write(f'{p} - does not exist\n')
+
 
 
 if __name__ == '__main__':

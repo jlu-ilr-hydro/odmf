@@ -26,6 +26,7 @@ class Configuration:
     database_password = ...
     database_host = '127.0.0.1'
 
+    static = 'lfe.static'
     media_image_path = 'webpage/media'
     nav_background = '/media/gladbacherhof.jpg'
     nav_left_logo = '/media/lfe-logo.png'
