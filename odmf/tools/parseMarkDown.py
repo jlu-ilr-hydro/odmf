@@ -1,6 +1,6 @@
 '''
 Created on 15.05.2013
-
+TODO: Rename module and move into webapp
 @author: kraft-p
 '''
 import markdown
@@ -206,7 +206,8 @@ class MarkDown:
     def __init__(self):
         se = SchwingbachExtension(configs={})
         al = UrlizeExtension(configs={})
-        self.md = markdown.Markdown(extensions=['admonition', se, al])
+
+        self.md = markdown.Markdown(extensions=['admonition', 'extra', se, al])
 
     def __call__(self, s):
         if s:
@@ -217,14 +218,19 @@ class MarkDown:
                 s = str(s, error='replace')
 
             html = self.md.convert(s)
-            # TODO: Rework with full list of tags
-            # TODO: <img>, <a> and <video> are exploitable too
-            cleaned_html = bleach.clean(html, tags=bleach.ALLOWED_TAGS + ['h1', 'h2', 'p', 'a', 'h3', 'pre', 'div', 'hr', 'video', 'img'],
-                                         styles=bleach.ALLOWED_STYLES + ['admonition', 'warning'],
-                                         attributes={'div': 'class',
-                                                     'video': ['class', 'controls', 'src', 'type'],
-                                                     'img': ['alt', 'src'],
-                                                     'a': ['href', 'alt']})
+            tags = ['h1', 'h2', 'p', 'a', 'h3', 'pre', 'div', 'hr', 'video', 'img',
+                    'table', 'thead', 'tbody', 'tr', 'th', 'td', 'tfoot']
+
+            cleaned_html = bleach.clean(
+                html,
+                tags=bleach.ALLOWED_TAGS + tags,
+                styles=bleach.ALLOWED_STYLES + ['admonition', 'warning'],
+                attributes={'div': 'class',
+                            'video': ['class', 'controls', 'src', 'type'],
+                             'img': ['alt', 'src'],
+                             'a': ['href', 'alt']
+                            }
+            )
 
             return Markup(cleaned_html)
         else:
