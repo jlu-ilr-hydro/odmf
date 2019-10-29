@@ -80,12 +80,14 @@ def memoryview_to_b64str(mview):
 
 
 def abspath(fn):
-    "Returns the absolute path to the relative filename fn"
+    """Returns the absolute path to the relative filename fn
+    TODO: Differ between instance and library home
+    """
     basepath = op.abspath(op.dirname(__file__))
     normpath = op.normpath(fn)
     return op.join(basepath, normpath)
 
-
+# TODO: Get static files from a dispatcher class
 config = {'/': {'tools.staticdir.root': abspath('.'),
           'tools.response_headers.on': True,
                 'tools.response_headers.headers': [('Access-Control-Allow-Origin','https://fb09-pasig.umwelt.uni-giessen.de:8080/')],
@@ -320,7 +322,7 @@ def start_server(root, autoreload=False, port=8080):
     cherrypy.config['log.access_file'] = './access.log'
     cherrypy.config['log.error_file'] = './error.log'
 
-    # enable SSL
+    # TODO: enable SSL
     # cherrypy.config.update(sslconfig)
     # cherrypy.config['server.ssl_module'] = 'builtin'
     # cherrypy.config['server.ssl_certificate'] = 'letsencrypt/cert.pem'
