@@ -20,7 +20,7 @@ from io import StringIO
 from io import BytesIO
 import time
 from base64 import b64encode
-from pandas import to_datetime, TimeGrouper
+from pandas import to_datetime
 import json
 from glob import iglob
 
