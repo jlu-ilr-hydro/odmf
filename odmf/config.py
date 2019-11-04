@@ -7,10 +7,48 @@
 import yaml
 from pathlib import Path
 import sys
-from logging import warning
+
+from logging import getLogger
+logger = getLogger(__name__)
 
 class ConfigurationError(RuntimeError):
     pass
+
+
+def find_odmf_static_location():
+    """
+    Finds the path to the static files of the library
+
+    Looks at the following locations:
+     - {sys.prefix}/odmf.static, where {sys.prefix} is the python installation. This is the proper location
+     - {__file__}/../../odmf.static: Where {__file__} is the installation location of this config.py file.
+       This is for development
+     - ./odmf.static is the local installation directory - a fallback solution if the others do not work
+
+    """
+
+    candidates = Path(sys.prefix), Path(__file__).parents[1], Path('.')
+
+    for c in candidates:
+        p = c / 'odmf.static'
+        if p.exists():
+            if all((p / d).exists() for d in ('templates', 'datafiles', 'media')):
+                logger.info(f'odmf.static at {p}/[templates|datafiles|media]')
+                return p
+            else:
+                logger.info(f'{p}, found but not all of templates|datafiles|media exist, searching further\n')
+        else:
+            logger.info(f'{p} - does not exist\n')
+
+    raise FileNotFoundError('Did not find the odmf.static directory in the installation or local')
+
+
+def static_locations(from_config):
+    paths = [find_odmf_static_location(), Path('.')] + [Path(p) for p in from_config]
+    filtered = []
+    [filtered.append(p) for p in paths if p.exists() and p not in filtered]
+    return filtered
+
 
 
 class Configuration:
@@ -26,7 +64,7 @@ class Configuration:
     database_password = ...
     database_host = '127.0.0.1'
 
-    static = 'static'
+    static = ['.']
     media_image_path = 'webpage/media'
     nav_background = '/media/gladbacherhof.jpg'
     nav_left_logo = '/media/lfe-logo.png'
@@ -66,6 +104,20 @@ class Configuration:
 
         self.update(kwargs)
 
+        self.static = static_locations(self.static)
+
+    def abspath(self, relative_path: Path):
+        """
+        Returns a pathlib.Path from the first fitting static location
+        :param relative_path: A relative path to a static ressource
+        """
+        for static_home in reversed(self.static):
+            p = Path(static_home) / relative_path
+            if p.exists():
+                return p.absolute()
+        raise FileNotFoundError(f'{relative_path} not found in the static ressources')
+
+
     def to_yaml(self, stream=sys.stdout):
         """
         Exports the current configuration to a yaml file
@@ -82,7 +134,7 @@ class Configuration:
 def load_config():
     conf_file = Path('.') / 'config.yml'
     if not conf_file.exists():
-        warning(f'{conf_file.absolute().as_posix()} '
+        logger.warning(f'{conf_file.absolute().as_posix()} '
                    f'not found. Create a template with "odmf configure". Using incomplete configuration')
         conf_dict = {}
     else:

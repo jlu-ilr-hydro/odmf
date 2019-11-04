@@ -5,27 +5,7 @@ import cherrypy
 from .lib import expose, setmime, mime
 from ..config import conf
 from pathlib import Path
-import json
-import sys
-from logging import getLogger
-logger = getLogger(__name__)
 from markdown import markdown
-
-def static_location():
-    candidates = Path(sys.prefix), Path(__file__).parents[2], Path(conf.static)
-
-    for c in candidates:
-        p = c / 'odmf.static'
-        if p.exists():
-            if all((p / d).exists() for d in ('templates', 'datafiles', 'media')):
-                logger.info(f'odmf.static at {p}/[templates|datafiles|media]')
-                return p
-            else:
-                logger.info(f'{p}, found but not all of templates|datafiles|media exist, searching further\n')
-        else:
-            logger.info(f'{p} - does not exist\n')
-
-    raise FileNotFoundError('Did not find the odmf.static directory in the installation or local')
 
 
 def filelist2html(files):
@@ -34,11 +14,16 @@ def filelist2html(files):
 
 
 
-class StaticServer:
-    exposed = True
 
-    def __init__(self, home: Path, listdir=False):
-        self.home = Path(home).absolute()
+@expose
+class StaticServer:
+
+    def __init__(self, home_dir: str, listdir=False):
+        self.homes = [
+            (Path(static_home) / home_dir).absolute()
+            for static_home in conf.static
+            if (Path(static_home) / home_dir).exists()
+        ]
         self.listdir = listdir
 
     def _cp_dispatch(self, vpath):
@@ -48,17 +33,29 @@ class StaticServer:
         cherrypy.request.params['path'] = p.as_posix()
         return self
 
+    def get_path(self, path):
+        for home in reversed(self.homes):
+            if (home / path).exists():
+                return home / path
+        return None
+
+
     @expose
     def index(self, path='.'):
-        p = self.home / path
-        if p.is_file():
+        p = self.get_path(path)
+
+        if p is None:
+            raise cherrypy.HTTPError(404)
+        elif p.is_file():
             del cherrypy.response.headers['Content-Type']
             return p.read_bytes()
         elif self.listdir and p.is_dir():
             setmime(mime.html)
             return filelist2html(p.iterdir())
         else:
-            raise cherrypy.HTTPError(404, 'Unknown ressource')
+            raise cherrypy.HTTPError(404)
+
+
 
 
 

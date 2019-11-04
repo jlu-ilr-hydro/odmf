@@ -88,21 +88,13 @@ def abspath(fn):
     return op.join(basepath, normpath)
 
 # TODO: Get static files from a dispatcher class
-config = {'/': {'tools.staticdir.root': abspath('.'),
-          'tools.response_headers.on': True,
-                'tools.response_headers.headers': [('Access-Control-Allow-Origin','https://fb09-pasig.umwelt.uni-giessen.de:8080/')],
-                },
+config = {
           '/favicon.ico': {"tools.staticfile.on": True,
-                           "tools.staticfile.filename": abspath("media/ilr-favicon.png")
+                           "tools.staticfile.filename": str(conf.abspath("media/ilr-favicon.png"))
                           },
-          '/media': {'tools.staticdir.on': True,
-                     'tools.staticdir.dir': 'media',
-                     'tools.caching.on': False},
           '/html': {'tools.staticdir.on': True,
-                    'tools.staticdir.dir': 'templates',
+                    'tools.staticdir.dir': str(conf.abspath('templates')),
                     'tools.caching.on': False},
-          '/datafiles': {'tools.staticdir.on': True,
-                         'tools.staticdir.dir': 'datafiles'},
           }
 
 
