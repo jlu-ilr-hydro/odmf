@@ -30,6 +30,7 @@ setup(name='odmf',
       author_email='philipp.kraft@umwelt.uni-giessen.de',
       url='https://github.com/jlu-ilr-hydro/odmf',
       packages=find_packages(),
+      python_requires='>=3.6',
       install_requires=get_requirements(),
       data_files=get_datafiles('odmf.static'),
       entry_points='''

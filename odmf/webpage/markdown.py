@@ -1,14 +1,11 @@
 '''
+Contains the odmf flavor of markdown
+
 Created on 15.05.2013
-TODO: Rename module and move into webapp
 @author: kraft-p
 '''
 import markdown
-from markdown.extensions import Extension
-import re
-from markdown.preprocessors import Preprocessor
 from genshi.core import Markup
-
 import bleach
 
 
@@ -93,20 +90,11 @@ class VideoAlphaPattern(markdown.inlinepatterns.Pattern):
         el.set('type', "video/mp4")
         el.set('class', "html5AlphaVideo_video")
 
-        if m.group(4) is not None:
-            #el.set("width", self.parseOption(m.group(4)))
-            pass
-
-        if m.group(5) is not None:
-            #el.set("height", self.parseOption(m.group(5)))
-            pass
-
-
         par_el = markdown.util.etree.Element("div")
         par_el.set("class","html5AlphaVideo_wrapperDiv")
         par_el.append(el)
-        #el.text = markdown.util.AtomicString(text)
         return par_el
+
 
 class SymbolPattern(markdown.inlinepatterns.Pattern):
     def __init__(self, md, pattern, out):
@@ -212,10 +200,9 @@ class MarkDown:
     def __call__(self, s):
         if s:
             if type(s) is str:
-                #s = str.encode(s,'utf-8','replace')
                 pass
             elif not type(s) is str:
-                s = str(s, error='replace')
+                s = str(s, errors='replace')
 
             html = self.md.convert(s)
             tags = ['h1', 'h2', 'p', 'a', 'h3', 'pre', 'div', 'hr', 'video', 'img',
