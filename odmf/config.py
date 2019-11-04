@@ -56,17 +56,20 @@ class Configuration:
 
         return self
 
-    def __init__(self):
+    def __init__(self, **kwargs):
 
-        vars(self).update({k: v
-                           for k, v in vars(type(self)).items()
-                           if not k.startswith('_') and not callable(v)
-                           })
+        vars(self).update({
+            k: v
+            for k, v in vars(type(self)).items()
+            if not k.startswith('_') and not callable(v)
+        })
+
+        self.update(kwargs)
 
     def to_yaml(self, stream=sys.stdout):
         """
         Exports the current configuration to a yaml file
-        :param filename: The path to safe the configuration
+        :param stream: A stream to write to
         """
         d = {
             k: v
@@ -84,6 +87,33 @@ def load_config():
         conf_dict = {}
     else:
         conf_dict = yaml.safe_load(conf_file.open())
-    return Configuration().update(conf_dict)
+    return Configuration(**conf_dict)
+
+
+def import_module_configuration(conf_module_filename):
+    """
+    Migration utitlity to create a conf.yaml from the old ODMF 0.x conf.py module configuration
+
+    :param conf_module_filename: The conf.py configuration file
+    """
+    code = compile(open(conf_module_filename).read(), 'conf.py', 'exec')
+    config = {}
+    exec(code, config)
+
+    def c(s: str):
+        return s.replace('CFG_', '').lower()
+
+    config = {
+        c(k): v
+        for k, v in config.items()
+        if k.upper() == k and k[0] != '_' and not callable(v)
+    }
+
+    config['database_type'] = config.pop('database', 'postgres')
+
+    conf = Configuration(**config)
+
+    return conf
+
 
 conf = load_config()
