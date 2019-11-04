@@ -1,4 +1,7 @@
 import cherrypy
+import json
+from inspect import getdoc
+
 
 from . import lib as web
 from .auth import users, group, expose_for
@@ -16,8 +19,34 @@ from . import plot
 from . import api
 from . import static
 
+def ressource_walker(*path) -> dict:
+    def is_exposed(obj):
+        return getattr(obj, 'exposed', False) or getattr(type(obj), 'exposed', False)
+
+    act_p = path[-1]
+    p_vars = dict((k, getattr(act_p, k)) for k in dir(act_p))
+    p_vars = {k: v for k, v in p_vars.items() if not k.startswith('_') and is_exposed(v)}
+    res = {
+        k: ressource_walker(*path, v)
+        for k, v in p_vars.items()
+        if is_exposed(v)
+    }
+
+    if getdoc(act_p):
+        if res:
+            res['__doc__'] = getdoc(act_p)
+        else:
+            res = getdoc(act_p)
+    else:
+        res = None
+
+    return res
+
 
 class Root(object):
+    """
+    The root of the odmf webpage
+    """
     _cp_config = {'tools.sessions.on': True,
                   'tools.sessions.timeout': 24 * 60,  # One day
                   'tools.sessions.storage_type': 'file',
@@ -42,7 +71,8 @@ class Root(object):
     calendar = cll.CalendarPage()
     wiki = cll.Wiki()
     admin = cll.AdminPage()
-    media = static.StaticServer('*/media', True)
+    media = static.StaticServer('media', True)
+    datafiles = static.StaticServer('datafiles', True)
 
     @expose_for()
     def index(self):
@@ -142,6 +172,12 @@ class Root(object):
             ds = session.query(db.Dataset).filter(
                 db.Dataset.id.in_(list(range(1493, 1502))))
             return web.render('actualclimate.html', ds=ds, db=db).render('html', doctype='html')
+
+    @expose_for()
+    @web.mimetype(web.mime.json)
+    def ressources(self):
+        res = ressource_walker(self)
+        return json.dumps(res).encode('utf-8')
 
 # if __name__=='__main__':
 #    web.start_server(Root(), autoreload=False, port=8081)
