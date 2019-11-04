@@ -13,18 +13,19 @@ from . import map
 from . import upload
 from .preferences import Preferences
 from . import plot
-from .api import API
+from . import api
+from . import static
 
 
 class Root(object):
     _cp_config = {'tools.sessions.on': True,
                   'tools.sessions.timeout': 24 * 60,  # One day
                   'tools.sessions.storage_type': 'file',
-                  'tools.sessions.storage_path': web.abspath('sessions'),
+                  'tools.sessions.storage_path': './sessions',
                   'tools.auth.on': True,
                   'tools.sessions.locking': 'early'}
 
-    api = API()
+    api = api.API()
     site = dbe.SitePage()
     user = dbe.PersonPage()
     valuetype = dbe.VTPage()
@@ -41,6 +42,7 @@ class Root(object):
     calendar = cll.CalendarPage()
     wiki = cll.Wiki()
     admin = cll.AdminPage()
+    media = static.StaticServer('*/media', True)
 
     @expose_for()
     def index(self):

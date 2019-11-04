@@ -47,7 +47,7 @@ def start(workdir, autoreload):
     print("autoreload =", autoreload)
 
     print("Kill session lock files")
-    for fn in glob('webpage/sessions/*.lock'):
+    for fn in glob('sessions/*.lock'):
         os.remove(fn)
 
     # Create the URL root object
