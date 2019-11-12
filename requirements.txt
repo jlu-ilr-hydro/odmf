@@ -4,7 +4,7 @@ bcrypt
 chardet
 PyYAML>=5.1
 Pillow>=5.3.0
-cherrypy==14.1.0
+cherrypy>=18.0.0
 configparser==3.5
 genshi==0.7.3
 markdown==2.3.1

@@ -20,6 +20,20 @@ from . import api
 from . import static
 
 def ressource_walker(*path) -> dict:
+    """
+    Builds a recursive tree of exposed cherrypy endpoints
+
+    How to call for a tree of the complete app:
+    >>> ressource_tree = ressource_walker(root)
+
+    How to call for a branch in the app (eg. the site page)
+    >>> ressource_subtree = ressource_walker(root, site)
+
+    :param path: The current url in terms of objects enabled for cherrypy dispaching. The last object in the path
+                is the current object
+    :return: A dictionary containing either a dictionary for the next deeper address level or a
+            docstring of an endpoint
+    """
     def is_exposed(obj):
         return getattr(obj, 'exposed', False) or getattr(type(obj), 'exposed', False)
 
@@ -76,6 +90,9 @@ class Root(object):
 
     @expose_for()
     def index(self):
+        """
+        Root home: Shows the map page if the current user has no urgent jobs.
+        """
         if web.user():
             session = db.Session()
             user = session.query(db.Person).get(web.user())
@@ -85,10 +102,31 @@ class Root(object):
 
     @expose_for()
     def navigation(self):
+        """
+        The bare navigation page, usually embedded in other pages
+        :return:
+        """
         return web.navigation()
 
     @expose_for()
     def login(self, frompage='/', username=None, password=None, error='', logout=None):
+        """
+        The login page
+
+        Parameters
+        ----------
+        frompage
+            Referer to this page - useful to navigate backwards
+        username
+            Username for login, empty to show the page
+        password
+            ditto, password
+        error
+            On authorization errors this page should be shown with an appropriate error message
+        logout
+            If logout is given, the current user logs out
+
+        """
         if logout:
             users.logout()
             raise web.HTTPRedirect(frompage or '/')
@@ -176,8 +214,9 @@ class Root(object):
     @expose_for()
     @web.mimetype(web.mime.json)
     def ressources(self):
+        """
+        Returns a json object representing all ressources of this cherrypy web-application
+        """
         res = ressource_walker(self)
         return json.dumps(res).encode('utf-8')
 
-# if __name__=='__main__':
-#    web.start_server(Root(), autoreload=False, port=8081)

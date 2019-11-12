@@ -9,6 +9,7 @@ import click
 import humanize
 import sys
 import os
+from logging import info, warning, debug
 
 @click.group()
 def cli():
@@ -24,9 +25,8 @@ def start(workdir, autoreload):
     """
     from glob import glob
     os.chdir(workdir)
-    print("Starting odmf:\n",
-          f"  - interpreter: {sys.executable}\n",
-          f"  - workdir: {os.getcwd()}\n")
+    info(f"interpreter: {sys.executable}")
+    info(f"workdir: {os.getcwd()}")
 
     if sys.version_info[0] < 3:
         raise Exception("Must be using Python 3")
@@ -35,24 +35,26 @@ def start(workdir, autoreload):
     from .config import conf
     if conf:
         # Check for mandatory attributes
-        print("✔ Config is valid")
+        info("✔ Config is valid")
     else:
-        print("Error in config validation")
+        warning("Error in config validation")
         exit(1)
 
     # Start with project imports
     from odmf.webpage import Root
     from odmf.webpage import lib
 
-    print("autoreload =", autoreload)
-
-    print("Kill session lock files")
-    for fn in glob('sessions/*.lock'):
+    info(f"autoreload = {autoreload}")
+    lock_path = os.path.abspath('sessions')
+    debug(f"Kill session lock files in {lock_path}")
+    for fn in glob(lock_path + '/*.lock'):
+        debug(f'Killing old session lock {fn}')
         os.remove(fn)
+
 
     # Create the URL root object
     root = Root()
-
+    info(f'Starting server on http://127.0.0.1:{conf.server_port}')
     # Start the server
     lib.start_server(root, autoreload=autoreload, port=conf.server_port)
 
@@ -107,6 +109,7 @@ def test_db():
     Tests if the system can be connected to the database
     """
     from . import db
+    import sqlalchemy.orm as orm
     with db.session_scope() as session:
         tables = [
             (n, c)
@@ -118,8 +121,9 @@ def test_db():
         ]
         for name, table in tables:
             print(f'db.{name}: ', end='')
-            q = session.query(table)
-            print(f'{humanize.intword(q.count())} {name} objects in database')
+            q: orm.Query = session.query(table)
+            print(f'{humanize.intword(q.count())} {name} objects in database', end=' - ')
+            print(repr(q.first()))
 
 
 @cli.command()

@@ -99,14 +99,27 @@ config = {
 
 
 class mime:
+    """
+    Maps mimetypes from their typical file extension to the official mimetype
+
+    Possible usage:
+    >>>setmime(mime.jpeg)
+    """
     json = 'application/json'
+    css = 'text/css'
     plain = 'text/plain'
     xml = 'text/xml'
     html = 'text/html'
+    jpg = 'image/jpeg'
     jpeg = 'image/jpeg'
     png = 'image/png'
-    csv = 'text/csv'
+    csv = 'text/comma-separated-values'
     pdf = 'application/pdf'
+    xls = 'application/msexcel'
+    xlsx = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    svg = 'image/svg+xml'
+    tif = 'image/tiff'
+
 
 
 def mimetype(type):
@@ -122,7 +135,7 @@ def setmime(type):
     cherrypy.response.headers['Content-Type'] = type
 
 
-loader = TemplateLoader(abspath('templates'),
+loader = TemplateLoader([str(p.absolute() / 'templates') for p in conf.static if (p / 'templates').exists()],
                         auto_reload=True)
 
 

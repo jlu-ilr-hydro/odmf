@@ -13,12 +13,22 @@ def filelist2html(files):
     return markdown(text)
 
 
-
-
 @expose
 class StaticServer:
-
+    """
+    Serves static files, either from the user directory or the library directory
+    """
     def __init__(self, home_dir: str, listdir=False):
+        """
+        Create a static page
+
+        Parameters
+        ----------
+        home_dir
+            The directory to start, should be a relative path
+        listdir
+            Indicates if this static page should list its content
+        """
         self.homes = [
             (Path(static_home) / home_dir).absolute()
             for static_home in conf.static
@@ -39,15 +49,21 @@ class StaticServer:
                 return home / path
         return None
 
-
     @expose
     def index(self, path='.'):
+        """
+        Serves the static content from the relative path
+        """
         p = self.get_path(path)
 
         if p is None:
             raise cherrypy.HTTPError(404)
         elif p.is_file():
-            del cherrypy.response.headers['Content-Type']
+            ext = p.suffix.replace('.', '')
+            if ext in dir(mime):
+                cherrypy.response.headers['Content-Type'] = getattr(mime, ext)
+            else:
+                del cherrypy.response.headers['Content-Type']
             return p.read_bytes()
         elif self.listdir and p.is_dir():
             setmime(mime.html)
