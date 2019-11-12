@@ -9,12 +9,12 @@ Created on 13.02.2012
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
-from io import StringIO
+
 import os.path as op
 from ..config import conf
 
 from contextlib import contextmanager
-from cherrypy import log
+from logging import info
 
 
 def abspath(fn):
@@ -25,7 +25,7 @@ def abspath(fn):
 
 
 def newid(cls, session=None):
-    "Creates a new id for all mapped classes with an field called id, which is of integer type"
+    """Creates a new id for all mapped classes with an field called id, which is of integer type"""
     if not session:
         session = Session()
     max_id = session.query(sql.func.max(cls.id)).select_from(cls).scalar()
@@ -36,7 +36,7 @@ def newid(cls, session=None):
 
 
 def connect():
-    log(f"Connecting with database {conf.database_name} at {conf.database_host} ..." )
+    info(f"Connecting with database {conf.database_name} at {conf.database_host} ..." )
     import psycopg2
     return psycopg2.connect(user=conf.database_username,
                             host=conf.database_host,
@@ -71,24 +71,34 @@ def session_scope() -> orm.Session:
         session.close()
 
 
+def table(obj) -> sql.Table:
+    """
+    Returns the sql.Table of a ORM object
+    """
+    try:
+        return getattr(obj, '__table__')
+    except AttributeError:
+        raise TypeError(f'{obj!r} is not a mapper class')
+
+
 class Base(object):
     """Hooks into SQLAlchemy's magic to make :meth:`__repr__`s."""
 
     def __repr__(self):
         def reprs():
-            for col in self.__table__.c:
+            for col in table(self).c:
                 try:
                     yield col.name, str(getattr(self, col.name))
-                except:
-                    pass
+                except Exception as e:
+                    yield col.name, f'<unknown value: {type(e)}>'
 
         def formats(seq):
             for key, value in seq:
-                yield '%s=%s' % (key, value)
+                yield f'{key}={value}'
 
-        args = '(%s)' % ', '.join(formats(reprs()))
+        args = ', '.join(formats(reprs()))
         classy = type(self).__name__
-        return "<%s%s>" % (classy, args)
+        return f'{classy}({args})'
 
     def session(self):
         return Session.object_session(self)
