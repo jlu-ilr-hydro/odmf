@@ -7,6 +7,7 @@ from . import lib as web
 from .auth import users, group, expose_for
 
 from .. import db
+from ..config import conf
 import sys
 import os
 from datetime import datetime, timedelta
@@ -18,6 +19,7 @@ from .preferences import Preferences
 from . import plot
 from . import api
 from . import static
+
 
 def ressource_walker(*path) -> dict:
     """
@@ -162,7 +164,7 @@ class Root(object):
         """
         A simple markdown API access. Can be used for text files
         """
-        fn = web.abspath(fn)
+        fn = conf.abspath(fn)
         if os.path.exists(fn):
             return web.markdown(open(fn).read())
         else:

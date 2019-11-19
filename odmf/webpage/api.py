@@ -1,6 +1,5 @@
 import cherrypy
 from io import BytesIO
-from pathlib import Path
 import chardet
 import datetime
 import inspect
@@ -10,10 +9,7 @@ from contextlib import contextmanager
 from . import lib as web
 from .auth import users, expose_for, group, has_level
 from .. import db
-
-
-datapath = web.abspath('datafiles')
-home = web.abspath('.')
+from ..config import conf
 
 
 def get_help(obj, url, append_to: dict = None):
@@ -323,7 +319,7 @@ class API(BaseAPI):
         errors = []
         fn = ''
         if datafile:
-            path = Path(datapath) / path
+            path = conf.abspath('datafiles') / path
             if not path:
                 path.make()
             fn = path + datafile.filename

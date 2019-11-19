@@ -11,9 +11,10 @@ from traceback import format_exc as traceback
 from glob import glob
 import os.path as op
 from ..auth import expose_for, group
-from io import StringIO
+from io import BytesIO
 from ...db import projection as proj
 from ..preferences import Preferences
+from ...config import conf
 
 
 class SitePage:
@@ -209,7 +210,7 @@ class SitePage:
         return '<br/>'.join(text)
 
     def geticons(self):
-        path = web.abspath('media/mapicons')
+        path = conf.abspath('media/mapicons')
         return [op.basename(p) for p in glob(op.join(path, '*.png')) if not op.basename(p) == 'selection.png']
 
     @expose_for(group.guest)
@@ -221,7 +222,7 @@ class SitePage:
         try:
             inst = db.Datasource.get(session, int(instrumentid))
             sites = sorted(set(i.site for i in inst.sites))
-            print("Sites: %s" % sites.__len__())
+            print("Sites: %s" % len(sites))
         finally:
             session.close()
         return web.as_json(sites)
@@ -231,7 +232,7 @@ class SitePage:
         web.setmime('text/csv')
         session = db.Session()
         query = session.query(db.Site).order_by(db.Site.id)
-        st = StringIO()
+        st = BytesIO()
         # TODO: Py3 encoding
         st.write(
             '"ID","long","lat","x_proj","y_proj","height","name","comment"\n'.encode('latin1'))

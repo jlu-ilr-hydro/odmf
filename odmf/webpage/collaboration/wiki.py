@@ -2,6 +2,7 @@ import cherrypy
 
 from .. import lib as web
 from ..auth import group, expose_for
+from ...config import conf
 import os
 from traceback import format_exc as traceback
 
@@ -10,7 +11,7 @@ class Wiki(object):
     exposed = True
 
     def name2path(self, name):
-        return web.abspath('datafiles/wiki/' + name + '.wiki')
+        return conf.abspath('datafiles/wiki/' + name + '.wiki')
 
     @expose_for()
     def external(self, *args):
@@ -22,7 +23,7 @@ class Wiki(object):
         content = ''
         related = ''
         pages = sorted([os.path.basename(s)[:-5]
-                        for s in glob(web.abspath('datafiles/wiki/%s*.wiki' % name.split('.')[0]))])
+                        for s in glob(conf.abspath('datafiles/wiki/%s*.wiki' % name.split('.')[0]))])
         if name in pages:
             pages.remove(name)
         if os.path.exists(filename):
@@ -55,7 +56,7 @@ class Wiki(object):
         content = ''
         related = ''
         pages = sorted([os.path.basename(s)[:-5]
-                        for s in glob(web.abspath('datafiles/wiki/%s*.wiki' % name.split('.')[0]))])
+                        for s in glob(conf.abspath('datafiles/wiki/%s*.wiki' % name.split('.')[0]))])
         if name in pages:
             pages.remove(name)
         if os.path.exists(filename):

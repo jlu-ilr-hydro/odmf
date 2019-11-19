@@ -63,7 +63,7 @@ class DBImportPage(object):
         
         t0 = time.time()
 
-        absfile = web.abspath(filename.strip('/'))
+        absfile = conf.abspath(filename.strip('/'))
         path = Path(absfile)
 
         error = web.markdown(di.checkimport(path.absolute))
@@ -121,7 +121,7 @@ class DBImportPage(object):
         errorstream = StringIO()
 
         # TODO: Major refactoring of this code logic, when to load gaps, etc.
-        path = Path(web.abspath(filename.strip('/')))
+        path = Path(conf.abspath(filename.strip('/')))
         print("path = %s" % path)
         error = web.markdown(di.checkimport(path.absolute))
         startdate = kwargs.get('startdate')
@@ -150,7 +150,7 @@ class DBImportPage(object):
                 gaps = [(startdate, enddate)]
 
             if siteid and (instrumentid or config):
-                absfile = web.abspath(filename.strip('/'))
+                absfile = conf.abspath(filename.strip('/'))
                 adapter = di.get_adapter(absfile, web.user(), siteid,
                                          instrumentid, startdate, enddate)
                 adapter.errorstream = errorstream
@@ -220,7 +220,7 @@ class DownloadPage(object):
             files.sort()
             directories.sort()
         else:
-            error = '%s is not a valid directory' % dir
+            error = f'{dir} is not a valid directory'
         return web.render('download.html', error=error, files=files,
                           directories=directories, curdir=path,
                           max_size=conf.upload_max_size

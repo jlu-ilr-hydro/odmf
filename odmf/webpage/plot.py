@@ -13,7 +13,8 @@ import pylab as plt
 from matplotlib.ticker import MaxNLocator
 import matplotlib.dates
 import numpy as np
-from .. import db
+
+
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from io import StringIO
@@ -24,11 +25,12 @@ from pandas import to_datetime
 import json
 from glob import iglob
 
+from ..config import conf
+from .. import db
 from . import lib as web
 from .preferences import Preferences
-from .auth import group, expose_for
+from .auth import group, expose_for, users
 
-from .auth import users
 t0 = datetime(1, 1, 1)
 nan = np.nan
 
@@ -418,7 +420,7 @@ class Plot(object):
 
     def getpath(self):
         username = web.user() or 'nologin'
-        return web.abspath('preferences/plots/' + username + '.' + self.name)
+        return conf.abspath('preferences/plots/' + username + '.' + self.name)
 
     def addtimeplot(self):
         """
@@ -536,7 +538,7 @@ class Plot(object):
 
     @classmethod
     def absfilename(cls, fn):
-        return web.abspath('preferences/plots/' + web.user() + '.' + fn + '.plot')
+        return conf.abspath('preferences/plots/' + web.user() + '.' + fn + '.plot')
 
 
 plotgroup = group.logger
