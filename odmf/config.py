@@ -117,7 +117,6 @@ class Configuration:
                 return p.absolute()
         raise FileNotFoundError(f'{relative_path} not found in the static ressources')
 
-
     def to_yaml(self, stream=sys.stdout):
         """
         Exports the current configuration to a yaml file
