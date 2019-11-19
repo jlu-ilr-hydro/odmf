@@ -1,7 +1,7 @@
 import os
 import os.path as op
 
-__all__ = ['mail']
+__all__ = ['mail', 'Path']
 
 datapath = op.abspath(op.join(op.dirname(__file__),
                               '..', 'webpage', 'datafiles'))

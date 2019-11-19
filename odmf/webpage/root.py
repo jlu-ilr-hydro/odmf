@@ -87,6 +87,7 @@ class Root(object):
     admin = cll.AdminPage()
     media = static.StaticServer('media', True)
     datafiles = static.StaticServer('datafiles', True)
+    html = static.StaticServer('templates', True)
 
     @expose_for()
     def index(self):

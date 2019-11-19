@@ -5,12 +5,9 @@
 Author: Philipp Kraft
 """
 
-
 from os import path as op
-from io import StringIO
 
 import cherrypy
-import threading
 import json
 from datetime import datetime, timedelta
 
@@ -21,9 +18,9 @@ from . import auth
 from .markdown import MarkDown
 
 from base64 import b64encode
-markdown = MarkDown()
-
 from ..config import conf
+
+markdown = MarkDown()
 
 
 def jsonhandler(obj):
@@ -37,40 +34,6 @@ def jsonhandler(obj):
 
 def as_json(obj):
     return json.dumps(obj, sort_keys=True, indent=4, default=jsonhandler).encode('utf-8')
-
-
-def log_as_json(logs):
-    res = StringIO('[')
-    for l in logs:
-        i = 0
-        res += '{'
-        keys = list(l.keys())
-        for k in keys:
-            res += "%s:%s" % (keys[i], l[i])
-            i += 1
-        res += '}'
-    res += ']'
-
-
-def log_as_array_str(logs):
-    res = StringIO()
-    res.write('[')
-    for l in logs:
-        first = True
-        res.write('[')
-        for e in l:
-            if first:
-                first = False
-                res.write("%s," % e)
-            else:
-                try:
-                    res.write("\"%s\"," % str(e).encode(
-                        'utf-8', errors='replace'))
-                except UnicodeEncodeError:
-                    res.write("\"UnicodeEncodeError\"")
-        res.write('],')
-    res.write(']')
-    return res.getvalue()
 
 
 def memoryview_to_b64str(mview):
@@ -87,15 +50,8 @@ def abspath(fn):
     normpath = op.normpath(fn)
     return op.join(basepath, normpath)
 
+
 # TODO: Get static files from a dispatcher class
-config = {
-          '/favicon.ico': {"tools.staticfile.on": True,
-                           "tools.staticfile.filename": str(conf.abspath("media/ilr-favicon.png"))
-                          },
-          '/html': {'tools.staticdir.on': True,
-                    'tools.staticdir.dir': str(conf.abspath('templates')),
-                    'tools.caching.on': False},
-          }
 
 
 class mime:
@@ -121,13 +77,14 @@ class mime:
     tif = 'image/tiff'
 
 
-
 def mimetype(type):
     def decorate(func):
         def wrapper(*args, **kwargs):
             cherrypy.response.headers['Content-Type'] = type
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorate
 
 
@@ -138,8 +95,8 @@ def setmime(type):
 loader = TemplateLoader([str(p.absolute() / 'templates') for p in conf.static if (p / 'templates').exists()],
                         auto_reload=True)
 
-
 expose = cherrypy.expose
+
 
 class method:
     post = cherrypy.tools.allow(methods=['POST'])
@@ -147,13 +104,14 @@ class method:
     post_or_put = cherrypy.tools.allow(methods=['PUT', 'POST'])
     get = cherrypy.tools.allow(methods=['GET'])
 
+
 json_in = cherrypy.tools.json_in
 
 HTTPRedirect = cherrypy.HTTPRedirect
 
-sslconfig={
-'server.ssl_certificate' : 'letsencrypt/cert.pem',
-'server.ssl_private_key' : 'letsencrypt/privkey.pem',
+sslconfig = {
+    'server.ssl_certificate': 'letsencrypt/cert.pem',
+    'server.ssl_private_key': 'letsencrypt/privkey.pem',
 }
 
 
@@ -181,15 +139,14 @@ def formatdate(t=None):
         return datetime.today().strftime('%d.%m.%Y')
     try:
         return t.strftime('%d.%m.%Y')
-    except:
+    except (TypeError, ValueError):
         return None
 
 
 def formattime(t, showseconds=True):
-
     try:
         return t.strftime('%H:%M:%S' if showseconds else '%H:%M')
-    except:
+    except (TypeError, ValueError):
         return None
 
 
@@ -198,14 +155,14 @@ def formatdatetime(t=None, fmt='%d.%m.%Y %H:%M:%S'):
         t = datetime.now()
     try:
         return t.strftime(fmt)
-    except:
+    except (TypeError, ValueError):
         return None
 
 
 def formatfloat(v, style='%g'):
     try:
         return style % v
-    except:
+    except (TypeError, ValueError):
         return 'N/A'
 
 
@@ -216,7 +173,7 @@ def parsedate(s, raiseerror=True):
     for fmt in formats:
         try:
             res = datetime.strptime(s, fmt)
-        except ValueError as TypeError:
+        except (ValueError, TypeError):
             pass
     if not res and raiseerror:
         raise ValueError('%s is not a valid date/time format' % s)
@@ -238,29 +195,32 @@ def abbrtext(s, maxlen=50):
 def user():
     return cherrypy.request.login
 
+
 def not_external():
     return not ("external" in cherrypy.url())
 
+
 class Renderer(object):
     def __init__(self):
-        self.functions = {'attrcheck': attrcheck,
-                          'navigation': navigation,
-                          'markoption': markoption,
-                          'formatdate': formatdate,
-                          'formattime': formattime,
-                          'formatdatetime': formatdatetime,
-                          'formatfloat': formatfloat,
-                          'datetime': datetime,
-                          'timedelta': timedelta,
-                          'user': user,
-                          'users': auth.users,
-                          'is_member': auth.is_member,
-                          'bool2js': lambda b: str(b).lower(),
-                          'markdown': markdown,
-                          'as_json': as_json,
-                          'abbrtext': abbrtext,
-                          'not_external': not_external
-                          }
+        self.functions = {
+            'attrcheck': attrcheck,
+            'navigation': navigation,
+            'markoption': markoption,
+            'formatdate': formatdate,
+            'formattime': formattime,
+            'formatdatetime': formatdatetime,
+            'formatfloat': formatfloat,
+            'datetime': datetime,
+            'timedelta': timedelta,
+            'user': user,
+            'users': auth.users,
+            'is_member': auth.is_member,
+            'bool2js': lambda b: str(b).lower(),
+            'markdown': markdown,
+            'as_json': as_json,
+            'abbrtext': abbrtext,
+            'not_external': not_external
+        }
 
     def __call__(self, *args, **kwargs):
         """Function to render the given data to the template specified via the
@@ -285,36 +245,40 @@ class Renderer(object):
 render = Renderer()
 
 
-class httpServer(threading.Thread):
-    """The cherrypy quickstart server in a seperate thread. You can kill the thread
-    but not stop it.
-    """
-
-    def run(self):
-        self.server = cherrypy.quickstart(root=self.root, config=self.config)
-
-    def __init__(self, root, config=config, autoreload=False):
-        cherrypy.config.update({"engine.autoreload.on": autoreload})
-        super(httpServer, self).__init__()
-        self.server = None
-        self.root = root
-        cherrypy.server.socket_host = "0.0.0.0"
-        self.config = config
-        self.daemon = True
-        self.start()
-
-
 def conv(cls, s, default=None):
+    """
+    Convert string s to class cls
+    Parameters
+    ----------
+    cls
+        A class to convert to (eg. float, int, datetime)
+    s
+        A string to convert
+    default
+        A default answer, if the conversion fails. Else return None
+
+    Returns
+    -------
+    cls(s)
+
+    """
     if cls is datetime:
         return parsedate(s)
     try:
         return cls(s)
-    except:
+    except (TypeError, ValueError):
         return default
 
-from cherrypy.lib.cptools import referer
 
 def start_server(root, autoreload=False, port=8080):
+    static_files = {
+        '/favicon.ico': {"tools.staticfile.on": True,
+                         "tools.staticfile.filename": str(conf.abspath("media/ilr-favicon.png"))
+                         },
+        '/html': {'tools.staticdir.on': True,
+                  'tools.staticdir.dir': str(conf.abspath('templates')),
+                  'tools.caching.on': False},
+    }
 
     cherrypy.config.update({"engine.autoreload.on": autoreload})
     cherrypy.config["tools.encode.encoding"] = "utf-8"
@@ -333,7 +297,7 @@ def start_server(root, autoreload=False, port=8080):
     # cherrypy.config['server.ssl_certificate'] = 'letsencrypt/cert.pem'
     # cherrypy.config['ssl_private_key'] = 'letsencrypt/privkey.pem'
 
-    cherrypy.quickstart(root=root, config=config)
+    cherrypy.quickstart(root=root, config=static_files)
 
 
 def is_selected(a1, a2):
