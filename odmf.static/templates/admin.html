@@ -1,0 +1,98 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+    <!-- Server configuration, see conf.py for HEAD_BASE -->
+    <base href="${head_base}" />
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous" />
+
+    <link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+    <link href="/media/styles/bootstrap-schwingbach.css" rel="stylesheet" type="text/css" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
+
+	<title>Monitoring</title>
+
+    <style>
+        .thumbnail-small {
+            height: 75px;
+            width: 75px;
+        }
+    </style>
+
+
+</head>
+<body>
+	${navigation('Admin')}
+  <div class="content">
+
+      <div class="error" py:content="error"></div>
+      <div class="success" py:content="success"></div>
+
+      <div class="container" style="padding-top: 1.2rem">
+
+          <!-- TODO Pfade anpassen -->
+
+          <div class="col-md-6">
+            <!-- Left banner Logo -->
+              <div class="row">
+                  <a href="${MEDIA_PATH['logo']}">
+                      <img src="${MEDIA_PATH['logo']}" class="thumbnail thumbnail-small" />
+                  </a>
+                  Preferred height 45px and width 189px or similar ratio
+              </div>
+            <div class="row justify-content-center">
+                <form method="post" enctype="multipart/form-data" action="/admin/upload">
+                  <div class="form-group" id="logofile-form">
+                    <label for="logofile">Left banner logo file input</label>
+                    <input type="file" name="imgfile" class="form-control-file" id="logofile"/>
+                    <input type="hidden" name="imgtype" id="imgtype" value="logo" />
+                    <input type="submit" id='logofile-submit' class="upload" value="upload logo" disabled="disabled"/>
+                  </div>
+                </form>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+
+              <div class="row">
+                  <a href="${MEDIA_PATH['banner-left']}">
+                      <img src="${MEDIA_PATH['banner-left']}" class="thumbnail thumbnail-small" />
+                  </a>
+              </div>
+
+            <!-- Left banner Background -->
+            <div class="row">
+                <form method="post" enctype="multipart/form-data" action="/admin/upload">
+                  <div class="form-group">
+                    <label for="leftbannerfile">Left banner background image file input</label>
+                    <input type="file" name="imgfile" class="form-control-file" id="leftbannerfile" />
+                    <input type="hidden" name="imgtype" id="imgtype" value="leftbanner" />
+                    <input type="submit"  class="upload" id='leftbannerfile-submit' value="upload banner" disabled="disabled"/>
+                  </div>
+                </form>
+            </div>
+
+          </div>
+      </div><!-- div.container-fluid end -->
+  </div><!-- div.content end -->
+
+  <script type="text/javascript">
+        //<![CDATA[
+        $(function() {
+
+            $('#logofile,#leftbannerfile').change(function (evt) {
+                //var path = evt.target.files[0];
+
+                var formname = this.id;
+
+                $('#' + formname + '-submit').prop('disabled', !$(this).val());
+            });
+        });
+        //]]>
+    </script>
+
+</body>
+</html>

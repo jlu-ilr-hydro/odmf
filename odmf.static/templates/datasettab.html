@@ -1,0 +1,641 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+    <!-- Server configuration, see conf.py for HEAD_BASE -->
+    <base href="${head_base}" />
+
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<link href="/media/jqmath/jqmath-0.4.0.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>${title}</title>
+	<link href="/media/jquery-ui-1.8.18.custom.css" rel="stylesheet" type="text/css"/>
+    <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
+    <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
+    <script type="text/javascript"
+  		src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+		</script>
+		<script py:if="activedataset">
+			dsid = ${activedataset.id};
+		</script>
+		<script>
+	  		//<![CDATA[
+				function loadstatistics() {
+					$.getJSON('/dataset/statistics/',{id:dsid},function(data){
+						$('#mean').html(data.mean.toPrecision(4));
+						$('#std').html(data.std.toPrecision(4));
+						$('#splitthreshold').val(data.std.toPrecision(4));
+						$('#n').html(data.n);
+					});
+				}
+
+				function loadrecords() {
+					var threshold = null;
+					var limit = $('#recordlimit').val();
+					if ($('#splitUseThreshold').prop('checked')) {
+							threshold = $('#splitthreshold').val();
+					}
+
+					var params={dataset:dsid,
+											mindate:$('#recordmindate').val() + ' ' + $('#recordmintime').val(),
+											maxdate:$('#recordmaxdate').val() + ' ' + $('#recordmaxtime').val(),
+											minvalue:$('#recordminvalue').val(),
+											maxvalue:$('#recordmaxvalue').val(),
+											threshold:threshold,
+											limit:limit
+										};
+					$('#recordlist').load('/dataset/records',params);
+				}
+
+				function timerange(step)
+				{
+				    if (step == null) {step=60;}
+				    var foo = [];
+				    for (var i = 0; i <= 60*24; i+=step) {
+				    	var m = i % 60;
+				    	var h = (i-m)/60;
+				    	if (h<10) { h='0' + h;} else {h='' + h;}
+				    	if (m<10) { m='0' + m;} else {m='' + m;}
+				    	foo.push(h+':'+m);
+				    }
+				    return foo;
+				}
+
+        $(function() {
+					$(".datepicker").datepicker({dateFormat: 'dd.mm.yy' });
+					$(".timepicker").autocomplete({source: timerange(15), minLength: 0});
+        	$('#tab').tabs();
+					$('#tabheads a').click(function() {
+						$('#title').html('Data sets (' + $(this).html() + ')');
+					});
+					$('.transhelpparent').focusin(function(){
+						$('#trans_help').slideDown('fast');
+					});
+					$('.transhelpparent').focusout(function(){
+						$('#trans_help').hide();
+					});
+					loadstatistics();
+        });
+        function reload(error) {
+        	if (error) {
+        		if (error.substring(0,5)=='goto:') {
+        			window.location.href = error.substring(5);
+        		} else {
+	        		$('.error').html(error);
+        		}
+        	} else {
+        		window.location.reload(true);
+        	}
+        }
+        function toggle(id) {
+        	$('#' + id).slideToggle('fast');
+        }
+	  		function gotods() {
+    			dsid = prompt('Goto dataset no.');
+    			if (dsid>0) {
+    				window.location.href='/dataset/' + dsid;
+    			}
+    		}
+
+        function plotds(id) {
+        	var url = '/dataset/plot'
+					        	+ '?id='+id
+					        	+ '&' + 'start='+$('#plotstart').val() + ' ' + $('#plotstart_t').val()
+					        	+ '&' + 'end='+$('#plotend').val()+ ' ' + $('#plotend_t').val()
+					        	+ '&' + 'marker=' + $('#markerpicker').val()
+					        	+ '&' + 'line=' + $('#linepicker').val()
+					        	+ '&' + 'color=' + $('#colorpicker').val();
+					$('#plotimg').attr('src',url);
+        }
+				function removeds(dsid,dsname,reccount) {
+					var msg = 'Are you absolutly sure to delete ' + dsname + '?' +
+					          'It has ' + reccount + ' records!'
+					var really=confirm(msg)
+					if (really) {
+						$.post('/dataset/remove/' + dsid, function(data) {
+							if (data) {
+								$('.error').html(data);
+							} else {
+								window.back();
+							}
+						});
+					}
+				}
+				//]]>
+    </script>
+
+	<style>
+		/*input { width: 100%;}
+		select { width: 100%;}*/
+		.bold {
+			font-weight: bold;
+		}
+		a.toggle {
+			display: block;
+		}
+		span.nobreak {
+			white-space: nowrap;
+		}
+		#tab {
+			background-color: white;
+			border:solid 1px #3D578C;
+
+		}
+		#tab > div {
+			background-color: white;
+		}
+		.ui-tabs .ui-tabs-nav li a {
+			padding: 0px 1em;
+			font-size: small;
+		}
+		.leftspace {
+			margin-left: 2em;
+		}
+		.big {
+			font-size: 1.5em;
+		}
+		span.box {
+			padding: 0px;
+			background-color: #FFF;
+			margin-right: 10px;
+		}
+		span.box a{
+			padding: 0px 2px;
+		}
+		span.box a:hover {
+			background-color:#32739D;
+			color:#FFF;
+			border-radius: 10px;
+			text-decoration: none;
+			cursor: hand;
+		}
+		#trans_help {
+		 		z-index:10;
+		 		position:absolute;
+		 		background:#fffAF0;
+		}
+		#trans_help td {
+			border: solid 1px black;
+			background-color: white;
+			padding: 0px 5px;
+		}
+		button.small {
+			width: 3em;
+			height: 2em;
+		}
+        #transformation {
+            line-height: 2.5em;
+        }
+        #transformation td.big {
+            padding-left: 10px;
+        }
+	</style>
+</head>
+<!--
+	Input variables:
+	error - string
+	activedataset - Dataset
+	db - module
+	And a number of prepared queries:
+        valuetypes=session.query(db.ValueType).order_by(db.ValueType.name),
+        persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname),
+        sites=session.query(db.Site).order_by(db.Site.id),
+        quality=session.query(db.Quality).order_by(db.Quality.id),
+        datasources=session.query(db.Datasource),
+        projects = session.query(db.Project),
+
+-->
+<body>
+	${navigation('Data sets')}
+  <div class="content">
+	  <div class="error" py:content="error" />
+		<a href="/dataset">Go to list...</a>
+		<a href="javascript:gotods();" tabindex="1" class="leftspace">&#x25B6;goto dataset...</a>
+		<div py:if="activedataset" py:with="n=activedataset.size()">
+			<h2 py:content="activedataset" />
+			<div class="small warning" py:if="activedataset and activedataset.access>=users.current.level">
+				Sorry, you can not see the content of this dataset. You need to be at least ${users.current.groups[activedataset.access]}, but your status is ${user.current.group}.
+			</div>
+			<div id="description">
+				<table>
+					<tr>
+						<td class="bold">Type:</td>
+						<td>${activedataset.type}</td>
+					</tr>
+					<tr>
+						<td class="bold">Name:</td>
+						<td>${activedataset.name}</td>
+					</tr>
+					<tr py:if="activedataset.valuetype">
+						<td class="bold">Data:</td>
+						<td><a href="/valuetype/${activedataset.valuetype.id}" class="tooltip">
+                                ${activedataset.valuetype.name}
+                                <span>${activedataset.valuetype.comment}</span>
+                            </a>
+							<span id="statistics" >
+								<span id="mean">?</span> &plusmn; <span id="std">?</span> ${activedataset.valuetype.unit}, n=<span id="n">${n}</span>
+							</span>
+						</td>
+					</tr>
+					<tr py:if="activedataset.site">
+						<td class="bold">Site:</td>
+						<td>
+							<a href="/site/${activedataset.site.id}" py:content="activedataset.site" />
+						</td>
+					</tr>
+					<tr py:if="activedataset.measured_by">
+						<td class="bold">Responsible:</td>
+						<td>
+							<a href="${'/user/%s' % (activedataset.measured_by.username if activedataset.measured_by else '')}">
+								${activedataset.measured_by}
+							</a>
+						</td>
+					</tr>
+					<tr>
+						<td class="bold">Quality:</td>
+						<td py:content="activedataset.quality" />
+					</tr>
+					<tr py:if="activedataset.source">
+						<td class="bold">Data source:</td>
+						<td>
+							<a href="/instrument/${activedataset.source.id}" py:content="activedataset.source" />
+							<a py:if="activedataset.source.manuallink" href="${activedataset.source.manuallink}" class="small">
+								<img src="/media/shimmer/document_16.png" alt="documentation"/>
+							</a>
+						</td>
+					</tr>
+					<tr py:if="activedataset.project">
+						<td class="bold">Project:</td>
+						<td>
+							<a href="/project/${activedataset.project}" py:content="activeproject.name"></a>
+						</td>
+					</tr>
+					<tr py:if="activedataset.is_timeseries() and activedataset.quality and activedataset.quality.id>=3">
+						<td class="bold">Calibration: </td>
+						<td py:content="'v\' = %g * v + %g' % (activedataset.calibration_slope,activedataset.calibration_offset)" />
+					</tr>
+					<tr py:if="activedataset.is_transformed()" id="transformation">
+						<td class="bold">Transformation:</td>
+						<td class="big">\(f(x)=${activedataset.latex}\)</td>
+					</tr>
+					<tr>
+						<td class="bold">Comment:</td>
+						<td>
+							<div py:content="markdown(activedataset.comment)" style="white-space: pre-line;"/>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	  <div py:if="activedataset" id="tab" py:with="n=activedataset.size()">
+	  	<ul id="tabheads">
+	  		<li py:if="activedataset.is_transformed()"><a href="#transforms">transforms</a></li>
+	  		<li><a href="#similar">similar</a></li>
+	  		<li py:if="activedataset.is_timeseries() and is_member('editor')"><a href="#records">records</a></li>
+	  		<li><a href="#plot" py:if="users.current.level>=activedataset.access">plot</a></li>
+	  		<li py:if="activedataset.is_timeseries() and is_member('editor') and users.current.level>=activedataset.access"><a href="/dataset/calibration?targetid=${activedataset.id}">calibrate</a></li>
+	  		<li py:if="is_member('logger') and users.current.level>=activedataset.access"><a href="#export">export</a></li>
+	  		<li py:if="is_member('editor')"><a href="#edit">edit</a></li>
+	  	</ul>
+			<div id="edit" py:if="is_member('editor') and users.current.level>=activedataset.access">
+				<button py:if="is_member('admin')" class="tooltip small"
+						onclick="javascript:removeds(${activedataset.id},'${str(activedataset)}',${n});">
+					&#x2718;
+					<span>remove dataset</span>
+				</button>
+
+				<button py:if="activedataset.is_timeseries() and is_member('editor')"
+					 onclick="$.post('/dataset/create_transformation/',{sourceid:${activedataset.id}},reload)"
+					 class="tooltip small">
+					f(x)
+					<span>Create a transformation for this dataset</span>
+				</button>
+				<form action="/dataset/saveitem" method="post">
+					<input type="text" name="id" value="${activedataset.id}" style="display: none;" />
+					<table style="width: 100%">
+						<tr>
+							<td style="width: 10em">Name:</td>
+							<td><input type="text" name="name" value="${activedataset.name}" /></td>
+						</tr>
+						<tr>
+							<td><a href="${'/user/%s' % (activedataset.measured_by.username if activedataset.measured_by else '')}">Responsible:</a></td>
+							<td>
+								<select name="measured_by">
+									<option value=""><i>Please select...</i></option>
+									<option py:for="p in persons"
+											py:attrs="markoption(p is activedataset.measured_by)"
+											py:content="p"
+											value="${p.username}" />
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td><a href="${'/valuetype/%s' % (activedataset.valuetype.id if activedataset.valuetype else '')}">Value:</a></td>
+							<td>
+								<select name="valuetype">
+									<option value=""><i>Please select...</i></option>
+									<option py:for="vt in valuetypes"
+											py:attrs="markoption(vt is activedataset.valuetype)"
+											py:content="vt"
+											value="${vt.id}" />
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td class="tooltip">
+								User level
+								<span>
+									Select the user level needed to see the content of the dataset. Default is logged in user
+								</span>
+							</td>
+							<td>
+								<select name="access">
+									<option value="0" py:attrs="markoption(activedataset.access==0)">Public dataset</option>
+									<option value="1" py:attrs="markoption(activedataset.access==1)">Only known users (logger)</option>
+									<option value="2" py:attrs="markoption(activedataset.access==2)">Only editing users (editor)</option>
+									<option value="3" py:attrs="markoption(activedataset.access==3)">Only employees (supervisor)</option>
+									<option value="4" py:attrs="markoption(activedataset.access==4)">Only administrators (admin)</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td><a href="${'/site/%s' % (activedataset.site.id if activedataset.site else '')}">Site:</a></td>
+							<td>
+								<select name="site">
+									<option value=""><i>Please select...</i></option>
+									<option py:for="s in sites"
+											py:attrs="markoption(s is activedataset.site)"
+											py:content="s"
+											value="${s.id}" />
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td>Level in m:</td>
+							<td class="tooltip">
+								<input type="text" name="level" value="${formatfloat(activedataset.level,'%g')}"/>
+								<span>Measured level offset to site. Only for sites with multiple instruments in serveral depth. Use negative
+									values for instruments below ground.</span>
+							</td>
+						</tr>
+						<tr>
+							<td>Quality:</td>
+							<td>
+								<select name="quality">
+									<option value=""><i>Please select...</i></option>
+									<option py:for="q in quality"
+											py:attrs="markoption(q is activedataset.quality)"
+											py:content="q"
+											value="${q.id}" />
+								</select>
+							</td>
+						</tr>
+						<tr py:if="activedataset.is_timeseries()">
+							<td>From (date):</td>
+							<td><input type="text" class="datepicker" name="start" value="${formatdate(activedataset.start)}" /></td>
+						</tr>
+						<tr py:if="activedataset.is_timeseries()">
+							<td>Until (date):</td>
+							<td><input type="text" class="datepicker" name="end" value="${formatdate(activedataset.end)}" /></td>
+						</tr>
+						<tr>
+							<td>Data source (eg. instrument):</td>
+							<td>
+								<select name="source">
+									<option value=""><i>Please select...</i></option>
+									<option py:for="datasource in datasources"
+											py:attrs="markoption(datasource is activedataset.source)"
+											py:content="datasource"
+											value="${datasource.id}" />
+								</select>
+							</td>
+						</tr>
+						<tr py:if="activedataset.is_timeseries()">
+							<td>
+								Timezone
+							</td>
+							<td>
+								<select name="timezone">
+									<option py:for="timezone in timezones"
+											py:attrs="markoption(timezone == activedataset.timezone)"
+											py:content="timezone"
+											value="${timezone}"></option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Project
+							</td>
+							<td>
+								<a py:if="activeproject and not is_member('supervisor')" href="/project/${activeproject.id}">${activeproject.name}</a>
+								<select py:if="is_member('supervisor')" name="project">
+									<option value="0" >No Project</option>
+									<option value="${p.id}"
+											py:for="p in projects"
+											py:content="p.name"
+											py:attrs="markoption(p.id == activedataset.project)"></option>
+								</select>
+							</td>
+						</tr>
+						<tr py:if="activedataset.is_timeseries()">
+							<td>
+								<a href="/dataset/calibration?targetid=${activedataset.id}">Calibrate</a>:
+							</td>
+							<td>
+								v' = <input type="text" value="${formatfloat(activedataset.calibration_slope)}" name="calibration_slope" size="5" style="text-align: right;" />
+								* v + <input type="text" value="${formatfloat(activedataset.calibration_offset)}" name="calibration_offset" size="5" style="text-align: right;"/>
+							</td>
+						</tr>
+						<tr py:if="activedataset.is_transformed()" title="Please enter a valid Python/numpy expression for the transformation. See below for guidance">
+							<td>Python:</td>
+							<td >
+								\(f(x)=\)<input type="text" value="${activedataset.expression}" name="expression" size="50" class="transhelpparent"/>
+							</td>
+						</tr>
+						<tr py:if="activedataset.is_transformed()" title="Please enter the latex description for the formula for printing">
+							<td>Latex:</td>
+							<td>
+								\(f(x)=\)<input type="text" value="${activedataset.latex}" name="latex" size="50" class="transhelpparent"/>
+								<div py:if="activedataset.is_transformed()" id="trans_help" class="toggle">
+									<h3>Some help for the Python and latex expressions</h3>
+									Do not use any other variables in the expression than x (the values of the timeseries)
+									<table>
+										<tr>
+											<th>Equation type</th>
+											<th>Example</th>
+											<th>Python code</th>
+											<th>Latex code</th>
+										</tr>
+										<tr>
+											<td>Polynom</td>
+											<td>\(-0.5\cdot10^{-5}x^3+2.35x^2-124.5x+15.3\)</td>
+											<td>-0.5e-5*x**3 + 2.35*x**2 - 124.5*x + 15.3</td>
+											<td>-0.5\dot10^{-5}x^3+2.35x^2-124.5x+15.3</td>
+										</tr>
+										<tr>
+											<td>Exponential</td>
+											<td>\(3.2 e^{0.5x}\)</td>
+											<td>3.2 * exp(0.5*x)</td>
+											<td>3.2 e^{0.5x}</td>
+										</tr>
+										<tr>
+											<td>nat. log.</td>
+											<td>\(\ln{x}\)</td>
+											<td>log(x)</td>
+											<td>\ln{x})</td>
+										</tr>
+										<tr>
+											<td>dec. log.</td>
+											<td>\(\log_{10}{x}\)</td>
+											<td>log10(x)</td>
+											<td>\log_{10}{x}</td>
+										</tr>
+										<tr>
+											<td>cumulative sum</td>
+											<td>\[\int_{t=0}^{t(x)}x dx\]</td>
+											<td>cumsum(x)</td>
+											<td>\int_{t=0}^{t(x)}x'dx</td>
+										</tr>
+									</table>
+								</div>
+
+							</td>
+						</tr>
+						<tr>
+							<td>Comments<a href="/wiki.help" class="tooltip"><img src="/media/help.png" /><span>Get help for using links and formats</span></a></td>
+							<td>
+								<textarea name="comment"
+									  style="width: 100%;"
+									  rows="10"
+									  py:content="activedataset.comment" />
+							</td>
+						</tr>
+					</table>
+					<input type="submit" name="save"  style="width: 10em;"/>
+
+				</form>
+			</div>
+			<div id="transforms" py:if="activedataset.is_transformed()">
+	  		<h3>This data set transforms the records of the following data sets:</h3>
+	  		<ul style="list-style:none;">
+	  			<li py:for="source in activedataset.sources" >
+	  				<button class="tooltip small" onclick="$.post('/dataset/transform_removesource/',{transid:${activedataset.id},sourceid:${source.id}},reload)">
+	  					&#x2718;<span>Remove source from transformation</span>
+	  				</button>
+						<a class="tooltip" href="${source.id}" >${source}<span class="small">${source.size()} records</span></a>
+	  			</li>
+	  			<li>
+	  				<button class="tooltip small" onclick="$.post('/dataset/transform_addsource/',{transid:${activedataset.id},sourceid:$('#trans_sources').val()},reload)">
+	  					<img src="/media/plus-small.png"/>
+	  					<span>Adds the source for transformation</span>
+	  				</button>
+	  				<select id="trans_sources">
+	  					<option value="" style="font-style: italic;">Please select</option>
+	  					<option py:for="potsrc in activedataset.suitablesources()" value="${potsrc.id}">${potsrc}</option>
+	  				</select>
+	  			</li>
+	  		</ul>
+	  	</div>
+
+			<div id="plot" py:if="users.current.level>=activedataset.access">
+				<button onclick="plotds(${activedataset.id});">Plot</button>
+
+				from:
+				<input type="text" class="datepicker" id="plotstart" size="10"
+							value="${formatdate(activedataset.start)}"
+							/>
+				<input type="text" class="timepicker" id="plotstart_t" size="5"
+							value=""
+							/>
+				until:
+				<input type="text" class="datepicker" id="plotend" size="10"
+								value="${formatdate(activedataset.end + timedelta(days=1) if activedataset.end else activedataset.end)}"
+								/>
+				<input type="text" class="timepicker" id="plotend_t" size="5"
+							value=""
+							/>
+				marker:
+				<select id="markerpicker">
+					<option value="">none</option>
+					<option value="x">x</option>
+					<option value="o">o</option>
+					<option value=".">.</option>
+					<option value="|">x</option>
+					<option value="+">+</option>
+					<option value="*">*</option>
+				</select>
+				line:
+				<select id="linepicker">
+					<option value="-">-</option>
+					<option value="">none</option>
+					<option value=":">:</option>
+					<option value="--">--</option>
+					<option value="-.">-.</option>
+				</select>
+				color:
+				<select id="colorpicker">
+					<option value="k" style="background-color: #000;">k</option>
+					<option value="b" style="background-color: #00F;">b</option>
+					<option value="g" style="background-color: #0F0;">g</option>
+					<option value="r" style="background-color: #F00;">r</option>
+					<option value="y" style="background-color: #FF0;">y</option>
+					<option value="c" style="background-color: #0FF;">c</option>
+					<option value="m" style="background-color: #F0F;">m</option>
+
+				</select>
+
+				<div>
+					<img id="plotimg" alt="" src=""/>
+				</div>
+
+			</div>
+			<div id="similar">
+				<div py:for="dsname in datasets" >
+					<h3>${dsname}</h3>
+					<div id="${dsname.replace(' ','_')}">
+						<ul style="list-style-image: url(/media/shimmer/document_16.png)">
+							<li py:for="ds in datasets[dsname]">
+								<a href="${ds.id}">${ds}</a>
+							</li>
+
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div id="records" class="small" py:if="is_member('editor') and activedataset and activedataset.is_timeseries() and users.current.level>=activedataset.access">
+				min.&nbsp;date=&nbsp;<input type="text" id="recordmindate" class="datepicker" size="10"/>&nbsp;<input type="text" id="recordmintime" class="timepicker" size="5" />
+				max.&nbsp;date=&nbsp;<input type="text" id="recordmaxdate" class="datepicker" size="10"/>&nbsp;<input type="text" id="recordmaxtime" class="timepicker" size="5" />
+				min.&nbsp;value=&nbsp;<input type="text" id="recordminvalue"/>
+				max.&nbsp;value=&nbsp;<input type="text" id="recordmaxvalue"/>
+				<br/>
+				<input type="checkbox" id="splitUseThreshold"/>
+				show only records with a jump from the last value greater than
+				<a href="/wiki/split"><img src="/media/help.png"/></a>
+				<input id="splitthreshold" type="text" value="0.0" style="text-align: right;" />${activedataset.valuetype.unit if activedataset and activedataset.valuetype else '?'}
+				<br/>
+				<button onclick="loadrecords();">find records</button>
+				<span class="tooltip">limit: <input type="text" value="100" id="recordlimit"/><span>show not more then these records</span></span>
+				<div id="recordlist"/>
+			</div>
+			<div id="export" py:if="is_member('logger') and users.current.level>=activedataset.access">
+				<ul>
+					<li py:if="activedataset">
+					<button onclick="window.location='/dataset/records.csv?dataset=${activedataset.id}';">Export as CSV</button>
+						Get Values as csv-file. Open with Excel if English language settings are chosen in Windows.
+					</li>
+					<li>
+						<a href="/datafiles/daten-vorlage.xls" style="float:left;">
+							<img src="/media/excel-icon.gif" />
+						</a>
+						Download the excel template for data import
+						<a href="/datafiles/dataset-xxxx.xls">here</a>.
+					</li>
+				</ul>
+			</div>
+		</div>
+
+  </div>
+
+</body>
+</html>

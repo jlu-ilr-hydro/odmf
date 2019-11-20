@@ -1,0 +1,119 @@
+<xml version="1.0" encoding="UTF-8" xmlns:py="http://genshi.edgewall.org/" >
+	<!--Variables to set: actionname='action',action='/path/to/action?datasetid=1&recordid=1&frompage='/path/to/currentpage' and records. -->
+	<style>
+		tr.record {	border-bottom: solid 1px black;}
+		td.record { border: thin dotted #32739D;
+								padding-left: 0.5em; 
+								padding-right: 0.5em; 
+							}
+		td.number { text-align: right;}
+		td.str { 
+			text-align: left;
+			}
+		td.small {
+			font-size: 71%;
+		} 
+		.errorcheck { text-align: center;}
+	</style>
+	<script>
+		function action(dsid,rid) {
+			$.post('${action}',{datasetid:dsid,recordid:rid}, function(data) {
+				if (data) {
+					alert(data);
+				}
+				location.reload();
+			});
+		}
+		function checkall() {
+			$('.errorcheck').prop('checked',true);
+		}
+		function commit_errors() {
+			var res=''
+			$(".errorcheck:checked").each(function(){
+				res +=$(this).val() + ' '
+			});
+			$.post('/dataset/updaterecorderror',{dataset:${dataset.id},records:res},function(data){
+				alert('done');
+				if (data) {
+					$('.error').html(data);				
+				} else {
+					location.reload();				
+				}
+			});
+
+			
+		}
+	</script>
+	<div class="small">
+		<div class="small">
+            <span />
+            <span style="position: relative; right:0px;">
+                
+            </span>
+        </div>
+		<table>
+			<thead>
+                <tr style="font-weight: normal;" class="small">
+                    <td/>
+                    <td py:content="'%s/%s records' % (currentcount,totalrecords)"/>
+                    
+                    <td/><td/><td/><td/><td/>
+                    <td>
+                        <button onclick="checkall()">check all</button>
+                    </td>
+                    <td>
+                        <button onclick="commit_errors()">commit errors</button>
+                    </td>
+                </tr>
+				<tr class="record box" >
+					<th>ID</th>
+					<th>time</th>
+					<th>raw value</th>
+					<th> </th>
+					<th>calib. value</th>
+					<th> </th>
+					<th>comment</th>
+					<th>error?</th>
+					<th py:if="action" >
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr py:for="rec in records">
+					<td class="record number" py:content="rec.id" />
+					<td class="record str" py:content="formatdatetime(rec.time)" />
+					<td class="record number" py:content="'%0.4g' % rec.value if rec.value else 'N/A'" />
+					<td class="record str" py:content="rec.dataset.valuetype.unit" />
+					<td class="record number" py:content="'%0.4g' % rec.calibrated if rec.value else 'N/A'" />
+					<td class="record str" py:content="rec.dataset.valuetype.unit" />
+					<td class="record str small" py:content="abbrtext(rec.comment,100)"/> 
+					<td class="record" style="text-align: center;">
+						<input type="checkbox" 
+									 py:attrs="attrcheck('checked',rec.is_error)"
+									 class="errorcheck" 
+									 value="${rec.id}" />
+					</td>
+					<td class="record str" py:if="action">
+						<span class="box nowrap small">
+							<a onclick="action(${rec.dataset.id},${rec.id});"
+											py:content="actionname" py:if="actionname"/> 
+							
+						</span>
+						<a py:if="action_help" href="${action_help}" >
+							<img src="/media/help.png" alt="help"/>
+						</a>
+
+					</td>
+				</tr>
+			</tbody>
+			<tfoot>
+				<tr>
+					<td /><td /><td /><td /><td />
+					<td>
+					</td>
+				</tr>
+			</tfoot>
+		</table>
+			
+	</div>
+</xml>

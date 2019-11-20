@@ -1,0 +1,196 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+    <!-- Server configuration, see conf.py for HEAD_BASE -->
+    <base href="${head_base}" />
+
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Download</title>
+  <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
+  <script>
+
+  //<![CDATA[
+
+	  function isFileSizeToBig( size ) {
+		  var MAX_SIZE = ${max_size};
+
+		  return size > MAX_SIZE;
+      }
+
+
+
+
+  	$(function() {
+
+		$('#datafile').change( function(evt) {
+			var path = evt.target.files[0];
+			if(isFileSizeToBig(path.size)) {
+				alert("Please split your file! " + path.name + " has more than 25 mb. Has " + path.size / 1000000 + " mb");
+				return;
+            }
+            $('.upload').prop('disabled', !$(this).val());
+        });
+
+        // Delete button
+        $('form.remove-form').submit( function( e ) {
+            if (window.confirm("Do you really want to delete this file?")) {
+
+            } else {
+                e.preventDefault()
+            }
+        })
+
+		$('#help').load('getindex?dir=${curdir}');
+  		$('.help').click(function() {
+  			if ($('#help').html().substring(0,9)!='<textarea') {
+  				// Create textarea for editing of index.html
+	  			$('#help').html('<textarea rows="20"/><br/><button>Save</button><button>Cancel</button><a href="/wiki/help"><img src="/media/help.png" /></a>');
+	  			// Load current file in textarea
+	  			$.get('/datafiles/${curdir.name}/index.html',{},function(text) {
+		  			$('#help textarea').val(text);				
+	  			});
+	  			// Save file on click
+	  			$('#help button').click(function() {
+	  				if ($(this).text()=="Save") {
+		  				var text=$('#help textarea').val();
+		  				$.post('/download/saveindex/',{dir:'${curdir}',s:text},function(text){
+		  					$('#help').load('getindex?dir=${curdir}');
+		  				});	  					
+	  				} else {
+	  					$('#help').load('getindex?dir=${curdir}');
+	  				}
+	  			});  				
+  			}
+  		});
+  	});
+  	//]]>
+  </script>
+	<style>
+		.dbimport {
+			display: inline-block;
+			width: 32px;
+			height: 32px;
+			background-image: url(/media/shimmer/document_32.png);
+			background-repeat:no-repeat;
+			color:white;
+		}
+		.dbimport:hover {
+			background-image: url(/media/shimmer/document_add_32.png);
+			color:#32739D;
+            cursor: pointer;
+		}
+		a:hover {
+			background-color: #4665A2;
+			color: white;
+			text-decoration: none;
+		}
+		.help {
+	    float: right;
+	    width: 30%;
+	    border: dotted 1px #32739d;
+	    border-radius: 0px;
+	    color: black;
+	    background-color: #E8F0FF;
+	    margin: 0.5em 0.5em 0.5em 0.5em;
+	    padding: 1em;
+	    background: white;
+	    cursor: hand;
+		}
+		#help textarea {
+			width: 100%;
+			font-family: monospace;
+			cursor: auto;
+		}
+		ul.folder {
+			list-style-image: url(/media/shimmer/folder_32.png); vertical-align:middle;
+		}
+		li.folder {
+			list-style-image: url(/media/shimmer/folder_add_32.png)
+		}
+
+        form.remove-form input[type="submit"] {
+            border-radius: 10px;
+            border: 1px #000;
+            box-shadow: #fff 3px 3px 7px;
+        }
+
+        .remove-button:hover{
+            cursor: pointer;
+        }
+	</style>
+</head>
+<body>
+	${navigation('File management')}
+	<div class="content">
+		<div py:if="is_member('logger')">
+			<h2>Upload...</h2>
+	    <div class="error" py:content="error" />
+			<div style="vertical-align:middle;">
+				<img src="/media/shimmer/document_add_32.png" />
+		    <form method="post" enctype="multipart/form-data" action="/download/upload" style="display: inline;">
+		    	file:
+		    	<div style="display: inline-block;">
+		    		<span class="tooltip">
+		    			<input id="overwrite" type="checkbox" value="overwrite" name="overwrite"/>
+		    			<span>Allow to overwrite existing file with the same name</span>
+		    		</span>
+						
+			    	<input type="file" name="datafile" id="datafile"/>
+		    	</div>
+		    	<input name="dir" type="hidden" value="${curdir}" />
+		    	<input type="submit"  class="upload" name="upload" value="upload file" disabled="disabled"/>
+		    	<!--<input type="submit" class="upload" name="uploadimport" value="upload &amp; import" disabled="disabled"/>-->
+					to: <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
+	
+		    </form>
+				
+			</div>
+	  </div>
+
+    <h2>Download</h2>
+		<h3>
+			<span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
+		</h3>
+		<div class="help tooltip">
+			<h3>
+				${curdir.basename.title()}
+			</h3>
+			<div id="help" class="small"/>
+			<span>Click to edit...</span>
+		</div>
+    <div>
+    	<ul class="folder">
+    		<li class="folder">
+					<form method="post" action="/download/newfolder" style="display: inline;">
+							new folder:
+							<input type="text" name="newfolder" />
+				    	<input name="dir" type="hidden" value="${curdir}" />
+							<input type="submit" value="Create folder"/>
+					</form>    			
+    		</li>
+    		<li py:for="f in directories">
+    			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" /> 
+    		</li>
+    	</ul> 
+    	<ul style="list-style: none;padding-left: 0px;">
+    		<li py:for="f in files">
+    			<span onclick="window.location='to_db?filename=${f.href}'" title="import in data base" class="dbimport">.</span>
+    			<!--<a href="to_db?filename=${f.href}" title="import in data base" class="dbimport"> </a>-->
+    			<a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" /> 
+    			<span class="box" py:if="is_member('admin')">
+                    <form class="remove-form" method="post" action="/download/removefile" style="display: inline;">
+                            <input name="dir" type="hidden" value="${curdir}" />
+				    	    <input name="filename" type="hidden" value="${f.basename}" />
+							<input type="submit" id="remove-button-id" class="remove-button" value="&#x2718;"/>
+					</form>
+						
+    			</span>
+
+    		</li>
+    	</ul> 
+		</div>
+	</div> <!--content-->
+</body>
+</html>

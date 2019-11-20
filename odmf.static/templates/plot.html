@@ -1,0 +1,502 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+<!--
+TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page home to /map/kml and use html-get
+-->
+<head>
+    <!-- Server configuration, see conf.py for HEAD_BASE -->
+    <base href="${head_base}" />
+
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<link href="/media/jquery-ui-1.8.18.custom.css" rel="stylesheet" type="text/css"/>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<title>schwingbach plot</title>
+	
+	<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>	
+	<script type="text/javascript" src="/media/jquery-1.7.1.min.js"></script> 
+  <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
+  <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
+  <script src="/media/jquery.json-2.3.min.js" type="text/javascript"></script>
+  <script src="/media/flot/jquery.flot.js" type="text/javascript" ></script>
+	<script type="text/javascript" src="/media/flot/jquery.flot.time.js"></script>
+
+	<script type="text/javascript" src="/html/plot.js">
+	</script>
+	<script type="text/javascript">
+		//<![CDATA[
+    $(function() {
+			$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
+			$(".timepicker").autocomplete({source: timerange(15)});
+			for (var i=0;i<10;i++) {
+				popSelect(i,${as_json(plot.newlineprops).decode('utf-8')});
+			}
+			$('#addsubplot').removeProp('disabled');
+  		
+  		$('.description').click(function() {
+  			if ($('#description').html().substring(0,9)!='<textarea') {
+  				// Create textarea for editing of index.html
+	  			$('#description').html('<textarea rows="5"/><br/><button>Save</button><button>Cancel</button><a href="/wiki/help"><img src="/media/help.png" /></a>');
+	  			// Load current file in textarea
+	  			$('#description textarea').val("${plot.description.replace('\n',r'\n')}");				
+	  			// Save file on click
+	  			$('#description button').click(function(event) {
+	  				if ($(this).text()=="Save") {
+		  				var text=$('#description textarea').val();
+		  				$.post('describe',{newdescription:text},seterror);
+	  				} else {
+	  					var text = '${markdown(plot.description).replace("\n",r"\n")}';
+	  					$('#description').html(text);
+	  					event.stopPropagation();
+	  				}
+	  			});  				
+  			} /* else {
+  					var text = '${markdown(plot.description).replace("\n",r"\n")}';
+  					$('#description').html(text);  				
+  			}*/
+  		});
+
+    });
+    //]]>
+	</script>
+	<style type="text/css">
+	  .wide {width: 100%;}
+	  .filter {width: 10em;}
+	  .firstoption {font-style: italic;color: grey;}
+	  .small {font-size: small; font-style: italic;}
+  	.ui-autocomplete {
+			max-height: 100px;
+			overflow-y: auto;
+			/* prevent horizontal scrollbar */
+			overflow-x: hidden;
+			/* add padding to account for vertical scrollbar */
+			padding-right: 20px;
+			font-size: small;
+		}
+		li.sp {
+	    background-color: #E8F0FF;
+			border-radius: 0px;
+			border-top: 1px solid #000;
+		}
+		li.line {
+			background-color: #FFF;
+		}
+		.spinner {
+			size: 3;
+		}
+		.leftspace {
+			padding-left: 2px;
+		}
+		ul.brush {
+			list-style-image: url(/media/shimmer/brush_16.png)
+		}
+		ul.box_24 {
+			list-style-image: url(/media/plot.png)
+		}
+		ul.doc {
+			list-style-image: url(/media/shimmer/document_16.png)
+		}
+		span.box {
+			padding: 0px;
+			background-color: #FFF;
+			margin-right: 10px;
+		 	box-shadow: 5px 5px 8px #888;
+		}
+		span.box a{
+			padding: 0px 2px;
+		 	cursor: pointer; 
+		}
+		span.box a:hover {
+			background-color:#32739D;
+			color:#FFF;
+			border-radius: 10px;
+			text-decoration: none;
+			cursor: pointer;
+		}
+		.tooltip span {
+			color: #111;
+		}
+		.nowrap {white-space: nowrap;}
+		.propsection {
+			display: inline-block;
+			vertical-align: top;
+			border: 1px solid #111;
+			border-radius: 5px;
+			height: 75px;
+			padding: 5px;
+			overflow: auto;
+		}
+		#plotproperties {
+		}
+		.description {
+	    /*float: right;
+	    width: 30%;
+	    border: solid 1px #32739d;
+	    border-radius: 5px;
+	    color: black;
+	    background-color: #E8F0FF;
+	    margin: 0.5em 0.5em 0.5em 0.5em;
+	    padding: 1em;
+	    background: white;
+	    */
+	    cursor: pointer;
+		}
+		.w90 {
+			display: inline-block;
+			width: 8em;
+		}
+		#description textarea {
+			width: 100%;
+			font-family: monospace;
+			cursor: auto;
+		}
+		.pluspadding {
+			display: inline-block;
+			padding-left: 2em;
+			padding-right: 2em;
+		}
+		.abs {
+			position: absolute;
+			background-color: #FFF;
+		}
+	</style>
+		
+</head>
+<body>
+	<datalist id="numbers"><option py:for="i in range(10)" value="${i}"/></datalist>
+	${navigation('Plot')}
+	<div class="content">
+		<div class="error" id="error">${error}</div>
+
+		<h2><a href="javascript:toggle('properties')">&#x25BE; Properties</a>
+			<span class="box small leftspace">
+				<a href="javascript:$.post('clf',{},seterror);changeprops()" class="tooltip">
+					&#x2718;
+					<span>removes all lines and subplots of the figure</span>
+					clear plot
+				</a>
+			</span>
+		</h2>
+		<div id="properties" >
+			<div id="plotproperties">
+				<div class="propsection small">
+					<table>
+						<tr>
+							<td></td><td>date:</td><td>time:</td><td/><td>size:</td><td/><td>subplots:</td>
+						</tr>
+						<tr>
+							<td>start:</td>
+							<td><input class="props datepicker" id="startdate" size="10" value="${formatdate(plot.startdate)}"/></td>
+							<td><input class="props timepicker" id="starttime" size="5" value="00:00" /></td>
+							<td>w:</td>
+							<td><input class="props" type="text" id="plotwidth" size="5" value="${'%g' % (plot.size[0]*100)}"/></td>
+							<td>rows:</td>
+							<td>
+								<input class="props" list="numbers" value="${plot.rows}" id="plotrows" size="2"/>
+							</td>
+						</tr>
+						<tr>
+							
+							<td>end:</td>
+							<td><input class="props datepicker" id="enddate" size="10" value="${formatdate(plot.enddate)}"/></td>
+							<td><input class="props timepicker" id="endtime" size="5" value="00:00" /> </td>
+							
+							<td>h:</td>					
+							<td><input class="props" type="text" id="plotheight" size="5" value="${'%g' % (plot.size[1]*100)}"/></td>
+							
+							<td>cols</td>
+							<td><input list="props numbers" value="${plot.columns}" id="plotcolumns" size="2"/></td>					
+						</tr>
+					</table>
+				</div>
+				<div id="agg" class="propsection small">
+					Aggregate data:<br/>
+					<select id="plotaggregate" class="props">
+						<option value="" py:attrs="markoption(plot.aggregate=='')">No aggregation</option>
+						<option value="30Min" py:attrs="markoption(plot.aggregate=='30Min')">Half hourly</option>
+						<option value="h" py:attrs="markoption(plot.aggregate=='h')">Hourly</option>
+						<option value="D" py:attrs="markoption(plot.aggregate=='D')">Daily</option>
+						<option value="W" py:attrs="markoption(plot.aggregate=='W')">Weekly</option>
+						<option value="M" py:attrs="markoption(plot.aggregate=='M')">Monthly</option>
+						<option value="Y" py:attrs="markoption(plot.aggregate=='Y')">Yearly</option>
+					</select>
+					<div style="font-size: x-small;">
+						<a href="/wiki/plot/aggregate">more on aggregate...</a>
+					</div>
+				</div>
+				<div class="propsection">
+					<span class="box small leftspace tooltip w90">
+						<a id="saveplotbutton">&#x25B8;save</a>
+						<span>
+							Save the actual plot. You will be prompted for a name.
+						</span>
+					</span>
+					<br/>
+					<span class="box small leftspace w90">
+						<a id="loadplotbutton">&#x25BE;load</a>
+						<div class="box small toggle abs" id="loadplotdiv">
+							<div py:for="fn in plot.listdir()"><a py:content="fn" class="loadplotfn"/></div>
+						</div>
+					</span>
+						<br/>
+					<span class="box small leftspace w90">
+						<a class="tooltip" id="deleteplotbutton" >&#x25BE;delete
+						<span>Delete the file from disk</span>
+						</a>
+						<div class="box small toggle abs" id="killplotdiv">
+							<div py:for="fn in plot.listdir()"><a py:content="fn" class="killplotfn"/></div>
+						</div>
+					</span>
+						<br/>
+						
+				</div>
+			</div>
+
+				<!--
+					Subplots
+				-->
+			
+			<ul class="box_24">
+				<li py:for="sp in plot.subplots" class="sp">
+					subplot ${sp.position} 
+					<span class="box small leftspace nowrap"> 
+						<a py:if="sp.position==len(plot.subplots)" 
+							href="javascript:removesubplot(${sp.position})" 
+							class="tooltip">
+							&#x2718;
+							<span>remove subplot ${sp.position} from figure</span>
+							remove
+						</a>
+					</span>
+					<span class="box small leftspace nowrap">
+						<a href="javascript:changeylimit(${sp.position})" class="tooltip">
+							<i>y</i>&#x2195;<span>change y axis limit</span>
+						</a>
+					</span>
+					<span class="box small leftspace nowrap pluspadding">
+						<a onclick="toggle('logsiteselectdiv_${sp.position}')" class="tooltip">show logs ${'for #%i' % sp.logsite if sp.logsite else ''}
+						<span>
+							Select a site for which you want<br/> to have the log entries shown.<br/>Only sites of the lines are available
+						</span>
+						</a>
+						<div id="logsiteselectdiv_${sp.position}" class="toggle abs" >
+							<select id="logsiteselect_${sp.position}"  
+											py:with="sites=sp.get_sites()"
+											onchange="changelogsite(${sp.position});"
+											size="${min(len(sites)+1,10)}">
+								<option value="" py:attrs="markoption(not sp.logsite in sites)">None</option>
+								<option py:for="siteid in sorted(sites)"
+												py:attrs="markoption(sp.logsite == siteid)" 
+												value="${siteid}">${sites[siteid]}</option>
+							</select>
+						</div>
+					</span>
+
+					<ul class="brush">
+						<li py:for="i,l in enumerate(sp.lines)" class="small line">
+							<span class="small box nowrap" id="linetools_${sp.position}_${i}">
+								<a href="javascript:removeline(${sp.position},${i})" title="remove line" class="tooltip">
+									&#x2718; 
+									<span>remove line</span>
+								</a>
+								<a href="/plot/export.csv?${'subplot=%i&amp;line=%i' % (sp.position,i)}" class="tooltip">
+									csv&#x25B8;
+									<span>export to csv file...</span>
+								</a>
+								<a href="javascript:showlinedatasets(${sp.position},${i})" class="tooltip">
+									&#x25BE;ds
+									<span>show datasets of line</span>
+								</a>
+								<a href="javascript:reloadline(${sp.position},${i})" class="tooltip">
+									&#x21BB;
+									<span>Reload this line from the database.</span>
+								</a>
+								<a href="javascript:editline(${sp.position},${i})" title="edit line" class="tooltip">
+									edit
+									<span>Edit this line</span>
+								</a>
+								<a href="javascript:copyline(${sp.position},${i})" title="copy line" class="tooltip">
+									copy
+									<span>Copy this line</span>
+								</a>
+								
+							</span>
+							${l} (${l.color+l.linestyle+l.marker})
+							<ul id="datasetlist_${sp.position}_${i}" class="datasetlist small doc"/>
+						</li>
+						<li class="small line">
+							<button onclick="addline(${sp.position})" class="tooltip" id="addline_${sp.position}">
+								<img src="/media/plus-small.png"/>
+								<span>Add the line to subplot ${sp.position}</span>
+							</button>
+								<span class="nowrap">
+									value:
+									<select id="vtselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter vtselect">
+										<option value="" class="firstoption">Please select...</option>
+									</select>
+								</span>
+								<span class="nowrap">
+									site:
+									<select id="siteselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter siteselect">
+										<option value="" class="firstoption">Please select...</option>
+									</select>
+								</span>
+								<span class="nowrap">
+									level:
+									<select id="levelselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter levelselect">
+										<option value="" class="firstoption">Please select...</option>
+									</select>
+									m
+								</span>
+
+								<span class="nowrap">
+									instrument:
+									<select id="instrumentselect_${sp.position}" onchange="popSelect(${sp.position});" class="filter instrumentselect">
+										<option value="" class="firstoption">Please select...</option>
+									</select>
+								</span>
+								<span class="nowrap">
+									marker:
+									<select id="markerpicker_${sp.position}">
+										<option value="">none</option>
+										<option value="x">x</option>
+										<option value="o">o</option>
+										<option value=".">.</option>
+										<option value="|">|</option>
+										<option value="+">+</option>
+										<option value="*">*</option>
+									</select>
+								</span>
+								<span class="nowrap">
+									line:
+									<select id="linepicker_${sp.position}">
+										<option value="-">-</option>
+										<option value="">none</option>
+										<option value=":">...</option>
+										<option value="--">--</option>
+										<option value="-.">-.</option>
+									</select>
+								</span>
+								<span class="nowrap">
+									color:
+									<select id="colorpicker_${sp.position}">
+										<option py:for="c,ccode in [('k','#000'),('b','#00F'),('g','#0F0'),('r','#F00'),('y','#FF0'),('c','#0FF'),('m','#F0F')]"
+														value="${c}" py:content="c" style="background-color: ${ccode}"
+														py:attrs="markoption(plot.newlineprops and plot.newlineprops.color==c)"
+										/>
+									</select>
+								</span>
+								<span class="nowrap" py:if="plot.aggregate">
+									aggregate:
+									<select id="aggpicker_${sp.position}">
+										<option value="mean">mean</option>
+										<option value="min">min</option>
+										<option value="max">max</option>
+										<option value="stdev">stdev</option>
+										<option value="sum">&Sigma;</option>
+									</select>
+								</span>
+						</li>
+					</ul>
+
+				</li>
+				<li class="sp">
+					<button id="addsubplot" onclick="javascript:addsubplot()" class="tooltip">
+						<img src="/media/plus-small.png"/>
+						<span>Add a new subplot to the figure</span>
+					</button>
+						add subplot
+				</li>
+			</ul>
+		</div>
+		<a class="box small leftspace nowrap tooltip" 
+			 href="/plot/image.pdf?create=${plot.createtime}">
+			 plot as pdf...
+             <span>
+                Opens the graph as a pdf file.
+             </span>
+		</a>
+		<a py:if="is_member('editor')" 
+			class="box small leftspace nowrap tooltip" 
+			href="javascript:exportall_csv()">
+			export all
+            <span>
+                Exports all datasets in this plot to a csv file. <br/>
+                The exported file has multiple columns according <br/>
+                to valuetypes, sites and levels. This feature is <br/>
+                still experimental. Transformed timeseries are not <br/>
+                part of the export.
+            </span>
+		</a>
+		<span class="tooltip">
+			<select id="tolerance_skipper">
+				<option value="0">no tolerance</option>
+				<option value="300">5Min</option>
+				<option value="600">10Min</option>
+				<option value="1800">30Min</option>
+				<option value="3600">1h</option>
+				<option value="86400">1day</option>
+			</select>
+			<span>
+				Specifies a tolerance time to keep values in the same line of the csv file. <br/>
+				"no tolerance" means there is no tolerance, and the smallest difference in the timestamp of two values <br/>
+				leads to a new line.
+			</span>
+		</span>
+		<a py:if="is_member('editor')" 
+			class="box small leftspace nowrap tooltip" 
+			href="javascript:RegTime()">
+			regular export
+            <span>
+                Exports all datasets in this plot to a csv file with regularized timesteps. <br/>
+                The exported file has multiple columns according <br/>
+                to valuetypes, sites and levels. This feature is <br/>
+                still experimental. <br/>
+            </span>
+		</a>
+		<span class="tooltip">
+			<select id="reg_interpolation">
+				<option value="5Min">5Min</option>
+				<option value="10Min">10Min</option>
+				<option value="15Min">15Min</option>
+				<option value="30Min">30Min</option>
+				<option value="60Min">1h</option>
+				<option value="1440Min">1day</option>
+				
+			</select>
+			<span>
+				Time resolution of all datasets in the output csv-file.
+			</span>
+		</span>
+		<span class="tooltip">
+			<select id="Interpolation_Limit">
+				<option value="1">1Timestep</option>
+				<option value="5">5Timesteps</option>
+				<option value="10">10Timesteps</option>
+				<option value="50">50Timesteps</option>
+				<option value="100">100Timesteps</option>
+				<option value="200">200Timesteps</option>
+			</select>
+			<span>
+				Number of possible gaps in the data which will be filled through linear interpolation.
+			</span>
+		</span>
+		<h2><a href="javascript:renderplot('plot',Date.now())">&#x25BE; Load plot</a></h2>
+		<div id="plot">
+			
+		</div>
+		<div class="description small">
+			Figure description (<a class="description">click to edit</a>):
+			<div id="description" class="small" py:content="markdown(plot.description)"/>
+		</div>
+		<!-- Something for the future: use flot on client instead of matplotlib on server
+		<h2>flot</h2>
+		<button onclick="flotplot()">flot it</button>
+		<div id="flotlegend"/>
+		<div style="width:1200px;height: 600px;" id="flotcanvas"></div>
+		-->
+	</div>
+
+</body>
+</html>

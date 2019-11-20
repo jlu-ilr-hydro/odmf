@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+    <!-- Server configuration, see conf.py for HEAD_BASE -->
+    <base href="${head_base}" />
+	
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Datasets</title>
+	<link href="/media/jquery-ui-1.8.18.custom.css" rel="stylesheet" type="text/css"/>
+  <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
+  <script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" ></script>
+
+    <script>
+    	//<![CDATA[
+    		function popSelect() {
+    			var vt = $('#vtselect').val()
+    			var user = $('#userselect').val()
+    			var site = $('#siteselect').val()
+    			var date = $('#dateselect').val()
+    			var type = $('#typeselect').val()
+    			var instrument = $('#instrumentselect').val()
+					$.getJSON('/dataset/attrjson',
+										{ attribute:'valuetype',
+										  user:user,
+										  site:site,
+										  date:date,
+										  type:type,
+										  instrument:instrument,
+										},
+										function(data){
+											var html='<option value="">Please select...</option>';
+											$.each(data,function(index,item){
+												html+='<option value="'+item.id+'">'+item.name+'</option>';
+											});
+											$('#vtselect').html(html).val(vt);
+										}
+					);
+							
+					$.getJSON('/dataset/attrjson',
+										{ attribute:'measured_by',
+										  valuetype:vt,
+										  site:site,
+										  date:date,
+										  type:type,
+										  instrument:instrument,
+										},
+										function(data){
+											var html='<option value="">Please select...</option>';
+											$.each(data,function(index,item){
+												html+='<option value="'+item.username+'">'+item.firstname+' '+item.surname+'</option>';
+											});
+											$('#userselect').html(html).val(user);
+										}
+					);		
+	
+					$.getJSON('/dataset/attrjson',
+										{ attribute:'site',
+										  valuetype:vt,
+										  user:user,
+										  date:date,
+										  type:type,
+										  instrument:instrument,
+										},
+										function(data){
+											var html='<option value="">Please select...</option>';
+											$.each(data,function(index,item){
+												html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
+											});
+											$('#siteselect').html(html).val(site);
+										}
+					);
+					$.getJSON('/dataset/attrjson',
+										{ attribute:'type',
+										  valuetype:vt,
+										  user:user,
+										  date:date,
+										  site:site,
+										  instrument:instrument
+										},
+										function(data){
+											var html='<option value="">Please select...</option>';
+											$.each(data,function(index,item){
+												html+='<option value="'+item+'">'+item+'</option>';
+											});
+											$('#typeselect').html(html).val(type);
+										}
+					);
+					$.getJSON('/dataset/attrjson',
+										{ attribute:'source',
+										  valuetype:vt,
+										  user:user,
+										  date:date,
+										  site:site,
+										  type:type
+										},
+										function(data){
+											var html='<option value="">Please select...</option>';
+											$.each(data,function(index,item){
+												if (item) {
+													html+='<option value="'+item.id+'">'+item.name+'</option>';												
+												} else {
+													html+='<option value="null">No instrument</option>';
+												}
+											});
+											$('#instrumentselect').html(html).val(instrument);
+										}
+					);
+					$('#exportrecords').prop('disabled',!(vt && site)); 
+					if (vt!='' || user!='' || site!='' || date!='' || type!='' || instrument!='') {
+						setFilter();
+					}
+    		}
+    		function setFilter() {
+    			// Linklist to datasets
+    			var vt = $('#vtselect').val();
+    			var user = $('#userselect').val();
+    			var site = $('#siteselect').val();
+    			var date = $('#dateselect').val();
+    			var type = $('#typeselect').val();
+					var instrument = $('#instrumentselect').val()
+					$.getJSON('/dataset/json',
+										{ valuetype: vt,
+											user:user,
+											site:site,
+											date:date,
+											type:type,
+										  instrument:instrument,
+										},
+										function(data){
+											var html='';
+											$('#dscount').html('' + data.length + ' datasets');
+											$.each(data,function(index,item){
+												html+='<li><a href="/dataset/'+
+															item.id+'">'+item.label+'</a></li>'
+												});
+											$('#dslist').html(html);
+										}
+					);    			
+    		}
+    		function clearFilter() {
+    			$('.filter').val('')
+    			$('#dateselect').val('')
+    			popSelect();
+    			$('#dslist').html('')
+    		}
+    		function gotods() {
+    			dsid = prompt('Goto dataset no.');
+    			if (dsid>0) {
+    				window.location.href='/dataset/' + dsid;
+    			}
+    		}
+    		$(function() {
+  					//$('#navigation').load('/navigation');
+    				$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
+    				$("#toggleexport").click(function(){
+    					$('#exportdiv').slideToggle();
+    				});
+    				$('#exportrecords').click(function() {
+			    			var props = {valuetype:$('#vtselect').val(),
+			    								 user:$('#userselect').val(),
+			    								 site:$('#siteselect').val(),
+			    								 date:$('#dateselect').val(),
+			    								 type:$('#typeselect').val(),
+			    								 instrument:$('#instrumentselect').val(),
+			    								 witherrors:$('#exportrecordswitherror').prop('checked')
+			    							};
+								
+								// Check if vt,site and instrument are selected, otherwise set error
+								if (!(props.valuetype && props.site)) {
+									$('.error').html('Cannot export values when valuetype, site or instrument are not selected');
+								} else {
+		    					// Call a function with the filter that generates a csv with all
+		    					// records. 
+									//alert($.param(props));
+									window.location = '/dataset/multirecords.csv?' +$.param(props) 
+								}
+    				});
+	    			popSelect();
+
+	   		});
+        //]]>
+    </script>
+		<style>
+			select {width:100%;}
+			.filter {width: 10em; }
+			.label {
+				white-space:nowrap;
+			}
+			label {
+				display: inline-block;
+				width: 6em;
+			};
+		</style>
+
+</head>
+<body>
+	${navigation('Datasets')}
+	<div class="content">
+		<div class="error"></div>
+		<div>
+			<h2>Filter:</h2>
+			<div class="small">
+				<span class="label">
+					<label for="vtselect">
+						value type:
+					</label>
+					<select id="vtselect" onchange="popSelect();" class="filter" tabindex="2">
+						<option value="">Please select...</option>
+					</select>
+				</span>
+				<span class="label">
+					<label for="siteselect">
+						site:
+					</label>
+					<select id="siteselect"  onchange="popSelect();" class="filter" tabindex="3">
+						<option value="">Please select...</option>
+					</select>
+				</span>
+				<span class="label">
+					<label for="userselect">
+						user:
+					</label>
+					<select id="userselect"  onchange="popSelect();" class="filter" tabindex="4">
+						<option value="">Please select...</option>
+					</select>
+				</span>
+				<span class="label">
+					<label for="typeselect">
+						type:
+					</label>
+					<select id="typeselect" onchange="popSelect();" class="filter" tabindex="5">
+						<option value="">Please select...</option>
+					</select>
+				</span>
+				<span class="label">
+					<label for="instrumentselect">
+						instrument:
+					</label>
+					<select id="instrumentselect" onchange="popSelect();" class="filter" tabindex="6">
+						<option value="">Please select...</option>
+					</select>
+				</span>
+				<span class="label">
+					<label for="dateselect">
+						date:
+					</label>
+					<input id="dateselect" type="text" class="datepicker filter" value=""  
+								onchange="popSelect();" tabindex="7"/>
+				</span>
+				<span class="label">
+					<button onclick="setFilter();">apply filter</button>
+					<button onclick="clearFilter();">clear filter</button>
+				</span>
+			</div>
+	
+		</div>
+		<div>
+			<div>
+				<a href="/dataset/new" class="tooltip"><img src="/media/shimmer/document_add_24.png"/> New dataset...<span>Create a new dataset</span></a>		
+				<a href="javascript:gotods();" tabindex="1" class="tooltip">&#x25B6;goto<span>Go directly to a dataset by entering the id</span></a>
+			</div>
+			<h2>List:</h2>
+			<h3 id="dscount">0 datasets:</h3>
+			<div class="small">
+				<span class="small box">
+					<a id="toggleexport">&#x25BE;export</a>
+					<div class="toggle abs small box" id="exportdiv">
+						<span class="tooltip">
+							<button id="exportrecords" disabled="disabled">export records</button>
+							<span>
+								Only available when valuetype and site are selected.<br/> Beware multi-instrument and multi-level situations.
+							</span>
+						</span>
+						<span class="tooltip">
+							<input type="checkbox" id="exportrecordswitherror" /> 
+							include error records
+							<span>
+								Check, if you want to have records mark as error exported also	
+							</span>
+						</span>
+					</div>
+
+				</span>
+			</div>
+			<ul id="dslist" style="list-style-image: url(/media/shimmer/document_24.png)">
+			</ul>
+		</div>				
+	
+	</div>			
+	</body>
+</html>

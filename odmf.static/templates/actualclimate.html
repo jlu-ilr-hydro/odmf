@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+    <head>
+        <!-- Server configuration, see conf.py for HEAD_BASE -->
+        <base href="${head_base}" />
+
+        <link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Actual climate</title>
+        <style>
+            body{
+                    font-size: 30px;
+                    background: #bfd7ff;
+                }
+
+            table{
+                margin-left: 10vw;
+                width: 80%;
+                font-size: 2vw;
+
+            }
+            h3{
+                margin-left: 10vw;
+                border: none;
+            }
+            table tr:nth-child(2n) {
+                background-color: #fff5dd;
+                color: #000;
+                }
+            table tr:nth-child(2n+1) {
+                background-color: #e7ecff;
+                color: #000;
+            }
+            td{
+                padding:2px;
+            }
+            h1{
+                padding-left: 10vw;
+                padding-top: 2px;
+            }
+
+        </style>
+    </head>
+<body>
+    <h1>Aktuelle Klimawerte</h1>
+	<h3>
+		Am Rückhaltebecken Rechtenbach <a href="/site/47">#47</a>
+	</h3>
+
+        <table  border="2px dashed black">
+            <tr py:for="d in ds"
+                py:with="r = d.records.order_by(db.Record.time.desc()).limit(1).scalar()">
+                <td >${d.valuetype.name}</td>
+                <td>${'{r.value:10.6g}'.format(r=r)}</td>
+                <td>${d.valuetype.unit}</td>
+                <td>${'{r.time:%d.%m.%Y %H:%M}'.format(r=r)}</td>
+            </tr>
+        </table>
+
+</body>
+</html>

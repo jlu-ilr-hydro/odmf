@@ -1,0 +1,148 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+<head>
+    <!-- Server configuration, see conf.py for HEAD_BASE -->
+    <base href="${head_base}" />
+
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous" />
+
+	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Project: ${project.name}</title>
+</head>
+<style>
+	div.space {
+		margin-top: 10px;
+		margin-bottom: 5px;
+	}
+	div.short {
+		width: 40em;
+	}
+	input {
+		width: 100%;
+	}
+
+    /*Fix Bootstrap overwride*/
+    body {
+        line-height: normal;
+    }
+</style>
+<body>
+	${navigation('Project: ' + project.name)}
+	<div class="content">
+        <div class="error" py:content="error" />
+        <a href="/project">Back to all project</a>
+
+		<form method="post" action="change" class="form-horizontal">
+            <div class="form-group">
+				<label for="name" class="col-sm-2 control-label">Name</label>
+				<div class="col-sm-8">
+					<input name="name" id="name" type="text" class="form-control"
+							value="${project.name}" readonly="True"/>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label for="person"
+					   class="col-sm-2 control-label">Person responsible</label>
+				<div class="col-sm-8">
+					<a id="person_link" href="/user/${project.person_responsible.username}">${project.person_responsible}</a>
+					<select readonly="True" disabled="True" name="person" id="person" class="form-control" style="display: none;">
+						<option py:for="p in persons"
+								value="${p.username}"
+								py:content="p"
+								py:attrs="markoption(str(p.username) == str(project.person_responsible.username))"/>
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label for="comment" class="col-sm-2 control-label">Comment</label><br/>
+				<div class="col-sm-8">
+                    <textarea name="comment" id="comment" class="form-control" rows="5" readonly="True">${project.comment}</textarea>
+				</div>
+			</div>
+
+            <!-- Comment -->
+            <div class="row from-group">
+                <div class="col-sm-8 col-sm-offset-2" >
+                    <strong>Note:</strong> The comment is a description, which is part of the reponse, when
+                    requesting webservice methods of the WaterOneFlow interface. E.g. it can be
+                    seen when downloading data from this project over the CUAHSI-Applications.
+                </div>
+            </div>
+            <div class="row form-group">
+				<div class="col-sm-offset-2 col-sm-1">
+					<div id="btn-edit" class="btn btn-default">Edit</div>
+                    <button id="btn-save" type="submit"
+                    class="btn btn-success" style="display: none;">Save</button>
+                    <input type="hidden" id="project_id" name="project_id" value="${project.id}" />
+				</div>
+            </div>
+		</form>
+				<div class="col-sm-2">
+				<form method="post" action="/project/delete" style="display: inline;">
+					<button id="btn-delete" type="submit"
+					class="btn btn-danger" style="display: none;">Delete</button>
+					<input type="hidden" id="project_id" name="project_id" value="${project.id}" />
+				</form>
+				<button id="btn-cancel" class="btn" style="display: none;">Cancel</button>
+		</div>
+
+		<!--<h2>Data</h2>
+
+			<div>Uploads (datasets) affected: </div>
+			<div>Data rows (records) affected: </div>-->
+	</div>
+
+	<script src="/media/jquery-1.7.1.min.js" type="text/javascript" />
+	<script src="/media/jquery-ui-1.8.18.custom.min.js" type="text/javascript" />
+	<script>
+		$(document).ready(function(){
+
+			// Event Handler
+
+			/*
+		     * This function provides the unlocking of the project form
+			 */
+			$('#btn-edit').click(function() {
+
+                $('#btn-edit').hide();
+                $('#btn-delete').show();
+                $('#btn-save').show();
+				$('#btn-cancel').show();
+
+				// Make the form writeable
+                $('#name').attr('readonly', false);
+                $('#person').attr('readonly', false);
+				$('#person').attr('disabled', false);
+				$('#person').show()
+                $('#person_link').hide()
+                $('#comment').attr('readonly', false);
+
+			});
+
+			$('#btn-cancel').click(function() {
+
+				$('#btn-save').hide();
+				$('#btn-delete').hide();
+				$('#btn-edit').show();
+
+
+				// Make the form readonly
+                $('#name').attr('readonly', true);
+                $('#person').attr('readonly', true);
+				$('#person').attr('disabled', true);
+                $('#person').hide()
+                $('#person_link').show()
+                $('#comment').attr('readonly', true);
+
+				$('#btn-cancel').hide();
+			});
+		})
+
+
+	</script>
+</body>
+</html>
