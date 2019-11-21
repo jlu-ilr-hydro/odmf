@@ -79,6 +79,8 @@ def configure(dbname, dbuser, dbpass, dbhost, port):
         yaml.dump(new_config, stream=f)
     from .config import conf
     conf.to_yaml(conf_file.open('w'))
+    for d in ['media', 'sessions', 'preferences']:
+        os.makedirs(d)
 
 
 @cli.command()
@@ -144,7 +146,7 @@ def test_static():
             sys.stderr.write(f'{p} - does not exist\n')
 
 @cli.command()
-@cli.argument('filename')
+@click.argument('filename')
 def import_config(filename):
     """
     Imports a configuration from a conf.py file 

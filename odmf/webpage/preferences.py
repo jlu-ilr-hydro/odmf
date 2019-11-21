@@ -35,9 +35,9 @@ class Preferences(object):
     @property
     def filename(self):
         if users.current:
-            return conf.abspath('preferences/' + users.current.name + '.json')
+            return conf.abspath('preferences') / users.current.name + '.json'
         else:
-            return conf.abspath('preferences/any.json')
+            return conf.abspath('preferences') / 'any.json'
 
     def __getitem__(self, item):
         return self.data.get(item)

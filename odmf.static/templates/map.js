@@ -5,7 +5,7 @@
     function setpref(data) {
 			$.ajaxSetup({ scriptCharset:"utf-8", 
                     contentType:"application/json; charset=utf-8" });
-		  $.post('/preferences/update',$.toJSON(data),null,'json');    	
+		  $.post('/preferences/update',JSON.stringify(data),null,'json');
     }
     // Saves the actual map preferences to the session / file
 		function savemappref() {
@@ -267,7 +267,7 @@
     		$('#map_canvas').html('JSONerror:' + textStatus + ',' + error);
     	});
 
-		$(window).unload(savemappref);
+		$(window).on("beforeunload", savemappref);
 	    $('#openinfo>button').click(toggleInfo);
 	    // Get map preferences 
     }

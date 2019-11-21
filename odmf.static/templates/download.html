@@ -5,10 +5,10 @@
     <!-- Server configuration, see conf.py for HEAD_BASE -->
     <base href="${head_base}" />
 
-	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<link href="/media/css/odmf.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Download</title>
-  <script src="/media/jquery-1.7.1.min.js" type="text/javascript" ></script>
+  <script src="/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
   <script>
 
   //<![CDATA[
@@ -46,7 +46,7 @@
   		$('.help').click(function() {
   			if ($('#help').html().substring(0,9)!='<textarea') {
   				// Create textarea for editing of index.html
-	  			$('#help').html('<textarea rows="20"/><br/><button>Save</button><button>Cancel</button><a href="/wiki/help"><img src="/media/help.png" /></a>');
+	  			$('#help').html('<textarea rows="20"/><br/><button>Save</button><button>Cancel</button><a href="/wiki/help"><img src="/media/ui-icons/help.png" /></a>');
 	  			// Load current file in textarea
 	  			$.get('/datafiles/${curdir.name}/index.html',{},function(text) {
 		  			$('#help textarea').val(text);				
@@ -72,12 +72,12 @@
 			display: inline-block;
 			width: 32px;
 			height: 32px;
-			background-image: url(/media/shimmer/document_32.png);
+			background-image: url(/media/ui-icons/shimmer/document_32.png);
 			background-repeat:no-repeat;
 			color:white;
 		}
 		.dbimport:hover {
-			background-image: url(/media/shimmer/document_add_32.png);
+			background-image: url(/media/ui-icons/shimmer/document_add_32.png);
 			color:#32739D;
             cursor: pointer;
 		}
@@ -104,10 +104,10 @@
 			cursor: auto;
 		}
 		ul.folder {
-			list-style-image: url(/media/shimmer/folder_32.png); vertical-align:middle;
+			list-style-image: url(/media/ui-icons/shimmer/folder_32.png); vertical-align:middle;
 		}
 		li.folder {
-			list-style-image: url(/media/shimmer/folder_add_32.png)
+			list-style-image: url(/media/ui-icons/shimmer/folder_add_32.png)
 		}
 
         form.remove-form input[type="submit"] {
@@ -128,7 +128,7 @@
 			<h2>Upload...</h2>
 	    <div class="error" py:content="error" />
 			<div style="vertical-align:middle;">
-				<img src="/media/shimmer/document_add_32.png" />
+				<img src="/media/ui-icons/shimmer/document_add_32.png" />
 		    <form method="post" enctype="multipart/form-data" action="/download/upload" style="display: inline;">
 		    	file:
 		    	<div style="display: inline-block;">

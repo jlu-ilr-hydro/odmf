@@ -5,7 +5,7 @@
     <!-- Server configuration, see conf.py for HEAD_BASE -->
     <base href="${head_base}" />
 
-	<link href="/media/iconilr.css" rel="stylesheet" type="text/css"/>
+	<link href="/media/css/odmf.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Personen</title>
 	<style>
@@ -164,7 +164,7 @@
 					</tr>
 					<py:choose>
 						<tr py:when="is_member('supervisor') and not is_self(active_person.username)">
-							<td>Active<a href="/wiki/help" class="tooltip"><img src="/media/help.png" /><span>Caution, if it is not ticked, the user is disabled to login</span></a></td>
+							<td>Active<a href="/wiki/help" class="tooltip"><img src="/media/ui-icons/help.png" /><span>Caution, if it is not ticked, the user is disabled to login</span></a></td>
 							<td><input style="width: 0%" name="status" type="checkbox" checked="${'on' if active_person.active else ''}"/></td>
 						</tr>
 						<tr py:otherwise="">
@@ -172,7 +172,7 @@
 						</tr>
 					</py:choose>
 					<tr>
-						<td>Comments<a href="/wiki/help" class="tooltip"><img src="/media/help.png" /><span>Get help for using links and formats</span></a></td>
+						<td>Comments<a href="/wiki/help" class="tooltip"><img src="/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
 						<td py:if="is_member('supervisor')">
 							<textarea name="comment" 
 									  style="width: 100%;"
