@@ -143,6 +143,15 @@ def test_static():
         else:
             sys.stderr.write(f'{p} - does not exist\n')
 
+@cli.command()
+@cli.argument('filename')
+def import_config(filename):
+    """
+    Imports a configuration from a conf.py file 
+    """
+    from .config import import_module_configuration
+    conf = import_module_configuration(filename)
+    conf.to_yaml(open('config.yml', 'w'))
 
 if __name__ == '__main__':
     cli()
