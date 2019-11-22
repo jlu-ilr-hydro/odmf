@@ -4,12 +4,14 @@ from odmf import db
 from getpass import getpass
 from logging import warning
 
+
 def create_all_tables():
     """
     Creates all database table necessary for the database from the codebase
     :return:
     """
     db.Base.metadata.create_all(db.engine)
+
 
 def add_admin(password=None):
     """
@@ -66,7 +68,6 @@ quality_data = [
         "id": 3
     }
 ]
-
 
 
 if __name__ == '__main__':

@@ -20,6 +20,7 @@ from functools import total_ordering
 
 from io import BytesIO
 
+
 def memoryview_to_b64str(mview):
     if type(mview) is not bytes:
         mview = mview.tobytes()

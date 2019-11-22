@@ -9,11 +9,16 @@ import click
 import humanize
 import sys
 import os
-from logging import info, warning, debug
+import coloredlogs
+
+import logging
+logger = logging.getLogger(__name__)
+
 
 @click.group()
 def cli():
     ...
+
 
 @cli.command()
 @click.argument('workdir', default='.')
@@ -23,40 +28,14 @@ def start(workdir, autoreload):
     """
     Starts a cherrypy server, with WORKDIR as the working directory (local ressources and configuration)
     """
-    from glob import glob
     os.chdir(workdir)
-    info(f"interpreter: {sys.executable}")
-    info(f"workdir: {os.getcwd()}")
+    coloredlogs.install(level='DEBUG', stream=sys.stdout)
 
-    if sys.version_info[0] < 3:
-        raise Exception("Must be using Python 3")
-
-    # System checks !before project imports
-    from .config import conf
-    if conf:
-        # Check for mandatory attributes
-        info("✔ Config is valid")
-    else:
-        warning("Error in config validation")
-        exit(1)
-
-    # Start with project imports
-    from odmf.webpage import Root
-    from odmf.webpage import lib
-
-    info(f"autoreload = {autoreload}")
-    lock_path = os.path.abspath('sessions')
-    debug(f"Kill session lock files in {lock_path}")
-    for fn in glob(lock_path + '/*.lock'):
-        debug(f'Killing old session lock {fn}')
-        os.remove(fn)
-
-
-    # Create the URL root object
-    root = Root()
-    info(f'Starting server on http://127.0.0.1:{conf.server_port}')
-    # Start the server
-    lib.start_server(root, autoreload=autoreload, port=conf.server_port)
+    logger.info(f"interpreter: {sys.executable}")
+    logger.info(f"workdir: {os.getcwd()}")
+    from .tools import server
+    server.prepare_workdir(workdir)
+    server.start(autoreload)
 
 
 @cli.command()
@@ -95,6 +74,7 @@ def make_db(new_admin_pass):
     cdb.create_all_tables()
     cdb.add_admin(new_admin_pass)
     cdb.add_quality_data(cdb.quality_data)
+
 
 @cli.command()
 def test_config():
@@ -138,12 +118,13 @@ def test_static():
         p = c / 'odmf.static'
         if p.exists():
             if all((p / d).exists() for d in ('templates', 'datafiles', 'media')):
-                sys.stdout.write(f'OK: Global static files found at: {p}\n')
+                logger.info(f'OK: Global static files found at: {p}\n')
                 break
             else:
-                sys.stderr.write(f'Incomplete static file directory found at: {p}, searching further\n')
+                logger.warning(f'Incomplete static file directory found at: {p}, searching further\n')
         else:
-            sys.stderr.write(f'{p} - does not exist\n')
+            logger.warning(f'{p} - does not exist\n')
+
 
 @cli.command()
 @click.argument('filename')
@@ -154,6 +135,7 @@ def import_config(filename):
     from .config import import_module_configuration
     conf = import_module_configuration(filename)
     conf.to_yaml(open('config.yml', 'w'))
+
 
 if __name__ == '__main__':
     cli()

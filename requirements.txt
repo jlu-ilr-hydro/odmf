@@ -19,6 +19,6 @@ click>=7.0
 humanize
 # woftester only
 lxml
-
+coloredlogs
 # tests only
 requests

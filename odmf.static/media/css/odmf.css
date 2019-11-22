@@ -229,12 +229,12 @@ span.box a:hover {
     border: dotted 1px #32739d;
     border-radius: 0px;
     color: #32739d;
-    background-color: #E8F0FF;
     font-size: 90%;
     margin: 0.5em 0.5em 0.5em 0.5em;
     padding: 1em;
     background: white;
 }
+
 ul#Inhalt li{
     list-style: none;
 }
