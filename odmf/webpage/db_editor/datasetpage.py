@@ -459,7 +459,7 @@ class DatasetPage:
         return bytesio.getvalue()
 
     @web.expose
-    @web.mimetype(web.mime.json)
+    @web.mime.json
     def records_json(self, dataset,
                      mindate=None, maxdate=None, minvalue=None, maxvalue=None,
                      threshold=None, limit=None, witherror=False):

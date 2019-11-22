@@ -207,7 +207,7 @@ class Root(object):
         return web.as_json(res)
 
     @expose_for()
-    @web.mimetype(web.mime.html)
+    @web.mime.html
     def actualclimate_html(self):
         with db.session_scope() as session:
             ds = session.query(db.Dataset).filter(
@@ -215,7 +215,7 @@ class Root(object):
             return web.render('actualclimate.html', ds=ds, db=db).render('html', doctype='html')
 
     @expose_for()
-    @web.mimetype(web.mime.json)
+    @web.mime.json
     def ressources(self):
         """
         Returns a json object representing all ressources of this cherrypy web-application

@@ -290,6 +290,7 @@ class API(BaseAPI):
 
     @expose_for()
     @web.method.post
+    @web.mime.plain
     def login(self, username, password):
         """
         Login for the web app (including API)
@@ -299,7 +300,6 @@ class API(BaseAPI):
 
         returns Status 200 on success
         """
-        web.setmime(web.mime.plain)
         error = users.login(username, password)
         if error:
             raise cherrypy.HTTPError(401, 'Username or password incorrect')
@@ -355,11 +355,11 @@ class API(BaseAPI):
 
     @expose_for()
     @web.method.get
+    @web.mime.json
     def index(self):
         """
         Returns a JSON object containing the description of the API
         """
-        web.setmime(web.mime.json)
         return web.as_json(get_help(self, '/api'))
 
 

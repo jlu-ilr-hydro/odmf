@@ -7,5 +7,5 @@ import sys
 
 if __name__ == '__main__':
     logger = logging.getLogger(__name__)
-    coloredlogs.install(level='DEBUG', stream=sys.stdout)
+    # coloredlogs.install(level='DEBUG', stream=sys.stdout)
     odmf.cli()

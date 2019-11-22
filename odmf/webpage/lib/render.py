@@ -110,6 +110,31 @@ def parsedate(s, raiseerror=True):
         return res
 
 
+def conv(cls, s, default=None):
+    """
+    Convert string s to class cls
+    Parameters
+    ----------
+    cls
+        A class to convert to (eg. float, int, datetime)
+    s
+        A string to convert
+    default
+        A default answer, if the conversion fails. Else return None
+
+    Returns
+    -------
+    cls(s)
+
+    """
+    if cls is datetime:
+        return parsedate(s)
+    try:
+        return cls(s)
+    except (TypeError, ValueError):
+        return default
+
+
 def abbrtext(s, maxlen=50):
     if s:
         s = str(s).replace('\n', ' ')

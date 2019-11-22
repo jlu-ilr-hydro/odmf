@@ -59,14 +59,10 @@ class StaticServer:
         if p is None:
             raise cherrypy.HTTPError(404)
         elif p.is_file():
-            ext = p.suffix.replace('.', '')
-            if ext in dir(mime):
-                cherrypy.response.headers['Content-Type'] = getattr(mime, ext)
-            else:
-                del cherrypy.response.headers['Content-Type']
+            mime.set(p.suffix)
             return p.read_bytes()
         elif self.listdir and p.is_dir():
-            setmime(mime.html)
+            mime.html.set()
             return filelist2html(p.iterdir())
         else:
             raise cherrypy.HTTPError(404)
