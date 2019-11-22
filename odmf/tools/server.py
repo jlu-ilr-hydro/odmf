@@ -37,6 +37,10 @@ def start(autoreload=False):
         '/html': {'tools.staticdir.on': True,
                   'tools.staticdir.dir': str(conf.abspath('templates')),
                   'tools.caching.on': False},
+        '/media': {
+            'tools.caching.on': True,
+            'tools.caching.delay': 3600
+        }
     }
 
     logger.info(f"autoreload = {autoreload}")
@@ -72,7 +76,7 @@ def prepare_workdir(workdir):
     lock_path = os.path.abspath('sessions')
     
     logger.debug('Ensure subdirectories')
-    for d in ['sessions', 'preferences', 'datafiles']:
+    for d in ['media', 'sessions', 'preferences/plots']:
         os.makedirs(d, exist_ok=True)
 
     logger.debug(f"Kill session lock files in {lock_path}")
