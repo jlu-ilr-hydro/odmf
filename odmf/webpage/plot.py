@@ -23,7 +23,7 @@ import time
 from base64 import b64encode
 from pandas import to_datetime
 import json
-from glob import iglob
+from pathlib import Path
 
 from ..config import conf
 from .. import db
@@ -513,32 +513,38 @@ class Plot(object):
     def save(self, fn):
         d = asdict(self)
         try:
-            open(self.absfilename(fn), 'wb').write(web.as_json(d))
+            self.absfilename(fn).write_bytes(web.as_json(d))
         except:
             return traceback()
 
     @classmethod
     def load(cls, fn):
-        fp = open(cls.absfilename(fn))
+        fp = cls.absfilename(fn).open()
         plot = Plot.fromdict(json.load(fp))
         return plot
 
     @classmethod
     def listdir(cls):
-        def basename(fn):
-            return os.path.basename(fn).replace(web.user() + '.', '').replace('.plot', '')
-        return [basename(fn) for fn in iglob(cls.absfilename('*'))]
+
+        return [
+            fn.name.replace(web.user() + '.', '').replace('.plot', '')
+            for fn in cls.absfilename().glob(f'{web.user()}.*.plot')
+        ]
 
     @classmethod
     def killfile(cls, fn):
-        if os.path.exists(cls.absfilename(fn)):
-            os.remove(cls.absfilename(fn))
+        path = cls.absfilename(fn)
+        if path.exists():
+            path.unlink()
         else:
             return "File %s does not exist" % fn
 
     @classmethod
-    def absfilename(cls, fn):
-        return conf.abspath('preferences/plots/' + web.user() + '.' + fn + '.plot')
+    def absfilename(cls, fn: str=None)->Path:
+        if fn:
+            return conf.abspath('preferences/plots/') / f'{web.user()}.{fn}.plot'
+        else:
+            return conf.abspath('preferences/plots/')
 
 
 plotgroup = group.logger

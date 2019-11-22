@@ -9,7 +9,6 @@ import click
 import humanize
 import sys
 import os
-import coloredlogs
 
 import logging
 logger = logging.getLogger(__name__)
@@ -29,7 +28,7 @@ def start(workdir, autoreload):
     Starts a cherrypy server, with WORKDIR as the working directory (local ressources and configuration)
     """
     os.chdir(workdir)
-    coloredlogs.install(level='DEBUG', stream=sys.stdout)
+    # coloredlogs.install(level='DEBUG', stream=sys.stdout)
 
     logger.info(f"interpreter: {sys.executable}")
     logger.info(f"workdir: {os.getcwd()}")
@@ -58,8 +57,6 @@ def configure(dbname, dbuser, dbpass, dbhost, port):
         yaml.dump(new_config, stream=f)
     from .config import conf
     conf.to_yaml(conf_file.open('w'))
-    for d in ['media', 'sessions', 'preferences']:
-        os.makedirs(d)
 
 
 @cli.command()

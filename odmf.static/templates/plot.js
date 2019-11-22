@@ -10,7 +10,7 @@
 					$('#error').html(data);
 				} else {
 					window.location.reload();
-				}    	
+				}
     }
     function killplot() {
 				$('#plot').slideUp().html('Loading image...');
@@ -70,6 +70,7 @@
 			//alert(href);
 			window.location = href;
 		}
+		/*
 		function flotplot() {
 			$('#properties').slideUp();
 			$.getJSON(
@@ -91,6 +92,8 @@
 				});
 
 		}
+
+		 */
 		function RegTime() {
 			var href = '/plot/RegularTimeseries.csv?tolerance='+$('#Interpolation_Limit').val() + '&interpolation=' + $('#reg_interpolation').val();
 			//alert(href);
