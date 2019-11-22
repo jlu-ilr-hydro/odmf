@@ -59,9 +59,9 @@ class VTPage:
         raise web.HTTPRedirect('./%s' % id)
 
     @expose_for(group.guest)
+    @web.mime.json
     def json(self):
         session = db.Session()
-        web.setmime('application/json')
         dump = web.as_json(session.query(db.ValueType).all())
         session.close()
         return dump

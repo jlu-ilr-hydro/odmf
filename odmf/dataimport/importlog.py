@@ -160,7 +160,7 @@ class LogbookImport(object):
         self.filename = filename
         self.workbook = xlrd.open_workbook(filename)
         session = db.Session()
-        self.user = db.Person.get(session, user)
+        self.user = session.query(db.Person).get(user)
         session.close()
 
         self.columns = import_with_class

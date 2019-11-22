@@ -93,10 +93,10 @@ class LogPage:
         raise web.HTTPRedirect('/log')
 
     @expose_for(group.logger)
+    @web.mime.json
     def json(self, siteid=None, user=None, old=None, until=None, days=None,
              _=None, keywords=None):
         session = db.Session()
-        web.setmime('application/json')
 
         logs = session.query(db.Log).order_by(db.sql.desc(db.Log.time))
 
@@ -132,15 +132,13 @@ class LogPage:
         return res
 
     @expose_for()
+    @web.mime.json
     def data(self, siteid=None, user=None, old=None, until=None, days=None,
              _=None):
 
         session = db.Session()
-
-        web.setmime('application/json')
-
-        logs = session.query(db.Log, db.Person).filter(db.Log._user
-                                                       == db.Person.username)
+        logs = session.query(db.Log, db.Person)\
+            .filter(db.Log._user== db.Person.username)
 
         if until:
             until = web.parsedate(until)
@@ -157,55 +155,55 @@ class LogPage:
         return res
 
     @expose_for(group.logger)
+    @web.mime.html
     def fromclipboard(self, paste):
-        web.setmime('text/html')
         lines = paste.splitlines()
-        session = db.Session()
+        class LogFromClipboardError(RuntimeError):
+            def __init__(self, line, errormsg):
+                super().__init__(f"Could not create log from:\n{line}\nReason:{errormsg}")
 
-        def _raise(line, errormsg):
-            raise RuntimeError(
-                "Could not create log from:\n'%s'\nReason:%s" % (line, errormsg))
+        with db.session_scope() as session:
 
-        def parseline(line):
-            line = line.replace('\t', '|')
-            ls = line.split('|')
-            if len(ls) < 2:
-                _raise(
-                    line, "At least a message and a siteid, seperated by a tab or | are needed to create a log")
-            msg = ls[0]
-            try:
-                siteid = int(ls[1])
-                site = session.query(db.Site).get(siteid)
-                if not site:
-                    raise RuntimeError()
-            except:
-                _raise(line, "%s is not a site id" % ls[1])
-            if len(ls) > 2:
-                date = web.parsedate(ls[2])
+
+            def parseline(line):
+                line = line.replace('\t', '|')
+                ls = line.split('|')
+                if len(ls) < 2:
+                    raise LogFromClipboardError(
+                        line, "At least a message and a siteid, seperated by a tab or | are needed to create a log")
+                msg = ls[0]
+                try:
+                    siteid = int(ls[1])
+                    site = session.query(db.Site).get(siteid)
+                    if not site:
+                        raise ValueError()
+                except (TypeError, ValueError):
+                    raise LogFromClipboardError(line, "%s is not a site id" % ls[1])
+                if len(ls) > 2:
+                    date = web.parsedate(ls[2])
+                else:
+                    date = datetime.today()
+                if len(ls) > 3:
+                    user = session.query(db.Person).get(ls[3])
+                    if not user:
+                        raise LogFromClipboardError(
+                            line, f"Username {ls[3]} is not in the database")
+                else:
+                    user = session.query(db.Person).get(web.user())
+                logid = db.newid(db.Log, session)
+                return db.Log(id=logid, site=site, user=user, message=msg, time=date)
+
+            errors = []
+            logs = []
+            for l in lines:
+                try:
+                    log = parseline(l)
+                    logs.append(log)
+                except Exception as e:
+                    errors.append(str(e))
+            if errors:
+                res = 'Import logs from Clipboard failed with the following errors:<ol>'
+                li = ''.join('<li>%s</li>' % e for e in errors)
+                return res + li + '</ol>'
             else:
-                date = datetime.today()
-            if len(ls) > 3:
-                user = session.query(db.Person).get(ls[3])
-                if not user:
-                    _raise(line, "Username '%s' is not in the database" %
-                           ls[3])
-            else:
-                user = session.query(db.Person).get(web.user())
-            logid = db.newid(db.Log, session)
-            return db.Log(id=logid, site=site, user=user, message=msg, time=date)
-
-        errors = []
-        logs = []
-        for l in lines:
-            try:
-                log = parseline(l)
-                logs.append(log)
-            except Exception as e:
-                errors.append(e.message)
-        if errors:
-            res = 'Import logs from Clipboard failed with the following errors:<ol>'
-            li = ''.join('<li>%s</li>' % e for e in errors)
-            return res + li + '</ol>'
-        else:
-            session.add_all(logs)
-            session.commit()
+                session.add_all(logs)

@@ -68,7 +68,7 @@ class ProjectPage:
 
         with db.session_scope() as session:
 
-            person = db.Person.get(session, person)
+            person = session.query(db.Person).get(person)
 
             if person is None:
                 raise RuntimeError(

@@ -92,8 +92,8 @@ class SitePage:
         raise web.HTTPRedirect('./%s' % siteid)
 
     @expose_for()
+    @web.mime.json
     def getinstalledinstruments(self):
-        web.setmime('application/json')
         session = db.Session()
         inst = [inst for inst in session.query(
             db.Datasource) if inst.sites.count()]
@@ -102,8 +102,8 @@ class SitePage:
         return res
 
     @expose_for()
+    @web.mime.json
     def getinstruments(self):
-        web.setmime('application/json')
         session = db.Session()
         inst = session.query(db.Datasource).all()
         res = web.as_json(sorted(inst))
@@ -167,18 +167,17 @@ class SitePage:
         return error
 
     @expose_for()
+    @web.mime.json
     def json(self):
         session = db.Session()
-        web.setmime('application/json')
         res = web.as_json(session.query(db.Site).order_by(db.Site.id).all())
         session.close()
         return res
 
     @expose_for()
+    @web.mime.kml
     def kml(self, sitefilter=None):
         session = db.Session()
-        web.setmime('application/vnd.google-earth.kml+xml')
-
         query = session.query(db.Site)
         if filter:
             query = query.filter(sitefilter)
@@ -214,13 +213,13 @@ class SitePage:
         return [op.basename(p) for p in glob(op.join(path, '*.png')) if not op.basename(p) == 'selection.png']
 
     @expose_for(group.guest)
+    @web.mime.json
     def with_instrument(self, instrumentid):
-        web.setmime(web.mime.json)
         session = db.Session()
         sites = []
         print("instrument id %s" % instrumentid)
         try:
-            inst = db.Datasource.get(session, int(instrumentid))
+            inst = session.query(db.Datasource).get(int(instrumentid))
             sites = sorted(set(i.site for i in inst.sites))
             print("Sites: %s" % len(sites))
         finally:
@@ -228,8 +227,8 @@ class SitePage:
         return web.as_json(sites)
 
     @expose_for(group.logger)
+    @web.mime.csv
     def sites_csv(self):
-        web.setmime('text/csv')
         session = db.Session()
         query = session.query(db.Site).order_by(db.Site.id)
         st = BytesIO()

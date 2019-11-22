@@ -2,7 +2,7 @@
 Serves static files
 """
 import cherrypy
-from .lib import expose, setmime, mime
+from .lib import expose, mime
 from ..config import conf
 from pathlib import Path
 from markdown import markdown

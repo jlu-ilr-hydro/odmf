@@ -663,7 +663,7 @@ class AbstractImport(object):
         # Get the dataset objects for the columns
         datasets = {}
         for k in self.datasets:
-            datasets[k] = db.Dataset.get(session, self.datasets[k])
+            datasets[k] = session.query(db.Dataset).get(self.datasets[k])
 
         # A dict to hold the current record id for each column k
         def newid(k):

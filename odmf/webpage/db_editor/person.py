@@ -82,9 +82,9 @@ class PersonPage:
         raise web.HTTPRedirect('./' + username)
 
     @expose_for()
+    @web.mime.json
     def json(self, supervisors=False):
         session = db.Session()
-        web.setmime('application/json')
         persons = session.query(db.Person).order_by(
             db.sql.desc(db.Person.can_supervise), db.Person.surname)
         if supervisors:

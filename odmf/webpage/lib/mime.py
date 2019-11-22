@@ -58,6 +58,7 @@ class Mime:
     xlsx = MimeType('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     svg = MimeType('image/svg+xml')
     tif = MimeType('image/tiff')
+    kml = MimeType('application/vnd.google-earth.kml+xml')
 
     def __getitem__(self, item):
         if item[0] == '.':

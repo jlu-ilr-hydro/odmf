@@ -60,7 +60,7 @@ class ManualMeasurementsImport(LogbookImport):
         self.filename = filename
 
         with db.session_scope() as session:
-            self.user = db.Person.get(session, user)
+            self.user = session.query(db.Person).get(user)
         self.sheetName = sheetName
 
         if descr:

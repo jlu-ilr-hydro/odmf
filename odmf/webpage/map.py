@@ -15,18 +15,18 @@ class MapPage(object):
         if site is None:
             site = 'null'
         else:
-            session = db.Session()
+            with db.session_scope() as session:
+                # decode for valid json string
+                site = web.as_json(
+                    session.query(db.Site).get(int(site))
+                ).decode('utf-8')
 
-            # decode for valid json string
-            site = web.as_json(db.Site.get(session, int(site))).decode('utf-8')
-
-            session.close()
         return web.render('map.html', site=site).render('html', doctype='html')
 
     @web.expose
+    @web.mime.json
     def sites(self):
         session = db.Session()
-        web.setmime('application/json')
         sites = session.query(db.Site).order_by(db.Site.id)
         res = web.as_json(sites.all())
         session.close()

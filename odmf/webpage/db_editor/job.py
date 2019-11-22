@@ -99,10 +99,10 @@ class JobPage:
                                   ).render('html', doctype='html')
 
     @expose_for(group.logger)
+    @web.mime.json
     def json(self, responsible=None, author=None, onlyactive=False, dueafter=None):
         session = db.Session()
         jobs = session.query(db.Job).order_by(db.Job.done ,db.Job.due.desc())
-        web.setmime(web.mime.json)
         if responsible != 'all':
             if not responsible:
                 responsible = users.current.name

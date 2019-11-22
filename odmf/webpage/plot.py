@@ -78,7 +78,7 @@ class Line(object):
         @param subplot: The Subplot to which this line belongs
         @param valuetype: The valuetype id of the line
         @param site: the site id of the line
-        @param intrument: the instrument of the line
+        @param instrument: the instrument of the line
         @param color: the color of the line (k,b,g,r,y,m,c)
         @param linestyle: the line style (-,--,:,-.)
         @param marker: the marker of the line data points (o,x,+,|,. etc.)
@@ -440,7 +440,7 @@ class Plot(object):
         was_interactive = plt.isinteractive()
         plt.ioff()
         fig, axes = plt.subplots(ncols=self.columns, nrows=self.rows,
-                                 figsize=self.size, dpi=100, sharex=True)
+                                 figsize=self.size, dpi=100, sharex='all')
         for sp in self.subplots:
             sp.draw(fig)
         fig.subplots_adjust(top=0.975, bottom=0.1, hspace=0.0)
@@ -574,8 +574,8 @@ class PlotPage(object):
         return Plot.killfile(filename)
 
     @expose_for(plotgroup)
+    @web.mime.json
     def listplotfiles(self):
-        web.setmime(web.mime.json)
         return web.as_json(Plot.listdir())
 
     @expose_for(plotgroup)
@@ -588,16 +588,16 @@ class PlotPage(object):
             return traceback()
 
     @expose_for(plotgroup)
+    @web.mime.png
     def image_png(self, **kwargs):
-        web.setmime(web.mime.png)
         plot = Plot.frompref()
         if not plot:
             raise web.HTTPRedirect('/plot?error=No plot available')
         return plot.draw(format='png')
 
     @expose_for(plotgroup)
+    @web.mime.pdf
     def image_pdf(self, **kwargs):
-        web.setmime(web.mime.pdf)
         plot = Plot.frompref()
         if not plot:
             raise web.HTTPRedirect('/plot?error=No plot available')
@@ -707,8 +707,8 @@ class PlotPage(object):
         line.killcache()
 
     @expose_for(plotgroup)
+    @web.mime.json
     def linedatasets_json(self, subplot, line):
-        web.setmime(web.mime.json)
         plot = Plot.frompref()
         sp = plot.subplots[int(subplot) - 1]
         line = sp.lines[int(line)]
@@ -719,28 +719,31 @@ class PlotPage(object):
         return res
 
     @expose_for(plotgroup)
+    @web.mime.csv
     def export_csv(self, subplot, line):
         plot = Plot.frompref()
         sp = plot.subplots[int(subplot) - 1]
         line = sp.lines[int(line)]
-        web.setmime(web.mime.csv)
+
+
         io = StringIO()
         line.export_csv(io, plot.startdate, plot.enddate)
         io.seek(0)
         return io
 
     @expose_for(plotgroup)
+    @web.mime.csv
     def export_json(self, subplot, line):
         plot = Plot.frompref()
         sp = plot.subplots[int(subplot) - 1]
         line = sp.lines[int(line)]
-        web.setmime(web.mime.csv)
         io = StringIO()
         line.export_json(io, plot.startdate, plot.enddate)
         io.seek(0)
         return io
 
     @expose_for(plotgroup)
+    @web.mime.csv
     def exportall_csv(self, tolerance):
         plot = Plot.frompref()
 #         datasetids=[]
@@ -755,10 +758,11 @@ class PlotPage(object):
         stream = StringIO()
         from ..tools.exportdatasets import exportLines
         exportLines(stream, lines, web.conv(float, tolerance, 60))
-        web.setmime(web.mime.csv)
         return stream.getvalue()
 
     @expose_for(plotgroup)
+    @web.mime.csv
+
     def RegularTimeseries_csv(self, tolerance=12, interpolation=''):
         plot = Plot.frompref()
         datasetids = []
@@ -775,7 +779,6 @@ class PlotPage(object):
         stream.write(codecs.BOM_UTF8.decode())
         createPandaDfs(lines, plot.startdate, plot.enddate, stream,
                        interpolationtime=interpolation, tolerance=float(tolerance))
-        web.setmime(web.mime.csv)
         return stream.getvalue()
 
     @expose_for(plotgroup)
@@ -806,7 +809,7 @@ class PlotPage(object):
             return traceback()
 
     @web.expose
-    # @web.mimetype(web.mime.png)
+    @web.mime.png
     def climate(self, enddate=None, days=1, site=47):
         try:
             enddate = web.parsedate(enddate)

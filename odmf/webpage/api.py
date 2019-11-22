@@ -91,13 +91,14 @@ class DatasetAPI(BaseAPI):
 
     @expose_for(group.guest)
     @web.method.get
+    @web.mime.json
     def index(self, dsid=None):
         """
         Returns a json representation of a datasetid
         :param dsid: The Dataset id
         :return: json representation of the dataset metadata
         """
-        web.setmime(web.mime.json)
+
         if dsid is None:
             res = get_help(self, self.url)
             res[f'{self.url}/[n]'] = f"A dataset with the id [n]. See {self.url}/list method"
@@ -106,6 +107,7 @@ class DatasetAPI(BaseAPI):
             return web.as_json(ds)
 
     @expose_for(group.guest)
+    @web.mime.json
     def records(self, dsid, start=None, end=None):
         """
         :param dsid:
@@ -113,7 +115,6 @@ class DatasetAPI(BaseAPI):
         :param end:
         :return:
         """
-        web.setmime(web.mime.json)
         with self.get_dataset(dsid, False) as ds:
             return web.as_json(ds.records.all())
 
@@ -122,11 +123,11 @@ class DatasetAPI(BaseAPI):
 
     @expose_for()
     @web.method.get
+    @web.mime.json
     def list(self):
         """
         Returns a JSON list of all available dataset url's
         """
-        web.setmime(web.mime.json)
         res = []
         with db.session_scope() as session:
             for ds, in sorted(session.query(db.Dataset.id)):
@@ -178,10 +179,10 @@ class DatasetAPI(BaseAPI):
                 # Timeseries only arguments
                 if ds.is_timeseries():
                     if kwargs.get('start'):
-                        ds.start = datetime.strptime(
+                        ds.start = datetime.datetime.strptime(
                             kwargs['start'], '%d.%m.%Y')
                     if kwargs.get('end'):
-                        ds.end = datetime.strptime(kwargs['end'], '%d.%m.%Y')
+                        ds.end = datetime.datetime.strptime(kwargs['end'], '%d.%m.%Y')
                     ds.calibration_offset = web.conv(
                         float, kwargs.get('calibration_offset'), 0.0)
                     ds.calibration_slope = web.conv(
@@ -201,7 +202,7 @@ class DatasetAPI(BaseAPI):
 
     @expose_for(group.editor)
     @web.method.post_or_put
-    def addrecord(self, dsid: int, value: float, time: str,
+    def addrecord(self, dsid, value, time,
                        sample=None, comment=None, recid=None):
         """
         Adds a single record to a dataset
@@ -247,7 +248,7 @@ class DatasetAPI(BaseAPI):
             data = [data]
         warnings = []
         with db.session_scope() as session:
-            dataset: db.Dataset = None
+            dataset = None
             for rec in data:
                 dsid = rec.get('dsid') or rec.get('dataset') or rec.get('dataset_id')
                 if not dsid:
@@ -264,12 +265,12 @@ class DatasetAPI(BaseAPI):
 
     @expose_for()
     @web.method.get
+    @web.mime.json
     def statistics(self, dsid):
         """
         Returns a json object holding the statistics for the dataset
         (is loaded by page using ajax)
         """
-        web.setmime(web.mime.json)
         with self.get_dataset(dsid, False) as ds:
             # Get statistics
             mean, std, n = ds.statistics()

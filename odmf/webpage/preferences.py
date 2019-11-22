@@ -4,13 +4,12 @@ Created on 25.09.2012
 @author: philkraf
 '''
 
-from .auth import expose_for, group, users
+from .auth import expose_for, users
 from . import lib as web
 import json
 from ..config import conf
 import traceback
 
-import os.path as op
 json_in = web.cherrypy.tools.json_in
 
 
@@ -55,8 +54,8 @@ class Preferences(object):
             f.write(web.as_json(self.data).decode('utf-8'))
 
     @expose_for()
+    @web.mime.json
     def index(self, item=''):
-        web.setmime(web.mime.json)
         data = self.data
         print("index for preferences")
         #

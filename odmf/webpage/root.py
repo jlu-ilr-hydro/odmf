@@ -26,10 +26,12 @@ def ressource_walker(*path) -> dict:
     Builds a recursive tree of exposed cherrypy endpoints
 
     How to call for a tree of the complete app:
-    >>> ressource_tree = ressource_walker(root)
+    ::
+        ressource_tree = ressource_walker(root)
 
     How to call for a branch in the app (eg. the site page)
-    >>> ressource_subtree = ressource_walker(root, site)
+    ::
+        ressource_subtree = ressource_walker(root, site)
 
     :param path: The current url in terms of objects enabled for cherrypy dispaching. The last object in the path
                 is the current object
@@ -109,7 +111,8 @@ class Root(object):
         The bare navigation page, usually embedded in other pages
         :return:
         """
-        return web.navigation()
+        from .lib.render import navigation
+        return navigation()
 
     @expose_for()
     def login(self, frompage='/', username=None, password=None, error='', logout=None):
@@ -144,8 +147,8 @@ class Root(object):
             return web.render('login.html', error=error, frompage=frompage).render('html', doctype='html')
 
     @expose_for(group.admin)
+    @web.mime.json
     def showjson(self, **kwargs):
-        web.setmime('application/json')
         import json
         return json.dumps(kwargs, indent=4)
 
@@ -179,13 +182,13 @@ class Root(object):
         return res.replace('<!--content goes here-->', web.markdown(content))
 
     @expose_for()
+    @web.mime.plain
     def robots_txt(self):
-        web.setmime(web.mime.plain)
         return "User-agent: *\nDisallow: /\n"
 
     @expose_for(group.admin)
+    @web.mime.plain
     def freemem(self):
-        web.setmime(web.mime.plain)
         import subprocess
         if sys.platform == 'linux2':
             return subprocess.Popen(['free', '-m'], stdout=subprocess.PIPE).communicate()[0]
@@ -193,14 +196,14 @@ class Root(object):
             return 'Memory storage information is not available at your platform'
 
     @expose_for()
+    @web.mime.json
     def actualclimate_json(self, site=47):
         session = db.Session()
-        web.setmime(web.mime.json)
         now = datetime.now()
         yesterday = now - timedelta(hours=24)
         res = {'time': now}
         for dsid in range(1493, 1502):
-            ds = db.Timeseries.get(session, dsid)
+            ds = session.query(db.Timeseries).get(dsid)
             t, v = ds.asarray(start=yesterday)
             res[ds.name.split(',')[0].strip().replace(' ', '_')] = {
                 'min': v.min(), 'max': v.max(), 'mean': v.mean()}

@@ -15,8 +15,8 @@ class CalendarPage(object):
         return web.render('calendar.html').render('html', doctype='html')
 
     @expose_for()
+    @web.mime.json
     def jobs_json(self, start=None, end=None, responsible=None, author=None, onlyactive=False, dueafter=None):
-        web.setmime(web.mime.json)
         session = db.Session()
         jobs = session.query(db.Job).order_by(db.Job.done, db.Job.due.desc())
         if responsible != 'all':
@@ -43,8 +43,8 @@ class CalendarPage(object):
         return res
 
     @expose_for()
+    @web.mime.json
     def logs_json(self, start=None, end=None, site=None, type=None):
-        web.setmime(web.mime.json)
         session = db.Session()
         logs = session.query(db.Log).order_by(db.Log.time)
         if start:
