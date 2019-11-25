@@ -78,7 +78,8 @@ class Renderer(object):
             'markdown': markdown,
             'as_json': as_json,
             'abbrtext': abbrtext,
-            'not_external': not_external
+            'not_external': not_external,
+            'conf': conf
         }
 
     def __call__(self, *args, **kwargs):

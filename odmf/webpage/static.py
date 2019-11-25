@@ -2,7 +2,10 @@
 Serves static files
 """
 import cherrypy
-from .lib import expose, mime
+
+from cherrypy.lib.static import serve_file
+
+from .lib import expose, mime, method
 from ..config import conf
 from pathlib import Path
 from markdown import markdown
@@ -43,31 +46,47 @@ class StaticServer:
         cherrypy.request.params['path'] = p.as_posix()
         return self
 
-    def get_path(self, path):
-        for home in reversed(self.homes):
-            if (home / path).exists():
-                return home / path
-        return None
+    def get_path(self, rel_uri:str) -> Path:
+        """
+        Get pathlib Path object for URL
+        Parameters
+        ----------
+        rel_uri
+            Uri to find the mentioned path
+
+        Returns
+        -------
+        Absolute pathlib.Path to the requested resources
+
+        Raises
+        ------
+        HTTPError(403) on .. attacks and HTTPError(404) if the file does not exist
+        """
+        for home in [h.resolve() for h in reversed(self.homes)]:
+            abs_path = (home / rel_uri).resolve()
+            if abs_path.exists():
+                # Check for .. attacks
+                parents = list(abs_path.parents)
+                if abs_path == home or home in parents:
+                    return abs_path
+                else:
+                    raise cherrypy.HTTPError(403)
+        raise cherrypy.HTTPError(404)
 
     @expose
+    @method.get
     def index(self, path='.'):
         """
         Serves the static content from the relative path
         """
         p = self.get_path(path)
 
-        if p is None:
-            raise cherrypy.HTTPError(404)
-        elif p.is_file():
-            mime.set(p.suffix)
-            return p.read_bytes()
+        if p.is_file():
+            return serve_file(str(p))
+
         elif self.listdir and p.is_dir():
             mime.html.set()
             return filelist2html(p.iterdir())
         else:
             raise cherrypy.HTTPError(404)
-
-
-
-
 
