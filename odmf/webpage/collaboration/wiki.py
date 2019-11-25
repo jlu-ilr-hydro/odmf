@@ -6,9 +6,8 @@ from ...config import conf
 import os
 from traceback import format_exc as traceback
 
-
+@web.show_in_nav_for(1)
 class Wiki(object):
-    exposed = True
 
     def name2path(self, name):
         return conf.abspath('datafiles/wiki/' + name + '.wiki')

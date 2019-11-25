@@ -24,16 +24,17 @@ HTTPRedirect = cherrypy.HTTPRedirect
 HTTPError = cherrypy.HTTPError
 
 
-def show_in_nav():
+def show_in_nav_for(level=0):
     """
     Use as a class / method decorator to flag an exposed object in the site navigation
 
-    @show_in_nav
+    @show_in_nav_for(users.guest)
     @expose
     class SubPage:
         ...
     """
     def decorate(f):
-        f.show_in_nav = True
+        f.show_in_nav = level
+        f.exposed = True
         return f
     return decorate

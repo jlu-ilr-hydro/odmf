@@ -6,8 +6,9 @@ from ... import db
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 
+
+@web.show_in_nav_for(1)
 class LogPage:
-    exposed = True
 
     @expose_for(group.guest)
     def default(self, logid=None, siteid=None, lastlogdate=None, days=None):

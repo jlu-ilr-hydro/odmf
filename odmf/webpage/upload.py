@@ -200,7 +200,7 @@ class DBImportPage(object):
             return self.instrumentimport(filename, kwargs)
 
 
-@web.expose
+@web.show_in_nav_for(1)
 class DownloadPage(object):
     to_db = DBImportPage()
 

@@ -7,10 +7,10 @@ from ... import db
 from traceback import format_exc as traceback
 
 
+@web.show_in_nav_for(1)
 class PersonPage:
-    exposed = True
 
-    @expose_for(group.guest)
+    @expose_for(group.logger)
     def default(self, act_user=None):
         session = db.Session()
         persons = session.query(db.Person).order_by(

@@ -133,6 +133,19 @@ def import_config(filename):
     conf = import_module_configuration(filename)
     conf.to_yaml(open('config.yml', 'w'))
 
+@cli.command()
+@click.option('--only_navigatable/--any', '-n', default=False)
+@click.option('--level', '-l', type=int, help='Admission level (0-4)', default=0)
+def uri_tree(only_navigatable, level):
+    """
+    Prints the tree of available resources of odmf
+    """
+    import yaml
+    from .webpage.root import resource_walker, Root
+
+    res = resource_walker(Root(), only_navigatable=only_navigatable, recursive=True, for_level=int(level))
+    yaml.safe_dump(res, sys.stdout)
+
 
 if __name__ == '__main__':
     cli()

@@ -14,14 +14,14 @@ from ...tools.calibration import Calibration, CalibrationSource
 from pytz import common_timezones
 import cherrypy
 
-
+@web.show_in_nav_for(1)
 class DatasetPage:
     """
     Serves the direct dataset manipulation and querying
     """
     exposed = True
 
-    @expose_for(group.guest)
+    @expose_for(group.logger)
     def index(self):
         """
         Returns the query page (datasetlist.html). Site logic is handled with ajax

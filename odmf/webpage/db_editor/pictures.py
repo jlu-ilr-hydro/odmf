@@ -6,13 +6,11 @@ from ..auth import group, expose_for
 from ... import db
 
 
+@web.show_in_nav_for(0)
 class PicturePage(object):
     """
-    Displaying all images and providing image/thumbnail
-
-    See memoryview doc for python3 tobytes
+    NAvigation and search for photos from the observatory
     """
-    exposed = True
 
     @expose_for()
     def image(self, id):

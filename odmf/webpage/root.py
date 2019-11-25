@@ -1,6 +1,6 @@
 import cherrypy
 import json
-from inspect import getdoc
+import inspect
 
 
 from . import lib as web
@@ -20,7 +20,7 @@ from . import api
 from . import static
 
 
-def resource_walker(obj, only_navigatable=False, recursive=True) -> dict:
+def resource_walker(obj, only_navigatable=False, recursive=True, for_level=0) -> dict:
     """
     Builds a recursive tree of exposed cherrypy endpoints
 
@@ -37,10 +37,21 @@ def resource_walker(obj, only_navigatable=False, recursive=True) -> dict:
             docstring of an endpoint
     """
     def has_attr(obj, attr: str) -> bool:
-        return getattr(obj, attr, False) or getattr(type(obj), attr, False)
+        return hasattr(obj, attr) or hasattr(type(obj), attr)
 
     def navigatable(obj):
-        return has_attr(obj, 'exposed') and ((not only_navigatable) or has_attr(obj, 'show_in_nav'))
+        try:
+            return has_attr(obj, 'exposed') and obj.exposed and (
+                    (not only_navigatable) or has_attr(obj, 'show_in_nav') and obj.show_in_nav <= for_level
+            )
+        except TypeError:
+            raise
+
+    def getdoc(obj):
+        """Returns inspect.getdoc if available, else checks for an index method and returns the getdoc of that"""
+        return inspect.getdoc(obj) or \
+               (getattr(obj, 'index', None) and inspect.getdoc(obj.index)) or \
+               (getattr(obj, 'default', None) and inspect.getdoc(obj.default))
 
     p_vars = dict((k, getattr(obj, k)) for k in dir(obj))
     p_vars = {k: v for k, v in p_vars.items() if not k.startswith('_') and navigatable(v)}
@@ -100,6 +111,7 @@ class Root(object):
     datafiles = static.StaticServer('datafiles', True)
 
     @expose_for()
+    @web.show_in_nav_for()
     def index(self):
         """
         Root home: Shows the map page if the current user has no urgent jobs.
@@ -121,6 +133,7 @@ class Root(object):
         return navigation()
 
     @expose_for()
+    @web.show_in_nav_for()
     def login(self, frompage='/', username=None, password=None, error='', logout=None):
         """
         The login page
@@ -216,10 +229,10 @@ class Root(object):
 
     @expose_for()
     @web.mime.json
-    def resources(self):
+    def resources(self, only_navigatable=False, recursive=True, for_level=users.current.level):
         """
-        Returns a json object representing all ressources of this cherrypy web-application
+        Returns a json object representing all resources of this cherrypy web-application
         """
-        res = resource_walker(self)
+        res = resource_walker(self, only_navigatable, recursive, int(for_level))
         return json.dumps(res).encode('utf-8')
 

@@ -549,9 +549,8 @@ class Plot(object):
 
 plotgroup = group.logger
 
-
+@web.show_in_nav_for(0)
 class PlotPage(object):
-    exposed = True
 
     @expose_for(plotgroup)
     def index(self, valuetype=None, site=None, error=''):

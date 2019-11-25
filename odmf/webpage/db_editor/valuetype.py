@@ -6,8 +6,9 @@ from ..auth import group, expose_for
 from ... import db
 from traceback import format_exc as traceback
 
+
+@web.show_in_nav_for(1)
 class VTPage:
-    exposed = True
 
     @expose_for(group.guest)
     def default(self, vt_id='new'):

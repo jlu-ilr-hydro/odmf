@@ -7,8 +7,9 @@ from ... import db
 from traceback import format_exc as traceback
 from datetime import datetime
 
+
+@web.show_in_nav_for(1)
 class JobPage:
-    exposed = True
 
     @expose_for(group.logger)
     def default(self, jobid=None, user=None, onlyactive='active'):

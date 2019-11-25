@@ -7,7 +7,7 @@ from . import lib as web
 from .. import db
 
 
-@web.expose
+@web.show_in_nav_for(0)
 class MapPage(object):
 
     @web.expose

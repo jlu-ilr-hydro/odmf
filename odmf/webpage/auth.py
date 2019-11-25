@@ -181,7 +181,7 @@ class Users(collections.Mapping):
 
     @property
     def current(self):
-        return self.get(cherrypy.request.login)
+        return self.get(cherrypy.request.login, User('guest', 0, None))
 
     def login(self, username, password):
         self.load()
@@ -202,6 +202,7 @@ class Users(collections.Mapping):
 
 
 users = Users()
+
 
 
 def is_member(group):

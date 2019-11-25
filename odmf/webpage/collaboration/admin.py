@@ -8,12 +8,11 @@ from ..upload import write_to_file
 import os
 from traceback import format_exc as traceback
 
-
+@web.show_in_nav_for(4)
 class AdminPage(object):
     """
     Displays forms and utilites for runtime configuration of the application, which will be made persistent
     """
-    expose = True
 
     @expose_for(group.admin)
     def default(self, error='', success=''):

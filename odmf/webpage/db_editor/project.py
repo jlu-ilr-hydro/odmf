@@ -6,8 +6,8 @@ from ..auth import group, expose_for
 from ... import db
 
 
+@web.show_in_nav_for(1)
 class ProjectPage:
-    exposed = True
 
     @expose_for(group.logger)
     def default(self, project_id=None, error=None):

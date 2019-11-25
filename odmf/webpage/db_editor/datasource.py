@@ -6,8 +6,9 @@ from ... import db
 
 from traceback import format_exc as traceback
 
+
+@web.show_in_nav_for(1)
 class DatasourcePage:
-    exposed = True
 
     @expose_for(group.guest)
     def default(self, id='new'):
