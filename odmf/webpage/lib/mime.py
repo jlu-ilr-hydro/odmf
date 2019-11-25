@@ -2,6 +2,8 @@
 Tools to handle mimetypes
 """
 import cherrypy
+import mimetypes
+
 
 class MimeType:
     """
@@ -49,8 +51,7 @@ class Mime:
     plain = MimeType('text/plain')
     xml = MimeType('text/xml')
     html = MimeType('text/html')
-    jpg = MimeType('image/jpeg')
-    jpeg = MimeType('image/jpeg')
+    jpeg = jpg = jpe = MimeType('image/jpeg')
     png = MimeType('image/png')
     csv = MimeType('text/comma-separated-values')
     pdf = MimeType('application/pdf')
@@ -66,7 +67,21 @@ class Mime:
         try:
             return getattr(self, item)
         except AttributeError:
-            raise KeyError(f'mimetype "{item}" not found')
+            t, e = mimetypes.guess_type('bla.' + item)
+            if t:
+                return MimeType(t)
+            else:
+                raise KeyError(f'mimetype "{item}" not found')
+
+    def __getattr__(self, item):
+        t, e = mimetypes.guess_type('bla.' + item)
+        if t:
+            return MimeType(t)
+        else:
+            raise AttributeError(f'mimetype "{item}" not found')
+
+    def __dir__(self):
+        return [t[1:] for t in mimetypes.types_map]
 
     def __contains__(self, item):
         return hasattr(self, item)
