@@ -72,6 +72,7 @@ class Configuration:
     map_default = {'lat': 50.5, 'lng': 8.55, 'type': 'hybrid', 'zoom': 15}
     upload_max_size = 25000000
     server_port = ...
+    google_maps_api_key = ...
     woftester_receiver_mail = ['philipp.kraft@umwelt.uni-giessen.de']
     woftester_sender_mail = 'woftester@umwelt.uni-giessen.de'
     cuahsi_wsdl_endpoint = 'http://fb09-pasig.umwelt.uni-giessen.de/wof/index.php/cuahsi_1_1.asmx?WSDL'
