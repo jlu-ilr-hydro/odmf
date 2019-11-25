@@ -7,8 +7,8 @@ from . import lib as web
 from .. import db
 
 
+@web.expose
 class MapPage(object):
-    exposed = True
 
     @web.expose
     def index(self, site=None):

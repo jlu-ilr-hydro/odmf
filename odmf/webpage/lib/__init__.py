@@ -24,5 +24,16 @@ HTTPRedirect = cherrypy.HTTPRedirect
 HTTPError = cherrypy.HTTPError
 
 
-def setmime(mime_type):
-    cherrypy.response.headers['Content-Type'] = str(mime_type)
+def show_in_nav():
+    """
+    Use as a class / method decorator to flag an exposed object in the site navigation
+
+    @show_in_nav
+    @expose
+    class SubPage:
+        ...
+    """
+    def decorate(f):
+        f.show_in_nav = True
+        return f
+    return decorate

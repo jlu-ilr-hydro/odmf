@@ -17,8 +17,9 @@ from ..preferences import Preferences
 from ...config import conf
 
 
+@web.expose
+@web.show_in_nav
 class SitePage:
-    exposed = True
 
     @expose_for(group.guest)
     def default(self, actualsite_id=None, error=''):

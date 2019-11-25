@@ -8,7 +8,6 @@ from .auth import users, group, expose_for
 
 from .. import db
 from ..config import conf
-import sys
 import os
 from datetime import datetime, timedelta
 from . import collaboration as cll
@@ -21,40 +20,48 @@ from . import api
 from . import static
 
 
-def ressource_walker(*path) -> dict:
+def resource_walker(obj, only_navigatable=False, recursive=True) -> dict:
     """
     Builds a recursive tree of exposed cherrypy endpoints
 
     How to call for a tree of the complete app:
     ::
-        ressource_tree = ressource_walker(root)
+        resource_tree = resource_walker(root)
 
     How to call for a branch in the app (eg. the site page)
     ::
-        ressource_subtree = ressource_walker(root, site)
+        resource_subtree = resource_walker(root, site)
 
-    :param path: The current url in terms of objects enabled for cherrypy dispaching. The last object in the path
-                is the current object
+    :param obj: The cherrypy object (type or function) to investigate
     :return: A dictionary containing either a dictionary for the next deeper address level or a
             docstring of an endpoint
     """
-    def is_exposed(obj):
-        return getattr(obj, 'exposed', False) or getattr(type(obj), 'exposed', False)
+    def has_attr(obj, attr: str) -> bool:
+        return getattr(obj, attr, False) or getattr(type(obj), attr, False)
 
-    act_p = path[-1]
-    p_vars = dict((k, getattr(act_p, k)) for k in dir(act_p))
-    p_vars = {k: v for k, v in p_vars.items() if not k.startswith('_') and is_exposed(v)}
-    res = {
-        k: ressource_walker(*path, v)
-        for k, v in p_vars.items()
-        if is_exposed(v)
-    }
+    def navigatable(obj):
+        return has_attr(obj, 'exposed') and ((not only_navigatable) or has_attr(obj, 'show_in_nav'))
 
-    if getdoc(act_p):
+    p_vars = dict((k, getattr(obj, k)) for k in dir(obj))
+    p_vars = {k: v for k, v in p_vars.items() if not k.startswith('_') and navigatable(v)}
+    if recursive:
+        res = {
+            k: resource_walker(v, only_navigatable)
+            for k, v in p_vars.items()
+            if navigatable(v)
+        }
+    else:
+        res = {
+            k: getdoc(v)
+            for k, v in p_vars.items()
+            if navigatable(v)
+        }
+
+    if getdoc(obj):
         if res:
-            res['__doc__'] = getdoc(act_p)
+            res['__doc__'] = getdoc(obj)
         else:
-            res = getdoc(act_p)
+            res = getdoc(obj)
     else:
         res = None
 
@@ -91,7 +98,6 @@ class Root(object):
     admin = cll.AdminPage()
     media = static.StaticServer('media', True)
     datafiles = static.StaticServer('datafiles', True)
-    html = static.StaticServer('templates', True)
 
     @expose_for()
     def index(self):
@@ -186,15 +192,6 @@ class Root(object):
     def robots_txt(self):
         return "User-agent: *\nDisallow: /\n"
 
-    @expose_for(group.admin)
-    @web.mime.plain
-    def freemem(self):
-        import subprocess
-        if sys.platform == 'linux2':
-            return subprocess.Popen(['free', '-m'], stdout=subprocess.PIPE).communicate()[0]
-        else:
-            return 'Memory storage information is not available at your platform'
-
     @expose_for()
     @web.mime.json
     def actualclimate_json(self, site=47):
@@ -219,10 +216,10 @@ class Root(object):
 
     @expose_for()
     @web.mime.json
-    def ressources(self):
+    def resources(self):
         """
         Returns a json object representing all ressources of this cherrypy web-application
         """
-        res = ressource_walker(self)
+        res = resource_walker(self)
         return json.dumps(res).encode('utf-8')
 
