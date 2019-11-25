@@ -4,12 +4,12 @@
 __all__ = [
     'render', 'markdown', 'Markup', 'user',
     'cherrypy', 'method', 'mime',
-    'expose', 'json_in', 'HTTPRedirect', 'HTTPError'
+    'expose', 'json_in', 'HTTPRedirect', 'HTTPError', 'resource_walker'
 ]
 
 import cherrypy
 
-from .render import render, markdown, Markup, user
+from .render import render, markdown, Markup, user, resource_walker
 
 from .conversion import *
 

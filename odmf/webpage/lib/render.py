@@ -4,8 +4,8 @@ Tools to render html templates
 
 
 import cherrypy
-import json
-from datetime import datetime, timedelta
+import inspect
+from datetime import timedelta
 
 from genshi.template import Context, TemplateLoader
 from genshi.core import Markup
@@ -15,10 +15,62 @@ from ..markdown import MarkDown
 from .conversion import *
 from ...config import conf
 
+
 markdown = MarkDown()
 
 loader = TemplateLoader([str(p.absolute() / 'templates') for p in conf.static if (p / 'templates').exists()],
                         auto_reload=True)
+
+
+def resource_walker(obj, only_navigatable=False, recursive=True, for_level=0) -> dict:
+    """
+    Builds a recursive tree of exposed cherrypy endpoints
+
+    How to call for a tree of the complete app:
+    ::
+        resource_tree = resource_walker(root)
+
+    How to call for a branch in the app (eg. the site page)
+    ::
+        resource_subtree = resource_walker(root, site)
+
+    :param obj: The cherrypy object (type or function) to investigate
+    :return: A dictionary containing either a dictionary for the next deeper address level or a
+            docstring of an endpoint
+    """
+    def has_attr(obj, attr: str) -> bool:
+        return hasattr(obj, attr) or hasattr(type(obj), attr)
+
+    def navigatable(obj):
+        try:
+            return has_attr(obj, 'exposed') and obj.exposed and (
+                    (not only_navigatable) or has_attr(obj, 'show_in_nav') and obj.show_in_nav <= for_level
+            )
+        except TypeError:
+            raise
+
+    def getdoc(obj):
+        """Returns inspect.getdoc if available, else checks for an index method and returns the getdoc of that"""
+        return inspect.getdoc(obj) or \
+               (getattr(obj, 'index', None) and inspect.getdoc(obj.index)) or \
+               (getattr(obj, 'default', None) and inspect.getdoc(obj.default))
+
+    p_vars = dict((k, getattr(obj, k)) for k in dir(obj))
+    p_vars = {k: v for k, v in p_vars.items() if not k.startswith('_') and navigatable(v)}
+    if recursive:
+        res = {
+            k: resource_walker(v, only_navigatable)
+            for k, v in p_vars.items()
+            if navigatable(v)
+        }
+    else:
+        res = {
+            k: getdoc(v)
+            for k, v in p_vars.items()
+            if navigatable(v)
+        }
+
+    return res or getdoc(obj)
 
 
 def navigation(title=''):
@@ -26,6 +78,7 @@ def navigation(title=''):
                          title=str(title),
                          background_image=conf.nav_background,
                          left_logo=conf.nav_left_logo,
+                         resources=resource_walker(render.functions['root'], True, False, auth.users.current.level)
                          ).render('html', encoding=None))
 
 
@@ -79,7 +132,7 @@ class Renderer(object):
             'as_json': as_json,
             'abbrtext': abbrtext,
             'not_external': not_external,
-            'conf': conf
+            'conf': conf,
         }
 
     def __call__(self, *args, **kwargs):

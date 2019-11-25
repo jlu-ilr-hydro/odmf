@@ -20,65 +20,6 @@ from . import api
 from . import static
 
 
-def resource_walker(obj, only_navigatable=False, recursive=True, for_level=0) -> dict:
-    """
-    Builds a recursive tree of exposed cherrypy endpoints
-
-    How to call for a tree of the complete app:
-    ::
-        resource_tree = resource_walker(root)
-
-    How to call for a branch in the app (eg. the site page)
-    ::
-        resource_subtree = resource_walker(root, site)
-
-    :param obj: The cherrypy object (type or function) to investigate
-    :return: A dictionary containing either a dictionary for the next deeper address level or a
-            docstring of an endpoint
-    """
-    def has_attr(obj, attr: str) -> bool:
-        return hasattr(obj, attr) or hasattr(type(obj), attr)
-
-    def navigatable(obj):
-        try:
-            return has_attr(obj, 'exposed') and obj.exposed and (
-                    (not only_navigatable) or has_attr(obj, 'show_in_nav') and obj.show_in_nav <= for_level
-            )
-        except TypeError:
-            raise
-
-    def getdoc(obj):
-        """Returns inspect.getdoc if available, else checks for an index method and returns the getdoc of that"""
-        return inspect.getdoc(obj) or \
-               (getattr(obj, 'index', None) and inspect.getdoc(obj.index)) or \
-               (getattr(obj, 'default', None) and inspect.getdoc(obj.default))
-
-    p_vars = dict((k, getattr(obj, k)) for k in dir(obj))
-    p_vars = {k: v for k, v in p_vars.items() if not k.startswith('_') and navigatable(v)}
-    if recursive:
-        res = {
-            k: resource_walker(v, only_navigatable)
-            for k, v in p_vars.items()
-            if navigatable(v)
-        }
-    else:
-        res = {
-            k: getdoc(v)
-            for k, v in p_vars.items()
-            if navigatable(v)
-        }
-
-    if getdoc(obj):
-        if res:
-            res['__doc__'] = getdoc(obj)
-        else:
-            res = getdoc(obj)
-    else:
-        res = None
-
-    return res
-
-
 class Root(object):
     """
     The root of the odmf webpage
@@ -233,6 +174,9 @@ class Root(object):
         """
         Returns a json object representing all resources of this cherrypy web-application
         """
-        res = resource_walker(self, only_navigatable, recursive, int(for_level))
+        res = web.resource_walker(self, only_navigatable, recursive, int(for_level))
         return json.dumps(res).encode('utf-8')
+
+    def __init__(self):
+        web.render.functions['root'] = self
 

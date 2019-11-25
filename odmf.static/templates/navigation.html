@@ -7,24 +7,10 @@
 		<a href="javascript:window.location='/login?frompage='+window.location.pathname;"
 			 py:content="users.current if users.current else 'login'" title="login"/>
 		<ul>
-			<li><a href="/map">map</a></li>
-			<li py:if="is_member('logger')"><a href="/plot"             >plot</a></li>
-			<li py:if="is_member('guest')" ><a href="/site"             >sites</a></li>
-			<li>                            <a href="/wiki/publications">publications</a></li>
-			<li>                            <a href="/picture"          >pictures</a></li>
-			<li py:if="is_member('guest')" ><a href="/dataset/last"     >data sets</a> </li>
-			<li py:if="is_member('guest')" ><a href="/valuetype"        >value types</a></li>
-			<li py:if="is_member('guest')" ><a href="/instrument"       >instruments</a></li>
-			<li py:if="is_member('logger')"><a href="/download"         >download</a></li>
-			<li py:if="is_member('logger')"><a href="/project"          >project</a></li>
-			<li py:if="is_member('logger')" ><a href="/calendar"        >calendar</a></li>
-			<li py:if="is_member('guest')"><a href="/user"              >users</a></li>
-			<li py:if="is_member('editor')"><a href="/job"              >jobs</a></li>
-            <li py:if="is_member('admin')"><a href="/admin"             >admin</a></li>
-			<li><a href="/wiki"                                         >wiki</a></li>
-			<li py:if="is_member('logger')"><a href="/log"              >log</a></li>
-      <li><div id="navigate_extra"   ></div></li>
-		</ul>
+			<li py:for="target, help in resources.items()">
+                <a href="/${target}" title="${help}" py:content="target"/>
+            </li>
+        </ul>
   </div>
 	<div style="vertical-align: middle;">
 		<h1 py:if="not_external()" style="position: absolute; top: 0px; left: 189px; z-index: 1000; right: 0px;" id="title">

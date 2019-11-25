@@ -9,7 +9,7 @@ from ... import db
 @web.show_in_nav_for(0)
 class PicturePage(object):
     """
-    NAvigation and search for photos from the observatory
+    Navigation and search for photos from the observatory
     """
 
     @expose_for()
