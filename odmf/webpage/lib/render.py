@@ -7,19 +7,14 @@ import cherrypy
 import inspect
 from datetime import timedelta
 
-from genshi.template import Context, TemplateLoader
-from genshi.core import Markup
+
+from kajiki import FileLoader
+from kajiki.template import literal
 
 from .. import auth
-from ..markdown import MarkDown
-from .conversion import *
 from ...config import conf
 
-
-markdown = MarkDown()
-
-loader = TemplateLoader([str(p.absolute() / 'templates') for p in conf.static if (p / 'templates').exists()],
-                        auto_reload=True)
+from . import render_tools
 
 
 def resource_walker(obj, only_navigatable=False, recursive=True, for_level=0) -> dict:
@@ -73,86 +68,53 @@ def resource_walker(obj, only_navigatable=False, recursive=True, for_level=0) ->
     return res or getdoc(obj)
 
 
+def get_nav_entries():
+    return resource_walker(
+        render.root,
+        only_navigatable=True,
+        recursive=False,
+        for_level=auth.users.current.level
+    )
+
+
 def navigation(title=''):
-    return Markup(render('navigation.html',
-                         title=str(title),
-                         background_image=conf.nav_background,
-                         left_logo=conf.nav_left_logo,
-                         resources=resource_walker(render.functions['root'], True, False, auth.users.current.level)
-                         ).render('html', encoding=None))
 
-
-def attrcheck(kw, condition):
-    if condition:
-        return {kw: kw}
-    else:
-        return {kw: None}
-
-
-def markoption(condition):
-    return attrcheck('selected', condition)
-
-
-def abbrtext(s, maxlen=50):
-    if s:
-        s = str(s).replace('\n', ' ')
-        if len(s) > maxlen:
-            idx = s.rfind(' ', 0, maxlen - 4)
-            s = s[:idx] + ' ...'
-        return s
-    else:
-        return ''
-
-
-def user():
-    return cherrypy.request.login
-
-
-def not_external():
-    return not ("external" in cherrypy.url())
+    return literal(
+        render(
+            'navigation.html',
+             title=str(title),
+             background_image=conf.nav_background,
+             left_logo=conf.nav_left_logo,
+             resources=get_nav_entries(),
+         ).render('html', encoding=None))
 
 
 class Renderer(object):
     def __init__(self):
-        self.functions = {
-            'attrcheck': attrcheck,
-            'navigation': navigation,
-            'markoption': markoption,
-            'formatdate': formatdate,
-            'formattime': formattime,
-            'formatdatetime': formatdatetime,
-            'formatfloat': formatfloat,
-            'datetime': datetime,
-            'timedelta': timedelta,
-            'user': user,
-            'users': auth.users,
-            'is_member': auth.is_member,
-            'bool2js': lambda b: str(b).lower(),
-            'markdown': markdown,
-            'as_json': as_json,
-            'abbrtext': abbrtext,
-            'not_external': not_external,
-            'conf': conf,
-        }
+        self.loader = FileLoader(
+            [str(p.absolute() / 'templates')
+             for p in conf.static
+             if (p / 'templates').exists()
+             ]
+        )
+        self.root = None
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, template_file, **kwargs):
         """Function to render the given data to the template specified via the
         ``@output`` decorator.
         """
-        if args:
-            assert len(args) == 1, \
-                'Expected exactly one argument, but got %r' % (args,)
-            template = loader.load(args[0])
-        else:
-            template = cherrypy.thread_data.template
-        ctxt = Context(url=cherrypy.url)
-        ctxt.push(kwargs)
-        ctxt.push(self.functions)
+        template = self.loader.import_(template_file)
+        # get all objects defined in render_tools
+        context = {
+            name: func
+            for name, func in vars(render_tools).items()
+            if name[0] != '_'
+        }
 
-        # head base for all templates
-        # see conf.py
-        ctxt.push({'head_base': conf.head_base})
-        return template.generate(ctxt)
+        context.update(kwargs)
+        context.update({'conf': conf, 'navigation': navigation})
+
+        return template(context)
 
 
 render = Renderer()

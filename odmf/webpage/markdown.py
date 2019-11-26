@@ -5,7 +5,7 @@ Created on 15.05.2013
 @author: kraft-p
 '''
 import markdown
-from genshi.core import Markup
+from kajiki.template import literal as literal
 import bleach
 
 
@@ -219,6 +219,6 @@ class MarkDown:
                             }
             )
 
-            return Markup(cleaned_html)
+            return literal(cleaned_html)
         else:
             return s

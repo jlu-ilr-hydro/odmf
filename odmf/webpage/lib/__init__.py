@@ -2,14 +2,15 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'render', 'markdown', 'Markup', 'user',
+    'render', 'markdown', 'literal', 'user',
     'cherrypy', 'method', 'mime',
     'expose', 'json_in', 'HTTPRedirect', 'HTTPError', 'resource_walker'
 ]
 
 import cherrypy
 
-from .render import render, markdown, Markup, user, resource_walker
+from .render import render, resource_walker, literal
+from .render_tools import markdown, user
 
 from .conversion import *
 

@@ -528,7 +528,7 @@ class DatasetPage:
                     records = records.limit(limit)
                     currentcount = records.count()
             except:
-                return web.Markup('<div class="error">' + traceback() + '</div>')
+                return web.literal('<div class="error">' + traceback() + '</div>')
             res = web.render('record.html', records=records, currentcount=currentcount,
                              totalrecords=totalcount, dataset=ds, actionname="split dataset",
                              action="/dataset/setsplit",
