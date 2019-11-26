@@ -3,13 +3,13 @@
 
 __all__ = [
     'render', 'markdown', 'literal', 'user',
-    'cherrypy', 'method', 'mime',
+    'cherrypy', 'method', 'mime', 'escape',
     'expose', 'json_in', 'HTTPRedirect', 'HTTPError', 'resource_walker'
 ]
 
 import cherrypy
 
-from .render import render, resource_walker, literal
+from .renderer import render, resource_walker, literal, escape
 from .render_tools import markdown, user
 
 from .conversion import *

@@ -2,19 +2,52 @@
 Tools to render html templates
 """
 
-
-import cherrypy
 import inspect
-from datetime import timedelta
-
-
-from kajiki import FileLoader
+import kajiki
+import kajiki.entities
 from kajiki.template import literal
 
 from .. import auth
 from ...config import conf
-
 from . import render_tools
+from . import conversion
+
+
+if kajiki.__version__ < '0.9':
+    kajiki.entities.html5.update(
+        {k[:-1]: v
+         for k, v in kajiki.entities.html5.items()
+         if k[-1] == ';' and k[:-1] not in kajiki.entities.html5
+    })
+
+
+def escape(text, quotes=True):
+    """Create a Markup string from a string and escape special characters
+    it may contain (<, >, & and \").
+
+    >>> escape('"1 < 2"')
+    <Markup '&#34;1 &lt; 2&#34;'>
+
+    If the `quotes` parameter is set to `False`, the \" character is left
+    as is. Escaping quotes is generally only required for strings that are
+    to be used in attribute values.
+
+    >>> escape('"1 < 2"', quotes=False)
+    <Markup '"1 &lt; 2"'>
+
+    :param text: the text to escape
+    :param quotes: if ``True``, double quote characters are escaped in
+                   addition to the other special characters
+    :return: the escaped `Markup` string
+    """
+    if not text:
+        return ''
+    text = text.replace('&', '&amp;') \
+        .replace('<', '&lt;') \
+        .replace('>', '&gt;')
+    if quotes:
+        text = text.replace('"', '&#34;')
+    return literal(text)
 
 
 def resource_walker(obj, only_navigatable=False, recursive=True, for_level=0) -> dict:
@@ -89,9 +122,24 @@ def navigation(title=''):
          ).render())
 
 
+def context(**kwargs):
+    def context_from_module(module):
+        return {
+            name: func
+            for name, func in vars(module).items()
+            if name[0] != '_'
+    }
+    context = context_from_module(render_tools)
+    context.update(context_from_module(conversion))
+
+    context.update(kwargs)
+    context.update({'conf': conf, 'navigation': navigation})
+    return context
+
+
 class Renderer(object):
     def __init__(self):
-        self.loader = FileLoader(
+        self.loader = kajiki.FileLoader(
             [str(p.absolute() / 'templates')
              for p in conf.static
              if (p / 'templates').exists()
@@ -105,16 +153,8 @@ class Renderer(object):
         """
         template = self.loader.import_(template_file)
         # get all objects defined in render_tools
-        context = {
-            name: func
-            for name, func in vars(render_tools).items()
-            if name[0] != '_'
-        }
 
-        context.update(kwargs)
-        context.update({'conf': conf, 'navigation': navigation})
-
-        return template(context)
+        return template(context(**kwargs))
 
 
 render = Renderer()

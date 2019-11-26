@@ -11,7 +11,7 @@ from . import lib as web
 
 import os
 from traceback import format_exc as traceback
-from genshi import escape
+
 from .auth import group, expose_for
 from io import StringIO, BytesIO
 from cherrypy import log
@@ -87,7 +87,7 @@ class DBImportPage(object):
 
         if 'commit' in kwargs and cancommit:
             di.savetoimports(absfile, web.user(), ["_various_as_its_manual"])
-            raise web.HTTPRedirect('/download?dir=' + escape(path.up()))
+            raise web.HTTPRedirect('/download?dir=' + web.escape(path.up()))
         else:
             return web.render('logimport.html', filename=path, logs=logs,
                               cancommit=cancommit, error=error)\
@@ -268,11 +268,11 @@ class DownloadPage(object):
                     print(error)
 
         if "uploadimport" in kwargs and not error:
-            url = '/download/to_db?filename=' + escape(fn.href)
+            url = '/download/to_db?filename=' + web.escape(fn.href)
         else:
-            url = '/download?dir=' + escape(dir)
+            url = '/download?dir=' + web.escape(dir)
             if error:
-                url += '&error=' + escape(error)
+                url += '&error=' + web.escape(error)
         raise web.HTTPRedirect(url)
 
     @expose_for(group.logger)
@@ -317,9 +317,9 @@ class DownloadPage(object):
                     error = traceback()
         else:
             error = 'Forgotten to give your new folder a name?'
-        url = '/download?dir=' + escape(dir)
+        url = '/download?dir=' + web.escape(dir)
         if error:
-            url += '&error=' + escape(error)
+            url += '&error=' + web.escape(error)
         return self.index(dir=dir, error=error)
 
     # @TODO: Is the usage of a dir post variable safe through foreign access?
