@@ -33,7 +33,7 @@ class ProjectPage:
                     res = web.render('project_from_id.html',
                                      project=project_from_id,
                                      persons=persons, error=error) \
-                        .render('html', doctype='html')
+                        .render()
             elif project_id is None:
 
                 res = self.render_projects(session, error)
@@ -51,7 +51,7 @@ class ProjectPage:
             persons = persons.filter(db.Person.access_level > 3)
 
             res = web.render('project_new.html', persons=persons, error=error) \
-                .render('html', doctype='html')
+                .render()
 
             return res
 
@@ -87,7 +87,7 @@ class ProjectPage:
             error = ''
 
             res = web.render('project_from_id.html', project=new_project,
-                             persons=persons, error=error).render('html', doctype='html')
+                             persons=persons, error=error).render()
 
         return res
 
@@ -152,7 +152,7 @@ class ProjectPage:
             error = ''
 
             res = web.render('project_delete.html', project=project,
-                             error=error).render('html', doctype='html')
+                             error=error).render()
             session.close()
 
         return res
@@ -180,4 +180,4 @@ class ProjectPage:
         projects = projects.order_by(db.sql.asc(db.Project.id))
 
         return web.render('projects.html', error=error, projects=projects
-                          ).render('html', doctype='html')
+                          ).render()

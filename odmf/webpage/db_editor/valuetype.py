@@ -30,7 +30,7 @@ class VTPage:
                 vt = None
 
         result = web.render('valuetype.html', valuetypes=valuetypes,
-                            actualvaluetype=vt, error=error).render('html', doctype='html')
+                            actualvaluetype=vt, error=error).render()
         session.close()
         return result
 
@@ -56,7 +56,7 @@ class VTPage:
                 session.close()
             except:
                 return web.render('empty.html', error=traceback(), title='valuetype #%s' % id
-                                  ).render('html', doctype='html')
+                                  ).render()
         raise web.HTTPRedirect('./%s' % id)
 
     @expose_for(group.guest)

@@ -40,7 +40,7 @@ class PersonPage:
                 error = traceback()
         result = web.render('person.html', persons=persons, active_person=p_act, supervisors=supervisors, error=error,
                             jobs=jobs, act_user=act_user, levels=get_levels, is_self=is_self) \
-            .render('html', doctype='html')
+            .render()
         session.close()
         return result
 
@@ -111,7 +111,7 @@ class PersonPage:
         else:
             error = ''
             result = web.render('passwordchange.html',
-                                error=error, username=username).render('html', doctype='html')
+                                error=error, username=username).render()
 
         session.close()
 
@@ -132,7 +132,7 @@ class PersonPage:
         # if password != password_repeat:
         #    error = 'Error: Password don\'t match'
         #    result = web.render('passwordchange.html', error=error, username=username)\
-        #        .render('html', doctype='html')
+        #        .render()
 
         # Password encryption and db saving
         session = db.Session()

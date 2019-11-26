@@ -66,7 +66,7 @@ class PicturePage(object):
             if by:
                 imagelist = imagelist.filter_by(_by=by)
         res = web.render('picture.html', image=img, error=error,
-                         images=imagelist, site=site, by=by).render('html')
+                         images=imagelist, site=site, by=by).render()
         session.close()
         print('Image:Index(%s, %s, %s)' % (id, site, by))
         return res

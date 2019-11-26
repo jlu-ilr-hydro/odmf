@@ -75,7 +75,7 @@ class Wiki(object):
         else:
             name = 'content'
         res = web.render('wiki.html', name=name, error='',
-                         wikitext=content, pages=pages).render('html', doctype='html')
+                         wikitext=content, pages=pages).render()
         return res
 
     @expose_for(group.editor)

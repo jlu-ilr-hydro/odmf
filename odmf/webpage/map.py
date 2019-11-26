@@ -21,7 +21,7 @@ class MapPage(object):
                     session.query(db.Site).get(int(site))
                 ).decode('utf-8')
 
-        return web.render('map.html', site=site).render('html', doctype='html')
+        return web.render('map.html', site=site).render()
 
     @web.expose
     @web.mime.json
@@ -38,6 +38,6 @@ class MapPage(object):
             return('<div class="error">Site %s not found</div>' % siteid)
         session = db.Session()
         site = session.query(db.Site).get(int(siteid))
-        res = web.render('sitedescription.html', site=site).render('html')
+        res = web.render('sitedescription.html', site=site).render()
         session.close()
         return res

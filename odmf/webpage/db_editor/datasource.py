@@ -27,7 +27,7 @@ class DatasourcePage:
                 inst = None
 
         result = web.render('instrument.html', instruments=instruments,
-                            actualinstrument=inst, error=error).render('html', doctype='html')
+                            actualinstrument=inst, error=error).render()
         session.close()
         return result
 
@@ -52,7 +52,7 @@ class DatasourcePage:
                 session.close()
             except:
                 return web.render('empty.html', error=traceback(), title='valuetype #%s' % id
-                                  ).render('html', doctype='html')
+                                  ).render()
         raise web.HTTPRedirect('./%s' % id)
 
     @expose_for()

@@ -86,7 +86,7 @@ def navigation(title=''):
              background_image=conf.nav_background,
              left_logo=conf.nav_left_logo,
              resources=get_nav_entries(),
-         ).render('html', encoding=None))
+         ).render())
 
 
 class Renderer(object):

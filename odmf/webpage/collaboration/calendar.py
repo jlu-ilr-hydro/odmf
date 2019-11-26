@@ -12,7 +12,7 @@ class CalendarPage(object):
 
     @expose_for()
     def index(self, **kwargs):
-        return web.render('calendar.html').render('html', doctype='html')
+        return web.render('calendar.html').render()
 
     @expose_for()
     @web.mime.json

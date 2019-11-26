@@ -50,7 +50,7 @@ class LogPage:
 
         result = web.render('log.html', actuallog=log, error=error, db=db,
                             loglist=loglist, sites=sitelist, **queries
-                            ).render('html', doctype='html')
+                            ).render()
 
         session.close()
         return result
@@ -61,7 +61,7 @@ class LogPage:
             id = web.conv(int, kwargs.get('id'), '')
         except:
             return web.render(error=str(kwargs) + '\n' + traceback(), title='Job %s' % kwargs.get('id')
-                              ).render('html', doctype='html')
+                              ).render()
         if 'save' in kwargs:
             try:
                 session = db.Session()
@@ -79,7 +79,7 @@ class LogPage:
                 return web.render('empty.html',
                                   error=('\n'.join('%s: %s' % it for it in kwargs.items())) + '\n' + traceback(),
                                   title='Log #%s' % id
-                                  ).render('html', doctype='html')
+                                  ).render()
         elif 'new' in kwargs:
             id = 'new'
         raise web.HTTPRedirect('./%s' % id)

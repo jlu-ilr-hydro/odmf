@@ -20,7 +20,7 @@ class AdminPage(object):
         return web.render('admin.html', error=error, success=success, MEDIA_PATH={
             'logo': conf.nav_left_logo,
             'banner-left': conf.nav_background
-        }).render('html', doctype='html')
+        }).render()
 
     @expose_for(group.admin)
     def upload(self, imgtype, imgfile, **kwargs):

@@ -555,7 +555,7 @@ class PlotPage(object):
     @expose_for(plotgroup)
     def index(self, valuetype=None, site=None, error=''):
         plot = Plot.frompref(createplot=True)
-        return web.render('plot.html', plot=plot, error=error).render('html')
+        return web.render('plot.html', plot=plot, error=error).render()
 
     @expose_for(plotgroup)
     def loadplot(self, filename):
@@ -843,4 +843,4 @@ class PlotPage(object):
 
         plot64 = b64encode(plot.draw(format='png')).decode('utf-8')
 
-        return web.render('climateplot.html', climateplot=plot64, plot=plot).render('html')
+        return web.render('climateplot.html', climateplot=plot64, plot=plot).render()

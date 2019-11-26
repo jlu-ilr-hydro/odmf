@@ -91,7 +91,7 @@ class DBImportPage(object):
         else:
             return web.render('logimport.html', filename=path, logs=logs,
                               cancommit=cancommit, error=error)\
-                .render('html', doctype='html')
+                .render()
 
     @staticmethod
     def mmimport(filename, kwargs):
@@ -178,7 +178,7 @@ class DBImportPage(object):
                           dirlink=path.up(), siteid=siteid, gaps=gaps,
                           stats=stats, datasets=datasets, config=config,
                           sites=sites, possible_datasets=possible_datasets)\
-            .render('html', doctype='html')
+            .render()
 
     @expose_for(group.editor)
     def index(self, filename=None, **kwargs):
@@ -224,7 +224,7 @@ class DownloadPage(object):
         return web.render('download.html', error=error, files=files,
                           directories=directories, curdir=path,
                           max_size=conf.upload_max_size
-                          ).render('html', doctype='html')
+                          ).render()
 
     @expose_for(group.editor)
     def upload(self, dir, datafile, **kwargs):

@@ -47,7 +47,7 @@ class JobPage:
             jobs = jobs.filter(not db.Job.done)
         result = web.render('job.html', jobs=jobs, job=job, error=error, db=db,
                             username=user, onlyactive=onlyactive, **queries
-                            ).render('html', doctype='html')
+                            ).render()
         session.close()
         return result
 
@@ -69,7 +69,7 @@ class JobPage:
             id = web.conv(int, kwargs.get('id'), '')
         except:
             return web.render(error=str(kwargs) + '\n' + traceback(), title='Job %s' % kwargs.get('id')
-                              ).render('html', doctype='html')
+                              ).render()
         if 'save' in kwargs:
             try:
                 session = db.Session()
@@ -97,7 +97,7 @@ class JobPage:
                 return web.render('empty.html',
                                   error=('\n'.join('%s: %s' % it for it in kwargs.items())) + '\n' + traceback(),
                                   title='Job #%s' % id
-                                  ).render('html', doctype='html')
+                                  ).render()
 
     @expose_for(group.logger)
     @web.mime.json

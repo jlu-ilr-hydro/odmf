@@ -44,7 +44,7 @@ class SitePage:
             actualsite = None
         result = web.render('site.html', actualsite=actualsite, error=error,
                             datasets=datasets, icons=self.geticons()
-                            ).render('html', doctype='html')
+                            ).render()
         session.close()
         return result
 
@@ -60,7 +60,7 @@ class SitePage:
             actualsite = None
         result = web.render('site.html', actualsite=actualsite, error=error,
                             datasets=actualsite.datasets, icons=self.geticons()
-                            ).render('html', doctype='html')
+                            ).render()
         session.close()
         return result
 
@@ -91,7 +91,7 @@ class SitePage:
                     site.comment = kwargs.get('comment')
                 except:
                     return web.render('empty.html', error=traceback(), title='site #%s' % siteid
-                                      ).render('html', doctype='html')
+                                      ).render()
         raise web.HTTPRedirect('./%s' % siteid)
 
     @expose_for()

@@ -100,11 +100,11 @@ class Root(object):
             error = users.login(username, password)
             if error:
                 cherrypy.response.status = 401
-                return web.render('login.html', error=error, frompage=frompage).render('html', doctype='html')
+                return web.render('login.html', error=error, frompage=frompage).render()
             else:
                 raise web.HTTPRedirect(frompage or '/')
         else:
-            return web.render('login.html', error=error, frompage=frompage).render('html', doctype='html')
+            return web.render('login.html', error=error, frompage=frompage).render()
 
     @expose_for(group.admin)
     @web.mime.json
@@ -138,7 +138,7 @@ class Root(object):
         Returns a fully rendered page with navigation including the rendered markdown content
         """
         res = web.render('empty.html', title=title,
-                         error='').render('html', doctype='html')
+                         error='').render()
         return res.replace('<!--content goes here-->', web.markdown(content))
 
     @expose_for()
@@ -166,7 +166,7 @@ class Root(object):
         with db.session_scope() as session:
             ds = session.query(db.Dataset).filter(
                 db.Dataset.id.in_(list(range(1493, 1502))))
-            return web.render('actualclimate.html', ds=ds, db=db).render('html', doctype='html')
+            return web.render('actualclimate.html', ds=ds, db=db).render()
 
     @expose_for()
     @web.mime.json

@@ -26,7 +26,7 @@ class DatasetPage:
         """
         Returns the query page (datasetlist.html). Site logic is handled with ajax
         """
-        return web.render('datasetlist.html').render('html', doctype='html')
+        return web.render('datasetlist.html').render()
 
     @expose_for(group.guest)
     def default(self, id='new', site_id=None, vt_id=None, user=None):
@@ -112,7 +112,7 @@ class DatasetPage:
                     title='ds' + str(id),
                     # A couple of prepared queries to fill select elements
                     **queries
-                ).render('html', doctype='html')
+                ).render()
             except:
                 # If anything above fails, render error message
                 return web.render(
@@ -127,7 +127,7 @@ class DatasetPage:
                     db=db,
                     activedataset=None,
                     **queries
-                ).render('html', doctype='html')
+                ).render()
 
 
 
@@ -141,7 +141,7 @@ class DatasetPage:
             id = web.conv(int, kwargs.get('id'), '')
         except:
             return web.render(error=traceback(), title='Dataset #%s' % kwargs.get('id')
-                              ).render('html', doctype='html')
+                              ).render()
         # if save button has been pressed for submitting the dataset
         if 'save' in kwargs:
             try:
@@ -201,7 +201,7 @@ class DatasetPage:
             except:
                 # On error render the error message
                 return web.render('empty.html', error=traceback(), title='Dataset #%s' % id
-                                  ).render('html', doctype='html')
+                                  ).render()
             finally:
                 session.close()
         elif 'new' in kwargs:
@@ -679,7 +679,7 @@ class CalibratePage(object):
                          limit=limit,
                          sourcecount=sourcecount,
                          result=result,
-                         ).render('html')
+                         ).render()
 
         session.close()
         return out
