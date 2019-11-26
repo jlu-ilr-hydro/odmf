@@ -1,0 +1,92 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+    <!-- Server configuration, see conf.py for HEAD_BASE -->
+    <base href="${conf.head_base}" />
+
+    <link href="/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Climate</title>
+    <link href="/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
+    <style>
+        #photos {
+            background-position: center center;
+            background-repeat: no-repeat;
+            overflow: hidden;
+            position: absolute; 
+            top: 55px; 
+            left: 760px; 
+            bottom: 0px; 
+            right:0px;
+            color:white;
+            background-size: cover;
+            text-shadow: #000 3px 3px 3px;
+        }
+    </style>
+    <script src="/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
+    <script >
+    dayloop = [1,7,30];
+    siteloop = [47];
+    siteid = 0; // Position in site loop
+    dayid = 0; // position in dayloop
+    imgid = 1;
+    function updateclimate() {
+                    var now = new Date()
+                    $('#title').html(now.toLocaleString());
+            $('#climate').load('/plot/climate',
+                                                { days:dayloop[dayid],
+                                                  enddate:now.toISOString(),
+                                                    site:siteloop[siteid]
+                                                });
+            ++dayid;
+            dayid %= dayloop.length;
+
+    }
+    function updatephoto() {
+        var imgurl = 'url(/picture/image/' + imgid + ')';
+        $('#photos').css('background-image',imgurl); 
+        $('#photos').html(imgurl);
+        imgid %= 96; 		
+        ++imgid; 
+    }
+    $(function() {
+        updateclimate();
+        updatephoto();
+        setInterval(function() 
+            { // Do this
+                updateclimate();
+                updatephoto();
+            }, 
+            30000 // Every 30 seconds
+        ); 
+    });
+    </script>
+
+</head>
+<body>
+    <div style="vertical-align: middle; text-align: center;">
+        <h1 style="position: absolute; top: 0px; left: 0px; right: 256px; z-index: 1000; right: 0px;padding-left:190px;" id="title" >Schwingbach
+        </h1>		
+        <img src="/media/schwingbachlogo.png" style="position: absolute; top: 0px; left: 0px; z-index: 2000;"/>
+        <span style="position: absolute; top 0px; right: 0px; z-index: 2000">
+            <span id="timespan"></span>
+            <a href="http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
+                <img src="/media/images/ilr-logo_4_klein_RGB.png" alt="ILR"/>
+            </a>
+            <a href="http://www.uni-giessen.de">
+                <img src="/media/images/jlu-logo-150.png" alt="University Giessen"/>
+            </a>
+            
+        </span>
+    </div>
+    <div id="climate" style="position: absolute; top: 55px; left: 0px; bottom: 0px; width:760px" class="content">
+        
+    </div>
+    <div id="photos" >
+        <!--<img src="" width="1155px" height="1020px" id ="photoimg"/>-->
+    </div>
+</body>
+</html>
+

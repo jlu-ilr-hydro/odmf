@@ -1,0 +1,138 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+<head>
+
+    <base href="${conf.head_base}" />
+
+	<link href="/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<link href="/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<title>Map</title>
+	
+	<script type="text/javascript" src="/media/lib/jquery-3.4.1.min.js"></script>
+    <script src="/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
+    <script src="/media/lib/jquery-ui/jquery-ui.js" type="text/javascript" ></script>
+	<script src="/media/js/map.js" type="text/javascript" ></script>
+
+    <!-- Google maps javascript -->
+    <!--  * api call without init callback -->
+    <!--  * async and defer in xml safe notation -->
+    <script type="text/javascript" async="async" defer="defer"
+            src="https://maps.googleapis.com/maps/api/js?key=${conf.google_maps_api_key}"></script>
+
+
+	<script>
+		$(function() {
+			initMap(${site});
+		});
+	</script>
+	<style type="text/css">
+		#infopane {
+			position: absolute;
+			overflow-y:auto;
+			overflow-x:hidden;
+			width: 20em;
+			height: 100%;
+			padding-left: 2px;
+		}
+		.mapCanvasWide {
+	  	position:absolute; 
+	  	height: 100%;
+	  	left: 0px;
+	  	right: 0px;
+		}
+		.mapCanvasShort {
+	  	position:absolute; 
+	  	height: 100%;
+	  	left: 20em;
+	  	right: 0px;
+		}
+	  h1 a {
+	  	color: #FFF;
+	  	font-size: small;
+	  	}
+	  .wide {width: 100%;}
+	  .filter {width: 100%;}
+	  /*button {height: 64px;}*/
+	  .firstoption {font-style: italic;color: grey;}
+	</style>	
+	
+</head>
+<body>
+	${navigation('Map')}
+	<div class="content">
+		<div id="openinfo" style="position: absolute; left: 20em; top: 0px;z-index: 100;">
+			<button>&lt;</button>
+		</div>	
+		<div id="infopane">
+			<div>
+				<h2>Current location</h2>
+				<div class="small">
+					<span id="coordinates">Not in map</span>
+					<span title="Use double click to create a new site" style="margin-left: 1em;font-size: 0.75em;">
+						<input type="checkbox" id="createsite"/>
+						new site
+					</span>
+
+				</div>
+			</div>
+			<div id="filter">
+				<h2>Filter</h2>
+				<table class="wide">
+					<tr>
+						<td>value type:</td>
+						<td>
+							<select id="vtselect" onchange="popSelect();" class="filter">
+								<option class="firstoption" value=""><i>Please select...</i></option>
+							</select>								
+						</td>
+					</tr>
+					<tr>
+						<td>user:</td>
+						<td>
+							<select id="userselect" onchange="popSelect();" class="filter">
+								<option value=""><i>Please select...</i></option>
+							</select>																	
+						</td>
+					</tr>
+					<tr>
+						<td>instrument:</td>
+						<td>
+							<select id="instrumentselect" onchange="popSelect();" class="filter">
+								<option value=""><i>Please select...</i></option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>date:</td>
+						<td>
+							<input id="dateselect" type="text" class="datepicker filter" value=""  
+										onchange="popSelect();" title="Show only sites with a dataset for this date"/>																	
+						</td>
+					</tr>
+					<tr>
+						<td>apply:</td>
+						<td>
+							<button onclick="popSelect();" title="Apply the filter"><img src="/media/ui-icons/filter_16.png" alt="set filter"/></button>
+							<button onclick="clearFilter();" title="Clear filter and show all sites"><img src="/media/ui-icons/clearfilter_16.png" alt="clear filter"/></button>
+							<button onclick="zoomToMarkers();" title="Show all sites"><img src="/media/ui-icons/shimmer/world_16.png"  alt="zoom to markers"/></button>
+						</td>
+					</tr>
+					<tr>
+						<td>only datasets:</td>
+						<td  style="text-align: center;"><input id="datasetsonly" type="checkbox" onchange="popSelect();"/></td>
+					</tr>
+				</table>
+						
+		
+			</div>
+			<hr />
+			<div id="infotext">No site selected</div>
+
+		</div>				
+		<div id="map_canvas" class="mapCanvasShort">Map</div>	
+	</div>
+</body>
+</html>

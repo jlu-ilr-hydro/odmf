@@ -32,7 +32,8 @@ setup(name='odmf',
       packages=find_packages(),
       python_requires='>=3.6',
       install_requires=get_requirements(),
-      data_files=get_datafiles('odmf.static'),
+      include_package_data=True,
+
       entry_points='''
         [console_scripts]
         odmf=odmf.odmf:cli

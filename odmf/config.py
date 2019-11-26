@@ -27,10 +27,9 @@ def find_odmf_static_location():
 
     """
 
-    candidates = Path(sys.prefix), Path(__file__).parents[1], Path('.')
+    candidates = Path(__file__).parent / 'static', Path('./odmf/static')
 
-    for c in candidates:
-        p = c / 'odmf.static'
+    for p in candidates:
         if p.exists():
             if all((p / d).exists() for d in ('templates', 'datafiles', 'media')):
                 logger.info(f'odmf.static at {p}/[templates|datafiles|media]')
@@ -40,7 +39,8 @@ def find_odmf_static_location():
         else:
             logger.info(f'{p} - does not exist\n')
 
-    raise FileNotFoundError('Did not find the odmf.static directory in the installation or local')
+    logger.warning('Did not find the odmf.static directory in the installation or local')
+
 
 
 def static_locations(from_config):
