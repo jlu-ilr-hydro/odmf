@@ -11,6 +11,7 @@ from ..markdown import MarkDown as __md
 
 markdown = __md()
 
+from ..auth import users
 
 def attrcheck(kw, condition):
     if condition:

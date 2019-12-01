@@ -6,7 +6,7 @@ PyYAML>=5.1
 Pillow>=5.3.0
 cherrypy>=18.0.0
 configparser==3.5
-kajiki==0.8.1
+kajiki>=0.8.2
 markdown==2.3.1
 matplotlib
 pandas==0.25.2

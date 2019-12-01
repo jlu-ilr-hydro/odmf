@@ -13,14 +13,6 @@ from . import render_tools
 from . import conversion
 
 
-if kajiki.__version__ < '0.9':
-    kajiki.entities.html5.update(
-        {k[:-1]: v
-         for k, v in kajiki.entities.html5.items()
-         if k[-1] == ';' and k[:-1] not in kajiki.entities.html5
-    })
-
-
 def escape(text, quotes=True):
     """Create a Markup string from a string and escape special characters
     it may contain (<, >, & and \").
@@ -48,6 +40,14 @@ def escape(text, quotes=True):
     if quotes:
         text = text.replace('"', '&#34;')
     return literal(text)
+
+_alias = {
+
+    'index': 'home'
+}
+
+def alias(name):
+    return _alias.get(name, name)
 
 
 def resource_walker(obj, only_navigatable=False, recursive=True, for_level=0) -> dict:
@@ -83,17 +83,22 @@ def resource_walker(obj, only_navigatable=False, recursive=True, for_level=0) ->
                (getattr(obj, 'index', None) and inspect.getdoc(obj.index)) or \
                (getattr(obj, 'default', None) and inspect.getdoc(obj.default))
 
-    p_vars = dict((k, getattr(obj, k)) for k in dir(obj))
-    p_vars = {k: v for k, v in p_vars.items() if not k.startswith('_') and navigatable(v)}
+    p_vars = dict(vars(type(obj)))
+    p_vars.update(vars(obj))
+    p_vars = {
+        k: v for k, v
+        in p_vars.items()
+        if not k.startswith('_') and navigatable(v)
+    }
     if recursive:
         res = {
-            k: resource_walker(v, only_navigatable)
+            alias(k): resource_walker(v, only_navigatable)
             for k, v in p_vars.items()
             if navigatable(v)
         }
     else:
         res = {
-            k: getdoc(v)
+            alias(k): getdoc(v)
             for k, v in p_vars.items()
             if navigatable(v)
         }
@@ -118,7 +123,7 @@ def navigation(title=''):
              title=str(title),
              background_image=conf.nav_background,
              left_logo=conf.nav_left_logo,
-             resources=get_nav_entries(),
+             resources=get_nav_entries().items(),
          ).render())
 
 
@@ -146,6 +151,9 @@ class Renderer(object):
              ]
         )
         self.root = None
+
+    def set_root(self, root):
+        self.root = root
 
     def __call__(self, template_file, **kwargs):
         """Function to render the given data to the template specified via the

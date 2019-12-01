@@ -70,28 +70,14 @@ class Root(object):
         The bare navigation page, usually embedded in other pages
         :return:
         """
-        from .lib.render import navigation
+        from .lib.renderer import navigation
         return navigation()
 
     @expose_for()
     @web.show_in_nav_for()
     def login(self, frompage='/', username=None, password=None, error='', logout=None):
         """
-        The login page
-
-        Parameters
-        ----------
-        frompage
-            Referer to this page - useful to navigate backwards
-        username
-            Username for login, empty to show the page
-        password
-            ditto, password
-        error
-            On authorization errors this page should be shown with an appropriate error message
-        logout
-            If logout is given, the current user logs out
-
+        Enter here your username and password to get access to restricted data or to change data
         """
         if logout:
             users.logout()
@@ -178,5 +164,5 @@ class Root(object):
         return json.dumps(res).encode('utf-8')
 
     def __init__(self):
-        web.render.functions['root'] = self
+        web.render.set_root(self)
 

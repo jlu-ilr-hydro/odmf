@@ -8,7 +8,7 @@
 		<a href="javascript:window.location='/login?frompage='+window.location.pathname;"
 			 py:content="users.current if users.current else 'login'" title="login"/>
 		<ul>
-			<li py:for="target, help in resources.items()">
+			<li py:for="target, help in resources">
                 <a href="/${target}" title="${help}" py:content="target"/>
             </li>
         </ul>
