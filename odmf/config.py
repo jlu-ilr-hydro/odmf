@@ -32,7 +32,7 @@ def find_odmf_static_location():
 
     """
 
-    candidates = Path(__file__).parent / 'static', Path(f'{prefix}/odmf/static')
+    candidates = Path(__file__).parent / 'static', Path(f'{prefix}/odmf/static'), Path(f'{prefix}/')
 
     for p in candidates:
         if p.exists():
@@ -49,7 +49,7 @@ def find_odmf_static_location():
 
 
 def static_locations(from_config):
-    paths = [find_odmf_static_location(), Path('.')] + [Path(p) for p in from_config]
+    paths = [find_odmf_static_location()] + [Path(p) for p in from_config]
     filtered = []
     [filtered.append(str(p)) for p in paths if p.exists() and p not in filtered]
     return filtered
@@ -69,7 +69,7 @@ class Configuration:
     database_password = ...
     database_host = '127.0.0.1'
 
-    static = ['.']
+    static = [prefix]
     media_image_path = 'webpage/media'
     nav_background = '/media/gladbacherhof.jpg'
     nav_left_logo = '/media/lfe-logo.png'
