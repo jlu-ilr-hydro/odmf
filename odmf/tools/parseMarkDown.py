@@ -206,7 +206,7 @@ class MarkDown:
     def __init__(self):
         se = SchwingbachExtension(configs={})
         al = UrlizeExtension(configs={})
-        self.md = markdown.Markdown(extensions=['admonition', 'extra', se, al])
+        self.md = markdown.Markdown(extensions=['admonition', 'extra', 'superscript', 'subscript', se, al])
 
     def __call__(self, s):
         if s:
@@ -219,10 +219,11 @@ class MarkDown:
             html = self.md.convert(s)
             # TODO: Rework with full list of tags
             # TODO: <img>, <a> and <video> are exploitable too
-            tags =['h1', 'h2', 'p', 'a', 'h3', 'pre', 'div', 'hr', 'video', 'img',
-                   'table', 'thead', 'tbody', 'tr', 'th', 'td', 'tfoot']
-
-            cleaned_html = bleach.clean(html, tags=bleach.ALLOWED_TAGS + tags,
+            allowed_tags = (bleach.ALLOWED_TAGS +
+                            'h1 h2 h3 h4 p a pre div hr video img sup sub'.split() +
+                            'table tbody tr td th thead tfoot'.split()
+                            )
+            cleaned_html = bleach.clean(html, tags=allowed_tags,
                                          styles=bleach.ALLOWED_STYLES + ['admonition', 'warning'],
                                          attributes={'div': 'class',
                                                      'video': ['class', 'controls', 'src', 'type'],

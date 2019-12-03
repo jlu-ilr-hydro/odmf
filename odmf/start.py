@@ -29,7 +29,7 @@ except Exception as e:
 
 
 # Start with project imports
-from odmf.webpage import Root, HeapyPage
+from odmf.webpage import Root
 from odmf.webpage import lib
 
 # Make autoreload
