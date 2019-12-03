@@ -74,6 +74,40 @@ def make_db(new_admin_pass):
 
 
 @cli.command()
+@click.argument('uri')
+def make_apache_conf(uri: str):
+    """
+    Creates a apache2 .conf file to run this odmf instance as a wsgi server.
+    """
+    from pathlib import Path
+    if uri.startswith('/'):
+        uri = uri[1:]
+    name = uri.replace('/', '.')
+    path = Path('.').resolve().as_posix()
+    aconf = f"""
+    WSGIDaemonProcess {name} python-home={path}/venv
+    WSGIProcessGroup {name}
+    WSGIScriptAlias /{uri} /var/wsgi/{uri}/odmf.wsgi
+    <Directory {path}>
+        Require all granted
+    </Directory>
+"""
+
+    fn = f'/etc/apache2/conf-available/{name}.conf'
+
+    try:
+        Path(fn).write_text(aconf)
+    except IOError:
+        sys.stderr.write(f'Could not write to {fn},\ncreate that file manually with the following content:\n')
+        sys.stderr.write(aconf)
+    else:
+        sys.stdout.write(f'Configuration written to {fn}\n')
+        fn_enabled = fn.replace("available", "enabled")
+        sys.stdout.write(f'Enable configuration with\n'
+                         f'sudo ln -s {fn} {fn_enabled} ')
+
+
+@cli.command()
 def test_config():
     """
     Tests the configuration and prints it, if it works
@@ -133,6 +167,7 @@ def import_config(filename):
     conf = import_module_configuration(filename)
     conf.to_yaml(open('config.yml', 'w'))
 
+
 @cli.command()
 @click.option('--only_navigatable/--any', '-n', default=False)
 @click.option('--level', '-l', type=int, help='Admission level (0-4)', default=0)
@@ -141,7 +176,8 @@ def uri_tree(only_navigatable, level):
     Prints the tree of available resources of odmf
     """
     import yaml
-    from .webpage.root import resource_walker, Root
+    from .webpage import Root
+    from .webpage.lib.renderer import resource_walker
 
     res = resource_walker(Root(), only_navigatable=only_navigatable, recursive=True, for_level=int(level))
     yaml.safe_dump(res, sys.stdout)

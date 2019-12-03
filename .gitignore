@@ -8,3 +8,4 @@ odmf/conf.py
 **/.pytest_cache/**
 .idea
 *.log
+instances
