@@ -1,8 +1,7 @@
 import cherrypy
 import json
-import inspect
 
-
+from .. import prefix
 from . import lib as web
 from .auth import users, group, expose_for
 
@@ -27,7 +26,7 @@ class Root(object):
     _cp_config = {'tools.sessions.on': True,
                   'tools.sessions.timeout': 24 * 60,  # One day
                   'tools.sessions.storage_type': 'file',
-                  'tools.sessions.storage_path': './sessions',
+                  'tools.sessions.storage_path': prefix + '/sessions',
                   'tools.auth.on': True,
                   'tools.sessions.locking': 'early'}
 
