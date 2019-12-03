@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Server configuration, see conf.py for HEAD_BASE -->
+    <base href="${conf.head_base}" />
+
+	<link href="/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<script src="/media/lib/jquery-3.4.1.min.js" type="text/javascript"></script>
+  <script>
+  	//<![CDATA[
+    function toggle(id) {
+    	$('#'+id).slideToggle('fast');
+    }
+    function reload() {
+    	var params = {site:$('#siteselect').val(),
+    								by:$('#userselect').val()};
+    	window.location = '/picture?' + $.param(params);
+    }
+    function enableupload() {
+    	var siteid = $('#uploadsite').val();
+    	var user = $('#uploaduser').val();
+  		$('#uploadsubmit').prop('disabled',!((siteid>0) && (user)));
+    }
+    function popSelect() {
+    	$.getJSON('/site/json',[],function(data){
+		  		var html='<option value="">Please select...</option>';
+		  		$.each(data,function(index,item){
+	  				html += '<option value="'+item.id+'">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
+		  		});
+		  		$('.sites').html(html);
+		  		$('.sites').val('${site}');
+	  	});
+    	$.getJSON('/user/json',[],function(data){
+		  		var html='<option value="">Please select...</option>';
+		  		$.each(data,function(index,item){
+	  				html += '<option value="'+item.username+'">' + item.label + '</option>';
+		  		});
+		  		$('.users').html(html);
+		  		$('#userselect').val('${by}');
+		    	$('#uploaduser').val('${user()}');
+	  	});
+	  }
+    $(function() {
+    	popSelect();
+    	enableupload();
+    	$('#bigimage').prop('height',512);
+    	$('#imagesize').change(function() {
+    		$('#bigimage').prop('height',$(this).val());
+    	});
+    	$('#imagesize').val(512);
+    });
+
+		//]]>
+    </script>
+
+	<title>Schwingbach Pictures</title>
+	<style>
+		.cell {
+			display: table-cell; 
+			width:102px; 
+			height:72px; 
+			overflow:scroll; 
+			vertical-align: top; 
+			font-size: 75%;
+		}
+		.table {
+			border: solid 1px #E8F0FF;
+			display: inline-table;
+		}
+	</style>
+</head>
+<body>
+		${navigation(image.name if image else 'Picture')}
+		<div class="content">
+		  <div class="error" py:content="error" />
+		  
+			<a py:if="image" href="/picture">&#x25C2;overview</a>
+			<a href="javascript:toggle('filter');">&#x25BE;filter</a>
+  			<div class="small toggle" id="filter">
+		    	site:
+		    	<select id="siteselect" class="sites" onchange="reload();"/>
+		    	by:<select id="userselect" class="users" onchange="reload();"/>
+  			</div>
+  			<a py:if="is_member('logger')" href="javascript:toggle('uploadform');">&#x25BE; upload</a>
+			<form method="post" enctype="multipart/form-data" action="/picture/upload"
+	    				py:if="is_member('logger')" id="uploadform" class="toggle small">
+		    	site:<select class="sites" id="uploadsite" name="siteid" onchange="enableupload();"/>
+			    by:<select class="users" id="uploaduser" name="user" onchange="enableupload();"/>
+		    	file:
+		    	<input type="file" name="imgfile" id="imgfile"/>
+		    	<input id="uploadsubmit" type="submit" value="upload" disabled="disabled"/>
+		    </form>
+
+		  <div py:if="image">
+		  	<div>photo:${image.id}
+					${formatdatetime(image.time)} by <a href="/user/${image.by.username}">${image.by}</a>
+				</div>
+				<div>
+					Location: <a href="/site/${image.site.id}">${image.site}</a>
+				</div>
+				<div>
+					Picture height:
+					<select id="imagesize">
+						<option value="256">256</option>
+						<option value="512">512</option>
+						<option value="768">768</option>
+						<option value="1024">1024</option>
+					</select>
+					px
+				</div>
+				<img src="/picture/image/${image.id}" id="bigimage"/>
+			</div>
+			<div py:if="images and not image">
+				<div py:for="image in images" class="table">
+					<div class="cell">
+						<a href="/picture?id=${image.id}">
+							<img src="data:${image.mime};base64,${image.thumbnail64()}" 
+										title="${image}"/>
+						</a>					
+					</div>
+					<div class="cell" >
+						${formatdatetime(image.time)} <br/>
+						<a href="/user/${image.by.username}">${image.by}</a>
+						<br/>
+						<a href="/site/${image.site.id}">site #${image.site.id}</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+</body>
+</html>

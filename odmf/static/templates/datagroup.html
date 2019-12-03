@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Server configuration, see conf.py for HEAD_BASE -->
+    <base href="${conf.head_base}" />
+
+	<link href="/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Datengruppen</title>
+	<style>
+	input { width: 100%;}
+	select { width: 100%;}
+	
+	</style>
+</head>
+<body>
+	${navigation()}
+    <div class="error" py:content="error" />
+	<h1>Daten-Gruppen</h1>
+		<ul id="Inhalt" >
+		<li>
+			<a href="/valuetype/new"><b>Neu...</b></a>			
+		</li>
+		<li py:for="v in valuetypes">
+			<a href="${'/valuetype/%s' % v.id}" py:content="v"/>
+		</li>
+	</ul>
+    <div class="rightpane">
+    	<p>
+    		Datengruppen fügen Datensätze gleicher Art zu einer Gruppe zusammen, damit leicht
+    		fortlaufende Zeitreihen aus verschiedenen Datensätzen gebildet werden können
+    	</p> 
+		<pre><script>mathcolor="Black"</script></pre>
+		<form action="/valuetype/saveitem" method="post">
+			<div py:if="actualvaluetype">
+				<h2 py:content="actualvaluetype" />
+
+				<table style="width: 100%">
+					<tr>
+						<td style="width: 7em">ID:</td>
+						<td><input type="text" name="id" value="${actualvaluetype.id}" /></td>
+					</tr>
+					<tr>
+						<td>Name:</td>
+						<td><input type="text" name="name" value="${actualvaluetype.name}" /></td>
+					</tr>
+					<tr>
+						<td>Einheit:</td>
+						<td><input type="text" name="unit" value="${actualvaluetype.unit}" /></td>
+					</tr>
+					<tr>
+						<td>Sonstiges</td>
+						<td>
+							<textarea name="comment" 
+									  rows="2" style="width: 100%;"
+									  py:content="actualvaluetype.comment" />
+						</td>
+					</tr>
+				</table>
+			</div>
+			<input type="submit" name="save" value="Speichern" style="width: 10em;"/>						
+		</form>
+		<div py:if="actualvaluetype">
+			<h2>Datensätze</h2>
+			<ul>
+				<li py:for="ds in actualvaluetype.datasets">
+					<a href="/dataset/${ds.id}" 
+					py:content="'%s (%s-%s)' % (ds,formatdate(ds.start),formatdate(ds.end))" />
+				</li>
+				<li>
+					<a href="/dataset/new?vt_id=${actualvaluetype.id}"
+					py:content="'Neuen Datensatz hinzufügen...'" style="font-style: italic;" />
+				</li>
+			</ul>
+		</div>		
+	</div>
+
+</body>
+</html>

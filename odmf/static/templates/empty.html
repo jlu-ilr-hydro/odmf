@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Server configuration, see conf.py for HEAD_BASE -->
+    <base href="${conf.head_base}" />
+
+	<link href="/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>${title}</title>
+	<!--more for the head-->
+	<style>
+	input { width: 100%;}
+	select { width: 100%;}
+	</style>
+</head>
+<body>
+	${navigation(title)}
+	<div class="content">
+    <div class="error" py:content="error" />
+    <div id="content">
+    	<!--content goes here-->
+    </div>
+  </div>
+</body>
+</html>

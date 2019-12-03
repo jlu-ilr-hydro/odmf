@@ -1,0 +1,3 @@
+include README.md
+graft odmf
+global-exclude *.py[cod] __pycache__ *.so

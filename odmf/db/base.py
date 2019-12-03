@@ -9,12 +9,12 @@ Created on 13.02.2012
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
-from io import StringIO
+
 import os.path as op
-from .. import conf
+from ..config import conf
 
 from contextlib import contextmanager
-from cherrypy import log
+from logging import info
 
 
 def abspath(fn):
@@ -25,7 +25,7 @@ def abspath(fn):
 
 
 def newid(cls, session=None):
-    "Creates a new id for all mapped classes with an field called id, which is of integer type"
+    """Creates a new id for all mapped classes with an field called id, which is of integer type"""
     if not session:
         session = Session()
     max_id = session.query(sql.func.max(cls.id)).select_from(cls).scalar()
@@ -36,31 +36,29 @@ def newid(cls, session=None):
 
 
 def connect():
-    log("Connecting with database %s at %s ..." %
-        (conf.CFG_DATABASE_NAME, conf.CFG_DATABASE_HOST))
+    info(f"Connecting with database {conf.database_name} at {conf.database_host} ..." )
     import psycopg2
-    return psycopg2.connect(user=conf.CFG_DATABASE_USERNAME,
-                            host=conf.CFG_DATABASE_HOST,
-                            password=conf.CFG_DATABASE_PASSWORD,
-                            database=conf.CFG_DATABASE_NAME)
+    return psycopg2.connect(user=conf.database_username,
+                            host=conf.database_host,
+                            password=conf.database_password,
+                            database=conf.database_name)
 
 
 # FIXME: allow test suite to load sqlite
 # TODO: allow test suite to load postgres and import all sql files (compliance test for sql)
-if conf.DATABASE == 'postgres':
+if conf.database_type == 'postgres':
     engine = sql.create_engine('postgresql://', creator=connect)
-elif conf.DATABASE == 'sqlite':
-    if op.exists(conf.SQLITE_PATH):
-        engine = sql.create_engine('sqlite:///%s' % conf.SQLITE_PATH)
+elif conf.database_type == 'sqlite':
+    if op.exists(conf.sqlite_path):
+        engine = sql.create_engine('sqlite:///%s' % conf.sqlite_path)
     else:
-        raise RuntimeError('Couldn\'t find offline database at \'%s\'.' % conf.SQLITE_PATH)
+        raise RuntimeError('Couldn\'t find offline database at \'%s\'.' % conf.sqlite_path)
 
 Session = orm.sessionmaker(bind=engine)
-scoped_session = orm.scoped_session(Session)
 
 
 @contextmanager
-def session_scope():
+def session_scope() -> orm.Session:
     """Provide a transactional scope around a series of operations."""
     session = Session()
     try:
@@ -73,24 +71,34 @@ def session_scope():
         session.close()
 
 
+def table(obj) -> sql.Table:
+    """
+    Returns the sql.Table of a ORM object
+    """
+    try:
+        return getattr(obj, '__table__')
+    except AttributeError:
+        raise TypeError(f'{obj!r} is not a mapper class')
+
+
 class Base(object):
     """Hooks into SQLAlchemy's magic to make :meth:`__repr__`s."""
 
     def __repr__(self):
         def reprs():
-            for col in self.__table__.c:
+            for col in table(self).c:
                 try:
                     yield col.name, str(getattr(self, col.name))
-                except:
-                    pass
+                except Exception as e:
+                    yield col.name, f'<unknown value: {type(e)}>'
 
         def formats(seq):
             for key, value in seq:
-                yield '%s=%s' % (key, value)
+                yield f'{key}={value}'
 
-        args = '(%s)' % ', '.join(formats(reprs()))
+        args = ', '.join(formats(reprs()))
         classy = type(self).__name__
-        return "<%s%s>" % (classy, args)
+        return f'{classy}({args})'
 
     def session(self):
         return Session.object_session(self)

@@ -10,7 +10,7 @@ from .base import AbstractImport, ImportDescription, ImportColumn, ImportStat, L
 from .base import config_getdict
 from ..dataimport.importlog import LogbookImport, LogImportError, ILogColumn
 from .xls import XlsImport
-from .. import conf
+from ..config import conf
 from re import search, sub
 
 from .. import db
@@ -60,7 +60,7 @@ class ManualMeasurementsImport(LogbookImport):
         self.filename = filename
 
         with db.session_scope() as session:
-            self.user = db.Person.get(session, user)
+            self.user = session.query(db.Person).get(user)
         self.sheetName = sheetName
 
         if descr:
@@ -504,7 +504,7 @@ class ManualMeasurementsImport(LogbookImport):
 
         name, ext = splitext(filename)
         return (ext.lower() == '.xls' or ext.lower() == '.xlsx') and \
-            search(conf.CFG_MANUAL_MEASUREMENTS_PATTERN, filename)
+            search(conf.manual_measurements_pattern, filename)
 
     def get_date(self, row, date):
 

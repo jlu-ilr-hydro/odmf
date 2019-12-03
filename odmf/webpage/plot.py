@@ -13,22 +13,24 @@ import pylab as plt
 from matplotlib.ticker import MaxNLocator
 import matplotlib.dates
 import numpy as np
-from .. import db
+
+
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from io import StringIO
 from io import BytesIO
 import time
 from base64 import b64encode
-from pandas import to_datetime, TimeGrouper
+from pandas import to_datetime
 import json
-from glob import iglob
+from pathlib import Path
 
+from ..config import conf
+from .. import db
 from . import lib as web
 from .preferences import Preferences
-from .auth import group, expose_for
+from .auth import group, expose_for, users
 
-from .auth import users
 t0 = datetime(1, 1, 1)
 nan = np.nan
 
@@ -76,7 +78,7 @@ class Line(object):
         @param subplot: The Subplot to which this line belongs
         @param valuetype: The valuetype id of the line
         @param site: the site id of the line
-        @param intrument: the instrument of the line
+        @param instrument: the instrument of the line
         @param color: the color of the line (k,b,g,r,y,m,c)
         @param linestyle: the line style (-,--,:,-.)
         @param marker: the marker of the line data points (o,x,+,|,. etc.)
@@ -346,17 +348,17 @@ class Subplot(object):
         # Draw only logs if logsite is a site of the subplot's lines
         if self.logsite in sites:
             # open session - trying the new scoped_session
-            session = db.scoped_session()
-            # Get logbook entries for logsite during the plot-time
-            logs = session.query(db.Log).filter_by(_site=self.logsite).filter(
-                db.Log.time >= self.plot.startdate).filter(db.Log.time <= self.plot.enddate)
-            # Traverse logs and draw them
-            for log in logs:
-                x = plt.date2num(log.time)
-                plt.axvline(x, linestyle='-', color='r',
-                            alpha=0.5, linewidth=3)
-                plt.text(x, plt.ylim()[0], log.type,
-                         ha='left', va='bottom', fontsize=8)
+            with db.session_scope() as session:
+                # Get logbook entries for logsite during the plot-time
+                logs = session.query(db.Log).filter_by(_site=self.logsite).filter(
+                    db.Log.time >= self.plot.startdate).filter(db.Log.time <= self.plot.enddate)
+                # Traverse logs and draw them
+                for log in logs:
+                    x = plt.date2num(log.time)
+                    plt.axvline(x, linestyle='-', color='r',
+                                alpha=0.5, linewidth=3)
+                    plt.text(x, plt.ylim()[0], log.type,
+                             ha='left', va='bottom', fontsize=8)
         plt.xlim(date2num(self.plot.startdate), date2num(self.plot.enddate))
         plt.xticks(rotation=15)
         ax.yaxis.set_major_locator(MaxNLocator(prune='upper'))
@@ -418,7 +420,7 @@ class Plot(object):
 
     def getpath(self):
         username = web.user() or 'nologin'
-        return web.abspath('preferences/plots/' + username + '.' + self.name)
+        return conf.abspath('preferences/plots/' + username + '.' + self.name)
 
     def addtimeplot(self):
         """
@@ -438,7 +440,7 @@ class Plot(object):
         was_interactive = plt.isinteractive()
         plt.ioff()
         fig, axes = plt.subplots(ncols=self.columns, nrows=self.rows,
-                                 figsize=self.size, dpi=100, sharex=True)
+                                 figsize=self.size, dpi=100, sharex='all')
         for sp in self.subplots:
             sp.draw(fig)
         fig.subplots_adjust(top=0.975, bottom=0.1, hspace=0.0)
@@ -511,44 +513,49 @@ class Plot(object):
     def save(self, fn):
         d = asdict(self)
         try:
-            open(self.absfilename(fn), 'wb').write(web.as_json(d))
+            self.absfilename(fn).write_bytes(web.as_json(d))
         except:
             return traceback()
 
     @classmethod
     def load(cls, fn):
-        fp = open(cls.absfilename(fn))
+        fp = cls.absfilename(fn).open()
         plot = Plot.fromdict(json.load(fp))
         return plot
 
     @classmethod
     def listdir(cls):
-        def basename(fn):
-            return os.path.basename(fn).replace(web.user() + '.', '').replace('.plot', '')
-        return [basename(fn) for fn in iglob(cls.absfilename('*'))]
+
+        return [
+            fn.name.replace(web.user() + '.', '').replace('.plot', '')
+            for fn in cls.absfilename().glob(f'{web.user()}.*.plot')
+        ]
 
     @classmethod
     def killfile(cls, fn):
-        if os.path.exists(cls.absfilename(fn)):
-            os.remove(cls.absfilename(fn))
+        path = cls.absfilename(fn)
+        if path.exists():
+            path.unlink()
         else:
             return "File %s does not exist" % fn
 
     @classmethod
-    def absfilename(cls, fn):
-        return web.abspath('preferences/plots/' + web.user() + '.' + fn + '.plot')
+    def absfilename(cls, fn: str=None)->Path:
+        if fn:
+            return conf.abspath('preferences/plots/') / f'{web.user()}.{fn}.plot'
+        else:
+            return conf.abspath('preferences/plots/')
 
 
 plotgroup = group.logger
 
-
+@web.show_in_nav_for(0)
 class PlotPage(object):
-    exposed = True
 
     @expose_for(plotgroup)
     def index(self, valuetype=None, site=None, error=''):
         plot = Plot.frompref(createplot=True)
-        return web.render('plot.html', plot=plot, error=error).render('html')
+        return web.render('plot.html', plot=plot, error=error).render()
 
     @expose_for(plotgroup)
     def loadplot(self, filename):
@@ -572,8 +579,8 @@ class PlotPage(object):
         return Plot.killfile(filename)
 
     @expose_for(plotgroup)
+    @web.mime.json
     def listplotfiles(self):
-        web.setmime(web.mime.json)
         return web.as_json(Plot.listdir())
 
     @expose_for(plotgroup)
@@ -586,16 +593,16 @@ class PlotPage(object):
             return traceback()
 
     @expose_for(plotgroup)
+    @web.mime.png
     def image_png(self, **kwargs):
-        web.setmime(web.mime.png)
         plot = Plot.frompref()
         if not plot:
             raise web.HTTPRedirect('/plot?error=No plot available')
         return plot.draw(format='png')
 
     @expose_for(plotgroup)
+    @web.mime.pdf
     def image_pdf(self, **kwargs):
-        web.setmime(web.mime.pdf)
         plot = Plot.frompref()
         if not plot:
             raise web.HTTPRedirect('/plot?error=No plot available')
@@ -705,8 +712,8 @@ class PlotPage(object):
         line.killcache()
 
     @expose_for(plotgroup)
+    @web.mime.json
     def linedatasets_json(self, subplot, line):
-        web.setmime(web.mime.json)
         plot = Plot.frompref()
         sp = plot.subplots[int(subplot) - 1]
         line = sp.lines[int(line)]
@@ -717,28 +724,31 @@ class PlotPage(object):
         return res
 
     @expose_for(plotgroup)
+    @web.mime.csv
     def export_csv(self, subplot, line):
         plot = Plot.frompref()
         sp = plot.subplots[int(subplot) - 1]
         line = sp.lines[int(line)]
-        web.setmime(web.mime.csv)
+
+
         io = StringIO()
         line.export_csv(io, plot.startdate, plot.enddate)
         io.seek(0)
         return io
 
     @expose_for(plotgroup)
+    @web.mime.csv
     def export_json(self, subplot, line):
         plot = Plot.frompref()
         sp = plot.subplots[int(subplot) - 1]
         line = sp.lines[int(line)]
-        web.setmime(web.mime.csv)
         io = StringIO()
         line.export_json(io, plot.startdate, plot.enddate)
         io.seek(0)
         return io
 
     @expose_for(plotgroup)
+    @web.mime.csv
     def exportall_csv(self, tolerance):
         plot = Plot.frompref()
 #         datasetids=[]
@@ -753,10 +763,11 @@ class PlotPage(object):
         stream = StringIO()
         from ..tools.exportdatasets import exportLines
         exportLines(stream, lines, web.conv(float, tolerance, 60))
-        web.setmime(web.mime.csv)
         return stream.getvalue()
 
     @expose_for(plotgroup)
+    @web.mime.csv
+
     def RegularTimeseries_csv(self, tolerance=12, interpolation=''):
         plot = Plot.frompref()
         datasetids = []
@@ -773,7 +784,6 @@ class PlotPage(object):
         stream.write(codecs.BOM_UTF8.decode())
         createPandaDfs(lines, plot.startdate, plot.enddate, stream,
                        interpolationtime=interpolation, tolerance=float(tolerance))
-        web.setmime(web.mime.csv)
         return stream.getvalue()
 
     @expose_for(plotgroup)
@@ -804,7 +814,7 @@ class PlotPage(object):
             return traceback()
 
     @web.expose
-    # @web.mimetype(web.mime.png)
+    @web.mime.png
     def climate(self, enddate=None, days=1, site=47):
         try:
             enddate = web.parsedate(enddate)
@@ -833,4 +843,4 @@ class PlotPage(object):
 
         plot64 = b64encode(plot.draw(format='png')).decode('utf-8')
 
-        return web.render('climateplot.html', climateplot=plot64, plot=plot).render('html')
+        return web.render('climateplot.html', climateplot=plot64, plot=plot).render()

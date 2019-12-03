@@ -19,7 +19,7 @@ import importlib
 import inspect
 
 import numpy as np
-from .. import conf
+from ..config import conf
 
 
 tzberlin = pytz.timezone('Europe/Berlin')
@@ -144,7 +144,7 @@ class Dataset(Base):
     access = sql.Column(sql.Integer, default=1, nullable=False)
 
     timezone = sql.Column(sql.String,
-                          default=conf.CFG_DATETIME_DEFAULT_TIMEZONE)
+                          default=conf.datetime_default_timezone)
     project = sql.Column(sql.Integer, sql.ForeignKey('project.id'),
                          nullable=True)
 
@@ -235,7 +235,10 @@ class Dataset(Base):
         """Calculates mean, stddev and number of records for this data set
         """
         t, v = self.asarray()
-        return np.mean(v), np.std(v), len(v)
+        if len(v) == 0:
+            return 0.0, 0.0, 0
+        else:
+            return np.mean(v), np.std(v), len(v)
 
     def iterrecords(self, witherrors=False):
         raise NotImplementedError(

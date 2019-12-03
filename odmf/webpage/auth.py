@@ -8,11 +8,9 @@ http://tools.cherrypy.org/wiki/AuthenticationAndAccessRestrictions
 from operator import le
 import os.path as op
 import collections
-#import md5
+
 import cherrypy
 
-from .. import db
-from sqlalchemy import func
 import bcrypt
 
 ACCESS_LEVELS = [["Guest", "0"],
@@ -135,7 +133,7 @@ class Users(collections.Mapping):
 
     def __init__(self):
         self.dict = {}
-        self.load()
+
 
     def __getitem__(self, name):
         return self.dict[name]
@@ -150,8 +148,8 @@ class Users(collections.Mapping):
         return user in self.dict
 
     def load(self):
+        from .. import db
         with db.session_scope() as session:
-
             q = session.query(db.Person).filter(db.Person.active == True)
 
             self.dict = {}
@@ -164,6 +162,7 @@ class Users(collections.Mapping):
     def check(self, username, password):
 
         if username not in self:
+            self.load()
             return "User '%s' not found" % username
         elif self[username].check(password):
             return
@@ -171,6 +170,8 @@ class Users(collections.Mapping):
             return "Password not correct"
 
     def list(self):
+        if not self:
+            self.load()
         return sorted(self)
 
     def save(self):
@@ -181,7 +182,7 @@ class Users(collections.Mapping):
 
     @property
     def current(self):
-        return self.get(cherrypy.request.login)
+        return self.get(cherrypy.request.login, User('guest', 0, None))
 
     def login(self, username, password):
         self.load()
@@ -202,6 +203,7 @@ class Users(collections.Mapping):
 
 
 users = Users()
+
 
 
 def is_member(group):

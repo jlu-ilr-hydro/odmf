@@ -7,3 +7,4 @@ odmf/conf.py
 **/venv/**
 **/.pytest_cache/**
 .idea
+*.log

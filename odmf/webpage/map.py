@@ -5,30 +5,28 @@ Created on 12.07.2012
 '''
 from . import lib as web
 from .. import db
-from .datasetpage import DatasetPage
-from .preferences import Preferences
 
 
+@web.show_in_nav_for(0)
 class MapPage(object):
-    exposed = True
 
     @web.expose
     def index(self, site=None):
         if site is None:
             site = 'null'
         else:
-            session = db.Session()
+            with db.session_scope() as session:
+                # decode for valid json string
+                site = web.as_json(
+                    session.query(db.Site).get(int(site))
+                ).decode('utf-8')
 
-            # decode for valid json string
-            site = web.as_json(db.Site.get(session, int(site))).decode('utf-8')
-
-            session.close()
-        return web.render('map.html', site=site).render('html', doctype='html')
+        return web.render('map.html', site=site).render()
 
     @web.expose
+    @web.mime.json
     def sites(self):
         session = db.Session()
-        web.setmime('application/json')
         sites = session.query(db.Site).order_by(db.Site.id)
         res = web.as_json(sites.all())
         session.close()
@@ -40,6 +38,6 @@ class MapPage(object):
             return('<div class="error">Site %s not found</div>' % siteid)
         session = db.Session()
         site = session.query(db.Site).get(int(siteid))
-        res = web.render('sitedescription.html', site=site).render('html')
+        res = web.render('sitedescription.html', site=site).render()
         session.close()
         return res

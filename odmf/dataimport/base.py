@@ -17,7 +17,7 @@ import chardet
 
 import ast
 
-from .. import conf
+from ..config import conf
 # AbstractImport
 from traceback import format_exc as traceback
 from pytz import common_timezones_set
@@ -251,7 +251,7 @@ class ImportDescription(object):
 
     def __init__(self, instrument, skiplines=0, delimiter=',', decimalpoint='.',
                  dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
-                 timezone=conf.CFG_DATETIME_DEFAULT_TIMEZONE, project=None,
+                 timezone=conf.datetime_default_timezone, project=None,
                  nodata=[], worksheet=1, sample_mapping=None):
         """
         instrument: the database id of the instrument that produced this file
@@ -500,7 +500,7 @@ class LogImportDescription(ImportDescription):
 
     def __init__(self, instrument, skiplines=0, delimiter=',', decimalpoint='.',
                  dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
-                 timezone=conf.CFG_DATETIME_DEFAULT_TIMEZONE, project=None,
+                 timezone=conf.datetime_default_timezone, project=None,
                  site=None, dataset=None, value=None, logtext=None, msg=None,
                  worksheet=1, nodata=[], sample_mapping=None):
         """
@@ -663,7 +663,7 @@ class AbstractImport(object):
         # Get the dataset objects for the columns
         datasets = {}
         for k in self.datasets:
-            datasets[k] = db.Dataset.get(session, self.datasets[k])
+            datasets[k] = session.query(db.Dataset).get(self.datasets[k])
 
         # A dict to hold the current record id for each column k
         def newid(k):
@@ -753,7 +753,7 @@ class AbstractImport(object):
                                start=self.startdate, end=datetime.today(), level=col.level,
                                access=col.access if col.access is not None else 1,
                                # Get timezone from descriptor or, if not present from global conf
-                               timezone=self.descriptor.timezone or conf.CFG_DATETIME_DEFAULT_TIMEZONE,
+                               timezone=self.descriptor.timezone or conf.datetime_default_timezone,
                                project=self.descriptor.project)
             self.datasets[col.column] = ds.id
         session.commit()
