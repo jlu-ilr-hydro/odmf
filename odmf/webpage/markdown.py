@@ -195,7 +195,7 @@ class MarkDown:
         se = SchwingbachExtension(configs={})
         al = UrlizeExtension(configs={})
 
-        self.md = markdown.Markdown(extensions=['admonition', 'extra', se, al])
+        self.md = markdown.Markdown(extensions=['admonition', 'extra', 'superscript', 'subscript', se, al])
 
     def __call__(self, s):
         if s:
