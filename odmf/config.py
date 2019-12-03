@@ -140,7 +140,7 @@ class Configuration:
 
 def load_config():
     conf_file = Path(prefix) / 'config.yml'
-    logger.debug('Found config file:', str(conf_file.absolute()))
+    logger.debug('Found config file:' + str(conf_file.absolute()))
     if not conf_file.exists():
         logger.warning(f'{conf_file.absolute().as_posix()} '
                    f'not found. Create a template with "odmf configure". Using incomplete configuration')
@@ -151,7 +151,7 @@ def load_config():
     conf = Configuration(**conf_dict)
     if not conf:
        logger.warning(', '.join(k for k, v in conf.to_dict().items() if v is ...) + ' are undefined')
-
+    return conf
 
 
 def import_module_configuration(conf_module_filename):
