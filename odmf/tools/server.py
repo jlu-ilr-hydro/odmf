@@ -71,7 +71,8 @@ def prepare_workdir():
         logger.info("✔ Config is valid")
     else:
         logger.error("Error in config validation")
-        exit(1)
+        logger.error(str(conf.to_dict()))
+        return False
 
     # Start with project imports
     lock_path = os.path.abspath('sessions')
@@ -84,6 +85,7 @@ def prepare_workdir():
     for fn in glob(lock_path + '/*.lock'):
         logger.debug(f'Killing old session lock {fn}')
         os.remove(fn)
-        
+
+    return True
     
 
