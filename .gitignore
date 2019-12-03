@@ -9,3 +9,4 @@ odmf/conf.py
 .idea
 *.log
 instances
+dist

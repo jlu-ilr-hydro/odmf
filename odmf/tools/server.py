@@ -17,19 +17,7 @@ server_config = {
     'log.error_file': './error.log',
 }
 
-
-def start(autoreload=False):
-    """
-    Creates the root object, compiles the server configuration and starts the server
-
-    Parameters
-    ----------
-    autoreload: bool
-        Set to True to enable autoreloading, that is the server starts again when files are changed
-
-    """
-    from ..webpage.root import Root
-    root = Root()
+def configure_app(autoreload=False):
     static_files = {
         '/favicon.ico': {"tools.staticfile.on": True,
                          "tools.staticfile.filename": str(conf.abspath("media/ilr-favicon.png"))
@@ -49,13 +37,26 @@ def start(autoreload=False):
         'engine.autoreload.on': autoreload,
         'server.socket_port': conf.server_port,
     })
+    return static_files
 
+
+def start(autoreload=False):
+    """
+    Creates the root object, compiles the server configuration and starts the server
+
+    Parameters
+    ----------
+    autoreload: bool
+        Set to True to enable autoreloading, that is the server starts again when files are changed
+
+    """
+    from ..webpage.root import Root
+    root = Root()
     logger.info(f'Starting server on http://127.0.0.1:{conf.server_port}')
+    cherrypy.quickstart(root=root, config=configure_app(autoreload))
 
-    cherrypy.quickstart(root=root, config=static_files)
 
-
-def prepare_workdir(workdir):
+def prepare_workdir():
     """
     Starts a cherrypy server, with WORKDIR as the working directory (local ressources and configuration)
     """

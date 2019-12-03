@@ -33,7 +33,7 @@ def start(workdir, autoreload):
     logger.info(f"interpreter: {sys.executable}")
     logger.info(f"workdir: {os.getcwd()}")
     from .tools import server
-    server.prepare_workdir(workdir)
+    server.prepare_workdir()
     server.start(autoreload)
 
 
