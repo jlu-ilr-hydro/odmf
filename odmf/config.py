@@ -11,8 +11,16 @@ import sys
 from logging import getLogger
 logger = getLogger(__name__)
 
+
 class ConfigurationError(RuntimeError):
     pass
+
+
+def get_home():
+    try:
+        return Path(PREFIX)
+    except NameError:
+        return Path('.')
 
 
 def find_odmf_static_location():
@@ -134,7 +142,7 @@ class Configuration:
 
 
 def load_config():
-    conf_file = Path('.') / 'config.yml'
+    conf_file = get_home() / 'config.yml'
     logger.debug('Found config file:', str(conf_file.resolve()))
     if not conf_file.exists():
         logger.warning(f'{conf_file.absolute().as_posix()} '
