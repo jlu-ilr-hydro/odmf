@@ -746,15 +746,22 @@ class AbstractImport(object):
         for col in self.descriptor.columns:
             # Get the valuetype (vt) from db
             vt = session.query(db.ValueType).get(col.valuetype)
-            id = db.newid(db.Dataset, session)
-            # New dataset with metadata from above
-            ds = db.Timeseries(id=id, measured_by=user, valuetype=vt, site=site, name=col.name,
-                               filename=self.filename, comment=col.comment, source=inst, quality=raw,
-                               start=self.startdate, end=datetime.today(), level=col.level,
-                               access=col.access if col.access is not None else 1,
-                               # Get timezone from descriptor or, if not present from global conf
-                               timezone=self.descriptor.timezone or conf.CFG_DATETIME_DEFAULT_TIMEZONE,
-                               project=self.descriptor.project)
+            if col.append:
+                # TODO: Error handling
+                ds = session.query(db.Dataset).get(int(col.append))
+                if ds is None:
+                    raise IndexError()
+
+            else:
+                id = db.newid(db.Dataset, session)
+                # New dataset with metadata from above
+                ds = db.Timeseries(id=id, measured_by=user, valuetype=vt, site=site, name=col.name,
+                                   filename=self.filename, comment=col.comment, source=inst, quality=raw,
+                                   start=self.startdate, end=datetime.today(), level=col.level,
+                                   access=col.access if col.access is not None else 1,
+                                   # Get timezone from descriptor or, if not present from global conf
+                                   timezone=self.descriptor.timezone or conf.CFG_DATETIME_DEFAULT_TIMEZONE,
+                                   project=self.descriptor.project)
             self.datasets[col.column] = ds.id
         session.commit()
         session.close()
