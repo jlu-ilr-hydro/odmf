@@ -13,8 +13,8 @@ server_config = {
     'tools.encode.on': True,
     'tools.encode.decode': True,
     'server.socket_host': '0.0.0.0',
-    'log.access_file': './access.log',
-    'log.error_file': './error.log',
+    'log.access_file': prefix + '/access.log',
+    'log.error_file': prefix + '/error.log',
 }
 
 def configure_app(autoreload=False):
@@ -76,11 +76,11 @@ def prepare_workdir():
         return False
 
     # Start with project imports
-    lock_path = prefix / 'sessions'
+    lock_path = prefix + '/sessions'
     
     logger.debug('Ensure subdirectories')
     for d in ['media', 'sessions', 'preferences/plots']:
-        os.makedirs(d, exist_ok=True)
+        os.makedirs(prefix + '/' + d, exist_ok=True)
 
     logger.debug(f"Kill session lock files in {lock_path}")
     for fn in glob(lock_path + '/*.lock'):
