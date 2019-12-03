@@ -9,6 +9,8 @@ from pathlib import Path
 import sys
 
 from logging import getLogger
+from . import prefix
+
 logger = getLogger(__name__)
 
 
@@ -16,11 +18,6 @@ class ConfigurationError(RuntimeError):
     pass
 
 
-def get_home():
-    try:
-        return Path(PREFIX)
-    except NameError:
-        return Path('.')
 
 
 def find_odmf_static_location():
@@ -35,7 +32,7 @@ def find_odmf_static_location():
 
     """
 
-    candidates = Path(__file__).parent / 'static', Path('./odmf/static')
+    candidates = Path(__file__).parent / 'static', Path(f'{prefix}/odmf/static')
 
     for p in candidates:
         if p.exists():
@@ -142,7 +139,7 @@ class Configuration:
 
 
 def load_config():
-    conf_file = get_home() / 'config.yml'
+    conf_file = Path(prefix) / 'config.yml'
     logger.debug('Found config file:', str(conf_file.absolute()))
     if not conf_file.exists():
         logger.warning(f'{conf_file.absolute().as_posix()} '

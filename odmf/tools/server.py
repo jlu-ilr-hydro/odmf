@@ -1,7 +1,7 @@
 """
 Starts a cherrypy server
 """
-
+from .. import prefix
 from ..config import conf
 import cherrypy
 from logging import getLogger
@@ -18,6 +18,7 @@ server_config = {
 }
 
 def configure_app(autoreload=False):
+
     static_files = {
         '/favicon.ico': {"tools.staticfile.on": True,
                          "tools.staticfile.filename": str(conf.abspath("media/ilr-favicon.png"))
@@ -75,7 +76,7 @@ def prepare_workdir():
         return False
 
     # Start with project imports
-    lock_path = os.path.abspath('sessions')
+    lock_path = prefix / 'sessions'
     
     logger.debug('Ensure subdirectories')
     for d in ['media', 'sessions', 'preferences/plots']:
