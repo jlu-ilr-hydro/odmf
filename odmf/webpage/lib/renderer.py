@@ -6,6 +6,7 @@ import inspect
 import kajiki
 import kajiki.entities
 from kajiki.template import literal
+from pathlib import Path
 
 from .. import auth
 from ...config import conf
@@ -145,9 +146,9 @@ def context(**kwargs):
 class Renderer(object):
     def __init__(self):
         self.loader = kajiki.FileLoader(
-            [str(p.absolute() / 'templates')
+            [str(Path(p).absolute() / 'templates')
              for p in conf.static
-             if (p / 'templates').exists()
+             if (Path(p) / 'templates').exists()
              ]
         )
         self.root = None

@@ -46,7 +46,7 @@ def find_odmf_static_location():
 def static_locations(from_config):
     paths = [find_odmf_static_location(), Path('.')] + [Path(p) for p in from_config]
     filtered = []
-    [filtered.append(p) for p in paths if p.exists() and p not in filtered]
+    [filtered.append(str(p)) for p in paths if p.exists() and p not in filtered]
     return filtered
 
 
@@ -81,6 +81,13 @@ class Configuration:
 
     def __bool__(self):
         return ... not in vars(self).values()
+
+    def to_dict(self):
+        return {
+            k: v
+            for k, v in vars(self).items()
+            if not callable(v) and not k.startswith('_')
+        }
 
     def update(self, conf_dict: dict):
 
@@ -123,23 +130,23 @@ class Configuration:
         Exports the current configuration to a yaml file
         :param stream: A stream to write to
         """
-        d = {
-            k: v
-            for k, v in vars(self).items()
-            if not callable(v) and not k.startswith('_')
-        }
-        yaml.safe_dump(d, stream)
+        yaml.safe_dump(self.to_dict(), stream)
 
 
 def load_config():
     conf_file = Path('.') / 'config.yml'
+    logger.debug('Found config file:', str(conf_file.resolve()))
     if not conf_file.exists():
         logger.warning(f'{conf_file.absolute().as_posix()} '
                    f'not found. Create a template with "odmf configure". Using incomplete configuration')
         conf_dict = {}
     else:
         conf_dict = yaml.safe_load(conf_file.open())
-    return Configuration(**conf_dict)
+        logger.debug('loaded ', str(conf_file.resolve()))
+    conf = Configuration(**conf_dict)
+    if not conf:
+       logger.warning(', '.join(k for k, v in conf.to_dict().items() if v is ...) + ' are undefined')
+
 
 
 def import_module_configuration(conf_module_filename):

@@ -192,8 +192,8 @@ class UrlizeExtension(markdown.Extension):
 
 class MarkDown:
     def __init__(self):
-        se = SchwingbachExtension(configs={})
-        al = UrlizeExtension(configs={})
+        se = SchwingbachExtension()
+        al = UrlizeExtension()
 
         self.md = markdown.Markdown(extensions=['admonition', 'extra', 'superscript', 'subscript', se, al])
 
