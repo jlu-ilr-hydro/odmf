@@ -74,12 +74,15 @@ def make_db(new_admin_pass):
 
 
 @cli.command()
-@click.argument('uri')
+@click.argument('uri', default='')
 def make_apache_conf(uri: str):
     """
     Creates a apache2 .conf file to run this odmf instance as a wsgi server.
+    Use as:
+
     """
     from pathlib import Path
+    uri = uri or Path('.').resolve().name
     if uri.startswith('/'):
         uri = uri[1:]
     name = uri.replace('/', '.')
@@ -94,17 +97,22 @@ def make_apache_conf(uri: str):
 """
 
     fn = f'/etc/apache2/conf-available/{name}.conf'
+    fn_enabled = fn.replace("available", "enabled")
 
-    try:
-        Path(fn).write_text(aconf)
-    except IOError:
-        sys.stderr.write(f'Could not write to {fn},\ncreate that file manually with the following content:\n')
-        sys.stderr.write(aconf)
-    else:
-        sys.stdout.write(f'Configuration written to {fn}\n')
-        fn_enabled = fn.replace("available", "enabled")
-        sys.stdout.write(f'Enable configuration with\n'
-                         f'sudo ln -s {fn} {fn_enabled} ')
+    sys.stderr.write(f'''
+Created .conf file for apache for usage as a conf-file for all hosts. 
+Copy content into a site .conf file to make it specific for a virtual host
+
+Optimal Usage:
+
+  odmf make-apache-conf {name} >{name}.conf
+  sudo cp {name}.conf {fn}
+  sudo ln -s {fn} {fn_enabled} 
+
+''')
+
+    sys.stdout.write(aconf)
+
 
 
 @cli.command()
