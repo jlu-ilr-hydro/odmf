@@ -6,6 +6,16 @@ import json
 from datetime import datetime
 from kajiki.template import literal
 
+
+def jsonhandler(obj):
+    if hasattr(obj, '__jdict__'):
+        return obj.__jdict__()
+    elif hasattr(obj, 'isoformat'):
+        return obj.isoformat()
+    else:
+        return obj
+
+
 def as_json(obj):
     """
     Builds a JSON string representation of the given object using __jdict__ methods
@@ -19,13 +29,6 @@ def as_json(obj):
     -------
     A JSON string
     """
-    def jsonhandler(obj):
-        if hasattr(obj, '__jdict__'):
-            return obj.__jdict__()
-        elif hasattr(obj, 'isoformat'):
-            return obj.isoformat()
-        else:
-            return obj
 
     return literal(json.dumps(obj, sort_keys=True, indent=4, default=jsonhandler))
 

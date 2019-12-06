@@ -92,10 +92,9 @@ class Root(object):
             return web.render('login.html', error=error, frompage=frompage).render()
 
     @expose_for(group.admin)
-    @web.mime.json
+    @web.json_out
     def showjson(self, **kwargs):
-        import json
-        return json.dumps(kwargs, indent=4)
+        return kwargs
 
     @expose_for(group.editor)
     def datastatus(self):
@@ -132,18 +131,21 @@ class Root(object):
         return "User-agent: *\nDisallow: /\n"
 
     @expose_for()
-    @web.mime.json
+    @web.json_out
     def actualclimate_json(self, site=47):
-        session = db.Session()
-        now = datetime.now()
-        yesterday = now - timedelta(hours=24)
-        res = {'time': now}
-        for dsid in range(1493, 1502):
-            ds = session.query(db.Timeseries).get(dsid)
-            t, v = ds.asarray(start=yesterday)
-            res[ds.name.split(',')[0].strip().replace(' ', '_')] = {
-                'min': v.min(), 'max': v.max(), 'mean': v.mean()}
-        return web.as_json(res)
+        """
+        Returns the last climate measurement from a specific site
+        """
+        with db.session_scope() as session:
+            now = datetime.now()
+            yesterday = now - timedelta(hours=24)
+            res = {'time': now}
+            for dsid in range(1493, 1502):
+                ds = session.query(db.Timeseries).get(dsid)
+                t, v = ds.asarray(start=yesterday)
+                res[ds.name.split(',')[0].strip().replace(' ', '_')] = {
+                    'min': v.min(), 'max': v.max(), 'mean': v.mean()}
+        return res
 
     @expose_for()
     @web.mime.html
@@ -154,13 +156,12 @@ class Root(object):
             return web.render('actualclimate.html', ds=ds, db=db).render()
 
     @expose_for()
-    @web.mime.json
+    @web.json_out
     def resources(self, only_navigatable=False, recursive=True, for_level=users.current.level):
         """
         Returns a json object representing all resources of this cherrypy web-application
         """
-        res = web.resource_walker(self, only_navigatable, recursive, int(for_level))
-        return json.dumps(res).encode('utf-8')
+        return web.resource_walker(self, only_navigatable, recursive, int(for_level))
 
     def __init__(self):
         web.render.set_root(self)

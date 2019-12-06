@@ -94,66 +94,57 @@ class LogPage:
         raise web.HTTPRedirect('/log')
 
     @expose_for(group.logger)
-    @web.mime.json
+    @web.json_out
     def json(self, siteid=None, user=None, old=None, until=None, days=None,
              _=None, keywords=None):
-        session = db.Session()
+        with db.session_scope() as session:
 
-        logs = session.query(db.Log).order_by(db.sql.desc(db.Log.time))
+            logs = session.query(db.Log).order_by(db.sql.desc(db.Log.time))
 
-        if siteid:
-            if siteid.isdigit():
-                logs = logs.filter_by(_site=int(siteid))
-        if user:
-            logs = logs.filter_by(_user=user)
-        if until:
-            until = web.parsedate(until)
-            logs = logs.filter(db.Log.time <= until)
-        if keywords:
-            # TODO: Implement pgsql full text search
-            keywords = keywords.strip().split(" ")
-            for keyword in keywords:
-                logs = logs.filter(db.Log.message.like("%%%s%%" % keyword))
-        if old:
-            old = web.parsedate(old)
-            logs = logs.filter(db.Log.time >= old)
-        elif days:
-            days = int(days)
+            if siteid:
+                if siteid.isdigit():
+                    logs = logs.filter_by(_site=int(siteid))
+            if user:
+                logs = logs.filter_by(_user=user)
             if until:
-                old = until - timedelta(days=days)
-            else:
-                old = datetime.today() - timedelta(days=days)
-            logs = logs.filter(db.Log.time >= old)
+                until = web.parsedate(until)
+                logs = logs.filter(db.Log.time <= until)
+            if keywords:
+                # TODO: Implement pgsql full text search
+                keywords = keywords.strip().split(" ")
+                for keyword in keywords:
+                    logs = logs.filter(db.Log.message.like("%%%s%%" % keyword))
+            if old:
+                old = web.parsedate(old)
+                logs = logs.filter(db.Log.time >= old)
+            elif days:
+                days = int(days)
+                if until:
+                    old = until - timedelta(days=days)
+                else:
+                    old = datetime.today() - timedelta(days=days)
+                logs = logs.filter(db.Log.time >= old)
 
-        res = web.as_json(logs.all())
+            return logs.all()
 
-        print("Res ", res)
 
-        session.close()
-        return res
 
     @expose_for()
-    @web.mime.json
+    @web.json_out
     def data(self, siteid=None, user=None, old=None, until=None, days=None,
              _=None):
 
-        session = db.Session()
-        logs = session.query(db.Log, db.Person)\
-            .filter(db.Log._user== db.Person.username)
+        with db.session_scope() as session:
 
-        if until:
-            until = web.parsedate(until)
-            logs = logs.filter(db.Log.time <= until)
+            logs = session.query(db.Log, db.Person)\
+                .filter(db.Log._user== db.Person.username)
 
-        res = web.as_json(logs.all())
+            if until:
+                until = web.parsedate(until)
+                logs = logs.filter(db.Log.time <= until)
 
-        # logs = logs.values(db.Log.id, db.Log.message, db.Log.time, db.Log._user,
-        #            db.Person.email)
+            return logs.all()
 
-        # res = web.log_as_array_str(logs)
-
-        session.close()
-        return res
 
     @expose_for(group.logger)
     @web.mime.html

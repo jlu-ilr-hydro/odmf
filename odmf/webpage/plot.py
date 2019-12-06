@@ -579,9 +579,9 @@ class PlotPage(object):
         return Plot.killfile(filename)
 
     @expose_for(plotgroup)
-    @web.mime.json
+    @web.json_out
     def listplotfiles(self):
-        return web.as_json(Plot.listdir())
+        return Plot.listdir()
 
     @expose_for(plotgroup)
     def describe(self, newdescription):
@@ -712,16 +712,14 @@ class PlotPage(object):
         line.killcache()
 
     @expose_for(plotgroup)
-    @web.mime.json
+    @web.json_out
     def linedatasets_json(self, subplot, line):
         plot = Plot.frompref()
         sp = plot.subplots[int(subplot) - 1]
         line = sp.lines[int(line)]
-        session = db.Session()
-        datasets = line.getdatasets(session)
-        res = web.as_json(datasets)
-        session.close()
-        return res
+        with db.session_scope() as session:
+            datasets = line.getdatasets(session)
+            return datasets
 
     @expose_for(plotgroup)
     @web.mime.csv

@@ -95,51 +95,47 @@ class SitePage:
         raise web.HTTPRedirect('./%s' % siteid)
 
     @expose_for()
-    @web.mime.json
+    @web.json_out
     def getinstalledinstruments(self):
-        session = db.Session()
-        inst = [inst for inst in session.query(
-            db.Datasource) if inst.sites.count()]
-        res = web.as_json(sorted(inst))
-        session.close()
-        return res
+        with db.session_scope() as session:
+            inst = [
+                inst for inst in session.query(db.Datasource)
+                if inst.sites.count()
+            ]
+            return sorted(inst)
 
     @expose_for()
-    @web.mime.json
+    @web.json_out
     def getinstruments(self):
-        session = db.Session()
-        inst = session.query(db.Datasource).all()
-        res = web.as_json(sorted(inst))
-        session.close()
-        return res
+        with db.session_scope() as session:
+            inst = session.query(db.Datasource).all()
+            return sorted(inst)
 
     @expose_for(group.editor)
     def addinstrument(self, siteid, instrumentid, date=None):
         if not instrumentid:
             raise web.HTTPRedirect('/instrument/new')
-        session = db.Session()
-        error = ''
-        try:
-            date = web.parsedate(date)
-            site = session.query(db.Site).get(int(siteid))
-            instrument = session.query(db.Datasource).get(int(instrumentid))
-            pot_installations = session.query(db.Installation)
-            pot_installations = pot_installations.filter(
-                db.Installation.instrument == instrument, db.Installation.site == site)
-            pot_installations = pot_installations.order_by(
-                db.sql.desc(db.Installation.id))
-            if pot_installations.count():
-                instid = pot_installations.first().id
-            else:
-                instid = 0
-            inst = db.Installation(site, instrument, instid + 1, date)
-            session.add(inst)
-            session.commit()
-        except:
-            error = traceback()
-        finally:
-            session.close()
-        return error
+        with db.session_scope() as session:
+
+            error = ''
+            try:
+                date = web.parsedate(date)
+                site = session.query(db.Site).get(int(siteid))
+                instrument = session.query(db.Datasource).get(int(instrumentid))
+                pot_installations = session.query(db.Installation)
+                pot_installations = pot_installations.filter(
+                    db.Installation.instrument == instrument, db.Installation.site == site)
+                pot_installations = pot_installations.order_by(
+                    db.sql.desc(db.Installation.id))
+                if pot_installations.count():
+                    instid = pot_installations.first().id
+                else:
+                    instid = 0
+                inst = db.Installation(site, instrument, instid + 1, date)
+                session.add(inst)
+                session.commit()
+            except:
+                return traceback()
 
     @expose_for(group.editor)
     def removeinstrument(self, siteid, instrumentid, installationid, date=None):
@@ -170,12 +166,10 @@ class SitePage:
         return error
 
     @expose_for()
-    @web.mime.json
+    @web.json_out
     def json(self):
-        session = db.Session()
-        res = web.as_json(session.query(db.Site).order_by(db.Site.id).all())
-        session.close()
-        return res
+        with db.session_scope() as session:
+            return session.query(db.Site).order_by(db.Site.id).all()
 
     @expose_for()
     @web.mime.kml
@@ -216,18 +210,12 @@ class SitePage:
         return [op.basename(p) for p in glob(op.join(path, '*.png')) if not op.basename(p) == 'selection.png']
 
     @expose_for(group.guest)
-    @web.mime.json
+    @web.json_out
     def with_instrument(self, instrumentid):
-        session = db.Session()
-        sites = []
-        print("instrument id %s" % instrumentid)
-        try:
+        with db.session_scope() as session:
+            sites = []
             inst = session.query(db.Datasource).get(int(instrumentid))
-            sites = sorted(set(i.site for i in inst.sites))
-            print("Sites: %s" % len(sites))
-        finally:
-            session.close()
-        return web.as_json(sites)
+            return sorted(set(i.site for i in inst.sites))
 
     @expose_for(group.logger)
     @web.mime.csv

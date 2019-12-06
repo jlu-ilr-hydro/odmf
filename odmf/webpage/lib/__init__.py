@@ -25,6 +25,21 @@ HTTPRedirect = cherrypy.HTTPRedirect
 HTTPError = cherrypy.HTTPError
 
 
+def json_out(f):
+    """
+    Decorator for exposed functions to convert the output into utf-8 encoded json
+    """
+    def wrapper(*args, **kwargs):
+        obj = f(*args, **kwargs)
+        return json.dumps(
+            obj,
+            sort_keys=True,
+            indent=4,
+            default=jsonhandler
+        ).encode('utf-8')
+    return mime.json(wrapper)
+
+
 def show_in_nav_for(level=0):
     """
     Use as a class / method decorator to flag an exposed object in the site navigation

@@ -210,22 +210,22 @@ class DatasetPage:
         raise web.HTTPRedirect('./%s' % id)
 
     @expose_for()
-    @web.mime.json
+    @web.json_out
     def statistics(self, id):
         """
         Returns a json file holding the statistics for the dataset (is loaded by page using ajax)
         """
-        session = db.Session()
-        ds = session.query(db.Dataset).get(int(id))
-        if ds:
-            # Get statistics
-            mean, std, n = ds.statistics()
-            # Convert to json
-            res = web.as_json(dict(mean=mean, std=std, n=n))
-        else:
-            # Return empty dataset statistics
-            res = web.as_json(dict(mean=0, std=0, n=0))
-        return res
+        with db.session_scope() as session:
+            ds = session.query(db.Dataset).get(int(id))
+            if ds:
+                # Get statistics
+                mean, std, n = ds.statistics()
+                # Convert to json
+                return dict(mean=mean, std=std, n=n)
+            else:
+                # Return empty dataset statistics
+                return dict(mean=0, std=0, n=0)
+
 
     @expose_for(group.admin)
     def remove(self, dsid):
@@ -274,7 +274,7 @@ class DatasetPage:
         return datasets.join(db.ValueType).order_by(db.ValueType.name, db.sql.desc(db.Dataset.end))
 
     @expose_for()
-    @web.mime.json
+    @web.json_out
     def attrjson(self, attribute, valuetype=None, user=None,
                  site=None, date=None, instrument=None,
                  type=None, level=None, onlyaccess=False):
@@ -303,24 +303,22 @@ class DatasetPage:
             items = set(e for e in items if e)
 
             # Convert object set to json
-            res = web.as_json(sorted(items))
-        return res
+            return sorted(items)
+
 
     @expose_for()
-    @web.mime.json
+    @web.json_out
     def json(self, valuetype=None, user=None, site=None,
              date=None, instrument=None, type=None,
              level=None, onlyaccess=False):
         """
         Gets a json file of available datasets with filter
         """
-        session = db.Session()
-        try:
-            dump = web.as_json(self.subset(session, valuetype, user, site,
-                                           date, instrument, type, level, onlyaccess).all())
-        finally:
-            session.close()
-        return dump
+        with db.session_scope() as session:
+            return self.subset(
+                session, valuetype, user, site,
+                date, instrument, type, level, onlyaccess
+            ).all()
 
     @expose_for(group.editor)
     def updaterecorderror(self, dataset, records):
@@ -456,10 +454,10 @@ class DatasetPage:
         return bytesio.getvalue()
 
     @web.expose
-    @web.mime.json
+    @web.json_out
     def records_json(self, dataset,
                      mindate=None, maxdate=None, minvalue=None, maxvalue=None,
-                     threshold=None, limit=None, witherror=False):
+                     threshold=None, limit=None, witherror=False)->dict:
         """
         Returns the records of the dataset as JSON
         """
@@ -492,7 +490,7 @@ class DatasetPage:
                     records = records.limit(limit)
             except:
                 raise cherrypy.HTTPError(500, traceback())
-            return web.as_json({'error': None, 'data': records.all()})
+            return {'error': None, 'data': records.all()}
 
     @expose_for(group.editor)
     def records(self, dataset, mindate, maxdate, minvalue, maxvalue, threshold=None, limit=None):

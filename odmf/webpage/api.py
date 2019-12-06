@@ -19,7 +19,7 @@ def get_help(obj, url, append_to: dict = None):
         return inspect.ismethod(obj) or isinstance(obj, BaseAPI) and hasattr(obj, 'exposed')
 
     if inspect.ismethod(obj):
-        append_to[url] = url.split('/')[-1] + str(inspect.signature(obj)) + ': ' + inspect.getdoc(obj)
+        append_to[url] = url.split('/')[-1] + str(inspect.signature(obj)) + ': ' + str(inspect.getdoc(obj))
     else:
         append_to[url] = inspect.getdoc(obj)
     for name, member in inspect.getmembers(obj, is_api_or_method):
@@ -64,7 +64,7 @@ class DatasetAPI(BaseAPI):
 
     """
     exposed = True
-    url = '/api/dataset'
+    url = conf.head_base + '/api/dataset'
 
     @staticmethod
     def parse_id(dsid: str) -> int:
@@ -91,7 +91,7 @@ class DatasetAPI(BaseAPI):
 
     @expose_for(group.guest)
     @web.method.get
-    @web.mime.json
+    @web.json_out
     def index(self, dsid=None):
         """
         Returns a json representation of a datasetid
@@ -102,12 +102,12 @@ class DatasetAPI(BaseAPI):
         if dsid is None:
             res = get_help(self, self.url)
             res[f'{self.url}/[n]'] = f"A dataset with the id [n]. See {self.url}/list method"
-            return web.as_json(res)
+            return res
         with self.get_dataset(dsid, False) as ds:
-            return web.as_json(ds)
+            return ds
 
     @expose_for(group.guest)
-    @web.mime.json
+    @web.json_out
     def records(self, dsid, start=None, end=None):
         """
         :param dsid:
@@ -116,23 +116,24 @@ class DatasetAPI(BaseAPI):
         :return:
         """
         with self.get_dataset(dsid, False) as ds:
-            return web.as_json(ds.records.all())
+            return ds.records.all()
 
 
 
 
     @expose_for()
     @web.method.get
-    @web.mime.json
+    @web.json_out
     def list(self):
         """
         Returns a JSON list of all available dataset url's
         """
         res = []
         with db.session_scope() as session:
-            for ds, in sorted(session.query(db.Dataset.id)):
-                res.append(f'{self.url}/ds{ds}')
-            return web.as_json(res)
+            return [
+                f'{self.url}/ds{ds}'
+                for ds, in sorted(session.query(db.Dataset.id))
+            ]
 
 
     @expose_for(group.editor)
@@ -265,7 +266,7 @@ class DatasetAPI(BaseAPI):
 
     @expose_for()
     @web.method.get
-    @web.mime.json
+    @web.json_out
     def statistics(self, dsid):
         """
         Returns a json object holding the statistics for the dataset
@@ -278,7 +279,7 @@ class DatasetAPI(BaseAPI):
                 mean = 0.0
                 std = 0.0
             # Convert to json
-            return web.as_json(dict(mean=mean, std=std, n=n))
+            return dict(mean=mean, std=std, n=n)
 
 
 class API(BaseAPI):
@@ -356,12 +357,12 @@ class API(BaseAPI):
 
     @expose_for()
     @web.method.get
-    @web.mime.json
+    @web.json_out
     def index(self):
         """
         Returns a JSON object containing the description of the API
         """
-        return web.as_json(get_help(self, '/api'))
+        return get_help(self, '/api')
 
 
 

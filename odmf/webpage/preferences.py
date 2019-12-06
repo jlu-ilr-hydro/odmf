@@ -54,16 +54,16 @@ class Preferences(object):
             f.write(web.as_json(self.data).decode('utf-8'))
 
     @expose_for()
-    @web.mime.json
+    @web.json_out
     def index(self, item=''):
         data = self.data
         print("index for preferences")
         #
         # Seems pythons needs still explicit encoding
         if item in data:
-            return web.as_json(self.data[item])
+            return self.data[item]
         else:
-            return web.as_json(self.data)
+            return self.data
 
     @expose_for()
     @json_in()

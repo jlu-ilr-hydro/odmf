@@ -24,13 +24,11 @@ class MapPage(object):
         return web.render('map.html', site=site).render()
 
     @web.expose
-    @web.mime.json
+    @web.json_out
     def sites(self):
-        session = db.Session()
-        sites = session.query(db.Site).order_by(db.Site.id)
-        res = web.as_json(sites.all())
-        session.close()
-        return res
+        with db.session_scope() as session:
+
+            return session.query(db.Site).order_by(db.Site.id).all()
 
     @web.expose
     def sitedescription(self, siteid):

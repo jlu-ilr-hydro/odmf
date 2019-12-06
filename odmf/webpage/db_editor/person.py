@@ -82,16 +82,14 @@ class PersonPage:
         raise web.HTTPRedirect('./' + username)
 
     @expose_for()
-    @web.mime.json
+    @web.json_out
     def json(self, supervisors=False):
-        session = db.Session()
-        persons = session.query(db.Person).order_by(
-            db.sql.desc(db.Person.can_supervise), db.Person.surname)
-        if supervisors:
-            persons = persons.filter(db.Person.can_supervise == True)
-        res = web.as_json(persons.all())
-        session.close()
-        return res
+        with db.session_scope() as session:
+            persons = session.query(db.Person).order_by(
+                db.sql.desc(db.Person.can_supervise), db.Person.surname)
+            if supervisors:
+                persons = persons.filter(db.Person.can_supervise == True)
+            return persons.all()
 
     @expose_for(group.logger)
     def changepassword(self, username=None):

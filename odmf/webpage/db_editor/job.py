@@ -94,29 +94,29 @@ class JobPage:
                 session.commit()
                 session.close()
             except:
-                return web.render('empty.html',
-                                  error=('\n'.join('%s: %s' % it for it in kwargs.items())) + '\n' + traceback(),
-                                  title='Job #%s' % id
-                                  ).render()
+                return web.render(
+                    'empty.html',
+                    error=('\n'.join('%s: %s' % it for it in kwargs.items())) + '\n' + traceback(),
+                    title='Job #%s' % id
+                ).render()
 
     @expose_for(group.logger)
-    @web.mime.json
+    @web.json_out
     def json(self, responsible=None, author=None, onlyactive=False, dueafter=None):
-        session = db.Session()
-        jobs = session.query(db.Job).order_by(db.Job.done ,db.Job.due.desc())
-        if responsible != 'all':
-            if not responsible:
-                responsible = users.current.name
-            jobs = jobs.filter(db.Job._responsible == responsible)
-        if onlyactive:
-            jobs = jobs.filter(~db.Job.done)
-        if author:
-            jobs = jobs.filter(db.Job.author == author)
-        try:
-            jobs = jobs.filter(db.Job.due > web.parsedate(dueafter))
-        except:
-            pass
-        res = web.as_json(jobs.all())
-        session.close()
-        return res
+        with db.session_scope() as session:
+
+            jobs = session.query(db.Job).order_by(db.Job.done ,db.Job.due.desc())
+            if responsible != 'all':
+                if not responsible:
+                    responsible = users.current.name
+                jobs = jobs.filter(db.Job._responsible == responsible)
+            if onlyactive:
+                jobs = jobs.filter(~db.Job.done)
+            if author:
+                jobs = jobs.filter(db.Job.author == author)
+            try:
+                jobs = jobs.filter(db.Job.due > web.parsedate(dueafter))
+            except:
+                pass
+            return jobs.all()
 
