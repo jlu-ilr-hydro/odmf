@@ -66,7 +66,7 @@
 			killplot();
 		}
 		function exportall_csv() {
-			var href = '/plot/exportall.csv?tolerance=' + $('#tolerance_skipper').val();
+			var href = odmf_ref('/plot/exportall.csv?tolerance=') + $('#tolerance_skipper').val();
 			//alert(href);
 			window.location = href;
 		}
@@ -74,7 +74,7 @@
 		function flotplot() {
 			$('#properties').slideUp();
 			$.getJSON(
-				'/plot/export.json',
+				odmf_ref('/plot/export.json'),
 				{subplot:0,line:0})
 				.done(
 					function(data) {
@@ -95,7 +95,7 @@
 
 		 */
 		function RegTime() {
-			var href = '/plot/RegularTimeseries.csv?tolerance='+$('#Interpolation_Limit').val() + '&interpolation=' + $('#reg_interpolation').val();
+			var href = odmf_ref('/plot/RegularTimeseries.csv?tolerance=')+$('#Interpolation_Limit').val() + '&interpolation=' + $('#reg_interpolation').val();
 			//alert(href);
 			window.location = href;
 		}
@@ -137,7 +137,7 @@
 			$('#datasetlist_'+subplot+'_'+line).slideUp('fast').html('');
 			if (content=='') {
 				$.getJSON(
-					'/plot/linedatasets.json',
+					odmf_ref('/plot/linedatasets.json'),
 					{ subplot: subplot,
 						line:line
 					},
@@ -181,7 +181,7 @@
 				if (newlineprops && !site) site=newlineprops.site;
 				if (newlineprops && !level) level=newlineprops.level;
 
-				$.getJSON('/dataset/attrjson',
+				$.getJSON(odmf_ref('/dataset/attrjson'),
 									{ attribute:'valuetype',
 									  site:site,
 									  date:date,
@@ -196,7 +196,7 @@
 									}
 				);
 						
-				$.getJSON('/dataset/attrjson',
+				$.getJSON(odmf_ref('/dataset/attrjson'),
 									{ attribute:'source',
 										valuetype:vt,
 										site:site,
@@ -212,7 +212,7 @@
 										$('#instrumentselect_'+subplotpos).html(html).val(instrument);
 									}
 				);
-				$.getJSON('/dataset/attrjson',
+				$.getJSON(odmf_ref('/dataset/attrjson'),
 										{ attribute:'site',
 											valuetype:vt,
 										  date:date,
@@ -227,7 +227,7 @@
 										}
 				);
 				if (vt!='' && site!='') {
-					$.getJSON('/dataset/attrjson',
+					$.getJSON(odmf_ref('/dataset/attrjson'),
 										{ 
 											attribute:'level',
 											valuetype:vt,

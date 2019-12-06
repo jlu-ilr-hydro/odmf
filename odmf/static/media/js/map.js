@@ -5,7 +5,7 @@
     function setpref(data) {
 			$.ajaxSetup({ scriptCharset:"utf-8", 
                     contentType:"application/json; charset=utf-8" });
-		  $.post('/preferences/update',JSON.stringify(data),null,'json');
+		  $.post(odmf_ref('/preferences/update'),JSON.stringify(data),null,'json');
     }
     // Saves the actual map preferences to the session / file
 		function savemappref() {
@@ -28,7 +28,7 @@
 		// If checkbox #createsite is checked, a new site is created, else zoom in
 		function map_dblclick(loc) {
 			if ($('#createsite').prop('checked')) {
-				var url = '/site/new';
+				var url = odmf_ref('/site/new');
 				url += '?lat=' + loc.lat();
 				url += '&lon=' + loc.lng();
 				window.location.href = url; 				
@@ -46,7 +46,7 @@
 		}
 		
     function selectsite(id) {
-        $('#infotext').load('/map/sitedescription/' + id, 
+        $('#infotext').load(odmf_ref('/map/sitedescription/') + id,
             function(response, status, xhr) {
                 if (status == "error") {
                     var msg = "Sorry but there was an error: ";
@@ -84,7 +84,7 @@
     	}
     }
 		function getSelectionSymbol() {
-			return new google.maps.MarkerImage('/media/mapicons/selection.png',
+			return new google.maps.MarkerImage(odmf_ref('/media/mapicons/selection.png'),
 														new google.maps.Size(37,37),
 														new google.maps.Point(0,0),
 														new google.maps.Point(6,30));
@@ -99,7 +99,7 @@
 					} else {
 						icon = item.icon;
 					}
-	    		var image = new google.maps.MarkerImage('/media/mapicons/' + icon,
+	    		var image = new google.maps.MarkerImage(odmf_ref('/media/mapicons/') + icon,
 					      new google.maps.Size(24, 24),
 					      new google.maps.Point(0,0),
 					      new google.maps.Point(0, 24));
@@ -139,7 +139,7 @@
 			if (vt || user || date) {
 					$('#datasetsonly').prop('checked',true);
 			}
-			$.getJSON('/dataset/attrjson',
+			$.getJSON(odmf_ref('/dataset/attrjson'),
 								{ attribute:'valuetype',
 								  user:user,
 								  date:date
@@ -153,7 +153,7 @@
 								}
 			);
 					
-			$.getJSON('/dataset/attrjson',
+			$.getJSON(odmf_ref('/dataset/attrjson'),
 								{ attribute:'measured_by',
 									valuetype:vt,
 								  date:date
@@ -166,7 +166,7 @@
 									$('#userselect').html(html).val(user);
 								}
 			);
-			$.getJSON('/site/getinstalledinstruments',{},function(data){
+			$.getJSON(odmf_ref('/site/getinstalledinstruments'),{},function(data){
 									var html='<option class="firstoption" value="">Please select...</option>';
 									$.each(data,function(index,item){
 										html+='<option value="'+item.id+'">'+item.name+'</option>';
@@ -174,7 +174,7 @@
 									$('#instrumentselect').html(html).val(instrument);
 			});
 			if ($('#datasetsonly').prop('checked')) {
-				setmarkers('/dataset/attrjson',
+				setmarkers(odmf_ref('/dataset/attrjson'),
 										{attribute:'site',
 										 valuetype:vt,
 										 user:user,
@@ -182,9 +182,9 @@
 										 instrument:instrument,
 									});											
 			} else if (instrument){
-				setmarkers('/site/with_instrument',{instrumentid:instrument});
+				setmarkers(odmf_ref('/site/with_instrument'),{instrumentid:instrument});
 			} else {
-				setmarkers('/site/json',{});
+				setmarkers(odmf_ref('/site/json'),{});
 			}
 		}
 		function clearFilter() {
@@ -241,7 +241,7 @@
 
 			$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
 
-			$.getJSON('/preferences', {}, function( data ) {
+			$.getJSON(odmf_ref('/preferences'), {}, function( data ) {
 				if (site) {
 					data.site = site.id;
 					data.map.zoom = 20;
