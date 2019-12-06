@@ -210,7 +210,7 @@ class DatasetPage:
         raise web.HTTPRedirect('./%s' % id)
 
     @expose_for()
-    @web.json_out
+    @web.mime.json
     def statistics(self, id):
         """
         Returns a json file holding the statistics for the dataset (is loaded by page using ajax)
@@ -221,10 +221,10 @@ class DatasetPage:
                 # Get statistics
                 mean, std, n = ds.statistics()
                 # Convert to json
-                return dict(mean=mean, std=std, n=n)
+                return web.json_out(dict(mean=mean, std=std, n=n))
             else:
                 # Return empty dataset statistics
-                return dict(mean=0, std=0, n=0)
+                return web.json_out(dict(mean=0, std=0, n=0))
 
 
     @expose_for(group.admin)
@@ -274,7 +274,7 @@ class DatasetPage:
         return datasets.join(db.ValueType).order_by(db.ValueType.name, db.sql.desc(db.Dataset.end))
 
     @expose_for()
-    @web.json_out
+    @web.mime.json
     def attrjson(self, attribute, valuetype=None, user=None,
                  site=None, date=None, instrument=None,
                  type=None, level=None, onlyaccess=False):
@@ -303,11 +303,11 @@ class DatasetPage:
             items = set(e for e in items if e)
 
             # Convert object set to json
-            return sorted(items)
+            return web.json_out(sorted(items))
 
 
     @expose_for()
-    @web.json_out
+    @web.mime.json
     def json(self, valuetype=None, user=None, site=None,
              date=None, instrument=None, type=None,
              level=None, onlyaccess=False):
@@ -315,10 +315,10 @@ class DatasetPage:
         Gets a json file of available datasets with filter
         """
         with db.session_scope() as session:
-            return self.subset(
+            return web.json_out(self.subset(
                 session, valuetype, user, site,
                 date, instrument, type, level, onlyaccess
-            ).all()
+            ).all())
 
     @expose_for(group.editor)
     def updaterecorderror(self, dataset, records):
@@ -454,7 +454,7 @@ class DatasetPage:
         return bytesio.getvalue()
 
     @web.expose
-    @web.json_out
+    @web.mime.json
     def records_json(self, dataset,
                      mindate=None, maxdate=None, minvalue=None, maxvalue=None,
                      threshold=None, limit=None, witherror=False)->dict:
@@ -490,7 +490,7 @@ class DatasetPage:
                     records = records.limit(limit)
             except:
                 raise cherrypy.HTTPError(500, traceback())
-            return {'error': None, 'data': records.all()}
+            return web.json_out({'error': None, 'data': records.all()})
 
     @expose_for(group.editor)
     def records(self, dataset, mindate, maxdate, minvalue, maxvalue, threshold=None, limit=None):

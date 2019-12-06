@@ -56,7 +56,7 @@ class DatasourcePage:
         raise web.HTTPRedirect('./%s' % id)
 
     @expose_for()
-    @web.json_out
+    @web.mime.json
     def json(self):
         with db.session_scope() as session:
-            return session.query(db.Datasource).all()
+            return web.json_out(session.query(db.Datasource).all())

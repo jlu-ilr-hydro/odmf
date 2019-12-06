@@ -94,7 +94,7 @@ class LogPage:
         raise web.HTTPRedirect('/log')
 
     @expose_for(group.logger)
-    @web.json_out
+    @web.mime.json
     def json(self, siteid=None, user=None, old=None, until=None, days=None,
              _=None, keywords=None):
         with db.session_scope() as session:
@@ -125,12 +125,12 @@ class LogPage:
                     old = datetime.today() - timedelta(days=days)
                 logs = logs.filter(db.Log.time >= old)
 
-            return logs.all()
+            return web.json_out(logs.all())
 
 
 
     @expose_for()
-    @web.json_out
+    @web.mime.json
     def data(self, siteid=None, user=None, old=None, until=None, days=None,
              _=None):
 
@@ -143,7 +143,7 @@ class LogPage:
                 until = web.parsedate(until)
                 logs = logs.filter(db.Log.time <= until)
 
-            return logs.all()
+            return web.json_out(logs.all())
 
 
     @expose_for(group.logger)

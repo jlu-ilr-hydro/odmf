@@ -101,7 +101,7 @@ class JobPage:
                 ).render()
 
     @expose_for(group.logger)
-    @web.json_out
+    @web.mime.json
     def json(self, responsible=None, author=None, onlyactive=False, dueafter=None):
         with db.session_scope() as session:
 
@@ -118,5 +118,5 @@ class JobPage:
                 jobs = jobs.filter(db.Job.due > web.parsedate(dueafter))
             except:
                 pass
-            return jobs.all()
+            return web.json_out(jobs.all())
 

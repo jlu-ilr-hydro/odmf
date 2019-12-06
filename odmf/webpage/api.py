@@ -91,7 +91,7 @@ class DatasetAPI(BaseAPI):
 
     @expose_for(group.guest)
     @web.method.get
-    @web.json_out
+    @web.mime.json
     def index(self, dsid=None):
         """
         Returns a json representation of a datasetid
@@ -102,12 +102,12 @@ class DatasetAPI(BaseAPI):
         if dsid is None:
             res = get_help(self, self.url)
             res[f'{self.url}/[n]'] = f"A dataset with the id [n]. See {self.url}/list method"
-            return res
+            return web.json_out(res)
         with self.get_dataset(dsid, False) as ds:
-            return ds
+            return web.json_out(ds)
 
     @expose_for(group.guest)
-    @web.json_out
+    @web.mime.json
     def records(self, dsid, start=None, end=None):
         """
         :param dsid:
@@ -116,24 +116,24 @@ class DatasetAPI(BaseAPI):
         :return:
         """
         with self.get_dataset(dsid, False) as ds:
-            return ds.records.all()
+            return web.json_out(ds.records.all())
 
 
 
 
     @expose_for()
     @web.method.get
-    @web.json_out
+    @web.mime.json
     def list(self):
         """
         Returns a JSON list of all available dataset url's
         """
         res = []
         with db.session_scope() as session:
-            return [
+            return web.json_out([
                 f'{self.url}/ds{ds}'
                 for ds, in sorted(session.query(db.Dataset.id))
-            ]
+            ])
 
 
     @expose_for(group.editor)
@@ -266,7 +266,7 @@ class DatasetAPI(BaseAPI):
 
     @expose_for()
     @web.method.get
-    @web.json_out
+    @web.mime.json
     def statistics(self, dsid):
         """
         Returns a json object holding the statistics for the dataset
@@ -279,7 +279,7 @@ class DatasetAPI(BaseAPI):
                 mean = 0.0
                 std = 0.0
             # Convert to json
-            return dict(mean=mean, std=std, n=n)
+            return web.json_out(dict(mean=mean, std=std, n=n))
 
 
 class API(BaseAPI):
@@ -357,12 +357,12 @@ class API(BaseAPI):
 
     @expose_for()
     @web.method.get
-    @web.json_out
+    @web.mime.json
     def index(self):
         """
         Returns a JSON object containing the description of the API
         """
-        return get_help(self, '/api')
+        return web.json_out(get_help(self, '/api'))
 
 
 

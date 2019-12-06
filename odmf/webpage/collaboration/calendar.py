@@ -15,7 +15,7 @@ class CalendarPage(object):
         return web.render('calendar.html').render()
 
     @expose_for()
-    @web.json_out
+    @web.mime.json
     def jobs_json(self, start=None, end=None, responsible=None, author=None, onlyactive=False, dueafter=None):
         with db.session_scope() as session:
             jobs = session.query(db.Job).order_by(db.Job.done, db.Job.due.desc())
@@ -38,11 +38,11 @@ class CalendarPage(object):
                            end=j.done if j.done else j.due,
                            color='#AAA' if j.done else '',
                            allDay=True) for j in jobs]
-            return events
+            return web.json_out(events)
 
 
     @expose_for()
-    @web.json_out
+    @web.mime.json
     def logs_json(self, start=None, end=None, site=None, type=None):
         with db.session_scope() as session:
 
@@ -63,4 +63,4 @@ class CalendarPage(object):
                            start=l.time,
                            end=l.time + timedelta(hours=1),
                            allDay=False) for l in logs]
-            return events
+            return web.json_out(events)

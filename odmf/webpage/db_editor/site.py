@@ -95,21 +95,21 @@ class SitePage:
         raise web.HTTPRedirect('./%s' % siteid)
 
     @expose_for()
-    @web.json_out
+    @web.mime.json
     def getinstalledinstruments(self):
         with db.session_scope() as session:
             inst = [
                 inst for inst in session.query(db.Datasource)
                 if inst.sites.count()
             ]
-            return sorted(inst)
+            return web.json_out(sorted(inst))
 
     @expose_for()
-    @web.json_out
+    @web.mime.json
     def getinstruments(self):
         with db.session_scope() as session:
             inst = session.query(db.Datasource).all()
-            return sorted(inst)
+            return web.json_out(sorted(inst))
 
     @expose_for(group.editor)
     def addinstrument(self, siteid, instrumentid, date=None):
@@ -166,10 +166,10 @@ class SitePage:
         return error
 
     @expose_for()
-    @web.json_out
+    @web.mime.json
     def json(self):
         with db.session_scope() as session:
-            return session.query(db.Site).order_by(db.Site.id).all()
+            return web.json_out(session.query(db.Site).order_by(db.Site.id).all())
 
     @expose_for()
     @web.mime.kml
@@ -210,12 +210,12 @@ class SitePage:
         return [op.basename(p) for p in glob(op.join(path, '*.png')) if not op.basename(p) == 'selection.png']
 
     @expose_for(group.guest)
-    @web.json_out
+    @web.mime.json
     def with_instrument(self, instrumentid):
         with db.session_scope() as session:
             sites = []
             inst = session.query(db.Datasource).get(int(instrumentid))
-            return sorted(set(i.site for i in inst.sites))
+            return web.json_out(sorted(set(i.site for i in inst.sites)))
 
     @expose_for(group.logger)
     @web.mime.csv

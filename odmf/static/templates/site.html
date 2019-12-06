@@ -97,7 +97,7 @@
 
 
 		// decode json data, can't parse instead
-		var site = ${as_json(actualsite).decode('utf-8') if actualsite else 'null'}
+		var site = ${as_json(actualsite) if actualsite else 'null'}
 
         //
         // Define createmap via "currying" to bind parameter site permant

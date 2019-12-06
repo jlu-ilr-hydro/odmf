@@ -92,9 +92,9 @@ class Root(object):
             return web.render('login.html', error=error, frompage=frompage).render()
 
     @expose_for(group.admin)
-    @web.json_out
+    @web.mime.json
     def showjson(self, **kwargs):
-        return kwargs
+        return web.json_out(kwargs)
 
     @expose_for(group.editor)
     def datastatus(self):
@@ -131,7 +131,7 @@ class Root(object):
         return "User-agent: *\nDisallow: /\n"
 
     @expose_for()
-    @web.json_out
+    @web.mime.json
     def actualclimate_json(self, site=47):
         """
         Returns the last climate measurement from a specific site
@@ -145,7 +145,7 @@ class Root(object):
                 t, v = ds.asarray(start=yesterday)
                 res[ds.name.split(',')[0].strip().replace(' ', '_')] = {
                     'min': v.min(), 'max': v.max(), 'mean': v.mean()}
-        return res
+        return web.json_out(res)
 
     @expose_for()
     @web.mime.html
@@ -156,12 +156,12 @@ class Root(object):
             return web.render('actualclimate.html', ds=ds, db=db).render()
 
     @expose_for()
-    @web.json_out
+    @web.mime.json
     def resources(self, only_navigatable=False, recursive=True, for_level=users.current.level):
         """
         Returns a json object representing all resources of this cherrypy web-application
         """
-        return web.resource_walker(self, only_navigatable, recursive, int(for_level))
+        return web.json_out(web.resource_walker(self, only_navigatable, recursive, int(for_level)))
 
     def __init__(self):
         web.render.set_root(self)
