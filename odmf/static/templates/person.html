@@ -3,9 +3,9 @@
 
 <head>
     <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <base href="${conf.head_base}" />
+    <script>function odmf_ref(s) {return '/${conf.head_base}' + s;}</script>
 
-	<link href="/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<link href="${odmf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Personen</title>
 	<style>
@@ -27,7 +27,7 @@
 	  <div class="error" py:content="error" />
 		<ul id="Inhalt">
 			<li py:if="is_member('supervisor')">
-				<a href="/user/new"><b>Neu...</b></a>			
+				<a href="${odmf.head_base}/user/new"><b>Neu...</b></a>
 			</li>
 			<li py:for="pp in persons">
 				<a href="${'/user/%s' % pp.username}" py:content="pp" style="font-weight: ${'bold' if pp is active_person else 'normal'}"/>
@@ -40,7 +40,7 @@
 	    		${markdown(U.comment)}
     		</div>
 	    		
-			<form action="/user/saveitem" method="post">
+			<form action="${odmf.head_base}/user/saveitem" method="post">
 				<h2>Edit user</h2>
 				<table style="width: 100%" py:if="active_person">
 					<tr>
@@ -164,7 +164,7 @@
 					</tr>
 					<py:choose>
 						<tr py:when="is_member('supervisor') and not is_self(active_person.username)">
-							<td>Active<a href="/wiki/help" class="tooltip"><img src="/media/ui-icons/help.png" /><span>Caution, if it is not ticked, the user is disabled to login</span></a></td>
+							<td>Active<a href="${odmf.head_base}/wiki/help" class="tooltip"><img src="${odmf.head_base}/media/ui-icons/help.png" /><span>Caution, if it is not ticked, the user is disabled to login</span></a></td>
 							<td><input style="width: 0%" name="status" type="checkbox" checked="${'on' if active_person.active else ''}"/></td>
 						</tr>
 						<tr py:otherwise="">
@@ -172,7 +172,7 @@
 						</tr>
 					</py:choose>
 					<tr>
-						<td>Comments<a href="/wiki/help" class="tooltip"><img src="/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
+						<td>Comments<a href="${odmf.head_base}/wiki/help" class="tooltip"><img src="${odmf.head_base}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
 						<td py:if="is_member('supervisor')">
 							<textarea name="comment" 
 									  style="width: 100%;"

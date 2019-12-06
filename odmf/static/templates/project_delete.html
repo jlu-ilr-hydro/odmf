@@ -3,11 +3,11 @@
 
 <head>
     <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <base href="${conf.head_base}" />
+    <script>function odmf_ref(s) {return '/${conf.head_base}' + s;}</script>
 
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous" />
 
-	<link href="/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<link href="${odmf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Delete Project</title>
 </head>
@@ -44,7 +44,7 @@
 	${navigation('Delete Project: ' + project.name)}
 	<div class="content">
         <div class="error" py:content="error" />
-        <a href="/project">Back to all project</a>
+        <a href="${odmf.head_base}/project">Back to all project</a>
 
         <div class="info-text">
             <div class="head btn-danger"><strong>CAUTION:</strong> You want to delete <strong>${project.name}</strong>!</div>
@@ -53,7 +53,7 @@
             will be relieved from it and will stay in the database without a project.</div>
         </div>
 
-        <form method="post" action="/project/delete">
+        <form method="post" action="${odmf.head_base}/project/delete">
             <button id="btn-delete" type="submit"
             class="btn btn-danger">Delete</button>
             <input type="hidden" id="project_id" name="project_id" value="${project.id}" />

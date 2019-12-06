@@ -3,9 +3,9 @@
 
 <head>
     <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <base href="${conf.head_base}" />
+    <script>function odmf_ref(s) {return '/${conf.head_base}' + s;}</script>
 
-	<link href="/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<link href="${odmf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Log in</title>
 </head>
@@ -26,7 +26,7 @@
 	<div class="content">
 		<div class="error" py:content="error" />
 		<h3>Current user: ${users.current}</h3>
-		<form method="post" action="/login">
+		<form method="post" action="${odmf.head_base}/login">
 			<div>
 				<input type="hidden" name="frompage" id="frompage" value="${frompage}"/>
 				<table class="short">
@@ -54,12 +54,12 @@
 				</div>
 				<div class="space">
 					<h1>About</h1>
-					<img src="/media/lfe-logo.png" alt="logo"/>
+					<img src="${odmf.head_base}/media/lfe-logo.png" alt="logo"/>
 					<a href="http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
-						<img src="/media/images/ilr-logo_4_klein_RGB.png" alt="ILR"/>
+						<img src="${odmf.head_base}/media/images/ilr-logo_4_klein_RGB.png" alt="ILR"/>
 					</a>
 					<a href="http://www.uni-giessen.de">
-						<img src="/media/images/jlu-logo-150.png" alt="University Giessen"/>
+						<img src="${odmf.head_base}/media/images/jlu-logo-150.png" alt="University Giessen"/>
 					</a>
 
 					<div class="space">
@@ -79,7 +79,7 @@
 					</h2>
 					<div class="space">
 						Most graphical elements and the user interface are own work. Some icons, especially for downloads etc. are creative commons. 
-						The applying copyright notice can be found <a href="/media/ui-icons/shimmer/shimmer-icons-readme.html">here</a>.
+						The applying copyright notice can be found <a href="${odmf.head_base}/media/ui-icons/shimmer/shimmer-icons-readme.html">here</a>.
 					</div>
 				</div>
 			</div>

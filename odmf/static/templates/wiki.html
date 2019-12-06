@@ -3,12 +3,12 @@
 
 <head>
     <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <base href="${conf.head_base}" />
+    <script>function odmf_ref(s) {return '/${conf.head_base}' + s;}</script>
 
-	<link href="/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<link href="${odmf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>wiki/${name}</title>
-    <script src="/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
+    <script src="${odmf.head_base}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
     <style>
 	textarea { width: 100%;}
 	#dirlist {
@@ -70,7 +70,7 @@
     <div class="error" py:content="error" />
 	<div class='content'  style="padding-top: 10px;">
     <div id="tools">
-	    <span class="box small nowrap"><a href="/wiki">content...</a></span>
+	    <span class="box small nowrap"><a href="${odmf.head_base}/wiki">content...</a></span>
 	    <span class="box small nowrap" py:if="is_member('editor')">
 	    	<a id="edit" class="tooltip">edit...
 	    		<span>Opens or closes the editor window</span>
@@ -89,7 +89,7 @@
     <div class="toggle" id="editor">
     	<textarea rows="20">${wikitext}</textarea>
     	<br/>
-	    <button id="save">save</button><button id="cancel">cancel</button><a href="/wiki/help"><img src="/media/ui-icons/help.png" /></a>
+	    <button id="save">save</button><button id="cancel">cancel</button><a href="${odmf.head_base}/wiki/help"><img src="${odmf.head_base}/media/ui-icons/help.png" /></a>
     </div>
     <!--<div id="help" class="toggle" py:content="markdown(help)">-->
     <div id="content" style="padding: 10px;">
@@ -98,7 +98,7 @@
     <div id="related" py:if="pages">
     	<h3>Related pages:</h3>
     		<span py:for="page in pages" class="nowrap" style="display:inline-block;min-width: 5em;padding-left: 1em;">
-    			<a href="/wiki/${page}">
+    			<a href="${odmf.head_base}/wiki/${page}">
     				${page.replace('.','/')}
     			</a> 
     		</span>

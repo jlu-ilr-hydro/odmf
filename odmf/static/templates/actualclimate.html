@@ -3,9 +3,9 @@
 
     <head>
         <!-- Server configuration, see conf.py for HEAD_BASE -->
-        <base href="${conf.head_base}" />
+        <script>function odmf_ref(s) {return '/${conf.head_base}' + s;}</script>
 
-        <link href="/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+        <link href="${odmf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <title>Actual climate</title>
         <style>
@@ -45,7 +45,7 @@
 <body>
     <h1>Aktuelle Klimawerte</h1>
 	<h3>
-		Am Rückhaltebecken Rechtenbach <a href="/site/47">#47</a>
+		Am Rückhaltebecken Rechtenbach <a href="${odmf.head_base}/site/47">#47</a>
 	</h3>
 
         <table  border="2px dashed black">
