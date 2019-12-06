@@ -17,15 +17,13 @@ server_config = {
     'log.error_file': prefix + '/error.log',
 }
 
+
 def configure_app(autoreload=False):
 
     static_files = {
         '/favicon.ico': {"tools.staticfile.on": True,
                          "tools.staticfile.filename": str(conf.abspath("media/ilr-favicon.png"))
                          },
-        '/html': {'tools.staticdir.on': True,
-                  'tools.staticdir.dir': str(conf.abspath('templates')),
-                  'tools.caching.on': False},
         '/media': {
             'tools.caching.on': True,
             'tools.caching.delay': 3600
