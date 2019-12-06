@@ -4,7 +4,7 @@ Tools to and from convert strings to numerous types
 
 import json
 from datetime import datetime
-
+from kajiki.template import literal
 
 def as_json(obj):
     """
@@ -27,7 +27,7 @@ def as_json(obj):
         else:
             return obj
 
-    return json.dumps(obj, sort_keys=True, indent=4, default=jsonhandler).encode('utf-8')
+    return literal(json.dumps(obj, sort_keys=True, indent=4, default=jsonhandler))
 
 
 def formatdate(t=None):
