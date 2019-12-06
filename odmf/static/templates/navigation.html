@@ -9,7 +9,7 @@
 			 py:content="users.current if users.current else 'login'" title="login"/>
 		<ul>
 			<li py:for="target, help in resources">
-                <a href="/${target}" title="${help}" py:content="target"/>
+                <a href="${conf.head_base}/${target}" title="${help}" py:content="target"/>
             </li>
         </ul>
   </div>
@@ -21,9 +21,9 @@
 				<img src="/media/ui-icons/help.png" alt="help"/>
 			</a>
 		</h1>	
-		<span style="position: absolute; top 0px; right: 0px; z-index: 2000">
-			<a href="http://www.uni-giessen.de">
-				<img src="/media/images/jlu-logo-150.png" alt="University Giessen"/>
+		<span style="position: absolute; top: 0px; right: 0px; z-index: 2000">
+			<a href="https://www.uni-giessen.de">
+				<img src="media/images/jlu-logo-150.png" alt="University Giessen"/>
 			</a>
 			
 		</span>

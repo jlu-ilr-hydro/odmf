@@ -99,13 +99,13 @@ class Root(object):
 
     @expose_for(group.editor)
     def datastatus(self):
-        session = db.Session()
-        func = db.sql.func
-        q = session.query(db.Datasource.name, db.Dataset._site, func.count(db.Dataset.id),
-                          func.min(db.Dataset.start), func.max(db.Dataset.end)
-                          ).join(db.Dataset.source).group_by(db.Datasource.name, db.Dataset._site)
-        for r in q:
-            yield str(r) + '\n'
+        with db.session_scope() as session:
+            func = db.sql.func
+            q = session.query(db.Datasource.name, db.Dataset._site, func.count(db.Dataset.id),
+                              func.min(db.Dataset.start), func.max(db.Dataset.end)
+                              ).join(db.Dataset.source).group_by(db.Datasource.name, db.Dataset._site)
+            for r in q:
+                yield str(r) + '\n'
 
     @expose_for()
     def markdown(self, fn):
