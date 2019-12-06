@@ -48,14 +48,14 @@
   				// Create textarea for editing of index.html
 	  			$('#help').html('<textarea rows="20"/><br/><button>Save</button><button>Cancel</button><a href="${conf.head_base}/wiki/help"><img src="${conf.head_base}/media/ui-icons/help.png" /></a>');
 	  			// Load current file in textarea
-	  			$.get('/datafiles/${curdir.name}/index.html',{},function(text) {
+	  			$.get(odmf_ref('/datafiles/${curdir.name}/index.html'),{},function(text) {
 		  			$('#help textarea').val(text);				
 	  			});
 	  			// Save file on click
 	  			$('#help button').click(function() {
 	  				if ($(this).text()=="Save") {
 		  				var text=$('#help textarea').val();
-		  				$.post('/download/saveindex/',{dir:'${curdir}',s:text},function(text){
+		  				$.post(odmf_ref('/download/saveindex/'),{dir:'${curdir}',s:text},function(text){
 		  					$('#help').load('getindex?dir=${curdir}');
 		  				});	  					
 	  				} else {

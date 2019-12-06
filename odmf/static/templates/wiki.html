@@ -32,7 +32,7 @@
 			if (data.substr(0,4) == 'err:') {
 				$('.error').html(data.substr(4));
 			} else {
-				window.location = '/wiki/' + data;
+				window.location = odmf_ref('/wiki/') + data;
 			}
     }
 		$(function(){
@@ -45,17 +45,17 @@
 			$('#new').click(function(){
 				var newname = prompt('Name for the new wiki page. Use "parent.child" for subpages','${name}.');
 				if (newname) {
-					window.location='/wiki/' + newname;
+					window.location=odmf_ref('/wiki/') + newname;
 				}
 			});
 			$('#delete').click(function(){
 				if (confirm('Do you really want to delete the page ${name}?')) {
-					$.post('/wiki/delete',{name:'${name}'},goto);
+					$.post(odmf_ref('/wiki/delete'),{name:'${name}'},goto);
 				}
 			});
 			$('#save').click(function() {
 				if ('${name}')
-					$.post('/wiki/save',{name:'${name}',newtext:gettext()},seterror);
+					$.post(odmf_ref('/wiki/save'),{name:'${name}',newtext:gettext()},seterror);
 				else $('.error').html('This page has not a name. Create a new page with a name to save your wiki text.');
 			});
 			$('#cancel').click(function(){

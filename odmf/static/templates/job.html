@@ -21,7 +21,7 @@
     		function showjobs() {
     			var user = $('#filterresponsible').val();
     			var onlyactive = $('#filteractive').val();
-    			$.getJSON('/job/json',{resposible:user,onlyactive:onlyactive},function(data){
+    			$.getJSON(odmf_ref('/job/json'),{resposible:user,onlyactive:onlyactive},function(data){
     				html='<tr><th>id</th><th>responsible</th><th>Name</th><th>link</th><th>due</th><th>repeat</th><th>done</th></tr>'
     				$.each(data,function(index,j){
     					
@@ -32,12 +32,12 @@
     			var params = {user:$('#filterresponsible').val(),
     										onlyactive:$('#filteractive').val(),
     										};
-    			var loc='/job/' + jobid + '?';
+    			var loc=odmf_ref('/job/') + jobid + '?';
     			var uri = loc + jQuery.param(params)
     			window.location=uri;
     		}
     		function jobdone(jobid) {
-    			$.post('/job/done/'+jobid,function(data) {
+    			$.post(odmf_ref('/job/done/')+jobid,function(data) {
     				if (data) alert(data);
     				reload(jobid);
     			});
@@ -57,7 +57,7 @@
     				type: $('#edittype').val(),
     				save: action,
     			};
-    			$.post('/job/saveitem/',formdata,function(data) {
+    			$.post(odmf_ref('/job/saveitem/'),formdata,function(data) {
     				if (data) {
     					$('.error').html(data);
     				} else {

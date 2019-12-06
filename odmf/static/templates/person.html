@@ -30,7 +30,7 @@
 				<a href="${conf.head_base}/user/new"><b>Neu...</b></a>
 			</li>
 			<li py:for="pp in persons">
-				<a href="${'/user/%s' % pp.username}" py:content="pp" style="font-weight: ${'bold' if pp is active_person else 'normal'}"/>
+				<a href="${conf.head_base + '/user/' + pp.username" py:content="pp" style="font-weight: ${'bold' if pp is active_person else 'normal'}"/>
 			</li>
 		</ul>
 	    <div class="rightpane"> 
@@ -83,7 +83,7 @@
 						<td>Password:</td>
 						<td py:if="act_user=='new'"><input type="password" name="password" /></td>
 						<td py:if="act_user!='new'">
-							<p><a href="${'/user/changepassword/%s' % active_person.username}">Change password</a></p>
+							<p><a href="${conf.head_base + '/user/changepassword/' + active_person.username">Change password</a></p>
 						</td>
 					</tr>
 					<tr py:if="act_user=='new'">

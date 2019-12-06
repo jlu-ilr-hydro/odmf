@@ -21,7 +21,7 @@
     			var date = $('#dateselect').val()
     			var type = $('#typeselect').val()
     			var instrument = $('#instrumentselect').val()
-					$.getJSON('/dataset/attrjson',
+					$.getJSON(odmf_ref('/dataset/attrjson'),
 										{ attribute:'valuetype',
 										  user:user,
 										  site:site,
@@ -38,7 +38,7 @@
 										}
 					);
 							
-					$.getJSON('/dataset/attrjson',
+					$.getJSON(odmf_ref('/dataset/attrjson'),
 										{ attribute:'measured_by',
 										  valuetype:vt,
 										  site:site,
@@ -55,7 +55,7 @@
 										}
 					);		
 	
-					$.getJSON('/dataset/attrjson',
+					$.getJSON(odmf_ref('/dataset/attrjson'),
 										{ attribute:'site',
 										  valuetype:vt,
 										  user:user,
@@ -71,7 +71,7 @@
 											$('#siteselect').html(html).val(site);
 										}
 					);
-					$.getJSON('/dataset/attrjson',
+					$.getJSON(odmf_ref('/dataset/attrjson'),
 										{ attribute:'type',
 										  valuetype:vt,
 										  user:user,
@@ -87,7 +87,7 @@
 											$('#typeselect').html(html).val(type);
 										}
 					);
-					$.getJSON('/dataset/attrjson',
+					$.getJSON(odmf_ref('/dataset/attrjson'),
 										{ attribute:'source',
 										  valuetype:vt,
 										  user:user,
@@ -120,7 +120,7 @@
     			var date = $('#dateselect').val();
     			var type = $('#typeselect').val();
 					var instrument = $('#instrumentselect').val()
-					$.getJSON('/dataset/json',
+					$.getJSON(odmf_ref('/dataset/json'),
 										{ valuetype: vt,
 											user:user,
 											site:site,
@@ -148,11 +148,11 @@
     		function gotods() {
     			dsid = prompt('Goto dataset no.');
     			if (dsid>0) {
-    				window.location.href='/dataset/' + dsid;
+    				window.location.href=odmf_ref('/dataset/') + dsid;
     			}
     		}
     		$(function() {
-  					//$('#navigation').load('/navigation');
+  					//$('#navigation').load(odmf_ref('/navigation'));
     				$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
     				$("#toggleexport").click(function(){
     					$('#exportdiv').slideToggle();
@@ -174,7 +174,7 @@
 		    					// Call a function with the filter that generates a csv with all
 		    					// records. 
 									//alert($.param(props));
-									window.location = '/dataset/multirecords.csv?' +$.param(props) 
+									window.location = odmf_ref('/dataset/multirecords.csv?') +$.param(props)
 								}
     				});
 	    			popSelect();

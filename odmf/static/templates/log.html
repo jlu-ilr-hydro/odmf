@@ -36,7 +36,7 @@
 		days = $('#days').val();
         siteid = $('#siteid').val();
         keywords = $('#keywords').val();
-		$.getJSON('/log/json',{until:until, days:days, siteid:siteid, keywords:keywords}, function(data) {
+		$.getJSON(odmf_ref('/log/json'),{until:until, days:days, siteid:siteid, keywords:keywords}, function(data) {
 			html='';
 			//templ='<li><a href="#href#">#text#</a></li>';
 
@@ -52,7 +52,7 @@
 				//	+ item.message + ' at site#'+item.site.id
 				//	+' ('+item.user.firstname + ' ' + item.user.surname + ')';
 
-				html += templ.replace(/#href#/,'/log/'+item.id)
+				html += templ.replace(/#href#/,odmf_ref('/log/')+item.id)
                         .replace(/#comment#/,item.message)
                         .replace(/#date#/, formatiso(item.time))
                         .replace(/#siteid#/, item.site.id).replace(/#siteid#/, item.site.id)
@@ -65,7 +65,7 @@
 	}
 	function pastelogs() {
 		var text = $('#pastebin').val();
-		$.post('/log/fromclipboard',{paste: text},function(data,textStatus,jqHXR) {
+		$.post(odmf_ref('/log/fromclipboard'),{paste: text},function(data,textStatus,jqHXR) {
 			$('#pasteerror').html(data);
 			listlogs();
 		})
@@ -73,7 +73,7 @@
 	function remove(id) {
 		check = confirm('Do you really want to delete this log?');
 		if (check) {
-			location.href = '/log/remove?id=' + id;
+			location.href = odmf_ref('/log/remove?id=') + id;
 		}
 	}
 
@@ -197,7 +197,7 @@
 					</td>
 				</tr>
 				<tr>
-					<td><a href="${'/site/%s' % (actuallog.site.id if actuallog.site else '')}">Where?</a></td>
+					<td><a href="${conf.head_base + '/site/' + (actuallog.site.id if actuallog.site else '')">Where?</a></td>
 					<td>
 						<select name="site">
 							<option value=""><i>&lt;Please select...&gt;</i></option>

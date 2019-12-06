@@ -5,7 +5,7 @@
     <script>function odmf_ref(s) {return '${conf.head_base}' + s;}</script>
 
 
-	<link href='/media/lib/fullcalendar/fullcalendar.css' rel='stylesheet' />
+	<link href="${odmf.head_base}/media/lib/fullcalendar/fullcalendar.css" rel='stylesheet' />
 	<link href="${conf.head_base}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
 	<link href="${conf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
 
@@ -17,7 +17,7 @@
 	<script type="text/javascript" src="${conf.head_base}/media/lib/jquery-3.4.1.min.js"></script>
   <script src="${conf.head_base}/media/lib/fullcalendar/jquery/jquery-1.9.1.min.js" type="text/javascript" ></script>
   <script src="${conf.head_base}/media/lib/fullcalendar/jquery/jquery-ui-1.10.2.custom.min.js" type="text/javascript" ></script>
-  <script src='/media/lib/fullcalendar/fullcalendar.min.js'></script>
+  <script src="${odmf.head_base}/media/lib/fullcalendar/fullcalendar.min.js"></script>
 	<script>
 	
 		//<![CDATA[
@@ -28,7 +28,7 @@
 		}
 		function getsource(url) {
 			return {
-				url: '/calendar/' + url + '.json',
+				url: odmf_ref('/calendar/') + url + '.json',
 				type: 'POST',
 				data: {responsible: 'all'},
 				allDayDefault: false,

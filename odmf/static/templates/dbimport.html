@@ -60,7 +60,7 @@
 				console.log("Instrument: " + instrument);
 
 				if (instrument) {
-					$.getJSON('/site/with_instrument/' + instrument, {}, function(data){
+					$.getJSON(odmf_ref('/site/with_instrument/') + instrument, {}, function(data){
 						$.each(data,function(index,item){
 							html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
 						});
@@ -88,7 +88,7 @@
 				var instrument = $('#instrument').val();
 				var site = $('#siteselect').val();
 				if (site) {
-					$.getJSON('/dataset/json',{site:site,instrument:instrument},function(data){
+					$.getJSON(odmf_ref('/dataset/json'),{site:site,instrument:instrument},function(data){
 						var html='';
 						$.each(data,function(index,item){
 								html+='<li><a href="${conf.head_base}/dataset/'+item.id+'">'+item.label+'</a></li>';

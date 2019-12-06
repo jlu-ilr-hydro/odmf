@@ -33,7 +33,7 @@
     function updateclimate() {
                     var now = new Date()
                     $('#title').html(now.toLocaleString());
-            $('#climate').load('/plot/climate',
+            $('#climate').load(odmf_ref('/plot/climate'),
                                                 { days:dayloop[dayid],
                                                   enddate:now.toISOString(),
                                                     site:siteloop[siteid]

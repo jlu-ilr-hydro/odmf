@@ -15,7 +15,7 @@
 	<script>
         //<![CDATA[
         function popSelect() {
-      	    $.getJSON('/site/json',[],function(data){
+      	    $.getJSON(odmf_ref('/site/json'),[],function(data){
 	      	    var html='<option value=""><i>Please select...</i></option>';
 		  		$.each(data,function(index,item){
                     html += '<option value="' + item.id + '">#' + item.id + ' ('+ item.name + ')' + '</option>';
@@ -32,7 +32,7 @@
 	      					date:escape($('#installationdate').val()),
 	      					instrumentid:${actualinstrument.id}
 	      				};
-      		$.post('/site/addinstrument',data,function (data,textStatus,jqHXR){
+      		$.post(odmf_ref('/site/addinstrument'),data,function (data,textStatus,jqHXR){
       			if (data=='') {
 	      			location.reload();
 	      		} else {
@@ -46,7 +46,7 @@
       					siteid:siteid,
       					installationid:installationid
       				};
-      	$.post('/site/removeinstrument',data, function(data,textStatus,jqHXR) {
+      	$.post(odmf_ref('/site/removeinstrument'),data, function(data,textStatus,jqHXR) {
       			if (data=='') {
 	      			location.reload();
 	      		} else {
@@ -77,7 +77,7 @@
 				<a href="${conf.head_base}/instrument/new"><b>New instrument...</b></a>
 			</li>
 			<li py:for="inst in instruments">
-				<a href="${'/instrument/%s' % inst.id}" py:content="inst"/>
+				<a href="${conf.head_base + '/instrument/' + inst.id" py:content="inst"/>
 				<a py:if="inst.manuallink" href="${actualinstrument.manuallink}" class="small tooltip">
 					<img src="${conf.head_base}/media/ui-icons/shimmer/document_16.png" alt="documentation"/>
 					<span>

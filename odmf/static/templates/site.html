@@ -28,14 +28,14 @@
       	var url='';
       	var bigimg = $('#bigimage');
       	if (id) {
-      		url = '/picture/image/' + id;
+      		url = odmf_ref('/picture/image/') + id;
       	}
       	bigimg.attr('src',url);
 
       }
 
       function popSelect() {
-      	$.getJSON('/site/json',[],function(data){
+      	$.getJSON(odmf_ref('/site/json'),[],function(data){
 		  		var html='';
 		  		$.each(data,function(index,item){
 		  			if (item.id != ${actualsite.id}) {
@@ -48,7 +48,7 @@
 	  	});
       }
       function popInstruments() {
-      	$.getJSON('/site/getinstruments',[],function(data){
+      	$.getJSON(odmf_ref('/site/getinstruments'),[],function(data){
 	      	var html='<option value="">Please select...</option>';
   	    	$.each(data, function(index,item){
   	    		html += '<option value="' + item.id + '">' + item.name + '</option>';
@@ -62,9 +62,9 @@
       					siteid:${actualsite.id}
       				};
       		if (data.instrumentid=='') {
-      			location.href='/instrument/new'
+      			location.href=odmf_ref('/instrument/new')
       		}
-      		$.post('/site/addinstrument',data,function (data,textStatus,jqHXR){
+      		$.post(odmf_ref('/site/addinstrument'),data,function (data,textStatus,jqHXR){
       			if (data=='') {
 	      			location.reload();
 	      		} else {
@@ -78,7 +78,7 @@
       					siteid:${actualsite.id},
       					installationid:installationid
       				};
-      	$.post('/site/removeinstrument',data, function(data,textStatus,jqHXR) {
+      	$.post(odmf_ref('/site/removeinstrument'),data, function(data,textStatus,jqHXR) {
       			if (data=='') {
 	      			location.reload();
 	      		} else {
@@ -118,7 +118,7 @@
                 icon = site.icon;
             }
 
-            var image = new google.maps.MarkerImage('/media/mapicons/' + icon,
+            var image = new google.maps.MarkerImage(odmf_ref('/media/mapicons/') + icon,
                       new google.maps.Size(24, 24),
                       new google.maps.Point(0,0),
                       new google.maps.Point(0, 24));
@@ -248,7 +248,7 @@
 									<img py:for="icon in icons"
 											 class="highlightonhover"
 											 src="${conf.head_base}/media/mapicons/${icon}"
-											 onclick="$('#currenticon').attr('src','/media/mapicons/${icon}');$('#iconfile').val('${icon}');"/>
+											 onclick="$('#currenticon').attr('src',odmf_ref('/media/mapicons/${icon}'));$('#iconfile').val('${icon}');"/>
 									<input name="icon" type="hidden" id="iconfile" value="${actualsite.icon}"/>
 								</td>
 							</tr>
@@ -285,7 +285,7 @@
 					<div py:for="img in actualsite.images" style="display: inline">
 						<img src="${conf.head_base}/picture/thumbnail/${img.id}"
 								 title="${'%s: %s (%s)' % (formatdatetime(img.time),img.name, img.by)}"
-								 onclick="location.href='/picture?id=${img.id}'"
+								 onclick="location.href=odmf_ref('/picture?id=${img.id}')"
 								 />
 					</div>
 				</div>
@@ -330,7 +330,7 @@
 						<li py:if="is_member('editor')">
 							<script>
 								function makeplotcover() {
-									$('#plotcoverageimg').attr('src','/dataset/plot_coverage/${actualsite.id}');
+									$('#plotcoverageimg').attr('src',odmf_ref('/dataset/plot_coverage/${actualsite.id}'));
 								}
 							</script>
 							<a href="javascript:makeplotcover();">Plot the time coverage of the datasets</a>

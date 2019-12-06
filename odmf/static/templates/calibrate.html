@@ -43,7 +43,7 @@
 				limit:$('#limit').val(),
 				calibrate:calibrate
 			};
-			$.get('/dataset/calibration',data,function(html){
+			$.get(odmf_ref('/dataset/calibration'),data,function(html){
 				$('#content').html(html);
 			});
 		}
@@ -60,11 +60,11 @@
   		var params = {sourceid:${source.id},
   									targetid:${target.id},
   									slope:slope,offset:offset};
-  		$.post('/dataset/calibration/apply/',params,function(data){
+  		$.post(odmf_ref('/dataset/calibration/apply/'),params,function(data){
   			if (data) {
   				$('.error').html(data);
   			} else {
-  				window.location='/dataset/${target.id}'
+  				window.location=odmf_ref('/dataset/${target.id}')
   			}
   		});
   	}

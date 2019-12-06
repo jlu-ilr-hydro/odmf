@@ -16,7 +16,7 @@
     function reload() {
     	var params = {site:$('#siteselect').val(),
     								by:$('#userselect').val()};
-    	window.location = '/picture?' + $.param(params);
+    	window.location = odmf_ref('/picture?') + $.param(params);
     }
     function enableupload() {
     	var siteid = $('#uploadsite').val();
@@ -24,7 +24,7 @@
   		$('#uploadsubmit').prop('disabled',!((siteid>0) && (user)));
     }
     function popSelect() {
-    	$.getJSON('/site/json',[],function(data){
+    	$.getJSON(odmf_ref('/site/json'),[],function(data){
 		  		var html='<option value="">Please select...</option>';
 		  		$.each(data,function(index,item){
 	  				html += '<option value="'+item.id+'">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
@@ -32,7 +32,7 @@
 		  		$('.sites').html(html);
 		  		$('.sites').val('${site}');
 	  	});
-    	$.getJSON('/user/json',[],function(data){
+    	$.getJSON(odmf_ref('/user/json'),[],function(data){
 		  		var html='<option value="">Please select...</option>';
 		  		$.each(data,function(index,item){
 	  				html += '<option value="'+item.username+'">' + item.label + '</option>';

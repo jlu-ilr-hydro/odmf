@@ -21,7 +21,7 @@
 		<script>
 	  		//<![CDATA[
 				function loadstatistics() {
-					$.getJSON('/dataset/statistics/',{id:dsid},function(data){
+					$.getJSON(odmf_ref('/dataset/statistics/'),{id:dsid},function(data){
 						$('#mean').html(data.mean.toPrecision(4));
 						$('#std').html(data.std.toPrecision(4));
 						$('#splitthreshold').val(data.std.toPrecision(4));
@@ -44,7 +44,7 @@
 											threshold:threshold,
 											limit:limit
 										};
-					$('#recordlist').load('/dataset/records',params);
+					$('#recordlist').load(odmf_ref('/dataset/records'),params);
 				}
 
 				function timerange(step)
@@ -93,12 +93,12 @@
 	  		function gotods() {
     			dsid = prompt('Goto dataset no.');
     			if (dsid>0) {
-    				window.location.href='/dataset/' + dsid;
+    				window.location.href=odmf_ref('/dataset/') + dsid;
     			}
     		}
 
         function plotds(id) {
-        	var url = '/dataset/plot'
+        	var url = odmf_ref('/dataset/plot')
 					        	+ '?id='+id
 					        	+ '&' + 'start='+$('#plotstart').val() + ' ' + $('#plotstart_t').val()
 					        	+ '&' + 'end='+$('#plotend').val()+ ' ' + $('#plotend_t').val()
@@ -112,7 +112,7 @@
 					          'It has ' + reccount + ' records!'
 					var really=confirm(msg)
 					if (really) {
-						$.post('/dataset/remove/' + dsid, function(data) {
+						$.post(odmf_ref('/dataset/remove/') + dsid, function(data) {
 							if (data) {
 								$('.error').html(data);
 							} else {
@@ -246,7 +246,7 @@
 					<tr py:if="activedataset.measured_by">
 						<td class="bold">Responsible:</td>
 						<td>
-							<a href="${'/user/%s' % (activedataset.measured_by.username if activedataset.measured_by else '')}">
+							<a href="${conf.head_base + '/user/' + (activedataset.measured_by.username if activedataset.measured_by else '')">
 								${activedataset.measured_by}
 							</a>
 						</td>
@@ -305,7 +305,7 @@
 				</button>
 
 				<button py:if="activedataset.is_timeseries() and is_member('editor')"
-					 onclick="$.post('/dataset/create_transformation/',{sourceid:${activedataset.id}},reload)"
+					 onclick="$.post(odmf_ref('/dataset/create_transformation/'),{sourceid:${activedataset.id}},reload)"
 					 class="tooltip small">
 					f(x)
 					<span>Create a transformation for this dataset</span>
@@ -318,7 +318,7 @@
 							<td><input type="text" name="name" value="${activedataset.name}" /></td>
 						</tr>
 						<tr>
-							<td><a href="${'/user/%s' % (activedataset.measured_by.username if activedataset.measured_by else '')}">Responsible:</a></td>
+							<td><a href="${conf.head_base + '/user/' + (activedataset.measured_by.username if activedataset.measured_by else '')">Responsible:</a></td>
 							<td>
 								<select name="measured_by">
 									<option value=""><i>Please select...</i></option>
@@ -330,7 +330,7 @@
 							</td>
 						</tr>
 						<tr>
-							<td><a href="${'/valuetype/%s' % (activedataset.valuetype.id if activedataset.valuetype else '')}">Value:</a></td>
+							<td><a href="${conf.head_base + '/valuetype/' + (activedataset.valuetype.id if activedataset.valuetype else '')">Value:</a></td>
 							<td>
 								<select name="valuetype">
 									<option value=""><i>Please select...</i></option>
@@ -359,7 +359,7 @@
 							</td>
 						</tr>
 						<tr>
-							<td><a href="${'/site/%s' % (activedataset.site.id if activedataset.site else '')}">Site:</a></td>
+							<td><a href="${conf.head_base + '/site/' + (activedataset.site.id if activedataset.site else '')">Site:</a></td>
 							<td>
 								<select name="site">
 									<option value=""><i>Please select...</i></option>
@@ -520,13 +520,13 @@
 	  		<h3>This data set transforms the records of the following data sets:</h3>
 	  		<ul style="list-style:none;">
 	  			<li py:for="source in activedataset.sources" >
-	  				<button class="tooltip small" onclick="$.post('/dataset/transform_removesource/',{transid:${activedataset.id},sourceid:${source.id}},reload)">
+	  				<button class="tooltip small" onclick="$.post(odmf_ref('/dataset/transform_removesource/'),{transid:${activedataset.id},sourceid:${source.id}},reload)">
 	  					&#x2718;<span>Remove source from transformation</span>
 	  				</button>
 						<a class="tooltip" href="${source.id}" >${source}<span class="small">${source.size()} records</span></a>
 	  			</li>
 	  			<li>
-	  				<button class="tooltip small" onclick="$.post('/dataset/transform_addsource/',{transid:${activedataset.id},sourceid:$('#trans_sources').val()},reload)">
+	  				<button class="tooltip small" onclick="$.post(odmf_ref('/dataset/transform_addsource/'),{transid:${activedataset.id},sourceid:$('#trans_sources').val()},reload)">
 	  					<img src="${conf.head_base}/media/ui-icons/plus-small.png"/>
 	  					<span>Adds the source for transformation</span>
 	  				</button>
@@ -621,7 +621,7 @@
 			<div id="export" py:if="is_member('logger') and users.current.level>=activedataset.access">
 				<ul>
 					<li py:if="activedataset">
-					<button onclick="window.location='/dataset/records.csv?dataset=${activedataset.id}';">Export as CSV</button>
+					<button onclick="window.location=odmf_ref('/dataset/records.csv?dataset=${activedataset.id}');">Export as CSV</button>
 						Get Values as csv-file. Open with Excel if English language settings are chosen in Windows.
 					</li>
 					<li>
