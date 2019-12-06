@@ -5,10 +5,10 @@
     <!-- Server configuration, see conf.py for HEAD_BASE -->
     <script>function odmf_ref(s) {return '/${conf.head_base}' + s;}</script>
 
-	<link href="${odmf.head_base}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
-	<link href="${odmf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
-   <script src="${odmf.head_base}/media/lib/jquery-3.4.1.min.js" type="text/javascript" />
-    <script src="${odmf.head_base}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript" />
+	<link href="${conf.head_base}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
+	<link href="${conf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+   <script src="${conf.head_base}/media/lib/jquery-3.4.1.min.js" type="text/javascript" />
+    <script src="${conf.head_base}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript" />
     <script>
         //<![CDATA[
     		function addtype() {
@@ -109,7 +109,7 @@
 				<th>done</th>
 			</tr>
 			<tr class="box" >
-				<td><a href="javascript:reload('new')"><img src="${odmf.head_base}/media/ui-icons/plus-small.png" /></a></td>
+				<td><a href="javascript:reload('new')"><img src="${conf.head_base}/media/ui-icons/plus-small.png" /></a></td>
 				<td>			
 					<select id="filterresponsible" class="filter" onchange="reload(${job.id if job else '\'\''});">
 						<option value="all" py:attrs="markoption(username=='all')">all users</option>
@@ -205,7 +205,7 @@
 					</td>
 				</tr>
 				<tr>
-					<td>Comments <a href="${odmf.head_base}/wiki/help" class="tooltip"><img src="${odmf.head_base}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
+					<td>Comments <a href="${conf.head_base}/wiki/help" class="tooltip"><img src="${conf.head_base}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
 					<td>
 						<textarea id="editdescription" class="markdown"
 								  rows="5">${job.description}</textarea>
@@ -235,7 +235,7 @@
 											py:content="t">
 							</option>
 						</select>
-						<a href="javascript:addtype();"><img src="${odmf.head_base}/media/ui-icons/plus-small.png" title="Add a new type"/></a>
+						<a href="javascript:addtype();"><img src="${conf.head_base}/media/ui-icons/plus-small.png" title="Add a new type"/></a>
 					</td>
 				</tr>
 			</table>

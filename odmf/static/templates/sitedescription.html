@@ -1,29 +1,29 @@
 <xml xmlns:py="http://genshi.edgewall.org/" >
 <h2>
-	<a href="${odmf.head_base}/site/${site.id}">
-		<img src="${odmf.head_base}/media/mapicons/${site.icon if site.icon else 'unknown.png'}" />
+	<a href="${conf.head_base}/site/${site.id}">
+		<img src="${conf.head_base}/media/mapicons/${site.icon if site.icon else 'unknown.png'}" />
 		#${site.id} (${site.name})
 	</a>
 </h2>
 <div py:content="markdown(site.comment)" />
 <div py:if="site.height" py:content="'%0.1f m NN' % site.height" />
 <div>
-	<a href="${odmf.head_base}/site/${site.id}">edit...</a>
+	<a href="${conf.head_base}/site/${site.id}">edit...</a>
 </div>
 <div>
-	<a py:for="img in site.images" href="${odmf.head_base}/picture?id=${img.id}"><img src="data:${img.mime};base64,${img.thumbnail64()}" /></a>
+	<a py:for="img in site.images" href="${conf.head_base}/picture?id=${img.id}"><img src="data:${img.mime};base64,${img.thumbnail64()}" /></a>
 </div>
 <div>
 	<h3><a href="javascript:toggle('instruments')">Instruments:</a><small> [${site.instruments.count()} installations]</small></h3>
 	<ul id="instruments" class="toggle">
 		<li py:for="inst in site.instruments" py:if="inst.active">
 			since ${formatdate(inst.installdate)}: 
-			<a href="${odmf.head_base}/instrument/${inst.instrument.id}" class="tooltip">
+			<a href="${conf.head_base}/instrument/${inst.instrument.id}" class="tooltip">
 				${inst.instrument.name}
 				<span py:content="markdown(inst.instrument.comment)"/>
 			</a>
 			<a py:if="inst.instrument.manuallink" href="${inst.instrument.manuallink}" class="small tooltip">
-				<img src="${odmf.head_base}/media/ui-icons/shimmer/document_16.png" alt="documentation"/>
+				<img src="${conf.head_base}/media/ui-icons/shimmer/document_16.png" alt="documentation"/>
 				<span>
 					Show manual for ${inst.instrument.name}
 				</span>
@@ -36,10 +36,10 @@
 	<h3><a href="javascript:toggle('logbook')">Logbook:</a><small> [${site.logs.count()} entries]</small></h3>
 	<ul id="logbook" class="toggle">
 		<li py:if="is_member('logger')">
-			<a href="${odmf.head_base}/log/new?siteid=${site.id}" style="font-style: italic;">New message...</a>
+			<a href="${conf.head_base}/log/new?siteid=${site.id}" style="font-style: italic;">New message...</a>
 		</li>
 		<li py:for="log in site.logs">
-			<a href="${odmf.head_base}/log/${log.id}">${formatdate(log.time)}, ${log.user}: ${log.message}</a>
+			<a href="${conf.head_base}/log/${log.id}">${formatdate(log.time)}, ${log.user}: ${log.message}</a>
 		</li>
 	</ul>
 </div>
@@ -48,11 +48,11 @@
 	<h3><a href="javascript:toggle('datasets')">Datasets:</a><small> [${site.datasets.count()} datasets]</small></h3>
 	<ul id="datasets" class="toggle">
 		<li py:if="is_member('editor')">
-			<a href="${odmf.head_base}/dataset/new?site_id=${site.id}"
+			<a href="${conf.head_base}/dataset/new?site_id=${site.id}"
 					style="font-style: italic;" >Add new dataset...</a>
 		</li>
 		<li py:for="ds in site.datasets">
-			<a href="${odmf.head_base}/dataset/${ds.id}">${ds}</a><span class="small"> ${ds.size()} records</span>
+			<a href="${conf.head_base}/dataset/${ds.id}">${ds}</a><span class="small"> ${ds.size()} records</span>
 		</li>
 	</ul>
 </div>

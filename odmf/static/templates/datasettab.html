@@ -5,13 +5,13 @@
     <!-- Server configuration, see conf.py for HEAD_BASE -->
     <script>function odmf_ref(s) {return '/${conf.head_base}' + s;}</script>
 
-	<link href="${odmf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
-	<link href="${odmf.head_base}/media/jqmath/jqmath-0.4.0.css" rel="stylesheet" type="text/css"/>
+	<link href="${conf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<link href="${conf.head_base}/media/jqmath/jqmath-0.4.0.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>${title}</title>
-	<link href="${odmf.head_base}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
-    <script src="${odmf.head_base}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
-    <script src="${odmf.head_base}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript" ></script>
+	<link href="${conf.head_base}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
+    <script src="${conf.head_base}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
+    <script src="${conf.head_base}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript" ></script>
     <script type="text/javascript"
   		src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 		</script>
@@ -209,7 +209,7 @@
 	${navigation('Data sets')}
   <div class="content">
 	  <div class="error" py:content="error" />
-		<a href="${odmf.head_base}/dataset">Go to list...</a>
+		<a href="${conf.head_base}/dataset">Go to list...</a>
 		<a href="javascript:gotods();" tabindex="1" class="leftspace">&#x25B6;goto dataset...</a>
 		<div py:if="activedataset" py:with="n=activedataset.size()">
 			<h2 py:content="activedataset" />
@@ -228,7 +228,7 @@
 					</tr>
 					<tr py:if="activedataset.valuetype">
 						<td class="bold">Data:</td>
-						<td><a href="${odmf.head_base}/valuetype/${activedataset.valuetype.id}" class="tooltip">
+						<td><a href="${conf.head_base}/valuetype/${activedataset.valuetype.id}" class="tooltip">
                                 ${activedataset.valuetype.name}
                                 <span>${activedataset.valuetype.comment}</span>
                             </a>
@@ -240,7 +240,7 @@
 					<tr py:if="activedataset.site">
 						<td class="bold">Site:</td>
 						<td>
-							<a href="${odmf.head_base}/site/${activedataset.site.id}" py:content="activedataset.site" />
+							<a href="${conf.head_base}/site/${activedataset.site.id}" py:content="activedataset.site" />
 						</td>
 					</tr>
 					<tr py:if="activedataset.measured_by">
@@ -258,16 +258,16 @@
 					<tr py:if="activedataset.source">
 						<td class="bold">Data source:</td>
 						<td>
-							<a href="${odmf.head_base}/instrument/${activedataset.source.id}" py:content="activedataset.source" />
+							<a href="${conf.head_base}/instrument/${activedataset.source.id}" py:content="activedataset.source" />
 							<a py:if="activedataset.source.manuallink" href="${activedataset.source.manuallink}" class="small">
-								<img src="${odmf.head_base}/media/ui-icons/shimmer/document_16.png" alt="documentation"/>
+								<img src="${conf.head_base}/media/ui-icons/shimmer/document_16.png" alt="documentation"/>
 							</a>
 						</td>
 					</tr>
 					<tr py:if="activedataset.project">
 						<td class="bold">Project:</td>
 						<td>
-							<a href="${odmf.head_base}/project/${activedataset.project}" py:content="activeproject.name"></a>
+							<a href="${conf.head_base}/project/${activedataset.project}" py:content="activeproject.name"></a>
 						</td>
 					</tr>
 					<tr py:if="activedataset.is_timeseries() and activedataset.quality and activedataset.quality.id>=3">
@@ -293,7 +293,7 @@
 	  		<li><a href="#similar">similar</a></li>
 	  		<li py:if="activedataset.is_timeseries() and is_member('editor')"><a href="#records">records</a></li>
 	  		<li><a href="#plot" py:if="users.current.level>=activedataset.access">plot</a></li>
-	  		<li py:if="activedataset.is_timeseries() and is_member('editor') and users.current.level>=activedataset.access"><a href="${odmf.head_base}/dataset/calibration?targetid=${activedataset.id}">calibrate</a></li>
+	  		<li py:if="activedataset.is_timeseries() and is_member('editor') and users.current.level>=activedataset.access"><a href="${conf.head_base}/dataset/calibration?targetid=${activedataset.id}">calibrate</a></li>
 	  		<li py:if="is_member('logger') and users.current.level>=activedataset.access"><a href="#export">export</a></li>
 	  		<li py:if="is_member('editor')"><a href="#edit">edit</a></li>
 	  	</ul>
@@ -310,7 +310,7 @@
 					f(x)
 					<span>Create a transformation for this dataset</span>
 				</button>
-				<form action="${odmf.head_base}/dataset/saveitem" method="post">
+				<form action="${conf.head_base}/dataset/saveitem" method="post">
 					<input type="text" name="id" value="${activedataset.id}" style="display: none;" />
 					<table style="width: 100%">
 						<tr>
@@ -428,7 +428,7 @@
 								Project
 							</td>
 							<td>
-								<a py:if="activeproject and not is_member('supervisor')" href="${odmf.head_base}/project/${activeproject.id}">${activeproject.name}</a>
+								<a py:if="activeproject and not is_member('supervisor')" href="${conf.head_base}/project/${activeproject.id}">${activeproject.name}</a>
 								<select py:if="is_member('supervisor')" name="project">
 									<option value="0" >No Project</option>
 									<option value="${p.id}"
@@ -440,7 +440,7 @@
 						</tr>
 						<tr py:if="activedataset.is_timeseries()">
 							<td>
-								<a href="${odmf.head_base}/dataset/calibration?targetid=${activedataset.id}">Calibrate</a>:
+								<a href="${conf.head_base}/dataset/calibration?targetid=${activedataset.id}">Calibrate</a>:
 							</td>
 							<td>
 								v' = <input type="text" value="${formatfloat(activedataset.calibration_slope)}" name="calibration_slope" size="5" style="text-align: right;" />
@@ -503,7 +503,7 @@
 							</td>
 						</tr>
 						<tr>
-							<td>Comments<a href="${odmf.head_base}/wiki.help" class="tooltip"><img src="${odmf.head_base}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
+							<td>Comments<a href="${conf.head_base}/wiki.help" class="tooltip"><img src="${conf.head_base}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
 							<td>
 								<textarea name="comment"
 									  style="width: 100%;"
@@ -527,7 +527,7 @@
 	  			</li>
 	  			<li>
 	  				<button class="tooltip small" onclick="$.post('/dataset/transform_addsource/',{transid:${activedataset.id},sourceid:$('#trans_sources').val()},reload)">
-	  					<img src="${odmf.head_base}/media/ui-icons/plus-small.png"/>
+	  					<img src="${conf.head_base}/media/ui-icons/plus-small.png"/>
 	  					<span>Adds the source for transformation</span>
 	  				</button>
 	  				<select id="trans_sources">
@@ -611,7 +611,7 @@
 				<br/>
 				<input type="checkbox" id="splitUseThreshold"/>
 				show only records with a jump from the last value greater than
-				<a href="${odmf.head_base}/wiki/split"><img src="${odmf.head_base}/media/ui-icons/help.png"/></a>
+				<a href="${conf.head_base}/wiki/split"><img src="${conf.head_base}/media/ui-icons/help.png"/></a>
 				<input id="splitthreshold" type="text" value="0.0" style="text-align: right;" />${activedataset.valuetype.unit if activedataset and activedataset.valuetype else '?'}
 				<br/>
 				<button onclick="loadrecords();">find records</button>
@@ -625,11 +625,11 @@
 						Get Values as csv-file. Open with Excel if English language settings are chosen in Windows.
 					</li>
 					<li>
-						<a href="${odmf.head_base}/datafiles/daten-vorlage.xls" style="float:left;">
+						<a href="${conf.head_base}/datafiles/daten-vorlage.xls" style="float:left;">
 							<img src="media/ui-icons/excel-icon.gif" />
 						</a>
 						Download the excel template for data import
-						<a href="${odmf.head_base}/datafiles/dataset-xxxx.xls">here</a>.
+						<a href="${conf.head_base}/datafiles/dataset-xxxx.xls">here</a>.
 					</li>
 				</ul>
 			</div>

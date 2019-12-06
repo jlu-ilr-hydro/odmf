@@ -9,7 +9,7 @@
           integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ=="
           crossorigin="anonymous" />
 
-	<link href="${odmf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<link href="${conf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
 
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Projects</title>
@@ -69,7 +69,7 @@
 			</tr>
 			<tr py:for="p in projects">
 				<td>${p.id}</td>
-				<td><a href="${odmf.head_base}/project/${p.id}">${p.name}</a></td>
+				<td><a href="${conf.head_base}/project/${p.id}">${p.name}</a></td>
 				<td><a href="user/${p.person_responsible.username}">${p.person_responsible}</a></td>
 			</tr>
 			<tr py:if="is_member('supervisor')" class="active">

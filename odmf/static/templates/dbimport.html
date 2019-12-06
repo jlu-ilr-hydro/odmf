@@ -7,14 +7,14 @@
 
     <!-- Latest compiled and minified CSS -->
     <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous" />-->
-    <link rel="stylesheet" href="${odmf.head_base}/media/css/css/bootstrap.css" type="text/css"/>
+    <link rel="stylesheet" href="${conf.head_base}/media/css/css/bootstrap.css" type="text/css"/>
 
-	<link href="${odmf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<link href="${conf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>ImportToDB</title>
-	<link href="${odmf.head_base}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
-  <script src="${odmf.head_base}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
-  <script src="${odmf.head_base}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript" ></script>
+	<link href="${conf.head_base}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
+  <script src="${conf.head_base}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
+  <script src="${conf.head_base}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript" ></script>
 
 	<script>
 	//<![CDATA[
@@ -91,10 +91,10 @@
 					$.getJSON('/dataset/json',{site:site,instrument:instrument},function(data){
 						var html='';
 						$.each(data,function(index,item){
-								html+='<li><a href="${odmf.head_base}/dataset/'+item.id+'">'+item.label+'</a></li>';
+								html+='<li><a href="${conf.head_base}/dataset/'+item.id+'">'+item.label+'</a></li>';
 						});
 						$('#datasets').html(html);
-						// $('#coverage').html('<img src="${odmf.head_base}/dataset/plot_coverage/' + site + '"/>');
+						// $('#coverage').html('<img src="${conf.head_base}/dataset/plot_coverage/' + site + '"/>');
 						$('#loadstat').prop('disabled',false);
 					});
 				} else {
@@ -147,9 +147,9 @@
         </div>
         <div class="error" id="errors" py:content="error" />
 
-    <a href="${odmf.head_base}/download?dir=${dirlink}">back to download...</a>
+    <a href="${conf.head_base}/download?dir=${dirlink}">back to download...</a>
     <h2>Import specifications</h2>
-   	<form action="${odmf.head_base}/download/to_db/" method="post">
+   	<form action="${conf.head_base}/download/to_db/" method="post">
 	   <table>
 	    	<tr>
 	    		<td>
@@ -255,7 +255,7 @@
 		  	</h2>
 		  	<ul>
 					<li py:for="k,dsid in datasets.items()">${k}:
-						<a href="${odmf.head_base}/dataset/${dsid}">ds${dsid}</a>
+						<a href="${conf.head_base}/dataset/${dsid}">ds${dsid}</a>
 					</li>
 
 		  	</ul>
