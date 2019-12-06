@@ -52,7 +52,7 @@ def start(autoreload=False):
     from ..webpage.root import Root
     root = Root()
     logger.info(f'Starting server on http://127.0.0.1:{conf.server_port}')
-    cherrypy.quickstart(root=root, config=configure_app(autoreload))
+    cherrypy.quickstart(root=root, script_name=conf.head_base, config=configure_app(autoreload))
 
 
 def prepare_workdir():

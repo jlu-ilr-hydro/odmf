@@ -246,7 +246,7 @@
 					<tr py:if="activedataset.measured_by">
 						<td class="bold">Responsible:</td>
 						<td>
-							<a href="${conf.head_base + '/user/' + (activedataset.measured_by.username if activedataset.measured_by else '')">
+							<a href="${conf.head_base}+ '/user/' + (activedataset.measured_by.username if activedataset.measured_by else '')">
 								${activedataset.measured_by}
 							</a>
 						</td>
@@ -318,7 +318,7 @@
 							<td><input type="text" name="name" value="${activedataset.name}" /></td>
 						</tr>
 						<tr>
-							<td><a href="${conf.head_base + '/user/' + (activedataset.measured_by.username if activedataset.measured_by else '')">Responsible:</a></td>
+							<td><a href="${conf.head_base}+ '/user/' + (activedataset.measured_by.username if activedataset.measured_by else '')">Responsible:</a></td>
 							<td>
 								<select name="measured_by">
 									<option value=""><i>Please select...</i></option>
@@ -330,7 +330,7 @@
 							</td>
 						</tr>
 						<tr>
-							<td><a href="${conf.head_base + '/valuetype/' + (activedataset.valuetype.id if activedataset.valuetype else '')">Value:</a></td>
+							<td><a href="${conf.head_base}+ '/valuetype/' + (activedataset.valuetype.id if activedataset.valuetype else '')">Value:</a></td>
 							<td>
 								<select name="valuetype">
 									<option value=""><i>Please select...</i></option>
@@ -359,7 +359,7 @@
 							</td>
 						</tr>
 						<tr>
-							<td><a href="${conf.head_base + '/site/' + (activedataset.site.id if activedataset.site else '')">Site:</a></td>
+							<td><a href="${conf.head_base}+ '/site/' + (activedataset.site.id if activedataset.site else '')">Site:</a></td>
 							<td>
 								<select name="site">
 									<option value=""><i>Please select...</i></option>
