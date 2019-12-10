@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:py="http://www.w3.org/1999/xhtml">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<title>${title}</title>
+
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+          crossorigin="anonymous"/>
+    <link rel="stylesheet"
+          type="text/css" href="media/css/bootstrap-odmf.css"/>
+
+	<link href="${conf.head_base}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
+
+    <script>function odmf_ref(s) {return '${conf.head_base}' + s;}</script>
+
+    <script src="${conf.head_base}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
+    <script src="${conf.head_base}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript" ></script>
+    <script type="text/javascript"
+            src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" />
+
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script>
+        $(function() {
+            // Sidebar toggle behavior
+            $('#sidebarCollapse').on('click', function() {
+                $('#sidebar, #content').toggleClass('active');
+                if ($('#sidebar').hasClass('active')) {
+                    $('#sidebarCollapse').html('&#x25ba;');
+                } else {
+                    $('#sidebarCollapse').html('&#x25c4;');
+                }
+            });
+        });
+    </script>
+
+</head>
+<body>
+<!-- Vertical navbar -->
+<div class="vertical-nav" id="sidebar">
+    <div class="py-4 px-3 mb-4">
+        <div class="align-items-center">
+            <img src="${conf.head_base}/${left_logo}"
+                 alt="${conf.head_base}/${left_logo}"  class="logo mr-3 "/>
+            <div class="">
+                <h4 class="m-0">${title}</h4>
+            </div>
+        </div>
+    </div>
+
+    <p>
+        <a href="javascript:window.location=odmf_ref('/login?frompage=')+window.location.pathname;"
+           py:content="users.current or 'login'" title="login">
+        </a>
+    </p>
+    <ul class="nav flex-column mb-0">
+        <li class="nav-item"
+            py:for="target, help in resources"
+        >
+            <a class="nav-link"
+               href="${conf.head_base}/${target}"
+               title="${help}"
+               py:content="target"/>
+        </li>
+    </ul>
+    <button id="sidebarCollapse" type="button"
+        class="btn btn-light bg-white rounded-pill shadow-sm px-0 mb-4"
+    >&#x25c4;</button>
+
+</div>
+<!-- End vertical navbar -->
+
+
+<!-- Page content holder -->
+<div class="page-content p-5" id="content" py:block="content">
+
+</div>
+</body>
+</html>

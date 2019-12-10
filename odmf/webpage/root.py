@@ -69,8 +69,14 @@ class Root(object):
         The bare navigation page, usually embedded in other pages
         :return:
         """
-        from .lib.renderer import navigation
-        return navigation()
+        from .lib.renderer import get_nav_entries, render
+        return render(
+                'bootstrap_navigation.html',
+                title='bootstrap@odmf',
+                background_image=conf.nav_background,
+                left_logo=conf.nav_left_logo,
+                resources=get_nav_entries().items(),
+            ).render()
 
     @expose_for()
     @web.show_in_nav_for()

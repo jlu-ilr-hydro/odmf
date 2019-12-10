@@ -1,0 +1,87 @@
+:root {
+    --odmf-accent:#0078B6;
+    --odmf-background:#C5C6C8;
+    --odmf-accent2: #D88D25;
+    --odmf-accent3: #01A069;
+
+}
+.vertical-nav {
+    min-width: 17rem;
+    width: 17rem;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s;
+}
+
+.page-content {
+    width: calc(100% - 17rem);
+    margin-left: 17rem;
+    transition: all 0.4s;
+}
+
+/* for toggle behavior */
+
+#sidebar.active {
+    margin-left: -17rem;
+}
+
+#content.active {
+    width: 100%;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    #sidebar {
+        margin-left: -17rem;
+    }
+    #sidebar.active {
+        margin-left: 0;
+    }
+    #content {
+        width: 100%;
+        margin: 0;
+    }
+    #content.active {
+        margin-left: 17rem;
+        width: calc(100% - 17rem);
+    }
+}
+
+body {
+    padding: 0;
+    margin: 0;
+    background: var(--odmf-background);
+}
+/*--- navigation bar ---*/
+.vertical-nav {
+    background:var(--odmf-accent);
+}
+.nav-link,
+.navbar-brand {
+    color: var(--odmf-background);
+    cursor: pointer;
+}
+.nav-link {
+    margin-right: 1em !important;
+    color: var(--odmf-background);
+}
+.nav-link:hover {
+    color: #000;
+}
+.navbar-collapse {
+    justify-content: flex-end;
+}
+
+#sidebarCollapse {
+    position: relative;
+    top: 0px;
+    left: 17rem;
+    z-index: 10;
+}
+
+.logo {
+    max-width: 15rem;
+}
