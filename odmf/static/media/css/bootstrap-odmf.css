@@ -67,6 +67,9 @@ body {
 .nav-link {
     margin-right: 1em !important;
     color: var(--odmf-background);
+    padding-bottom: 0rem !important;
+    padding-top: 0rem !important;
+    text-align: right;
 }
 .nav-link:hover {
     color: #000;
@@ -76,10 +79,11 @@ body {
 }
 
 #sidebarCollapse {
-    position: relative;
+    position: absolute;
     top: 0px;
     left: 17rem;
     z-index: 10;
+    min-height: 2rem;
 }
 
 .logo {

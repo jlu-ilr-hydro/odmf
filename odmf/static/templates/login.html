@@ -1,90 +1,68 @@
 <!DOCTYPE html>
-<html>
 
-<head>
-    <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.head_base}' + s;}</script>
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="sidebar">
+        <div>
 
-	<link href="${conf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>Log in</title>
-</head>
-<style>
-	div.space {
-		margin-top: 10px;
-		margin-bottom: 5px;
-	}
-	div.short {
-		width: 40em;
-	}
-	input {
-		width: 100%;
-	}
-</style>
-<body>
-	${navigation('Log in')}
-	<div class="content">
-		<div class="error" py:content="error" />
-		<h3>Current user: ${users.current}</h3>
-		<form method="post" action="${conf.head_base}/login">
-			<div>
-				<input type="hidden" name="frompage" id="frompage" value="${frompage}"/>
-				<table class="short">
-					<tr>
-						<td style="width: 10em;">User name:</td>
-						<td style="width: 25em;">
-							<datalist id="users">
-								<option py:for="u in users" value="${u}" py:content="u" />					
-							</datalist>			
-							<input type="text" name="username" list="users"/>
-						</td>
-						<td style="width: 5em;">
-							<input type="submit" value="Log in"/>					
-						</td>
-					</tr>
-					<tr>
-						<td>Password:</td>
-						<td><input type="password" name="password" /></td>
-						<td>
-							<input type="submit" value="Log out" name="logout" />					
-						</td>
-					</tr>
-				</table>
-				<div class="space"><h1>ODMF 1.0</h1>
-				</div>
-				<div class="space">
-					<h1>About</h1>
-					<img src="${conf.head_base}/media/lfe-logo.png" alt="logo"/>
-					<a href="http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
-						<img src="${conf.head_base}/media/images/ilr-logo_4_klein_RGB.png" alt="ILR"/>
-					</a>
-					<a href="http://www.uni-giessen.de">
-						<img src="${conf.head_base}/media/images/jlu-logo-150.png" alt="University Giessen"/>
-					</a>
+        </div>
+    </py:block>
+    <py:block name="content">
+        <div class="container mt-3">
+            <div class="row danger" py:content="error" />
+            <div class="row">
+                <div class="col">
+                    <h1 class="text-light">${users.current}</h1>
+                    <form method="post" action="${conf.head_base}/login">
+                        <input type="hidden" name="frompage" id="frompage" value="${frompage}"/>
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <datalist id="users">
+                                <option py:for="u in users" value="${u}" py:content="u" />
+                            </datalist>
+                            <input type="text" class="form-control" id="username" name="username" list="users"/>
+                            <label for="password">Password:</label>
+                            <input type="password" name="password" id="password" class="form-control"/>
+                        </div>
+                        <div class="form-group">
+                            <input type="submit" value="Log in" class="btn btn-primary"/>
+                            <input type="submit" value="Log out" name="logout" class="btn btn-secondary"/>
+                        </div>
+                    </form>
+                </div>
+                <div class="col bg-info">
+                    <h1 class="text-light">About</h1>
+                    <a href="https://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
+                        <img src="${conf.head_base}/media/images/ilr-logo_4_klein_RGB.png" alt="ILR"/>
+                    </a>
+                    <a href="https://www.uni-giessen.de">
+                        <img src="${conf.head_base}/media/images/jlu-logo-150.png" alt="University Giessen"/>
+                    </a>
 
-					<div class="space">
-						This page is used as a database frontend for the measured data at the agro-environmental
+                    <div class="space">
+                        This page is used as a database frontend for the measured data at the agro-environmental
                         research facilities of the Justus-Liebig University Giessen. <br/>
 
-					</div>
-					<h2>
-						Data usage
-					</h2>
-					<div class="space">
-						The database contains raw and unpublished data, 
-						any usage beyond pure curiosity, especially the publication of data and derived products is not allowed without prior permission. 
-					</div>
-					<h2>
-						References
-					</h2>
-					<div class="space">
-						Most graphical elements and the user interface are own work. Some icons, especially for downloads etc. are creative commons. 
-						The applying copyright notice can be found <a href="${conf.head_base}/media/ui-icons/shimmer/shimmer-icons-readme.html">here</a>.
-					</div>
-				</div>
-			</div>
-		</form>
-	</div>
+                    </div>
+                    <h2>
+                        Data usage
+                    </h2>
+                    <div class="space">
+                        The database contains raw and unpublished data,
+                        any usage beyond pure curiosity, especially the publication of data and derived products is not allowed without prior permission.
+                    </div>
+                    <h2>
+                        References
+                    </h2>
+                    <div class="space">
+                        Most graphical elements and the user interface are own work. Some icons,
+                        especially for downloads etc. are creative commons.
+                        The applying copyright notice can be found
+                        <a href="${conf.head_base}/media/ui-icons/shimmer/shimmer-icons-readme.html">here</a>.
+                    </div>
+                </div>
 
-</body>
-</html>
+            </div>
+        </div>
+    </py:block>
+
+</py:extends>

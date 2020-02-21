@@ -137,7 +137,7 @@ def context(**kwargs):
     }
     context = context_from_module(render_tools)
     context.update(context_from_module(conversion))
-
+    context['nav_items'] = get_nav_entries().items()
     context.update(kwargs)
     context.update({'conf': conf, 'navigation': navigation})
     return context
@@ -162,6 +162,7 @@ class Renderer(object):
         """
         template = self.loader.import_(template_file)
         # get all objects defined in render_tools
+        kwargs.setdefault('title', template_file.split('.')[0])
 
         return template(context(**kwargs))
 

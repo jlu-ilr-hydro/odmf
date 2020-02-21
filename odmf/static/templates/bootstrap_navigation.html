@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:py="http://www.w3.org/1999/xhtml">
+
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8"/>
@@ -44,24 +45,24 @@
 <body>
 <!-- Vertical navbar -->
 <div class="vertical-nav" id="sidebar">
-    <div class="py-4 px-3 mb-4">
+    <div class="flex-column">
         <div class="align-items-center">
-            <img src="${conf.head_base}/${left_logo}"
-                 alt="${conf.head_base}/${left_logo}"  class="logo mr-3 "/>
-            <div class="">
-                <h4 class="m-0">${title}</h4>
-            </div>
+            <img src="${conf.head_base}/${conf.nav_left_logo}"
+                 alt="${conf.head_base}/${conf.nav_left_logo}"  class="logo"/>
         </div>
     </div>
-
-    <p>
-        <a href="javascript:window.location=odmf_ref('/login?frompage=')+window.location.pathname;"
+    <div class="flex-column">
+        <h1 class="m-0 bg-dark text-light p-2">${title}</h1>
+    </div>
+    <p class="ml5"><h4>
+        <a class="nav-link"
+                href="javascript:window.location=odmf_ref('/login?frompage=')+window.location.pathname;"
            py:content="users.current or 'login'" title="login">
-        </a>
+        </a></h4>
     </p>
     <ul class="nav flex-column mb-0">
-        <li class="nav-item"
-            py:for="target, help in resources"
+        <li class="nav-item pt-0"
+            py:for="target, help in nav_items"
         >
             <a class="nav-link"
                href="${conf.head_base}/${target}"
@@ -69,6 +70,9 @@
                py:content="target"/>
         </li>
     </ul>
+    <div class="nav flex-column mb-0">
+        <div py:block="sidebar"></div>
+    </div>
     <button id="sidebarCollapse" type="button"
         class="btn btn-light bg-white rounded-pill shadow-sm px-0 mb-4"
     >&#x25c4;</button>
@@ -78,8 +82,10 @@
 
 
 <!-- Page content holder -->
-<div class="page-content p-5" id="content" py:block="content">
+<div class="page-content" id="content">
+    <p py:block="content">
 
+    </p>
 </div>
 </body>
 </html>
