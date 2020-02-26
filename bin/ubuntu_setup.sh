@@ -59,3 +59,17 @@ if [ ! -f /tmp/foo.txt ]; then
   alias venv='source venv/bin/activate'
   " > ~/.bash_aliases
 fi
+
+echo "Create samba directory"
+sudo apt install -y samba
+echo '# Change the homes share in /etc/samba/smb.conf
+[homes]
+   comment = Home Directories
+   browseable = no
+   read only = no
+   create mask = 0775
+   directory mask = 2775
+;   valid users = %S
+'
+sudo smbpasswd -a $USER
+
