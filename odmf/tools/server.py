@@ -61,7 +61,7 @@ def start(autoreload=False):
         root = ProxyRoot(conf.root_url.replace('/', ''))
     else:
         root = Root()
-    logger.info(f'Starting server on http://127.0.0.1:{conf.server_port}/{conf.root_url}')
+    logger.info(f'Starting server on http://127.0.0.1:{conf.server_port}{conf.root_url}')
     cherrypy.quickstart(root=root, config=configure_app(autoreload))
 
 
