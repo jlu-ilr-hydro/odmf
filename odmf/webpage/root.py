@@ -80,20 +80,20 @@ class Root(object):
 
     @expose_for()
     @web.show_in_nav_for()
-    def login(self, frompage='/', username=None, password=None, error='', logout=None):
+    def login(self, frompage=None, username=None, password=None, error='', logout=None):
         """
         Enter here your username and password to get access to restricted data or to change data
         """
         if logout:
             users.logout()
-            raise web.HTTPRedirect(frompage or '/')
+            raise web.HTTPRedirect(frompage or conf.root_url)
         elif username and password:
             error = users.login(username, password)
             if error:
                 cherrypy.response.status = 401
                 return web.render('login.html', error=error, frompage=frompage).render()
             else:
-                raise web.HTTPRedirect(frompage or '/')
+                raise web.HTTPRedirect(frompage or conf.root_url)
         else:
             return web.render('login.html', error=error, frompage=frompage).render()
 

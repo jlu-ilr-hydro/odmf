@@ -58,7 +58,7 @@ def start(autoreload=False):
     """
     from ..webpage.root import Root
     if conf.root_url:
-        root = ProxyRoot(conf.root_url.replace('/',''))
+        root = ProxyRoot(conf.root_url.replace('/', ''))
     else:
         root = Root()
     logger.info(f'Starting server on http://127.0.0.1:{conf.server_port}/{conf.root_url}')

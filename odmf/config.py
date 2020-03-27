@@ -82,7 +82,7 @@ class Configuration:
     woftester_sender_mail = 'woftester@umwelt.uni-giessen.de'
     cuahsi_wsdl_endpoint = 'http://fb09-pasig.umwelt.uni-giessen.de/wof/index.php/cuahsi_1_1.asmx?WSDL'
     smtp_serverurl = 'mailout.uni-giessen.de'
-    head_base = ''
+    root_url = ''
 
     def __bool__(self):
         return ... not in vars(self).values()
