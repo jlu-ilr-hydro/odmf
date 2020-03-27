@@ -39,6 +39,13 @@ def configure_app(autoreload=False):
     return static_files
 
 
+class ProxyRoot:
+    exposed=True
+    def __init__(self, head_base):
+        from ..webpage.root import Root
+        setattr(self, head_base, Root())
+
+
 def start(autoreload=False):
     """
     Creates the root object, compiles the server configuration and starts the server
@@ -50,9 +57,12 @@ def start(autoreload=False):
 
     """
     from ..webpage.root import Root
-    root = Root()
-    logger.info(f'Starting server on http://127.0.0.1:{conf.server_port}')
-    cherrypy.quickstart(root=root, script_name=conf.head_base, config=configure_app(autoreload))
+    if conf.head_base:
+        root = ProxyRoot(conf.head_base.replace('/',''))
+    else:
+        root = Root()
+    logger.info(f'Starting server on http://127.0.0.1:{conf.server_port}/{conf.head_base}')
+    cherrypy.quickstart(root=root, config=configure_app(autoreload))
 
 
 def prepare_workdir():

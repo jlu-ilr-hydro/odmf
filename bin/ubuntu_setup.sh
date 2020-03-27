@@ -25,15 +25,23 @@ echo '-------------------------------------------'
 echo 'Install build tools and necessary libraries'
 echo '-------------------------------------------'
 sudo apt -y install build-essential
-sudo apt -y install cmake
-sudo apt -y install git curl docker docker-engine docker.io
+sudo apt -y install cmake pandoc htop
+sudo apt -y install git curl docker docker.io
 sudo apt -y install libgdal-dev libnetcdf-dev libhdf-dev
 sudo apt -y install openmpi-bin openmpi-common \
                     openssh-client openssh-server \
                     libopenmpi-dbg libopenmpi-devsudo
-sudo apt -y install apache2
 
-sudo apt -y install xrdp
+# install apache2
+sudo apt -y install apache2
+sudo apt -y install libapache2-mod-wsgi-py3
+
+# install Remote-Desktop Connection
+# sudo apt -y install xrdp
+
+# install software to mount Windows shared folders
+sudo apt -y install cifs-utils
+
 
 echo '-------------------------------------------'
 echo 'Complete the system python'
@@ -52,7 +60,8 @@ then
   sudo python$PYTHON_VER -m pip install wheel
 fi
 
-if [ ! -f /tmp/foo.txt ]; then
+PYTHON_VER=3.8
+if [ ! -f ~/.bash_aliases ]; then
   echo "
   export PYTHON_VERSION=$PYTHON_VER
   alias makevenv=python\$PYTHON_VERSION -m venv venv
@@ -73,3 +82,9 @@ echo '# Change the homes share in /etc/samba/smb.conf
 '
 sudo smbpasswd -a $USER
 
+echo 'Configure Apache'
+
+sudo addgroup webmasters
+sudo adduser $USER webmasters
+sudo chgrp -R /var/www
+sudo chmod -R g+rwx /var/www
