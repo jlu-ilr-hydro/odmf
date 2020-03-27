@@ -219,21 +219,6 @@
 	    return map
 			
 		}
-		function toggleInfo() {
-			if ($('#openinfo>button').html() == '&lt;') {
-				//alert('isOpen');
-				$('#openinfo').css('left','0px');
-				$('#infopane').fadeOut();
-				$('#openinfo>button').html('&gt;');
-				$('#map_canvas').removeClass('mapCanvasShort').addClass('mapCanvasWide');
-			} else {
-				//alert('isClosed, #openInfo>button.html()==' + $('#openinfo>button').html());
-				$('#openinfo').css('left','20em');
-				$('#infopane').fadeIn();
-				$('#openinfo>button').html('&lt;');			
-				$('#map_canvas').removeClass('mapCanvasWide').addClass('mapCanvasShort');
-			}
-		}
 		
 
     function initMap(site) {
@@ -268,6 +253,5 @@
     	});
 
 		$(window).on("beforeunload", savemappref);
-	    $('#openinfo>button').click(toggleInfo);
-	    // Get map preferences 
+	    // Get map preferences
     }
