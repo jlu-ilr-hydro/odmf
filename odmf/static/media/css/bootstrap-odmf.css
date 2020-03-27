@@ -5,66 +5,23 @@
     --odmf-accent3: #01A069;
 
 }
-.vertical-nav {
-    min-width: 17rem;
-    width: 17rem;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
-    transition: all 0.4s;
-}
 
-.page-content {
-    width: calc(100% - 17rem);
-    margin-left: 17rem;
-    transition: all 0.4s;
-}
-
-/* for toggle behavior */
-
-#sidebar.active {
-    margin-left: -17rem;
-}
-
-#content.active {
-    width: 100%;
-    margin: 0;
-}
-
-@media (max-width: 768px) {
-    #sidebar {
-        margin-left: -17rem;
-    }
-    #sidebar.active {
-        margin-left: 0;
-    }
-    #content {
-        width: 100%;
-        margin: 0;
-    }
-    #content.active {
-        margin-left: 17rem;
-        width: calc(100% - 17rem);
-    }
-}
 
 body {
     padding: 0;
     margin: 0;
+    min-height: 100vh;
     background: var(--odmf-background);
 }
 /*--- navigation bar ---*/
-.vertical-nav {
-    background:var(--odmf-accent);
-}
-.nav-link,
 .navbar-brand {
     color: var(--odmf-background);
     cursor: pointer;
+    font-size: 2rem;
 }
 .nav-link {
+    color: var(--odmf-background);
+    cursor: pointer;
     margin-right: 1em !important;
     color: var(--odmf-background);
     padding-bottom: 0rem !important;
@@ -74,18 +31,40 @@ body {
 .nav-link:hover {
     color: #000;
 }
-.navbar-collapse {
-    justify-content: flex-end;
-}
 
-#sidebarCollapse {
-    position: absolute;
-    top: 0px;
-    left: 17rem;
-    z-index: 10;
-    min-height: 2rem;
-}
 
 .logo {
     max-width: 15rem;
 }
+
+.sidebar {
+
+  position: fixed;
+  top: 82px;
+  bottom: 0;
+  left: 0;
+  z-index: 100; /* Behind the navbar */
+  padding: 0;
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+.sidebar-sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 82px; /* Height of navbar */
+  height: calc(100vh - 82px);
+  padding-top: .5rem;
+  overflow-x: hidden;
+  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+}
+
+.sidebar .nav-link {
+  font-weight: 500;
+  color: #333;
+}
+
+
+.sidebar .nav-link.active {
+  color: #007bff;
+}
+

@@ -5,18 +5,18 @@
     <!-- Required meta tags -->
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-	<title>${title}</title>
+    <title>${title}</title>
 
     <link rel="stylesheet"
           href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
           crossorigin="anonymous"/>
     <link rel="stylesheet"
-          type="text/css" href="media/css/bootstrap-odmf.css"/>
+          type="text/css" href="${conf.root_url}/media/css/bootstrap-odmf.css"/>
 
-	<link href="${conf.root_url}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
+    <link href="${conf.root_url}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
 
     <style py:block="style"/>
 
@@ -47,49 +47,70 @@
 
 </head>
 <body>
-<!-- Vertical navbar -->
-<div class="vertical-nav" id="sidebar">
-    <div class="flex-column">
-        <div class="align-items-center">
-            <img src="${conf.root_url}/${conf.nav_left_logo}"
-                 alt="${conf.root_url}/${conf.nav_left_logo}"  class="logo"/>
-        </div>
-    </div>
-    <div class="flex-column">
-        <h1 class="m-0 bg-dark text-light p-2">${title}</h1>
-    </div>
-    <p class="ml5"><h4>
-        <a class="nav-link"
-                href="javascript:window.location=odmf_ref('/login?frompage=')+window.location.pathname;"
-           py:content="users.current or 'login'" title="login">
-        </a></h4>
-    </p>
-    <ul class="nav flex-column mb-0">
-        <li class="nav-item pt-0"
-            py:for="target, help in nav_items"
-        >
-            <a class="nav-link"
-               href="${conf.root_url}/${target}"
-               title="${help}"
-               py:content="target"/>
-        </li>
-    </ul>
-    <div class="nav flex-column mb-0">
-        <div py:block="sidebar"></div>
-    </div>
-    <button id="sidebarCollapse" type="button"
-        class="btn btn-light bg-white rounded-pill shadow-sm px-0 mb-4"
-    >&#x25c4;</button>
+<!-- Horizontal navbar
+Template: https://getbootstrap.com/docs/4.4/components/navbar/
+-->
+<nav class="navbar navbar-dark navbar-expand-md sticky-top bg-dark ">
+    <ul class="navbar-nav">
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle h1"
+               href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown"
+               aria-haspopup="true" aria-expanded="false">
+                ${title}
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                <a class="dropdown-item bg-dark text-light"
+                   href="javascript:window.location=odmf_ref('/login?frompage=')+window.location.pathname;"
+                   py:content="users.current or 'login'" title="login">
+                </a>
+                <a py:for="target, help in nav_items"
+                   class="dropdown-item"
+                   href="${conf.root_url}/${target}"
+                   title="${help}"
+                   py:content="target"/>
 
+            </div>
+        </li>
+
+    </ul>
+
+</nav>
+
+<!-- Vertical navbar -->
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-md-2 d-none d-md-block sidebar bg-lg">
+            <div class="sidebar-sticky ">
+                <!--
+                <div class="nav-item pt-0"
+                    py:for="target, help in nav_items"
+                >
+                    <a class="nav-link"
+                       href="${conf.root_url}/${target}"
+                       title="${help}"
+                       py:content="target"/>
+                </div>
+                -->
+                <div class="nav flex-column">
+                    <div class="nav-item ml-auto mr-auto">
+                        <img src="${conf.root_url}/${conf.nav_left_logo}"
+                             alt="${conf.root_url}/${conf.nav_left_logo}"  class="logo"/>
+
+                    </div>
+                    <div py:block="sidebar"></div>
+                </div>
+
+            </div>
+        </nav>
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 p-0">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                <p py:block="content"></p>
+            </div>
+        </main>
+    </div>
 </div>
 <!-- End vertical navbar -->
 
 
-<!-- Page content holder -->
-<div class="page-content" id="content">
-    <p py:block="content">
-
-    </p>
-</div>
 </body>
 </html>
