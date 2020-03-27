@@ -2,12 +2,12 @@
 <html>
 <head>
     <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.head_base}' + s;}</script>
+    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
 
-    <link href="${conf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+    <link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Climate</title>
-    <link href="${conf.head_base}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
+    <link href="${conf.root_url}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
     <style>
         #photos {
             background-position: center center;
@@ -23,7 +23,7 @@
             text-shadow: #000 3px 3px 3px;
         }
     </style>
-    <script src="${conf.head_base}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
+    <script src="${conf.root_url}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
     <script >
     dayloop = [1,7,30];
     siteloop = [47];
@@ -67,14 +67,14 @@
     <div style="vertical-align: middle; text-align: center;">
         <h1 style="position: absolute; top: 0px; left: 0px; right: 256px; z-index: 1000; right: 0px;padding-left:190px;" id="title" >Schwingbach
         </h1>		
-        <img src="${conf.head_base}/media/schwingbachlogo.png" style="position: absolute; top: 0px; left: 0px; z-index: 2000;"/>
+        <img src="${conf.root_url}/media/schwingbachlogo.png" style="position: absolute; top: 0px; left: 0px; z-index: 2000;"/>
         <span style="position: absolute; top 0px; right: 0px; z-index: 2000">
             <span id="timespan"></span>
             <a href="http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
-                <img src="${conf.head_base}/media/images/ilr-logo_4_klein_RGB.png" alt="ILR"/>
+                <img src="${conf.root_url}/media/images/ilr-logo_4_klein_RGB.png" alt="ILR"/>
             </a>
             <a href="http://www.uni-giessen.de">
-                <img src="${conf.head_base}/media/images/jlu-logo-150.png" alt="University Giessen"/>
+                <img src="${conf.root_url}/media/images/jlu-logo-150.png" alt="University Giessen"/>
             </a>
             
         </span>

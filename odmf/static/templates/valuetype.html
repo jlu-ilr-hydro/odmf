@@ -3,13 +3,13 @@
 
 <head>
     <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.head_base}' + s;}</script>
+    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
 
-	<link href="${conf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>ValueTypes</title>
-  <link href="${conf.head_base}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
-	<script src="${conf.head_base}/media/lib/jquery-3.4.1.min.js" type="text/javascript"></script>
+  <link href="${conf.root_url}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
+	<script src="${conf.root_url}/media/lib/jquery-3.4.1.min.js" type="text/javascript"></script>
 
 	<script>
 			//<![CDATA[
@@ -26,10 +26,10 @@
 	
 			<ul id="Inhalt" >
 			<li py:if="is_member('supervisor')">
-				<a href="${conf.head_base}/valuetype/new"><b>New value type...</b></a>
+				<a href="${conf.root_url}/valuetype/new"><b>New value type...</b></a>
 			</li>
 			<li py:for="v in valuetypes">
-				<a href="${conf.head_base}+ '/valuetype/' + v.id" py:content="v"/>
+				<a href="${conf.root_url}+ '/valuetype/' + v.id" py:content="v"/>
 			</li>
 		</ul>
     <div class="rightpane">
@@ -65,7 +65,7 @@
 			</div>
 			<h3><a href="javascript:toggle('edit')">&#x25BE; Edit properties</a></h3>
 			<div py:if="actualvaluetype" id="edit" class="toggle">
-				<form action="${conf.head_base}/valuetype/saveitem" method="post" py:if="is_member('supervisor')">
+				<form action="${conf.root_url}/valuetype/saveitem" method="post" py:if="is_member('supervisor')">
 					<table style="width: 100%">
 						<tr>
 							<td style="width: 7em">ID:</td>
@@ -88,7 +88,7 @@
 							<td><input type="number" name="maxvalue" value="${actualvaluetype.maxvalue}"/></td>
 						</tr>
 						<tr>
-							<td>Comment:<a href="${conf.head_base}/wiki/help" class="tooltip"><img src="${conf.head_base}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
+							<td>Comment:<a href="${conf.root_url}/wiki/help" class="tooltip"><img src="${conf.root_url}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
 							<td>
 								<textarea name="comment" 
 										  rows="2" style="width: 100%;"
@@ -104,11 +104,11 @@
 				<h2>Datasets</h2>
 				<ul>
 					<li py:for="ds in actualvaluetype.datasets">
-						<a href="${conf.head_base}/dataset/${ds.id}"
+						<a href="${conf.root_url}/dataset/${ds.id}"
 						py:content="'%s #%i(%s-%s)' % (str(ds),ds.id,formatdate(ds.start),formatdate(ds.end))" />
 					</li>
 					<li>
-						<a href="${conf.head_base}/dataset/new?vt_id=${actualvaluetype.id}"
+						<a href="${conf.root_url}/dataset/new?vt_id=${actualvaluetype.id}"
 						py:content="'Neuen Datensatz hinzufügen...'" style="font-style: italic;" />
 					</li>
 				</ul>

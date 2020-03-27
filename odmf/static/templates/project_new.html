@@ -3,11 +3,11 @@
 
 <head>
     <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.head_base}' + s;}</script>
+    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
 
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous" />
 
-	<link href="${conf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Projects</title>
 </head>
@@ -38,8 +38,8 @@
 	${navigation('New project')}
 	<div class="content">
         <div class="error" py:content="error" />
-		<a href="${conf.head_base}/project">Back to all project</a>
-		<form method="post" action="${conf.head_base}/project/save">
+		<a href="${conf.root_url}/project">Back to all project</a>
+		<form method="post" action="${conf.root_url}/project/save">
             <div class="form-group">
 				<label for="name" class="col-sm-2 control-label">Name</label>
 				<div class="col-sm-10">
@@ -70,7 +70,7 @@
             <div id="commentnote" class="row from-group">
                 <div class="col-sm-8 col-sm-offset-2">
                     <strong>Note:</strong> The comment is a description, which is part of the reponse, when
-                    requesting webservice methods of the <a href="${conf.head_base}/wof">WaterOneFlow interface</a>. E.g. it can be
+                    requesting webservice methods of the <a href="${conf.root_url}/wof">WaterOneFlow interface</a>. E.g. it can be
                     seen when downloading data from this project over the CUAHSI-Applications.
                 </div>
             </div>

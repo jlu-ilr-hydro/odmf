@@ -5,23 +5,23 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 -->
 <head>
     <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.head_base}' + s;}</script>
+    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
 
-	<link href="${conf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
-	<link href="${conf.head_base}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
+	<link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<link href="${conf.root_url}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
 
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
 	<title>schwingbach plot</title>
 	
-	<script type="text/javascript" src="${conf.head_base}/media/lib/jquery-3.4.1.min.js"></script>
-  <script src="${conf.head_base}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
-  <script src="${conf.head_base}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript" ></script>
-  <!-- script src="${conf.head_base}/media/jquery.json-2.3.min.js" type="text/javascript"></script -->
-  <!-- script src="${conf.head_base}/media/flot/jquery.flot.js" type="text/javascript" ></script -->
-    <!-- script type="text/javascript" src="${conf.head_base}/media/flot/jquery.flot.time.js"></script -->
+	<script type="text/javascript" src="${conf.root_url}/media/lib/jquery-3.4.1.min.js"></script>
+  <script src="${conf.root_url}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
+  <script src="${conf.root_url}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript" ></script>
+  <!-- script src="${conf.root_url}/media/jquery.json-2.3.min.js" type="text/javascript"></script -->
+  <!-- script src="${conf.root_url}/media/flot/jquery.flot.js" type="text/javascript" ></script -->
+    <!-- script type="text/javascript" src="${conf.root_url}/media/flot/jquery.flot.time.js"></script -->
 
-	<script type="text/javascript" src="${conf.head_base}/media/js/plot.js">
+	<script type="text/javascript" src="${conf.root_url}/media/js/plot.js">
 	</script>
 	<script type="text/javascript">
 		//<![CDATA[
@@ -36,7 +36,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
   		$('.description').click(function() {
   			if ($('#description').html().substring(0,9)!='<textarea') {
   				// Create textarea for editing of index.html
-	  			$('#description').html('<textarea rows="5"/><br/><button>Save</button><button>Cancel</button><a href="${conf.head_base}/wiki/help"><img src="${conf.head_base}/media/ui-icons/help.png" /></a>');
+	  			$('#description').html('<textarea rows="5"/><br/><button>Save</button><button>Cancel</button><a href="${conf.root_url}/wiki/help"><img src="${conf.root_url}/media/ui-icons/help.png" /></a>');
 	  			// Load current file in textarea
 	  			$('#description textarea').val("${plot.description.replace('\n',r'\n')}");				
 	  			// Save file on click
@@ -216,7 +216,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 						<option value="Y" py:attrs="markoption(plot.aggregate=='Y')">Yearly</option>
 					</select>
 					<div style="font-size: x-small;">
-						<a href="${conf.head_base}/wiki/plot/aggregate">more on aggregate...</a>
+						<a href="${conf.root_url}/wiki/plot/aggregate">more on aggregate...</a>
 					</div>
 				</div>
 				<div class="propsection">
@@ -294,7 +294,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 									&#x2718; 
 									<span>remove line</span>
 								</a>
-								<a href="${conf.head_base}/plot/export.csv?${'subplot=%i&amp;line=%i' % (sp.position,i)}" class="tooltip">
+								<a href="${conf.root_url}/plot/export.csv?${'subplot=%i&amp;line=%i' % (sp.position,i)}" class="tooltip">
 									csv&#x25B8;
 									<span>export to csv file...</span>
 								</a>
@@ -321,7 +321,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 						</li>
 						<li class="small line">
 							<button onclick="addline(${sp.position})" class="tooltip" id="addline_${sp.position}">
-								<img src="${conf.head_base}/media/ui-icons/plus-small.png"/>
+								<img src="${conf.root_url}/media/ui-icons/plus-small.png"/>
 								<span>Add the line to subplot ${sp.position}</span>
 							</button>
 								<span class="nowrap">
@@ -397,7 +397,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 				</li>
 				<li class="sp">
 					<button id="addsubplot" onclick="javascript:addsubplot()" class="tooltip">
-						<img src="${conf.head_base}/media/ui-icons/plus-small.png"/>
+						<img src="${conf.root_url}/media/ui-icons/plus-small.png"/>
 						<span>Add a new subplot to the figure</span>
 					</button>
 						add subplot
@@ -405,7 +405,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			</ul>
 		</div>
 		<a class="box small leftspace nowrap tooltip" 
-			 href="${conf.head_base}/plot/image.pdf?create=${plot.createtime}">
+			 href="${conf.root_url}/plot/image.pdf?create=${plot.createtime}">
 			 plot as pdf...
              <span>
                 Opens the graph as a pdf file.

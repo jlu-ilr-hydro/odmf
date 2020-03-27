@@ -16,12 +16,12 @@
     <link rel="stylesheet"
           type="text/css" href="media/css/bootstrap-odmf.css"/>
 
-	<link href="${conf.head_base}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
+	<link href="${conf.root_url}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
 
-    <script>function odmf_ref(s) {return '${conf.head_base}' + s;}</script>
+    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
 
-    <script src="${conf.head_base}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
-    <script src="${conf.head_base}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript" ></script>
+    <script src="${conf.root_url}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
+    <script src="${conf.root_url}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript" ></script>
     <script type="text/javascript"
             src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" />
 
@@ -47,8 +47,8 @@
 <div class="vertical-nav" id="sidebar">
     <div class="flex-column">
         <div class="align-items-center">
-            <img src="${conf.head_base}/${conf.nav_left_logo}"
-                 alt="${conf.head_base}/${conf.nav_left_logo}"  class="logo"/>
+            <img src="${conf.root_url}/${conf.nav_left_logo}"
+                 alt="${conf.root_url}/${conf.nav_left_logo}"  class="logo"/>
         </div>
     </div>
     <div class="flex-column">
@@ -65,7 +65,7 @@
             py:for="target, help in nav_items"
         >
             <a class="nav-link"
-               href="${conf.head_base}/${target}"
+               href="${conf.root_url}/${target}"
                title="${help}"
                py:content="target"/>
         </li>

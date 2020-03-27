@@ -3,13 +3,13 @@
 
 <head>
     <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.head_base}' + s;}</script>
+    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
 
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"
           integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ=="
           crossorigin="anonymous" />
 
-	<link href="${conf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
 
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Projects</title>
@@ -69,7 +69,7 @@
 			</tr>
 			<tr py:for="p in projects">
 				<td>${p.id}</td>
-				<td><a href="${conf.head_base}/project/${p.id}">${p.name}</a></td>
+				<td><a href="${conf.root_url}/project/${p.id}">${p.name}</a></td>
 				<td><a href="user/${p.person_responsible.username}">${p.person_responsible}</a></td>
 			</tr>
 			<tr py:if="is_member('supervisor')" class="active">

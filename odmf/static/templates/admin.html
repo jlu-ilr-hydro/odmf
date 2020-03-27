@@ -3,15 +3,15 @@
 
 <head>
     <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.head_base}' + s;}</script>
+    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous" />
 
-    <link href="${conf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
-    <link href="${conf.head_base}/media/styles/bootstrap-schwingbach.css" rel="stylesheet" type="text/css" />
+    <link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+    <link href="${conf.root_url}/media/styles/bootstrap-schwingbach.css" rel="stylesheet" type="text/css" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-    <script src="${conf.head_base}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
+    <script src="${conf.root_url}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
 
 	<title>Monitoring</title>
 
@@ -44,7 +44,7 @@
                   Preferred height 45px and width 189px or similar ratio
               </div>
             <div class="row justify-content-center">
-                <form method="post" enctype="multipart/form-data" action="${conf.head_base}/admin/upload">
+                <form method="post" enctype="multipart/form-data" action="${conf.root_url}/admin/upload">
                   <div class="form-group" id="logofile-form">
                     <label for="logofile">Left banner logo file input</label>
                     <input type="file" name="imgfile" class="form-control-file" id="logofile"/>
@@ -65,7 +65,7 @@
 
             <!-- Left banner Background -->
             <div class="row">
-                <form method="post" enctype="multipart/form-data" action="${conf.head_base}/admin/upload">
+                <form method="post" enctype="multipart/form-data" action="${conf.root_url}/admin/upload">
                   <div class="form-group">
                     <label for="leftbannerfile">Left banner background image file input</label>
                     <input type="file" name="imgfile" class="form-control-file" id="leftbannerfile" />

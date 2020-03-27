@@ -3,13 +3,13 @@
 
 <head>
     <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.head_base}' + s;}</script>
+    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
 
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link href="${conf.head_base}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
-  <script src="${conf.head_base}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
-  <script src="${conf.head_base}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript" ></script>
-    <link href="${conf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+    <link href="${conf.root_url}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
+  <script src="${conf.root_url}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
+  <script src="${conf.root_url}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript" ></script>
+    <link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
 
   <script>
 	  // <![CDATA[
@@ -43,8 +43,8 @@
             templ='<tr>' +
                   '   <td>#date#</td>' +
                   '   <td><a href="#href#">#comment#</a></td>' +
-                  '   <td><a href="${conf.head_base}/site/#siteid#">#siteid#</a></td>' +
-                  '   <td><a href="${conf.head_base}/user/#userid#">#user#</a></td>' +
+                  '   <td><a href="${conf.root_url}/site/#siteid#">#siteid#</a></td>' +
+                  '   <td><a href="${conf.root_url}/user/#userid#">#user#</a></td>' +
                   '</tr>';
 
 			$.each(data,function(index,item) {
@@ -152,15 +152,15 @@
 		<div py:if="actuallog">
 			<h2>
 				<span py:content="formatdate(actuallog.time)" />
-				(<a href="${conf.head_base}/user/${actuallog.user.username}" py:content="actuallog.user" />)
+				(<a href="${conf.root_url}/user/${actuallog.user.username}" py:content="actuallog.user" />)
 			</h2>
-			<img src="${conf.head_base}/media/ui-icons/shimmer/brush_32.png" style="float: left; margin-top: 10px;"/>
+			<img src="${conf.root_url}/media/ui-icons/shimmer/brush_32.png" style="float: left; margin-top: 10px;"/>
 			<ul style="list-style: none;">
 				<li>
 					Message: <span style="font-style: italic; font-weight: bold;" py:content="markdown(actuallog.message)" />
 				</li>
 				<li py:if="actuallog.site">
-					Site: <a href="${conf.head_base}/site/${actuallog.site.id}" py:content="actuallog.site" />
+					Site: <a href="${conf.root_url}/site/${actuallog.site.id}" py:content="actuallog.site" />
 				</li>
 				<li py:if="not actuallog.site">
 					Site: <span class="warning">Not set</span>
@@ -173,14 +173,14 @@
         <!--<div >--><!-- Begin hacky wrapper
          to fix bug https://genshi.edgewall.org/ticket/582
          -->
-        <form id="logform" action="${conf.head_base}/log/saveitem" method="post" py:if="actuallog and is_member('logger')" style="display:${'none' if actuallog.site else 'block'};">
+        <form id="logform" action="${conf.root_url}/log/saveitem" method="post" py:if="actuallog and is_member('logger')" style="display:${'none' if actuallog.site else 'block'};">
 			<table style="width: 100%">
 				<tr>
 					<td>Id</td>
 					<td><input name="id" value="${actuallog.id}" readonly="readonly" class="readonly"/></td>
 				</tr>
 				<tr>
-					<td><a href="${conf.head_base}/user/${actuallog.user}">Who?</a></td>
+					<td><a href="${conf.root_url}/user/${actuallog.user}">Who?</a></td>
 					<td>
 						<select name="user">
 							<option py:for="p in persons"
@@ -197,7 +197,7 @@
 					</td>
 				</tr>
 				<tr>
-					<td><a href="${conf.head_base}+ '/site/' + (actuallog.site.id if actuallog.site else '')">Where?</a></td>
+					<td><a href="${conf.root_url}+ '/site/' + (actuallog.site.id if actuallog.site else '')">Where?</a></td>
 					<td>
 						<select name="site">
 							<option value=""><i>&lt;Please select...&gt;</i></option>
@@ -219,7 +219,7 @@
 					</td>
 				</tr>
 				<tr>
-					<td>What?<a href="${conf.head_base}/wiki/help" class="tooltip"><img src="${conf.head_base}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
+					<td>What?<a href="${conf.root_url}/wiki/help" class="tooltip"><img src="${conf.root_url}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
 					<td>
 						<textarea name="message" id="message"
 								  style="width: 100%;"
@@ -237,7 +237,7 @@
 				<a href="javascript:remove(${actuallog.id})">Remove log...</a>
 			</li>
 			<li style="list-style-image:url(/media/ui-icons/plus-small.png);" py:if="is_member('logger')" >
-				<a href="${conf.head_base}/log/new">New log...</a>
+				<a href="${conf.root_url}/log/new">New log...</a>
 			</li>
 			<li style="list-style-image:url(/media/ui-icons/plus-small.png);" py:if="is_member('logger')" >
 				<a href="javascript:toggle('pastediv');">Paste logs</a>

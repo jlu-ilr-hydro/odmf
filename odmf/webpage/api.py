@@ -64,7 +64,7 @@ class DatasetAPI(BaseAPI):
 
     """
     exposed = True
-    url = conf.head_base + '/api/dataset'
+    url = conf.root_url + '/api/dataset'
 
     @staticmethod
     def parse_id(dsid: str) -> int:

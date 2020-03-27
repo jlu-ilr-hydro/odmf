@@ -3,13 +3,13 @@
 	<!--
 	</h1>-->
 	<div class="navigate"
-         style="background-image: url(${conf.head_base}/${background_image});">
-		<img src="${conf.head_base}/${left_logo}"/>
+         style="background-image: url(${conf.root_url}/${background_image});">
+		<img src="${conf.root_url}/${left_logo}"/>
 		<a href="javascript:window.location=odmf_ref('/login?frompage=')+window.location.pathname;"
 			 py:content="users.current if users.current else 'login'" title="login"/>
 		<ul>
 			<li py:for="target, help in resources">
-                <a href="${conf.head_base}/${target}" title="${help}" py:content="target"/>
+                <a href="${conf.root_url}/${target}" title="${help}" py:content="target"/>
             </li>
         </ul>
   </div>
@@ -18,12 +18,12 @@
 			${title} 
 			<a href="javascript:window.location.href=odmf_ref('/wiki/') + window.location.pathname.split('/')[1]"
 					style="padding-left: 0.5em;">
-				<img src="${conf.head_base}/media/ui-icons/help.png" alt="help"/>
+				<img src="${conf.root_url}/media/ui-icons/help.png" alt="help"/>
 			</a>
 		</h1>	
 		<span style="position: absolute; top: 0px; right: 0px; z-index: 2000">
 			<a href="https://www.uni-giessen.de">
-				<img src="${conf.head_base}/media/images/jlu-logo-150.png" alt="University Giessen"/>
+				<img src="${conf.root_url}/media/images/jlu-logo-150.png" alt="University Giessen"/>
 			</a>
 			
 		</span>

@@ -3,9 +3,9 @@
 
 <head>
     <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.head_base}' + s;}</script>
+    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
 
-	<link href="${conf.head_base}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Datengruppen</title>
 	<style>
@@ -20,10 +20,10 @@
 	<h1>Daten-Gruppen</h1>
 		<ul id="Inhalt" >
 		<li>
-			<a href="${conf.head_base}/valuetype/new"><b>Neu...</b></a>
+			<a href="${conf.root_url}/valuetype/new"><b>Neu...</b></a>
 		</li>
 		<li py:for="v in valuetypes">
-			<a href="${conf.head_base}+ '/valuetype/' + v.id" py:content="v"/>
+			<a href="${conf.root_url}+ '/valuetype/' + v.id" py:content="v"/>
 		</li>
 	</ul>
     <div class="rightpane">
@@ -32,7 +32,7 @@
     		fortlaufende Zeitreihen aus verschiedenen Datensätzen gebildet werden können
     	</p> 
 		<pre><script>mathcolor="Black"</script></pre>
-		<form action="${conf.head_base}/valuetype/saveitem" method="post">
+		<form action="${conf.root_url}/valuetype/saveitem" method="post">
 			<div py:if="actualvaluetype">
 				<h2 py:content="actualvaluetype" />
 
@@ -65,11 +65,11 @@
 			<h2>Datensätze</h2>
 			<ul>
 				<li py:for="ds in actualvaluetype.datasets">
-					<a href="${conf.head_base}/dataset/${ds.id}"
+					<a href="${conf.root_url}/dataset/${ds.id}"
 					py:content="'%s (%s-%s)' % (ds,formatdate(ds.start),formatdate(ds.end))" />
 				</li>
 				<li>
-					<a href="${conf.head_base}/dataset/new?vt_id=${actualvaluetype.id}"
+					<a href="${conf.root_url}/dataset/new?vt_id=${actualvaluetype.id}"
 					py:content="'Neuen Datensatz hinzufügen...'" style="font-style: italic;" />
 				</li>
 			</ul>
