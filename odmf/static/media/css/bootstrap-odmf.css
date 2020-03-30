@@ -19,18 +19,6 @@ body {
     cursor: pointer;
     font-size: 2rem;
 }
-.nav-link {
-    color: var(--odmf-background);
-    cursor: pointer;
-    margin-right: 1em !important;
-    color: var(--odmf-background);
-    padding-bottom: 0rem !important;
-    padding-top: 0rem !important;
-    text-align: right;
-}
-.nav-link:hover {
-    color: #000;
-}
 
 
 .logo {
@@ -64,7 +52,4 @@ body {
 }
 
 
-.sidebar .nav-link.active {
-  color: #007bff;
-}
 

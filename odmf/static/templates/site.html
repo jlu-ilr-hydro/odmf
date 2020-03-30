@@ -76,8 +76,13 @@
 
 
             $(function() {
-
-                $('.datepicker').datepicker({maxDate:"0", dateFormat:'dd.mm.yy'});
+                $('#site-tab a').on('click', function (e) {
+                    e.preventDefault()
+                    $(this).tab('show')
+                });
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip()
+                });
                 popSelect();
                 popInstruments();
 
@@ -142,25 +147,12 @@
                 border: 3px solid #f00;
                 box-shadow: 0px 0px 8px #f00;
             }
-            select { width: 20em;}
             .removed {
                 color: grey;
             }
             .imgbutton {
                 width: 32px;
-                height: 24px;
-            }
-            #tab {
-                background-color: white;
-                border:solid 1px #3D578C;
-
-            }
-            #tab > div {
-                background-color: white;
-            }
-            .ui-tabs .ui-tabs-nav li a {
-                padding: 0px 1em;
-                font-size: small;
+                height: 32px;
             }
 
         </style>
@@ -171,20 +163,40 @@
                 <img src="${conf.root_url}/media/mapicons/${actualsite.icon or 'unknown.png'}"/>
                 <span py:content="actualsite" />
             </h2>
-            <button class="btn btn-primary" href="${conf.root_url}/map?site=${actualsite.id}">show on map...</button>
-            <p py:content="actualsite.as_coordinatetext() + ', UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
-            <div py:content="markdown(actualsite.comment)" style="max-height: 10em; overflow-y:scroll;" />
+            <a class="btn btn-primary" href="${conf.root_url}/map?site=${actualsite.id}">show on map...</a>
             <hr/>
-            <div class="box" style="padding:5px; margin:5px;">
-                <form class="form-group">
-                    <label for="siteselect" class="form-label">Select a site:</label>
-                    <select onchange="location.href=this.options[this.selectedIndex].value"
-                            id="siteselect"
-                            class="form-control">
-                    </select>
+            <div class="row box" style="padding:5px; margin:5px;">
+                <form class="form-group row">
+                    <div class="container-fluid">
+                        <label for="siteselect" class="form-label">Select a site:</label>
+                        <div class="input-group col">
+                            <select onchange="location.href=this.options[this.selectedIndex].value"
+                                    id="siteselect"
+                                    class="form-control">
+                            </select>
+                            <div class="input-group-append">
+                                <a class="btn btn-secondary"
+                                   py:if="is_member('editor')" href="${conf.root_url}/site/new"
+                                   data-toggle="tooltip" data-placment="right" title="Create a new site"
+                                >+</a>
+                            </div>
+                        </div>
+                    </div>
                 </form>
-                <button class="btn btn-primary"
-                        py:if="is_member('editor')" href="${conf.root_url}/site/new">Create new site...</button>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="nav flex-column nav-pills" role="tablist"  aria-orientation="vertical" id="site-tab">
+                        <a id="site-tab" class="nav-link active" data-toggle="pill" href='#sitedescription'>site</a>
+                        <a id="map-tab" class="nav-link" data-toggle="pill" href='#map'>map</a>
+                        <a id="edit-tab" class="nav-link" data-toggle="pill" href="#edit">edit</a>
+                        <a id="message-tab" class="nav-link" data-toggle="pill" href="#messagelist">messages (${actualsite.logs.count()})</a>
+                        <a id="pic-tab" class="nav-link" data-toggle="pill" href="#pictures">pictures (${actualsite.images.count()})</a>
+                        <a id="instrument-tab" class="nav-link" data-toggle="pill" href="#instrumentlist">instruments (${actualsite.instruments.count()})</a>
+                        <a id="dataset-tab" class="nav-link" data-toggle="pill" href="#datasetlist">datasets (${actualsite.datasets.count()})</a>
+                        <a id="export-tab" class="nav-link" data-toggle="pill" href="#export">export</a>
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -193,70 +205,108 @@
         <!--<div class="row error" id="errordiv" />-->
         <div py:if="actualsite" class="container-fluid">
 
-            <ul class="nav nav-dark dark-bg nav-tabs" role="tablist">
-                <li class="nav-item"><a class="nav-link" data-toggle="tab" href='#map'>map</a></li>
-                <li class="nav-item active"><a class="nav-link" data-toggle="tab" href="#edit">edit</a></li>
-                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#messagelist">messages (${actualsite.logs.count()})</a></li>
-                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#pictures">pictures (${actualsite.images.count()})</a></li>
-                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#instrumentlist">instruments (${actualsite.instruments.count()})</a></li>
-                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#datasetlist">datasets (${actualsite.datasets.count()})</a></li>
-                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#export">export</a></li>
-            </ul>
             <div class="tab-content" id="tab">
-                <div class="tab-pane" id="map">
-                    Map:
+                <div class="tab-pane active" id ="sitedescription" role="tabpanel">
+                    <div class="jumbotron">
+                        <h1 class="display-4">
+                            <img src="${conf.root_url}/media/mapicons/${actualsite.icon or 'unknown.png'}"/>
+                            <span py:content="actualsite" />
+                        </h1>
+                        <a class="btn btn-primary" href="${conf.root_url}/map?site=${actualsite.id}">show on map...</a>
+                        <p py:content="actualsite.as_coordinatetext()"/>
+                        <p py:content="'UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
+
+                        <div py:content="markdown(actualsite.comment)"/>
+
+                    </div>
+
+                </div>
+                <div class="tab-pane" id="map" role="tabpanel">
                     <div id="map_canvas" style="width:100%;height:512px"></div>
                 </div>
-                <div class="tab-pane active" id ="edit">
-                    <form py:if="is_member('editor')" action="${conf.root_url}/site/saveitem" method="post">
-                        <div>
-                            <table style="width: 100%">
-                                <tr>
-                                    <td style="width: 7em">ID:</td>
-                                    <td><input type="text" name="id" value="${actualsite.id}" readonly="readonly" class="readonly"/></td>
-                                </tr>
-                                <tr>
-                                    <td style="width: 7em">Longitude:</td>
-                                    <td><input type="text" name="lon" value="${actualsite.lon}" />°</td>
-                                </tr>
-                                <tr>
-                                    <td>Latitude:</td>
-                                    <td><input type="text" name="lat" value="${actualsite.lat}" />°</td>
-                                </tr>
-                                <tr>
-                                    <td>Height:</td>
-                                    <td><input type="text" name="height" value="${actualsite.height}" /> m NN</td>
-                                </tr>
-                                <tr>
-                                    <td>Name:</td>
-                                    <td><input type="text" name="name" value="${actualsite.name}" /></td>
-                                </tr>
-                                <tr height="36px">
-                                    <td>
-                                        Icon: <img src="${conf.root_url}/media/mapicons/${actualsite.icon if actualsite.icon else 'unknown.png'}" id="currenticon" />
-                                    </td>
-                                    <td>
-                                        <img py:for="icon in icons"
-                                             class="highlightonhover"
-                                             src="${conf.root_url}/media/mapicons/${icon}"
-                                             onclick="$('#currenticon').attr('src',odmf_ref('/media/mapicons/${icon}'));$('#iconfile').val('${icon}');"/>
-                                        <input name="icon" type="hidden" id="iconfile" value="${actualsite.icon}"/>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Comments<a href="${conf.root_url}/wiki.help" class="tooltip"><img src="${conf.root_url}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
-                                    <td>
-									<textarea name="comment"
-                                              style="width: 100%;"
-                                              rows="10" >${actualsite.comment}</textarea>
-                                    </td>
-                                </tr>
-                            </table>
+                <div class="tab-pane" id ="edit" role="tabpanel">
+                    <div py:if="not is_member('editor')" class="jumbotron">
+                        <h1>Sorry,</h1>
+                        <p class="lead">
+                            Editing sites is only available for users with <b>editor</b> status, you are a <b>${users.current.group}</b>.
+                        </p>
+                        <hr class="my-4"/>
+                        <p>If you need to edit sites, please ask the site-administrators to elevate your privileges.</p>
+                    </div>
+
+                    <form py:if="is_member('editor')"
+                          action="${conf.root_url}/site/saveitem" method="post"
+                          class="container-fluid mt-3">
+                        <div class="form-group row">
+                            <label for="id" class="col-sm-4 col-form-label">ID:</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="id" name="id" value="${actualsite.id}"
+                                       readonly="readonly" class="readonly form-control"/>
+
+                            </div>
                         </div>
-                        <input type="submit" name="save" value="Speichern" style="width: 10em;"/>
+                        <div class="form-group row">
+                            <label for="lon" class="col-sm-4 col-form-label">Longitude:</label>
+                            <div class="col-sm-8 input-group">
+                                <input type="text" id="lon" name="lon" value="${actualsite.lon}"  class="form-control"/>
+                                <div class="input-group-append"><span class="input-group-text">° N</span></div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="lat" class="col-sm-4 col-form-label">Latitude:</label>
+                            <div class="col-sm-8 input-group">
+                                <input type="text" id="lat" name="lat" value="${actualsite.lat}"  class="form-control"/>
+                                <div class="input-group-append"><span class="input-group-text">° E</span></div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="height" class="col-sm-4 col-form-label">Height:</label>
+                            <div class="col-sm-8 input-group">
+                                <input type="text" id="height" name="height" value="${actualsite.height}"  class="form-control"/>
+                                <div class="input-group-append"><span class="input-group-text">m a.s.l.</span></div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="name" class="col-sm-4 col-form-label">Name:</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="name" name="name" value="${actualsite.name}"  class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-4">
+                                <label for="iconfile" class="col-form-label">Icon:</label>
+                                <img src="${conf.root_url}/media/mapicons/${actualsite.icon if actualsite.icon else 'unknown.png'}" id="currenticon" />
+                            </div>
+                            <div class="col-sm-8">
+                                <img class="highlightonhover"
+                                     onclick="$('#currenticon').attr('src',odmf_ref('/media/mapicons/${icon}'));$('#iconfile').val('${icon}');"
+                                     py:for="icon in icons"
+                                     src="${conf.root_url}/media/mapicons/${icon}"
+                                />
+                                <input name="icon" type="hidden" id="iconfile" value="${actualsite.icon}" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-4">
+                                <label for="comment">Comment</label>
+                                <a href="${conf.root_url}/wiki.help" title="Get help for using links and formats"
+                                   data-toggle="tooltip" data-placement="top"
+                                >
+                                    <img src="${conf.root_url}/media/ui-icons/help.png" />
+                                </a>
+                            </div>
+                            <div class="col-sm">
+                                <textarea id="comment" name="comment"
+                                          style="width: 100%;"
+                                          rows="10" >
+                                        ${actualsite.comment}
+                                </textarea>
+                            </div>
+                        </div>
+                        <input type="submit" id="save" name="save" value="save" style="width: 10em;" class="form-control"/>
                     </form>
                 </div>
-                <div class="tab-pane" id="messagelist">
+                <div class="tab-pane" id="messagelist" role="tabpanel">
                     <p>
                         Please report briefly any actions you have performed on this site, or if you observed something unusual.
                     </p>
@@ -272,7 +322,7 @@
 
                 </div>
 
-                <div class="tab-pane" id="pictures">
+                <div class="tab-pane" id="pictures" role="tabpanel">
                     <div py:for="img in actualsite.images" style="display: inline">
                         <img src="${conf.root_url}/picture/thumbnail/${img.id}"
                              title="${'%s: %s (%s)' % (formatdatetime(img.time),img.name, img.by)}"
@@ -281,14 +331,14 @@
                     </div>
                 </div>
 
-                <div class="tab-pane" id="instrumentlist" >
-                    <ul>
-                        <li py:if="is_member('editor')" >
-                            <button onclick="addinstrument()" class="imgbutton">
+                <div class="tab-pane" id="instrumentlist" role="tabpanel" >
+                    <ul class="container-fluid">
+                        <li py:if="is_member('editor')" class="row">
+                            <button onclick="addinstrument()" class="btn btn-dark col-lg-1">
                                 <img src="${conf.root_url}/media/ui-icons/plus-small.png" alt="Add"/>
                             </button>
-                            <input type="date" id="installationdate" value="${formatdate()}" />
-                            <select id="instruments" >
+                            <input type="date" id="installationdate" value="${formatdate()}" class="form-control col-lg-5"/>
+                            <select id="instruments" class="custom-select col-lg-6">
                                 <option value="">Please select...</option>
                             </select>
                         </li>
@@ -306,7 +356,7 @@
                     </ul>
                 </div>
 
-                <div class="tab-pane" id="datasetlist"  >
+                <div class="tab-pane" id="datasetlist" role="tabpanel"  >
                     <ul style="list-style-type: none;">
                         <li py:if="is_member('editor')" class="plus">
                             <a href="${conf.root_url}/dataset/new?site_id=${actualsite.id}"
@@ -329,7 +379,7 @@
                         </li>
                     </ul>
                 </div>
-                <div class="tab-pane" id="export">
+                <div class="tab-pane" id="export" role="tabpanel">
                     <a href="sites.csv" style="float:left;">
                         <img src="${conf.root_url}/media/ui-icons/excel-icon.gif" />
                     </a>

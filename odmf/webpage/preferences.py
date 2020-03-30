@@ -51,7 +51,7 @@ class Preferences(object):
     def save(self):
         with open(self.filename, 'w') as f:
             # string cast needed since as_json returns bytes (due to python3 refactoring measures)
-            f.write(web.as_json(self.data).decode('utf-8'))
+            f.write(str(web.as_json(self.data)))
 
     @expose_for()
     @web.mime.json

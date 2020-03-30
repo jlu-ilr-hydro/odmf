@@ -17,9 +17,9 @@ class MapPage(object):
         else:
             with db.session_scope() as session:
                 # decode for valid json string
-                site = web.as_json(
+                site = str(web.as_json(
                     session.query(db.Site).get(int(site))
-                ).decode('utf-8')
+                ))
 
         return web.render('map.html', site=site).render()
 
