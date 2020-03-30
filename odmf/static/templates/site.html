@@ -1,356 +1,347 @@
 <!DOCTYPE html>
-<html>
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <script type="text/javascript" async="async" defer="defer"
+                src="https://maps.googleapis.com/maps/api/js?key=${conf.google_maps_api_key}">
+        </script>
+        <script type="text/javascript" src="${conf.root_url}/media/js/map.js"></script>
 
-<head>
-    <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
+        <script>
+            //<![CDATA[
+            function toggle(id) {
+                $('#'+id).slideToggle('fast');
+            }
+            function setbigimage(id) {
+                var url='';
+                var bigimg = $('#bigimage');
+                if (id) {
+                    url = odmf_ref('/picture/image/') + id;
+                }
+                bigimg.attr('src',url);
 
-    <link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<link href="${conf.root_url}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
-	<script src="${conf.root_url}/media/lib/jquery-3.4.1.min.js" type="text/javascript"></script>
-    <script src="${conf.root_url}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript"></script>
-
-    <!-- Google maps javascript -->
-    <!--  * api call without init callback -->
-    <!--  * async and defer in xml safe notation -->
-    <script type="text/javascript" async="async" defer="defer"
-            src="https://maps.googleapis.com/maps/api/js?key=${conf.google_maps_api_key}"></script>
-
-	<script src="${conf.root_url}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript"></script>
-
-  <script>
-  		//<![CDATA[
-      function toggle(id) {
-      	$('#'+id).slideToggle('fast');
-      }
-      function setbigimage(id) {
-      	var url='';
-      	var bigimg = $('#bigimage');
-      	if (id) {
-      		url = odmf_ref('/picture/image/') + id;
-      	}
-      	bigimg.attr('src',url);
-
-      }
-
-      function popSelect() {
-      	$.getJSON(odmf_ref('/site/json'),[],function(data){
-		  		var html='';
-		  		$.each(data,function(index,item){
-		  			if (item.id != ${actualsite.id}) {
-		  				html += '<option value="/site/' + item.id + '">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
-		  			} else {
-		  				html += '<option value="/site/' + item.id + '" selected="selected">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
-		  			}
-		  		});
-		  		$('#siteselect').html(html);
-	  	});
-      }
-      function popInstruments() {
-      	$.getJSON(odmf_ref('/site/getinstruments'),[],function(data){
-	      	var html='<option value="">Please select...</option>';
-  	    	$.each(data, function(index,item){
-  	    		html += '<option value="' + item.id + '">' + item.name + '</option>';
-  	    	});
-	      	$('#instruments').html(html);
-      	});
-      }
-      function addinstrument() {
-      	data = {instrumentid:$('#instruments').val(),
-      					date:escape($('#installationdate').val()),
-      					siteid:${actualsite.id}
-      				};
-      		if (data.instrumentid=='') {
-      			location.href=odmf_ref('/instrument/new')
-      		}
-      		$.post(odmf_ref('/site/addinstrument'),data,function (data,textStatus,jqHXR){
-      			if (data=='') {
-	      			location.reload();
-	      		} else {
-	      			$('.error').html(data);
-	      		}
-      		});
-      }
-      function removeinstrument(installationid,instrumentid) {
-      	data = {instrumentid:instrumentid,
-      					date:escape($('#installationdate').val()),
-      					siteid:${actualsite.id},
-      					installationid:installationid
-      				};
-      	$.post(odmf_ref('/site/removeinstrument'),data, function(data,textStatus,jqHXR) {
-      			if (data=='') {
-	      			location.reload();
-	      		} else {
-	      			$('.error').html(data);
-	      		}
-      	});
-      }
-
-
-      $(function() {
-
-        $('.datepicker').datepicker({maxDate:"0", dateFormat:'dd.mm.yy'});
-        $('#tab').tabs();
-        popSelect();
-		popInstruments();
-
-
-		// decode json data, can't parse instead
-		var site = ${as_json(actualsite) if actualsite else 'null'}
-
-        //
-        // Define createmap via "currying" to bind parameter site permant
-        //  and to call it ultimately via the google.maps.event.addDOMListener
-        var createmap = function(site) {
-            console.log(site);
-            var latlng = new google.maps.LatLng(site.lat, site.lon);
-            var mapOptions = {
-              zoom: 20,
-              center: latlng,
-              mapTypeId: 'hybrid'
-            };
-            var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
-
-            if (!site.icon) {
-                icon='unknown.png';
-            } else {
-                icon = site.icon;
             }
 
-            var image = new google.maps.MarkerImage(odmf_ref('/media/mapicons/') + icon,
-                      new google.maps.Size(24, 24),
-                      new google.maps.Point(0,0),
-                      new google.maps.Point(0, 24));
-
-            var marker = new google.maps.Marker(
-                {
-                    position: new google.maps.LatLng(site.lat,site.lon),
-                    title:'#' + site.id + '(' + site.name + ')',
-                    map:map,
-                    icon:image,
+            function popSelect() {
+                $.getJSON(odmf_ref('/site/json'),[],function(data){
+                    var html='';
+                    $.each(data,function(index,item){
+                        if (item.id != ${actualsite.id}) {
+                            html += '<option value="/site/' + item.id + '">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
+                        } else {
+                            html += '<option value="/site/' + item.id + '" selected="selected">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
+                        }
+                    });
+                    $('#siteselect').html(html);
                 });
-        }(site);
+            }
+            function popInstruments() {
+                $.getJSON(odmf_ref('/site/getinstruments'),[],function(data){
+                    var html='<option value="">Please select...</option>';
+                    $.each(data, function(index,item){
+                        html += '<option value="' + item.id + '">' + item.name + '</option>';
+                    });
+                    $('#instruments').html(html);
+                });
+            }
+            function addinstrument() {
+                data = {instrumentid:$('#instruments').val(),
+                    date:escape($('#installationdate').val()),
+                    siteid:${actualsite.id}
+                };
+                if (data.instrumentid=='') {
+                    location.href=odmf_ref('/instrument/new')
+                }
+                $.post(odmf_ref('/site/addinstrument'),data,function (data,textStatus,jqHXR){
+                    if (data=='') {
+                        location.reload();
+                    } else {
+                        $('.error').html(data);
+                    }
+                });
+            }
+            function removeinstrument(installationid,instrumentid) {
+                data = {instrumentid:instrumentid,
+                    date:escape($('#installationdate').val()),
+                    siteid:${actualsite.id},
+                    installationid:installationid
+                };
+                $.post(odmf_ref('/site/removeinstrument'),data, function(data,textStatus,jqHXR) {
+                    if (data=='') {
+                        location.reload();
+                    } else {
+                        $('.error').html(data);
+                    }
+                });
+            }
 
-		if (site) {
-		    google.maps.event.addDomListener(window, "load", createmap);
-        }
-      });
-      //]]>
-  </script>
 
-	<title>Sites</title>
-	<style type="text/css">
-	   input { /*width: 100%;*/}
-	   .msghint {
-	   	font-weight: bold;
-	   	color: red;
-	   }
-	   .highlightonhover {
-	   	background-color: transparent;
-		border: 3px solid #fff;
-		box-shadow: 0px 0px 0px #fff;
-	   }
-	   .highlightonhover:hover {
-	   	/*background-color: #f00;*/
-		border: 3px solid #f00;
-		box-shadow: 0px 0px 8px #f00;
-	   }
-		  select { width: 20em;}
-		  .removed {
-		  	color: grey;
-		  }
-		  .imgbutton {
-		  	width: 32px;
-		  	height: 24px;
-		  }
-  		#tab {
-				background-color: white;
-				border:solid 1px #3D578C;
+            $(function() {
 
-			}
-			#tab > div {
-				background-color: white;
-			}
-			.ui-tabs .ui-tabs-nav li a {
-				padding: 0px 1em;
-				font-size: small;
-			}
+                $('.datepicker').datepicker({maxDate:"0", dateFormat:'dd.mm.yy'});
+                popSelect();
+                popInstruments();
 
-	</style>
-</head>
-<body>
-	${navigation(str(actualsite) if actualsite else 'New site')}
-  <div class="content">
 
-		<div class="error" id="errordiv" />
-		<a py:if="is_member('editor')" href="${conf.root_url}/site/new">Create new site...</a>
+                // decode json data, can't parse instead
+                var site = ${as_json(actualsite) if actualsite else 'null'}
 
-		<div class="box" style="padding:5px; margin:5px;">
-			<form>Select a site:
-				<select onchange="location.href=this.options[this.selectedIndex].value"
-						id="siteselect"
-						style="width: 20em;">
-			</select>
-			<a href="${conf.root_url}/map?site=${actualsite.id}">show on map...</a>
-			</form>
-		</div>
-		<div py:if="actualsite">
-			<p>
-				<img src="${conf.root_url}/media/mapicons/${actualsite.icon or 'unknown.png'}"/>
-				<span py:content="actualsite" />
-			</p>
-			<p py:content="actualsite.as_coordinatetext() + ', UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
-			<div py:content="markdown(actualsite.comment)" style="max-height: 10em; overflow-y:scroll;" />
-			<div id="tab">
-				<ul id="tabheads">
-					<li><a href='#map'>map</a></li>
-					<li><a href="#edit">edit</a></li>
-					<li><a href="#messagelist">messages (${actualsite.logs.count()})</a></li>
-					<li><a href="#pictures">pictures (${actualsite.images.count()})</a></li>
-					<li><a href="#instrumentlist">instruments (${actualsite.instruments.count()})</a></li>
-					<li><a href="#datasetlist">datasets (${actualsite.datasets.count()})</a></li>
-					<li><a href="#export">export</a></li>
-				</ul>
-				<div id="map">
-					Map:
-					<div id="map_canvas" style="width:100%;height:512px"></div>
-				</div>
-				<div id ="edit">
-					<form py:if="is_member('editor')" action="${conf.root_url}/site/saveitem" method="post">
-					<div>
-						<table style="width: 100%">
-							<tr>
-								<td style="width: 7em">ID:</td>
-								<td><input type="text" name="id" value="${actualsite.id}" readonly="readonly" class="readonly"/></td>
-							</tr>
-							<tr>
-								<td style="width: 7em">Longitude:</td>
-								<td><input type="text" name="lon" value="${actualsite.lon}" />°</td>
-							</tr>
-							<tr>
-								<td>Latitude:</td>
-								<td><input type="text" name="lat" value="${actualsite.lat}" />°</td>
-							</tr>
-							<tr>
-								<td>Height:</td>
-								<td><input type="text" name="height" value="${actualsite.height}" /> m NN</td>
-							</tr>
-							<tr>
-								<td>Name:</td>
-								<td><input type="text" name="name" value="${actualsite.name}" /></td>
-							</tr>
-							<tr height="36px">
-								<td>
-									Icon: <img src="${conf.root_url}/media/mapicons/${actualsite.icon if actualsite.icon else 'unknown.png'}" id="currenticon" />
-								</td>
-								<td>
-									<img py:for="icon in icons"
-											 class="highlightonhover"
-											 src="${conf.root_url}/media/mapicons/${icon}"
-											 onclick="$('#currenticon').attr('src',odmf_ref('/media/mapicons/${icon}'));$('#iconfile').val('${icon}');"/>
-									<input name="icon" type="hidden" id="iconfile" value="${actualsite.icon}"/>
-								</td>
-							</tr>
-							<tr>
-								<td>Comments<a href="${conf.root_url}/wiki.help" class="tooltip"><img src="${conf.root_url}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
-								<td>
+                //
+                // Define createmap via "currying" to bind parameter site permant
+                //  and to call it ultimately via the google.maps.event.addDOMListener
+                var createmap = function(site) {
+                    console.log(site);
+                    var latlng = new google.maps.LatLng(site.lat, site.lon);
+                    var mapOptions = {
+                        zoom: 20,
+                        center: latlng,
+                        mapTypeId: 'hybrid'
+                    };
+                    var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+
+                    if (!site.icon) {
+                        icon='unknown.png';
+                    } else {
+                        icon = site.icon;
+                    }
+
+                    var image = new google.maps.MarkerImage(odmf_ref('/media/mapicons/') + icon,
+                            new google.maps.Size(24, 24),
+                            new google.maps.Point(0,0),
+                            new google.maps.Point(0, 24));
+
+                    var marker = new google.maps.Marker(
+                            {
+                                position: new google.maps.LatLng(site.lat,site.lon),
+                                title:'#' + site.id + '(' + site.name + ')',
+                                map:map,
+                                icon:image,
+                            });
+                }(site);
+
+                if (site) {
+                    google.maps.event.addDomListener(window, "load", createmap);
+                }
+            });
+            //]]>
+        </script>
+    </py:block>
+    <py:block name="style">
+        <style type="text/css">
+            input { /*width: 100%;*/}
+            .msghint {
+                font-weight: bold;
+                color: red;
+            }
+            .highlightonhover {
+                background-color: transparent;
+                border: 3px solid #fff;
+                box-shadow: 0px 0px 0px #fff;
+            }
+            .highlightonhover:hover {
+                /*background-color: #f00;*/
+                border: 3px solid #f00;
+                box-shadow: 0px 0px 8px #f00;
+            }
+            select { width: 20em;}
+            .removed {
+                color: grey;
+            }
+            .imgbutton {
+                width: 32px;
+                height: 24px;
+            }
+            #tab {
+                background-color: white;
+                border:solid 1px #3D578C;
+
+            }
+            #tab > div {
+                background-color: white;
+            }
+            .ui-tabs .ui-tabs-nav li a {
+                padding: 0px 1em;
+                font-size: small;
+            }
+
+        </style>
+    </py:block>
+    <py:block name="sidebar">
+        <div class="container-fluid">
+            <h2>
+                <img src="${conf.root_url}/media/mapicons/${actualsite.icon or 'unknown.png'}"/>
+                <span py:content="actualsite" />
+            </h2>
+            <button class="btn btn-primary" href="${conf.root_url}/map?site=${actualsite.id}">show on map...</button>
+            <p py:content="actualsite.as_coordinatetext() + ', UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
+            <div py:content="markdown(actualsite.comment)" style="max-height: 10em; overflow-y:scroll;" />
+            <hr/>
+            <div class="box" style="padding:5px; margin:5px;">
+                <form class="form-group">
+                    <label for="siteselect" class="form-label">Select a site:</label>
+                    <select onchange="location.href=this.options[this.selectedIndex].value"
+                            id="siteselect"
+                            class="form-control">
+                    </select>
+                </form>
+                <button class="btn btn-primary"
+                        py:if="is_member('editor')" href="${conf.root_url}/site/new">Create new site...</button>
+            </div>
+
+        </div>
+    </py:block>
+    <py:block name="content">
+        <!--<div class="row error" id="errordiv" />-->
+        <div py:if="actualsite" class="container-fluid">
+
+            <ul class="nav nav-dark dark-bg nav-tabs" role="tablist">
+                <li class="nav-item"><a class="nav-link" data-toggle="tab" href='#map'>map</a></li>
+                <li class="nav-item active"><a class="nav-link" data-toggle="tab" href="#edit">edit</a></li>
+                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#messagelist">messages (${actualsite.logs.count()})</a></li>
+                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#pictures">pictures (${actualsite.images.count()})</a></li>
+                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#instrumentlist">instruments (${actualsite.instruments.count()})</a></li>
+                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#datasetlist">datasets (${actualsite.datasets.count()})</a></li>
+                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#export">export</a></li>
+            </ul>
+            <div class="tab-content" id="tab">
+                <div class="tab-pane" id="map">
+                    Map:
+                    <div id="map_canvas" style="width:100%;height:512px"></div>
+                </div>
+                <div class="tab-pane active" id ="edit">
+                    <form py:if="is_member('editor')" action="${conf.root_url}/site/saveitem" method="post">
+                        <div>
+                            <table style="width: 100%">
+                                <tr>
+                                    <td style="width: 7em">ID:</td>
+                                    <td><input type="text" name="id" value="${actualsite.id}" readonly="readonly" class="readonly"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 7em">Longitude:</td>
+                                    <td><input type="text" name="lon" value="${actualsite.lon}" />°</td>
+                                </tr>
+                                <tr>
+                                    <td>Latitude:</td>
+                                    <td><input type="text" name="lat" value="${actualsite.lat}" />°</td>
+                                </tr>
+                                <tr>
+                                    <td>Height:</td>
+                                    <td><input type="text" name="height" value="${actualsite.height}" /> m NN</td>
+                                </tr>
+                                <tr>
+                                    <td>Name:</td>
+                                    <td><input type="text" name="name" value="${actualsite.name}" /></td>
+                                </tr>
+                                <tr height="36px">
+                                    <td>
+                                        Icon: <img src="${conf.root_url}/media/mapicons/${actualsite.icon if actualsite.icon else 'unknown.png'}" id="currenticon" />
+                                    </td>
+                                    <td>
+                                        <img py:for="icon in icons"
+                                             class="highlightonhover"
+                                             src="${conf.root_url}/media/mapicons/${icon}"
+                                             onclick="$('#currenticon').attr('src',odmf_ref('/media/mapicons/${icon}'));$('#iconfile').val('${icon}');"/>
+                                        <input name="icon" type="hidden" id="iconfile" value="${actualsite.icon}"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Comments<a href="${conf.root_url}/wiki.help" class="tooltip"><img src="${conf.root_url}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
+                                    <td>
 									<textarea name="comment"
-											  style="width: 100%;"
-											  rows="10" >${actualsite.comment}</textarea>
-								</td>
-							</tr>
-						</table>
-					</div>
-					<input type="submit" name="save" value="Speichern" style="width: 10em;"/>
-				</form>
-				</div>
-				<div id="messagelist">
-					<p>
-						Please report briefly any actions you have performed on this site, or if you observed something unusual.
-					</p>
-					<ul>
-						<li py:if="is_member('logger')">
-							<a href="${conf.root_url}/log/new?siteid=${actualsite.id}" style="font-style: italic;">New message...</a>
-						</li>
-						<li py:for="log in actualsite.logs">
-							<a href="${conf.root_url}/log/${log.id}" py:content="formatdatetime(log.time)"/>
-							${log.user}<sup>log:${log.id}</sup> ${markdown(log.message)}
-						</li>
-					</ul>
+                                              style="width: 100%;"
+                                              rows="10" >${actualsite.comment}</textarea>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <input type="submit" name="save" value="Speichern" style="width: 10em;"/>
+                    </form>
+                </div>
+                <div class="tab-pane" id="messagelist">
+                    <p>
+                        Please report briefly any actions you have performed on this site, or if you observed something unusual.
+                    </p>
+                    <ul>
+                        <li py:if="is_member('logger')">
+                            <a href="${conf.root_url}/log/new?siteid=${actualsite.id}" style="font-style: italic;">New message...</a>
+                        </li>
+                        <li py:for="log in actualsite.logs">
+                            <a href="${conf.root_url}/log/${log.id}" py:content="formatdatetime(log.time)"/>
+                                ${log.user}<sup>log:${log.id}</sup> ${markdown(log.message)}
+                        </li>
+                    </ul>
 
-				</div>
+                </div>
 
-				<div id="pictures">
-					<div py:for="img in actualsite.images" style="display: inline">
-						<img src="${conf.root_url}/picture/thumbnail/${img.id}"
-								 title="${'%s: %s (%s)' % (formatdatetime(img.time),img.name, img.by)}"
-								 onclick="location.href=odmf_ref('/picture?id=${img.id}')"
-								 />
-					</div>
-				</div>
+                <div class="tab-pane" id="pictures">
+                    <div py:for="img in actualsite.images" style="display: inline">
+                        <img src="${conf.root_url}/picture/thumbnail/${img.id}"
+                             title="${'%s: %s (%s)' % (formatdatetime(img.time),img.name, img.by)}"
+                             onclick="location.href=odmf_ref('/picture?id=${img.id}')"
+                        />
+                    </div>
+                </div>
 
-				<div id="instrumentlist" class="toggle">
-					<ul>
-						<li py:if="is_member('editor')" >
-								<button onclick="addinstrument()" class="imgbutton">
-									<img src="${conf.root_url}/media/ui-icons/plus-small.png" alt="Add"/>
-								</button>
-								<input class="datepicker" id="installationdate" value="${formatdate()}" />
-								<select id="instruments" >
-									<option value="">Please select...</option>
-								</select>
-						</li>
-						<li py:for="inst in actualsite.instruments" >
+                <div class="tab-pane" id="instrumentlist" >
+                    <ul>
+                        <li py:if="is_member('editor')" >
+                            <button onclick="addinstrument()" class="imgbutton">
+                                <img src="${conf.root_url}/media/ui-icons/plus-small.png" alt="Add"/>
+                            </button>
+                            <input type="date" id="installationdate" value="${formatdate()}" />
+                            <select id="instruments" >
+                                <option value="">Please select...</option>
+                            </select>
+                        </li>
+                        <li py:for="inst in actualsite.instruments" >
 							<span py:if="inst.active">
 									since ${formatdate(inst.installdate)}: <a py:content="inst.instrument.name" href="${conf.root_url}/instrument/${inst.instrument.id}"/>
 									<a py:if="inst.instrument.manuallink" href="${inst.instrument.manuallink}" class="small"><img src="${conf.root_url}/media/ui-icons/shimmer/document_16.png" alt="documentation"/></a>
 							</span>
-							<span py:if="not inst.active" class="removed"
-										py:content="'until %s: %s (%s)' % (formatdate(inst.removedate),inst.instrument.name,inst.instrument.sourcetype)" />
-							<a href="javascript:removeinstrument(${inst.id},${inst.instrument.id})"
-								 py:if="is_member('editor')"
-								 style="font-size: small;font-style: italic;">(remove...)</a>
-						</li>
-					</ul>
-				</div>
+                            <span py:if="not inst.active" class="removed"
+                                  py:content="'until %s: %s (%s)' % (formatdate(inst.removedate),inst.instrument.name,inst.instrument.sourcetype)" />
+                            <a href="javascript:removeinstrument(${inst.id}, ${inst.instrument.id})"
+                               py:if="is_member('editor')"
+                               style="font-size: small;font-style: italic;">(remove...)</a>
+                        </li>
+                    </ul>
+                </div>
 
-				<div id="datasetlist" class="toggle" >
-					<ul style="list-style-type: none;">
-						<li py:if="is_member('editor')" class="plus">
-							<a href="${conf.root_url}/dataset/new?site_id=${actualsite.id}"
-									style="font-style: italic;" >
-								 Add new dataset...
-							</a>
-						</li>
-						<li py:for="ds in datasets">
-							<a href="${conf.root_url}/dataset/${ds.id}?site_id=${actualsite.id}"
-							py:content="ds" />
-						</li>
-						<li py:if="is_member('editor')">
-							<script>
-								function makeplotcover() {
-									$('#plotcoverageimg').attr('src',odmf_ref('/dataset/plot_coverage/${actualsite.id}'));
-								}
-							</script>
-							<a href="javascript:makeplotcover();">Plot the time coverage of the datasets</a>
-							<img src="" alt="plot time coverage" id="plotcoverageimg" />
-						</li>
-					</ul>
-				</div>
-				<div id="export">
-					<a href="sites.csv" style="float:left;">
-						<img src="${conf.root_url}/media/ui-icons/excel-icon.gif" />
-					</a>
-					<div class="box">
-						You can <a href="${conf.root_url}/site/sites.csv">download</a> all sites as a csv-file for import to Excel <a href="${conf.root_url}/site/sites.csv">here</a>.<br/>
-						Note: This works only if you are using English language settings in Windows.
-					</div>
-				</div>
-		</div>
-		</div>
-	</div>
+                <div class="tab-pane" id="datasetlist"  >
+                    <ul style="list-style-type: none;">
+                        <li py:if="is_member('editor')" class="plus">
+                            <a href="${conf.root_url}/dataset/new?site_id=${actualsite.id}"
+                               style="font-style: italic;" >
+                                Add new dataset...
+                            </a>
+                        </li>
+                        <li py:for="ds in datasets">
+                            <a href="${conf.root_url}/dataset/${ds.id}?site_id=${actualsite.id}"
+                               py:content="ds" />
+                        </li>
+                        <li py:if="is_member('editor')">
+                            <script>
+                                function makeplotcover() {
+                                    $('#plotcoverageimg').attr('src',odmf_ref('/dataset/plot_coverage/${actualsite.id}'));
+                                }
+                            </script>
+                            <a href="javascript:makeplotcover();">Plot the time coverage of the datasets</a>
+                            <img src="" alt="plot time coverage" id="plotcoverageimg" />
+                        </li>
+                    </ul>
+                </div>
+                <div class="tab-pane" id="export">
+                    <a href="sites.csv" style="float:left;">
+                        <img src="${conf.root_url}/media/ui-icons/excel-icon.gif" />
+                    </a>
+                    <div class="box">
+                        You can <a href="${conf.root_url}/site/sites.csv">download</a> all sites as a csv-file for import to Excel <a href="${conf.root_url}/site/sites.csv">here</a>.<br/>
+                        Note: This works only if you are using English language settings in Windows.
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<!--	<script defer async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAu_vXqk-T8TDnNorAmnZLh7vh9AfH7NcM&amp;callback=initMap" type="text/javascript"></script>-->
-</body>
-</html>
+
+    </py:block>
+
+</py:extends>

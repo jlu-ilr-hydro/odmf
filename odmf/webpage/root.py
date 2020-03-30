@@ -97,6 +97,7 @@ class Root(object):
         else:
             return web.render('login.html', error=error, frompage=frompage).render()
 
+
     @expose_for(group.admin)
     @web.mime.json
     def showjson(self, **kwargs):

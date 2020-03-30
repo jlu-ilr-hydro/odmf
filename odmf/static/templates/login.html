@@ -2,35 +2,38 @@
 
 <py:extends href="bootstrap_navigation.html" xmlns:py="">
     <py:block name="sidebar">
-        <div>
-            bla
+        <div class="container bg-info">
+            <h1 class="text-light">${users.current}</h1>
+            <form method="post" action="${conf.root_url}/login">
+                <input type="hidden" name="frompage" id="frompage" value="${frompage}"/>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <datalist id="users">
+                        <option py:for="u in users" value="${u}" py:content="u" />
+                    </datalist>
+                    <input type="text" class="form-control" id="username" name="username" list="users"/>
+                    <label for="password">Password:</label>
+                    <input type="password" name="password" id="password" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Log in" class="btn btn-primary"/>
+                    <input type="submit" value="Log out" name="logout" class="btn btn-secondary"/>
+                </div>
+            </form>
         </div>
     </py:block>
     <py:block name="content">
         <div class="container mt-3">
-            <div class="row danger" py:content="error" />
+            <div class="row alert bg-danger text-white" role="alert" py:if="error">
+                <h1 class="display-4 col-lg-2">Error</h1>
+                <p class="lead col-lg-10" py:content="markdown(error)"/>
+            </div>
+            <!--<div class="row">
+                <div class="col alert alert-danger" role="alert" py:content="error" />
+            </div>-->
             <div class="row">
-                <div class="col">
-                    <h1 class="text-light">${users.current}</h1>
-                    <form method="post" action="${conf.root_url}/login">
-                        <input type="hidden" name="frompage" id="frompage" value="${frompage}"/>
-                        <div class="form-group">
-                            <label for="username">Username</label>
-                            <datalist id="users">
-                                <option py:for="u in users" value="${u}" py:content="u" />
-                            </datalist>
-                            <input type="text" class="form-control" id="username" name="username" list="users"/>
-                            <label for="password">Password:</label>
-                            <input type="password" name="password" id="password" class="form-control"/>
-                        </div>
-                        <div class="form-group">
-                            <input type="submit" value="Log in" class="btn btn-primary"/>
-                            <input type="submit" value="Log out" name="logout" class="btn btn-secondary"/>
-                        </div>
-                    </form>
-                </div>
-                <div class="col bg-info">
-                    <h1 class="text-light">About</h1>
+                <div class="">
+                    <h1 class="display-4">About</h1>
                     <a href="https://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
                         <img src="${conf.root_url}/media/images/ilr-logo_4_klein_RGB.png" alt="ILR"/>
                     </a>

@@ -1,7 +1,7 @@
 import cherrypy
 
 from .. import lib as web
-from ..auth import users, group, expose_for, hashpw, is_self, get_levels
+from ..auth import users, group, expose_for, hashpw, is_self, get_levels, HTTPAuthError
 
 from ... import db
 from traceback import format_exc as traceback
@@ -104,8 +104,7 @@ class PersonPage:
         changing_user_level = int(changing_user_level)
 
         if changing_user_level > users.current.level:
-            raise cherrypy.HTTPRedirect(
-                "/login?error=You are missing privileges to do what you liked to do.&frompage=" + cherrypy.request.path_info)
+            raise HTTPAuthError()
         else:
             error = ''
             result = web.render('passwordchange.html',
