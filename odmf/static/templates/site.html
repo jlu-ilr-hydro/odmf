@@ -190,11 +190,19 @@
                         <a id="site-tab" class="nav-link active" data-toggle="pill" href='#sitedescription'>site</a>
                         <a id="map-tab" class="nav-link" data-toggle="pill" href='#map'>map</a>
                         <a id="edit-tab" class="nav-link" data-toggle="pill" href="#edit">edit</a>
-                        <a id="message-tab" class="nav-link" data-toggle="pill" href="#messagelist">messages (${actualsite.logs.count()})</a>
-                        <a id="pic-tab" class="nav-link" data-toggle="pill" href="#pictures">pictures (${actualsite.images.count()})</a>
-                        <a id="instrument-tab" class="nav-link" data-toggle="pill" href="#instrumentlist">instruments (${actualsite.instruments.count()})</a>
-                        <a id="dataset-tab" class="nav-link" data-toggle="pill" href="#datasetlist">datasets (${actualsite.datasets.count()})</a>
-                        <a id="export-tab" class="nav-link" data-toggle="pill" href="#export">export</a>
+                        <a id="message-tab" class="nav-link flexbox" data-toggle="pill" href="#messagelist">
+                            <span>messages</span><span class="badge badge-info badge-pill" py:content="actualsite.logs.count()"/>
+                        </a>
+                        <a id="pic-tab" class="nav-link flexbox" data-toggle="pill" href="#pictures">
+                            <span>pictures</span><span class="badge badge-info badge-pill" py:content="actualsite.images.count()"/>
+                        </a>
+                        <a id="instrument-tab" class="nav-link flexbox" data-toggle="pill" href="#instrumentlist">
+                            <span>instruments</span><span class="badge badge-info badge-pill" py:content="actualsite.instruments.count()"/>
+                        </a>
+                        <a id="dataset-tab" class="nav-link flexbox" data-toggle="pill" href="#datasetlist">
+                            <span>datasets</span><span class="badge badge-info badge-pill" py:content="actualsite.datasets.count()"/>
+                        </a>
+                        <a id="export-tab" class="nav-link flexbox" data-toggle="pill" href="#export">export</a>
                     </div>
                 </div>
             </div>
@@ -278,12 +286,15 @@
                                 <img src="${conf.root_url}/media/mapicons/${actualsite.icon if actualsite.icon else 'unknown.png'}" id="currenticon" />
                             </div>
                             <div class="col-sm-8">
-                                <img class="highlightonhover"
-                                     onclick="$('#currenticon').attr('src',odmf_ref('/media/mapicons/${icon}'));$('#iconfile').val('${icon}');"
-                                     py:for="icon in icons"
-                                     src="${conf.root_url}/media/mapicons/${icon}"
-                                />
-                                <input name="icon" type="hidden" id="iconfile" value="${actualsite.icon}" />
+                                <div class="">
+                                    <button type="button" class="btn btn-secondary mr-1 mb-1"
+                                            onclick="$('#currenticon').attr('src',odmf_ref('/media/mapicons/${icon}'));$('#iconfile').val('${icon}');"
+                                            py:for="icon in icons"
+                                    >
+                                        <img src="${conf.root_url}/media/mapicons/${icon}"/>
+                                    </button>
+                                    <input name="icon" type="hidden" id="iconfile" value="${actualsite.icon}" />
+                                </div>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -297,7 +308,7 @@
                             </div>
                             <div class="col-sm">
                                 <textarea id="comment" name="comment"
-                                          style="width: 100%;"
+                                          class="form-control"
                                           rows="10" >
                                         ${actualsite.comment}
                                 </textarea>

@@ -21,10 +21,11 @@ server_config = {
 def configure_app(autoreload=False):
 
     static_files = {
-        '/favicon.ico': {"tools.staticfile.on": True,
-                         "tools.staticfile.filename": str(conf.abspath("media/ilr-favicon.png"))
-                         },
-        '/media': {
+        conf.root_url + '/favicon.ico': {
+            "tools.staticfile.on": True,
+            "tools.staticfile.filename": str(conf.abspath("media/ilr-favicon.png"))
+        },
+        conf.root_url + '/media': {
             'tools.caching.on': True,
             'tools.caching.delay': 3600
         }

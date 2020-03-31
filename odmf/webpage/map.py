@@ -16,10 +16,9 @@ class MapPage(object):
             site = 'null'
         else:
             with db.session_scope() as session:
-                # decode for valid json string
-                site = str(web.as_json(
+                site = web.as_json(
                     session.query(db.Site).get(int(site))
-                ))
+                )
 
         return web.render('map.html', site=site).render()
 

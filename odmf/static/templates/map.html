@@ -8,6 +8,10 @@
         <script>
             $(function() {
                 initMap(${site});
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip()
+                });
+
             });
         </script>
     </py:block>
@@ -25,10 +29,13 @@
     <py:block name="sidebar">
         <div class="container-fluid">
             <h3>Current location</h3>
-            <div class="small">
+            <div class="dark-bg text-white">
                 <span id="coordinates">Not in map</span>
+            <div>
+                <input type="checkbox" id="createsite"/>
+            </div>
                 <span title="Use double click to create a new site" style="margin-left: 1em;font-size: 0.75em;">
-                            <input type="checkbox" id="createsite"/>
+
                             new site
                         </span>
 
@@ -61,10 +68,18 @@
             </div>
             <div class="form-group row">
                 <label class="col-xl-5 col-form-label" for="filter-buttons">apply:</label>
-                <div id="filter-buttons" class="col-xl-7 form-control">
-                    <button onclick="popSelect();" title="Apply the filter"><img src="${conf.root_url}/media/ui-icons/filter_16.png" alt="set filter"/></button>
-                    <button onclick="clearFilter();" title="Clear filter and show all sites"><img src="${conf.root_url}/media/ui-icons/clearfilter_16.png" alt="clear filter"/></button>
-                    <button onclick="zoomToMarkers();" title="Show all sites"><img src="${conf.root_url}/media/ui-icons/shimmer/world_16.png"  alt="zoom to markers"/></button>
+                <div id="filter-buttons" class="col-xl-7 ">
+                    <button onclick="popSelect();" title="Apply the filter" data-toggle="tooltip" class="btn btn-outline-dark">
+                        <img src="${conf.root_url}/media/ui-icons/filter_16.png" alt="set filter"/>
+                    </button>
+                    <button onclick="clearFilter();" title="Clear filter and show all sites"
+                            data-toggle="tooltip" data-placement="bottom"
+                            class="btn btn-outline-dark">
+                        <img src="${conf.root_url}/media/ui-icons/clearfilter_16.png" alt="clear filter"/>
+                    </button>
+                    <button onclick="zoomToMarkers();" title="Show all sites" data-toggle="tooltip" class="btn btn-outline-dark">
+                        <img src="${conf.root_url}/media/ui-icons/shimmer/world_16.png"  alt="zoom to markers"/>
+                    </button>
                 </div>
             </div>
             <div class="form-group row">
