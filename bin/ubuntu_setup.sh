@@ -32,10 +32,19 @@ sudo apt -y install openmpi-bin openmpi-common \
                     openssh-client openssh-server \
                     libopenmpi-dbg libopenmpi-devsudo
 
+
 # install apache2
 sudo apt -y install apache2
 sudo apt -y install libapache2-mod-wsgi-py3
+sudo apt-get install software-properties-common
+sudo add-apt-repository universe
+sudo add-apt-repository ppa:certbot/certbot
+sudo apt-get update
+sudo apt-get install certbot python-certbot-apache
 
+
+
+sudo apt -y install chrony
 # install Remote-Desktop Connection
 # sudo apt -y install xrdp
 
