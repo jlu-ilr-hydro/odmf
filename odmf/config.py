@@ -64,9 +64,9 @@ class Configuration:
     """
     datetime_default_timezone = 'Europe/Berlin'
     database_type = 'postgres'
-    database_name = ...
-    database_username = ...
-    database_password = ...
+    database_name = ''
+    database_username = ''
+    database_password = ''
     database_host = '127.0.0.1'
 
     static = [prefix]
@@ -76,7 +76,7 @@ class Configuration:
     manual_measurements_pattern = '(.+\\/)*datafiles\\/lab\\/([a-zA-Z0-9]+\\/)*.*\\.(xls|xlsx)$'
     map_default = {'lat': 50.5, 'lng': 8.55, 'type': 'hybrid', 'zoom': 15}
     upload_max_size = 25000000
-    server_port = ...
+    server_port = 8080
     google_maps_api_key = ''
     woftester_receiver_mail = ['philipp.kraft@umwelt.uni-giessen.de']
     woftester_sender_mail = 'woftester@umwelt.uni-giessen.de'
