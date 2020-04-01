@@ -47,73 +47,114 @@ _alias = {
     'index': 'home'
 }
 
+
 def alias(name):
     return _alias.get(name, name)
 
 
-def resource_walker(obj, only_navigatable=False, recursive=True, for_level=0) -> dict:
-    """
-    Builds a recursive tree of exposed cherrypy endpoints
+class Resource:
 
-    How to call for a tree of the complete app:
-    ::
-        resource_tree = resource_walker(root)
+    def __init__(self, name, obj, parent=None):
+        super().__init__()
+        self.name = name
+        self.parent = parent
+        self.obj = obj
+        self.__children = []
 
-    How to call for a branch in the app (eg. the site page)
-    ::
-        resource_subtree = resource_walker(root, site)
+    @property
+    def icon(self):
+        return self.get_attr('icon')
 
-    :param obj: The cherrypy object (type or function) to investigate
-    :return: A dictionary containing either a dictionary for the next deeper address level or a
-            docstring of an endpoint
-    """
-    def has_attr(obj, attr: str) -> bool:
-        return hasattr(obj, attr) or hasattr(type(obj), attr)
-
-    def navigatable(obj):
-        try:
-            return has_attr(obj, 'exposed') and obj.exposed and (
-                    (not only_navigatable) or has_attr(obj, 'show_in_nav') and obj.show_in_nav <= for_level
-            )
-        except TypeError:
-            raise
-
-    def getdoc(obj):
+    @property
+    def doc(self):
         """Returns inspect.getdoc if available, else checks for an index method and returns the getdoc of that"""
-        return inspect.getdoc(obj) or \
-               (getattr(obj, 'index', None) and inspect.getdoc(obj.index)) or \
-               (getattr(obj, 'default', None) and inspect.getdoc(obj.default))
+        return inspect.getdoc(self.obj) or \
+               (getattr(self.obj, 'index', None) and inspect.getdoc(self.obj.index)) or \
+               (getattr(self.obj, 'default', None) and inspect.getdoc(self.obj.default))
 
-    p_vars = dict(vars(type(obj)))
-    p_vars.update(vars(obj))
-    p_vars = {
-        k: v for k, v
-        in p_vars.items()
-        if not k.startswith('_') and navigatable(v)
-    }
-    if recursive:
-        res = {
-            alias(k): resource_walker(v, only_navigatable)
-            for k, v in p_vars.items()
-            if navigatable(v)
-        }
-    else:
-        res = {
-            alias(k): getdoc(v)
-            for k, v in p_vars.items()
-            if navigatable(v)
-        }
+    @property
+    def uri(self):
+        if self.parent:
+            return self.parent.uri + self.name + '/'
+        else:
+            return conf.root_url + '/'
 
-    return res or getdoc(obj)
+    def has_attr(self, attr: str) -> bool:
+        return hasattr(self.obj, attr) or hasattr(type(self.obj), attr)
+
+    def get_attr(self, attr: str) -> bool:
+        return (
+            getattr(self.obj, attr, None) or
+            getattr(type(self.obj), attr, None)
+        )
+
+    def is_exposed(self):
+        return self.has_attr('exposed') and self.obj.exposed
+
+    def is_nav(self, for_level: int):
+        return self.is_exposed() and self.has_attr('show_in_nav') and self.obj.show_in_nav <= for_level
+
+    def __repr__(self):
+        return self.uri
+
+    def __iter__(self):
+        return iter(self.__children)
+
+    def __len__(self):
+        return len(self.__children)
+
+    def extend(self, by):
+        self.__children.extend(by)
+
+    def __getitem__(self, item):
+        try:
+            self.__children[item]
+        except TypeError:
+            index = [c.name for c in self.__children].index(item)
+            return self.__children[index]
+
+    def __getattr__(self, item):
+        try:
+            index = [c.name for c in self.__children].index(item)
+            return self.__children[index]
+        except (TypeError, ValueError):
+            raise AttributeError(f'{self} has no method {item}')
+
+    def __dir__(self):
+        return sorted(dir(super()) + list(vars(self).keys()) + list(vars(type(self)).keys()) + [c.name for c in self.__children])
+
+    def create_tree(self, navigatable_for=None, recursive=True):
+
+        obj = self.obj
+        p_vars = dict(vars(type(obj)))
+        p_vars.update(vars(obj))
+        children = [Resource(alias(k), v, self) for k, v in p_vars.items() if k[0] != '_']
+
+        # filter for only the exposed / navigatable selfs
+        if navigatable_for is not None:
+            self.extend(c for c in children if c.is_nav(navigatable_for))
+        else:
+            self.extend(c for c in children if c.is_exposed())
+
+        if recursive:
+            for c in self:
+                c.create_tree(navigatable_for, recursive)
+
+        return self
+
+    def walk(self):
+        res = [self]
+        for c in self:
+            res.extend(c.walk())
+        return res
 
 
 def get_nav_entries():
-    return resource_walker(
-        render.root,
-        only_navigatable=True,
-        recursive=False,
-        for_level=auth.users.current.level
+
+    root = Resource('/', render.root).create_tree(
+        navigatable_for=auth.users.current.level, recursive=False
     )
+    return root
 
 
 def navigation(title=''):
@@ -124,7 +165,7 @@ def navigation(title=''):
              title=str(title),
              background_image=conf.nav_background,
              left_logo=conf.nav_left_logo,
-             resources=get_nav_entries().items(),
+             resources=[(r.name, r.doc) for r in get_nav_entries()],
          ).render())
 
 
@@ -137,7 +178,7 @@ def context(**kwargs):
     }
     context = context_from_module(render_tools)
     context.update(context_from_module(conversion))
-    context['nav_items'] = get_nav_entries().items()
+    context['nav_items'] = get_nav_entries()
     context.update(kwargs)
     context.update({'conf': conf, 'navigation': navigation})
     return context

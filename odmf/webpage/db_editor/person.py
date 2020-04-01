@@ -7,7 +7,7 @@ from ... import db
 from traceback import format_exc as traceback
 
 
-@web.show_in_nav_for(1)
+@web.show_in_nav_for(1, 'user')
 class PersonPage:
 
     @expose_for(group.logger)

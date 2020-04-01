@@ -6,7 +6,7 @@ from ..auth import group, expose_for
 from ... import db
 
 
-@web.show_in_nav_for(0)
+@web.show_in_nav_for(0, 'camera')
 class PicturePage(object):
     """
     Navigation and search for photos from the observatory

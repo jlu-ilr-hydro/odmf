@@ -6,7 +6,7 @@ from ...config import conf
 import os
 from traceback import format_exc as traceback
 
-@web.show_in_nav_for(1)
+@web.show_in_nav_for(1, 'pen')
 class Wiki(object):
 
     def name2path(self, name):

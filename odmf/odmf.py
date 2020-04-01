@@ -185,10 +185,10 @@ def uri_tree(only_navigatable, level):
     """
     import yaml
     from .webpage import Root
-    from .webpage.lib.renderer import resource_walker
-
-    res = resource_walker(Root(), only_navigatable=only_navigatable, recursive=True, for_level=int(level))
-    yaml.safe_dump(res, sys.stdout)
+    from .webpage.lib import Resource
+    res = Resource(Root(), only_navigatable=only_navigatable, recursive=True, for_level=int(level))
+    for r in res.walk():
+        print(f'{r.uri}: {r.doc}')
 
 
 if __name__ == '__main__':

@@ -7,7 +7,7 @@ from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 
 
-@web.show_in_nav_for(1)
+@web.show_in_nav_for(1, 'tags')
 class LogPage:
 
     @expose_for(group.guest)

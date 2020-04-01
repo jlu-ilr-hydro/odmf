@@ -549,7 +549,7 @@ class Plot(object):
 
 plotgroup = group.logger
 
-@web.show_in_nav_for(0)
+@web.show_in_nav_for(0, 'chart-line')
 class PlotPage(object):
 
     @expose_for(plotgroup)

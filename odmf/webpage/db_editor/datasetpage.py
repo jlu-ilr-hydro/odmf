@@ -14,7 +14,7 @@ from ...tools.calibration import Calibration, CalibrationSource
 from pytz import common_timezones
 import cherrypy
 
-@web.show_in_nav_for(1)
+@web.show_in_nav_for(1, icon='table')
 class DatasetPage:
     """
     Serves the direct dataset manipulation and querying

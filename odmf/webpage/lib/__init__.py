@@ -4,13 +4,13 @@
 __all__ = [
     'render', 'markdown', 'literal', 'user',
     'cherrypy', 'method', 'mime', 'escape',
-    'expose', 'json_in', 'HTTPRedirect', 'HTTPError', 'resource_walker'
+    'expose', 'json_in', 'HTTPRedirect', 'HTTPError', 'Resource'
 ]
 
 import cherrypy
 from functools import wraps
 
-from .renderer import render, resource_walker, literal, escape
+from .renderer import render, Resource, literal, escape
 from .render_tools import markdown, user
 
 from .conversion import *
@@ -38,7 +38,7 @@ def json_out(obj):
     ).encode('utf-8')
 
 
-def show_in_nav_for(level=0):
+def show_in_nav_for(level=0, icon=None):
     """
     Use as a class / method decorator to flag an exposed object in the site navigation
 
@@ -49,6 +49,7 @@ def show_in_nav_for(level=0):
     """
     def decorate(f):
         f.show_in_nav = level
+        f.icon = icon
         f.exposed = True
         return f
     return decorate

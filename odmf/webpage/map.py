@@ -7,8 +7,11 @@ from . import lib as web
 from .. import db
 
 
-@web.show_in_nav_for(0)
+@web.show_in_nav_for(0, icon='map')
 class MapPage(object):
+    """
+    The main map page
+    """
 
     @web.expose
     def index(self, site=None):

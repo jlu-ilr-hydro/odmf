@@ -18,7 +18,7 @@ from ...config import conf
 
 
 @web.expose
-@web.show_in_nav_for(1)
+@web.show_in_nav_for(1, 'map-marker-alt')
 class SitePage:
     @expose_for(group.guest)
     def default(self, actualsite_id=None, error=''):

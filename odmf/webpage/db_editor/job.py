@@ -8,7 +8,7 @@ from traceback import format_exc as traceback
 from datetime import datetime
 
 
-@web.show_in_nav_for(1)
+@web.show_in_nav_for(1, 'tasks')
 class JobPage:
 
     @expose_for(group.logger)

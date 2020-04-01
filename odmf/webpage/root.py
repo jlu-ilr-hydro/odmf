@@ -30,28 +30,29 @@ class Root(object):
                   'tools.auth.on': True,
                   'tools.sessions.locking': 'early'}
 
-    api = api.API()
+    map = map.MapPage()
     site = dbe.SitePage()
-    user = dbe.PersonPage()
-    valuetype = dbe.VTPage()
-    dataset = dbe.DatasetPage()
+    plot = plot.PlotPage()
     download = upload.DownloadPage()
-    project = dbe.ProjectPage()
+    dataset = dbe.DatasetPage()
+    picture = dbe.PicturePage()
     job = dbe.JobPage()
     log = dbe.LogPage()
-    map = map.MapPage()
+
+    valuetype = dbe.VTPage()
+    project = dbe.ProjectPage()
     instrument = dbe.DatasourcePage()
-    picture = dbe.PicturePage()
-    preferences = Preferences()
-    plot = plot.PlotPage()
     calendar = cll.CalendarPage()
     wiki = cll.Wiki()
+    user = dbe.PersonPage()
     admin = cll.AdminPage()
+    api = api.API()
+
+    preferences = Preferences()
     media = static.StaticServer('media', True)
     datafiles = static.StaticServer('datafiles', True)
 
     @expose_for()
-    @web.show_in_nav_for()
     def index(self):
         """
         Root home: Shows the map page if the current user has no urgent jobs.
@@ -63,23 +64,9 @@ class Root(object):
                 raise web.HTTPRedirect('/job')
         return self.map.index()
 
-    @expose_for()
-    def navigation(self):
-        """
-        The bare navigation page, usually embedded in other pages
-        :return:
-        """
-        from .lib.renderer import get_nav_entries, render
-        return render(
-                'bootstrap_navigation.html',
-                title='bootstrap@odmf',
-                background_image=conf.nav_background,
-                left_logo=conf.nav_left_logo,
-                resources=get_nav_entries().items(),
-            ).render()
 
     @expose_for()
-    @web.show_in_nav_for()
+    @web.show_in_nav_for(icon='key')
     def login(self, frompage=None, username=None, password=None, error='', logout=None):
         """
         Enter here your username and password to get access to restricted data or to change data
