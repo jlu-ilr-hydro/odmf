@@ -2,7 +2,7 @@
 
 <py:extends href="bootstrap_navigation.html" xmlns:py="">
     <py:block name="sidebar">
-        <div class="container bg-info">
+        <div class="container bg-secondary">
             <h1 class="text-light">${users.current}</h1>
             <form method="post" action="${conf.root_url}/login">
                 <input type="hidden" name="frompage" id="frompage" value="${frompage}"/>
@@ -32,7 +32,7 @@
                 <div class="col alert alert-danger" role="alert" py:content="error" />
             </div>-->
             <div class="row">
-                <div class="">
+                <div class="card card-body">
                     <h1 class="display-4">About</h1>
                     <a href="https://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
                         <img src="${conf.root_url}/media/images/ilr-logo_4_klein_RGB.png" alt="ILR"/>

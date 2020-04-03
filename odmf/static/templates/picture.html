@@ -50,7 +50,13 @@
         </script>
     </py:block>
     <py:block name="sidebar">
-        <a py:if="picture" href="${conf.root_url}/picture">&#x25C2;overview</a>
+        <a py:if="picture"
+           href="${conf.root_url}/picture"
+           class="btn btn-primary flexbox h1"
+        >
+            <span><i class="fas fa-angle-left mr-2"/>overview</span>
+            <span><i class="fas fa-eye"/></span>
+        </a>
         <a href="#filter" id="filter-toggle" class="btn btn-secondary flexbox h1" data-toggle="collapse">
             <span><i class="fas fa-filter mr-2"/>Filter</span><span><i class="fas fa-plus-circle"/></span>
         </a>
@@ -74,8 +80,8 @@
                             onchange="enableupload();" />
 
                     <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="customFile"/>
-                        <label id="imgfile" class="custom-file-label" for="customFile">Choose file</label>
+                        <input type="file" class="custom-file-input" id="imgfile" name="imgfile"/>
+                        <label class="custom-file-label" for="imgfile">Choose file</label>
                     </div>
                 </div>
                 <div class="form-group">
@@ -89,38 +95,49 @@
         <div class="content">
             <div class="error" py:content="error" />
 
-            <div py:if="picture">
-                <div>photo:${picture.id}
-                        ${formatdatetime(picture.time)} by <a href="${conf.root_url}/user/${picture.by.username}">${picture.by}</a>
-                </div>
-                <div>
-                    Location: <a href="${conf.root_url}/site/${picture.site.id}">${picture.site}</a>
-                </div>
-                <div>
-                    Picture height:
-                    <select id="imagesize">
-                        <option value="256">256</option>
-                        <option value="512">512</option>
-                        <option value="768">768</option>
-                        <option value="1024">1024</option>
-                    </select>
-                    px
-                </div>
-                <img src="${conf.root_url}/picture/${picture.id}" id="bigimage"/>
-            </div>
-            <div py:if="imagelist and not picture">
-                <div py:for="img in imagelist" class="table">
-                    <div class="cell">
-                        <a href="${conf.root_url}/picture?id=${img.id}">
-                            <img src="data:${img.mime};base64,${img.thumbnail64()}"
-                                 title="${img}"/>
-                        </a>
+            <div py:if="picture" class="container-fluid bg-dark">
+                <div class="card">
+                    <img src="${conf.root_url}/picture/image/${picture.id}" id="bigimage" class="card-image-top"/>
+                    <div class="card-body">
+                        photo:${picture.id} ${formatdatetime(picture.time)} by
+                        <a href="${conf.root_url}/user/${picture.by.username}">${picture.by}</a>
+                        <div>
+                            Location: <a href="${conf.root_url}/site/${picture.site.id}">${picture.site}</a>
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <label for="imagesize" class="input-group-text">Picture height</label>
+                            </div>
+                            <select id="imagesize" class="custom-select">
+                                <option value="256">256 px</option>
+                                <option value="512">512 px</option>
+                                <option value="768">768 px</option>
+                                <option value="1024">1024 px</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="cell" >
-                    ${formatdatetime(img.time)} <br/>
-                        <a href="${conf.root_url}/user/${img.by.username}">${img.by}</a>
-                        <br/>
-                        <a href="${conf.root_url}/site/${img.site.id}">site #${img.site.id}</a>
+                </div>
+
+            </div>
+            <div py:if="imagelist and not picture" class="container-fluid">
+
+                <div py:for="img in imagelist" style="display:inline-grid" >
+                    <div class="card mb-1 ">
+                        <div class="card-image-top">
+                            <a href="${conf.root_url}/picture?id=${img.id}">
+                                <img src="data:${img.mime};base64,${img.thumbnail64()}"
+                                     title="${img}"/>
+                            </a>
+                        </div>
+                        <div class="card-body small m-0 p-1">
+                            <div class="card-text m-0">
+                                <p class="mb-0">${formatdatetime(img.time, '%Y-%m-%d')}</p>
+                                <p class="mb-0">${formatdatetime(img.time, '%H:%M:%S')}</p>
+                                <p class="mb-0"><a href="${conf.root_url}/user/${img.by.username}">${img.by}</a></p>
+                                <p class="mb-0"><a href="${conf.root_url}/site/${img.site.id}">site #${img.site.id}</a></p>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>

@@ -2,6 +2,7 @@ import cherrypy
 
 from .. import lib as web
 from ..auth import group, expose_for
+from ...config import conf
 
 from ... import db
 
@@ -83,4 +84,4 @@ class PicturePage(object):
         session.commit()
         imgid = img.id
         session.close()
-        raise web.HTTPRedirect('/picture?id=%i' % imgid)
+        raise web.HTTPRedirect(conf.root_url + '/picture?id=%i' % imgid)
