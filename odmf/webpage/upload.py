@@ -201,6 +201,7 @@ class DBImportPage(object):
             log("Import with instrumentimport")
             return self.instrumentimport(filename, kwargs)
 
+
 class HTTPFileNotFoundError(HTTPError):
     def __index__(self, path: Path):
         super().__init__(404, f'{path.href} not found')
@@ -217,8 +218,7 @@ class HTTPFileNotFoundError(HTTPError):
         ).render()
 
 
-
-@web.show_in_nav_for(1, 'file')
+@web.show_in_nav_for(0, 'file')
 class DownloadPage(object):
     to_db = DBImportPage()
 
@@ -227,7 +227,7 @@ class DownloadPage(object):
         vpath.clear()
         return self
 
-    @expose_for(group.logger)
+    @expose_for(group.guest)
     def index(self, uri='.', **kwargs):
         path = Path((datapath / uri).absolute())
         files = []
@@ -256,7 +256,33 @@ class DownloadPage(object):
                           max_size=conf.upload_max_size
                           ).render()
 
+    def get(self, uri='.'):
+        """
+        Gets the file or directory at the given uri
+        """
+        ...
+
+    def put(self, uri='.', is_dir=False):
+        """
+        Uploads a file to the given uri or creates a directory
+
+        Parameters
+        ----------
+        uri: The URI the resource should be created
+        is_dir: True, if the resource should be a directory
+
+        """
+        ...
+
+    def delete(self, uri='.'):
+        """
+        Removes a resource
+        """
+        ...
+
+
     @expose_for(group.editor)
+    @web.method.post_or_put
     def upload(self, dir, datafile, **kwargs):
         error = ''
         fn = ''
@@ -330,7 +356,9 @@ class DownloadPage(object):
         return web.markdown(io.getvalue())
 
     @expose_for(group.editor)
+    @web.method.post_or_put
     def newfolder(self, dir, newfolder):
+        "To be replaced by put, is_dir=True"
         error = ''
         if newfolder:
             if ' ' in newfolder:
@@ -352,9 +380,10 @@ class DownloadPage(object):
             url += '&error=' + web.escape(error)
         return self.index(dir=dir, error=error)
 
-    # @TODO: Is the usage of a dir post variable safe through foreign access?
     @expose_for(group.admin)
+    @web.method.post_or_delete
     def removefile(self, dir, filename):
+        "To be replaced by delete"
         path = datapath / dir / filename
         error = ''
 
@@ -374,7 +403,3 @@ class DownloadPage(object):
             raise web.HTTPRedirect("/download/?dir=%s&error=%s" % (dir, error))
 
 
-if __name__ == '__main__':
-    class Root:
-        download = DownloadPage()
-    web.start_server(Root(), autoreload=False, port=8081)
