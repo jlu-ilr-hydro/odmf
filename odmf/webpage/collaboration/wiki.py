@@ -47,11 +47,19 @@ class Wiki(object):
 
     @expose_for()
     def default(self, *args):
+        content = '# The current odmf-wiki system is broken'
+        res = web.render('wiki.html', name='wiki', error='',
+                         wikitext=content, pages=[]).render()
+        return res
+
         from glob import glob
         args = list(args)
         name = '.'.join(args)
         title = ' / '.join(arg.title() for arg in args)
-        filename = self.name2path(name.lower())
+        if name:
+            filename = self.name2path(name.lower())
+        else:
+            filename = ''
         content = ''
         related = ''
         pages = sorted([os.path.basename(s)[:-5]
