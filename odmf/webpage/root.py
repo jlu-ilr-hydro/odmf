@@ -61,7 +61,7 @@ class Root(object):
             session = db.Session()
             user = session.query(db.Person).get(web.user())
             if user and user.jobs.filter(db.Job.done == False, db.Job.due - datetime.now() < timedelta(days=7)).count():
-                raise web.HTTPRedirect('/job')
+                raise web.HTTPRedirect(conf.root_url + '/job')
         return self.map.index()
 
 
