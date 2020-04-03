@@ -1,11 +1,10 @@
 import os
 import os.path as op
-
+from ..config import conf
 __all__ = ['mail', 'Path']
 
-datapath = op.abspath(op.join(op.dirname(__file__),
-                              '..', 'webpage', 'datafiles'))
-home = op.dirname(datapath)
+
+
 try:
     import grp
     try:
@@ -18,14 +17,17 @@ except ImportError:
 
 class Path(object):
     def __init__(self, abspath):
+        self.datapath = str(conf.abspath('datafiles'))
         self.absolute = op.realpath(abspath)
-        self.name = op.relpath(self.absolute, datapath).replace('\\', '/')
-        self.basename = op.basename(self.absolute)
-        if op.isdir(self.absolute):
-            self.href = '/download?dir=%s' % self.name
-        else:
-            self.href = '/' + \
-                op.relpath(self.absolute, home).replace('\\', '/')
+        self.name = op.relpath(self.absolute, self.datapath).replace('\\', '/')
+
+    @property
+    def basename(self):
+        return op.basename(self.absolute)
+
+    @property
+    def href(self):
+        return f'{conf.root_url}/download/{self.name}'
 
     def __bool__(self):
         return op.exists(self.absolute)
@@ -44,7 +46,7 @@ class Path(object):
 
     @property
     def is_legal(self):
-        return self.absolute.startswith(datapath)
+        return self.absolute.startswith(self.datapath)
 
     def __lt__(self, other):
         return ('%s' % self) < ('%s' % other)
@@ -69,7 +71,7 @@ class Path(object):
     def breadcrumbs(self):
         res = [self]
         p = op.dirname(self.absolute)
-        while datapath in p:
+        while self.datapath in p:
             res.insert(0, Path(p))
             p = op.dirname(p)
         return res

@@ -153,6 +153,7 @@
 		<h3>
 			<span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
 		</h3>
+        <p py:content="curdir.absolute"/>
 		<div class="help tooltip">
 			<h3>
 				${curdir.basename.title()}

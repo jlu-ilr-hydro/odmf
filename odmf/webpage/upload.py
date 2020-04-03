@@ -11,11 +11,12 @@ from . import lib as web
 
 import os
 from traceback import format_exc as traceback
+from io import StringIO, BytesIO
+from cherrypy import log, request, HTTPError
+import chardet
+from cherrypy.lib.static import serve_file
 
 from .auth import group, expose_for
-from io import StringIO, BytesIO
-from cherrypy import log
-import chardet
 
 from .. import dataimport as di
 from ..dataimport import ManualMeasurementsImport
@@ -24,6 +25,7 @@ from ..dataimport.importlog import LogbookImport
 from ..tools import Path
 
 from ..config import conf
+
 datapath = conf.abspath('datafiles')
 
 #
@@ -199,14 +201,35 @@ class DBImportPage(object):
             log("Import with instrumentimport")
             return self.instrumentimport(filename, kwargs)
 
+class HTTPFileNotFoundError(HTTPError):
+    def __index__(self, path: Path):
+        super().__init__(404, f'{path.href} not found')
+        self.path = path
+
+    def get_error_page(self, *args, **kwargs):
+        return web.render(
+            'download.html',
+            error=str(self),
+            files=[],
+            directories=[],
+            curdir=self.path,
+            max_size=conf.upload_max_size
+        ).render()
+
+
 
 @web.show_in_nav_for(1, 'file')
 class DownloadPage(object):
     to_db = DBImportPage()
 
+    def _cp_dispatch(self, vpath: list):
+        request.params['uri'] = '/'.join(vpath)
+        vpath.clear()
+        return self
+
     @expose_for(group.logger)
-    def index(self, dir='', error='', **kwargs):
-        path = datapath / dir
+    def index(self, uri='.', **kwargs):
+        path = Path((datapath / uri).absolute())
         files = []
         directories = []
         if path.isdir() and path.is_legal:
@@ -219,9 +242,16 @@ class DownloadPage(object):
                         files.append(child)
             files.sort()
             directories.sort()
+
+        elif path.isfile():
+            try:
+                # TODO: Render/edit .md, .conf, .txt files. .csv, .xls also?
+                return serve_file(path.absolute)
+            except Exception as e:
+                raise HTTPFileNotFoundError(path)
         else:
-            error = f'{dir} is not a valid directory'
-        return web.render('download.html', error=error, files=files,
+            raise HTTPFileNotFoundError(path)
+        return web.render('download.html', files=files, error='',
                           directories=directories, curdir=path,
                           max_size=conf.upload_max_size
                           ).render()

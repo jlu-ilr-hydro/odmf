@@ -48,7 +48,8 @@ def find_odmf_static_location():
 
 
 
-def static_locations(from_config):
+def static_locations(*from_config):
+
     paths = [find_odmf_static_location()] + [Path(p) for p in from_config]
     filtered = []
     [filtered.append(str(p)) for p in paths if p.exists() and p not in filtered]
@@ -68,7 +69,6 @@ class Configuration:
     database_username = ''
     database_password = ''
     database_host = '127.0.0.1'
-
     static = [prefix]
     media_image_path = 'webpage/media'
     nav_background = '/media/gladbacherhof.jpg'
@@ -116,8 +116,8 @@ class Configuration:
         })
 
         self.update(kwargs)
-
-        self.static = static_locations(self.static)
+        self.home = str(Path(prefix).absolute())
+        self.static = static_locations(self.home, *self.static)
 
     def abspath(self, relative_path: Path):
         """
@@ -149,6 +149,7 @@ def load_config():
         conf_dict = yaml.safe_load(conf_file.open())
         logger.debug('loaded ', str(conf_file.resolve()))
     conf = Configuration(**conf_dict)
+
     if not conf:
        logger.warning(', '.join(k for k, v in conf.to_dict().items() if v is ...) + ' are undefined')
     return conf
