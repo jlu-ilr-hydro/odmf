@@ -1,134 +1,131 @@
 <!DOCTYPE html>
-<html>
 
-<head>
-    <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <script>
+            //<![CDATA[
+            function toggle(id) {
+                $('#'+id).slideToggle('fast');
+            }
+            function reload() {
+                var params = {site:$('#siteselect').val(),
+                    by:$('#userselect').val()};
+                window.location = odmf_ref('/picture?') + $.param(params);
+            }
+            function enableupload() {
+                var siteid = $('#uploadsite').val();
+                var user = $('#uploaduser').val();
+                $('#uploadsubmit').prop('disabled',!((siteid>0) && (user)));
+            }
+            function popSelect() {
+                $.getJSON(odmf_ref('/site/json'),[],function(data){
+                    var html='<option value="">select the photo site...</option>';
+                    $.each(data,function(index,item){
+                        html += '<option value="'+item.id+'">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
+                    });
+                    $('.sites').html(html);
+                    $('.sites').val('${site}');
+                });
+                $.getJSON(odmf_ref('/user/json'),[],function(data){
+                    var html='<option value="">select the author...</option>';
+                    $.each(data,function(index,item){
+                        html += '<option value="'+item.username+'">' + item.label + '</option>';
+                    });
+                    $('.users').html(html);
+                    $('#userselect').val('${by}');
+                    $('#uploaduser').val('${user()}');
+                });
+            }
+            $(function() {
+                popSelect();
+                enableupload();
+                $('#bigimage').prop('height',512);
+                $('#imagesize').change(function() {
+                    $('#bigimage').prop('height',$(this).val());
+                });
+                $('#imagesize').val(512);
+            });
 
-	<link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<script src="${conf.root_url}/media/lib/jquery-3.4.1.min.js" type="text/javascript"></script>
-  <script>
-  	//<![CDATA[
-    function toggle(id) {
-    	$('#'+id).slideToggle('fast');
-    }
-    function reload() {
-    	var params = {site:$('#siteselect').val(),
-    								by:$('#userselect').val()};
-    	window.location = odmf_ref('/picture?') + $.param(params);
-    }
-    function enableupload() {
-    	var siteid = $('#uploadsite').val();
-    	var user = $('#uploaduser').val();
-  		$('#uploadsubmit').prop('disabled',!((siteid>0) && (user)));
-    }
-    function popSelect() {
-    	$.getJSON(odmf_ref('/site/json'),[],function(data){
-		  		var html='<option value="">Please select...</option>';
-		  		$.each(data,function(index,item){
-	  				html += '<option value="'+item.id+'">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
-		  		});
-		  		$('.sites').html(html);
-		  		$('.sites').val('${site}');
-	  	});
-    	$.getJSON(odmf_ref('/user/json'),[],function(data){
-		  		var html='<option value="">Please select...</option>';
-		  		$.each(data,function(index,item){
-	  				html += '<option value="'+item.username+'">' + item.label + '</option>';
-		  		});
-		  		$('.users').html(html);
-		  		$('#userselect').val('${by}');
-		    	$('#uploaduser').val('${user()}');
-	  	});
-	  }
-    $(function() {
-    	popSelect();
-    	enableupload();
-    	$('#bigimage').prop('height',512);
-    	$('#imagesize').change(function() {
-    		$('#bigimage').prop('height',$(this).val());
-    	});
-    	$('#imagesize').val(512);
-    });
+            //]]>
+        </script>
+    </py:block>
+    <py:block name="sidebar">
+        <a py:if="picture" href="${conf.root_url}/picture">&#x25C2;overview</a>
+        <a href="#filter" id="filter-toggle" class="btn btn-secondary flexbox h1" data-toggle="collapse">
+            <span><i class="fas fa-filter mr-2"/>Filter</span><span><i class="fas fa-plus-circle"/></span>
+        </a>
+        <div class="collapse card card-body" id="filter">
+            <select id="siteselect" class="sites form-control" onchange="reload();"/>
+            <select id="userselect" class="users col-lg form-control" onchange="reload();"/>
 
-		//]]>
-    </script>
+        </div>
+        <a href="#upload" class="btn btn-secondary flexbox h1" data-toggle="collapse"
+           py:if="is_member('logger')" >
+            <span><i class="fas fa-file-upload mr-2"/>Upload</span>
+            <span><i class="fas fa-plus-circle"/></span>
+        </a>
+        <div class="collapse card card-body" id="upload">
+            <form method="post" enctype="multipart/form-data" action="${conf.root_url}/picture/upload"
+                  py:if="is_member('logger')" id="uploadform">
+                <div class="form-group">
+                    <select class="sites form-control" id="uploadsite"
+                            name="siteid" onchange="enableupload();" title="site" data-toggle="tooltip"/>
+                    <select class="users form-control" id="uploaduser" name="user"
+                            onchange="enableupload();" />
 
-	<title>Schwingbach Pictures</title>
-	<style>
-		.cell {
-			display: table-cell; 
-			width:102px; 
-			height:72px; 
-			overflow:scroll; 
-			vertical-align: top; 
-			font-size: 75%;
-		}
-		.table {
-			border: solid 1px #E8F0FF;
-			display: inline-table;
-		}
-	</style>
-</head>
-<body>
-		${navigation(image.name if image else 'Picture')}
-		<div class="content">
-		  <div class="error" py:content="error" />
-		  
-			<a py:if="image" href="${conf.root_url}/picture">&#x25C2;overview</a>
-			<a href="javascript:toggle('filter');">&#x25BE;filter</a>
-  			<div class="small toggle" id="filter">
-		    	site:
-		    	<select id="siteselect" class="sites" onchange="reload();"/>
-		    	by:<select id="userselect" class="users" onchange="reload();"/>
-  			</div>
-  			<a py:if="is_member('logger')" href="javascript:toggle('uploadform');">&#x25BE; upload</a>
-			<form method="post" enctype="multipart/form-data" action="${conf.root_url}/picture/upload"
-	    				py:if="is_member('logger')" id="uploadform" class="toggle small">
-		    	site:<select class="sites" id="uploadsite" name="siteid" onchange="enableupload();"/>
-			    by:<select class="users" id="uploaduser" name="user" onchange="enableupload();"/>
-		    	file:
-		    	<input type="file" name="imgfile" id="imgfile"/>
-		    	<input id="uploadsubmit" type="submit" value="upload" disabled="disabled"/>
-		    </form>
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="customFile"/>
+                        <label id="imgfile" class="custom-file-label" for="customFile">Choose file</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input id="uploadsubmit" type="submit" value="upload" disabled="disabled" class="form-control"/>
+                </div>
+            </form>
+        </div>
 
-		  <div py:if="image">
-		  	<div>photo:${image.id}
-					${formatdatetime(image.time)} by <a href="${conf.root_url}/user/${image.by.username}">${image.by}</a>
-				</div>
-				<div>
-					Location: <a href="${conf.root_url}/site/${image.site.id}">${image.site}</a>
-				</div>
-				<div>
-					Picture height:
-					<select id="imagesize">
-						<option value="256">256</option>
-						<option value="512">512</option>
-						<option value="768">768</option>
-						<option value="1024">1024</option>
-					</select>
-					px
-				</div>
-				<img src="${conf.root_url}/picture/image/${image.id}" id="bigimage"/>
-			</div>
-			<div py:if="images and not image">
-				<div py:for="image in images" class="table">
-					<div class="cell">
-						<a href="${conf.root_url}/picture?id=${image.id}">
-							<img src="data:${image.mime};base64,${image.thumbnail64()}" 
-										title="${image}"/>
-						</a>					
-					</div>
-					<div class="cell" >
-						${formatdatetime(image.time)} <br/>
-						<a href="${conf.root_url}/user/${image.by.username}">${image.by}</a>
-						<br/>
-						<a href="${conf.root_url}/site/${image.site.id}">site #${image.site.id}</a>
-					</div>
-				</div>
-			</div>
-		</div>
+    </py:block>
+    <py:block name="content">
+        <div class="content">
+            <div class="error" py:content="error" />
 
-</body>
-</html>
+            <div py:if="picture">
+                <div>photo:${picture.id}
+                        ${formatdatetime(picture.time)} by <a href="${conf.root_url}/user/${picture.by.username}">${picture.by}</a>
+                </div>
+                <div>
+                    Location: <a href="${conf.root_url}/site/${picture.site.id}">${picture.site}</a>
+                </div>
+                <div>
+                    Picture height:
+                    <select id="imagesize">
+                        <option value="256">256</option>
+                        <option value="512">512</option>
+                        <option value="768">768</option>
+                        <option value="1024">1024</option>
+                    </select>
+                    px
+                </div>
+                <img src="${conf.root_url}/picture/${picture.id}" id="bigimage"/>
+            </div>
+            <div py:if="imagelist and not picture">
+                <div py:for="img in imagelist" class="table">
+                    <div class="cell">
+                        <a href="${conf.root_url}/picture?id=${img.id}">
+                            <img src="data:${img.mime};base64,${img.thumbnail64()}"
+                                 title="${img}"/>
+                        </a>
+                    </div>
+                    <div class="cell" >
+                    ${formatdatetime(img.time)} <br/>
+                        <a href="${conf.root_url}/user/${img.by.username}">${img.by}</a>
+                        <br/>
+                        <a href="${conf.root_url}/site/${img.site.id}">site #${img.site.id}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </py:block>
+
+</py:extends>

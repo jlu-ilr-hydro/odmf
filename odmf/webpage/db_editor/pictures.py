@@ -51,25 +51,23 @@ class PicturePage(object):
 
     @expose_for()
     def index(self, id='', site='', by=''):
-        session = db.Session()
-        error = ''
-        img = imagelist = None
-        if id:
-            img = session.query(db.Image).get(int(id))
-            if not img:
-                error = "No image with id=%s found" % id
-        else:
-            imagelist = session.query(db.Image).order_by(
-                db.Image._site, db.Image.time)
-            if site:
-                imagelist = imagelist.filter_by(_site=site)
-            if by:
-                imagelist = imagelist.filter_by(_by=by)
-        res = web.render('picture.html', image=img, error=error,
-                         images=imagelist, site=site, by=by).render()
-        session.close()
-        print('Image:Index(%s, %s, %s)' % (id, site, by))
-        return res
+        with db.session_scope() as session:
+            img = imagelist = None
+            error = ''
+            if id:
+                img = session.query(db.Image).get(int(id))
+                if not img:
+                    error = "No image with id=%s found" % id
+            else:
+                imagelist = session.query(db.Image).order_by(
+                    db.Image._site, db.Image.time
+                )
+                if site:
+                    imagelist = imagelist.filter_by(_site=site)
+                if by:
+                    imagelist = imagelist.filter_by(_by=by)
+            # TODO: UnboundLocalError: local variable 'image' referenced before assignment
+            return web.render('picture.html', picture=img, error=error, imagelist=imagelist, site=site, by=by).render()
 
     @expose_for(group.logger)
     def upload(self, imgfile, siteid, user):

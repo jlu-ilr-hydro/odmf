@@ -198,8 +198,8 @@ class Renderer(object):
         self.root = root
 
     def __call__(self, template_file, **kwargs):
-        """Function to render the given data to the template specified via the
-        ``@output`` decorator.
+        """Functn data to the template specified via the
+        ``@output`` decorator.ion to render the give
         """
         template = self.loader.import_(template_file)
         # get all objects defined in render_tools
