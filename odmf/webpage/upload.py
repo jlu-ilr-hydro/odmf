@@ -204,7 +204,7 @@ class DBImportPage(object):
 
 class HTTPFileNotFoundError(HTTPError):
     def __index__(self, path: Path):
-        super().__init__(404, f'{path.href} not found')
+        super().__init__(status=404, message=f'{path.href} not found')
         self.path = path
 
     def get_error_page(self, *args, **kwargs):
@@ -244,11 +244,8 @@ class DownloadPage(object):
             directories.sort()
 
         elif path.isfile():
-            try:
-                # TODO: Render/edit .md, .conf, .txt files. .csv, .xls also?
-                return serve_file(path.absolute)
-            except Exception as e:
-                raise HTTPFileNotFoundError(path)
+            # TODO: Render/edit .md, .conf, .txt files. .csv, .xls also?
+            return serve_file(path.absolute)
         else:
             raise HTTPFileNotFoundError(path)
         return web.render('download.html', files=files, error='',

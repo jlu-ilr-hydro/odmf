@@ -186,7 +186,9 @@ def uri_tree(only_navigatable, level):
     import yaml
     from .webpage import Root
     from .webpage.lib import Resource
-    res = Resource(Root(), only_navigatable=only_navigatable, recursive=True, for_level=int(level))
+    if not only_navigatable:
+        level = None
+    res = Resource(Root()).create_tree(navigatable_for=level, recursive=True)
     for r in res.walk():
         print(f'{r.uri}: {r.doc}')
 

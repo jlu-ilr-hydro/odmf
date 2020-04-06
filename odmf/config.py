@@ -146,7 +146,7 @@ def load_config():
                    f'not found. Create a template with "odmf configure". Using incomplete configuration')
         conf_dict = {}
     else:
-        conf_dict = yaml.safe_load(conf_file.open())
+        conf_dict = yaml.safe_load(conf_file.open()) or {}
         logger.debug('loaded ', str(conf_file.resolve()))
     conf = Configuration(**conf_dict)
 
