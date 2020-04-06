@@ -7,6 +7,8 @@ import cherrypy
 from logging import getLogger
 import os
 import sys
+from ..webpage import expose_for
+
 logger = getLogger(__name__)
 server_config = {
     'tools.encode.encoding': 'utf-8',
@@ -41,10 +43,17 @@ def configure_app(autoreload=False):
 
 
 class ProxyRoot:
+
     exposed=True
+
     def __init__(self, head_base):
         from ..webpage.root import Root
+        self.head_base = head_base
         setattr(self, head_base, Root())
+
+    @expose_for()
+    def index(self):
+        raise cherrypy.HTTPRedirect('/' + self.head_base)
 
 
 def start(autoreload=False):
