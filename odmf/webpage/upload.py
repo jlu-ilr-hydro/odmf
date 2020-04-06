@@ -203,19 +203,24 @@ class DBImportPage(object):
 
 
 class HTTPFileNotFoundError(HTTPError):
-    def __index__(self, path: Path):
+    def __init__(self, path: Path):
         super().__init__(status=404, message=f'{path.href} not found')
         self.path = path
 
     def get_error_page(self, *args, **kwargs):
-        return web.render(
+
+        error = f'Resource {self.path.href} not found'
+
+        text = web.render(
             'download.html',
-            error=str(self),
+            error=error,
             files=[],
             directories=[],
             curdir=self.path,
             max_size=conf.upload_max_size
         ).render()
+
+        return text.encode('utf-8')
 
 
 @web.show_in_nav_for(0, 'file')
@@ -232,7 +237,7 @@ class DownloadPage(object):
         path = Path((datapath / uri).absolute())
         files = []
         directories = []
-        if path.isdir() and path.is_legal:
+        if path.isdir() and path.islegal():
             for fn in path.listdir():
                 if not fn.startswith('.'):
                     child = path.child(fn)
@@ -288,7 +293,7 @@ class DownloadPage(object):
             if not path:
                 path.make()
             fn = path / datafile.filename
-            if not fn.is_legal:
+            if not fn.islegal():
                 error = "'%s' is not legal"
             if fn and 'overwrite' not in kwargs:
                 error = "'%s' exists already, if you want to overwrite the old version, check allow overwrite" % fn.name

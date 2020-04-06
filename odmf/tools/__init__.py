@@ -17,7 +17,7 @@ except ImportError:
 
 class Path(object):
     def __init__(self, abspath):
-        self.datapath = str(conf.abspath('datafiles'))
+        self.datapath = op.realpath(conf.datafiles)
         self.absolute = op.realpath(abspath)
         self.name = op.relpath(self.absolute, self.datapath).replace('\\', '/')
 
@@ -44,8 +44,7 @@ class Path(object):
             unit += 1
         return "%5.4g %s" % (size, units[unit])
 
-    @property
-    def is_legal(self):
+    def islegal(self):
         return self.absolute.startswith(self.datapath)
 
     def __lt__(self, other):

@@ -325,7 +325,7 @@ class API(BaseAPI):
             if not path:
                 path.make()
             fn = path + datafile.filename
-            if not fn.is_legal:
+            if not fn.islegal:
                 raise cherrypy.HTTPError(400, f"'{fn}' is not legal")
             if fn and not overwrite:
                 raise cherrypy.HTTPError(400, f"'{fn}' exists already and overwrite is not allowed, set overwrite")

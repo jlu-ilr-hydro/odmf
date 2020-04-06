@@ -5,7 +5,7 @@ Created on 05.09.2012
 The file borrows heavily from 
 http://tools.cherrypy.org/wiki/AuthenticationAndAccessRestrictions
 '''
-from operator import le
+
 import os.path as op
 import collections
 
