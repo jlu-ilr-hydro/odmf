@@ -148,7 +148,7 @@ def load_config():
         conf_dict = {}
     else:
         conf_dict = yaml.safe_load(conf_file.open()) or {}
-        logger.debug('loaded ', str(conf_file.resolve()))
+        logger.debug(f'loaded {conf_file.resolve()}')
     conf = Configuration(**conf_dict)
 
     if not conf:
