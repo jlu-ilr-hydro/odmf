@@ -83,6 +83,7 @@ class Configuration:
     cuahsi_wsdl_endpoint = 'http://fb09-pasig.umwelt.uni-giessen.de/wof/index.php/cuahsi_1_1.asmx?WSDL'
     smtp_serverurl = 'mailout.uni-giessen.de'
     root_url = '/'
+    datafiles = './datafiles'
 
     def __bool__(self):
         return ... not in vars(self).values()
