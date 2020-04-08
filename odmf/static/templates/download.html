@@ -1,196 +1,256 @@
 <!DOCTYPE html>
-<html>
 
-<head>
-    <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <script>
 
-    <link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Download</title>
-    <script src="${conf.root_url}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
-    <script>
+            //<![CDATA[
 
-        //<![CDATA[
+            function isFileSizeToBig( size ) {
+                var MAX_SIZE = ${max_size};
 
-        function isFileSizeToBig( size ) {
-            var MAX_SIZE = ${max_size};
-
-            return size > MAX_SIZE;
-        }
+                return size > MAX_SIZE;
+            }
 
 
 
 
-        $(function() {
+            $(function() {
 
-            $('#datafile').change( function(evt) {
-                var path = evt.target.files[0];
-                if(isFileSizeToBig(path.size)) {
-                    alert("Please split your file! " + path.name + " has more than 25 mb. Has " + path.size / 1000000 + " mb");
-                    return;
-                }
-                $('.upload').prop('disabled', !$(this).val());
-            });
+                $('#datafile').change( function(evt) {
+                    var path = evt.target.files[0];
+                    if(isFileSizeToBig(path.size)) {
+                        alert("Please split your file! " + path.name + " has more than 25 mb. Has " + path.size / 1000000 + " mb");
+                        return;
+                    }
+                    $('.upload').prop('disabled', !$(this).val());
+                });
 
-            // Delete button
-            $('form.remove-form').submit( function( e ) {
-                if (window.confirm("Do you really want to delete this file?")) {
+                // Delete button
+                $('form.remove-form').submit( function( e ) {
+                    if (window.confirm("Do you really want to delete this file?")) {
 
-                } else {
-                    e.preventDefault()
-                }
-            })
+                    } else {
+                        e.preventDefault()
+                    }
+                })
 
-            $('#help').load('getindex?dir=${curdir}');
-            $('.help').click(function() {
-                if ($('#help').html().substring(0,9)!='<textarea') {
-                    // Create textarea for editing of index.html
-                    $('#help').html('<textarea rows="20"/><br/><button>Save</button><button>Cancel</button><a href="${conf.root_url}/wiki/help"><img src="${conf.root_url}/media/ui-icons/help.png" /></a>');
-                    // Load current file in textarea
-                    $.get(odmf_ref('/datafiles/${curdir.name}/index.html'),{},function(text) {
-                        $('#help textarea').val(text);
-                    });
-                    // Save file on click
-                    $('#help button').click(function() {
-                        if ($(this).text()=="Save") {
-                            var text=$('#help textarea').val();
-                            $.post(odmf_ref('/download/saveindex/'),{dir:'${curdir}',s:text},function(text){
+                $('#help').load('getindex?dir=${curdir}');
+                $('.help').click(function() {
+                    if ($('#help').html().substring(0,9)!='<textarea') {
+                        // Create textarea for editing of index.html
+                        $('#help').html('<textarea rows="20"/><br/><button>Save</button><button>Cancel</button><a href="${conf.root_url}/wiki/help"><img src="${conf.root_url}/media/ui-icons/help.png" /></a>');
+                        // Load current file in textarea
+                        $.get(odmf_ref('/datafiles/${curdir.name}/index.html'),{},function(text) {
+                            $('#help textarea').val(text);
+                        });
+                        // Save file on click
+                        $('#help button').click(function() {
+                            if ($(this).text()=="Save") {
+                                var text=$('#help textarea').val();
+                                $.post(odmf_ref('/download/saveindex/'),{dir:'${curdir}',s:text},function(text){
+                                    $('#help').load('getindex?dir=${curdir}');
+                                });
+                            } else {
                                 $('#help').load('getindex?dir=${curdir}');
-                            });
-                        } else {
-                            $('#help').load('getindex?dir=${curdir}');
-                        }
-                    });
-                }
+                            }
+                        });
+                    }
+                });
             });
-        });
-        //]]>
-    </script>
-    <style>
-        .dbimport {
-            display: inline-block;
-            width: 32px;
-            height: 32px;
-            background-image: url(/media/ui-icons/shimmer/document_32.png);
-            background-repeat:no-repeat;
-            color:white;
-        }
-        .dbimport:hover {
-            background-image: url(/media/ui-icons/shimmer/document_add_32.png);
-            color:#32739D;
-            cursor: pointer;
-        }
-        a:hover {
-            background-color: #4665A2;
-            color: white;
-            text-decoration: none;
-        }
-        .help {
-            float: right;
-            width: 30%;
-            border: dotted 1px #32739d;
-            border-radius: 0px;
-            color: black;
-            background-color: #E8F0FF;
-            margin: 0.5em 0.5em 0.5em 0.5em;
-            padding: 1em;
-            background: white;
-            cursor: hand;
-        }
-        #help textarea {
-            width: 100%;
-            font-family: monospace;
-            cursor: auto;
-        }
-        ul.folder {
-            list-style-image: url(/media/ui-icons/shimmer/folder_32.png); vertical-align:middle;
-        }
-        li.folder {
-            list-style-image: url(/media/ui-icons/shimmer/folder_add_32.png)
-        }
+            //]]>
+        </script>
+    </py:block>
+    <py:block name="style">
+        <style>
+            .dbimport {
+                display: inline-block;
+                width: 32px;
+                height: 32px;
+                background-image: url(${conf.root_url}/ui-icons/shimmer/document_32.png);
+                background-repeat:no-repeat;
+                color:white;
+            }
+            .dbimport:hover {
+                background-image: url(${conf.root_url}/ui-icons/shimmer/document_add_32.png);
+                color:#32739D;
+                cursor: pointer;
+            }
+            a:hover {
+                background-color: #4665A2;
+                color: white;
+                text-decoration: none;
+            }
 
-        form.remove-form input[type="submit"] {
-            border-radius: 10px;
-            border: 1px #000;
-            box-shadow: #fff 3px 3px 7px;
-        }
+            #help textarea {
+                width: 100%;
+                font-family: monospace;
+                cursor: auto;
+            }
 
-        .remove-button:hover{
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-${navigation('File management')}
-<div class="content">
-    <div class="error" py:content="error" />
-    <div py:if="is_member('logger')">
-        <h2>Upload...</h2>
-        <div style="vertical-align:middle;">
-            <img src="${conf.root_url}/media/ui-icons/shimmer/document_add_32.png" />
-            <form method="post" enctype="multipart/form-data" action="${conf.root_url}/download/upload" style="display: inline;">
-                file:
-                <div style="display: inline-block;">
-		    		<span class="tooltip">
-		    			<input id="overwrite" type="checkbox" value="overwrite" name="overwrite"/>
-		    			<span>Allow to overwrite existing file with the same name</span>
-		    		</span>
+            form.remove-form input[type="submit"] {
+                border-radius: 10px;
+                border: 1px #000;
+                box-shadow: #fff 3px 3px 7px;
+            }
 
-                    <input type="file" name="datafile" id="datafile"/>
-                </div>
-                <input name="dir" type="hidden" value="${curdir}" />
-                <input type="submit"  class="upload" name="upload" value="upload file" disabled="disabled"/>
-                <!--<input type="submit" class="upload" name="uploadimport" value="upload &amp; import" disabled="disabled"/>-->
-                to: <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
+            .remove-button:hover{
+                cursor: pointer;
+            }
+        </style>
+    </py:block>
+    <py:block name="sidebar">
+        <div class="nav-item mr-4 p-2">
+            <nav aria-label="breadcrumb" class="">
+                <ol class="breadcrumb">
+                    <li py:for="bc in curdir.breadcrumbs()" class="breadcrumb-item">
+                        <a href="${bc.href}" py:content="bc.basename" />
+                    </li>
+                </ol>
+            </nav>
+            <h5>content</h5>
+            <ul class="nav flex-column" id="directories">
+                <li py:if="not curdir.isroot()" class="nav-item border-top">
+                    <a class="nav-link" href="${curdir.parent().href}" ><i class="fas fa-folder-open mr-2" />..</a>
 
-            </form>
-
-        </div>
-    </div>
-
-    <h2>Download</h2>
-    <h3>
-        <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
-    </h3>
-    <div class="help tooltip">
-        <h3>
-                ${curdir.basename.title()}
-        </h3>
-        <div id="help" class="small"/>
-        <span>Click to edit...</span>
-    </div>
-    <div>
-        <ul class="folder">
-            <li class="folder">
-                <form method="post" action="${conf.root_url}/download/newfolder" style="display: inline;">
-                    new folder:
-                    <input type="text" name="newfolder" />
+                </li>
+                <li py:for="d in sorted(directories)" class="nav-item border-top">
+                    <a class="nav-link" href="${d.href}">
+                        <i class="fas fa-folder mr-2" /> ${d.basename}
+                    </a>
+                </li>
+                <li py:for="f in sorted(files)" class="nav-item flexbox border-top">
+                    <a class="nav-link" href="${f.href}">
+                        <i class="fas fa-file mr-2" />${f.basename}
+                    </a>
+                </li>
+            </ul>
+            <div class="container m-1 p-1">
+                <form method="post" action="${conf.root_url}/download/newfolder" class="form-group">
+                    <div class="input-group">
+                        <input type="text" name="newfolder" class="form-control" placeholder="new folder name"/>
+                        <span class="input-group-append">
+                            <button class="btn btn-secondary" type="submit"
+                                    title="Add new folder" data-toggle="tooltip" data-placement="right"
+                            >
+                                <i class="fa fa-folder-plus"></i>
+                            </button>
+                        </span>
+                    </div>
                     <input name="dir" type="hidden" value="${curdir}" />
-                    <input type="submit" value="Create folder"/>
                 </form>
-            </li>
-            <li py:for="f in directories">
-                <a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" />
-            </li>
-        </ul>
-        <ul style="list-style: none;padding-left: 0px;">
-            <li py:for="f in files">
-                <span onclick="window.location='to_db?filename=${f.href}'" title="import in data base" class="dbimport">.</span>
-                <!--<a href="to_db?filename=${f.href}" title="import in data base" class="dbimport"> </a>-->
-                <a href="${f.href}" py:content="f.basename" /> <small py:content="f.formatsize()" />
-                <span class="box" py:if="is_member('admin')">
-                    <form class="remove-form" method="post" action="${conf.root_url}/download/removefile" style="display: inline;">
-                            <input name="dir" type="hidden" value="${curdir}" />
-				    	    <input name="filename" type="hidden" value="${f.basename}" />
-							<input type="submit" id="remove-button-id" class="remove-button" value="&#x2718;"/>
-					</form>
-						
-    			</span>
+            </div>
+        </div>
 
-            </li>
-        </ul>
-    </div>
-</div> <!--content-->
-</body>
-</html>
+    </py:block>
+    <py:block name="content">
+        <div class="container-fluid p-3">
+            <div class="alert bg-danger text-white" role="alert" py:if="error">
+                <div class="row">
+                    <div class="col-lg-1">
+                        <i class="fas fa-exclamation-circle fa-3x"/>
+                    </div>
+                    <div class="col-lg-11">
+                        <p class="lead" py:content="markdown(error)"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-success" role="alert" py:if="message" >
+                <div class="row">
+                    <div class="col-lg-1">
+                        <i class="fas fa-info-circle fa-3x"/>
+                    </div>
+                    <div class="col-lg-11">
+                        <p class="" py:content="markdown(message)"/>
+                    </div>
+                </div>
+            </div>
+            <div class="row" py:if="curdir.isdir()">
+                <div class="col-lg">
+
+                    <div class="card p-3" >
+                        <h3 class="card-title">
+                            files in <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
+                        </h3>
+                        <hr/>
+                        <ul class="nav flex-column card-text mb-3" id="files">
+                            <li py:for="f in files" class="nav-item flexbox">
+                                <span>
+                                    <a href="${f.href}">
+                                        <span py:content="f.basename" />
+                                        <span class="ml-4 badge badge-secondary" py:content="f.formatsize()" />
+                                    </a>
+                                </span>
+                                <span>
+                                    <button class="btn btn-success" onclick="window.location='to_db?filename=${f.href}'"
+                                            title="import in data base" data-toggle="tooltip">
+                                        <i class="fas fa-file-import" />
+                                    </button>
+                                    <button class="btn btn-danger" onclick=""
+                                            title="remove file" data-toggle="tooltip">
+                                        <i class="fas fa-times-circle" />
+                                    </button>
+                                </span>
+
+                            </li>
+                            <li py:if="is_member('logger')" class="nav-item mt-4">
+
+                                <form method="post" enctype="multipart/form-data" action="${conf.root_url}/download/upload" class="form-group">
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <button type="submit" class="btn btn-secondary">
+                                                <i class="fas fa-file-upload fa-lg" />
+                                            </button>
+                                        </div>
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input form-control"
+                                                   name="datafile" id="datafile"
+                                            />
+                                            <label class="custom-file-label" for="datafile">upload...</label>
+                                        </div>
+                                        <input name="dir" type="hidden" value="${curdir}" />
+                                        <div class="input-group-append">
+                                            <div class="input-group-text">
+                                                <input id="overwrite" type="checkbox" value="overwrite" name="overwrite"
+                                                       data-toggle="tooltip" title="Allow to overwrite existing file with the same name"
+                                                />
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </form>
+                            </li>
+
+                        </ul>
+                        <!--
+                            <form class="remove-form" method="post" action="${conf.root_url}/download/removefile" style="display: inline;">
+                                    <input name="dir" type="hidden" value="${curdir}" />
+                                    <input name="filename" type="hidden" value="${f.basename}" />
+                                    <input type="submit" id="remove-button-id" class="remove-button" value="&#x2718;"/>
+                            </form>
+                          -->
+
+
+                    </div>
+                </div>
+                <div class="col-lg">
+                    <div class="card">
+                        <div class="card-body">
+                            <h3 class="card-title">
+                                    ${curdir.basename.title()}
+                            </h3>
+                            <hr/>
+                            <div id="help" class="card-text" title="Click to edit..." data-toggle="tooltip">
+                                Help
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </py:block>
+
+</py:extends>

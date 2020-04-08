@@ -12,10 +12,10 @@ from . import lib as web
 import os
 from traceback import format_exc as traceback
 from io import StringIO, BytesIO
-from cherrypy import log, request, HTTPError
+from cherrypy import log, request, HTTPError, InternalRedirect
 import chardet
 from cherrypy.lib.static import serve_file
-
+from urllib.parse import urlencode
 from .auth import group, expose_for
 
 from .. import dataimport as di
@@ -213,7 +213,7 @@ class HTTPFileNotFoundError(HTTPError):
 
         text = web.render(
             'download.html',
-            error=error,
+            error=error, message='',
             files=[],
             directories=[],
             curdir=self.path,
@@ -232,56 +232,25 @@ class DownloadPage(object):
         vpath.clear()
         return self
 
-    @expose_for(group.guest)
-    def index(self, uri='.', **kwargs):
-        path = Path((datapath / uri).absolute())
-        files = []
-        directories = []
-        if path.isdir() and path.islegal():
-            for fn in path.listdir():
-                if not fn.startswith('.'):
-                    child = path.child(fn)
-                    if child.isdir():
-                        directories.append(child)
-                    elif child.isfile():
-                        files.append(child)
-            files.sort()
-            directories.sort()
 
-        elif path.isfile():
+    @expose_for(group.guest)
+    def index(self, uri='.', error='', msg=''):
+        path = Path((datapath / uri).absolute())
+        directories, files = path.listdir()
+        m = request.method.lower()
+
+        if path.isfile():
             # TODO: Render/edit .md, .conf, .txt files. .csv, .xls also?
             return serve_file(path.absolute)
-        else:
+        elif not (path.islegal() and path.exists()):
             raise HTTPFileNotFoundError(path)
-        return web.render('download.html', files=files, error='',
-                          directories=directories, curdir=path,
-                          max_size=conf.upload_max_size
-                          ).render()
-
-    def get(self, uri='.'):
-        """
-        Gets the file or directory at the given uri
-        """
-        ...
-
-    def put(self, uri='.', is_dir=False):
-        """
-        Uploads a file to the given uri or creates a directory
-
-        Parameters
-        ----------
-        uri: The URI the resource should be created
-        is_dir: True, if the resource should be a directory
-
-        """
-        ...
-
-    def delete(self, uri='.'):
-        """
-        Removes a resource
-        """
-        ...
-
+        else:
+            return web.render(
+                'download.html', error=error, message=msg,
+                files=files, directories=directories,
+                curdir=path,
+                max_size=conf.upload_max_size
+            ).render()
 
     @expose_for(group.editor)
     @web.method.post_or_put
@@ -331,7 +300,7 @@ class DownloadPage(object):
             url = '/download?dir=' + web.escape(dir)
             if error:
                 url += '&error=' + web.escape(error)
-        raise web.HTTPRedirect(url)
+        raise InternalRedirect(url)
 
     @expose_for(group.logger)
     def saveindex(self, dir, s):
@@ -358,34 +327,36 @@ class DownloadPage(object):
         return web.markdown(io.getvalue())
 
     @expose_for(group.editor)
-    @web.method.post_or_put
+    # @web.method.post_or_put
     def newfolder(self, dir, newfolder):
-        "To be replaced by put, is_dir=True"
         error = ''
+        msg = ''
         if newfolder:
             if ' ' in newfolder:
                 error = "The folder name may not include a space!"
             else:
                 try:
-                    path = datapath / dir / newfolder
-                    if not path:
+                    path = Path((datapath / dir / newfolder).absolute())
+                    if not path.exists() and path.islegal():
                         path.make()
                         path.setownergroup()
+                        msg = f"{path.href} created"
                     else:
-                        error = "Folder %s exists already!" % newfolder
+                        error = f"Folder {newfolder} exists already"
                 except:
                     error = traceback()
         else:
             error = 'Forgotten to give your new folder a name?'
-        url = '/download?dir=' + web.escape(dir)
-        if error:
-            url += '&error=' + web.escape(error)
-        return self.index(dir=dir, error=error)
+
+        qs = urlencode({'error': error, 'msg': msg})
+        url = f'{conf.root_url}/download/{dir}'.strip('.')
+        if not error:
+            url += '/' + newfolder
+        raise InternalRedirect(url, qs)
 
     @expose_for(group.admin)
     @web.method.post_or_delete
     def removefile(self, dir, filename):
-        "To be replaced by delete"
         path = datapath / dir / filename
         error = ''
 

@@ -81,14 +81,40 @@ class Path(object):
     def isdir(self):
         return op.isdir(self.absolute)
 
+    def isroot(self):
+        return self.absolute == self.datapath
+
     def isfile(self):
         return op.isfile(self.absolute)
 
     def exists(self):
         return op.exists(self.absolute)
 
-    def listdir(self):
-        return os.listdir(self.absolute)
+    def parent(self):
+        return Path(op.dirname(self.absolute))
+
+    def listdir(self)->(list, list):
+        """
+        Lists all members of the path in
+        2 lists:
+
+        directories, files: The subdirectories and the files in path
+
+
+        """
+        files = []
+        directories = []
+        if self.isdir() and self.islegal():
+            for fn in os.listdir(self.absolute):
+                if not fn.startswith('.'):
+                    child = self.child(fn)
+                    if child.isdir():
+                        directories.append(child)
+                    elif child.isfile():
+                        files.append(child)
+            return directories, files
+        else:
+            return [], []
 
     def up(self):
         return op.dirname(self.name)

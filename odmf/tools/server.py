@@ -55,6 +55,10 @@ class ProxyRoot:
     def index(self):
         raise cherrypy.HTTPRedirect('/' + self.head_base)
 
+    def __call__(self, *args, **kwargs):
+        r = cherrypy.request
+        raise cherrypy.InternalRedirect(conf.root_url)
+
 
 def start(autoreload=False):
     """
