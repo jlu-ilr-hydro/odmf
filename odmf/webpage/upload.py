@@ -223,6 +223,12 @@ class HTTPFileNotFoundError(HTTPError):
         return text.encode('utf-8')
 
 
+def goto(dir, error, msg):
+    qs = urlencode({'error': error, 'msg': msg})
+    url = f'{conf.root_url}/download/{dir}'.strip('.')
+    raise InternalRedirect(url, qs)
+
+
 @web.show_in_nav_for(0, 'file')
 class DownloadPage(object):
     to_db = DBImportPage()
@@ -234,10 +240,12 @@ class DownloadPage(object):
 
 
     @expose_for(group.guest)
-    def index(self, uri='.', error='', msg=''):
+    @web.method.get
+    def index(self, uri='.', error='', msg='', _=None):
         path = Path((datapath / uri).absolute())
         directories, files = path.listdir()
-        m = request.method.lower()
+        if 'index.html' in files:
+            files.remove('index.html')
 
         if path.isfile():
             # TODO: Render/edit .md, .conf, .txt files. .csv, .xls also?
@@ -258,51 +266,29 @@ class DownloadPage(object):
         error = ''
         fn = ''
         if datafile:
-            path = datapath / dir
+            path = Path((datapath / dir).absolute())
             if not path:
                 path.make()
-            fn = path / datafile.filename
+            fn = path + datafile.filename
             if not fn.islegal():
                 error = "'%s' is not legal"
             if fn and 'overwrite' not in kwargs:
-                error = "'%s' exists already, if you want to overwrite the old version, check allow overwrite" % fn.name
+                error = f"'{fn.name}' exists already, if you want to overwrite the old version, check allow overwrite"
 
             # Buffer file for first check encoding and secondly upload file
             with BytesIO(datafile.file.read()) as filebuffer:
-                # determine file encodings
-                result = chardet.detect(filebuffer.read())
-
-                # Reset file buffer
-                filebuffer.seek(0)
-
-                # if chardet can determine file encoding, check it and warn respectively
-                # otherwise state not detecting
-                # TODO: chardet cannot determine sufficent amount of encodings, such as utf-16-le
-                if result['encoding']:
-                    file_encoding = result['encoding'].lower()
-                    # TODO: outsource valid encodings
-                    if not (file_encoding in ['utf-8', 'ascii'] or 'utf-8' in file_encoding):
-                        log.error("WARNING: encoding of file {} is {}".format(datafile.filename, file_encoding))
-                else:
-                    msg = "WARNING: encoding of file {} is not detectable".format(datafile.filename)
-                    log.error(msg)
 
                 try:
                     write_to_file(fn.absolute, filebuffer)
                     fn.setownergroup()
+                    msg = f'New file: {fn.href}'
                 except:
                     error += '\n' + traceback()
-                    print(error)
 
-        if "uploadimport" in kwargs and not error:
-            url = '/download/to_db?filename=' + web.escape(fn.href)
-        else:
-            url = '/download?dir=' + web.escape(dir)
-            if error:
-                url += '&error=' + web.escape(error)
-        raise InternalRedirect(url)
+        goto(dir, error, msg)
 
     @expose_for(group.logger)
+    @web.method.post
     def saveindex(self, dir, s):
         """Saves the string s to index.html
         """
@@ -312,22 +298,24 @@ class DownloadPage(object):
         return web.markdown(s)
 
     @expose_for()
+    @web.method.get
     def getindex(self, dir):
         index = datapath / dir / 'index.html'
         io = StringIO()
         if index.exists():
-            io.write(open(index.absolute).read())
+            text = index.read_text()
+            io.write(text)
         imphist = datapath / dir / '.import.hist'
         if imphist.exists():
             io.write('\n')
-            for l in open(imphist.absolute):
+            for l in imphist.open():
                 ls = l.split(',', 3)
                 io.write(' * file:%s/%s imported by user:%s at %s into %s\n' %
                          tuple([imphist.up()] + ls))
         return web.markdown(io.getvalue())
 
     @expose_for(group.editor)
-    # @web.method.post_or_put
+    @web.method.post_or_put
     def newfolder(self, dir, newfolder):
         error = ''
         msg = ''
@@ -348,31 +336,28 @@ class DownloadPage(object):
         else:
             error = 'Forgotten to give your new folder a name?'
 
-        qs = urlencode({'error': error, 'msg': msg})
-        url = f'{conf.root_url}/download/{dir}'.strip('.')
         if not error:
-            url += '/' + newfolder
-        raise InternalRedirect(url, qs)
+            goto(dir + '/' + newfolder, error, msg)
+        else:
+            goto(dir, error, msg)
 
     @expose_for(group.admin)
     @web.method.post_or_delete
     def removefile(self, dir, filename):
-        path = datapath / dir / filename
-        error = ''
+        path = Path((datapath / dir / filename).absolute())
+        error = msg = ''
 
         if path.exists():
             try:
                 os.remove(path.absolute)
+                msg = f'{filename} deleted'
             except:
                 error = "Could not delete the file. A good reason would be a mismatch of user rights on the server " \
                         "file system"
         else:
             error = "File not found. Is it already deleted?"
 
-        if dir == '.' and error == '':
-            return self.index()
-        else:
-            # TODO: Remove this hack
-            raise web.HTTPRedirect("/download/?dir=%s&error=%s" % (dir, error))
-
+        qs = urlencode({'error': error, 'msg': msg})
+        url = f'{conf.root_url}/download/{dir}'.strip('.')
+        return url + '?' + qs
 

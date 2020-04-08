@@ -16,32 +16,39 @@
 
 
             $(function() {
-
+                $('.remove-button').click(function() {
+                    var name = $(this).data('name');
+                    if (window.confirm("Do you really want to delete " + name + " file?")) {
+                        $.post(odmf_ref('/download/removefile/'), {dir: '${curdir}',filename: name},
+                            function(success_url) {
+                                window.location = success_url;
+                            }
+                        );
+                    }
+                });
                 $('#datafile').change( function(evt) {
                     var path = evt.target.files[0];
                     if(isFileSizeToBig(path.size)) {
                         alert("Please split your file! " + path.name + " has more than 25 mb. Has " + path.size / 1000000 + " mb");
                         return;
+                    } else {
+                        $('#upload-label').html(path.name);
                     }
                     $('.upload').prop('disabled', !$(this).val());
                 });
 
-                // Delete button
-                $('form.remove-form').submit( function( e ) {
-                    if (window.confirm("Do you really want to delete this file?")) {
 
-                    } else {
-                        e.preventDefault()
-                    }
-                })
+                $('#help').load(odmf_ref('/download/getindex?dir=${curdir}'));
 
-                $('#help').load('getindex?dir=${curdir}');
                 $('.help').click(function() {
                     if ($('#help').html().substring(0,9)!='<textarea') {
                         // Create textarea for editing of index.html
-                        $('#help').html('<textarea rows="20"/><br/><button>Save</button><button>Cancel</button><a href="${conf.root_url}/wiki/help"><img src="${conf.root_url}/media/ui-icons/help.png" /></a>');
+                        $('#help').html('<textarea rows="20"/><br/><button class="btn btn-secondary">Save</button><button class="btn btn-secondary">Cancel</button><a href="${conf.root_url}/wiki/help"><img src="${conf.root_url}/media/ui-icons/help.png" /></a>');
                         // Load current file in textarea
-                        $.get(odmf_ref('/datafiles/${curdir.name}/index.html'),{},function(text) {
+                        $.get({
+                            url:'${curdir.href}/index.html',
+                            cache:false
+                        }).then(function(text) {
                             $('#help textarea').val(text);
                         });
                         // Save file on click
@@ -49,10 +56,10 @@
                             if ($(this).text()=="Save") {
                                 var text=$('#help textarea').val();
                                 $.post(odmf_ref('/download/saveindex/'),{dir:'${curdir}',s:text},function(text){
-                                    $('#help').load('getindex?dir=${curdir}');
+                                    $('#help').load(odmf_ref('/download/getindex?dir=${curdir}'));
                                 });
                             } else {
-                                $('#help').load('getindex?dir=${curdir}');
+                                $('#help').load(odmf_ref('/download/getindex?dir=${curdir}'));
                             }
                         });
                     }
@@ -88,15 +95,6 @@
                 cursor: auto;
             }
 
-            form.remove-form input[type="submit"] {
-                border-radius: 10px;
-                border: 1px #000;
-                box-shadow: #fff 3px 3px 7px;
-            }
-
-            .remove-button:hover{
-                cursor: pointer;
-            }
         </style>
     </py:block>
     <py:block name="sidebar">
@@ -114,12 +112,12 @@
                     <a class="nav-link" href="${curdir.parent().href}" ><i class="fas fa-folder-open mr-2" />..</a>
 
                 </li>
-                <li py:for="d in sorted(directories)" class="nav-item border-top">
+                <li py:for="d in sorted(directories)" class="nav-item border-top" >
                     <a class="nav-link" href="${d.href}">
                         <i class="fas fa-folder mr-2" /> ${d.basename}
                     </a>
                 </li>
-                <li py:for="f in sorted(files)" class="nav-item flexbox border-top">
+                <li py:for="f in sorted(files)" class="nav-item flexbox border-top" py:if="f.basename!='index.html'">
                     <a class="nav-link" href="${f.href}">
                         <i class="fas fa-file mr-2" />${f.basename}
                     </a>
@@ -173,9 +171,8 @@
                         <h3 class="card-title">
                             files in <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
                         </h3>
-                        <hr/>
                         <ul class="nav flex-column card-text mb-3" id="files">
-                            <li py:for="f in files" class="nav-item flexbox">
+                            <li py:for="f in files" class="nav-item flexbox mt-1 pt-1 border-top" py:if="f.basename!='index.html'">
                                 <span>
                                     <a href="${f.href}">
                                         <span py:content="f.basename" />
@@ -183,11 +180,11 @@
                                     </a>
                                 </span>
                                 <span>
-                                    <button class="btn btn-success" onclick="window.location='to_db?filename=${f.href}'"
+                                    <button class="btn btn-success upload-button" data-path="${f.href}"
                                             title="import in data base" data-toggle="tooltip">
                                         <i class="fas fa-file-import" />
                                     </button>
-                                    <button class="btn btn-danger" onclick=""
+                                    <button class="btn btn-danger remove-button" data-name="${f.basename}" py:if="is_member('admin')"
                                             title="remove file" data-toggle="tooltip">
                                         <i class="fas fa-times-circle" />
                                     </button>
@@ -207,7 +204,7 @@
                                             <input type="file" class="custom-file-input form-control"
                                                    name="datafile" id="datafile"
                                             />
-                                            <label class="custom-file-label" for="datafile">upload...</label>
+                                            <label id="upload-label" class="custom-file-label" for="datafile">upload...</label>
                                         </div>
                                         <input name="dir" type="hidden" value="${curdir}" />
                                         <div class="input-group-append">
@@ -220,26 +217,16 @@
                                         </div>
 
                                     </div>
-
                                 </form>
                             </li>
-
                         </ul>
-                        <!--
-                            <form class="remove-form" method="post" action="${conf.root_url}/download/removefile" style="display: inline;">
-                                    <input name="dir" type="hidden" value="${curdir}" />
-                                    <input name="filename" type="hidden" value="${f.basename}" />
-                                    <input type="submit" id="remove-button-id" class="remove-button" value="&#x2718;"/>
-                            </form>
-                          -->
-
-
                     </div>
                 </div>
                 <div class="col-lg">
                     <div class="card">
-                        <div class="card-body">
+                        <div class="card-body help">
                             <h3 class="card-title">
+                                <i class="fas fa-info-circle fa-lg" />
                                     ${curdir.basename.title()}
                             </h3>
                             <hr/>
