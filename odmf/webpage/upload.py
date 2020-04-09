@@ -231,6 +231,7 @@ def goto(dir, error, msg):
 
 @web.show_in_nav_for(0, 'file')
 class DownloadPage(object):
+    """The file management system. Used to upload, import and find files"""
     to_db = DBImportPage()
 
     def _cp_dispatch(self, vpath: list):
