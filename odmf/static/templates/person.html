@@ -1,84 +1,192 @@
 <!DOCTYPE html>
-<html>
 
-<head>
-    <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <script>
+            $(document).ready(function(){
+                $("#listSearch").on("keyup", function() {
+                    var value = $(this).val().toLowerCase();
+                    $("#userList li").filter(function() {
+                        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                    });
+                });
+            });
+        </script>
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <div class="container">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">
+                        <i class=" fas fa-search" />
+                    </span>
 
-	<link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>Personen</title>
-	<style>
-			input { width: 100%;}
-			select { width: 100%;}
-			td.left { width: 7em;}
-	</style>
-	<script type="text/javascript">
-		function redirect( url ) {
-			window.location.replace( url );
-			window.location.href = url;
-		}
-	</script>
-</head>
-<body>
+                </div>
+                <input class="form-control" id="listSearch" type="text" placeholder="search user..."/>
+            </div>
+            <hr/>
+            <ul class="list-group" id="userList">
+                <li class="list-group-item flexbox" py:for="pp in persons">
+                    <a href="${conf.root_url+ '/user/' + pp.username}" py:content="pp"/>
+                    <i class="fas fa-user" />
+                </li>
+            </ul>
+            <ul class="list-group" py:if="is_member('supervisor')">
+                <li class="list-group-item flexbox" >
+                    <a href="${conf.root_url}/user/new"><b>new user...</b></a>
+                    <i class="fas fa-user-plus" />
+                </li>
 
-	${navigation('Users')}
-	<div class="content">
-	  <div class="error" py:content="error" />
-		<ul id="Inhalt">
-			<li py:if="is_member('supervisor')">
-				<a href="${conf.root_url}/user/new"><b>Neu...</b></a>
-			</li>
-			<li py:for="pp in persons">
-				<a href="${conf.root_url}+ '/user/' + pp.username" py:content="pp" style="font-weight: ${'bold' if pp is active_person else 'normal'}"/>
-			</li>
-		</ul>
-	    <div class="rightpane"> 
-	    	<h2 py:content="active_person"/>
-	    	<div py:with="U=active_person">
-	    		${markdown(U.email)}
-	    		${markdown(U.comment)}
-    		</div>
-	    		
+            </ul>
+        </div>
+    </py:block>
+    <py:block name="content">
+        <div class="container">
+            <div class="alert bg-danger text-white mt-3" role="alert" py:if="error">
+                <div class="row">
+                    <div class="col-lg-1">
+                        <i class="fas fa-exclamation-circle fa-3x"/>
+                    </div>
+                    <div class="col-lg-11">
+                        <p class="lead" py:content="markdown(error)"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-success mt-3" role="alert" py:if="defined('message')" >
+                <div class="row">
+                    <div class="col-lg-1">
+                        <i class="fas fa-info-circle fa-3x"/>
+                    </div>
+                    <div class="col-lg-11">
+                        <p class="" py:content="markdown(message)"/>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3">
+                <h1 py:content="active_person"/>
+                <p py:with="U=active_person">
+                    ${markdown(U.email)}
+                    ${markdown(U.comment)}
+                </p>
+
+            </div>
+            <form   class="card card-body"
+                    action="${conf.root_url}/user/saveitem" method="post" py:with="U=active_person">
+                <div class="form-group row">
+                    <label for="username" class="col-lg-2 col-form-label">username</label>
+                    <div class="col-lg-4">
+                        <input type="text" id="username" name="username"
+                               py:attrs="attrcheck('readonly', act_user!='new')"
+                               class="form-control"
+                               value="${U.username}"
+                        />
+                    </div>
+                                        <label for="email" class="col-lg-2 col-form-label">email</label>
+                    <div class="col-lg-4">
+                        <input type="text" id="email" name="email"
+                               py:attrs="attrcheck('readonly', not is_member('supervisor'))"
+                               class="form-control"
+                               value="${U.email}"
+                        />
+                    </div>
+
+                </div>
+                <div class="form-group row">
+                    <label for="firstname" class="col-lg-2 col-form-label">firstname</label>
+                    <div class="col-lg-4">
+                        <input type="text" id="firstname" name="firstname"
+                               py:attrs="attrcheck('readonly', not is_member('supervisor') or is_self(U.username))"
+                               class="form-control"
+                               value="${U.firstname}"
+                        />
+                    </div>
+                    <label for="surname" class="col-lg-2 col-form-label">surname</label>
+                    <div class="col-lg-4">
+                        <input type="text" id="surname" name="surname"
+                               py:attrs="attrcheck('readonly', not (is_member('supervisor') or is_self(U.username)))"
+                               class="form-control"
+                               value="${U.surname}"
+                        />
+                    </div>
+                </div>
+                <div class="form-group row" py:if="is_member('admin') or is_self(U.username) or act_user=='new'">
+                    <label for="password" class="col-lg-2 col-form-label">password</label>
+                    <div class="col-lg-4">
+                        <input type="password" id="password" name="password"
+                               py:attrs="attrcheck('readonly', not (is_member('supervisor') or is_self(U.username)))"
+                               class="form-control"
+                               placeholder="password"
+                        />
+                    </div>
+                    <label for="password-repeat" class="col-lg-2 col-form-label">repeat</label>
+                    <div class="col-lg-4">
+                        <input type="password" id="password-repeat" name="password-repeat"
+                               py:attrs="attrcheck('readonly', not (is_member('supervisor')  or is_self(U.username)))"
+                               class="form-control"
+                               placeholder="password"
+                        />
+                    </div>
+
+                </div>
+                <div class="form-group row">
+                    <label for="access_level" class="col-lg-2 col-form-label">access level</label>
+                    <div class="col-lg-4">
+                        <select id="access_level" name="access_level"
+                                py:attrs="attrcheck('readonly', not is_member('supervisor'))"
+                                class="form-control"
+                        >
+                            <option py:for="value in levels(users.current.level)"
+                                    py:content="value[0]"
+                                    value="${value[1]}"
+                                    py:attrs="markoption(str(value[1]) == str(U.access_level))"/>
+                        </select>
+                    </div>
+                    <div class="col-lg-2"></div>
+                    <div class="col-lg-4 custom-control custom-checkbox">
+                        <input type="checkbox" id="active" name="status"
+                               class="custom-control-input"
+                               py:attrs="attrcheck('readonly', not is_member('supervisor'))"
+                               checked="${bool2js(U.active)}"
+                        />
+                        <label for="active" class="custom-control-label">active user</label>
+                    </div>
+                </div>
+                <div class="form-group row" py:if="is_member('supervisor')">
+                    <label for="comment">Description:</label>
+                    <textarea name="comment"
+                              class="form-control"
+                              rows="10"
+                              py:content="U.comment"
+                    />
+                </div>
+
+                <div class="form-group row">
+                    <button type="submit" class="col-lg-2 btn btn-primary w-100"
+                            py:attrs="attrcheck('readonly', not is_member('supervisor'))"
+                    >
+                        save
+                    </button>
+
+                </div>
+            </form>
+
+        </div>
+
+
+    </py:block>
+
+</py:extends>
+
+<!--body>
+
+
 			<form action="${conf.root_url}/user/saveitem" method="post">
 				<h2>Edit user</h2>
 				<table style="width: 100%" py:if="active_person">
-					<tr>
-						<td class="left">User name:</td>
-						<py:choose>
-							<td py:when="act_user=='new'"> <input type="text" name="username" value="${active_person.username}"/>
-						</td>
-							<td py:otherwise=""><input readonly="true" type="text" name="username" value="${active_person.username}"/></td>
-						</py:choose>
-
-					</tr>
-					<tr>
-						<td class="left">First name:</td>
-						<py:choose>
-							<td py:when="act_user=='new' or is_self(active_person.username)">
-								<input type="text" name="firstname" value="${active_person.firstname}" /></td>
-							<td py:otherwise="">
-								<input readonly="true" type="text" name="firstname" value="${active_person.firstname}" /></td>
-						</py:choose>
-						</tr>
-					<tr>
-						<td>Surname:</td>
-						<py:choose>
-							<td py:when="act_user=='new' or is_self(active_person.username)">
-								<input type="text" name="surname" value="${active_person.surname}" /></td>
-							<td py:otherwise="">
-								<input readonly="true" type="text" name="surname" value="${active_person.surname}" /></td>
-						</py:choose>
-					</tr>
-					<tr>
-						<td>E-mail:</td>
-						<py:choose>
-							<td py:when="act_user == 'new' or is_self(active_person.username)">
-								<input type="text" name="email" value="${active_person.email}" /></td>
-							<td py:otherwise="">
-								<input readonly="true" type="text" name="email" value="${active_person.email}" /></td>
-						</py:choose>
-						</tr>
 					<tr py:if="is_member('admin') or is_self(active_person.username) or act_user=='new'">
 						<td>Password:</td>
 						<td py:if="act_user=='new'"><input type="password" name="password" /></td>
@@ -194,4 +302,4 @@
 		</div>
 	</div>
 </body>
-</html>
+</html-->

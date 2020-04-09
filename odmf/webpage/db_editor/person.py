@@ -45,9 +45,10 @@ class PersonPage:
         return result
 
     @expose_for(group.supervisor)
+    @web.method.post
     def saveitem(self, **kwargs):
         username = kwargs.get('username')
-        if 'save' in kwargs and username:
+        if username:
             session = db.Session()
             p_act = session.query(db.Person).filter_by(
                 username=username).first()
@@ -57,8 +58,9 @@ class PersonPage:
             p_act.email = kwargs.get('email')
             p_act.firstname = kwargs.get('firstname')
             p_act.surname = kwargs.get('surname')
-            p_act.supervisor = session.query(
-                db.Person).get(kwargs.get('supervisor'))
+            if 'supervisor' in kwargs:
+                p_act.supervisor = session.query(
+                    db.Person).get(kwargs.get('supervisor'))
             # p_act.can_supervise=kwargs.get('can_supervise')
             p_act.car_available = kwargs.get('car_available')
             p_act.telephone = kwargs.get('telephone')
