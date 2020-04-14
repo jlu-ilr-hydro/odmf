@@ -18,7 +18,7 @@
     </py:block>
     <py:block name="sidebar">
         <div class="container">
-            <div class="input-group">
+            <div class="input-group mb-1">
                 <div class="input-group-prepend">
                     <span class="input-group-text">
                         <i class=" fas fa-search" />
@@ -27,19 +27,19 @@
                 </div>
                 <input class="form-control" id="listSearch" type="text" placeholder="search user..."/>
             </div>
+            <a class="btn btn-light w-100 mb-1"
+               href="${conf.root_url}/user/new"
+               py:if="is_member('supervisor')">
+                    <i class="fas fa-user-plus mr-3" />
+                    new user...
+
+            </a>
             <hr/>
             <ul class="list-group" id="userList">
                 <li class="list-group-item flexbox" py:for="pp in persons">
                     <a href="${conf.root_url+ '/user/' + pp.username}" py:content="pp"/>
                     <i class="fas fa-user" />
                 </li>
-            </ul>
-            <ul class="list-group" py:if="is_member('supervisor')">
-                <li class="list-group-item flexbox" >
-                    <a href="${conf.root_url}/user/new"><b>new user...</b></a>
-                    <i class="fas fa-user-plus" />
-                </li>
-
             </ul>
         </div>
     </py:block>
@@ -56,7 +56,7 @@
                 </div>
             </div>
 
-            <div class="alert alert-success mt-3" role="alert" py:if="defined('message')" >
+            <div class="alert alert-success mt-3" role="alert" py:if="message" >
                 <div class="row">
                     <div class="col-lg-1">
                         <i class="fas fa-info-circle fa-3x"/>
