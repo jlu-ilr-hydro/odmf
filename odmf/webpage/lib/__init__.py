@@ -8,7 +8,7 @@ __all__ = [
 ]
 
 import cherrypy
-from functools import wraps
+from urllib.parse import urlencode
 
 from .renderer import render, Resource, literal, escape
 from .render_tools import markdown, user
@@ -25,6 +25,20 @@ json_in = cherrypy.tools.json_in
 HTTPRedirect = cherrypy.HTTPRedirect
 HTTPError = cherrypy.HTTPError
 
+def redirect(url, **kwargs):
+    """
+    Raises cherrypy.InternalRedirect with the keyword arguments as query string
+
+    eg.
+
+    .. code::
+
+       redirect('/xyz', a=2, b='Hallo')
+
+    redirects to /xyz?a=2&b=Hallo
+    """
+    qs = urlencode(kwargs)
+    raise cherrypy.InternalRedirect(url, qs)
 
 def json_out(obj):
     """
