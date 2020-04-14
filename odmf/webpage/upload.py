@@ -250,6 +250,7 @@ class DownloadPage(object):
 
         if path.isfile():
             # TODO: Render/edit .md, .conf, .txt files. .csv, .xls also?
+
             return serve_file(path.absolute)
         elif not (path.islegal() and path.exists()):
             raise HTTPFileNotFoundError(path)
@@ -348,13 +349,19 @@ class DownloadPage(object):
         path = Path((datapath / dir / filename).absolute())
         error = msg = ''
 
-        if path.exists():
+        if path.isfile():
             try:
                 os.remove(path.absolute)
                 msg = f'{filename} deleted'
             except:
                 error = "Could not delete the file. A good reason would be a mismatch of user rights on the server " \
                         "file system"
+        elif path.isdir():
+            if path.isempty():
+                os.rmdir(path.absolute)
+                msg = f'{filename} removed'
+            else:
+                error = "Cannot remove directory. Not empty."
         else:
             error = "File not found. Is it already deleted?"
 

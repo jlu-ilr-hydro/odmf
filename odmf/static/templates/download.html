@@ -37,33 +37,39 @@
                     $('.upload').prop('disabled', !$(this).val());
                 });
 
+                $('.help').click(function() {
+                   $('#help-edit').collapse('show');
+                });
 
                 $('#help').load(odmf_ref('/download/getindex?dir=${curdir}'));
 
-                $('.help').click(function() {
-                    if ($('#help').html().substring(0,9)!='<textarea') {
-                        // Create textarea for editing of index.html
-                        $('#help').html('<textarea rows="20"/><br/><button class="btn btn-secondary">Save</button><button class="btn btn-secondary">Cancel</button><a href="${conf.root_url}/wiki/help"><img src="${conf.root_url}/media/ui-icons/help.png" /></a>');
-                        // Load current file in textarea
-                        $.get({
-                            url:'${curdir.href}/index.html',
-                            cache:false
-                        }).then(function(text) {
-                            $('#help textarea').val(text);
-                        });
+                $('#help-edit').on('show.bs.collapse', function () {
+                    // Load current file in textarea
+                    $.get({
+                        url:'${curdir.href}/index.html',
+                        cache:false
+                    }).then(function(text) {
+                        $('#help-edit textarea').val(text);
+                    });
                         // Save file on click
-                        $('#help button').click(function() {
-                            if ($(this).text()=="Save") {
-                                var text=$('#help textarea').val();
-                                $.post(odmf_ref('/download/saveindex/'),{dir:'${curdir}',s:text},function(text){
-                                    $('#help').load(odmf_ref('/download/getindex?dir=${curdir}'));
-                                });
-                            } else {
-                                $('#help').load(odmf_ref('/download/getindex?dir=${curdir}'));
-                            }
-                        });
-                    }
                 });
+                $('#help-edit-save').click(function() {
+                    var text=$('#help-edit textarea').val();
+                    $.post(
+                        odmf_ref('/download/saveindex/'),
+                        {dir:'${curdir}',s:text},
+                        function(text) {
+                            $('#help').load(odmf_ref('/download/getindex?dir=${curdir}'));
+                            $('#help-edit').collapse('hide');
+                        }
+                    );
+
+                });
+                $('#help-edit-cancel').click(function() {
+                    $('#help').load(odmf_ref('/download/getindex?dir=${curdir}'));
+                    $('#help-edit').collapse('hide');
+                });
+
             });
             //]]>
         </script>
@@ -117,11 +123,6 @@
                         <i class="fas fa-folder mr-2" /> ${d.basename}
                     </a>
                 </li>
-                <li py:for="f in sorted(files)" class="nav-item flexbox border-top" py:if="f.basename!='index.html'">
-                    <a class="nav-link" href="${f.href}">
-                        <i class="fas fa-file mr-2" />${f.basename}
-                    </a>
-                </li>
             </ul>
             <div class="container m-1 p-1">
                 <form method="post" action="${conf.root_url}/download/newfolder" class="form-group">
@@ -166,16 +167,38 @@
             </div>
             <div class="row" py:if="curdir.isdir()">
                 <div class="col-lg">
-
                     <div class="card p-3" >
                         <h3 class="card-title">
                             files in <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
                         </h3>
                         <ul class="nav flex-column card-text mb-3" id="files">
-                            <li py:for="f in files" class="nav-item flexbox mt-1 pt-1 border-top" py:if="f.basename!='index.html'">
+                            <li class="nav-item flexbox mt-1 pt-1 border-top" py:if="not curdir.isroot()" >
+                                <span >
+                                    <a href="${curdir.parent().href}" class="nav-link">
+                                        <i class="fas fa-folder-open" />
+                                        <span >..</span>
+                                    </a>
+                                </span>
+                            </li>
+                            <li py:for="d in directories" class="nav-item flexbox mt-1 pt-1 border-top">
+                                <span >
+                                    <a href="${d.href}" class="nav-link">
+                                        <i class="fas fa-folder" />
+                                        <span py:content="d.basename" />
+                                        </a>
+                                </span>
                                 <span>
-                                    <a href="${f.href}">
-                                        <span py:content="f.basename" />
+                                    <button class="btn btn-danger remove-button" data-name="${d.basename}" py:if="is_member('admin')"
+                                            title="remove file" data-toggle="tooltip">
+                                        <i class="fas fa-times-circle" />
+                                    </button>
+                                </span>
+                            </li>
+                            <li py:for="f in files" class="nav-item flexbox mt-1 pt-1 border-top" py:if="f.basename!='index.html'">
+                                <span >
+                                    <a href="${f.href}" class="nav-link">
+                                        <i class="fas fa-file" />
+                                        <span py:content="f.basename" class="mr-auto"/>
                                         <span class="ml-4 badge badge-secondary" py:content="f.formatsize()" />
                                     </a>
                                 </span>
@@ -193,7 +216,7 @@
                             </li>
                             <li py:if="is_member('logger')" class="nav-item mt-4">
 
-                                <form method="post" enctype="multipart/form-data" action="${conf.root_url}/download/upload" class="form-group">
+                                <form id="upload-form" method="post" enctype="multipart/form-data" action="${conf.root_url}/download/upload" class="form-group">
                                     <div class="input-group mb-3">
                                         <div class="input-group-prepend">
                                             <button type="submit" class="btn btn-secondary">
@@ -213,9 +236,7 @@
                                                        data-toggle="tooltip" title="Allow to overwrite existing file with the same name"
                                                 />
                                             </div>
-
                                         </div>
-
                                     </div>
                                 </form>
                             </li>
@@ -223,16 +244,34 @@
                     </div>
                 </div>
                 <div class="col-lg">
-                    <div class="card">
-                        <div class="card-body help">
-                            <h3 class="card-title">
-                                <i class="fas fa-info-circle fa-lg" />
+                    <div class="card help">
+                        <div class="card-header">
+                            <h3 class="card-title flexbox" >
+                                <span>
+                                    <i class="fas fa-info-circle fa-lg" />
                                     ${curdir.basename.title()}
+                                </span>
+                                <a href="#help-edit" data-toggle="collapse" class="btn btn-secondary">
+                                    <i class="fas fa-edit" title="Click to edit..." data-toggle="tooltip"/>
+                                </a>
                             </h3>
-                            <hr/>
-                            <div id="help" class="card-text" title="Click to edit..." data-toggle="tooltip">
-                                Help
-                            </div>
+                        </div>
+                        <div id="help" class="card-body  card-text" />
+                        <div id="help-edit" class="card-footer collapse">
+                            <textarea rows="20" class="form-control"/>
+                            <br/>
+                            <button id="help-edit-save" class="btn btn-success mr-1">
+                                <i class="fas fa-save mr-1" />
+                                save
+                            </button>
+                            <button id="help-edit-cancel" class="btn btn-secondary mr-1">
+                                <i class="fas fa-times-circle mr-1" />
+                                cancel
+                            </button>
+                            <a href="${conf.root_url}/wiki/help" class="btn btn-info"
+                               title="Help for formatting" data-toggle="tooltip">
+                                <i class="fas fa-question-circle" />
+                            </a>
                         </div>
                     </div>
                 </div>
