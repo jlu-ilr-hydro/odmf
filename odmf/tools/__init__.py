@@ -93,6 +93,9 @@ class Path(object):
     def parent(self):
         return Path(op.dirname(self.absolute))
 
+    def ishidden(self):
+        return self.basename.startswith('.') or self.basename == 'index.html'
+
     def listdir(self)->(list, list):
         """
         Lists all members of the path in
@@ -116,5 +119,16 @@ class Path(object):
         else:
             return [], []
 
+    def isempty(self)->bool:
+        """
+        Returns True, if self isdir and has no entries
+        """
+        dirs, files = self.listdir()
+        files = [f for f in files
+                 if not f.ishidden()
+                 ]
+        return not bool(dirs or files)
+
     def up(self):
         return op.dirname(self.name)
+

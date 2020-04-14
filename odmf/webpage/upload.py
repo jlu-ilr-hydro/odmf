@@ -224,9 +224,7 @@ class HTTPFileNotFoundError(HTTPError):
 
 
 def goto(dir, error, msg):
-    qs = urlencode({'error': error, 'msg': msg})
-    url = f'{conf.root_url}/download/{dir}'.strip('.')
-    raise InternalRedirect(url, qs)
+    web.redirect(f'{conf.root_url}/download/{dir}'.strip('.'), error=error, msg=msg)
 
 
 @web.show_in_nav_for(0, 'file')
@@ -245,8 +243,6 @@ class DownloadPage(object):
     def index(self, uri='.', error='', msg='', _=None):
         path = Path((datapath / uri).absolute())
         directories, files = path.listdir()
-        if 'index.html' in files:
-            files.remove('index.html')
 
         if path.isfile():
             # TODO: Render/edit .md, .conf, .txt files. .csv, .xls also?
@@ -358,8 +354,15 @@ class DownloadPage(object):
                         "file system"
         elif path.isdir():
             if path.isempty():
-                os.rmdir(path.absolute)
-                msg = f'{filename} removed'
+                try:
+                    dirs, files = path.listdir()
+                    for f in files:
+                        if f.ishidden():
+                            os.remove(f.absolute)
+                    os.rmdir(path.absolute)
+                    msg = f'{filename} removed'
+                except (FileNotFoundError, OSError):
+                    error = f'Could not delete {path}. Please ask the administrators about this problem.'
             else:
                 error = "Cannot remove directory. Not empty."
         else:

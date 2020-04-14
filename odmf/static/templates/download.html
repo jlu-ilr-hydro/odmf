@@ -188,13 +188,14 @@
                                         </a>
                                 </span>
                                 <span>
-                                    <button class="btn btn-danger remove-button" data-name="${d.basename}" py:if="is_member('admin')"
+                                    <button class="btn btn-danger remove-button" data-name="${d.basename}"
+                                            py:if="is_member('admin') and d.isempty()"
                                             title="remove file" data-toggle="tooltip">
                                         <i class="fas fa-times-circle" />
                                     </button>
                                 </span>
                             </li>
-                            <li py:for="f in files" class="nav-item flexbox mt-1 pt-1 border-top" py:if="f.basename!='index.html'">
+                            <li py:for="f in files" class="nav-item flexbox mt-1 pt-1 border-top" py:if="not f.ishidden()">
                                 <span >
                                     <a href="${f.href}" class="nav-link">
                                         <i class="fas fa-file" />
