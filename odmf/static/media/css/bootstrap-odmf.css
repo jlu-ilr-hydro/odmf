@@ -13,22 +13,20 @@ body {
     min-height: 100vh;
     background: var(--odmf-background);
 }
-/*--- navigation bar ---*/
-.navbar-brand {
-    color: var(--odmf-background);
-    cursor: pointer;
-    font-size: 2rem;
+
+.navbar-for-all {
+    height: 3rem;
 }
 
-
 .logo {
-    max-width: 15rem;
+
+    height: 2rem;
 }
 
 .sidebar {
 
   position: fixed;
-  top: 82px;
+  top: 3rem;
   bottom: 0;
   left: 0;
   z-index: 100; /* Behind the navbar */
@@ -39,8 +37,8 @@ body {
 .sidebar-sticky {
   position: -webkit-sticky;
   position: sticky;
-  top: 82px; /* Height of navbar */
-  height: calc(100vh - 82px);
+  top: 3rem; /* Height of navbar */
+  height: calc(100vh - 3rem);
   padding-top: .5rem;
   overflow-x: hidden;
   overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
