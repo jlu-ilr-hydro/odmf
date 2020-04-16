@@ -1,3 +1,4 @@
+#!/bin/sh
 cd src
 git pull
 cd ..
