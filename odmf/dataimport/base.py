@@ -319,7 +319,7 @@ class ImportDescription(object):
             column, name, valuetype, factor, comment, difference))
         return self.columns[-1]
 
-    def to_config(self):
+    def to_config(self) -> RawConfigParser:
         """
         Returns a ConfigParser.RawConfigParser with the data of this description
         """
@@ -354,8 +354,22 @@ class ImportDescription(object):
             col.to_config(config, section)
         return config
 
+    def to_markdown(self)->str:
+        """
+        Returns a string in markdown format showing the configuration setting
+        """
+        conf = self.to_config()
+        s = StringIO()
+        for section in conf.sections():
+            s.write(section + '\n')
+            s.write('-' * len(section) + '\n')
+            for k, v in conf.items():
+                s.write('- {k} = {v}')
+            s.write('\n')
+        return s.getvalue()
+
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config: RawConfigParser):
         """
         Creates a TextImportDescriptor from a ConfigParser.RawConfigParser
         by parsing its content
