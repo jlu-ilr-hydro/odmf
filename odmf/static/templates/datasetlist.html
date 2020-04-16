@@ -125,6 +125,7 @@
                             $.each( data, function( index, item ) {
                                 items.push(templ.replace(/ID/, item.id).replace(/LABEL/, item.label));
                             });
+                            $('#dscount').html(items.length + ' datasets');
                             $('#dslist').html(items.join('\n'));
                         }
                 );
