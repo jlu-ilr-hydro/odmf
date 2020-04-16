@@ -306,9 +306,8 @@ class DownloadPage(object):
         if imphist.exists():
             io.write('\n')
             for l in imphist.open():
-                ls = l.split(',', 3)
-                io.write(' * file:%s/%s imported by user:%s at %s into %s\n' %
-                         tuple([imphist.up()] + ls))
+                fn, user, date, ds = l.split(',', 3)
+                io.write(f' * file:{dir}/{fn} imported by user:{user} at {date} into {ds}\n')
         return web.markdown(io.getvalue())
 
     @expose_for(group.editor)
