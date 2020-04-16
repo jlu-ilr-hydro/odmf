@@ -53,7 +53,7 @@ class DatasourcePage:
             except:
                 return web.render('empty.html', error=traceback(), title='valuetype #%s' % id
                                   ).render()
-        raise web.HTTPRedirect('./%s' % id)
+        raise web.redirect('./%s' % id)
 
     @expose_for()
     @web.mime.json

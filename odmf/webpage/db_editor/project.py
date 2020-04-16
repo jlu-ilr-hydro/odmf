@@ -4,7 +4,7 @@ from .. import lib as web
 from ..auth import group, expose_for
 
 from ... import db
-
+from ...config import conf
 
 @web.show_in_nav_for(1)
 class ProjectPage:
@@ -63,8 +63,7 @@ class ProjectPage:
         comment = kwargs.get('comment')
 
         if name is None or person is None or name is '':
-            raise web.HTTPRedirect(
-                '/project/add?error=Not all form fields were set')
+            raise web.redirect(conf.root_url + '/project/add', error='Not all form fields were set')
 
         with db.session_scope() as session:
 
@@ -144,7 +143,7 @@ class ProjectPage:
             session.close()
 
             # Returning to project
-            raise web.HTTPRedirect('/project')
+            raise web.redirect(conf.root_url + '/project')
 
         else:
             project = session.query(db.Project).get(project_id)

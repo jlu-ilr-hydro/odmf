@@ -62,7 +62,7 @@ class AdminPage(object):
 
         if error is '':
             msg = 'Successfully uploaded image. Reload page to view results'
-            raise web.HTTPRedirect('/admin?success=%s' % msg)
+            raise web.redirect(conf.root_url + '/admin', msg=msg)
         else:
-            raise web.HTTPRedirect('/admin/?error=%s' % error)
+            raise web.redirect(conf.root_url + '/admin', error=error)
 

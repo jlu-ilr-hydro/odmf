@@ -84,4 +84,4 @@ class PicturePage(object):
         session.commit()
         imgid = img.id
         session.close()
-        raise web.HTTPRedirect(conf.root_url + '/picture?id=%i' % imgid)
+        raise web.redirect(conf.root_url + '/picture?id=%i' % imgid)

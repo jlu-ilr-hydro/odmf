@@ -101,7 +101,7 @@ class JobPage:
                 tb = traceback()
                 error = ('\n'.join('%s: %s' % it for it in kwargs.items())) + '\n' + tb
 
-            web.redirect(str(id), error=error, msg=msg)
+            raise web.redirect(str(id), error=error, msg=msg)
 
     @expose_for(group.logger)
     @web.mime.json

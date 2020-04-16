@@ -597,7 +597,7 @@ class PlotPage(object):
     def image_png(self, **kwargs):
         plot = Plot.frompref()
         if not plot:
-            raise web.HTTPRedirect('/plot?error=No plot available')
+            raise web.redirect(conf.root_url + '/plot', error='No plot available')
         return plot.draw(format='png')
 
     @expose_for(plotgroup)
@@ -605,7 +605,7 @@ class PlotPage(object):
     def image_pdf(self, **kwargs):
         plot = Plot.frompref()
         if not plot:
-            raise web.HTTPRedirect('/plot?error=No plot available')
+            raise web.redirect(conf.root_url + '/plot', error='No plot available')
         return plot.draw(format='pdf')
 
     @expose_for(plotgroup)

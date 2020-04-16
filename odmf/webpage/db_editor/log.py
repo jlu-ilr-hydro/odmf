@@ -82,7 +82,7 @@ class LogPage:
                                   ).render()
         elif 'new' in kwargs:
             id = 'new'
-        raise web.HTTPRedirect('./%s' % id)
+        raise web.redirect('./%s' % id)
 
     @expose_for(group.supervisor)
     def remove(self, id):
@@ -91,7 +91,7 @@ class LogPage:
         if log:
             session.delete(log)
             session.commit()
-        raise web.HTTPRedirect('/log')
+        raise web.redirect('.')
 
     @expose_for(group.logger)
     @web.mime.json

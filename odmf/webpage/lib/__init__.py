@@ -38,7 +38,7 @@ def redirect(url, **kwargs):
     redirects to /xyz?a=2&b=Hallo
     """
     qs = urlencode(kwargs)
-    raise cherrypy.InternalRedirect(url, qs)
+    return cherrypy.InternalRedirect(url, qs)
 
 def json_out(obj):
     """

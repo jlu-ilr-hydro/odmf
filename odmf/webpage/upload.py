@@ -89,7 +89,7 @@ class DBImportPage(object):
 
         if 'commit' in kwargs and cancommit:
             di.savetoimports(absfile, web.user(), ["_various_as_its_manual"])
-            raise web.HTTPRedirect('/download?dir=' + web.escape(path.up()))
+            raise web.redirect(conf.root_url + f'/download/{web.escape(path.up())}')
         else:
             return web.render('logimport.html', filename=path, logs=logs,
                               cancommit=cancommit, error=error)\
@@ -223,7 +223,7 @@ class HTTPFileNotFoundError(HTTPError):
 
 
 def goto(dir, error, msg):
-    web.redirect(f'{conf.root_url}/download/{dir}'.strip('.'), error=error, msg=msg)
+    return web.redirect(f'{conf.root_url}/download/{dir}'.strip('.'), error=error, msg=msg)
 
 
 @web.show_in_nav_for(0, 'file')
@@ -282,7 +282,7 @@ class DownloadPage(object):
                 except:
                     error += '\n' + traceback()
 
-        goto(dir, error, msg)
+        raise goto(dir, error, msg)
 
     @expose_for(group.logger)
     @web.method.post
@@ -333,9 +333,9 @@ class DownloadPage(object):
             error = 'Forgotten to give your new folder a name?'
 
         if not error:
-            goto(dir + '/' + newfolder, error, msg)
+            raise goto(dir + '/' + newfolder, error, msg)
         else:
-            goto(dir, error, msg)
+            raise goto(dir, error, msg)
 
     @expose_for(group.admin)
     @web.method.post_or_delete

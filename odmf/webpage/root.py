@@ -60,7 +60,7 @@ class Root(object):
             session = db.Session()
             user = session.query(db.Person).get(web.user())
             if user and user.jobs.filter(db.Job.done == False, db.Job.due - datetime.now() < timedelta(days=7)).count():
-                raise web.HTTPRedirect(conf.root_url + '/job')
+                raise web.redirect(conf.root_url + '/job')
         return self.map.index()
 
 
@@ -72,14 +72,14 @@ class Root(object):
         """
         if logout:
             users.logout()
-            raise web.HTTPRedirect(frompage or conf.root_url)
+            raise web.redirect(frompage or conf.root_url)
         elif username and password:
             error = users.login(username, password)
             if error:
                 cherrypy.response.status = 401
                 return web.render('login.html', error=error, frompage=frompage).render()
             else:
-                raise web.HTTPRedirect(frompage or conf.root_url)
+                raise web.redirect(frompage or conf.root_url)
         else:
             return web.render('login.html', error=error, frompage=frompage).render()
 

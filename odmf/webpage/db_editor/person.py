@@ -90,7 +90,7 @@ class PersonPage:
         else:
             error='Missing user name'
 
-        web.redirect(username, error=error, msg=msg)
+        raise web.redirect(username, error=error, msg=msg)
 
     @expose_for()
     @web.mime.json
@@ -151,5 +151,5 @@ class PersonPage:
         session.commit()
         session.close()
 
-        raise web.HTTPRedirect('./' + username)
+        raise web.redirect('./' + username)
 

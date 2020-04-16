@@ -11,6 +11,7 @@ import io
 from ..auth import group, expose_for, users
 import codecs
 from ...tools.calibration import Calibration, CalibrationSource
+from ...config import conf
 from pytz import common_timezones
 import cherrypy
 
@@ -40,7 +41,7 @@ class DatasetPage:
             # last dataset, redirect to index
             id = web.cherrypy.session.get('dataset')  # @UndefinedVariable
             if id is None:
-                raise web.HTTPRedirect('/dataset/')
+                raise web.redirect(conf.root_url + '/dataset/')
         with db.session_scope() as session:
             error = ''
             datasets = {}
@@ -207,7 +208,7 @@ class DatasetPage:
         elif 'new' in kwargs:
             id = 'new'
         # reload page
-        raise web.HTTPRedirect('./%s' % id)
+        raise web.redirect(str(id))
 
     @expose_for()
     @web.mime.json

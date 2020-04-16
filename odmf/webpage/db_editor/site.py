@@ -69,7 +69,7 @@ class SitePage:
         try:
             siteid = web.conv(int, kwargs.get('id'), '')
         except:
-            return web.render(error=traceback(), title='site #%s' % kwargs.get('id'))
+            raise web.redirect(f'./{siteid}', error=traceback())
         if 'save' in kwargs:
             with db.session_scope() as session:
                 try:
@@ -80,7 +80,7 @@ class SitePage:
                     site.lon = web.conv(float, kwargs.get('lon'))
                     site.lat = web.conv(float, kwargs.get('lat'))
                     if None in (site.lon, site.lat):
-                        raise ValueError('The site has no coordinates')
+                        raise web.redirect(f'./{siteid}', error='The site has no coordinates')
                     if site.lon > 180 or site.lat > 180:
                         site.lat, site.lon = proj.UTMtoLL(
                             23, site.lat, site.lon, '32N')
@@ -90,9 +90,8 @@ class SitePage:
                     site.icon = kwargs.get('icon')
                     site.comment = kwargs.get('comment')
                 except:
-                    return web.render('empty.html', error=traceback(), title='site #%s' % siteid
-                                      ).render()
-        raise web.HTTPRedirect('./%s' % siteid)
+                    raise web.redirect(f'./{siteid}', error=traceback())
+        raise web.redirect('./%s' % siteid)
 
     @expose_for()
     @web.mime.json
@@ -114,7 +113,7 @@ class SitePage:
     @expose_for(group.editor)
     def addinstrument(self, siteid, instrumentid, date=None):
         if not instrumentid:
-            raise web.HTTPRedirect('/instrument/new')
+            raise web.redirect(conf.root_url + '/instrument/new')
         with db.session_scope() as session:
 
             error = ''
