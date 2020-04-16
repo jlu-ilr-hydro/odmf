@@ -42,7 +42,6 @@ class Root(object):
     valuetype = dbe.VTPage()
     project = dbe.ProjectPage()
     instrument = dbe.DatasourcePage()
-    calendar = cll.CalendarPage()
     wiki = cll.Wiki()
     user = dbe.PersonPage()
     admin = cll.AdminPage()
