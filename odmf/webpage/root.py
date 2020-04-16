@@ -126,31 +126,6 @@ class Root(object):
 
     @expose_for()
     @web.mime.json
-    def actualclimate_json(self, site=47):
-        """
-        Returns the last climate measurement from a specific site
-        """
-        with db.session_scope() as session:
-            now = datetime.now()
-            yesterday = now - timedelta(hours=24)
-            res = {'time': now}
-            for dsid in range(1493, 1502):
-                ds = session.query(db.Timeseries).get(dsid)
-                t, v = ds.asarray(start=yesterday)
-                res[ds.name.split(',')[0].strip().replace(' ', '_')] = {
-                    'min': v.min(), 'max': v.max(), 'mean': v.mean()}
-        return web.json_out(res)
-
-    @expose_for()
-    @web.mime.html
-    def actualclimate_html(self):
-        with db.session_scope() as session:
-            ds = session.query(db.Dataset).filter(
-                db.Dataset.id.in_(list(range(1493, 1502))))
-            return web.render('actualclimate.html', ds=ds, db=db).render()
-
-    @expose_for()
-    @web.mime.json
     def resources(self, only_navigatable=False, recursive=True, for_level=users.current.level):
         """
         Returns a json object representing all resources of this cherrypy web-application
