@@ -265,8 +265,7 @@
 						$('#levelselect_'+subplotpos).parent().hide(200);					
 				}
 				
-                                if (site!='' && 
-						vt!='') {
+				if (site != '' && vt != '') {
 					$('#addline_' + subplotpos).prop('disabled', false);
 				} else {
 					$('#addline_' + subplotpos).prop('disabled', true);			

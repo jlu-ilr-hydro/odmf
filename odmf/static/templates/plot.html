@@ -31,7 +31,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
 			for (var i=0;i<10;i++) {
 				popSelect(i,${as_json(plot.newlineprops)});
 			}
-			$('#addsubplot').removeProp('disabled');
+			$('#addsubplot').prop('disabled', false);
   		
   		$('.description').click(function() {
   			if ($('#description').html().substring(0,9)!='<textarea') {
