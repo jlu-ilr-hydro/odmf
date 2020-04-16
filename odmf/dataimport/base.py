@@ -760,7 +760,7 @@ class AbstractImport(object):
                                    start=self.startdate, end=datetime.today(), level=col.level,
                                    access=col.access if col.access is not None else 1,
                                    # Get timezone from descriptor or, if not present from global conf
-                                   timezone=self.descriptor.timezone or conf.CFG_DATETIME_DEFAULT_TIMEZONE,
+                                   timezone=self.descriptor.timezone or conf.datetime_default_timezone,
                                    project=self.descriptor.project)
             self.datasets[col.column] = ds.id
         session.commit()

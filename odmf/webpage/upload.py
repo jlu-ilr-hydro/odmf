@@ -123,7 +123,7 @@ class DBImportPage(object):
         errorstream = StringIO()
 
         # TODO: Major refactoring of this code logic, when to load gaps, etc.
-        path = Path(conf.abspath(filename.strip('/')))
+        path = Path(filename.strip('/'))
         print("path = %s" % path)
         error = web.markdown(di.checkimport(path.absolute))
         startdate = kwargs.get('startdate')
@@ -152,8 +152,7 @@ class DBImportPage(object):
                 gaps = [(startdate, enddate)]
 
             if siteid and (instrumentid or config):
-                absfile = conf.abspath(filename.strip('/'))
-                adapter = di.get_adapter(absfile, web.user(), siteid,
+                adapter = di.get_adapter(path.absolute, web.user(), siteid,
                                          instrumentid, startdate, enddate)
                 adapter.errorstream = errorstream
                 if 'loadstat' in kwargs:
@@ -162,7 +161,7 @@ class DBImportPage(object):
                     enddate = max(v.end for v in stats.values())
                 if 'importdb' in kwargs and startdate and enddate:
                     gaps = None
-                    datasets = di.importfile(absfile, web.user(), siteid,
+                    datasets = di.importfile(path.absolute, web.user(), siteid,
                                              instrumentid, startdate, enddate)
                 else:
                     gaps = di.finddateGaps(siteid, instrumentid, valuetype,
@@ -185,7 +184,7 @@ class DBImportPage(object):
     @expose_for(group.editor)
     def index(self, filename=None, **kwargs):
         if not filename:
-            raise web.HTTPRedirect('/download/')
+            raise web.redirect('/download/')
 
         # the lab import only fits on CFG_MANNUAL_MEASUREMENTS_PATTERN
         if ManualMeasurementsImport.extension_fits_to(filename):

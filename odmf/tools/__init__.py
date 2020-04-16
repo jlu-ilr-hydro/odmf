@@ -16,9 +16,12 @@ except ImportError:
 
 
 class Path(object):
-    def __init__(self, abspath):
+    def __init__(self, path: str):
         self.datapath = op.realpath(conf.datafiles)
-        self.absolute = op.realpath(abspath)
+        if str(path).startswith('/'):
+            self.absolute = op.realpath(path)
+        else:
+            self.absolute = op.join(self.datapath, path)
         self.name = op.relpath(self.absolute, self.datapath).replace('\\', '/')
 
     @property
