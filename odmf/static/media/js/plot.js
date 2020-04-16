@@ -264,11 +264,12 @@
 				} else {
 						$('#levelselect_'+subplotpos).parent().hide(200);					
 				}
-				if (site!='' && 
+				
+                                if (site!='' && 
 						vt!='') {
-					$('#addline_' + subplotpos).removeProp('disabled');
+					$('#addline_' + subplotpos).prop('disabled', false);
 				} else {
-					$('#addline_' + subplotpos).prop('disabled','disabled');			
+					$('#addline_' + subplotpos).prop('disabled', true);			
 				}
 			}
 			
