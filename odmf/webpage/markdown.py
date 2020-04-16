@@ -190,6 +190,25 @@ class UrlizeExtension(markdown.Extension):
         md.inlinePatterns['autolink'] = UrlizePattern(URLIZE_RE, md)
 
 
+class bleach_allow:
+
+    tags = bleach.ALLOWED_TAGS + [
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'p', 'a', 'pre', 'div', 'hr', 'br',
+        'sub', 'sup',
+        'video', 'img', 'code',
+        'table', 'thead', 'tbody', 'tr', 'th', 'td', 'tfoot'
+    ]
+    attributes = {
+        '*': ['class', 'title'],
+        'video': ['controls', 'src', 'type'],
+        'img': ['alt', 'src'],
+        'a': ['href', 'alt']
+    }
+
+    styles = ['admonition', 'warning']
+
+
 class MarkDown:
     def __init__(self):
         se = SchwingbachExtension()
@@ -205,18 +224,12 @@ class MarkDown:
                 s = str(s, errors='replace')
 
             html = self.md.convert(s)
-            tags = ['h1', 'h2', 'p', 'a', 'h3', 'pre', 'div', 'hr', 'video', 'img',
-                    'table', 'thead', 'tbody', 'tr', 'th', 'td', 'tfoot']
 
             cleaned_html = bleach.clean(
                 html,
-                tags=bleach.ALLOWED_TAGS + tags,
-                styles=bleach.ALLOWED_STYLES + ['admonition', 'warning'],
-                attributes={'div': 'class',
-                            'video': ['class', 'controls', 'src', 'type'],
-                             'img': ['alt', 'src'],
-                             'a': ['href', 'alt']
-                            }
+                tags=bleach_allow.tags,
+                attributes=bleach_allow.attributes,
+                styles=bleach_allow.styles
             )
 
             return literal(cleaned_html)
