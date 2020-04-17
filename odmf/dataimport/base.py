@@ -354,7 +354,7 @@ class ImportDescription(object):
             col.to_config(config, section)
         return config
 
-    def to_markdown(self)->str:
+    def to_markdown(self) -> str:
         """
         Returns a string in markdown format showing the configuration setting
         """

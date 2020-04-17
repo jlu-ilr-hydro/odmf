@@ -61,3 +61,11 @@ body {
 .center {
     text-align: center;
 }
+
+.code {
+    background-color: white;
+    font-family: monospace;
+    white-space: pre;
+    border: solid 1px black;
+    padding: 1em;
+}

@@ -51,7 +51,8 @@
                     }).then(function(text) {
                         $('#help-edit textarea').val(text);
                     });
-                        // Save file on click
+                    $('#help-edit-save').props('disabled', ${bool2js(is_member('editor'))});
+                // Save file on click
                 });
                 $('#help-edit-save').click(function() {
                     var text=$('#help-edit textarea').val();
@@ -205,7 +206,9 @@
                                 </span>
                                 <span>
                                     <a class="btn btn-success" href="${conf.root_url}/download/to_db?filename=${f.name}"
-                                            title="import in data base" data-toggle="tooltip">
+                                       title="import in data base" data-toggle="tooltip"
+                                       py:if="is_member('editor')"
+                                    >
                                         <i class="fas fa-file-import" />
                                     </a>
                                     <button class="btn btn-danger remove-button" data-name="${f.basename}" py:if="is_member('admin')"
