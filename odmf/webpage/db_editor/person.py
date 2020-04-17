@@ -49,13 +49,13 @@ class PersonPage:
                 is_self=is_self
             ).render()
 
-    @expose_for(group.supervisor)
+    @expose_for(group.logger)
     @web.method.post
     def saveitem(self, **kwargs):
         username = kwargs.get('username')
         error = ''
         msg = ''
-        if username:
+        if is_self(username) or users.current.level > 2:
             with db.session_scope() as session:
                 p_act = session.query(db.Person).filter_by(
                     username=username).first()
@@ -76,7 +76,7 @@ class PersonPage:
                     p_act.active = False
 
                 # Simple Validation
-                if kwargs.get('password'):
+                if kwargs.get('password') and users.current.is_member('admin') or is_self(username):
                     pw = kwargs['password']
                     pw2 = kwargs.get('password_verify')
                     if len(pw) < 8:
@@ -87,10 +87,11 @@ class PersonPage:
                         error = 'Passwords not equal'
                 # Simple Validation
                 # if users.current.level == ACCESS_LEVELS['Supervisor']:
-                p_act.access_level = int(kwargs.get('access_level'))
+                if 'access_level' in kwargs and kwargs.get('access_level') <= users.current.level:
+                    p_act.access_level = int(kwargs.get('access_level'))
                 msg = f'{username} saved'
         else:
-            error='Missing user name'
+            error=f'As a {users.current.group} user, you may only change your own values'
 
         raise web.redirect(username, error=error, msg=msg)
 

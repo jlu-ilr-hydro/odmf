@@ -85,10 +85,10 @@
                                value="${U.username}"
                         />
                     </div>
-                                        <label for="email" class="col-lg-2 col-form-label">email</label>
+                    <label for="email" class="col-lg-2 col-form-label">email</label>
                     <div class="col-lg-4">
                         <input type="text" id="email" name="email"
-                               py:attrs="attrcheck('readonly', not is_member('supervisor'))"
+                               py:attrs="attrcheck('disabled', not (is_member('supervisor')  or is_self(U.username)))"
                                class="form-control"
                                value="${U.email}"
                         />
@@ -99,7 +99,7 @@
                     <label for="firstname" class="col-lg-2 col-form-label">firstname</label>
                     <div class="col-lg-4">
                         <input type="text" id="firstname" name="firstname"
-                               py:attrs="attrcheck('readonly', not is_member('supervisor') or is_self(U.username))"
+                               py:attrs="attrcheck('disabled', not (is_member('supervisor')  or is_self(U.username)))"
                                class="form-control"
                                value="${U.firstname}"
                         />
@@ -107,7 +107,7 @@
                     <label for="surname" class="col-lg-2 col-form-label">surname</label>
                     <div class="col-lg-4">
                         <input type="text" id="surname" name="surname"
-                               py:attrs="attrcheck('readonly', not (is_member('supervisor') or is_self(U.username)))"
+                               py:attrs="attrcheck('disabled', not (is_member('supervisor')  or is_self(U.username)))"
                                class="form-control"
                                value="${U.surname}"
                         />
@@ -117,7 +117,7 @@
                     <label for="password" class="col-lg-2 col-form-label">password</label>
                     <div class="col-lg-4">
                         <input type="password" id="password" name="password"
-                               py:attrs="attrcheck('readonly', not (is_member('supervisor') or is_self(U.username)))"
+                               py:attrs="attrcheck('disabled', not (is_member('supervisor')  or is_self(U.username)))"
                                class="form-control"
                                placeholder="password"
                         />
@@ -125,7 +125,7 @@
                     <label for="password_verify" class="col-lg-2 col-form-label">repeat</label>
                     <div class="col-lg-4">
                         <input type="password" id="password_verify" name="password_verify"
-                               py:attrs="attrcheck('readonly', not (is_member('supervisor')  or is_self(U.username)))"
+                               py:attrs="attrcheck('disabled', not (is_member('supervisor')  or is_self(U.username)))"
                                class="form-control"
                                placeholder="password"
                         />
@@ -136,11 +136,12 @@
                     <label for="access_level" class="col-lg-2 col-form-label">access level</label>
                     <div class="col-lg-4">
                         <select id="access_level" name="access_level"
-                                py:attrs="attrcheck('readonly', not is_member('supervisor'))"
+                                py:attrs="attrcheck('disabled', not (is_member('supervisor') or is_self(U.username)))"
                                 class="form-control"
                         >
                             <option py:for="value in levels(users.current.level)"
                                     py:content="value[0]"
+                                    py:if="int(users.current.level)>=int(value[1])"
                                     value="${value[1]}"
                                     py:attrs="markoption(str(value[1]) == str(U.access_level))"/>
                         </select>
@@ -149,24 +150,25 @@
                     <div class="col-lg-4 custom-control custom-checkbox">
                         <input type="checkbox" id="active" name="status"
                                class="custom-control-input"
-                               py:attrs="attrcheck('readonly', not is_member('supervisor'))"
+                               py:attrs="attrcheck('disabled', not is_member('supervisor'))"
                                checked="${bool2js(U.active)}"
                         />
                         <label for="active" class="custom-control-label">active user</label>
                     </div>
                 </div>
-                <div class="form-group row" py:if="is_member('supervisor')">
+                <div class="form-group row">
                     <label for="comment">Description:</label>
                     <textarea name="comment"
                               class="form-control"
                               rows="10"
                               py:content="U.comment"
+                              py:attrs="attrcheck('disabled', not (is_member('supervisor') or is_self(U.username)))"
                     />
                 </div>
 
                 <div class="form-group row">
                     <button type="submit" class="col-lg-2 btn btn-primary w-100"
-                            py:attrs="attrcheck('readonly', not is_member('supervisor'))"
+                            py:attrs="attrcheck('disabled', not (is_member('supervisor') or is_self(U.username)))"
                     >
                         save
                     </button>
