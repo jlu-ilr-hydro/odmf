@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" xml:py="">
+<script>
+    $(function() {
+        $('#conf-save').click(function(event) {
+
+        });
+    });
+</script>
+<div id="conf-output">
+    <div py:for="section in conf.sections()">
+        <h4 py:content="section"/>
+        <div py:for="key, value in conf[section].items()" class="row">
+            <span class="text-primary col-xs-4" py:content="key"/>
+            <span class="text-secondary col-xs-1">=</span>
+            <span class="text-success col-xs-7" py:content="value" />
+        </div>
+    </div>
+</div>
+<div id="conf-editor" class="collapse">
+    <div>
+        <textarea class="form-control" size="20">
+            ${conf_text}
+        </textarea>
+    </div>
+    <div class="row">
+        <button id="conf-save" class="col btn btn-success mr-1"><i class="fas fa-save mr-1"/>save</button>
+        <button id="conf-cancel" class="col btn btn-secondary mr-1"><i class="fas fa-times mr-1"/>cancel</button>
+    </div>
+</div>
+</html>

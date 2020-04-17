@@ -76,11 +76,13 @@ class PersonPage:
                     p_act.active = False
 
                 # Simple Validation
-                if 'password' in kwargs and kwargs['password']:
-                    if len(kwargs.get('password')) < 8:
+                if kwargs.get('password'):
+                    pw = kwargs['password']
+                    pw2 = kwargs.get('password_verify')
+                    if len(pw) < 8:
                         error = 'Password needs to be at least 8 characters long'
-                    elif kwargs.get('password') == kwargs.get('password_verify'):
-                        p_act.password = hashpw(kwargs.get('password'))
+                    elif pw == pw2:
+                        p_act.password = hashpw(pw)
                     else:
                         error = 'Passwords not equal'
                 # Simple Validation
@@ -101,55 +103,4 @@ class PersonPage:
             if supervisors:
                 persons = persons.filter(db.Person.can_supervise == True)
             return web.json_out(persons.all())
-
-    @expose_for(group.logger)
-    def changepassword(self, username=None):
-        """
-        Form request
-        """
-        session = db.Session()
-        changing_user_level = session.query(db.Person).filter(
-            db.Person.username == username).first().access_level
-
-        # cast from unicode to int
-        changing_user_level = int(changing_user_level)
-
-        if changing_user_level > users.current.level:
-            raise HTTPAuthError()
-        else:
-            error = ''
-            result = web.render('passwordchange.html',
-                                error=error, username=username).render()
-
-        session.close()
-
-        return result
-
-    @expose_for(group.logger)
-    def savepassword(self, **kwargs):
-        """
-        Save to database
-        """
-        password = kwargs.get('password')
-        password_repeat = kwargs.get('password_repeat')
-        username = kwargs.get('username')
-
-        if password is None or password_repeat is None or username is None:
-            raise IOError
-
-        # if password != password_repeat:
-        #    error = 'Error: Password don\'t match'
-        #    result = web.render('passwordchange.html', error=error, username=username)\
-        #        .render()
-
-        # Password encryption and db saving
-        session = db.Session()
-
-        p_act = session.query(db.Person).filter_by(username=username).first()
-        p_act.password = hashpw(password)
-
-        session.commit()
-        session.close()
-
-        raise web.redirect('./' + username)
 
