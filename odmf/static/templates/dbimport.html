@@ -4,29 +4,9 @@
         <script>
             //<![CDATA[
 
-            var gg_site;
-            // Variable holds the actual site selection, this is important
-            // for the #siteselect change event listener
 
             $(function() {
-                gg_site = $('#siteselect').val();
-
-                /*
-                 * Event listener for Site selection
-                 */
                 $('#siteselect').change( function () {
-
-                    if(gg_site != $('#siteselect').val()) {
-                        // If site is not the chosen one ... disable import and reset
-                        // the periods
-                        $('#importdb').prop('disabled', true);
-                        $('#periodes').html('Click "Load statistics" for new periods');
-                        gg_site = -1;
-                    } else {
-                        // If otherwise enable import
-                        $('#importdb').prop('disabled', false);
-                    }
-
                     // Reload datasets
                     onsiteselect();
                 });
@@ -35,10 +15,10 @@
 
 
             function get_sites() {
-                var instrument = $('#instrument').val();
+                var instrument = ${config.instrument};
                 var site = $('#siteselect').val();
                 html = '<option value=""><i>Please select...</i></option>';
-
+                $('#importdb').prop('disabled', true);
                 console.log("Instrument: " + instrument);
 
                 if (instrument) {
@@ -48,7 +28,6 @@
                         });
                         //$('.error').html(html);
                         $('#siteselect').html(html);
-                        $("#siteselect").val(site);
                     });
                 }
 
@@ -58,13 +37,6 @@
             }
             function submitform() {
                 document.forms[0].submit();
-                /*var instrument = $('#instrument').val();
-                var site = $('#siteselect').val();
-                var url='.?filename=' + $('#filename').val();
-                if (instrument) url+='&instrument=' + instrument;
-                if (site) url+='&site=' + site;
-                window.location.href=url;
-                */
             }
             function onsiteselect() {
                 var instrument = $('#instrument').val();
@@ -72,24 +44,13 @@
                 if (site) {
                     $.getJSON(odmf_ref('/dataset/json'),{site:site,instrument:instrument},function(data){
                         var html='';
-                        $.each(data,function(index,item){
-                            html+='<li><a href="${conf.root_url}/dataset/'+item.id+'">'+item.label+'</a></li>';
+                        $.each(data, function(index,item){
+                            html+='<li class="list-group-item"><a href="${conf.root_url}/dataset/'+item.id+'">'+item.label+'</a></li>';
                         });
                         $('#datasets').html(html);
-                        // $('#coverage').html('<img src="${conf.root_url}/dataset/plot_coverage/' + site + '"/>');
-                        $('#loadstat').prop('disabled',false);
                     });
-                } else {
-                    $('#loadstat').prop('disabled',false);
+                    $('#importdb').prop('disabled', false);
                 }
-                $('#startdate').val('');
-                $('#enddate').val('');
-            }
-            function setdates(start,end) {
-                $('#startdate').val(start);
-                $('#enddate').val(end);
-                $('#importdb').prop('disabled',false);
-                $('.startend').slideDown();
             }
 
             $(function() {
@@ -108,32 +69,43 @@
     </py:block>
     <py:block name="content">
         <div class="container">
-            <div class="">
-                <div>
-                    <a href="#errors" data-toggle="collapse" class="btn btn-danger dropdown-toggle">
-                        Errors <span id="errorcount" class="badge badge-secondary"></span></a>
+            <div class="alert bg-danger text-white mt-3" role="alert" py:if="error">
+                <div class="row">
+                    <div class="col-lg-1">
+                        <i class="fas fa-exclamation-circle fa-3x"/>
+                    </div>
+                    <div class="col-lg-11">
+                        <p class="lead" py:content="markdown(error)"/>
+                    </div>
                 </div>
-                <div class="collapse" id="errors" py:content="error" />
+            </div>
+
+            <div class="alert alert-success mt-3" role="alert" py:if="defined('message')" >
+                <div class="row">
+                    <div class="col-lg-1">
+                        <i class="fas fa-info-circle fa-3x"/>
+                    </div>
+                    <div class="col-lg-11">
+                        <p class="" py:content="markdown(message)"/>
+                    </div>
+                </div>
             </div>
             <!--
     Variables:
-    di module dataimport
     error
     filename
-    instrumentid
-    siteid
-    gaps - time gaps between datasets in the form [(startdate,enddate)]
     stats
      -->
 
-            <form action="${conf.root_url}/download/to_db/" method="post">
+            <form action="${conf.root_url}/download/to_db/do_import" method="post">
                 <div>
                     <div class="form-group row">
                         <label for="filename" class="col-sm-2 col-form-label">
                             File for upload:
                         </label>
 
-                        <input type="text" id="filename" name="filename" value="${filename}" size="50"  class="form-control col-sm-10" />
+                        <input type="text" id="filename" name="filename"
+                               value="${filename}" size="50"  class="form-control-plaintext h3 col-sm-10" />
 
                     </div>
                     <div class="form-group row">
@@ -141,16 +113,7 @@
                             Adapter:
                         </label>
 
-                        <select py:if="not config"
-                                id="instrument" name="instrument" onchange="get_sites();">
-                            <option value=""><i>Please select...</i></option>
-                            <option py:for="adapter in di.available_adapters()"
-                                    py:attrs="markoption(adapter.id == instrumentid)"
-                                    py:content="adapter"
-                                    value="${adapter.id}" />
-                        </select>
                         <div py:if="config">
-                            <input type="hidden" id="instrument" name="instrument" value="${config.instrument}"  class="form-control col-sm-10" />
                             <a href="javascript:showconfig('${config.href}')" py:content="config.href" />
                             <div class="small">
                                 Please check the configuration. Copy the fitting .conf file to the directory of the file!
@@ -163,22 +126,7 @@
                             Site:
                         </label>
 
-                        <select id="siteselect" name="site" class="form-control col-sm-10">
-                            <option value=""><i>Please select...</i></option>
-                            <option py:if="siteid" value="${siteid}" selected="selected">#${siteid}</option>
-                        </select>
-
-                    </div>
-                    <div class="form-group row">
-                        <label for="periodes" class="col-sm-2 col-form-label">
-                            Periodes:
-                        </label>
-
-                        <div py:for="g in (gaps or [])" class="form-control col-sm-10" id="periodes">
-                            <input type="radio" name="gap" value="${formatdate(g[0])} - ${formatdate(g[1])}"
-                                   onclick="setdates('${formatdatetime(g[0], '%Y-%m-%d')}','${formatdatetime(g[1], '%Y-%m-%d')}')" />
-                                ${formatdate(g[0])} - ${formatdate(g[1])}
-                        </div>
+                        <select id="siteselect" name="siteid" class="form-control col-sm-10"/>
 
                     </div>
                     <div class="form-group row startend">
@@ -187,7 +135,7 @@
                         </label>
 
                         <input name="startdate" id="startdate" type="date" class="form-control col-sm-10"
-                               value="${formatdatetime(gaps[0][0], '%Y-%m-%d') if gaps else ''}"/>
+                               value="${formatdatetime(startdate, '%Y-%m-%d')}"/>
 
                     </div>
                     <div class="form-group row startend">
@@ -195,18 +143,15 @@
                             End date:
                         </label>
                         <input name="enddate" id="enddate" type="date" class="form-control col-sm-10"
-                               value="${formatdatetime(gaps[0][1], '%Y-%m-%d') if gaps else ''}"/>
+                               value="${formatdatetime(enddate, '%Y-%m-%d')}"/>
                     </div>
                 </div>
-                <label for="loadstat col-form-label col-sm-2"></label>
-                <input type="submit" name="loadstat" id="loadstat" value="load statistics" disabled="disabled"
-                       class="form-control col-sm-2" />
 
-                <h3><a href="javascript:toggle('datasets')">&#x25BE; Similar datasets</a></h3>
-                <ul id="datasets" class="toggle small" >
-                    <li>No datasets loaded</li>
+                <a href="#datasets" class="dropdown-toggle h3" data-toggle="collapse">Similar datasets</a>
+                <ul id="datasets" class="collapse show list-group" >
+                    <li class="list-group-item">No datasets loaded</li>
                 </ul>
-                <div py:if="stats">
+                <div>
                     <h3>Statistics for ${filename}</h3>
                     <table id="statistics" class="table">
                         <tr >
@@ -223,20 +168,8 @@
                         </tr>
                     </table>
                 </div>
-                <input id="importdb" type="submit" name="importdb" value="start import" disabled="disabled"
+                <input id="importdb" type="submit" value="start import" disabled="disabled"
                        class="form-control col-sm-2" />
-                <div py:if="datasets">
-                    <h2>
-                        New datasets
-                    </h2>
-                    <ul>
-                        <li py:for="k,dsid in datasets.items()">${k}:
-                            <a href="${conf.root_url}/dataset/${dsid}">ds${dsid}</a>
-                        </li>
-
-                    </ul>
-
-                </div>
             </form>
 
         </div>

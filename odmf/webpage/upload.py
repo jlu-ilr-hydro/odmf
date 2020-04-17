@@ -124,62 +124,71 @@ class DBImportPage(object):
 
         # TODO: Major refactoring of this code logic, when to load gaps, etc.
         path = Path(filename.strip('/'))
-        print("path = %s" % path)
         error = web.markdown(di.checkimport(path.absolute))
-        startdate = kwargs.get('startdate')
-        enddate = kwargs.get('enddate')
-        siteid = web.conv(int, kwargs.get('site'))
-        instrumentid = web.conv(int, kwargs.get('instrument'))
+        errorstream.write(error)
         config = di.getconfig(path.absolute)
-        stats = gaps = datasets = sites = possible_datasets = None
 
         if not config:
-            errorstream.write("No config available. Please provide a config for"
-                              " computing a decent result.")
+            raise web.redirect(
+                conf.root_url + f'/download/{web.escape(path.up())}',
+                error='No config available. Please provide a config for computing a decent result.'
+            )
         else:
+
             valuetype = [e.valuetype for e in config.columns]
             config.href = Path(config.filename).href
-            if startdate:
-                startdate = web.parsedate(startdate) or None
-            if enddate:
-                enddate = web.parsedate(enddate) or None
 
+            adapter = di.get_adapter(
+                path.absolute, web.user(),
+                siteid=None, instrumentid=None
+            )
 
-            sites = []
-            possible_datasets = []
+            adapter.errorstream = errorstream
+            stats = adapter.get_statistic()
+            startdate = min(v.start for v in stats.values())
+            enddate = max(v.end for v in stats.values())
 
-            if startdate and enddate:
-                gaps = [(startdate, enddate)]
-
-            if siteid and (instrumentid or config):
-                adapter = di.get_adapter(path.absolute, web.user(), siteid,
-                                         instrumentid, startdate, enddate)
-                adapter.errorstream = errorstream
-                if 'loadstat' in kwargs:
-                    stats = adapter.get_statistic()
-                    startdate = min(v.start for v in stats.values())
-                    enddate = max(v.end for v in stats.values())
-                if 'importdb' in kwargs and startdate and enddate:
-                    gaps = None
-                    datasets = di.importfile(path.absolute, web.user(), siteid,
-                                             instrumentid, startdate, enddate)
-                else:
-                    gaps = di.finddateGaps(siteid, instrumentid, valuetype,
-                                           startdate, enddate)
-                    error = adapter.errorstream.getvalue()
-
-                adapter.errorstream.close()
 
             t1 = time.time()
 
             log("Imported in %.2f s" % (t1 - t0))
 
-        return web.render('dbimport.html', di=di, error=error,
-                          filename=filename, instrumentid=instrumentid,
-                          dirlink=path.up(), siteid=siteid, gaps=gaps,
-                          stats=stats, datasets=datasets, config=config,
-                          sites=sites, possible_datasets=possible_datasets)\
-            .render()
+        return web.render(
+            'dbimport.html',
+            config=config,
+            stats=stats,
+            error=errorstream.getvalue(),
+            filename=filename,
+            dirlink=path.up(),
+            startdate=startdate, enddate=enddate
+        ).render()
+
+    @expose_for(group.editor)
+    @web.method.post
+    def do_import(self, filename, startdate, enddate, siteid):
+        path = Path(filename.strip('/'))
+        errorstream = StringIO()
+        error = web.markdown(di.checkimport(path.absolute))
+        startdate = web.parsedate(startdate)
+        enddate = web.parsedate(enddate)
+        siteid = web.conv(int, siteid)
+        msg = ''
+        config = di.getconfig(path.absolute)
+
+        if not config:
+            errorstream.write("No config available. Please provide a config for"
+                              " computing a decent result.")
+        else:
+            datasets = di.importfile(path.absolute, web.user(), siteid,
+                                     config.instrument, startdate, enddate)
+            msg = f'### Import of {path.name} successful\n\nNew datasets:\n\n'
+            for ds in datasets:
+                msg += f'- ds{ds:04d}\n'
+
+        error += errorstream.getvalue()
+
+        raise web.redirect(path.parent().href, error=error, msg=msg)
+
 
     @expose_for(group.editor)
     def index(self, filename=None, **kwargs):
