@@ -68,12 +68,14 @@ class DBImportPage(object):
         absfile = conf.abspath(filename.strip('/'))
         path = Path(absfile)
 
-        error = web.markdown(di.checkimport(path.absolute))
+        error = di.checkimport(path.absolute)
+        if error:
+            raise web.redirect(path.parent().href, error=error)
 
         config = None
+
         if import_with_class == ManualMeasurementsImport:
             config = ManualMeasurementsImport.from_file(path.absolute)
-            print("path = %s;\nabsfile = %s" % (path, absfile))
 
         from cherrypy import log
         log("Import with class %s" % import_with_class.__name__)
@@ -89,11 +91,12 @@ class DBImportPage(object):
 
         if 'commit' in kwargs and cancommit:
             di.savetoimports(absfile, web.user(), ["_various_as_its_manual"])
-            raise web.redirect(conf.root_url + f'/download/{web.escape(path.up())}')
+            raise web.redirect(path.parent().href, error=error, msg=msg)
         else:
-            return web.render('logimport.html', filename=path, logs=logs,
-                              cancommit=cancommit, error=error)\
-                .render()
+            return web.render(
+                'logimport.html', filename=path, logs=logs,
+                cancommit=cancommit, error=error
+            ).render()
 
     @staticmethod
     def mmimport(filename, kwargs):
@@ -124,7 +127,9 @@ class DBImportPage(object):
 
         # TODO: Major refactoring of this code logic, when to load gaps, etc.
         path = Path(filename.strip('/'))
-        error = web.markdown(di.checkimport(path.absolute))
+        error = di.checkimport(path.absolute)
+        if error:
+            raise web.redirect(path.parent().href, error=error)
         errorstream.write(error)
         config = di.getconfig(path.absolute)
 
