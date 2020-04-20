@@ -266,17 +266,33 @@ class DownloadPage(object):
         else:
             return web.render(
                 'download.html', error=error, message=msg,
-                files=files, directories=directories,
+                files=sorted(files),
+                directories=sorted(directories),
                 curdir=path,
                 max_size=conf.upload_max_size
             ).render()
 
     @expose_for(group.editor)
     @web.method.post_or_put
-    def upload(self, dir, datafile, **kwargs):
+    def upload(self, dir, datafiles, **kwargs):
+        """
+        Uploads a list of files. Make sure the upload element is like
+
+        <input type="file" multiple="multiple"/>
+
+        Parameters
+        ----------
+        dir
+            The target directory
+        datafiles
+            The datafiles to upload
+        kwargs
+
+        """
         error = ''
         fn = ''
-        if datafile:
+
+        for datafile in datafiles:
             path = Path((datapath / dir).absolute())
             if not path:
                 path.make()
@@ -321,7 +337,7 @@ class DownloadPage(object):
             io.write('\n')
             for l in imphist.open():
                 fn, user, date, ds = l.split(',', 3)
-                io.write(f' * file:{dir}/{fn} imported by user:{user} at {date} into {ds}\n')
+                io.write(f' * file:{dir}/{fn} imported by user:{user} at {date:%Y-%m-%d %H:%M} into {ds}\n')
         return web.markdown(io.getvalue())
 
     @expose_for(group.editor)
