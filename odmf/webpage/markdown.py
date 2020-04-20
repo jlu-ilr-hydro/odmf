@@ -9,12 +9,13 @@ from kajiki.template import literal as literal
 import bleach
 
 
+
 class PatternLink(markdown.inlinepatterns.Pattern):
     """
     Creates a link from a specific Regular Expression pattern
     """
 
-    def __init__(self, md, pattern, href, text):
+    def __init__(self, md, pattern: str, href: str, text: str):
         """
         Creates the rule to substitute a pattern with a link
         md: The MarkDown object
@@ -22,8 +23,12 @@ class PatternLink(markdown.inlinepatterns.Pattern):
         href: a substitution string to yield the linked url from the pattern. Note: Groups have one index higher as one would expect. Eg. the first group in \2
         text: a substitution string to yield the link label from the pattern. Note: Groups have one index higher as one would expect. Eg. the first group in \2
         """
+        from ..config import conf
         super(PatternLink, self).__init__(pattern, md)
-        self.href = href
+        if href.startswith('/') and not href.startswith(conf.root_url):
+            self.href = conf.root_url + href
+        else:
+            self.href = href
         self.text = text
 
     def handleMatch(self, m):
@@ -130,7 +135,7 @@ class UrlizePattern(markdown.inlinepatterns.Pattern):
                 if '@' in url and '/' not in url:
                     url = 'mailto:' + url
                 else:
-                    url = 'http://' + url
+                    url = 'https://' + url
 
             el = markdown.util.etree.Element("a")
             el.set('href', url)
@@ -164,8 +169,6 @@ class SchwingbachExtension(markdown.Extension):
             md, '(log:)([0-9]+)', r'/log/\3', '\u25B8' + r'\2\3')
         md.inlinePatterns['link wiki'] = PatternLink(
             md, '(wiki:)([\w/]+)', r'/wiki/\3', '[\\3]')
-        md.inlinePatterns['link svn'] = PatternLink(
-            md, '(svn:)([\w/]+)', r'/snvlog/\3', '[\\3]')
         md.inlinePatterns['replace rarrow'] = SymbolPattern(
             md, r'(-->)', '\u2192')
         md.inlinePatterns['replace larrow'] = SymbolPattern(

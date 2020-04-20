@@ -337,7 +337,7 @@ class DownloadPage(object):
             io.write('\n')
             for l in imphist.open():
                 fn, user, date, ds = l.split(',', 3)
-                io.write(f' * file:{dir}/{fn} imported by user:{user} at {date:%Y-%m-%d %H:%M} into {ds}\n')
+                io.write(f' * file:{dir}/{fn} imported by user:{user} at {date} into {ds}\n')
         return web.markdown(io.getvalue())
 
     @expose_for(group.editor)
