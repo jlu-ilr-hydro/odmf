@@ -3,7 +3,7 @@ Created on 25.09.2012
 
 @author: philkraf
 '''
-
+from pathlib import Path
 from .auth import expose_for, users
 from . import lib as web
 import json
@@ -34,9 +34,9 @@ class Preferences(object):
     @property
     def filename(self):
         if users.current:
-            return conf.abspath('preferences') / f'{users.current.name}.json'
+            return Path(conf.preferences) / f'{users.current.name}.json'
         else:
-            return conf.abspath('preferences') / 'any.json'
+            return Path(conf.preferences) / 'any.json'
 
     def __getitem__(self, item):
         return self.data.get(item)
@@ -51,7 +51,7 @@ class Preferences(object):
     def save(self):
         with open(self.filename, 'w') as f:
             # string cast needed since as_json returns bytes (due to python3 refactoring measures)
-            f.write(str(web.as_json(self.data)))
+            f.write(web.as_json(self.data))
 
     @expose_for()
     @web.mime.json

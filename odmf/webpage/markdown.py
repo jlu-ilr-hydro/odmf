@@ -219,7 +219,7 @@ class MarkDown:
 
         self.md = markdown.Markdown(extensions=['admonition', 'extra', 'superscript', 'subscript', se, al])
 
-    def __call__(self, s):
+    def __call__(self, s, *, with_newline_literal=False):
         if s:
             if type(s) is str:
                 pass
@@ -234,7 +234,8 @@ class MarkDown:
                 attributes=bleach_allow.attributes,
                 styles=bleach_allow.styles
             )
-
+            if with_newline_literal:
+                cleaned_html = cleaned_html.replace('\n', r'\n')
             return literal(cleaned_html)
         else:
             return s

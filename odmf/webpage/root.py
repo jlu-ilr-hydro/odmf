@@ -75,7 +75,7 @@ class Root(object):
             if frompage:
                 raise web.HTTPRedirect(frompage or conf.root_url)
             else:
-                return 'ok'
+                return web.render('login.html', error=error, frompage=frompage).render()
 
         elif username and password:
             error = users.login(username, password)
@@ -89,7 +89,7 @@ class Root(object):
                 else:
                     raise web.HTTPRedirect(frompage)
             else:
-                return 'ok'
+                return web.render('login.html', error=error, frompage=frompage).render()
         else:
             return web.render('login.html', error=error, frompage=frompage).render()
 

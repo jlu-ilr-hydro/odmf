@@ -84,6 +84,7 @@ class Configuration:
     smtp_serverurl = 'mailout.uni-giessen.de'
     root_url = '/'
     datafiles = './datafiles'
+    preferences = './preferences'
 
     def __bool__(self):
         return ... not in vars(self).values()

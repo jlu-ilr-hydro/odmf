@@ -293,7 +293,7 @@ class API(BaseAPI):
     @expose_for()
     @web.method.post
     @web.mime.plain
-    def login(self, username, password):
+    def login(self, username=None, password=None):
         """
         Login for the web app (including API)
 
