@@ -29,7 +29,7 @@ TODO: Include filter for dataset.valuetype and dataset.measured_by. Move page ho
             $(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
             $(".timepicker").autocomplete({source: timerange(15)});
             for (var i=0;i<10;i++) {
-                popSelect(i,${as_json(plot.newlineprops)});
+                popSelect(i,${literal(as_json(plot.newlineprops))});
             }
             $('#addsubplot').prop('disabled', false);
 
