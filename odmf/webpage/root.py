@@ -72,14 +72,24 @@ class Root(object):
         """
         if logout:
             users.logout()
-            raise web.HTTPRedirect(frompage or conf.root_url)
+            if frompage:
+                raise web.HTTPRedirect(frompage or conf.root_url)
+            else:
+                return 'ok'
+
         elif username and password:
             error = users.login(username, password)
-            if error or 'login' in frompage:
-                cherrypy.response.status = 401
-                return web.render('login.html', error=error, frompage=frompage).render()
+
+            if error:
+                return web.redirect('login.html', error=error, frompage=frompage)
+
+            elif frompage:
+                if 'login' in frompage:
+                    return web.render('login.html', error=error, frompage=frompage).render()
+                else:
+                    raise web.HTTPRedirect(frompage)
             else:
-                raise web.HTTPRedirect(frompage or conf.root_url)
+                return 'ok'
         else:
             return web.render('login.html', error=error, frompage=frompage).render()
 

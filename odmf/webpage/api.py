@@ -7,7 +7,7 @@ from traceback import format_exc as traceback
 from contextlib import contextmanager
 
 from . import lib as web
-from .auth import users, expose_for, group, has_level
+from .auth import users, expose_for, group, has_level, HTTPAuthError
 from .. import db
 from ..config import conf
 
@@ -304,8 +304,10 @@ class API(BaseAPI):
         """
         error = users.login(username, password)
         if error:
-            raise cherrypy.HTTPError(401, 'Username or password incorrect')
+            cherrypy.response.status = 401
+            return 'Username or password wrong'.encode('utf-8')
         else:
+            cherrypy.response.status = 200
             return 'OK'.encode('utf-8')
 
     @expose_for(group.editor)
