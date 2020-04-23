@@ -136,11 +136,6 @@
                 popSelect();
                 $('#dslist').html('')
             }
-            function gotods(dsid) {
-                if (dsid>0) {
-                    window.location.href=odmf_ref('/dataset/') + dsid;
-                }
-            }
             $(function() {
                 $('#exportrecords').click(function() {
                     var props = {
@@ -164,7 +159,10 @@
                     }
                 });
                 $('#goto').change(function(event) {
-                   gotods($('#goto').val());
+                    window.location.href=odmf_ref('/dataset/') + dsid;
+                });
+                $('#gotods-btn').click(function() {
+                    window.location.href=odmf_ref('/dataset/') + dsid;
                 });
 
                 popSelect();
@@ -209,7 +207,7 @@
 
                 <div class="form-group mb-1 row">
                     <select id="instrumentselect" onchange="popSelect();" class="form-control filter" tabindex="6"
-                                                title="Instument" data-toggle="tooltip"/>
+                            title="Instument" data-toggle="tooltip"/>
                 </div>
                 <div class="form-group mb-1 row">
                     <input id="dateselect" type="date" class="form-control" value="" tabindex="7" placeholder="date..."
@@ -223,25 +221,25 @@
         <!-- insert main content -->
 
         <div class="container">
-        <ul class="nav bg-light p-1 border mb-1">
-            <li id="dscount" class="nav-item my-auto mx-3 h4">0 datasets</li>
-            <li class="nav-item dropdown mr-auto">
-                <button id="toggleexport"  data-toggle="dropdown"
-                        class="btn btn-secondary dropdown-toggle"
-                        aria-haspopup="true" aria-expanded="false"
-                >
-                    export
-                </button>
-                <div class="dropdown-menu" id="exportdiv" aria-labelledby="toggleexport">
-                    <div class="dropdown-item">
-                        <h4 class="">Export records from all data sets</h4>
-                        <button id="exportrecords" disabled="disabled" class="btn btn-info"
-                                title="Only available when valuetype and site are selected. Beware multi-instrument and multi-level situations."
-                                data-toggle="tooltip"
-                        >
-                            export records
-                        </button>
-                        <span >
+            <ul class="nav bg-light p-1 border mb-1">
+                <li id="dscount" class="nav-item my-auto mx-3 h4">0 datasets</li>
+                <li class="nav-item dropdown mr-auto">
+                    <button id="toggleexport"  data-toggle="dropdown"
+                            class="btn btn-secondary dropdown-toggle"
+                            aria-haspopup="true" aria-expanded="false"
+                    >
+                        export
+                    </button>
+                    <div class="dropdown-menu" id="exportdiv" aria-labelledby="toggleexport">
+                        <div class="dropdown-item">
+                            <h4 class="">Export records from all data sets</h4>
+                            <button id="exportrecords" disabled="disabled" class="btn btn-info"
+                                    title="Only available when valuetype and site are selected. Beware multi-instrument and multi-level situations."
+                                    data-toggle="tooltip"
+                            >
+                                export records
+                            </button>
+                            <span >
                             <input type="checkbox" id="exportrecordswitherror"
                                    title="Check, if you want to have records mark as error exported also"
                                    data-toggle="tooltip"
@@ -249,24 +247,24 @@
                             include error records
                         </span>
 
+                        </div>
                     </div>
-                </div>
-            </li>
-            <li class="nav-item ">
-            <div class="input-group ">
-                <div class="input-group-prepend" >
-                    <button class="btn btn-secondary" onclick="gotods($('#goto').val());"
-                    >
-                        <i class="fas fa-rocket" />
-                    </button>
-                </div>
-                <input class="form-control" type="number" id="goto" tabindex="1" placeholder="dataset-id"
-                       title="Go directly to a dataset by entering the id" data-toggle="tooltip"/>
+                </li>
+                <li class="nav-item ">
+                    <div class="input-group ">
+                        <div class="input-group-prepend" >
+                            <button class="btn btn-secondary" id="gotods-btn"
+                            >
+                                <i class="fas fa-rocket" />
+                            </button>
+                        </div>
+                        <input class="form-control" type="number" id="goto" tabindex="1" placeholder="dataset-id"
+                               title="Go directly to a dataset by entering the id" data-toggle="tooltip"/>
+                    </div>
+                </li>
+            </ul>
+            <div id="dslist" class="overflow-auto list-group">
             </div>
-</li>
-        </ul>
-                <div id="dslist" class="overflow-auto list-group">
-                </div>
 
         </div>
     </py:block>

@@ -87,24 +87,14 @@ class DatasetPage:
                     datasets = {}
 
                 # Render the resulting page
-                queries = dict(
-                    valuetypes=session.query(db.ValueType).order_by(db.ValueType.name),
-                    persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname),
-                    sites=session.query(db.Site).order_by(db.Site.id),
-                    quality=session.query(db.Quality).order_by(db.Quality.id),
-                    datasources=session.query(db.Datasource),
-                    projects=session.query(db.Project),
-                )
                 return web.render(
-                    'datasettab.html',
+                    'dataset-edit.html',
                     # activedataset is the current dataset (id or new)
                     activedataset=active,
                     # Render error messages
                     error=error,
                     # similar and parallel datasets
                     datasets=datasets,
-                    # the db module for queries during rendering
-                    db=db,
                     # The project
                     activeproject=project,
                     # All available timezones
@@ -112,22 +102,27 @@ class DatasetPage:
                     # The title of the page
                     title='ds' + str(id),
                     # A couple of prepared queries to fill select elements
-                    **queries
+                    valuetypes=session.query(db.ValueType).order_by(db.ValueType.name),
+                    persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname),
+                    sites=session.query(db.Site).order_by(db.Site.id),
+                    quality=session.query(db.Quality).order_by(db.Quality.id),
+                    datasources=session.query(db.Datasource),
+                    projects=session.query(db.Project),
                 ).render()
             except:
                 # If anything above fails, render error message
                 return web.render(
-                    'datasettab.html',
+                    'dataset-edit.html',
                     # render traceback as error
                     error=traceback(),
-                    # a title
-                    title='Schwingbach-Datensatz (Fehler)',
-                    # See above
-                    session=session,
                     datasets=datasets,
-                    db=db,
                     activedataset=None,
-                    **queries
+                    valuetypes=session.query(db.ValueType).order_by(db.ValueType.name),
+                    persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname),
+                    sites=session.query(db.Site).order_by(db.Site.id),
+                    quality=session.query(db.Quality).order_by(db.Quality.id),
+                    datasources=session.query(db.Datasource),
+                    projects=session.query(db.Project),
                 ).render()
 
 
@@ -426,17 +421,17 @@ class DatasetPage:
         """
         Plots the dataset. Might be deleted in future. Rather use PlotPage
         """
-        session = db.Session()
-        try:
+        with db.session_scope() as session:
             import matplotlib
             matplotlib.use('Agg', warn=False)
             import pylab as plt
             ds = session.query(db.Dataset).get(int(id))
-            if start:
+
+            if start.strip():
                 start = web.parsedate(start.strip())
             else:
                 start = ds.start
-            if end:
+            if end.strip():
                 end = web.parsedate(end.strip())
             else:
                 end = ds.end
@@ -450,9 +445,8 @@ class DatasetPage:
             plt.ylabel('%s [%s]' % (ds.valuetype.name, ds.valuetype.unit))
             plt.title(str(ds.site))
             fig.savefig(bytesio, dpi=100, format='png')
-        finally:
-            session.close()
-        return bytesio.getvalue()
+
+            return bytesio.getvalue()
 
     @web.expose
     @web.mime.json
@@ -531,7 +525,7 @@ class DatasetPage:
             res = web.render('record.html', records=records, currentcount=currentcount,
                              totalrecords=totalcount, dataset=ds, actionname="split dataset",
                              action="/dataset/setsplit",
-                             action_help='/wiki/dataset/split').render('xml')
+                             action_help='/wiki/dataset/split').render()
             return res
 
     @expose_for(group.editor)
