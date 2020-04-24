@@ -59,14 +59,18 @@
             }
 
             function plotds(id) {
-                var url = odmf_ref('/dataset/plot')
-                        + '?id='+id
-                        + '&' + 'start='+$('#plotstart').val() + 'T' + $('#plotstart_t').val()
-                        + '&' + 'end='+$('#plotend').val()+ 'T' + $('#plotend_t').val()
-                        + '&' + 'marker=' + $('#markerpicker').val()
-                        + '&' + 'line=' + $('#linepicker').val()
-                        + '&' + 'color=' + $('#colorpicker').val();
-                $('#plotimg').attr('src',url);
+
+                $.get(odmf_ref('/dataset/plot'), {
+                    id: id,
+                    start: $('#plotstart').val() + 'T' + $('#plotstart_t').val(),
+                    end: $('#plotend').val() + 'T' + $('#plotend_t').val(),
+                    marker: $('#markerpicker').val(),
+                    line: $('#linepicker').val(),
+                    color: $('#colorpicker').val(),
+                    interactive: $('#interactive').is(':checked')
+                }, function(html) {
+                    $('#plot-div').html(html);
+                });
             }
             function removeds(dsid,dsname,reccount) {
                 var msg = 'Are you absolutly sure to delete ' + dsname + '?' +
@@ -154,7 +158,9 @@
                 <div class="col">
                     <div class="nav flex-column nav-pills" role="tablist"  aria-orientation="vertical" id="tabs">
                         <a id="description-tab" class="nav-link active border-top" data-toggle="pill" href="#description">dataset</a>
-                        <a id="edit-tab" class="nav-link border-top" data-toggle="pill" href="#edit">edit</a>
+                        <a id="edit-tab" class="nav-link border-top" data-toggle="pill" href="#edit"
+                           py:if="is_member('editor') and users.current.level>=ds_act.access"
+                        >edit</a>
                         <a id="similar-tab" class="nav-link border-top" data-toggle="pill" href="#similar">similar</a>
 
                         <a id="transforms-tab" class="nav-link flexbox border-top"
@@ -169,7 +175,8 @@
                         >plot
                         </a>
                         <a id="records-tab" class="nav-link flexbox border-top" data-toggle="pill"
-                           py:if="ds_act.is_timeseries() and is_member('editor')" href="#records">
+                           py:if="ds_act.is_timeseries() and is_member('editor') and users.current.level >= ds_act.access"
+                           href="#records">
                             records
                         </a>
                         <a py:if="ds_act.is_timeseries() and is_member('editor') and users.current.level>=ds_act.access"
@@ -201,9 +208,14 @@
     </py:block>
     <py:block name="content">
         <div class="container">
-            <div class="row alert bg-danger text-white" role="alert" py:if="error">
-                <h1 class="display-4 col-lg-2">Error</h1>
-                <p class="lead col-lg-10" py:content="markdown(error)"/>
+            <div class="row mt-2 w-100">
+                <div class="container">
+                    <div class="container bg-danger text-white row w-100 border rounded"  py:if="error">
+                        <h1 class="display-3 col-lg-2">Error</h1>
+                        <div class="lead col-lg-10" py:content="markdown(error)"/>
+                    </div>
+
+                </div>
             </div>
             <div class="row mt-2 w-100">
                 <div class="container">
@@ -231,7 +243,17 @@
                 </div>
 
             </div>
+            <div class="row mt-2 w-100">
+                <div class="container">
+                    <div class="container bg-warning row w-100 border rounded"  py:if="ds_act.access > users.current.level ">
+                        <h4 class="col-lg-4">Sorry, ${user()}</h4>
+                        <div class="lead col-lg-8">
+                            This dataset is not available for you. Ask the owner to get access.
+                        </div>
+                    </div>
 
+                </div>
+            </div>
             <div class="tab-content row w-100 mt-2">
                 <div id="description" class="tab-pane active mx-auto" role="tabpanel" >
                     <table class="table mx-auto">
@@ -591,73 +613,88 @@
 
                 <div id="plot" class="tab-pane w-100 mr-4" role="tabpanel" py:if="users.current.level>=ds_act.access">
                     <div class="container mx-auto">
-                        <div class="input-group mb-1">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">from:</span>
+                        <div class="row">
+                            <div class="col-xl input-group mb-1">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">from:</span>
+                                </div>
+                                <input type="date" class="form-control" id="plotstart" size="10"
+                                       value="${formatdate(ds_act.start, '%Y-%m-%d')}"
+                                />
+                                <input type="text" class="form-control timepicker" id="plotstart_t" size="5"
+                                       value="${formatdate(ds_act.start, '%H:%M')}"
+                                />
                             </div>
-                            <input type="date" class="form-control" id="plotstart" size="10"
-                                   value="${formatdate(ds_act.start, '%Y-%m-%d')}"
-                            />
-                            <input type="text" class="form-control timepicker" id="plotstart_t" size="5"
-                                   value="${formatdate(ds_act.start, '%H:%M')}"
-                            />
-                        </div>
-                        <div class="input-group mb-1">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">until:</span>
-                            </div>
-                            <input type="date" class="form-control" id="plotend" size="10"
-                                   value="${formatdate(ds_act.end + timedelta(days=1) if ds_act.end else ds_act.end, '%Y-%m-%d')}"
-                            />
-                            <input type="text" class="form-control timepicker" id="plotend_t" size="5"
-                                   value="${formatdate(ds_act.end, '%H:%M')}"
-                            />
-                        </div>
-                        <div class="input-group mb-1">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">marker:</span>
+                            <div class="col-xl input-group mb-1">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">until:</span>
+                                </div>
+                                <input type="date" class="form-control" id="plotend" size="10"
+                                       value="${formatdate(ds_act.end + timedelta(days=1) if ds_act.end else ds_act.end, '%Y-%m-%d')}"
+                                />
+                                <input type="text" class="form-control timepicker" id="plotend_t" size="5"
+                                       value="${formatdate(ds_act.end, '%H:%M')}"
+                                />
                             </div>
 
-                            <select id="markerpicker" class="form-control">
-                                <option value="">none</option>
-                                <option value="x">x</option>
-                                <option value="o">o</option>
-                                <option value=".">.</option>
-                                <option value="|">x</option>
-                                <option value="+">+</option>
-                                <option value="*">*</option>
-                            </select>
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">line:</span>
-                            </div>
-                            <select id="linepicker" class="form-control">
-                                <option value="-">-</option>
-                                <option value="">none</option>
-                                <option value=":">:</option>
-                                <option value="--">--</option>
-                                <option value="-.">-.</option>
-                            </select>
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">color:</span>
-                            </div>
-                            <select id="colorpicker" class="form-control">
-                                <option value="k" style="background-color: #000;">k</option>
-                                <option value="b" style="background-color: #00F;">b</option>
-                                <option value="g" style="background-color: #0F0;">g</option>
-                                <option value="r" style="background-color: #F00;">r</option>
-                                <option value="y" style="background-color: #FF0;">y</option>
-                                <option value="c" style="background-color: #0FF;">c</option>
-                                <option value="m" style="background-color: #F0F;">m</option>
-
-                            </select>
                         </div>
-                        <button class="btn btn-primary w-100"
-                                onclick="plotds(${ds_act.id});">
-                            <i class="fas fa-chart-line mr-1"/>plot
-                        </button>
+                        <div class="row">
+                            <div class="col-xl input-group mb-1">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">marker:</span>
+                                </div>
+
+                                <select id="markerpicker" class="form-control">
+                                    <option value="">none</option>
+                                    <option value="x">x</option>
+                                    <option value="o">o</option>
+                                    <option value=".">.</option>
+                                    <option value="|">x</option>
+                                    <option value="+">+</option>
+                                    <option value="*">*</option>
+                                </select>
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">line:</span>
+                                </div>
+                                <select id="linepicker" class="form-control">
+                                    <option value="-">-</option>
+                                    <option value="">none</option>
+                                    <option value=":">:</option>
+                                    <option value="--">--</option>
+                                    <option value="-.">-.</option>
+                                </select>
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">color:</span>
+                                </div>
+                                <select id="colorpicker" class="form-control">
+                                    <option value="k" style="background-color: #000;">k</option>
+                                    <option value="b" style="background-color: #00F;">b</option>
+                                    <option value="g" style="background-color: #0F0;">g</option>
+                                    <option value="r" style="background-color: #F00;">r</option>
+                                    <option value="y" style="background-color: #FF0;">y</option>
+                                    <option value="c" style="background-color: #0FF;">c</option>
+                                    <option value="m" style="background-color: #F0F;">m</option>
+
+                                </select>
+                            </div>
+
+                        </div>
+                        <div class="row">
+                            <button class="btn btn-primary col-sm-3"
+                                    onclick="plotds(${ds_act.id});">
+                                <i class="fas fa-chart-line mr-1"/>plot
+                            </button>
+                            <div class="col-sm-3">
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" id="interactive"/>
+                                    <label class="custom-control-label" for="interactive">Make interactive plot</label>
+                                </div>
+                            </div>
+
+                        </div>
 
                     </div>
-                    <div>
+                    <div id="plot-div">
                         <img id="plotimg" alt="" src=""/>
                     </div>
 
