@@ -31,6 +31,9 @@
     <script>
         //<![CDATA[
         $(function () {
+            $(function () {
+                $('[data-toggle="tooltip"]').tooltip();
+            });
             $('#login-btn').click( function(){
                 var data = {
                     username: $('#login-username').val(),

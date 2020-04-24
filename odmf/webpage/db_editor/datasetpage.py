@@ -15,7 +15,7 @@ from ...config import conf
 from pytz import common_timezones
 import cherrypy
 
-@web.show_in_nav_for(1, icon='table')
+@web.show_in_nav_for(1, icon='clipboard')
 class DatasetPage:
     """
     Serves the direct dataset manipulation and querying
@@ -53,10 +53,16 @@ class DatasetPage:
 
                 if user is None:
                     user = web.user()
-                user = session.query(db.Person).get(user) if user else None
+                user: db.Person = session.query(db.Person).get(user) if user else None
                 if id == 'new':
-                    active = db.Timeseries(id=db.newid(db.Dataset, session), name='New Dataset',
-                                           site=site, valuetype=valuetype, measured_by=user)
+                    active = db.Timeseries(
+                        id=db.newid(db.Dataset, session),
+                        name='New Dataset',
+                        site=site,
+                        valuetype=valuetype,
+                        measured_by=user,
+                        access=user.access_level
+                    )
                 else:  # Else load requested dataset
                     active = session.query(db.Dataset).get(int(id))
 
@@ -90,7 +96,7 @@ class DatasetPage:
                 return web.render(
                     'dataset-edit.html',
                     # activedataset is the current dataset (id or new)
-                    activedataset=active,
+                    ds_act=active,
                     # Render error messages
                     error=error,
                     # similar and parallel datasets
@@ -569,7 +575,6 @@ class DatasetPage:
         Creates a transformed timeseries from a timeseries. 
         Redirects to the new transformed timeseries
         """
-        session = db.Session()
         id = int(sourceid)
         try:
             with db.session_scope() as session:
