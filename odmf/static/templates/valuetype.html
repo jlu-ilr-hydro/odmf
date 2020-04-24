@@ -8,10 +8,10 @@
     </py:block>
     <py:block name="sidebar">
         <div class="container-fluid">
-                <a class="btn btn-secondary w-100 mb-4" href="${conf.root_url}/valuetype/new" py:if="is_member('supervisor')">
-                    <i class="fas fa-plus mr-2"/>
-                    new valuetype
-                </a>
+            <a class="btn btn-secondary w-100 mb-4" href="${conf.root_url}/valuetype/new" py:if="is_member('supervisor')">
+                <i class="fas fa-plus mr-2"/>
+                new valuetype
+            </a>
             <div class="nav flex-column nav-pills" >
                 <a py:for="v in valuetypes"
                    class="nav-link ${['', 'active'][v.id==actualvaluetype.id]}"
@@ -23,111 +23,105 @@
         </div>
     </py:block>
     <py:block name="content">
-        <div class="error" py:content="error" />
-
-        <div class="container" py:if="actualvaluetype" py:with="vt_act=actualvaluetype">
-            <div id="description" py:if="vt_act">
-                <div class="row mt-2 w-100">
-                    <div class="container">
-                        <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4" >
-                            <h2 class="display-4" py:content="f'{vt_act.name} [{vt_act.unit}]'"/>
-                            <div class="display-4 col-sm my-auto text-right" py:content="f'vt{vt_act.id}'">
-                            </div>
-                        </div>
-                        <div class="container" py:content="f'Allowed range: {vt_act.minvalue} - {vt_act.maxvalue} {vt_act.unit}'"/>
-                        <hr/>
-                        <div class="container" py:content="markdown(vt_act.comment)"/>
-
-
+        <div class="container">
+            <div class="row mt-2 w-100">
+                <div class="container">
+                    <div class="container bg-danger text-white row w-100 border rounded" py:if="error">
+                        <h1 class="display-3 col-lg-2">Error</h1>
+                        <div class="lead col-lg-10" py:content="markdown(error)"/>
                     </div>
+
+                </div>
+            </div>
+
+            <div class="container" py:if="actualvaluetype" py:with="vt_act=actualvaluetype">
+                <div id="description" py:if="vt_act">
+                    <div class="row mt-2 w-100">
+                        <div class="container">
+                            <div id="title-area"
+                                 class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4">
+                                <h2 class="display-4" py:content="f'{vt_act.name} [{vt_act.unit}]'"/>
+                                <div class="display-4 col-sm my-auto text-right">
+                                    <i class="fas fa-ruler mr-4"/>${vt_act.id}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-10">
+                                    <div class="container"
+                                         py:content="f'Allowed range: {vt_act.minvalue} - {vt_act.maxvalue} {vt_act.unit}'"/>
+                                    <hr/>
+                                    <div class="container" py:content="markdown(vt_act.comment)"/>
+                                </div>
+                                <div class="col-lg-2 mb-2">
+                                    <a class="btn btn-secondary dropdown-toggle" href="#edit" data-toggle="collapse">
+                                        <i class="fas fa-edit mr-2"/> edit
+                                    </a>
+                                </div>
+
+                            </div>
+
+
+                        </div>
+                    </div>
+
                 </div>
 
-            </div>
 
-
-            <!--h2 py:content="str(actualvaluetype)" />
-                <table style="width: 100%">
-                    <tr>
-                        <td style="width: 7em">ID:</td>
-                        <td py:content="actualvaluetype.id" />
-                    </tr>
-                    <tr>
-                        <td>Name:</td>
-                        <td py:content="actualvaluetype.name" />
-                    </tr>
-                    <tr>
-                        <td>Unit:</td>
-                        <td py:content="actualvaluetype.unit" />
-                    </tr>
-                    <tr>
-                        <td>
-                            Allowed value range:
-                        </td>
-                        <td>
-                                ${u'%(min)s%(u)s - %(max)s%(u)s' % dict(min=formatfloat(actualvaluetype.minvalue),
-                    max=formatfloat(actualvaluetype.maxvalue),u=actualvaluetype.unit)}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Comment:</td>
-                        <td py:content="actualvaluetype.comment" />
-                    </tr>
-                </table>
-			</div-->
-            <div class="edit-collapse mb-2">
-                <a class="btn btn-secondary dropdown-toggle" href="#edit" data-toggle="collapse">
-                    edit
-                </a>
-            </div>
-            <div id="edit" class="container collapse border rounded px-4">
-                <form action="${conf.root_url}/valuetype/saveitem"
-                      method="post" py:if="is_member('supervisor')"
-                >
-                    <div class="form-row mt-2">
-                        <div class="form-group">
-                            <label for="">ID:</label>
-                            <td><input type="text" id="id" name="id" class="form-control" value="${actualvaluetype.id}" readonly="readonly"/></td>
+                <div id="edit" class="container collapse border rounded px-4">
+                    <form action="${conf.root_url}/valuetype/saveitem"
+                          method="post" py:if="is_member('supervisor')"
+                    >
+                        <div class="form-row mt-2">
+                            <div class="form-group">
+                                <label for="">ID:</label>
+                                <input type="text" id="id" name="id" class="form-control" value="${actualvaluetype.id}"
+                                       readonly="readonly"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="">Name:</label>
+                                <input type="text" id="name" name="name" class="form-control"
+                                       value="${actualvaluetype.name}"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="">Unit:</label>
+                                <input type="text" id="unit" name="unit" class="form-control"
+                                       value="${actualvaluetype.unit}"/>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="">Name:</label>
-                            <td><input type="text" id="name" name="name" class="form-control" value="${actualvaluetype.name}" /></td>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="">Lowest value:</label>
+                                <input type="text" id="minvalue" name="minvalue" class="form-control"
+                                       value="${actualvaluetype.minvalue}"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="">Highest value:</label>
+                                <input type="text" id="maxvalue" name="maxvalue" class="form-control"
+                                       value="${actualvaluetype.maxvalue}"/>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="">Unit:</label>
-                            <td><input type="text" id="unit" name="unit" class="form-control" value="${actualvaluetype.unit}" /></td>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="">Lowest value:</label>
-                            <td><input type="text" id="minvalue" name="minvalue" class="form-control" value="${actualvaluetype.minvalue}"/></td>
-                        </div>
-                        <div class="form-group">
-                            <label for="">Highest value:</label>
-                            <td><input type="text" id="maxvalue" name="maxvalue" class="form-control" value="${actualvaluetype.maxvalue}"/></td>
-                        </div>
-                    </div>
-                    <div class="form-row mb-2">
+                        <div class="form-row mb-2">
 
                             <label for="">Comment:</label>
                             <textarea id="comment" name="comment" class="form-control"
                                       rows="4"
                                       py:content="actualvaluetype.comment"/>
-                    </div>
-                    <button class="btn btn-success mb-2" type="submit" id="save" name="save" >
-                        <i class="fas fa-save mr-2"/>
-                        save changes
-                    </button>
-                </form>
-            </div>
-            <div id="dataset-list" class="container">
-                <h2>Datasets</h2>
-                <ul>
-                    <li py:for="ds in actualvaluetype.datasets">
-                        <a href="${conf.root_url}/dataset/${ds.id}"
-                           py:content="'%s #%i(%s-%s)' % (str(ds),ds.id,formatdate(ds.start),formatdate(ds.end))" />
-                    </li>
-                </ul>
+                        </div>
+                        <button class="btn btn-success mb-2" type="submit" id="save" name="save">
+                            <i class="fas fa-save mr-2"/>
+                            save changes
+                        </button>
+                    </form>
+                </div>
+                <div id="dataset-list" class="container">
+                    <h2>Datasets</h2>
+                    <ul>
+                        <li py:for="ds in actualvaluetype.datasets">
+                            <a href="${conf.root_url}/dataset/${ds.id}"
+                               py:content="'%s #%i(%s-%s)' % (str(ds),ds.id,formatdate(ds.start),formatdate(ds.end))"/>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </py:block>
