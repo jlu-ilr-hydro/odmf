@@ -1,119 +1,134 @@
 <!DOCTYPE html>
-<html>
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <!-- insert additional scripts -->
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <div class="container-fluid">
+                <a class="btn btn-secondary w-100 mb-4" href="${conf.root_url}/valuetype/new" py:if="is_member('supervisor')">
+                    <i class="fas fa-plus mr-2"/>
+                    new valuetype
+                </a>
+            <div class="nav flex-column nav-pills" >
+                <a py:for="v in valuetypes"
+                   class="nav-link ${['', 'active'][v.id==actualvaluetype.id]}"
+                   href="${f'{conf.root_url}/valuetype/{v.id}'}"
+                   py:content="v"
+                />
+            </div>
 
-<head>
-    <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
+        </div>
+    </py:block>
+    <py:block name="content">
+        <div class="error" py:content="error" />
 
-	<link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>ValueTypes</title>
-  <link href="${conf.root_url}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
-	<script src="${conf.root_url}/media/lib/jquery-3.4.1.min.js" type="text/javascript"></script>
+        <div class="container" py:if="actualvaluetype" py:with="vt_act=actualvaluetype">
+            <div id="description" py:if="vt_act">
+                <div class="row mt-2 w-100">
+                    <div class="container">
+                        <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4" >
+                            <h2 class="display-4" py:content="f'{vt_act.name} [{vt_act.unit}]'"/>
+                            <div class="display-4 col-sm my-auto text-right" py:content="f'vt{vt_act.id}'">
+                            </div>
+                        </div>
+                        <div class="container" py:content="f'Allowed range: {vt_act.minvalue} - {vt_act.maxvalue} {vt_act.unit}'"/>
+                        <hr/>
+                        <div class="container" py:content="markdown(vt_act.comment)"/>
 
-	<script>
-			//<![CDATA[
-      function toggle(id) {
-      	$('#'+id).slideToggle('fast');
-      }		
-      //]]>
-	</script>
-</head>
-<body>
-	${navigation('Value types')}
-	<div class="content">
-	  <div class="error" py:content="error" />
-	
-			<ul id="Inhalt" >
-			<li py:if="is_member('supervisor')">
-				<a href="${conf.root_url}/valuetype/new"><b>New value type...</b></a>
-			</li>
-			<li py:for="v in valuetypes">
-				<a href="${conf.root_url}+ '/valuetype/' + v.id" py:content="v"/>
-			</li>
-		</ul>
-    <div class="rightpane">
-			<div py:if="actualvaluetype">
-				<h2 py:content="str(actualvaluetype)" />
-				<table style="width: 100%">
-					<tr>
-						<td style="width: 7em">ID:</td>
-						<td py:content="actualvaluetype.id" />
-					</tr>
-					<tr>
-						<td>Name:</td>
-						<td py:content="actualvaluetype.name" />
-					</tr>
-					<tr>
-						<td>Unit:</td>
-						<td py:content="actualvaluetype.unit" />
-					</tr>
-					<tr>
-						<td>
-							Allowed value range:
-						</td>
-						<td>
-							${u'%(min)s%(u)s - %(max)s%(u)s' % dict(min=formatfloat(actualvaluetype.minvalue),
-								max=formatfloat(actualvaluetype.maxvalue),u=actualvaluetype.unit)}  
-						</td>
-					</tr>
-					<tr>
-						<td>Comment:</td>
-						<td py:content="actualvaluetype.comment" />
-					</tr>
-				</table>
-			</div>
-			<h3><a href="javascript:toggle('edit')">&#x25BE; Edit properties</a></h3>
-			<div py:if="actualvaluetype" id="edit" class="toggle">
-				<form action="${conf.root_url}/valuetype/saveitem" method="post" py:if="is_member('supervisor')">
-					<table style="width: 100%">
-						<tr>
-							<td style="width: 7em">ID:</td>
-							<td><input type="text" name="id" value="${actualvaluetype.id}" readonly="readonly"/></td>
-						</tr>
-						<tr>
-							<td>Name:</td>
-							<td><input type="text" name="name" value="${actualvaluetype.name}" /></td>
-						</tr>
-						<tr>
-							<td>Unit:</td>
-							<td><input type="text" name="unit" value="${actualvaluetype.unit}" /></td>
-						</tr>
-						<tr>
-							<td>Lowest value:</td>
-							<td><input type="number" name="minvalue" value="${actualvaluetype.minvalue}"/></td>
-						</tr>
-						<tr>
-							<td>Highest value:</td>
-							<td><input type="number" name="maxvalue" value="${actualvaluetype.maxvalue}"/></td>
-						</tr>
-						<tr>
-							<td>Comment:<a href="${conf.root_url}/wiki/help" class="tooltip"><img src="${conf.root_url}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
-							<td>
-								<textarea name="comment" 
-										  rows="2" style="width: 100%;"
-										  py:content="actualvaluetype.comment"/>
-							</td>
-						</tr>
-					</table>
-					<input type="submit" name="save" value="save changes" style="width: 10em;"/>						
-				</form>
-			</div>
 
-			<div py:if="actualvaluetype">
-				<h2>Datasets</h2>
-				<ul>
-					<li py:for="ds in actualvaluetype.datasets">
-						<a href="${conf.root_url}/dataset/${ds.id}"
-						py:content="'%s #%i(%s-%s)' % (str(ds),ds.id,formatdate(ds.start),formatdate(ds.end))" />
-					</li>
-					<li>
-						<a href="${conf.root_url}/dataset/new?vt_id=${actualvaluetype.id}"
-						py:content="'Neuen Datensatz hinzufügen...'" style="font-style: italic;" />
-					</li>
-				</ul>
-			</div>		
-		</div>
-	</div>
-</body>
-</html>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!--h2 py:content="str(actualvaluetype)" />
+                <table style="width: 100%">
+                    <tr>
+                        <td style="width: 7em">ID:</td>
+                        <td py:content="actualvaluetype.id" />
+                    </tr>
+                    <tr>
+                        <td>Name:</td>
+                        <td py:content="actualvaluetype.name" />
+                    </tr>
+                    <tr>
+                        <td>Unit:</td>
+                        <td py:content="actualvaluetype.unit" />
+                    </tr>
+                    <tr>
+                        <td>
+                            Allowed value range:
+                        </td>
+                        <td>
+                                ${u'%(min)s%(u)s - %(max)s%(u)s' % dict(min=formatfloat(actualvaluetype.minvalue),
+                    max=formatfloat(actualvaluetype.maxvalue),u=actualvaluetype.unit)}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Comment:</td>
+                        <td py:content="actualvaluetype.comment" />
+                    </tr>
+                </table>
+			</div-->
+            <div class="edit-collapse mb-2">
+                <a class="btn btn-secondary dropdown-toggle" href="#edit" data-toggle="collapse">
+                    edit
+                </a>
+            </div>
+            <div id="edit" class="container collapse border rounded px-4">
+                <form action="${conf.root_url}/valuetype/saveitem"
+                      method="post" py:if="is_member('supervisor')"
+                >
+                    <div class="form-row mt-2">
+                        <div class="form-group">
+                            <label for="">ID:</label>
+                            <td><input type="text" id="id" name="id" class="form-control" value="${actualvaluetype.id}" readonly="readonly"/></td>
+                        </div>
+                        <div class="form-group">
+                            <label for="">Name:</label>
+                            <td><input type="text" id="name" name="name" class="form-control" value="${actualvaluetype.name}" /></td>
+                        </div>
+                        <div class="form-group">
+                            <label for="">Unit:</label>
+                            <td><input type="text" id="unit" name="unit" class="form-control" value="${actualvaluetype.unit}" /></td>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="">Lowest value:</label>
+                            <td><input type="text" id="minvalue" name="minvalue" class="form-control" value="${actualvaluetype.minvalue}"/></td>
+                        </div>
+                        <div class="form-group">
+                            <label for="">Highest value:</label>
+                            <td><input type="text" id="maxvalue" name="maxvalue" class="form-control" value="${actualvaluetype.maxvalue}"/></td>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2">
+
+                            <label for="">Comment:</label>
+                            <textarea id="comment" name="comment" class="form-control"
+                                      rows="4"
+                                      py:content="actualvaluetype.comment"/>
+                    </div>
+                    <button class="btn btn-success mb-2" type="submit" id="save" name="save" >
+                        <i class="fas fa-save mr-2"/>
+                        save changes
+                    </button>
+                </form>
+            </div>
+            <div id="dataset-list" class="container">
+                <h2>Datasets</h2>
+                <ul>
+                    <li py:for="ds in actualvaluetype.datasets">
+                        <a href="${conf.root_url}/dataset/${ds.id}"
+                           py:content="'%s #%i(%s-%s)' % (str(ds),ds.id,formatdate(ds.start),formatdate(ds.end))" />
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </py:block>
+</py:extends>
