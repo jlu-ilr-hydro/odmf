@@ -483,7 +483,8 @@ class DatasetPage:
             return web.json_out({'error': None, 'data': records.all()})
 
     @expose_for(group.editor)
-    def records(self, dataset, mindate, maxdate, minvalue, maxvalue, threshold=None, limit=None):
+    def records(self, dataset, mindate, maxdate, minvalue, maxvalue,
+                threshold=None, limit=None, offset=None):
         """
         Returns a html-table of filtered records
         TODO: This method should be replaced by records_json. 
@@ -513,7 +514,10 @@ class DatasetPage:
                     if maxvalue:
                         records = records.filter(db.Record.value < float(maxvalue))
                     totalcount = records.count()
-                    records = records.limit(limit)
+                    if offset:
+                        records = records.offset(offset)
+                    if limit:
+                        records = records.limit(limit)
                     currentcount = records.count()
             except:
                 return web.literal('<div class="error">' + traceback() + '</div>')

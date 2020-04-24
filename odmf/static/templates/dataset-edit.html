@@ -96,6 +96,9 @@
                 $('.transhelpparent').focusout(function(){
                     $('#trans_help').hide();
                 });
+                $('#trans_sources').change(function() {
+                    $('#trans_add_source').prop('disabled', !($(this).val() > 0));
+                });
                 loadstatistics();
                 $('#goto').change(function(event) {
                     window.location.href=odmf_ref('/dataset/') + $('#goto').val();
@@ -587,24 +590,27 @@
                 <div id="transforms" class="tab-pane" role="tabpanel" py:if="ds_act.is_transformed()">
                     <h3>This data set transforms the records of the following data sets:</h3>
                     <ul style="list-style:none;">
-                        <li py:for="source in ds_act.sources" class="flexbox mb-1">
+                        <li py:for="source in ds_act.sources" class="mb-1">
                             <button class="btn btn-danger btn-small mr-1"
                                     onclick="$.post(odmf_ref('/dataset/transform_removesource/'),{transid:${ds_act.id},sourceid:${source.id}},reload)"
                                     title="Remove source from transformation" data-toggle="tooltip"
                             >
                                 &times;
                             </button>
-                            <a class="" href="${source.id}" ><span py:content="source" /><span class="badge badge-primary">${source.size()} records</span></a>
+                            <a class="ml-2" href="${source.id}" >
+                                <span py:content="source" />
+                                <span class="ml-2 badge badge-primary">${source.size()} records</span>
+                            </a>
                         </li>
                         <li class="flexbox">
-                            <button class="btn btn-success btn-small mr-1"
+                            <button class="btn btn-success btn-small mr-1" id="trans_add_source"
                                     onclick="$.post(odmf_ref('/dataset/transform_addsource/'),{transid:${ds_act.id},sourceid:$('#trans_sources').val()},reload)"
-                                    title="Adds the source for transformation" data-toggle="tooltip"
+                                    title="Adds the source for transformation" data-toggle="tooltip" disabled="disabled"
                             >
                                 +
                             </button>
                             <select id="trans_sources" class="form-control ml-1">
-                                <option value="" style="font-style: italic;">Please select</option>
+                                <option value="" style="font-style: italic;" selected="selected">Please select</option>
                                 <option py:for="potsrc in ds_act.suitablesources()" value="${potsrc.id}">${potsrc}</option>
                             </select>
                         </li>
