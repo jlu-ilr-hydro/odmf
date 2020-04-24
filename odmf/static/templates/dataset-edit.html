@@ -301,8 +301,10 @@
                             <td class="bold">Data source:</td>
                             <td>
                                 <a href="${conf.root_url}/instrument/${ds_act.source.id}" py:content="ds_act.source" />
-                                <a py:if="ds_act.source.manuallink" href="${ds_act.source.manuallink}" class="small">
-                                    <img src="${conf.root_url}/media/ui-icons/shimmer/document_16.png" alt="documentation"/>
+                                <a py:if="ds_act.source.manuallink" href="${conf.root_url}/${ds_act.source.manuallink}" class="ml-4"
+                                   title="Open manual for ${ds_act.source}" data-toggle="tooltip"
+                                >
+                                    <i class="fas fa-book-open"/>
                                 </a>
                             </td>
                         </tr>
@@ -334,15 +336,15 @@
                         <div class="container w-100">
                             <div id="edit-top-buttons" class="form-row mb-2">
 
-                                <button type="submit" id="save" name="save" class="btn btn-success mr-2" >
+                                <button type="submit" id="save" name="save" class="btn btn-outline-success mr-2" >
                                     <i class="fas fa-save mr-2"/> Save
                                 </button>
                                 <button py:if="ds_act.is_timeseries() and is_member('editor')"
                                         onclick="$.post(odmf_ref('/dataset/create_transformation/'),{sourceid:${ds_act.id}},reload)"
-                                        class="btn btn-primary mr-2" data-toggle="tooltip" title="Create a transformed dataset for this">
+                                        class="btn btn-outline-primary mr-2" data-toggle="tooltip" title="Create a transformed dataset for this">
                                     \(f(x)\) transform
                                 </button>
-                                <button py:if="is_member('admin')" class="btn btn-danger mr-2" title="remove dataset permanently" data-toggle="tooltip"
+                                <button py:if="is_member('admin')" class="btn btn-outline-danger mr-2" title="remove dataset permanently" data-toggle="tooltip"
                                         onclick="javascript:removeds(${ds_act.id},'${str(ds_act)}',${n});">
                                     <i class="fas fa-trash mr-2"/> delete dataset
                                 </button>
@@ -355,24 +357,59 @@
                                            value="${ds_act.name}"/>
                                 </div>
                                 <div class="form-group col-lg">
+
                                     <label for="measured_by">Measured by:</label>
-                                    <select class="form-control" id="measured_by" name="measured_by">
-                                        <option value="" disabled="disabled">Please select...</option>
-                                        <option py:for="p in persons"
-                                                py:attrs="markoption(p is ds_act.measured_by)"
-                                                py:content="p"
-                                                value="${p.username}" />
-                                    </select>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/user/${ds_act.measured_by.username}"
+                                               title="Edit ${ds_act.measured_by.username}" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-user"/>
+                                            </a>
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/user/new"
+                                               title="Add a new person" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-plus"/>
+                                            </a>
+                                        </div>
+                                        <select class="form-control border-secondary" id="measured_by"
+                                                name="measured_by">
+                                            <option value="" disabled="disabled">Please select...</option>
+                                            <option py:for="p in persons"
+                                                    py:attrs="markoption(p is ds_act.measured_by)"
+                                                    py:content="p"
+                                                    value="${p.username}"/>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="form-group col-lg">
                                     <label for="valuetype">Value type:</label>
-                                    <select class="form-control" id="valuetype" name="valuetype">
-                                        <option value="" disabled="disabled">Please select...</option>
-                                        <option py:for="vt in valuetypes"
-                                                py:attrs="markoption(vt is ds_act.valuetype)"
-                                                py:content="vt"
-                                                value="${vt.id}" />
-                                    </select>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/valuetype/${ds_act.valuetype.id}"
+                                               title="Edit ${ds_act.valuetype}" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-ruler"/>
+                                            </a>
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/valuetype/new"
+                                               title="Add a new valuetype" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-plus"/>
+                                            </a>
+                                        </div>
+                                        <select class="form-control border-secondary" id="valuetype" name="valuetype">
+                                            <option value="" disabled="disabled">Please select...</option>
+                                            <option py:for="vt in valuetypes"
+                                                    py:attrs="markoption(vt is ds_act.valuetype)"
+                                                    py:content="vt"
+                                                    value="${vt.id}" />
+                                        </select>
+
+                                    </div>
 
                                 </div>
                             </div>
@@ -393,13 +430,28 @@
 
                                 <div class="form-group col-lg">
                                     <label for="site">Site:</label>
-                                    <select id="site" name="site" class="form-control">
-                                        <option value="" disabled="disabled">Please select...</option>
-                                        <option py:for="s in sites"
-                                                py:attrs="markoption(s is ds_act.site)"
-                                                py:content="s"
-                                                value="${s.id}" />
-                                    </select>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/site/${ds_act.site.id}"
+                                               title="Edit ${ds_act.site}" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-map-marker-alt"/>
+                                            </a>
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/site/new"
+                                               title="Add a new site" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-plus"/>
+                                            </a>
+                                        </div>
+                                        <select id="site" name="site" class="form-control border-secondary">
+                                            <option value="" disabled="disabled">Please select...</option>
+                                            <option py:for="s in sites"
+                                                    py:attrs="markoption(s is ds_act.site)"
+                                                    py:content="s"
+                                                    value="${s.id}"/>
+                                        </select></div>
                                 </div>
                                 <div class="form-group col-lg">
                                     <label for="level" data-toggle="tooltip"
@@ -423,13 +475,30 @@
                                 </div>
                                 <div class="form-group col-lg">
                                     <label for="source">Data source (eg. instrument):</label>
-                                    <select id="source" name="source" class="form-control">
-                                        <option value="" disabled="disabled">Please select...</option>
-                                        <option py:for="datasource in datasources"
-                                                py:attrs="markoption(datasource is ds_act.source)"
-                                                py:content="datasource"
-                                                value="${datasource.id}" />
-                                    </select>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/instrument/${ds_act.source.id}"
+                                               title="Edit ${ds_act.source}" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-thermometer-half"/>
+                                            </a>
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/instrument/new"
+                                               title="Add a new instrument" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-plus"/>
+                                            </a>
+                                        </div>
+
+                                        <select id="source" name="source" class="form-control border-secondary">
+                                            <option value="" disabled="disabled">Please select...</option>
+                                            <option py:for="datasource in datasources"
+                                                    py:attrs="markoption(datasource is ds_act.source)"
+                                                    py:content="datasource"
+                                                    value="${datasource.id}"/>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="form-group col-lg">
                                     <label for="access" data-toggle="tooltip"
@@ -484,13 +553,13 @@
                                     </label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
-                                            <span class="input-group-text">x' = </span>
+                                            <span class="input-group-text">\(x\prime = \)</span>
                                         </div>
                                         <input class="form-control" type="text"
                                                value="${formatfloat(ds_act.calibration_slope)}" id="calibration_slope"
                                                name="calibration_slope" size="5" style="text-align: right;"/>
                                         <div class="input-group-prepend">
-                                            <span class="input-group-text">* x + </span>
+                                            <span class="input-group-text">\(\cdot\ x\ +\ \)</span>
                                         </div>
 
                                         <input type="text" value="${formatfloat(ds_act.calibration_offset)}"
