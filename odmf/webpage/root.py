@@ -135,11 +135,20 @@ class Root(object):
 
     @expose_for()
     @web.mime.json
-    def resources(self, only_navigatable=False, recursive=True, for_level=users.current.level):
+    def resources(self):
         """
         Returns a json object representing all resources of this cherrypy web-application
         """
-        return web.json_out(web.resource_walker(self, only_navigatable, recursive, int(for_level)))
+        from .auth import is_member
+        root = web.Resource('/', self).create_tree()
+
+        return web.json_out(
+            {
+                r.uri: [r.level, r.doc]
+                for r in root.walk()
+                if not r.level or is_member(r.level)
+            }
+        )
 
     def __init__(self):
         web.render.set_root(self)

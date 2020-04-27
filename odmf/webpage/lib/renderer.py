@@ -91,6 +91,10 @@ class Resource:
     def is_exposed(self):
         return self.has_attr('exposed') and self.obj.exposed
 
+    @property
+    def level(self):
+        return self.get_attr('level')
+
     def is_nav(self, for_level: int):
         return self.is_exposed() and self.has_attr('show_in_nav') and self.obj.show_in_nav <= for_level
 
