@@ -268,7 +268,6 @@ class DatasetPage:
         """
         if not hasattr(db.Dataset, attribute):
             raise AttributeError("Dataset has no attribute '%s'" % attribute)
-        session = db.Session()
         res = ''
         with db.session_scope() as session:
             # Get dataset for filter
@@ -306,17 +305,12 @@ class DatasetPage:
         """
         Mark record id (records) as is_error for dataset. Called by javascript
         """
-        try:
+        with db.session_scope() as session:
             recids = set(int(r) for r in records.split())
-            session = db.Session()
             ds = session.query(db.Dataset).get(int(dataset))
             q = ds.records.filter(db.Record.id.in_(recids))
             for r in q:
                 r.is_error = True
-            session.commit()
-            session.close()
-        except:
-            return traceback()
 
     @expose_for(group.editor)
     def setsplit(self, datasetid, recordid):
@@ -347,25 +341,25 @@ class DatasetPage:
         """
         Exports the records of the timeseries as csv
         """
-        session = db.Session()
-        ds = session.query(db.Dataset).get(dataset)
-        st = io.BytesIO()
-        st.write(codecs.BOM_UTF8)
-        st.write(('"Dataset","ID","time","%s","site","comment"\n' %
-                  (ds.valuetype)).encode('utf-8'))
-        for r in ds.iterrecords(raw):
-            d = dict(c=str(r.comment).replace('\r', '').replace('\n', ' / '),
-                     v=r.calibrated if raw else r.value,
-                     time=web.formatdate(r.time) + ' ' +
-                     web.formattime(r.time),
-                     id=r.id,
-                     ds=ds.id,
-                     s=ds.site.id)
+        with db.session_scope() as session:
+            ds = session.query(db.Dataset).get(dataset)
+            st = io.BytesIO()
+            st.write(codecs.BOM_UTF8)
+            st.write(('"Dataset","ID","time","%s","site","comment"\n' %
+                      (ds.valuetype)).encode('utf-8'))
+            for r in ds.iterrecords(raw):
+                d = dict(c=str(r.comment).replace('\r', '').replace('\n', ' / '),
+                         v=r.calibrated if raw else r.value,
+                         time=web.formatdate(r.time) + ' ' +
+                         web.formattime(r.time),
+                         id=r.id,
+                         ds=ds.id,
+                         s=ds.site.id)
 
-            st.write(('%(ds)i,%(id)i,%(time)s,%(v)s,%(s)i,"%(c)s"\n' %
-                      d).encode('utf-8'))
-        session.close()
-        return st.getvalue()
+                st.write(('%(ds)i,%(id)i,%(time)s,%(v)s,%(s)i,"%(c)s"\n' %
+                          d).encode('utf-8'))
+            session.close()
+            return st.getvalue()
 
     @expose_for(group.logger)
     @web.mime.csv
@@ -636,43 +630,42 @@ class CalibratePage(object):
         """
         Renders the calibration options.
         """
-        session = db.Session()
-        error = ''
-        target = session.query(db.Dataset).get(int(targetid))
-        sources = session.query(db.Dataset).filter_by(site=target.site).filter(
-            db.Dataset.start <= target.end, db.Dataset.end >= target.start)
-        if sourceid:
-            sourceid = int(sourceid)
-        limit = web.conv(int, limit, 3600)
-        day = timedelta(days=1)
-        source = sourcerecords = None
-        sourcecount = 0
-        result = Calibration()
-        try:
+        with db.session_scope() as session:
+            error = ''
+            target = session.query(db.Dataset).get(int(targetid))
+            sources = session.query(db.Dataset).filter_by(site=target.site).filter(
+                db.Dataset.start <= target.end, db.Dataset.end >= target.start)
             if sourceid:
-                source = CalibrationSource(
-                    [sourceid], target.start - day, target.end + day)
-                sourcerecords = source.records(session)
-                sourcecount = sourcerecords.count()
+                sourceid = int(sourceid)
+            limit = web.conv(int, limit, 3600)
+            day = timedelta(days=1)
+            source = sourcerecords = None
+            sourcecount = 0
+            result = Calibration()
+            try:
+                if sourceid:
+                    source = CalibrationSource(
+                        [sourceid], target.start - day, target.end + day)
+                    sourcerecords = source.records(session)
+                    sourcecount = sourcerecords.count()
 
-                if calibrate and calibrate != 'false':
-                    result = Calibration(target, source, limit)
-                    if not result:
-                        error = 'No matching records for the given time limit is found'
-                source = session.query(db.Dataset).get(sourceid)
-        except:
-            error = traceback()
-        out = web.render('calibrate.html',
-                         error=error,
-                         target=target,
-                         sources=sources,
-                         source=source,
-                         limit=limit,
-                         sourcecount=sourcecount,
-                         result=result,
-                         ).render()
+                    if calibrate and calibrate != 'false':
+                        result = Calibration(target, source, limit)
+                        if not result:
+                            error = 'No matching records for the given time limit is found'
+                    source = session.query(db.Dataset).get(sourceid)
+            except:
+                error = traceback()
+            out = web.render('calibrate.html',
+                             error=error,
+                             target=target,
+                             sources=sources,
+                             source=source,
+                             limit=limit,
+                             sourcecount=sourcecount,
+                             result=result,
+                             ).render()
 
-        session.close()
         return out
 
     @expose_for(group.editor)
