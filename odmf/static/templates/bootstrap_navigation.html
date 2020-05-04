@@ -67,7 +67,13 @@
 Template: https://getbootstrap.com/docs/4.4/components/navbar/
 -->
 <nav class="navbar navbar-dark navbar-expand-md sticky-top bg-dark navbar-for-all">
-    <ul class="navbar-nav mr-auto">
+
+    <ul class="navbar-nav mr-2">
+        <li class="nav-item my-auto">
+            <button class="btn btn-dark btn-outline-light" onclick="window.location.reload();" title="Reload page" data-toggle="tooltip">
+                <i class="fas fa-redo"/>
+            </button>
+        </li>
         <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle h4"
                href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown"
