@@ -289,30 +289,30 @@ class DownloadPage(object):
         kwargs
 
         """
-        error = ''
-        fn = ''
-
-        for datafile in datafiles:
+        error = []
+        msg = []
+        # Loop over incoming datafiles. Single files need some special treatment
+        for datafile in (list(datafiles) or [datafiles]):
             path = Path((datapath / dir).absolute())
             if not path:
                 path.make()
             fn = path + datafile.filename
             if not fn.islegal():
-                error = "'%s' is not legal"
-            if fn and 'overwrite' not in kwargs:
-                error = f"'{fn.name}' exists already, if you want to overwrite the old version, check allow overwrite"
+                error.append(f'{fn.name} is not legal')
+            elif fn and 'overwrite' not in kwargs:
+                error.append(f"'{fn.name}' exists already, if you want to overwrite the old version, check allow overwrite")
+            else:
+                # Buffer file for first check encoding and secondly upload file
+                with BytesIO(datafile.file.read()) as filebuffer:
 
-            # Buffer file for first check encoding and secondly upload file
-            with BytesIO(datafile.file.read()) as filebuffer:
+                    try:
+                        write_to_file(fn.absolute, filebuffer)
+                        fn.setownergroup()
+                        msg.append(f'- {fn.href} uploaded')
+                    except Exception as e:
+                        error.append(f'- {fn.href} upload failed: {e}')
 
-                try:
-                    write_to_file(fn.absolute, filebuffer)
-                    fn.setownergroup()
-                    msg = f'New file: {fn.href}'
-                except:
-                    error += '\n' + traceback()
-
-        raise goto(dir, error, msg)
+        raise goto(dir, '\n'.join(error), '\n'.join(msg))
 
     @expose_for(group.logger)
     @web.method.post
