@@ -312,9 +312,7 @@
                             <div class="col-sm">
                                 <textarea id="comment" name="comment"
                                           class="form-control"
-                                          rows="10" >
-                                        ${actualsite.comment}
-                                </textarea>
+                                          rows="10" py:content="actualsite.comment"/>
                             </div>
                         </div>
                         <input type="submit" id="save" name="save" value="save" style="width: 10em;" class="form-control"/>

@@ -20,6 +20,7 @@ from ...config import conf
 @web.expose
 @web.show_in_nav_for(1, 'map-marker-alt')
 class SitePage:
+    url = conf.root_url + '/site/'
     @expose_for(group.guest)
     def default(self, actualsite_id=None, error=''):
         """
@@ -65,11 +66,12 @@ class SitePage:
         return result
 
     @expose_for(group.editor)
+    @web.method.post
     def saveitem(self, **kwargs):
         try:
             siteid = web.conv(int, kwargs.get('id'), '')
         except:
-            raise web.redirect(f'./{siteid}', error=traceback())
+            raise web.redirect(f'{self.url}/{siteid}', error=traceback())
         if 'save' in kwargs:
             with db.session_scope() as session:
                 try:
@@ -80,7 +82,7 @@ class SitePage:
                     site.lon = web.conv(float, kwargs.get('lon'))
                     site.lat = web.conv(float, kwargs.get('lat'))
                     if None in (site.lon, site.lat):
-                        raise web.redirect(f'./{siteid}', error='The site has no coordinates')
+                        raise web.redirect(f'../{siteid}', error='The site has no coordinates')
                     if site.lon > 180 or site.lat > 180:
                         site.lat, site.lon = proj.UTMtoLL(
                             23, site.lat, site.lon, '32N')
@@ -90,8 +92,8 @@ class SitePage:
                     site.icon = kwargs.get('icon')
                     site.comment = kwargs.get('comment')
                 except:
-                    raise web.redirect(f'./{siteid}', error=traceback())
-        raise web.redirect('./%s' % siteid)
+                    raise web.redirect(f'{self.url}/{siteid}', error=traceback())
+        raise web.redirect(f'{self.url}/{siteid}')
 
     @expose_for()
     @web.mime.json
