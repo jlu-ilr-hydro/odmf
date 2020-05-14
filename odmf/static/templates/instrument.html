@@ -1,207 +1,203 @@
 <!DOCTYPE html>
-<html>
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <script>
+            //<![CDATA[
+            function popSelect() {
+                $.getJSON(odmf_ref('/site/json'),[],function(data){
+                    var html='<option value=""><i>Please select...</i></option>';
+                    $.each(data,function(index,item){
+                        html += '<option value="' + item.id + '">#' + item.id + ' ('+ item.name + ')' + '</option>';
+                    });
+                    $('#siteselect').html(html);
+                });
+            }
+            $(function() {
+                $('.datepicker').datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
+                popSelect();
+            });
+            function addinstrument() {
+                data = {siteid:$('#siteselect').val(),
+                    date:escape($('#installationdate').val()),
+                    instrumentid:${actualinstrument.id}
+                };
+                $.post(odmf_ref('/site/addinstrument'),data,function (data,textStatus,jqHXR){
+                    if (data=='') {
+                        location.reload();
+                    } else {
+                        $('.error').html(data);
+                    }
+                });
+            }
+            function removeinstrument(installationid,siteid) {
+                data = {instrumentid:${actualinstrument.id},
+                    date:escape($('#installationdate').val()),
+                    siteid:siteid,
+                    installationid:installationid
+                };
+                $.post(odmf_ref('/site/removeinstrument'),data, function(data,textStatus,jqHXR) {
+                    if (data=='') {
+                        location.reload();
+                    } else {
+                        $('.error').html(data);
+                    }
+                });
+            }
 
-<head>
-    <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
+            //]]>
+        </script>
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <div class="container-fluid">
+            <a class="btn btn-secondary w-100 mb-4" href="${conf.root_url}/instrument/new" py:if="is_member('editor')">
+                <i class="fas fa-plus mr-2"/>
+                new valuetype
+            </a>
+            <div class="nav flex-column nav-pills" >
+                <a py:for="inst in instruments"
+                   class="nav-link ${['', 'active'][inst.id==actualinstrument.id]}"
+                   href="${f'{conf.root_url}/instrument/{inst.id}'}"
+                   py:content="inst"
+                />
+            </div>
 
-	<link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>Instruments</title>
-  <link href="${conf.root_url}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
-	<script src="${conf.root_url}/media/lib/jquery-3.4.1.min.js" type="text/javascript"></script>
-  <script src="${conf.root_url}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript"></script>
+        </div>
+    </py:block>
+    <py:block name="content">
+        <div class="container">
+            <div class="row mt-2 w-100">
+                <div class="container bg-danger text-white row w-100 border rounded"  py:if="error">
+                    <h1 class="display-3 col-lg-2">Error</h1>
+                    <div class="lead col-lg-10" py:content="markdown(error)"/>
+                </div>
 
-	<script>
-        //<![CDATA[
-        function popSelect() {
-      	    $.getJSON(odmf_ref('/site/json'),[],function(data){
-	      	    var html='<option value=""><i>Please select...</i></option>';
-		  		$.each(data,function(index,item){
-                    html += '<option value="' + item.id + '">#' + item.id + ' ('+ item.name + ')' + '</option>';
-		  		});
-		  		$('#siteselect').html(html);
-		  	});
-      }
-      $(function() {
-      	$('.datepicker').datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
-      	popSelect();
-      });
-      function addinstrument() {
-	      	data = {siteid:$('#siteselect').val(),
-	      					date:escape($('#installationdate').val()),
-	      					instrumentid:${actualinstrument.id}
-	      				};
-      		$.post(odmf_ref('/site/addinstrument'),data,function (data,textStatus,jqHXR){
-      			if (data=='') {
-	      			location.reload();
-	      		} else {
-	      			$('.error').html(data);
-	      		}
-      		});
-      }
-      function removeinstrument(installationid,siteid) {
-      	data = {instrumentid:${actualinstrument.id},
-      					date:escape($('#installationdate').val()),
-      					siteid:siteid,
-      					installationid:installationid
-      				};
-      	$.post(odmf_ref('/site/removeinstrument'),data, function(data,textStatus,jqHXR) {
-      			if (data=='') {
-	      			location.reload();
-	      		} else {
-	      			$('.error').html(data);
-	      		}
-      	});
-      }
+            </div>
+            <div class="container" py:if="actualinstrument" py:with="inst_act=actualinstrument">
+                <div id="description" py:if="inst_act">
+                    <div class="row mt-2 w-100">
+                        <div class="container">
+                            <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4" >
+                                <h2 class="display-4 mr-8" py:content="f'{inst_act.name} [{inst_act.sourcetype}]'"/>
+                                <div class="display-4 col-sm my-auto text-right" >
+                                    <i class="fas fa-thermometer-half mr-4"/>${inst_act.id}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-10">
+                                    <div class="container border-bottom" py:if="inst_act.manuallink">
+                                        <a href="${f'{conf.root_url}/{inst_act.manuallink}'}">
+                                            <i class="fas fa-book-open mr-2" />${inst_act.name}'s manual
+                                        </a>
+                                    </div>
+                                    <div class="container" py:content="markdown(inst_act.comment)"/>
+                                </div>
+                                <div class="col-lg-2">
+                                    <a class="btn btn-secondary dropdown-toggle" href="#edit" data-toggle="collapse">
+                                        edit
+                                    </a>
+                                </div>
 
-    //]]>
-	</script>
-	<style>
-	  .removed {
-	  	color: grey;
-	  }
-	  .imgbutton {
-	  	width: 32px;
-	  	height: 24px;
-	  }
+                            </div>
 
-	</style>
-</head>
-<body>
-	${navigation('Data sources and instruments')}
-	<div class="content">
-	  <div class="error" py:content="error" />
-			<ul id="Inhalt" >
-			<li>
-				<a href="${conf.root_url}/instrument/new"><b>New instrument...</b></a>
-			</li>
-			<li py:for="inst in instruments">
-				<a href="${conf.root_url}+ '/instrument/' + inst.id" py:content="inst"/>
-				<a py:if="inst.manuallink" href="${actualinstrument.manuallink}" class="small tooltip">
-					<img src="${conf.root_url}/media/ui-icons/shimmer/document_16.png" alt="documentation"/>
-					<span>
-						Show manual for ${inst.name}
-					</span>
-				</a>
-			</li>
-		</ul>
-	    <div class="rightpane">
-	    	<div py:if="actualinstrument">
-					<h2 py:content="actualinstrument" />
-					<p>ID: ${actualinstrument.id}</p>
-					<p>source type: ${actualinstrument.sourcetype}</p>
-					<h3>comment:</h3>
-					<p py:content="markdown(actualinstrument.comment)" />
-					<p>
-						<a py:if="actualinstrument.manuallink" href="${actualinstrument.manuallink}" class="small tooltip">
-							<img src="${conf.root_url}/media/ui-icons/shimmer/document_16.png" alt="documentation"/>
-							<span>
-								Show manual for ${actualinstrument.name}
-							</span>
-						</a>
-					</p>
-	    	</div>
-			<form action="${conf.root_url}/instrument/saveitem" method="post" py:if="is_member('editor')">
-				<div py:if="actualinstrument">
-					<h2><a href="#" onclick="$('#edit').slideToggle('fast');">&#x25BE;edit</a></h2>
-					<div id="edit" class="toggle">
-						<table style="width: 100%">
-							<tr>
-								<td style="width: 7em">ID:</td>
-								<td><input type="text" name="id" value="${actualinstrument.id}" readonly="readonly" class="readonly"/></td>
-							</tr>
-							<tr>
-								<td>Name:</td>
-								<td><input type="text" name="name" value="${actualinstrument.name}" /></td>
-							</tr>
-							<tr>
-								<td>Sourcetype:</td>
-								<td><input type="text" name="sourcetype" value="${actualinstrument.sourcetype}" /></td>
-							</tr>
-							<tr>
-								<td>Comment:<a href="${conf.root_url}/wiki/help" class="tooltip"><img src="${conf.root_url}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
-								<td>
-									<textarea name="comment"
-											  rows="2" style="width: 98%;"
-											  py:content="actualinstrument.comment"/>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<a py:if="actualinstrument and actualinstrument.manuallink" href="${actualinstrument.manuallink}">Manual</a>
-									<span py:if="not (actualinstrument and actualinstrument.manuallink)">Manual</span>
-								</td>
-								<td>
-									<input type="text" name="manuallink" value="${actualinstrument.manuallink}" />
-								</td>
-							</tr>
-						</table>
-						<input type="submit" name="save" style="width: 10em;"/>
-					</div>
-				</div>
 
-			</form>
-			<div py:if="not is_member('editor')" class="rightpane">
-				<table style="width: 100%">
-					<tr>
-						<td style="width: 7em">ID:</td>
-						<td py:content="actualinstrument.id" />
-					</tr>
-					<tr>
-						<td>Name:</td>
-						<td py:content="actualinstrument.name" />
-					</tr>
-					<tr>
-						<td>Sourcetype:</td>
-						<td py:content="actualinstrument.sourcetype" />
-					</tr>
-					<tr>
-						<td>Comment:</td>
-						<td py:content="markdown(actualinstrument.comment)" />
+                        </div>
+                    </div>
 
-					</tr>
-				</table>
+                </div>
+                <div id="edit" class="container collapse border rounded px-4">
+                    <form action="${conf.root_url}/instrument/saveitem"
+                          method="post" py:if="is_member('supervisor')"
+                    >
+                        <div class="form-row mt-2">
+                            <div class="form-group">
+                                <label for="">ID:</label>
+                                <input type="text" id="id" name="id" class="form-control" value="${inst_act.id}" readonly="readonly"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="">Name:</label>
+                                <input type="text" id="name" name="name" class="form-control" value="${inst_act.name}" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="">Unit:</label>
+                                <input type="text" id="sourcetype" name="sourcetype" class="form-control" value="${inst_act.sourcetype}" />
+                            </div>
+                            <div class="form-group">
+                                <label for="">Link to manual</label>
+                                <input type="text" id="manuallink" name="manuallink" class="form-control" value="${inst_act.manuallink}"/>
+                            </div>
+                        </div>
+                        <div class="form-row mb-2">
 
-			</div>
-			<h2><a href="#" onclick="$('#installations').slideToggle('fast')">&#x25BE;Installations</a></h2>
-			<div id="installations" class="toggle">
-				<div style="margin:0px;padding:0px;">
-					<span style="margin-left:5.5em;">Installation date</span><span style="margin-left:2.5em;">Site</span>
-				</div>
-				<ul style="margin-top:0px;padding-top:0px;">
-						<li py:if="is_member('editor')">
-								<button py:if="is_member('editor')" onclick="addinstrument()" class="imgbutton">
-									<img src="${conf.root_url}/media/ui-icons/plus-small.png" alt="Add"/>
-								</button>
-								<input class="datepicker" id="installationdate" value="${formatdate()}" />
-								<select id="siteselect" >
-									<option value="">Please select...</option>
-								</select>
-						</li>
-						<li py:for="inst in actualinstrument.sites" >
-							<a  href="${conf.root_url}/site/${inst.site.id}"
-									py:if="inst.active"
-									py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
-							<span py:if="not inst.active" class="removed"
-										py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
-							<a href="javascript:removeinstrument(${inst.id},${inst.site.id})"
-								 py:if="is_member('editor')"
-								 style="font-size: small;font-style: italic;">(remove...)</a>
-						</li>
-					</ul>
-			</div>
-			<h2><a href="#" onclick="$('#datasets').slideToggle('fast')">&#x25BE;Datasets</a></h2>
-			<div id="datasets" class="toggle">
-				<ul>
-					<li py:for="ds in actualinstrument.datasets">
-						<a href="${conf.root_url}/dataset/${ds.id}"
-						py:content="ds" />
-					</li>
-				</ul>
-			</div>
+                            <label for="">Comment:</label>
+                            <textarea id="comment" name="comment" class="form-control"
+                                      rows="4"
+                                      py:content="inst_act.comment"/>
+                        </div>
+                        <button class="btn btn-success mb-2" type="submit" id="save" name="save" >
+                            <i class="fas fa-save mr-2"/>
+                            save changes
+                        </button>
+                    </form>
+                </div>
+                <h2 class="border-bottom">Installations</h2>
+                <div id="installations" class="container">
+                    <h4>Add installation</h4>
+                    <div id="add-installation" class="input-group mb-2" py:if="is_member('editor')">
+                        <div class="input-group-prepend">
+                            <button py:if="is_member('editor')" onclick="addinstrument()" class="btn btn-outline-secondary">
+                                <i class="fas fa-plus"/>
+                            </button>
+                        </div>
+                        <input type="date" class="form-control" id="installationdate" value="${formatdate()}"
+                               data-toggle="tooltip"
+                               title="When has the instrument been installed"
+                        />
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <i class="fas fa-map-marker-alt"/>
+                            </span>
+                        </div>
+                        <select id="siteselect" class="form-control"
+                                data-toggle="tooltip"
+                                title="Where has the instrument been installed"
+                        >
+                            <option disabled="disabled">select site...</option>
+                        </select>
+                    </div>
+                    <h4>Current installation</h4>
+                    <ul style="margin-top:0px;padding-top:0px;">
+                        <li py:for="inst in actualinstrument.sites" >
+                            <a  href="${conf.root_url}/site/${inst.site.id}"
+                                py:if="inst.active"
+                                py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
+                            <span py:if="not inst.active" class="removed"
+                                  py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
+                            <a href="javascript:removeinstrument(${inst.id},${inst.site.id})"
+                               py:if="is_member('editor') and inst.active"
+                               class="btn btn-outline-primary btn-sm rounded-circle"
+                               title="remove installation" data-toggle="tooltip"
+                            ><i class="fas fa-minus"/></a>
+                        </li>
+                    </ul>
+                </div>
+                <h2 class="border-bottom">Datasets</h2>
+                <div id="datasets" class="container">
+                    <ul>
+                        <li py:for="ds in actualinstrument.datasets">
+                            <a href="${conf.root_url}/dataset/${ds.id}"
+                               py:content="ds" />
+                        </li>
+                    </ul>
+                </div>
 
-		</div>
-	</div>
-</body>
-</html>
+            </div>
+        </div>
+
+    </py:block>
+</py:extends>
+

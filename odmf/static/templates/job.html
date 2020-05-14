@@ -1,273 +1,257 @@
 <!DOCTYPE html>
-<html>
 
-<head>
-    <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <script>
+            //<![CDATA[
+            function addtype() {
+                var newtype = prompt('New type:');
+                if (newtype) {
+                    $('#edittype').prepend('<option value="' + newtype +
+                            '">'+newtype+'</option>').val(newtype);
+                }
+            }
 
-	<link href="${conf.root_url}/media/lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
-	<link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
-   <script src="${conf.root_url}/media/lib/jquery-3.4.1.min.js" type="text/javascript" />
-    <script src="${conf.root_url}/media/lib/jquery-ui/jquery-ui.js" type="text/javascript" />
-    <script>
-        //<![CDATA[
-    		function addtype() {
-    			var newtype = prompt('New type:');
-    			if (newtype) {
-    				$('#edittype').prepend('<option value="' + newtype + 
-    				'">'+newtype+'</option>').val(newtype);
-    			}
-    		}
-    		function showjobs() {
-    			var user = $('#filterresponsible').val();
-    			var onlyactive = $('#filteractive').val();
-    			$.getJSON(odmf_ref('/job/json'),{resposible:user,onlyactive:onlyactive},function(data){
-    				html='<tr><th>id</th><th>responsible</th><th>Name</th><th>link</th><th>due</th><th>repeat</th><th>done</th></tr>'
-    				$.each(data,function(index,j){
-    					
-    				});
-    			});
-    		}
-    		function reload(jobid) {
-    			var params = {user:$('#filterresponsible').val(),
-    										onlyactive:$('#filteractive').val(),
-    										};
-    			var loc=odmf_ref('/job/') + jobid + '?';
-    			var uri = loc + jQuery.param(params)
-    			window.location=uri;
-    		}
-    		function jobdone(jobid) {
-    			$.post(odmf_ref('/job/done/')+jobid,function(data) {
-    				if (data) alert(data);
-    				reload(jobid);
-    			});
-    		}
-        $(function() {
-        	$(".datepicker").datepicker({dateFormat: 'dd.mm.yy' });        	
-        });
-    		function submitform(action) {
-    			var formdata = {
-    				id: $('#editid').val(),
-    				name: $('#editname').val(),
-    				due: $('#editdue').val(),
-    				responsible: $('#editresponsible').val(),
-    				link: $('#editlink').val(),
-    				repeat: $('#editrepeat').val(),
-    				description: $('#editdescription').val(),
-    				type: $('#edittype').val(),
-    				save: action,
-    			};
-    			$.post(odmf_ref('/job/saveitem/'),formdata,function(data) {
-    				if (data) {
-    					$('.error').html(data);
-    				} else {
-    					reload($('#editid').val());
-    				}
-    			});
-    		}
-    		//]]>
-    </script>
+            function reload(jobid) {
+                var params = {user:$('#filterresponsible').val(),
+                    onlyactive:$('#filteractive').val(),
+                };
+                var loc=odmf_ref('/job/') + jobid + '?';
+                var uri = loc + jQuery.param(params)
+                window.location=uri;
+            }
+            function jobdone(jobid) {
+                $.post(odmf_ref('/job/done/')+jobid,function(data) {
+                    if (data) alert(data);
+                    reload(jobid);
+                });
+            }
+            //]]>
+        </script>
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <div class="container" >
+            <div class="container">
+                <a class="btn btn-secondary w-100 mb-1" href="javascript:reload('new')">
+                    <i class="fas fa-plus-circle mr-3" />
+                    new job
+                </a>
+            </div>
+            <h4>
+                <i class="fas fa-filter mr-3" />Filter
+            </h4>
+            <div class="container">
+                <select id="filterresponsible"
+                        class="form-control filter"
+                        onchange="reload(${job.id if job else '\'\''});">
+                    <option value="all" py:attrs="markoption(username=='all')">all users</option>
+                    <option py:for="p in persons"
+                            py:content="p"
+                            py:if="p.jobs.count()"
+                            py:attrs="markoption(p.username==username)"
+                            value="${p.username}" />
+                </select>
+            </div>
+            <div class="container">
+                <select id="filteractive" class="filter form-control"
+                        onchange="reload(${job.id if job else ''});">
+                    <option value="" py:attrs="markoption(not onlyactive)">all jobs</option>
+                    <option value="active" py:attrs="markoption(onlyactive)">only active</option>
+                </select>
 
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>Jobs</title>
-	<style>
-		/*input { min-width: 100%;}
-		select { min-width: 100%;}*/	
-		textarea { min-width: 100%;}
-		tr.joblist {font-size: small; 
-								border-bottom: solid 1px #888;
-								cursor: pointer;}
-		tr.joblist>td {border: dotted 1px #888;}
-		tr.joblist:hover {outline: solid 4px white;}
-		table {width: 100%;}
-		.markdownhelp {
-			top: 0px;
-		}
-	</style>
+            </div>
+        </div>
+    </py:block>
+    <py:block name="content">
+        <div class="content">
+            <div class="alert bg-danger text-white mt-3" role="alert" py:if="error">
+                <div class="row">
+                    <div class="col-lg-1">
+                        <i class="fas fa-exclamation-circle fa-3x"/>
+                    </div>
+                    <div class="col-lg-11">
+                        <p class="lead" py:content="markdown(error)"/>
+                    </div>
+                </div>
+            </div>
 
-</head>
-<!--
+            <div class="alert alert-success mt-3" role="alert" py:if="message" >
+                <div class="row">
+                    <div class="col-lg-1">
+                        <i class="fas fa-info-circle fa-3x"/>
+                    </div>
+                    <div class="col-lg-11">
+                        <p class="" py:content="markdown(message)"/>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg">
+                    <table id="joblist" class="table">
+                        <thead>
+                        <tr>
+                            <th>id</th>
+                            <th>responsible</th>
+                            <th class="small">author</th>
+                            <th>name</th>
+                            <th>due</th>
+                            <th>type</th>
+                            <th>repeat</th>
+                            <th>done</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="joblist"
+                            py:for="j in jobs"
+                            style="background-color: ${j.color}">
+                            <td >
+                                <a href="javascript:reload(${j.id})"
+                                   title="${markdown(j.description)}"
+                                   class="link"
+                                   data-toggle="tooltip"
+                                   data-html="true"
+                                >
+                                    ${j.name}
+                                </a>
+                            </td>
+                            <td py:content="j.id" />
+                            <td py:content="j.responsible" />
+                            <td py:content="j.author" class="small"/>
+                            <td py:content="formatdate(j.due)" />
+                            <td py:content="j.type" />
+                            <td py:content="j.repeat" />
+                            <td>
+                                <button py:if="not j.done"
+                                        onclick="jobdone(${j.id});"
+                                        class="btn btn-secondary"
+                                >
+                                    <i class="fas fa-check" />
+                                </button>
+                                <span py:if="j.done" py:content="formatdate(j.donedate)" />
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
 
-	db
-	job
-	jobs
-	username
--->
-<body>
-	${navigation('Jobs')}
-	<div class="content">
-	  <div class="error" py:content="error" />
-		<table id="joblist">
-			<tr>
-				<th>id</th>
-				<th>responsible</th>
-				<th class="small">author</th>
-				<th>name</th>
-				<th>due</th>
-				<th>type</th>
-				<th>repeat</th>
-				<th>done</th>
-			</tr>
-			<tr class="box" >
-				<td><a href="javascript:reload('new')"><img src="${conf.root_url}/media/ui-icons/plus-small.png" /></a></td>
-				<td>			
-					<select id="filterresponsible" class="filter" onchange="reload(${job.id if job else '\'\''});">
-						<option value="all" py:attrs="markoption(username=='all')">all users</option>
-						<option py:for="p in persons"
-								py:content="p"
-								py:if="p.jobs.count()"
-								py:attrs="markoption(p.username==username)"
-								value="${p.username}" />
-					</select>
-			 </td>
-			  <td> </td>
-				<td><a href="javascript:reload('new')">create a new job...</a></td>
-				<td> </td>
-				<td> </td>
-				<td> </td>	
-				<td> 
-					<select id="filteractive" class="filter" onchange="reload(${job.id if job else ''});">
-						<option value="" py:attrs="markoption(not onlyactive)">all jobs</option>
-						<option value="active" py:attrs="markoption(onlyactive)">only active</option>
-					</select>
+                </div>
+                <div class="col-lg" py:if="job">
+                    <div class="container">
 
-				</td>	
-			</tr>
-			<tr class="joblist"
-					py:for="j in jobs" 
-					style="background-color: ${j.color}">
-				<td py:content="j.id" />
-				<td py:content="j.responsible" />
-				<td py:content="j.author" class="small"/>
-				<td class="tooltip">
-					<a href="javascript:reload(${j.id})" >
-						${j.name}
-					</a>
-					<span style="max-width: 40%;">
-						<h3>${j}</h3>
-						${markdown(j.description)}
-						${markdown('---------\n\n*by user:' + j.author.username+'*')}
-					</span>
-				</td>
-				<td py:content="formatdate(j.due)" />
-				<td py:content="j.type" />
-				<td py:content="j.repeat" />
-				<td>
-					<button py:if="not j.done" onclick="jobdone(${j.id});">&#x2714;</button>
-					<span py:if="j.done" py:content="formatdate(j.donedate)" />
-				</td>
-			</tr>
-		</table>
-		<br/>
-		<div py:if="job" >
-			<h2>${job.name}</h2>
-			<div py:content="markdown(job.description)"/>
-			<br/>
-			<table style="width: 100%" class="small">
-				<tr style="background-color:${job.color}">
-					<td>Status:</td>
-					<td py:content="'done at ' + formatdate(job.donedate) if job.done else 'due at ' + formatdate(job.due)"/>
-				</tr>
-				<tr >
-					<td style="width: 7em">ID:</td>
-					<td><input type="text" id="editid" value="${job.id}" readonly="readonly"/></td>
-				</tr>
-				<tr>
-					<td>Name:</td>
-					<td><input type="text" id="editname" value="${job.name}" /></td>
-				</tr>
-				<tr>
-					<td>Due:</td>
-					<td><input type="text" id="editdue" value="${formatdate(job.due)}" class="datepicker" /></td>
-				</tr>
-				<tr>
-					<td>
-						Repeat in days 	
-					</td>
-					<td>
-						<input id="editrepeat" type="text" value="${job.repeat}"/>
-					</td>
-				</tr>
-				<tr>
-					<td>Author</td>
-					<td class="small">${job.author}</td>
-				</tr>
-				<tr>
-					<td>Responsible:</td>
-					<td>
-						<select id="editresponsible">
-							<option value=""><i> &lt;Please select...&gt;</i></option>
-							<option py:for="p in persons"
-									py:attrs="markoption(p is job.responsible)"
-									py:content="p"
-									value="${p.username}" />
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<td>Comments <a href="${conf.root_url}/wiki/help" class="tooltip"><img src="${conf.root_url}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
-					<td>
-						<textarea id="editdescription" class="markdown"
-								  rows="5">${job.description}</textarea>
-						<div class="small box">
-							Use the description to perform actions, when the job is done. Use the button to append some template actions to the job.
-							Remember to replace the x's in the template by meaningful days, site ids and users! 
-							<script>
-								//<![CDATA[
-								function addactiontemplate() {
-									var oldtext=$('#editdescription').val();
-									var newtext='\nwhen done:\ncreate job after x days:<follow up job>\ncreate log at site x:<log text>\ncreate mail to x philipp:<email text>\n'
-									$('#editdescription').val(oldtext+newtext)
-								}
-								//]]>
-							</script>
-							<button onclick="addactiontemplate();">create action template</button>
-						</div>
-					</td>
-				</tr>
-				<tr>
-					<td>type</td>
-					<td>
-						<select id="edittype">
-							<option py:for="t in jobtypes"
-											py:attrs="markoption(t[0]==job.type)"
-											value="${t}"
-											py:content="t">
-							</option>
-						</select>
-						<a href="javascript:addtype();"><img src="${conf.root_url}/media/ui-icons/plus-small.png" title="Add a new type"/></a>
-					</td>
-				</tr>
-			</table>
-			<span class="tooltip">
-				<button 
-					id="editsave" 
-					style="width: 10em;"
-					onclick="submitform('save');">
-					save changes
-				</button>
-				<span>Saves the changes to the database</span>
-			</span>
-			<span class="tooltip" py:if="job.author.username!=user()">
-				<button
-					id="editsaveandown"
-					style="width: 10em;"
-					onclick="submitform('own');">become author</button> 
-				<span>Saves the changes to the author and makes <b>you</b> to the author of the job</span>
-			</span>
-			<span class="tooltip">
-				<button
-					id="editsavedone"
-					style="width: 10em;"
-					onclick="submitform('done');">
-					&#x2714;
-				</button>
-				<span>
-					Saves changes and marks job as done
-				</span>
-					
-			</span>
-		</div>
-	</div>
-</body>
-</html>
+                        <h2>${job.name}</h2>
+                        <div py:content="markdown(job.description)"/>
+
+                        <div style="background-color:${job.color}" class="row alert">
+                            <h5 class="col-sm-4">Status:</h5>
+                            <h5 class="col-sm-8"
+                                py:content="'done at ' + formatdate(job.donedate) if job.done else 'due at ' + formatdate(job.due)"/>
+                        </div>
+                        <form method="post" action="${conf.root_url}/job/saveitem">
+                            <div class="form-group row">
+                                <label for="editid" class="col-form-label col-sm-4">ID:</label>
+                                <input type="number"  id="editid" name="id" value="${job.id}" readonly="readonly" class="form-control col-sm-8"/>
+                            </div>
+                            <div class="form-group row">
+                                <label for="editname" class="col-form-label col-sm-4">Name:</label>
+                                <input type="text"  id="editname" name="name" value="${job.name}"  class="form-control col-sm-8" />
+                            </div>
+                            <div class="form-group row">
+                                <label for="editdue" class="col-form-label col-sm-4">Due:</label>
+                                <input type="date"  id="editdue" name="due" value="${formatdate(job.due, '%Y-%m-%d')}" class="form-control col-sm-8" />
+                            </div>
+                            <div class="form-group row">
+                                <label for="editrepeat" class="col-form-label col-sm-4">Repeat in days</label>
+                                <input  id="editrepeat" name="repeat" type="number" value="${job.repeat}"
+                                        class="form-control col-sm-8" />
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-4">Author:</div>
+                                <div class="col-sm-8">${job.author}</div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="editresponsible" class="col-form-label col-sm-4">Responsible:</label>
+                                <select  id="editresponsible" name="responsible" class="col-sm-8 form-control">
+                                    <option value=""><i> &lt;Please select...&gt;</i></option>
+                                    <option py:for="p in persons"
+                                            py:attrs="markoption(p is job.responsible)"
+                                            py:content="p"
+                                            value="${p.username}" />
+                                </select>
+                            </div>
+                            <div class="form-group row">
+                                <textarea  id="editdescription" name="description" class="markdown form-control"
+                                          rows="5">${job.description}</textarea>
+                                <div class="small box">
+                                    Use the description to perform actions, when the job is done. Use the button to append some template actions to the job.
+                                    Remember to replace the x's in the template by meaningful days, site ids and users!
+                                    <script>
+                                        //<![CDATA[
+                                        function addactiontemplate() {
+                                            var oldtext=$('#editdescription').val();
+                                            var newtext='\nwhen done:\ncreate job after x days:<follow up job>\ncreate log at site x:<log text>\ncreate mail to x philipp:<email text>\n'
+                                            $('#editdescription').val(oldtext+newtext)
+                                        }
+                                        //]]>
+                                    </script>
+                                    <button class="btn btn-secondary" onclick="addactiontemplate();">
+                                        create action template
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="edittype" class="col-form-label col-sm-4">type</label>
+                                <select  id="edittype" name="type" class="col-sm-6 form-control">
+                                    <option py:for="t in jobtypes"
+                                            py:attrs="markoption(t[0]==job.type)"
+                                            value="${t[0]}"
+                                            py:content="t[0]">
+                                    </option>
+                                </select>
+                                <div class="col-sm-2">
+                                    <a class="btn btn-secondary" href="javascript:addtype(); " title="New type" data-toggle="tooltip">
+                                        <i class="fas fa-plus-circle" />
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <button  id="editsave" name="save" value="save"
+                                        class="btn btn-secondary mr-1"
+                                        type="submit"
+                                        title="Saves the changes to the database"
+                                        data-toggle="tooltip"
+                                >
+                                    <i class="fas fa-save mr-1" />
+                                    save changes
+                                </button>
+                                <button  id="editsaveandown" name="save" value="own"
+                                        py:if="job.author.username!=user()"
+                                        type="submit"
+                                        class="btn btn-secondary mr-1"
+                                        title="Saves the changes to the author and makes you to the author of the job"
+                                        data-toggle="tooltip"
+                                >
+                                    become author
+                                </button>
+
+                                <button  id="editsavedone" name="save" value="done"
+                                        type="submit"
+                                        class="btn btn-secondary mr-1"
+                                        title="Saves changes and marks job as done"
+                                        data-toggle="tooltip"
+                                >
+                                    <i class="fas fa-check" />
+                                </button>
+
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </py:block>
+
+</py:extends>
+

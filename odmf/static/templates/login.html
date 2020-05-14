@@ -23,16 +23,19 @@
         </div>
     </py:block>
     <py:block name="content">
-        <div class="container mt-3">
+        <div class="container mt-1">
             <div class="row alert bg-danger text-white" role="alert" py:if="error">
                 <h1 class="display-4 col-lg-2">Error</h1>
                 <p class="lead col-lg-10" py:content="markdown(error)"/>
             </div>
-            <!--<div class="row">
-                <div class="col alert alert-danger" role="alert" py:content="error" />
-            </div>-->
-            <div class="row">
-                <div class="card card-body">
+            <div class="card mx-auto" style="max-width: 50rem;">
+                <div class="card-img-top"
+                        style="
+                        background: url(${conf.root_url}/${conf.nav_background})
+                        no-repeat 50% 50%; width: 100%; height: 25rem; background-size: cover;"/>
+                <!--img src="${conf.root_url}/${conf.nav_background}" class="card-img-top"
+                     style="max-height:20rem; max-width: 48rem; width:auto; height:auto" /-->
+                <div class="card-body">
                     <h1 class="display-4">About</h1>
                     <a href="https://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
                         <img src="${conf.root_url}/media/images/ilr-logo_4_klein_RGB.png" alt="ILR"/>

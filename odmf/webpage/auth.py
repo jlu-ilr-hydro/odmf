@@ -257,6 +257,7 @@ def expose_for(groupname=None):
             f._cp_config.setdefault('auth.require', []).append(
                 member_of(groupname))
         f.exposed = True
+        f.level = groupname
         return f
     return decorate
 

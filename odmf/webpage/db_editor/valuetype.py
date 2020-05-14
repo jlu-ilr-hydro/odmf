@@ -7,7 +7,7 @@ from ... import db
 from traceback import format_exc as traceback
 
 
-@web.show_in_nav_for(1, 'ruler')
+@web.expose
 class VTPage:
 
     @expose_for(group.guest)
@@ -57,7 +57,7 @@ class VTPage:
             except:
                 return web.render('empty.html', error=traceback(), title='valuetype #%s' % id
                                   ).render()
-        raise web.HTTPRedirect('./%s' % id)
+        raise web.redirect('./%s' % id)
 
     @expose_for(group.guest)
     @web.mime.json

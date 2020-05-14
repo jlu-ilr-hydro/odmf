@@ -319,7 +319,7 @@ class ImportDescription(object):
             column, name, valuetype, factor, comment, difference))
         return self.columns[-1]
 
-    def to_config(self):
+    def to_config(self) -> RawConfigParser:
         """
         Returns a ConfigParser.RawConfigParser with the data of this description
         """
@@ -354,8 +354,22 @@ class ImportDescription(object):
             col.to_config(config, section)
         return config
 
+    def to_markdown(self) -> str:
+        """
+        Returns a string in markdown format showing the configuration setting
+        """
+        conf = self.to_config()
+        s = StringIO()
+        for section in conf.sections():
+            s.write(section + '\n')
+            s.write('-' * len(section) + '\n')
+            for k, v in conf.items():
+                s.write('- {k} = {v}')
+            s.write('\n')
+        return s.getvalue()
+
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config: RawConfigParser):
         """
         Creates a TextImportDescriptor from a ConfigParser.RawConfigParser
         by parsing its content
@@ -760,7 +774,7 @@ class AbstractImport(object):
                                    start=self.startdate, end=datetime.today(), level=col.level,
                                    access=col.access if col.access is not None else 1,
                                    # Get timezone from descriptor or, if not present from global conf
-                                   timezone=self.descriptor.timezone or conf.CFG_DATETIME_DEFAULT_TIMEZONE,
+                                   timezone=self.descriptor.timezone or conf.datetime_default_timezone,
                                    project=self.descriptor.project)
             self.datasets[col.column] = ds.id
         session.commit()

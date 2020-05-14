@@ -8,7 +8,7 @@ from ..upload import write_to_file
 import os
 from traceback import format_exc as traceback
 
-@web.show_in_nav_for(4, 'tools')
+
 class AdminPage(object):
     """
     Displays forms and utilites for runtime configuration of the application, which will be made persistent
@@ -62,7 +62,7 @@ class AdminPage(object):
 
         if error is '':
             msg = 'Successfully uploaded image. Reload page to view results'
-            raise web.HTTPRedirect('/admin?success=%s' % msg)
+            raise web.redirect(conf.root_url + '/admin', msg=msg)
         else:
-            raise web.HTTPRedirect('/admin/?error=%s' % error)
+            raise web.redirect(conf.root_url + '/admin', error=error)
 

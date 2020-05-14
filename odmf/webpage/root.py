@@ -42,7 +42,6 @@ class Root(object):
     valuetype = dbe.VTPage()
     project = dbe.ProjectPage()
     instrument = dbe.DatasourcePage()
-    calendar = cll.CalendarPage()
     wiki = cll.Wiki()
     user = dbe.PersonPage()
     admin = cll.AdminPage()
@@ -61,7 +60,7 @@ class Root(object):
             session = db.Session()
             user = session.query(db.Person).get(web.user())
             if user and user.jobs.filter(db.Job.done == False, db.Job.due - datetime.now() < timedelta(days=7)).count():
-                raise web.HTTPRedirect(conf.root_url + '/job')
+                raise web.redirect(conf.root_url + '/job')
         return self.map.index()
 
 
@@ -73,14 +72,24 @@ class Root(object):
         """
         if logout:
             users.logout()
-            raise web.HTTPRedirect(frompage or conf.root_url)
+            if frompage:
+                raise web.HTTPRedirect(frompage or conf.root_url)
+            else:
+                return web.render('login.html', error=error, frompage=frompage).render()
+
         elif username and password:
             error = users.login(username, password)
+
             if error:
-                cherrypy.response.status = 401
-                return web.render('login.html', error=error, frompage=frompage).render()
+                return web.redirect('login.html', error=error, frompage=frompage)
+
+            elif frompage:
+                if 'login' in frompage:
+                    return web.render('login.html', error=error, frompage=frompage).render()
+                else:
+                    raise web.HTTPRedirect(frompage)
             else:
-                raise web.HTTPRedirect(frompage or conf.root_url)
+                return web.render('login.html', error=error, frompage=frompage).render()
         else:
             return web.render('login.html', error=error, frompage=frompage).render()
 
@@ -126,36 +135,20 @@ class Root(object):
 
     @expose_for()
     @web.mime.json
-    def actualclimate_json(self, site=47):
-        """
-        Returns the last climate measurement from a specific site
-        """
-        with db.session_scope() as session:
-            now = datetime.now()
-            yesterday = now - timedelta(hours=24)
-            res = {'time': now}
-            for dsid in range(1493, 1502):
-                ds = session.query(db.Timeseries).get(dsid)
-                t, v = ds.asarray(start=yesterday)
-                res[ds.name.split(',')[0].strip().replace(' ', '_')] = {
-                    'min': v.min(), 'max': v.max(), 'mean': v.mean()}
-        return web.json_out(res)
-
-    @expose_for()
-    @web.mime.html
-    def actualclimate_html(self):
-        with db.session_scope() as session:
-            ds = session.query(db.Dataset).filter(
-                db.Dataset.id.in_(list(range(1493, 1502))))
-            return web.render('actualclimate.html', ds=ds, db=db).render()
-
-    @expose_for()
-    @web.mime.json
-    def resources(self, only_navigatable=False, recursive=True, for_level=users.current.level):
+    def resources(self):
         """
         Returns a json object representing all resources of this cherrypy web-application
         """
-        return web.json_out(web.resource_walker(self, only_navigatable, recursive, int(for_level)))
+        from .auth import is_member
+        root = web.Resource('/', self).create_tree()
+
+        return web.json_out(
+            {
+                r.uri: [r.level, r.doc]
+                for r in root.walk()
+                if not r.level or is_member(r.level)
+            }
+        )
 
     def __init__(self):
         web.render.set_root(self)

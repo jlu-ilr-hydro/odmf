@@ -7,7 +7,6 @@ from ... import db
 from traceback import format_exc as traceback
 
 
-@web.show_in_nav_for(1, 'thermometer-half')
 class DatasourcePage:
 
     @expose_for(group.guest)
@@ -53,7 +52,7 @@ class DatasourcePage:
             except:
                 return web.render('empty.html', error=traceback(), title='valuetype #%s' % id
                                   ).render()
-        raise web.HTTPRedirect('./%s' % id)
+        raise web.redirect('./%s' % id)
 
     @expose_for()
     @web.mime.json

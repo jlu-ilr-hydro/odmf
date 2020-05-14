@@ -1,60 +1,66 @@
-<xml xmlns:py="http://genshi.edgewall.org/" >
-<h2>
-	<a href="${conf.root_url}/site/${site.id}">
-		<img src="${conf.root_url}/media/mapicons/${site.icon if site.icon else 'unknown.png'}" />
-		#${site.id} (${site.name})
-	</a>
-</h2>
-<div py:content="markdown(site.comment)" />
-<div py:if="site.height" py:content="'%0.1f m NN' % site.height" />
-<div>
-	<a href="${conf.root_url}/site/${site.id}">edit...</a>
-</div>
-<div>
-	<a py:for="img in site.images" href="${conf.root_url}/picture?id=${img.id}"><img src="data:${img.mime};base64,${img.thumbnail64()}" /></a>
-</div>
-<div>
-	<h3><a href="javascript:toggle('instruments')">Instruments:</a><small> [${site.instruments.count()} installations]</small></h3>
-	<ul id="instruments" class="toggle">
-		<li py:for="inst in site.instruments" py:if="inst.active">
-			since ${formatdate(inst.installdate)}: 
-			<a href="${conf.root_url}/instrument/${inst.instrument.id}" class="tooltip">
-				${inst.instrument.name}
-				<span py:content="markdown(inst.instrument.comment)"/>
-			</a>
-			<a py:if="inst.instrument.manuallink" href="${inst.instrument.manuallink}" class="small tooltip">
-				<img src="${conf.root_url}/media/ui-icons/shimmer/document_16.png" alt="documentation"/>
-				<span>
-					Show manual for ${inst.instrument.name}
-				</span>
-			</a>							
-		</li>
+<!DOCTYPE html>
+<div class="card">
+    <div class="card-header">
+        <h4 class="card-title">
+            <a href="${conf.root_url}/site/${site.id}">
+                <img src="${conf.root_url}/media/mapicons/${site.icon if site.icon else 'unknown.png'}" />
+                #${site.id} (${site.name})
+            </a>
+        </h4>
+    </div>
+    <div class="card-body">
+        <div py:if="site.height" py:content="'%0.1f m NN' % site.height" />
+        <div class="my-3">
+            <a href="#site-comment" id="comment-toggle" class="btn btn-secondary flexbox"
+               data-toggle="collapse">
+                <span><i class="fas fa-info-circle mr-2"/>description...</span><span><i class="fas fa-plus-circle"/></span>
+            </a>
+        </div>
+        <div id="site-comment" class="collapse" py:content="markdown(site.comment)"/>
 
-	</ul>
-</div>
-<div>
-	<h3><a href="javascript:toggle('logbook')">Logbook:</a><small> [${site.logs.count()} entries]</small></h3>
-	<ul id="logbook" class="toggle">
-		<li py:if="is_member('logger')">
-			<a href="${conf.root_url}/log/new?siteid=${site.id}" style="font-style: italic;">New message...</a>
-		</li>
-		<li py:for="log in site.logs">
-			<a href="${conf.root_url}/log/${log.id}">${formatdate(log.time)}, ${log.user}: ${log.message}</a>
-		</li>
-	</ul>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+                <i class="fas fa-table mr-2"/>
+                <span >
+                    ${site.datasets.count()} datasets
+                </span>
+            </li>
+            <li class="list-group-item">
+                <i class="fas fa-thermometer-half mr-2"/>
+                <span >
+                    ${site.instruments.count()} installations
+                </span>
+            </li>
+            <li class="list-group-item">
+                <i class="fas fa-tags mr-2"/>
+                <span >
+                    ${site.logs.count()} log entries
+                </span>
+            </li>
+
+
+        </ul>
+
+    </div>
+    <div class="card-footer bg-dark">
+        <div id="pic-carousel" class="carousel slide" data-ride="carousel">
+            <div class="carousel-inner">
+                <div class="center carousel-item ${'' if i else 'active'}" py:for="i, img in enumerate(site.images)" >
+                    <a href="${conf.root_url}/picture?id=${img.id}">
+                        <img class="rounded" src="data:${img.mime};base64,${img.thumbnail64()}" />
+                    </a>
+                </div>
+            </div>
+            <a class="carousel-control-prev" href="#pic-carousel" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#pic-carousel" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+            </a>
+        </div>
+    </div>
 </div>
 
-<div>
-	<h3><a href="javascript:toggle('datasets')">Datasets:</a><small> [${site.datasets.count()} datasets]</small></h3>
-	<ul id="datasets" class="toggle">
-		<li py:if="is_member('editor')">
-			<a href="${conf.root_url}/dataset/new?site_id=${site.id}"
-					style="font-style: italic;" >Add new dataset...</a>
-		</li>
-		<li py:for="ds in site.datasets">
-			<a href="${conf.root_url}/dataset/${ds.id}">${ds}</a><span class="small"> ${ds.size()} records</span>
-		</li>
-	</ul>
-</div>
 
-</xml>

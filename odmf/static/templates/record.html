@@ -51,7 +51,7 @@
                 
             </span>
         </div>
-		<table>
+		<table class="table">
 			<thead>
                 <tr style="font-weight: normal;" class="small">
                     <td/>
@@ -59,10 +59,10 @@
                     
                     <td/><td/><td/><td/><td/>
                     <td>
-                        <button onclick="checkall()">check all</button>
+                        <button class="btn btn-secondary" onclick="checkall()">check all</button>
                     </td>
                     <td>
-                        <button onclick="commit_errors()">commit errors</button>
+                        <button class="btn btn-secondary" onclick="commit_errors()">commit errors</button>
                     </td>
                 </tr>
 				<tr class="record box" >
@@ -94,13 +94,11 @@
 									 value="${rec.id}" />
 					</td>
 					<td class="record str" py:if="action">
-						<span class="box nowrap small">
-							<a onclick="action(${rec.dataset.id},${rec.id});"
-											py:content="actionname" py:if="actionname"/> 
+                        <button class="btn btn-light btn-small border-secondary" onclick="action(${rec.dataset.id},${rec.id});"
+                           py:content="actionname" py:if="actionname"/>
 							
-						</span>
-						<a py:if="action_help" href="${action_help}" >
-							<img src="${conf.root_url}/media/ui-icons/help.png" alt="help"/>
+						<a py:if="action_help" href="${action_help}" class="btn btn-primary btn-small rounded-circle">
+							<i class="fas fa-question"/>
 						</a>
 
 					</td>

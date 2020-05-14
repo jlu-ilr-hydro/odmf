@@ -16,9 +16,12 @@ except ImportError:
 
 
 class Path(object):
-    def __init__(self, abspath):
+    def __init__(self, path: str):
         self.datapath = op.realpath(conf.datafiles)
-        self.absolute = op.realpath(abspath)
+        if str(path).startswith('/'):
+            self.absolute = op.realpath(path)
+        else:
+            self.absolute = op.join(self.datapath, path)
         self.name = op.relpath(self.absolute, self.datapath).replace('\\', '/')
 
     @property
@@ -81,14 +84,54 @@ class Path(object):
     def isdir(self):
         return op.isdir(self.absolute)
 
+    def isroot(self):
+        return self.absolute == self.datapath
+
     def isfile(self):
         return op.isfile(self.absolute)
 
     def exists(self):
         return op.exists(self.absolute)
 
-    def listdir(self):
-        return os.listdir(self.absolute)
+    def parent(self):
+        return Path(op.dirname(self.absolute))
+
+    def ishidden(self):
+        return self.basename.startswith('.') or self.basename == 'index.html'
+
+    def listdir(self)->(list, list):
+        """
+        Lists all members of the path in
+        2 lists:
+
+        directories, files: The subdirectories and the files in path
+
+
+        """
+        files = []
+        directories = []
+        if self.isdir() and self.islegal():
+            for fn in os.listdir(self.absolute):
+                if not fn.startswith('.'):
+                    child = self.child(fn)
+                    if child.isdir():
+                        directories.append(child)
+                    elif child.isfile():
+                        files.append(child)
+            return directories, files
+        else:
+            return [], []
+
+    def isempty(self)->bool:
+        """
+        Returns True, if self isdir and has no entries
+        """
+        dirs, files = self.listdir()
+        files = [f for f in files
+                 if not f.ishidden()
+                 ]
+        return not bool(dirs or files)
 
     def up(self):
         return op.dirname(self.name)
+

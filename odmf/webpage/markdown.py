@@ -9,12 +9,13 @@ from kajiki.template import literal as literal
 import bleach
 
 
+
 class PatternLink(markdown.inlinepatterns.Pattern):
     """
     Creates a link from a specific Regular Expression pattern
     """
 
-    def __init__(self, md, pattern, href, text):
+    def __init__(self, md, pattern: str, href: str, text: str):
         """
         Creates the rule to substitute a pattern with a link
         md: The MarkDown object
@@ -22,8 +23,12 @@ class PatternLink(markdown.inlinepatterns.Pattern):
         href: a substitution string to yield the linked url from the pattern. Note: Groups have one index higher as one would expect. Eg. the first group in \2
         text: a substitution string to yield the link label from the pattern. Note: Groups have one index higher as one would expect. Eg. the first group in \2
         """
+        from ..config import conf
         super(PatternLink, self).__init__(pattern, md)
-        self.href = href
+        if href.startswith('/') and not href.startswith(conf.root_url):
+            self.href = conf.root_url + href
+        else:
+            self.href = href
         self.text = text
 
     def handleMatch(self, m):
@@ -130,7 +135,7 @@ class UrlizePattern(markdown.inlinepatterns.Pattern):
                 if '@' in url and '/' not in url:
                     url = 'mailto:' + url
                 else:
-                    url = 'http://' + url
+                    url = 'https://' + url
 
             el = markdown.util.etree.Element("a")
             el.set('href', url)
@@ -164,8 +169,6 @@ class SchwingbachExtension(markdown.Extension):
             md, '(log:)([0-9]+)', r'/log/\3', '\u25B8' + r'\2\3')
         md.inlinePatterns['link wiki'] = PatternLink(
             md, '(wiki:)([\w/]+)', r'/wiki/\3', '[\\3]')
-        md.inlinePatterns['link svn'] = PatternLink(
-            md, '(svn:)([\w/]+)', r'/snvlog/\3', '[\\3]')
         md.inlinePatterns['replace rarrow'] = SymbolPattern(
             md, r'(-->)', '\u2192')
         md.inlinePatterns['replace larrow'] = SymbolPattern(
@@ -190,6 +193,25 @@ class UrlizeExtension(markdown.Extension):
         md.inlinePatterns['autolink'] = UrlizePattern(URLIZE_RE, md)
 
 
+class bleach_allow:
+
+    tags = bleach.ALLOWED_TAGS + [
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'p', 'a', 'pre', 'div', 'hr', 'br',
+        'sub', 'sup',
+        'video', 'img', 'code',
+        'table', 'thead', 'tbody', 'tr', 'th', 'td', 'tfoot'
+    ]
+    attributes = {
+        '*': ['class', 'title'],
+        'video': ['controls', 'src', 'type'],
+        'img': ['alt', 'src'],
+        'a': ['href', 'alt']
+    }
+
+    styles = ['admonition', 'warning']
+
+
 class MarkDown:
     def __init__(self):
         se = SchwingbachExtension()
@@ -197,7 +219,7 @@ class MarkDown:
 
         self.md = markdown.Markdown(extensions=['admonition', 'extra', 'superscript', 'subscript', se, al])
 
-    def __call__(self, s):
+    def __call__(self, s, *, with_newline_literal=False):
         if s:
             if type(s) is str:
                 pass
@@ -205,20 +227,15 @@ class MarkDown:
                 s = str(s, errors='replace')
 
             html = self.md.convert(s)
-            tags = ['h1', 'h2', 'p', 'a', 'h3', 'pre', 'div', 'hr', 'video', 'img',
-                    'table', 'thead', 'tbody', 'tr', 'th', 'td', 'tfoot']
 
             cleaned_html = bleach.clean(
                 html,
-                tags=bleach.ALLOWED_TAGS + tags,
-                styles=bleach.ALLOWED_STYLES + ['admonition', 'warning'],
-                attributes={'div': 'class',
-                            'video': ['class', 'controls', 'src', 'type'],
-                             'img': ['alt', 'src'],
-                             'a': ['href', 'alt']
-                            }
+                tags=bleach_allow.tags,
+                attributes=bleach_allow.attributes,
+                styles=bleach_allow.styles
             )
-
+            if with_newline_literal:
+                cleaned_html = cleaned_html.replace('\n', r'\n')
             return literal(cleaned_html)
         else:
             return s

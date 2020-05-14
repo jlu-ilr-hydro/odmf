@@ -5,6 +5,7 @@ Created on 12.07.2012
 '''
 from . import lib as web
 from .. import db
+from kajiki.template import literal
 
 
 @web.show_in_nav_for(0, icon='map')
@@ -19,9 +20,9 @@ class MapPage(object):
             site = 'null'
         else:
             with db.session_scope() as session:
-                site = web.as_json(
+                site = literal(web.as_json(
                     session.query(db.Site).get(int(site))
-                )
+                ))
 
         return web.render('map.html', site=site).render()
 

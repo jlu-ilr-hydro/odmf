@@ -111,7 +111,7 @@ class Dataset(Base):
     """
     __tablename__ = 'dataset'
     id = sql.Column(sql.Integer, primary_key=True)
-    name = sql.Column(sql.String, unique=True)
+    name = sql.Column(sql.String, nullable=True)
     filename = sql.Column(sql.String, nullable=True)
     start = sql.Column(sql.DateTime, nullable=True)
     end = sql.Column(sql.DateTime, nullable=True)

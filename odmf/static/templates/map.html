@@ -38,7 +38,7 @@
             </div>
 
         </div>
-        <div class="mt-3">
+        <div class="mt-3" id="filter-collapse">
             <a href="#filter" id="filter-toggle" class="btn btn-secondary flexbox h1"
                     data-toggle="collapse">
                 <span><i class="fas fa-filter mr-2"/>Filter</span><span><i class="fas fa-plus-circle"/></span>
@@ -95,7 +95,12 @@
         </div>
 
         <hr />
-        <div id="infotext" class="small card card-body">No site selected</div>
+
+        <div id="infotext">
+            <div class="card card-body">
+                <h5 class="card-title">No site selected</h5>
+            </div>
+        </div>
     </py:block>
     <py:block name="content">
         <div id="map_canvas" class="mapCanvasShort row">Map</div>

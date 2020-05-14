@@ -3,6 +3,7 @@ Created on 18.07.2012
 
 @author: philkraf
 '''
+from base64 import b64encode
 from .. import lib as web
 from ... import db
 from traceback import format_exc as traceback
@@ -11,10 +12,11 @@ import io
 from ..auth import group, expose_for, users
 import codecs
 from ...tools.calibration import Calibration, CalibrationSource
+from ...config import conf
 from pytz import common_timezones
 import cherrypy
 
-@web.show_in_nav_for(1, icon='table')
+@web.show_in_nav_for(1, icon='clipboard')
 class DatasetPage:
     """
     Serves the direct dataset manipulation and querying
@@ -22,14 +24,14 @@ class DatasetPage:
     exposed = True
 
     @expose_for(group.logger)
-    def index(self):
+    def index(self, error=''):
         """
         Returns the query page (datasetlist.html). Site logic is handled with ajax
         """
-        return web.render('datasetlist.html').render()
+        return web.render('datasetlist.html', error=error).render()
 
     @expose_for(group.guest)
-    def default(self, id='new', site_id=None, vt_id=None, user=None):
+    def default(self, id='new', site_id=None, vt_id=None, user=None, error=''):
         """
         Returns the dataset view and manipulation page (datasettab.html). 
         Expects an valid dataset id, 'new' or 'last'. With new, a new dataset
@@ -40,95 +42,78 @@ class DatasetPage:
             # last dataset, redirect to index
             id = web.cherrypy.session.get('dataset')  # @UndefinedVariable
             if id is None:
-                raise web.HTTPRedirect('/dataset/')
+                raise web.redirect(conf.root_url + '/dataset/')
         with db.session_scope() as session:
-            error = ''
-            datasets = {}
-            try:
-                site = session.query(db.Site).get(site_id) if site_id else None
-                valuetype = session.query(db.ValueType).get(
-                    vt_id) if vt_id else None
-                # All projects
 
-                if user is None:
-                    user = web.user()
-                user = session.query(db.Person).get(user) if user else None
-                if id == 'new':
-                    active = db.Timeseries(id=db.newid(db.Dataset, session), name='New Dataset',
-                                           site=site, valuetype=valuetype, measured_by=user)
-                else:  # Else load requested dataset
-                    active = session.query(db.Dataset).get(int(id))
+            site = session.query(db.Site).get(site_id) if site_id else None
+            valuetype = session.query(db.ValueType).get(
+                vt_id) if vt_id else None
+            # All projects
 
-                    if active:  # save requested dataset as 'last'
-                        web.cherrypy.session['dataset'] = id  # @UndefinedVariable
-                    else:
-                        raise ValueError("Dataset %s is not existent" % (id))
-
-                # Setting the project, for editing and ui navigation
-                if active.project is not None:
-                    project = session.query(db.Project).get(int(active.project))
-                else:
-                    project = None
-
-                try:
-                    # load data for datasettab.html:
-                    # similar datasets (same site and same type)
-                    similar_datasets = self.subset(session, valuetype=active.valuetype.id,
-                                                   site=active.site.id)
-                    # parallel dataset (same site and same time, different type)
-                    parallel_datasets = session.query(db.Dataset).filter_by(site=active.site).filter(
-                        db.Dataset.start <= active.end, db.Dataset.end >= active.start)
-
-                    datasets = {"same type": similar_datasets.filter(db.Dataset.id != active.id),
-                                "same time": parallel_datasets.filter(db.Dataset.id != active.id)}
-                except:
-                    # If loading fails, don't show similar datasets
-                    datasets = {}
-
-                # Render the resulting page
-                queries = dict(
-                    valuetypes=session.query(db.ValueType).order_by(db.ValueType.name),
-                    persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname),
-                    sites=session.query(db.Site).order_by(db.Site.id),
-                    quality=session.query(db.Quality).order_by(db.Quality.id),
-                    datasources=session.query(db.Datasource),
-                    projects=session.query(db.Project),
+            if user is None:
+                user = web.user()
+            user: db.Person = session.query(db.Person).get(user) if user else None
+            if id == 'new':
+                active = db.Timeseries(
+                    id=db.newid(db.Dataset, session),
+                    name='New Dataset',
+                    site=site,
+                    valuetype=valuetype,
+                    measured_by=user,
+                    access=user.access_level
                 )
-                return web.render(
-                    'datasettab.html',
-                    # activedataset is the current dataset (id or new)
-                    activedataset=active,
-                    # Render error messages
-                    error=error,
-                    # similar and parallel datasets
-                    datasets=datasets,
-                    # the db module for queries during rendering
-                    db=db,
-                    # The project
-                    activeproject=project,
-                    # All available timezones
-                    timezones=common_timezones + ['Fixed/60'],
-                    # The title of the page
-                    title='ds' + str(id),
-                    # A couple of prepared queries to fill select elements
-                    **queries
-                ).render()
-            except:
-                # If anything above fails, render error message
-                return web.render(
-                    'datasettab.html',
-                    # render traceback as error
-                    error=traceback(),
-                    # a title
-                    title='Schwingbach-Datensatz (Fehler)',
-                    # See above
-                    session=session,
-                    datasets=datasets,
-                    db=db,
-                    activedataset=None,
-                    **queries
-                ).render()
+            else:  # Else load requested dataset
+                active = session.query(db.Dataset).get(int(id))
 
+                if active:  # save requested dataset as 'last'
+                    web.cherrypy.session['dataset'] = id  # @UndefinedVariable
+                else:
+                    raise web.redirect(conf.root_url + '/dataset', error=f'No ds{id} available')
+
+            # Setting the project, for editing and ui navigation
+            if active.project is not None:
+                project = session.query(db.Project).get(int(active.project))
+            else:
+                project = None
+
+            try:
+                # load data for datasettab.html:
+                # similar datasets (same site and same type)
+                similar_datasets = self.subset(session, valuetype=active.valuetype.id,
+                                               site=active.site.id)
+                # parallel dataset (same site and same time, different type)
+                parallel_datasets = session.query(db.Dataset).filter_by(site=active.site).filter(
+                    db.Dataset.start <= active.end, db.Dataset.end >= active.start)
+
+                datasets = {"same type": similar_datasets.filter(db.Dataset.id != active.id),
+                            "same time": parallel_datasets.filter(db.Dataset.id != active.id)}
+            except:
+                # If loading fails, don't show similar datasets
+                datasets = {}
+
+            # Render the resulting page
+            return web.render(
+                'dataset-edit.html',
+                # activedataset is the current dataset (id or new)
+                ds_act=active,
+                # Render error messages
+                error=error,
+                # similar and parallel datasets
+                datasets=datasets,
+                # The project
+                activeproject=project,
+                # All available timezones
+                timezones=common_timezones + ['Fixed/60'],
+                # The title of the page
+                title='ds' + str(id),
+                # A couple of prepared queries to fill select elements
+                valuetypes=session.query(db.ValueType).order_by(db.ValueType.name),
+                persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname),
+                sites=session.query(db.Site).order_by(db.Site.id),
+                quality=session.query(db.Quality).order_by(db.Quality.id),
+                datasources=session.query(db.Datasource),
+                projects=session.query(db.Project),
+            ).render()
 
 
     @expose_for(group.editor)
@@ -136,17 +121,17 @@ class DatasetPage:
         """
         Saves the changes for an edited dataset
         """
+        id = kwargs.get('id', '')
         try:
             # Get current dataset
-            id = web.conv(int, kwargs.get('id'), '')
+            id = web.conv(int, id, '')
         except:
-            return web.render(error=traceback(), title='Dataset #%s' % kwargs.get('id')
-                              ).render()
+            raise web.redirect(conf.root_url + f'/dataset/{id}', error=traceback())
         # if save button has been pressed for submitting the dataset
         if 'save' in kwargs:
-            try:
-                # get database session
-                with db.session_scope() as session:
+            # get database session
+            with db.session_scope() as session:
+                try:
                     pers = session.query(db.Person).get(kwargs.get('measured_by'))
                     vt = session.query(db.ValueType).get(kwargs.get('valuetype'))
                     q = session.query(db.Quality).get(kwargs.get('quality'))
@@ -183,10 +168,9 @@ class DatasetPage:
                     # Timeseries only arguments
                     if ds.is_timeseries():
                         if kwargs.get('start'):
-                            ds.start = datetime.strptime(
-                                kwargs['start'], '%d.%m.%Y')
+                            ds.start = web.parsedate(kwargs['start'])
                         if kwargs.get('end'):
-                            ds.end = datetime.strptime(kwargs['end'], '%d.%m.%Y')
+                            ds.end = web.parsedate(kwargs['end'])
                         ds.calibration_offset = web.conv(
                             float, kwargs.get('calibration_offset'), 0.0)
                         ds.calibration_slope = web.conv(
@@ -198,16 +182,13 @@ class DatasetPage:
                         ds.latex = kwargs.get('latex')
                     # Save changes
                     session.commit()
-            except:
-                # On error render the error message
-                return web.render('empty.html', error=traceback(), title='Dataset #%s' % id
-                                  ).render()
-            finally:
-                session.close()
+                except:
+                    # On error render the error message
+                    raise web.redirect(conf.root_url + f'/dataset/{id}', error=traceback())
         elif 'new' in kwargs:
             id = 'new'
         # reload page
-        raise web.HTTPRedirect('./%s' % id)
+        raise web.redirect(str(id))
 
     @expose_for()
     @web.mime.json
@@ -287,7 +268,6 @@ class DatasetPage:
         """
         if not hasattr(db.Dataset, attribute):
             raise AttributeError("Dataset has no attribute '%s'" % attribute)
-        session = db.Session()
         res = ''
         with db.session_scope() as session:
             # Get dataset for filter
@@ -325,17 +305,12 @@ class DatasetPage:
         """
         Mark record id (records) as is_error for dataset. Called by javascript
         """
-        try:
+        with db.session_scope() as session:
             recids = set(int(r) for r in records.split())
-            session = db.Session()
             ds = session.query(db.Dataset).get(int(dataset))
             q = ds.records.filter(db.Record.id.in_(recids))
             for r in q:
                 r.is_error = True
-            session.commit()
-            session.close()
-        except:
-            return traceback()
 
     @expose_for(group.editor)
     def setsplit(self, datasetid, recordid):
@@ -366,25 +341,25 @@ class DatasetPage:
         """
         Exports the records of the timeseries as csv
         """
-        session = db.Session()
-        ds = session.query(db.Dataset).get(dataset)
-        st = io.BytesIO()
-        st.write(codecs.BOM_UTF8)
-        st.write(('"Dataset","ID","time","%s","site","comment"\n' %
-                  (ds.valuetype)).encode('utf-8'))
-        for r in ds.iterrecords(raw):
-            d = dict(c=str(r.comment).replace('\r', '').replace('\n', ' / '),
-                     v=r.calibrated if raw else r.value,
-                     time=web.formatdate(r.time) + ' ' +
-                     web.formattime(r.time),
-                     id=r.id,
-                     ds=ds.id,
-                     s=ds.site.id)
+        with db.session_scope() as session:
+            ds = session.query(db.Dataset).get(dataset)
+            st = io.BytesIO()
+            st.write(codecs.BOM_UTF8)
+            st.write(('"Dataset","ID","time","%s","site","comment"\n' %
+                      (ds.valuetype)).encode('utf-8'))
+            for r in ds.iterrecords(raw):
+                d = dict(c=str(r.comment).replace('\r', '').replace('\n', ' / '),
+                         v=r.calibrated if raw else r.value,
+                         time=web.formatdate(r.time) + ' ' +
+                         web.formattime(r.time),
+                         id=r.id,
+                         ds=ds.id,
+                         s=ds.site.id)
 
-            st.write(('%(ds)i,%(id)i,%(time)s,%(v)s,%(s)i,"%(c)s"\n' %
-                      d).encode('utf-8'))
-        session.close()
-        return st.getvalue()
+                st.write(('%(ds)i,%(id)i,%(time)s,%(v)s,%(s)i,"%(c)s"\n' %
+                          d).encode('utf-8'))
+            session.close()
+            return st.getvalue()
 
     @expose_for(group.logger)
     @web.mime.csv
@@ -420,38 +395,47 @@ class DatasetPage:
         return st.getvalue()
 
     @expose_for(group.logger)
-    @web.mime.png
-    def plot(self, id, start=None, end=None, marker='', line='-', color='k'):
+
+    def plot(self, id, start='', end='', marker='', line='-', color='k', interactive=False):
         """
         Plots the dataset. Might be deleted in future. Rather use PlotPage
         """
-        session = db.Session()
-        try:
+        with db.session_scope() as session:
             import matplotlib
             matplotlib.use('Agg', warn=False)
             import pylab as plt
             ds = session.query(db.Dataset).get(int(id))
-            if start:
+            if users.current.level < ds.access:
+                return f"""
+                <div class="alert alert-danger"><h2>No access</h2><p class="lead">
+                    Sorry, {users.current.name}, you need higher privileges to see the content of {ds}
+                </p></div>
+                """
+            if start.strip():
                 start = web.parsedate(start.strip())
             else:
                 start = ds.start
-            if end:
+            if end.strip():
                 end = web.parsedate(end.strip())
             else:
                 end = ds.end
             t, v = ds.asarray(start, end)
-            fig = plt.figure()
+            fig = plt.figure(figsize=(10, 5))
             ax = fig.gca()
             ax.plot_date(t, v, color + marker + line)
-            bytesio = io.BytesIO()
             ax.grid()
             plt.xticks(rotation=15)
             plt.ylabel('%s [%s]' % (ds.valuetype.name, ds.valuetype.unit))
             plt.title(str(ds.site))
-            fig.savefig(bytesio, dpi=100, format='png')
-        finally:
-            session.close()
-        return bytesio.getvalue()
+
+            if interactive and interactive != 'false':
+                import mpld3
+                return mpld3.fig_to_html(fig).encode('utf-8')
+            else:
+                bytesio = io.BytesIO()
+                fig.savefig(bytesio, dpi=100, format='png')
+                data = b64encode(bytesio.getvalue())
+                return b'<img src="data:image/png;base64, ' + data + b'"/>'
 
     @web.expose
     @web.mime.json
@@ -493,7 +477,8 @@ class DatasetPage:
             return web.json_out({'error': None, 'data': records.all()})
 
     @expose_for(group.editor)
-    def records(self, dataset, mindate, maxdate, minvalue, maxvalue, threshold=None, limit=None):
+    def records(self, dataset, mindate, maxdate, minvalue, maxvalue,
+                threshold=None, limit=None, offset=None):
         """
         Returns a html-table of filtered records
         TODO: This method should be replaced by records_json. 
@@ -523,14 +508,17 @@ class DatasetPage:
                     if maxvalue:
                         records = records.filter(db.Record.value < float(maxvalue))
                     totalcount = records.count()
-                    records = records.limit(limit)
+                    if offset:
+                        records = records.offset(offset)
+                    if limit:
+                        records = records.limit(limit)
                     currentcount = records.count()
             except:
                 return web.literal('<div class="error">' + traceback() + '</div>')
             res = web.render('record.html', records=records, currentcount=currentcount,
                              totalrecords=totalcount, dataset=ds, actionname="split dataset",
                              action="/dataset/setsplit",
-                             action_help='/wiki/dataset/split').render('xml')
+                             action_help='/wiki/dataset/split').render()
             return res
 
     @expose_for(group.editor)
@@ -574,7 +562,6 @@ class DatasetPage:
         Creates a transformed timeseries from a timeseries. 
         Redirects to the new transformed timeseries
         """
-        session = db.Session()
         id = int(sourceid)
         try:
             with db.session_scope() as session:
@@ -643,43 +630,42 @@ class CalibratePage(object):
         """
         Renders the calibration options.
         """
-        session = db.Session()
-        error = ''
-        target = session.query(db.Dataset).get(int(targetid))
-        sources = session.query(db.Dataset).filter_by(site=target.site).filter(
-            db.Dataset.start <= target.end, db.Dataset.end >= target.start)
-        if sourceid:
-            sourceid = int(sourceid)
-        limit = web.conv(int, limit, 3600)
-        day = timedelta(days=1)
-        source = sourcerecords = None
-        sourcecount = 0
-        result = Calibration()
-        try:
+        with db.session_scope() as session:
+            error = ''
+            target = session.query(db.Dataset).get(int(targetid))
+            sources = session.query(db.Dataset).filter_by(site=target.site).filter(
+                db.Dataset.start <= target.end, db.Dataset.end >= target.start)
             if sourceid:
-                source = CalibrationSource(
-                    [sourceid], target.start - day, target.end + day)
-                sourcerecords = source.records(session)
-                sourcecount = sourcerecords.count()
+                sourceid = int(sourceid)
+            limit = web.conv(int, limit, 3600)
+            day = timedelta(days=1)
+            source = sourcerecords = None
+            sourcecount = 0
+            result = Calibration()
+            try:
+                if sourceid:
+                    source = CalibrationSource(
+                        [sourceid], target.start - day, target.end + day)
+                    sourcerecords = source.records(session)
+                    sourcecount = sourcerecords.count()
 
-                if calibrate and calibrate != 'false':
-                    result = Calibration(target, source, limit)
-                    if not result:
-                        error = 'No matching records for the given time limit is found'
-                source = session.query(db.Dataset).get(sourceid)
-        except:
-            error = traceback()
-        out = web.render('calibrate.html',
-                         error=error,
-                         target=target,
-                         sources=sources,
-                         source=source,
-                         limit=limit,
-                         sourcecount=sourcecount,
-                         result=result,
-                         ).render()
+                    if calibrate and calibrate != 'false':
+                        result = Calibration(target, source, limit)
+                        if not result:
+                            error = 'No matching records for the given time limit is found'
+                    source = session.query(db.Dataset).get(sourceid)
+            except:
+                error = traceback()
+            out = web.render('calibrate.html',
+                             error=error,
+                             target=target,
+                             sources=sources,
+                             source=source,
+                             limit=limit,
+                             sourcecount=sourcecount,
+                             result=result,
+                             ).render()
 
-        session.close()
         return out
 
     @expose_for(group.editor)

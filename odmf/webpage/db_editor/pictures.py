@@ -1,5 +1,7 @@
 import cherrypy
 
+from kajiki.template import literal
+
 from .. import lib as web
 from ..auth import group, expose_for
 from ...config import conf
@@ -46,7 +48,7 @@ class PicturePage(object):
             imagelist.filter(db.Image._site == site)
         if by:
             imagelist.filter(db.Image._by == by)
-        res = web.as_json(imagelist.all())
+        res = literal(web.as_json(imagelist.all()))
         session.close()
         return bytearray(res)
 
@@ -84,4 +86,4 @@ class PicturePage(object):
         session.commit()
         imgid = img.id
         session.close()
-        raise web.HTTPRedirect(conf.root_url + '/picture?id=%i' % imgid)
+        raise web.redirect(conf.root_url + '/picture?id=%i' % imgid)

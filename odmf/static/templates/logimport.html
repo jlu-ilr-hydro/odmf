@@ -1,56 +1,46 @@
 <!DOCTYPE html>
-<html>
 
-<head>
-    <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
-
-	<link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>Import logs to DB</title>
-  <script src="${conf.root_url}/media/lib/jquery-3.4.1.min.js" type="text/javascript" ></script>
-	<style>
-		table {width: 100%;}
-		.datepicker {width: 100%;}
-		td,th {padding: 5px; border-bottom: solid 1px #888; font-size: small;}
-		th {background-color: #E8F0FF;}
-		tr.rowerror {
-			background-color: red;
-			color: white;
-		}
-	</style>
-</head>
-<body>
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <!-- insert additional scripts -->
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <!-- insert sidebar content -->
+    </py:block>
+    <py:block name="content">
 	<!--
 		filename: the filename to import
 		logs : the list of dictionaries as returned from importlog
 		error: some error messages
 		cancommit: If True, a commit is possible
 	-->
-	${navigation('Import logs to database')}
-	<div class="content">
-    <div class="error" py:content="error" />
-    <h3>${filename}</h3>
-    <div class="warning" py:if="not cancommit">
-    	The log file has errors. Please remove the errors from the file and upload again.
-    	If no errors are present, you can commit the file.
-    </div>
-		<form action="" method="post" >
-			<input type="submit" name="commit" value="commit" py:attrs="attrcheck('disabled',not cancommit)"/>
-		</form>
+        <div class="container">
+            <div class="error" py:content="error" />
+            <h3>${filename}</h3>
+            <div class="alert alert-warning" py:if="not cancommit">
+                The log file has errors. Please remove the errors from the file and upload again.
+                If no errors are present, you can commit the file.
+            </div>
+            <form action="" method="post" >
+                <input type="submit" name="commit" value="commit" py:attrs="attrcheck('disabled',not cancommit)"/>
+            </form>
 
-		<table>
-			<tr>
-				<th>Row</th>
-				<th>Error?</th>
-				<th>Action</th>
-			</tr>
-			<tr py:for="log in logs" class="small${' rowerror' if log['error'] else ''}">
-				<td py:content="log['row']" />
-				<td py:content="'yes' if log['error'] else 'no'" />
-				<td>${log['log']}</td>
-			</tr>
-		</table>
-	</div>
-</body>
-</html>
+            <table class="table">
+                <tr>
+                    <th>Row</th>
+                    <th>Error?</th>
+                    <th>Action</th>
+                </tr>
+                <tr py:for="log in logs" class="small${' bg-danger text-white' if log['error'] else ''}">
+                    <td py:content="log['row']" />
+                    <td py:content="'yes' if log['error'] else 'no'" />
+                    <td>${log['log']}</td>
+                </tr>
+            </table>
+        </div>
+    </py:block>
+
+</py:extends>

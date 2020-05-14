@@ -88,7 +88,7 @@
 
 
                 // decode json data, can't parse instead
-                var site = ${as_json(actualsite) if actualsite else 'null'}
+                var site = ${literal(as_json(actualsite) if actualsite else 'null')}
 
                 //
                 // Define createmap via "currying" to bind parameter site permant
@@ -132,27 +132,8 @@
     </py:block>
     <py:block name="style">
         <style type="text/css">
-            input { /*width: 100%;*/}
-            .msghint {
-                font-weight: bold;
-                color: red;
-            }
-            .highlightonhover {
-                background-color: transparent;
-                border: 3px solid #fff;
-                box-shadow: 0px 0px 0px #fff;
-            }
-            .highlightonhover:hover {
-                /*background-color: #f00;*/
-                border: 3px solid #f00;
-                box-shadow: 0px 0px 8px #f00;
-            }
             .removed {
                 color: grey;
-            }
-            .imgbutton {
-                width: 32px;
-                height: 32px;
             }
 
         </style>
@@ -165,7 +146,7 @@
             </h2>
             <a class="btn btn-primary" href="${conf.root_url}/map?site=${actualsite.id}">show on map...</a>
             <hr/>
-            <div class="row box" style="padding:5px; margin:5px;">
+            <div class="row box m-1 p-1" >
                 <form class="form-group row">
                     <div class="container-fluid">
                         <label for="siteselect" class="form-label">Select a site:</label>
@@ -187,22 +168,22 @@
             <div class="row">
                 <div class="col">
                     <div class="nav flex-column nav-pills" role="tablist"  aria-orientation="vertical" id="site-tab">
-                        <a id="site-tab" class="nav-link active" data-toggle="pill" href='#sitedescription'>site</a>
-                        <a id="map-tab" class="nav-link" data-toggle="pill" href='#map'>map</a>
-                        <a id="edit-tab" class="nav-link" data-toggle="pill" href="#edit">edit</a>
-                        <a id="message-tab" class="nav-link flexbox" data-toggle="pill" href="#messagelist">
-                            <span>messages</span><span class="badge badge-info badge-pill" py:content="actualsite.logs.count()"/>
+                        <a id="site-tab" class="nav-link active border-top" data-toggle="pill" href='#sitedescription'>site</a>
+                        <a id="map-tab" class="nav-link border-top" data-toggle="pill" href='#map'>map</a>
+                        <a id="edit-tab" class="nav-link border-top" data-toggle="pill" href="#edit">edit</a>
+                        <a id="message-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#messagelist">
+                            <span>messages</span><span class="badge badge-primary badge-pill" py:content="actualsite.logs.count()"/>
                         </a>
-                        <a id="pic-tab" class="nav-link flexbox" data-toggle="pill" href="#pictures">
-                            <span>pictures</span><span class="badge badge-info badge-pill" py:content="actualsite.images.count()"/>
+                        <a id="pic-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#pictures">
+                            <span>pictures</span><span class="badge badge-primary badge-pill" py:content="actualsite.images.count()"/>
                         </a>
-                        <a id="instrument-tab" class="nav-link flexbox" data-toggle="pill" href="#instrumentlist">
-                            <span>instruments</span><span class="badge badge-info badge-pill" py:content="actualsite.instruments.count()"/>
+                        <a id="instrument-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#instrumentlist">
+                            <span>instruments</span><span class="badge badge-primary badge-pill" py:content="actualsite.instruments.count()"/>
                         </a>
-                        <a id="dataset-tab" class="nav-link flexbox" data-toggle="pill" href="#datasetlist">
-                            <span>datasets</span><span class="badge badge-info badge-pill" py:content="actualsite.datasets.count()"/>
+                        <a id="dataset-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#datasetlist">
+                            <span>datasets</span><span class="badge badge-primary badge-pill" py:content="actualsite.datasets.count()"/>
                         </a>
-                        <a id="export-tab" class="nav-link flexbox" data-toggle="pill" href="#export">export</a>
+                        <a id="export-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#export">export</a>
                     </div>
                 </div>
             </div>
@@ -215,18 +196,40 @@
 
             <div class="tab-content" id="tab">
                 <div class="tab-pane active" id ="sitedescription" role="tabpanel">
-                    <div class="jumbotron">
-                        <h1 class="display-4">
-                            <img src="${conf.root_url}/media/mapicons/${actualsite.icon or 'unknown.png'}"/>
-                            <span py:content="actualsite" />
-                        </h1>
-                        <a class="btn btn-primary" href="${conf.root_url}/map?site=${actualsite.id}">show on map...</a>
-                        <p py:content="actualsite.as_coordinatetext()"/>
-                        <p py:content="'UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
+                    <div class="container">
+                        <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4" >
+                            <h2 class="display-4 mr-8" >
+                                <span py:content="actualsite.name" />
 
-                        <div py:content="markdown(actualsite.comment)"/>
+                            </h2>
+                            <div class="display-4 col-sm my-auto text-right" >
+                                <img src="${conf.root_url}/media/mapicons/${actualsite.icon or 'unknown.png'}" height="48px" />
+                                #${actualsite.id}
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-sm-1">
+                                <a class="btn btn-outline-primary rounded-pill"
+                                   href="${conf.root_url}/map?site=${actualsite.id}"
+                                   title="show on map..." data-toggle="tooltip"
+                                >
+                                    <i class="fas fa-map"/>
+                                </a>
+
+                            </div>
+                            <div class="col-sm-5 text-center">
+                                <div py:content="actualsite.as_coordinatetext()"/>
+                            </div>
+                            <div class="col-sm-5 text-center">
+                                <div py:content="'UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
+                            </div>
+                        </div>
+                        <div class="row border rounded">
+                            <div class="col" py:content="markdown(actualsite.comment)"/>
+                        </div>
 
                     </div>
+
 
                 </div>
                 <div class="tab-pane" id="map" role="tabpanel">
@@ -287,7 +290,7 @@
                             </div>
                             <div class="col-sm-8">
                                 <div class="">
-                                    <button type="button" class="btn btn-secondary mr-1 mb-1"
+                                    <button type="button" class="btn btn-outline-primary mr-1 mb-1"
                                             onclick="$('#currenticon').attr('src',odmf_ref('/media/mapicons/${icon}'));$('#iconfile').val('${icon}');"
                                             py:for="icon in icons"
                                     >
@@ -309,9 +312,7 @@
                             <div class="col-sm">
                                 <textarea id="comment" name="comment"
                                           class="form-control"
-                                          rows="10" >
-                                        ${actualsite.comment}
-                                </textarea>
+                                          rows="10" py:content="actualsite.comment"/>
                             </div>
                         </div>
                         <input type="submit" id="save" name="save" value="save" style="width: 10em;" class="form-control"/>
@@ -343,28 +344,49 @@
                 </div>
 
                 <div class="tab-pane" id="instrumentlist" role="tabpanel" >
-                    <ul class="container-fluid">
-                        <li py:if="is_member('editor')" class="row">
-                            <button onclick="addinstrument()" class="btn btn-dark col-lg-1">
-                                <img src="${conf.root_url}/media/ui-icons/plus-small.png" alt="Add"/>
-                            </button>
-                            <input type="date" id="installationdate" value="${formatdate()}" class="form-control col-lg-5"/>
-                            <select id="instruments" class="custom-select col-lg-6">
-                                <option value="">Please select...</option>
+                    <div id="installations" class="container">
+                        <h1 class="mt-2 bg-dark text-white">Installations</h1>
+                        <h4>Add installation</h4>
+                        <div id="add-installation" class="input-group mb-2" py:if="is_member('editor')">
+                            <div class="input-group-prepend">
+                                <button py:if="is_member('editor')" onclick="addinstrument()" class="btn btn-outline-secondary">
+                                    <i class="fas fa-plus"/>
+                                </button>
+                            </div>
+                            <input type="date" class="form-control" id="installationdate" value="${formatdate()}"
+                                   data-toggle="tooltip"
+                                   title="When has the instrument been installed"
+                            />
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">
+                                    <i class="fas fa-map-marker-alt"/>
+                                </span>
+                            </div>
+                            <select id="siteselect" class="form-control"
+                                    data-toggle="tooltip"
+                                    title="Where has the instrument been installed"
+                            >
+                                <option disabled="disabled">select site...</option>
                             </select>
-                        </li>
-                        <li py:for="inst in actualsite.instruments" >
-							<span py:if="inst.active">
-									since ${formatdate(inst.installdate)}: <a py:content="inst.instrument.name" href="${conf.root_url}/instrument/${inst.instrument.id}"/>
-									<a py:if="inst.instrument.manuallink" href="${inst.instrument.manuallink}" class="small"><img src="${conf.root_url}/media/ui-icons/shimmer/document_16.png" alt="documentation"/></a>
-							</span>
-                            <span py:if="not inst.active" class="removed"
-                                  py:content="'until %s: %s (%s)' % (formatdate(inst.removedate),inst.instrument.name,inst.instrument.sourcetype)" />
-                            <a href="javascript:removeinstrument(${inst.id}, ${inst.instrument.id})"
-                               py:if="is_member('editor')"
-                               style="font-size: small;font-style: italic;">(remove...)</a>
-                        </li>
-                    </ul>
+                        </div>
+                        <h4>Current installation</h4>
+                        <ul style="margin-top:0px;padding-top:0px;">
+                            <li py:for="inst in actualsite.instruments" >
+                                <a  href="${conf.root_url}/site/${inst.site.id}"
+                                    py:if="inst.active"
+                                    py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
+                                <span py:if="not inst.active" class="removed"
+                                      py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
+                                <a href="javascript:removeinstrument(${inst.id},${inst.site.id})"
+                                   py:if="is_member('editor') and inst.active"
+                                   class="btn btn-outline-primary btn-sm rounded-circle"
+                                   title="remove installation" data-toggle="tooltip"
+                                ><i class="fas fa-minus"/></a>
+                            </li>
+                        </ul>
+                    </div>
+
+
                 </div>
 
                 <div class="tab-pane" id="datasetlist" role="tabpanel"  >

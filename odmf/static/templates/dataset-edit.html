@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <script>
+            //<![CDATA[
+            dsid = ${ds_act.id};
+            function loadstatistics() {
+                $.getJSON(odmf_ref('/dataset/statistics/'),{id:dsid},function(data){
+                    $('#mean').html(data.mean.toPrecision(4));
+                    $('#std').html(data.std.toPrecision(4));
+                    $('#splitthreshold').val(data.std.toPrecision(4));
+                    $('#n').html(data.n);
+                });
+            }
+
+            function loadrecords() {
+                var threshold = null;
+                var limit = $('#recordlimit').val();
+                if ($('#splitUseThreshold').prop('checked')) {
+                    threshold = $('#splitthreshold').val();
+                }
+
+                var params={dataset:dsid,
+                    mindate:$('#recordmindate').val() + ' ' + $('#recordmintime').val(),
+                    maxdate:$('#recordmaxdate').val() + ' ' + $('#recordmaxtime').val(),
+                    minvalue:$('#recordminvalue').val(),
+                    maxvalue:$('#recordmaxvalue').val(),
+                    threshold:threshold,
+                    limit:limit
+                };
+                $('#recordlist').load(odmf_ref('/dataset/records'),params);
+            }
+
+            function timerange(step)
+            {
+                if (step == null) {step=60;}
+                var foo = [];
+                for (var i = 0; i <= 60*24; i+=step) {
+                    var m = i % 60;
+                    var h = (i-m)/60;
+                    if (h<10) { h='0' + h;} else {h='' + h;}
+                    if (m<10) { m='0' + m;} else {m='' + m;}
+                    foo.push(h+':'+m);
+                }
+                return foo;
+            }
+
+            function reload(error) {
+                if (error) {
+                    if (error.substring(0,5)=='goto:') {
+                        window.location.href = odmf_ref(error.substring(5));
+                    } else {
+                        $('.error').html(error);
+                    }
+                } else {
+                    window.location.reload(true);
+                }
+            }
+
+            function plotds(id) {
+
+                $.get(odmf_ref('/dataset/plot'), {
+                    id: id,
+                    start: $('#plotstart').val() + 'T' + $('#plotstart_t').val(),
+                    end: $('#plotend').val() + 'T' + $('#plotend_t').val(),
+                    marker: $('#markerpicker').val(),
+                    line: $('#linepicker').val(),
+                    color: $('#colorpicker').val(),
+                    interactive: $('#interactive').is(':checked')
+                }, function(html) {
+                    $('#plot-div').html(html);
+                });
+            }
+            function removeds(dsid,dsname,reccount) {
+                var msg = 'Are you absolutly sure to delete ' + dsname + '?' +
+                        'It has ' + reccount + ' records!'
+                var really=confirm(msg)
+                if (really) {
+                    $.post(odmf_ref('/dataset/remove/') + dsid, function(data) {
+                        if (data) {
+                            $('.error').html(data);
+                        } else {
+                            window.back();
+                        }
+                    });
+                }
+            }
+
+            $(function() {
+                $(".timepicker").attr('placeholder', '00:00');
+                $('#trans_help').hide();
+                $('.transhelpparent').focusin(function(){
+                    $('#trans_help').slideDown('fast');
+                });
+                $('.transhelpparent').focusout(function(){
+                    $('#trans_help').hide();
+                });
+                $('#trans_sources').change(function() {
+                    $('#trans_add_source').prop('disabled', !($(this).val() > 0));
+                });
+                loadstatistics();
+                $('#goto').change(function(event) {
+                    window.location.href=odmf_ref('/dataset/') + $('#goto').val();
+                });
+                $('#gotods-btn').click(function() {
+                    window.location.href=odmf_ref('/dataset/') + $('#goto').val();;
+                });
+                // Javascript to enable link to tab
+                var url = document.location.toString();
+                if (url.match('#')) {
+                    $('#tabs a[href="#'+url.split('#')[1]+ '"]').tab('show') ;
+                }
+
+                // With HTML5 history API, we can easily prevent scrolling!
+                $('#tabs a').on('shown', function (e) {
+                    if (history.pushState) {
+                        history.pushState(null, null, e.target.hash);
+                    } else {
+                        window.location.hash = e.target.hash; //Polyfill for old browsers
+                    }
+                });
+            });
+
+            //]]>
+        </script>
+    </py:block>
+    <py:block name="style">
+        <style>
+            #plot .input-group-text {
+                min-width: 6rem;
+            }
+        </style>
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <!-- insert sidebar content -->
+        <div class="container-fluid">
+            <div class="">
+                <a href="${conf.root_url}/dataset/" class="btn btn-primary w-100 flexbox mb-1">
+                    <span><i class="fas fa-arrow-left mr-1" /></span>
+                    <span>list</span>
+                    <span><i class="fas fa-list-ul mr-1"/></span>
+                </a>
+            </div>
+            <div class="">
+                <div class="input-group ">
+                    <div class="input-group-prepend" >
+                        <button class="btn btn-secondary" id="gotods-btn"
+                        >
+                            <i class="fas fa-rocket" />
+                        </button>
+                    </div>
+                    <input class="form-control" type="text" id="goto" tabindex="1" placeholder="goto dataset-id"
+                           title="Go directly to a dataset by entering the id" data-toggle="tooltip"/>
+                </div>
+
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="col">
+                    <div class="nav flex-column nav-pills" role="tablist"  aria-orientation="vertical" id="tabs">
+                        <a id="description-tab" class="nav-link active border-top" data-toggle="pill" href="#description">dataset</a>
+                        <a id="edit-tab" class="nav-link border-top" data-toggle="pill" href="#edit"
+                           py:if="is_member('editor') and users.current.level>=ds_act.access"
+                        >edit</a>
+                        <a id="similar-tab" class="nav-link border-top" data-toggle="pill" href="#similar">similar</a>
+
+                        <a id="transforms-tab" class="nav-link flexbox border-top"
+                           data-toggle="pill" href="#transforms"
+                           py:if="ds_act and ds_act.is_transformed()"
+                        >
+                            transforms
+                        </a>
+                        <a id="plot-tab" class="nav-link flexbox border-top" data-toggle="pill"
+                           py:if="users.current.level >= ds_act.access"
+                           href="#plot"
+                        >plot
+                        </a>
+                        <a id="records-tab" class="nav-link flexbox border-top" data-toggle="pill"
+                           py:if="ds_act.is_timeseries() and is_member('editor') and users.current.level >= ds_act.access"
+                           href="#records">
+                            records
+                        </a>
+                        <a py:if="ds_act.is_timeseries() and is_member('editor') and users.current.level>=ds_act.access"
+                           href="${conf.root_url}/dataset/calibration?targetid=${ds_act.id}"
+                           class="nav-link flexbox border-top"
+                        >
+                            calibrate
+                        </a>
+                        <a id="export-tab"
+                           py:if="is_member('logger') and users.current.level>=ds_act.access"
+                           href="#export" class="nav-link flexbox border-top" data-toggle="pill">
+                            export
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+            <hr/>
+            <div class="" py:if="hasattr(ds_act, 'clone')">
+                <a href="${conf.root_url}/dataset/new" class="btn btn-warning w-100 flexbox">
+                    <span><i class="fas fa-clone mr-1" /></span>
+                    <span>clone dataset</span>
+                    <span><i class="fas fa-clipboard"/></span>
+                </a>
+            </div>
+
+        </div>
+
+    </py:block>
+    <py:block name="content">
+        <div class="container">
+            <div class="row mt-2 w-100">
+                <div class="container">
+                    <div class="container bg-danger text-white row w-100 border rounded"  py:if="error">
+                        <h1 class="display-3 col-lg-2">Error</h1>
+                        <div class="lead col-lg-10" py:content="markdown(error)"/>
+                    </div>
+
+                </div>
+            </div>
+            <div class="row mt-2 w-100">
+                <div class="container">
+                    <div id="title-area" class="container bg-dark text-white row w-100 border rounded shadow" py:if="ds_act" py:with="n=ds_act.size()">
+                        <div class="col-sm">
+                            <h2 class="display-3" py:content="f'ds{ds_act.id}'"/>
+                        </div>
+                        <div class="col-sm my-auto">
+                            <h3 >
+                                <span py:content="formatdate(ds_act.start)"/> -
+                                <span py:content="formatdate(ds_act.end)"/>
+                            </h3>
+                            <h3 py:content="ds_act.name"></h3>
+
+                        </div>
+                        <div class="lead col-sm my-auto">
+                            <a class="d-block text-white text-right" href="${f'{conf.root_url}/valuetype/{ds_act.valuetype.id}'}"
+                               py:content="f'{ds_act.valuetype.name} [{ds_act.valuetype.unit}]'"/>
+                            <a class="d-block text-white text-right" href="${f'{conf.root_url}/site/{ds_act.site.id}'}"
+                               py:content="ds_act.site"/>
+                            <a class="d-block text-white text-right" href="${f'{conf.root_url}/person/{ds_act.measured_by.username}'}"
+                               py:content="ds_act.measured_by"/>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="row mt-2 w-100">
+                <div class="container">
+                    <div class="container bg-warning row w-100 border rounded"  py:if="ds_act.access > users.current.level ">
+                        <h4 class="col-lg-4">Sorry, ${user()}</h4>
+                        <div class="lead col-lg-8">
+                            This dataset is not available for you. Ask the owner to get access.
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="tab-content row w-100 mt-2">
+                <div id="description" class="tab-pane active mx-auto" role="tabpanel" >
+                    <table class="table mx-auto">
+                        <tr>
+                            <td class="bold">Type:</td>
+                            <td>${ds_act.type}</td>
+                        </tr>
+                        <tr>
+                            <td class="bold">Name:</td>
+                            <td>${ds_act.name}</td>
+                        </tr>
+                        <tr py:if="ds_act.valuetype">
+                            <td class="bold">Data:</td>
+                            <td><a href="${conf.root_url}/valuetype/${ds_act.valuetype.id}" class="tooltip">
+                            ${ds_act.valuetype.name}
+                                <span>${ds_act.valuetype.comment}</span>
+                            </a>
+                                <span id="statistics" >
+                                <span id="mean">?</span> &plusmn; <span id="std">?</span> ${ds_act.valuetype.unit}, n=<span id="n">${n}</span>
+                            </span>
+                            </td>
+                        </tr>
+                        <tr py:if="ds_act.site">
+                            <td class="bold">Site:</td>
+                            <td>
+                                <a href="${conf.root_url}/site/${ds_act.site.id}" py:content="ds_act.site" />
+                            </td>
+                        </tr>
+                        <tr py:if="ds_act.measured_by">
+                            <td class="bold">Responsible:</td>
+                            <td>
+                                <a href="${conf.root_url}+ '/user/' + (ds_act.measured_by.username if ds_act.measured_by else '')">
+                                        ${ds_act.measured_by}
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="bold">Quality:</td>
+                            <td py:content="ds_act.quality" />
+                        </tr>
+                        <tr py:if="ds_act.source">
+                            <td class="bold">Data source:</td>
+                            <td>
+                                <a href="${conf.root_url}/instrument/${ds_act.source.id}" py:content="ds_act.source" />
+                                <a py:if="ds_act.source.manuallink" href="${conf.root_url}/${ds_act.source.manuallink}" class="ml-4"
+                                   title="Open manual for ${ds_act.source}" data-toggle="tooltip"
+                                >
+                                    <i class="fas fa-book-open"/>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr py:if="ds_act.project">
+                            <td class="bold">Project:</td>
+                            <td>
+                                <a href="${conf.root_url}/project/${ds_act.project}" py:content="activeproject.name"></a>
+                            </td>
+                        </tr>
+                        <tr py:if="ds_act.is_timeseries() and ds_act.quality and ds_act.quality.id>=3">
+                            <td class="bold">Calibration: </td>
+                            <td py:content="'v\' = %g * v + %g' % (ds_act.calibration_slope,ds_act.calibration_offset)" />
+                        </tr>
+                        <tr py:if="ds_act.is_transformed()" id="transformation">
+                            <td class="bold">Transformation:</td>
+                            <td class="big">\(f(x)=${ds_act.latex}\)</td>
+                        </tr>
+                        <tr>
+                            <td class="bold">Comment:</td>
+                            <td>
+                                <div py:content="markdown(ds_act.comment)" style="white-space: pre-line;"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div id="edit" class="tab-pane w-100 mr-4" role="tabpanel" py:if="is_member('editor') and users.current.level>=ds_act.access">
+                    <form action="${conf.root_url}/dataset/saveitem" method="post">
+                        <input type="text" name="id" value="${ds_act.id}" style="display: none;" />
+                        <div class="container w-100">
+                            <div id="edit-top-buttons" class="form-row mb-2">
+
+                                <button type="submit" id="save" name="save" class="btn btn-outline-success mr-2" >
+                                    <i class="fas fa-save mr-2"/> Save
+                                </button>
+                                <button py:if="ds_act.is_timeseries() and is_member('editor')"
+                                        onclick="$.post(odmf_ref('/dataset/create_transformation/'),{sourceid:${ds_act.id}},reload)"
+                                        class="btn btn-outline-primary mr-2" data-toggle="tooltip" title="Create a transformed dataset for this">
+                                    \(f(x)\) transform
+                                </button>
+                                <button py:if="is_member('admin')" class="btn btn-outline-danger mr-2" title="remove dataset permanently" data-toggle="tooltip"
+                                        onclick="javascript:removeds(${ds_act.id},'${str(ds_act)}',${n});">
+                                    <i class="fas fa-trash mr-2"/> delete dataset
+                                </button>
+
+                            </div>
+                            <div id="edit-name-user-vt" class="form-row">
+                                <div class="form-group col-lg">
+                                    <label for="name">Name:</label>
+                                    <input class="form-control" type="text" id="name" name="name"
+                                           value="${ds_act.name}"/>
+                                </div>
+                                <div class="form-group col-lg">
+
+                                    <label for="measured_by">Measured by:</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/user/${ds_act.measured_by.username}"
+                                               title="Edit ${ds_act.measured_by.username}" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-user"/>
+                                            </a>
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/user/new"
+                                               title="Add a new person" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-plus"/>
+                                            </a>
+                                        </div>
+                                        <select class="form-control border-secondary" id="measured_by"
+                                                name="measured_by">
+                                            <option value="" disabled="disabled">Please select...</option>
+                                            <option py:for="p in persons"
+                                                    py:attrs="markoption(p is ds_act.measured_by)"
+                                                    py:content="p"
+                                                    value="${p.username}"/>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group col-lg">
+                                    <label for="valuetype">Value type:</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/valuetype/${ds_act.valuetype.id}"
+                                               title="Edit ${ds_act.valuetype}" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-ruler"/>
+                                            </a>
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/valuetype/new"
+                                               title="Add a new valuetype" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-plus"/>
+                                            </a>
+                                        </div>
+                                        <select class="form-control border-secondary" id="valuetype" name="valuetype">
+                                            <option value="" disabled="disabled">Please select...</option>
+                                            <option py:for="vt in valuetypes"
+                                                    py:attrs="markoption(vt is ds_act.valuetype)"
+                                                    py:content="vt"
+                                                    value="${vt.id}" />
+                                        </select>
+
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div id="edit-project-site-level" class="form-row">
+                                <div class="form-group col-lg">
+                                    <label for="project">
+                                        Project
+                                    </label>
+                                    <select py:if="is_member('supervisor')" id="project" name="project" class="form-control">
+                                        <option value="0" >No Project</option>
+                                        <option value="${p.id}"
+                                                py:for="p in projects"
+                                                py:content="p.name"
+                                                py:attrs="markoption(p.id == ds_act.project)"></option>
+                                    </select>
+
+                                </div>
+
+                                <div class="form-group col-lg">
+                                    <label for="site">Site:</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/site/${ds_act.site.id}"
+                                               title="Edit ${ds_act.site}" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-map-marker-alt"/>
+                                            </a>
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/site/new"
+                                               title="Add a new site" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-plus"/>
+                                            </a>
+                                        </div>
+                                        <select id="site" name="site" class="form-control border-secondary">
+                                            <option value="" disabled="disabled">Please select...</option>
+                                            <option py:for="s in sites"
+                                                    py:attrs="markoption(s is ds_act.site)"
+                                                    py:content="s"
+                                                    value="${s.id}"/>
+                                        </select></div>
+                                </div>
+                                <div class="form-group col-lg">
+                                    <label for="level" data-toggle="tooltip"
+                                           title="Measured level offset to site. Only for sites with multiple instruments in serveral depth. Use negative values for instruments below ground."
+                                    >
+                                        Level in m:
+                                    </label>
+                                    <input type="text" class="form-control" id="level" name="level" value="${formatfloat(ds_act.level,'%g')}"/>
+                                </div>
+                            </div>
+                            <div id="edit-quality-source-access" class="form-row">
+                                <div class="form-group col-lg">
+                                    <label for="quality">Quality:</label>
+                                    <select id="quality" name="quality" class="form-control">
+                                        <option value="" disabled="disabled">Please select...</option>
+                                        <option py:for="q in quality"
+                                                py:attrs="markoption(q is ds_act.quality)"
+                                                py:content="q"
+                                                value="${q.id}"/>
+                                    </select>
+                                </div>
+                                <div class="form-group col-lg">
+                                    <label for="source">Data source (eg. instrument):</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/instrument/${ds_act.source.id}"
+                                               title="Edit ${ds_act.source}" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-thermometer-half"/>
+                                            </a>
+                                            <a class="btn btn-outline-secondary"
+                                               href="${conf.root_url}/instrument/new"
+                                               title="Add a new instrument" data-toggle="tooltip"
+                                            >
+                                                <i class="fas fa-plus"/>
+                                            </a>
+                                        </div>
+
+                                        <select id="source" name="source" class="form-control border-secondary">
+                                            <option value="" disabled="disabled">Please select...</option>
+                                            <option py:for="datasource in datasources"
+                                                    py:attrs="markoption(datasource is ds_act.source)"
+                                                    py:content="datasource"
+                                                    value="${datasource.id}"/>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group col-lg">
+                                    <label for="access" data-toggle="tooltip"
+                                           title="Select the user level needed to see the content of the dataset. Default is logged in user">
+                                        User level
+                                    </label>
+                                    <select id="access" name="access" class="form-control">
+                                        <option value="0" py:attrs="markoption(ds_act.access==0)">Public dataset
+                                        </option>
+                                        <option value="1" py:attrs="markoption(ds_act.access==1)">Only known users
+                                            (logger)
+                                        </option>
+                                        <option value="2" py:attrs="markoption(ds_act.access==2)">Only editing users
+                                            (editor)
+                                        </option>
+                                        <option value="3" py:attrs="markoption(ds_act.access==3)">Only employees
+                                            (supervisor)
+                                        </option>
+                                        <option value="4" py:attrs="markoption(ds_act.access==4)">Only administrators
+                                            (admin)
+                                        </option>
+                                    </select>
+                                </div>
+
+                            </div>
+                            <div id="edit-valid-dates" class="form-row" py:if="ds_act.is_timeseries()">
+                                <div class="form-group col-lg">
+                                    <label for="start">time range</label>
+                                    <div class="input-group">
+                                        <input type="date" class="form-control" id="start" name="start" value="${formatdate(ds_act.start, '%Y-%m-%d')}" />
+                                        <div class="input-group-append">
+                                            <span class="input-group-text px-2">-</span>
+                                        </div>
+                                        <input type="date" class="form-control" id="end" name="end" value="${formatdate(ds_act.end, '%Y-%m-%d')}" />
+                                    </div>
+
+                                </div>
+                                <div class="form-group col-lg">
+                                    <label for="timezone">
+                                        Timezone
+                                    </label>
+                                    <select id="timezone" name="timezone" class="form-control">
+                                        <option py:for="timezone in timezones"
+                                                py:attrs="markoption(timezone == ds_act.timezone)"
+                                                py:content="timezone"
+                                                value="${timezone}"></option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-lg">
+                                    <label for="calibration_slope">
+                                        <a href="${conf.root_url}/dataset/calibration?targetid=${ds_act.id}">Calibration</a>:
+                                    </label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">\(x\prime = \)</span>
+                                        </div>
+                                        <input class="form-control" type="text"
+                                               value="${formatfloat(ds_act.calibration_slope)}" id="calibration_slope"
+                                               name="calibration_slope" size="5" style="text-align: right;"/>
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">\(\cdot\ x\ +\ \)</span>
+                                        </div>
+
+                                        <input type="text" value="${formatfloat(ds_act.calibration_offset)}"
+                                               class="form-control" id="calibration_offset" name="calibration_offset"
+                                               size="5" style="text-align: right;"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="edit-transformation" class="form-row" py:if="ds_act.is_transformed()">
+
+                                <div class="form-group col-lg" data-toggle="tooltip" data-placement="bottom"
+                                     title="Please enter a valid Python/numpy expression for the transformation. See below for guidance">
+                                    <label for="expression">Python:</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                \(f(x)=\)
+                                            </span>
+                                        </div>
+                                        <input type="text" value="${ds_act.expression}" id="expression" name="expression" size="50" class="transhelpparent form-control"/>
+                                    </div>
+                                </div>
+                                <div class="form-group col-lg" data-toggle="tooltip" data-placement="bottom"
+                                     title="Please enter the latex description for the formula for printing">
+                                    <label for="latex">Latex:</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                \(f(x)=\)
+                                            </span>
+                                        </div>
+                                        <input type="text" value="${ds_act.latex}" id="latex" name="latex" size="50" class="form-control transhelpparent"/>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row" py:if="ds_act.is_transformed()">
+                                <div id="trans_help" class="card toggle">
+                                    <div class="card-body">
+                                        <h4 class="card-title">Some help for the Python and latex expressions</h4>
+                                        Do not use any other variables in the expression than x (the values of the timeseries)
+                                        <table class="table">
+                                            <tr>
+                                                <th>Equation type</th>
+                                                <th>Example</th>
+                                                <th>Python code</th>
+                                                <th>Latex code</th>
+                                            </tr>
+                                            <tr>
+                                                <td>Polynom</td>
+                                                <td>\(-0.5\cdot10^{-5}x^3+2.35x^2-124.5x+15.3\)</td>
+                                                <td>-0.5e-5*x**3 + 2.35*x**2 - 124.5*x + 15.3</td>
+                                                <td>-0.5\dot10^{-5}x^3+2.35x^2-124.5x+15.3</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Exponential</td>
+                                                <td>\(3.2 e^{0.5x}\)</td>
+                                                <td>3.2 * exp(0.5*x)</td>
+                                                <td>3.2 e^{0.5x}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>nat. log.</td>
+                                                <td>\(\ln{x}\)</td>
+                                                <td>log(x)</td>
+                                                <td>\ln{x})</td>
+                                            </tr>
+                                            <tr>
+                                                <td>dec. log.</td>
+                                                <td>\(\log_{10}{x}\)</td>
+                                                <td>log10(x)</td>
+                                                <td>\log_{10}{x}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>cumulative sum</td>
+                                                <td>\[\int_{t=0}^{t(x)}x dx\]</td>
+                                                <td>cumsum(x)</td>
+                                                <td>\int_{t=0}^{t(x)}x'dx</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="form-row">
+                                <label for="comment">Comments:</label>
+                                <textarea id="comment" name="comment"
+                                          class="form-control"
+                                          rows="10"
+                                          py:content="ds_act.comment" />
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+                <div id="transforms" class="tab-pane" role="tabpanel" py:if="ds_act.is_transformed()">
+                    <h3>This data set transforms the records of the following data sets:</h3>
+                    <ul style="list-style:none;">
+                        <li py:for="source in ds_act.sources" class="mb-1">
+                            <button class="btn btn-danger btn-small mr-1"
+                                    onclick="$.post(odmf_ref('/dataset/transform_removesource/'),{transid:${ds_act.id},sourceid:${source.id}},reload)"
+                                    title="Remove source from transformation" data-toggle="tooltip"
+                            >
+                                &times;
+                            </button>
+                            <a class="ml-2" href="${source.id}" >
+                                <span py:content="source" />
+                                <span class="ml-2 badge badge-primary">${source.size()} records</span>
+                            </a>
+                        </li>
+                        <li class="flexbox">
+                            <button class="btn btn-success btn-small mr-1" id="trans_add_source"
+                                    onclick="$.post(odmf_ref('/dataset/transform_addsource/'),{transid:${ds_act.id},sourceid:$('#trans_sources').val()},reload)"
+                                    title="Adds the source for transformation" data-toggle="tooltip" disabled="disabled"
+                            >
+                                +
+                            </button>
+                            <select id="trans_sources" class="form-control ml-1">
+                                <option value="" style="font-style: italic;" selected="selected">Please select</option>
+                                <option py:for="potsrc in ds_act.suitablesources()" value="${potsrc.id}">${potsrc}</option>
+                            </select>
+                        </li>
+                    </ul>
+                </div>
+
+                <div id="plot" class="tab-pane w-100 mr-4" role="tabpanel" py:if="users.current.level>=ds_act.access">
+                    <div class="container mx-auto">
+                        <div class="row">
+                            <div class="col-xl input-group mb-1">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">from:</span>
+                                </div>
+                                <input type="date" class="form-control" id="plotstart" size="10"
+                                       value="${formatdate(ds_act.start, '%Y-%m-%d')}"
+                                />
+                                <input type="text" class="form-control timepicker" id="plotstart_t" size="5"
+                                       value="${formatdate(ds_act.start, '%H:%M')}"
+                                />
+                            </div>
+                            <div class="col-xl input-group mb-1">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">until:</span>
+                                </div>
+                                <input type="date" class="form-control" id="plotend" size="10"
+                                       value="${formatdate(ds_act.end + timedelta(days=1) if ds_act.end else ds_act.end, '%Y-%m-%d')}"
+                                />
+                                <input type="text" class="form-control timepicker" id="plotend_t" size="5"
+                                       value="${formatdate(ds_act.end, '%H:%M')}"
+                                />
+                            </div>
+
+                        </div>
+                        <div class="row">
+                            <div class="col-xl input-group mb-1">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">marker:</span>
+                                </div>
+
+                                <select id="markerpicker" class="form-control">
+                                    <option value="">none</option>
+                                    <option value="x">x</option>
+                                    <option value="o">o</option>
+                                    <option value=".">.</option>
+                                    <option value="|">x</option>
+                                    <option value="+">+</option>
+                                    <option value="*">*</option>
+                                </select>
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">line:</span>
+                                </div>
+                                <select id="linepicker" class="form-control">
+                                    <option value="-">-</option>
+                                    <option value="">none</option>
+                                    <option value=":">:</option>
+                                    <option value="--">--</option>
+                                    <option value="-.">-.</option>
+                                </select>
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">color:</span>
+                                </div>
+                                <select id="colorpicker" class="form-control">
+                                    <option value="k" style="background-color: #000;">k</option>
+                                    <option value="b" style="background-color: #00F;">b</option>
+                                    <option value="g" style="background-color: #0F0;">g</option>
+                                    <option value="r" style="background-color: #F00;">r</option>
+                                    <option value="y" style="background-color: #FF0;">y</option>
+                                    <option value="c" style="background-color: #0FF;">c</option>
+                                    <option value="m" style="background-color: #F0F;">m</option>
+
+                                </select>
+                            </div>
+
+                        </div>
+                        <div class="row">
+                            <button class="btn btn-primary col-sm-3"
+                                    onclick="plotds(${ds_act.id});">
+                                <i class="fas fa-chart-line mr-1"/>plot
+                            </button>
+                            <div class="col-sm-3">
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" id="interactive"/>
+                                    <label class="custom-control-label" for="interactive">Make interactive plot</label>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <div id="plot-div">
+                        <img id="plotimg" alt="" src=""/>
+                    </div>
+
+                </div>
+                <div id="similar" class="tab-pane" role="tabpanel" >
+                    <div py:for="dsname in datasets" >
+                        <h3>${dsname}</h3>
+                        <div id="${dsname.replace(' ','_')}">
+                            <ul>
+                                <li py:for="ds in datasets[dsname]">
+                                    <a href="${ds.id}">${ds}</a>
+                                </li>
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div id="records" class="tab-pane" role="tabpanel" py:if="is_member('editor') and ds_act and ds_act.is_timeseries() and users.current.level>=ds_act.access">
+                    <div class="row w-100">
+                        <div class="col-sm">
+                            <button class="btn btn-primary w-100" onclick="loadrecords();">find records</button>
+                        </div>
+                        <div class="col-sm input-group" title="limit the number of records" data-toggle="tooltip">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">
+                                    limit:
+                                </span>
+                            </div>
+                            <input type="number" class="form-control" value="100" id="recordlimit"/>
+                        </div>
+                        <a href="#filter" class="col-sm dropdown-toggle btn btn-secondary dropdown-toggle " data-toggle="collapse" role="button">
+                            <i class="fas fa-filter mr-2"/>Filter
+                        </a>
+
+                    </div>
+                    <div class="alert alert primary collapse w-100" id="filter">
+                        <div class="input-group mb-1">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">from:</span>
+                            </div>
+                            <input type="date" class="form-control" id="recordmindate" size="10"
+                                   value="${formatdate(ds_act.start, '%Y-%m-%d')}"
+                            />
+                            <input type="text" class="form-control timepicker" id="recordmintime" size="5"
+                                   value="${formatdate(ds_act.start, '%H:%M')}"
+                            />
+                        </div>
+                        <div class="input-group mb-1">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">until:</span>
+                            </div>
+                            <input type="date" class="form-control" id="recordmaxdate" size="10"
+                                   value="${formatdate(ds_act.end, '%Y-%m-%d')}"
+                            />
+                            <input type="text" class="form-control timepicker" id="recordmintime" size="5"
+                                   value="${formatdate(ds_act.end, '%H:%M')}"
+                            />
+                        </div>
+                        <div class="input-group mb-1">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" title="filter records that are in the given range" data-toggle="tooltip">range</span>
+                            </div>
+                            <input type="text" class="form-control" id="recordminvalue" placeholder="lower boundary" />
+                            <input type="text" class="form-control" id="recordmaxvalue" placeholder="upper boundary" />
+                            <div class="input-group-append">
+                            <span class="input-group-text"
+                                  py:content="ds_act.valuetype.unit if ds_act and ds_act.valuetype else '?'"
+                            />
+                            </div>
+
+                        </div>
+                        <div class="input-group mb-1">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">use jump size</span>
+                                <span class="input-group-text">
+                                <input type="checkbox" id="splitUseThreshold"/>
+                            </span>
+                            </div>
+                            <input id="splitthreshold" class="form-control"
+                                   type="text" value="0.0" />
+                            <div class="input-group-append">
+                            <span class="input-group-text"
+                                  py:content="ds_act.valuetype.unit if ds_act and ds_act.valuetype else '?'"
+                            />
+                            </div>
+                        </div>
+                    </div>
+                    <div id="recordlist"/>
+                </div>
+                <div id="export" class="tab-pane" role="tabpanel" py:if="is_member('logger') and users.current.level>=ds_act.access">
+                    <ul>
+                        <li py:if="ds_act">
+                            <button onclick="window.location=odmf_ref('/dataset/records.csv?dataset=${ds_act.id}');">Export as CSV</button>
+                            Get Values as csv-file. Open with Excel if English language settings are chosen in Windows.
+                        </li>
+                        <li>
+                            <a href="${conf.root_url}/datafiles/daten-vorlage.xls" style="float:left;">
+                                <img src="media/ui-icons/excel-icon.gif" />
+                            </a>
+                            Download the excel template for data import
+                            <a href="${conf.root_url}/datafiles/dataset-xxxx.xls">here</a>.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </py:block>
+
+</py:extends>

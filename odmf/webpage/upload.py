@@ -12,10 +12,10 @@ from . import lib as web
 import os
 from traceback import format_exc as traceback
 from io import StringIO, BytesIO
-from cherrypy import log, request, HTTPError
+from cherrypy import log, request, HTTPError, InternalRedirect
 import chardet
 from cherrypy.lib.static import serve_file
-
+from urllib.parse import urlencode
 from .auth import group, expose_for
 
 from .. import dataimport as di
@@ -68,12 +68,14 @@ class DBImportPage(object):
         absfile = conf.abspath(filename.strip('/'))
         path = Path(absfile)
 
-        error = web.markdown(di.checkimport(path.absolute))
+        error = di.checkimport(path.absolute)
+        if error:
+            raise web.redirect(path.parent().href, error=error)
 
         config = None
+
         if import_with_class == ManualMeasurementsImport:
             config = ManualMeasurementsImport.from_file(path.absolute)
-            print("path = %s;\nabsfile = %s" % (path, absfile))
 
         from cherrypy import log
         log("Import with class %s" % import_with_class.__name__)
@@ -89,11 +91,12 @@ class DBImportPage(object):
 
         if 'commit' in kwargs and cancommit:
             di.savetoimports(absfile, web.user(), ["_various_as_its_manual"])
-            raise web.HTTPRedirect('/download?dir=' + web.escape(path.up()))
+            raise web.redirect(path.parent().href, error=error, msg=msg)
         else:
-            return web.render('logimport.html', filename=path, logs=logs,
-                              cancommit=cancommit, error=error)\
-                .render()
+            return web.render(
+                'logimport.html', filename=path, logs=logs,
+                cancommit=cancommit, error=error
+            ).render()
 
     @staticmethod
     def mmimport(filename, kwargs):
@@ -123,69 +126,79 @@ class DBImportPage(object):
         errorstream = StringIO()
 
         # TODO: Major refactoring of this code logic, when to load gaps, etc.
-        path = Path(conf.abspath(filename.strip('/')))
-        print("path = %s" % path)
-        error = web.markdown(di.checkimport(path.absolute))
-        startdate = kwargs.get('startdate')
-        enddate = kwargs.get('enddate')
-        siteid = web.conv(int, kwargs.get('site'))
-        instrumentid = web.conv(int, kwargs.get('instrument'))
+        path = Path(filename.strip('/'))
+        error = di.checkimport(path.absolute)
+        if error:
+            raise web.redirect(path.parent().href, error=error)
+        errorstream.write(error)
         config = di.getconfig(path.absolute)
-        stats = gaps = datasets = sites = possible_datasets = None
 
         if not config:
-            errorstream.write("No config available. Please provide a config for"
-                              " computing a decent result.")
+            raise web.redirect(
+                conf.root_url + f'/download/{web.escape(path.up())}',
+                error='No config available. Please provide a config for computing a decent result.'
+            )
         else:
+
             valuetype = [e.valuetype for e in config.columns]
             config.href = Path(config.filename).href
-            if startdate:
-                startdate = web.parsedate(startdate) or None
-            if enddate:
-                enddate = web.parsedate(enddate) or None
 
+            adapter = di.get_adapter(
+                path.absolute, web.user(),
+                siteid=None, instrumentid=None
+            )
 
-            sites = []
-            possible_datasets = []
+            adapter.errorstream = errorstream
+            stats = adapter.get_statistic()
+            startdate = min(v.start for v in stats.values())
+            enddate = max(v.end for v in stats.values())
 
-            if startdate and enddate:
-                gaps = [(startdate, enddate)]
-
-            if siteid and (instrumentid or config):
-                absfile = conf.abspath(filename.strip('/'))
-                adapter = di.get_adapter(absfile, web.user(), siteid,
-                                         instrumentid, startdate, enddate)
-                adapter.errorstream = errorstream
-                if 'loadstat' in kwargs:
-                    stats = adapter.get_statistic()
-                    startdate = min(v.start for v in stats.values())
-                    enddate = max(v.end for v in stats.values())
-                if 'importdb' in kwargs and startdate and enddate:
-                    gaps = None
-                    datasets = di.importfile(absfile, web.user(), siteid,
-                                             instrumentid, startdate, enddate)
-                else:
-                    gaps = di.finddateGaps(siteid, instrumentid, valuetype,
-                                           startdate, enddate)
-                    error = adapter.errorstream.getvalue()
-
-                adapter.errorstream.close()
 
             t1 = time.time()
 
             log("Imported in %.2f s" % (t1 - t0))
 
-        return web.render('dbimport.html', di=di, error=error,
-                          filename=filename, instrumentid=instrumentid,
-                          dirlink=path.up(), siteid=siteid, gaps=gaps,
-                          stats=stats, datasets=datasets, config=config,
-                          sites=sites, possible_datasets=possible_datasets)\
-            .render()
+        return web.render(
+            'dbimport.html',
+            config=config,
+            stats=stats,
+            error=errorstream.getvalue(),
+            filename=filename,
+            dirlink=path.up(),
+            startdate=startdate, enddate=enddate
+        ).render()
+
+    @expose_for(group.editor)
+    @web.method.post
+    def do_import(self, filename, startdate, enddate, siteid):
+        path = Path(filename.strip('/'))
+        errorstream = StringIO()
+        error = web.markdown(di.checkimport(path.absolute))
+        startdate = web.parsedate(startdate)
+        enddate = web.parsedate(enddate)
+        siteid = web.conv(int, siteid)
+        msg = ''
+        config = di.getconfig(path.absolute)
+
+        if not config:
+            errorstream.write("No config available. Please provide a config for"
+                              " computing a decent result.")
+        else:
+            datasets = di.importfile(path.absolute, web.user(), siteid,
+                                     config.instrument, startdate, enddate)
+            msg = f'### Import of {path.name} successful\n\nNew datasets:\n\n'
+            for ds in datasets:
+                msg += f'- ds{ds:04d}\n'
+
+        error += errorstream.getvalue()
+
+        raise web.redirect(path.parent().href, error=error, msg=msg)
+
 
     @expose_for(group.editor)
     def index(self, filename=None, **kwargs):
         if not filename:
-            raise web.HTTPRedirect('/download/')
+            raise web.redirect('/download/')
 
         # the lab import only fits on CFG_MANNUAL_MEASUREMENTS_PATTERN
         if ManualMeasurementsImport.extension_fits_to(filename):
@@ -213,7 +226,7 @@ class HTTPFileNotFoundError(HTTPError):
 
         text = web.render(
             'download.html',
-            error=error,
+            error=error, message='',
             files=[],
             directories=[],
             curdir=self.path,
@@ -223,8 +236,13 @@ class HTTPFileNotFoundError(HTTPError):
         return text.encode('utf-8')
 
 
+def goto(dir, error, msg):
+    return web.redirect(f'{conf.root_url}/download/{dir}'.strip('.'), error=error, msg=msg)
+
+
 @web.show_in_nav_for(0, 'file')
 class DownloadPage(object):
+    """The file management system. Used to upload, import and find files"""
     to_db = DBImportPage()
 
     def _cp_dispatch(self, vpath: list):
@@ -232,108 +250,72 @@ class DownloadPage(object):
         vpath.clear()
         return self
 
+
     @expose_for(group.guest)
-    def index(self, uri='.', **kwargs):
+    @web.method.get
+    def index(self, uri='.', error='', msg='', _=None):
         path = Path((datapath / uri).absolute())
-        files = []
-        directories = []
-        if path.isdir() and path.islegal():
-            for fn in path.listdir():
-                if not fn.startswith('.'):
-                    child = path.child(fn)
-                    if child.isdir():
-                        directories.append(child)
-                    elif child.isfile():
-                        files.append(child)
-            files.sort()
-            directories.sort()
+        directories, files = path.listdir()
 
-        elif path.isfile():
+        if path.isfile():
             # TODO: Render/edit .md, .conf, .txt files. .csv, .xls also?
+
             return serve_file(path.absolute)
-        else:
+        elif not (path.islegal() and path.exists()):
             raise HTTPFileNotFoundError(path)
-        return web.render('download.html', files=files, error='',
-                          directories=directories, curdir=path,
-                          max_size=conf.upload_max_size
-                          ).render()
-
-    def get(self, uri='.'):
-        """
-        Gets the file or directory at the given uri
-        """
-        ...
-
-    def put(self, uri='.', is_dir=False):
-        """
-        Uploads a file to the given uri or creates a directory
-
-        Parameters
-        ----------
-        uri: The URI the resource should be created
-        is_dir: True, if the resource should be a directory
-
-        """
-        ...
-
-    def delete(self, uri='.'):
-        """
-        Removes a resource
-        """
-        ...
-
+        else:
+            return web.render(
+                'download.html', error=error, message=msg,
+                files=sorted(files),
+                directories=sorted(directories),
+                curdir=path,
+                max_size=conf.upload_max_size
+            ).render()
 
     @expose_for(group.editor)
     @web.method.post_or_put
-    def upload(self, dir, datafile, **kwargs):
-        error = ''
-        fn = ''
-        if datafile:
-            path = datapath / dir
+    def upload(self, dir, datafiles, **kwargs):
+        """
+        Uploads a list of files. Make sure the upload element is like
+
+        <input type="file" multiple="multiple"/>
+
+        Parameters
+        ----------
+        dir
+            The target directory
+        datafiles
+            The datafiles to upload
+        kwargs
+
+        """
+        error = []
+        msg = []
+        # Loop over incoming datafiles. Single files need some special treatment
+        for datafile in (list(datafiles) or [datafiles]):
+            path = Path((datapath / dir).absolute())
             if not path:
                 path.make()
-            fn = path / datafile.filename
+            fn = path + datafile.filename
             if not fn.islegal():
-                error = "'%s' is not legal"
-            if fn and 'overwrite' not in kwargs:
-                error = "'%s' exists already, if you want to overwrite the old version, check allow overwrite" % fn.name
+                error.append(f'{fn.name} is not legal')
+            elif fn and 'overwrite' not in kwargs:
+                error.append(f"'{fn.name}' exists already, if you want to overwrite the old version, check allow overwrite")
+            else:
+                # Buffer file for first check encoding and secondly upload file
+                with BytesIO(datafile.file.read()) as filebuffer:
 
-            # Buffer file for first check encoding and secondly upload file
-            with BytesIO(datafile.file.read()) as filebuffer:
-                # determine file encodings
-                result = chardet.detect(filebuffer.read())
+                    try:
+                        write_to_file(fn.absolute, filebuffer)
+                        fn.setownergroup()
+                        msg.append(f'- {fn.href} uploaded')
+                    except Exception as e:
+                        error.append(f'- {fn.href} upload failed: {e}')
 
-                # Reset file buffer
-                filebuffer.seek(0)
-
-                # if chardet can determine file encoding, check it and warn respectively
-                # otherwise state not detecting
-                # TODO: chardet cannot determine sufficent amount of encodings, such as utf-16-le
-                if result['encoding']:
-                    file_encoding = result['encoding'].lower()
-                    # TODO: outsource valid encodings
-                    if not (file_encoding in ['utf-8', 'ascii'] or 'utf-8' in file_encoding):
-                        log.error("WARNING: encoding of file {} is {}".format(datafile.filename, file_encoding))
-                else:
-                    msg = "WARNING: encoding of file {} is not detectable".format(datafile.filename)
-                    log.error(msg)
-
-                try:
-                    write_to_file(fn.absolute, filebuffer)
-                    fn.setownergroup()
-                except:
-                    error += '\n' + traceback()
-                    print(error)
-
-        if "uploadimport" in kwargs and not error:
-            url = '/download/to_db?filename=' + web.escape(fn.href)
-        else:
-            url = '/download?dir=' + web.escape(dir)
-            if error:
-                url += '&error=' + web.escape(error)
-        raise web.HTTPRedirect(url)
+        raise goto(dir, '\n'.join(error), '\n'.join(msg))
 
     @expose_for(group.logger)
+    @web.method.post
     def saveindex(self, dir, s):
         """Saves the string s to index.html
         """
@@ -343,65 +325,78 @@ class DownloadPage(object):
         return web.markdown(s)
 
     @expose_for()
+    @web.method.get
     def getindex(self, dir):
         index = datapath / dir / 'index.html'
         io = StringIO()
         if index.exists():
-            io.write(open(index.absolute).read())
+            text = index.read_text()
+            io.write(text)
         imphist = datapath / dir / '.import.hist'
         if imphist.exists():
             io.write('\n')
-            for l in open(imphist.absolute):
-                ls = l.split(',', 3)
-                io.write(' * file:%s/%s imported by user:%s at %s into %s\n' %
-                         tuple([imphist.up()] + ls))
+            for l in imphist.open():
+                fn, user, date, ds = l.split(',', 3)
+                io.write(f' * file:{dir}/{fn} imported by user:{user} at {date} into {ds}\n')
         return web.markdown(io.getvalue())
 
     @expose_for(group.editor)
     @web.method.post_or_put
     def newfolder(self, dir, newfolder):
-        "To be replaced by put, is_dir=True"
         error = ''
+        msg = ''
         if newfolder:
             if ' ' in newfolder:
                 error = "The folder name may not include a space!"
             else:
                 try:
-                    path = datapath / dir / newfolder
-                    if not path:
+                    path = Path((datapath / dir / newfolder).absolute())
+                    if not path.exists() and path.islegal():
                         path.make()
                         path.setownergroup()
+                        msg = f"{path.href} created"
                     else:
-                        error = "Folder %s exists already!" % newfolder
+                        error = f"Folder {newfolder} exists already"
                 except:
                     error = traceback()
         else:
             error = 'Forgotten to give your new folder a name?'
-        url = '/download?dir=' + web.escape(dir)
-        if error:
-            url += '&error=' + web.escape(error)
-        return self.index(dir=dir, error=error)
+
+        if not error:
+            raise goto(dir + '/' + newfolder, error, msg)
+        else:
+            raise goto(dir, error, msg)
 
     @expose_for(group.admin)
     @web.method.post_or_delete
     def removefile(self, dir, filename):
-        "To be replaced by delete"
-        path = datapath / dir / filename
-        error = ''
+        path = Path((datapath / dir / filename).absolute())
+        error = msg = ''
 
-        if path.exists():
+        if path.isfile():
             try:
                 os.remove(path.absolute)
+                msg = f'{filename} deleted'
             except:
                 error = "Could not delete the file. A good reason would be a mismatch of user rights on the server " \
                         "file system"
+        elif path.isdir():
+            if path.isempty():
+                try:
+                    dirs, files = path.listdir()
+                    for f in files:
+                        if f.ishidden():
+                            os.remove(f.absolute)
+                    os.rmdir(path.absolute)
+                    msg = f'{filename} removed'
+                except (FileNotFoundError, OSError):
+                    error = f'Could not delete {path}. Please ask the administrators about this problem.'
+            else:
+                error = "Cannot remove directory. Not empty."
         else:
             error = "File not found. Is it already deleted?"
 
-        if dir == '.' and error == '':
-            return self.index()
-        else:
-            # TODO: Remove this hack
-            raise web.HTTPRedirect("/download/?dir=%s&error=%s" % (dir, error))
-
+        qs = urlencode({'error': error, 'msg': msg})
+        url = f'{conf.root_url}/download/{dir}'.strip('.')
+        return url + '?' + qs
 

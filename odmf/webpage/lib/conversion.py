@@ -4,7 +4,6 @@ Tools to and from convert strings to numerous types
 
 import json
 from datetime import datetime
-from kajiki.template import literal
 
 
 def jsonhandler(obj):
@@ -30,14 +29,14 @@ def as_json(obj):
     A JSON string
     """
 
-    return literal(json.dumps(obj, sort_keys=True, indent=4, default=jsonhandler))
+    return json.dumps(obj, sort_keys=True, indent=4, default=jsonhandler)
 
 
-def formatdate(t=None):
+def formatdate(t=None, fmt='%d.%m.%Y'):
     if not t:
-        return datetime.today().strftime('%d.%m.%Y')
+        return datetime.today().strftime(fmt)
     try:
-        return t.strftime('%d.%m.%Y')
+        return t.strftime(fmt)
     except (TypeError, ValueError):
         return None
 
@@ -67,8 +66,8 @@ def formatfloat(v, style='%g'):
 
 def parsedate(s, raiseerror=True):
     res = None
-    formats = ('%d.%m.%Y %H:%M:%S', '%d.%m.%Y %H:%M', '%d.%m.%Y',
-               '%Y/%m/%dT%H:%M:%S', '%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S')
+    formats = ('%d.%m.%Y %H:%M:%S', '%d.%m.%Y %H:%M', '%d.%m.%Y', '%Y-%m-%d',
+               '%Y/%m/%dT%H:%M:%S', '%Y-%m-%dT%H:%M', '%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S')
     for fmt in formats:
         try:
             res = datetime.strptime(s, fmt)

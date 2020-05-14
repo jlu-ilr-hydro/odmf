@@ -420,7 +420,9 @@ class Plot(object):
 
     def getpath(self):
         username = web.user() or 'nologin'
-        return conf.abspath('preferences/plots/' + username + '.' + self.name)
+        plot_dir = os.path.join(conf.preferences, 'plots')
+        os.makedirs(plot_dir, exist_ok=True)
+        return os.path.join(plot_dir, username + '.' + self.name)
 
     def addtimeplot(self):
         """
@@ -513,7 +515,7 @@ class Plot(object):
     def save(self, fn):
         d = asdict(self)
         try:
-            self.absfilename(fn).write_bytes(web.as_json(d))
+            self.absfilename(fn).write_text(web.as_json(d))
         except:
             return traceback()
 
@@ -542,9 +544,9 @@ class Plot(object):
     @classmethod
     def absfilename(cls, fn: str=None)->Path:
         if fn:
-            return conf.abspath('preferences/plots/') / f'{web.user()}.{fn}.plot'
+            return Path(conf.preferences).absolute() / 'plots' / f'{web.user()}.{fn}.plot'
         else:
-            return conf.abspath('preferences/plots/')
+            return Path(conf.preferences).absolute() / 'plots'
 
 
 plotgroup = group.logger
@@ -597,7 +599,7 @@ class PlotPage(object):
     def image_png(self, **kwargs):
         plot = Plot.frompref()
         if not plot:
-            raise web.HTTPRedirect('/plot?error=No plot available')
+            raise web.redirect(conf.root_url + '/plot', error='No plot available')
         return plot.draw(format='png')
 
     @expose_for(plotgroup)
@@ -605,7 +607,7 @@ class PlotPage(object):
     def image_pdf(self, **kwargs):
         plot = Plot.frompref()
         if not plot:
-            raise web.HTTPRedirect('/plot?error=No plot available')
+            raise web.redirect(conf.root_url + '/plot', error='No plot available')
         return plot.draw(format='pdf')
 
     @expose_for(plotgroup)
