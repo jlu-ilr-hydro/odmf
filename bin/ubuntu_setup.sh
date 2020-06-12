@@ -69,7 +69,7 @@ then
   sudo python$PYTHON_VER -m pip install wheel
 fi
 
-PYTHON_VER=3.8
+
 if [ ! -f ~/.bash_aliases ]; then
   echo "
   export PYTHON_VERSION=$PYTHON_VER

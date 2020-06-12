@@ -41,14 +41,13 @@ def write_to_file(dest, src):
     :param src: file contents input buffer
     :return:
     """
+    with open(os.open(dest, os.O_CREAT | os.O_WRONLY, 0o770), 'w') as fout:
+        while True:
+            data = src.read(8192)
+            if not data:
+                break
+            fout.write(data)
 
-    fout = open(dest, 'wb')
-    while True:
-        data = src.read(8192)
-        if not data:
-            break
-        fout.write(data)
-    fout.close()
 
 
 @web.expose
@@ -307,7 +306,6 @@ class DownloadPage(object):
 
                     try:
                         write_to_file(fn.absolute, filebuffer)
-                        fn.setownergroup()
                         msg.append(f'- {fn.href} uploaded')
                     except Exception as e:
                         error.append(f'- {fn.href} upload failed: {e}')
@@ -353,7 +351,6 @@ class DownloadPage(object):
                     path = Path((datapath / dir / newfolder).absolute())
                     if not path.exists() and path.islegal():
                         path.make()
-                        path.setownergroup()
                         msg = f"{path.href} created"
                     else:
                         error = f"Folder {newfolder} exists already"

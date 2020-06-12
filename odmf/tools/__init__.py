@@ -4,17 +4,6 @@ from ..config import conf
 __all__ = ['mail', 'Path']
 
 
-
-try:
-    import grp
-    try:
-        osgroup = gid = grp.getgrnam("users").gr_gid
-    except:
-        osgroup = None
-except ImportError:
-    osgroup = None
-
-
 class Path(object):
     def __init__(self, path: str):
         self.datapath = op.realpath(conf.datafiles)
@@ -62,13 +51,8 @@ class Path(object):
     def __add__(self, fn):
         return Path(op.join(self.absolute, fn))
 
-    def setownergroup(self, gid=None):
-        gid = gid or osgroup
-        if gid and hasattr(os, 'chown'):
-            os.chown(self.absolute, -1, gid)
-
     def make(self):
-        os.makedirs(self.absolute)
+        os.makedirs(self.absolute, mode=0o770)
 
     def breadcrumbs(self):
         res = [self]

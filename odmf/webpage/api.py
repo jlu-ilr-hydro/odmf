@@ -1,5 +1,6 @@
 import cherrypy
 from io import BytesIO
+import os
 import chardet
 import datetime
 import inspect
@@ -37,13 +38,13 @@ def write_to_file(dest, src):
     :return:
     """
 
-    fout = open(dest, 'wb')
-    while True:
-        data = src.read(8192)
-        if not data:
-            break
-        fout.write(data)
-    fout.close()
+    with open(os.open(dest, os.O_CREAT | os.O_WRONLY, 0o770), 'w') as fout:
+        while True:
+            data = src.read(8192)
+            if not data:
+                break
+            fout.write(data)
+
 
 class BaseAPI:
     ...
@@ -352,7 +353,6 @@ class API(BaseAPI):
                     errors.append(f"WARNING: encoding of file {datafile.filename} is not detectable")
                 try:
                     write_to_file(fn.absolute, filebuffer)
-                    fn.setownergroup()
                     return ('\n'.join(errors)).encode('utf-8')
                 except:
                     return cherrypy.HTTPError(400, traceback())
