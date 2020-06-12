@@ -51,7 +51,7 @@
                     }).then(function(text) {
                         $('#help-edit textarea').val(text);
                     });
-                    $('#help-edit-save').props('disabled', ${bool2js(is_member('editor'))});
+                    $('#help-edit-save').prop('disabled', ${bool2js(is_member('editor'))});
                 // Save file on click
                 });
                 $('#help-edit-save').click(function() {
@@ -255,7 +255,7 @@
                                     <i class="fas fa-info-circle fa-lg" />
                                     ${curdir.basename.title()}
                                 </span>
-                                <a href="#help-edit" data-toggle="collapse" class="btn btn-secondary">
+                                <a href="#help-edit" data-toggle="collapse" class="btn btn-secondary help">
                                     <i class="fas fa-edit" title="Click to edit..." data-toggle="tooltip"/>
                                 </a>
                             </h3>
