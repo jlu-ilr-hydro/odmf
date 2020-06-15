@@ -12,10 +12,10 @@ def jsonhandler(obj):
     elif hasattr(obj, 'isoformat'):
         return obj.isoformat()
     else:
-        return obj
+        return obj.__dict__
 
 
-def as_json(obj):
+def as_json(*args, **kwargs):
     """
     Builds a JSON string representation of the given object using __jdict__ methods
     of the objects or of owned objects
@@ -28,8 +28,14 @@ def as_json(obj):
     -------
     A JSON string
     """
-
-    return json.dumps(obj, sort_keys=True, indent=4, default=jsonhandler)
+    if len(args) == 1:
+        return json.dumps(args[0], sort_keys=True, indent=4, default=jsonhandler)
+    elif len(args) == 0:
+        return json.dumps(kwargs, sort_keys=True, indent=4, default=jsonhandler)
+    elif kwargs:
+        raise ValueError('You can\'t create a json representation from mixing positional and key word arguments')
+    else:
+        return json.dumps(list(args), sort_keys=True, indent=4, default=jsonhandler)
 
 
 def formatdate(t=None, fmt='%d.%m.%Y'):
