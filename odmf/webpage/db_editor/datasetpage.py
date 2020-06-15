@@ -362,40 +362,6 @@ class DatasetPage:
             return st.getvalue()
 
     @expose_for(group.logger)
-    @web.mime.csv
-    def multirecords_csv(self, valuetype=None, user=None, site=None,
-                         date=None, instrument=None,
-                         type=None, level=None, onlyaccess=False,
-                         witherrors=False):
-        with db.session_scope() as session:
-            datasets = self.subset(session, valuetype, user,
-                                   site, date, instrument,
-                                   type, level, onlyaccess).all()
-            datagroup = db.DatasetGroup([ds.id for ds in datasets])
-            ds = datasets[0]
-            st = io.BytesIO()
-            st.write(codecs.BOM_UTF8)
-            st.write(('"Dataset","ID","time","{vt} calibrated","{vt} raw",' +
-                      '"site","comment","is error?"\n')
-                     .format(vt=ds.valuetype)
-                     .encode('utf-8'))
-            for r in datagroup.iterrecords(session, witherrors):
-                d = dict(
-                    c=(str(r.comment).replace('\r', '').replace(
-                        '\n', ' / ')) if r.comment else '',
-                    vc=r.value if witherrors and not r.is_error else '',
-                    vr=r.rawvalue,
-                    time=web.formatdate(r.time) + ' ' + web.formattime(r.time),
-                    id=r.id,
-                    ds=ds.id,
-                    s=ds.site.id,
-                    e=int(r.is_error))
-                st.write(('{ds:i},{id:i},{time},{vc:s0,{vr:s},{s:i},' +
-                          '"{c}",{e}\n').format(**d).encode('utf-8'))
-        return st.getvalue()
-
-    @expose_for(group.logger)
-
     def plot(self, id, start='', end='', marker='', line='-', color='k', interactive=False):
         """
         Plots the dataset. Might be deleted in future. Rather use PlotPage
