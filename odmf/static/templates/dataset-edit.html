@@ -2,128 +2,7 @@
 
 <py:extends href="bootstrap_navigation.html" xmlns:py="">
     <py:block name="scripts">
-        <script>
-            //<![CDATA[
-            dsid = ${ds_act.id};
-            function loadstatistics() {
-                $.getJSON(odmf_ref('/dataset/statistics/'),{id:dsid},function(data){
-                    $('#mean').html(data.mean.toPrecision(4));
-                    $('#std').html(data.std.toPrecision(4));
-                    $('#splitthreshold').val(data.std.toPrecision(4));
-                    $('#n').html(data.n);
-                });
-            }
-
-            function loadrecords() {
-                var threshold = null;
-                var limit = $('#recordlimit').val();
-                if ($('#splitUseThreshold').prop('checked')) {
-                    threshold = $('#splitthreshold').val();
-                }
-
-                var params={dataset:dsid,
-                    mindate:$('#recordmindate').val() + ' ' + $('#recordmintime').val(),
-                    maxdate:$('#recordmaxdate').val() + ' ' + $('#recordmaxtime').val(),
-                    minvalue:$('#recordminvalue').val(),
-                    maxvalue:$('#recordmaxvalue').val(),
-                    threshold:threshold,
-                    limit:limit
-                };
-                $('#recordlist').load(odmf_ref('/dataset/records'),params);
-            }
-
-            function timerange(step)
-            {
-                if (step == null) {step=60;}
-                var foo = [];
-                for (var i = 0; i <= 60*24; i+=step) {
-                    var m = i % 60;
-                    var h = (i-m)/60;
-                    if (h<10) { h='0' + h;} else {h='' + h;}
-                    if (m<10) { m='0' + m;} else {m='' + m;}
-                    foo.push(h+':'+m);
-                }
-                return foo;
-            }
-
-            function reload(error) {
-                if (error) {
-                    if (error.substring(0,5)=='goto:') {
-                        window.location.href = odmf_ref(error.substring(5));
-                    } else {
-                        $('.error').html(error);
-                    }
-                } else {
-                    window.location.reload(true);
-                }
-            }
-
-            function plotds(id) {
-
-                $.get(odmf_ref('/dataset/plot'), {
-                    id: id,
-                    start: $('#plotstart').val() + 'T' + $('#plotstart_t').val(),
-                    end: $('#plotend').val() + 'T' + $('#plotend_t').val(),
-                    marker: $('#markerpicker').val(),
-                    line: $('#linepicker').val(),
-                    color: $('#colorpicker').val(),
-                    interactive: $('#interactive').is(':checked')
-                }, function(html) {
-                    $('#plot-div').html(html);
-                });
-            }
-            function removeds(dsid,dsname,reccount) {
-                var msg = 'Are you absolutly sure to delete ' + dsname + '?' +
-                        'It has ' + reccount + ' records!'
-                var really=confirm(msg)
-                if (really) {
-                    $.post(odmf_ref('/dataset/remove/') + dsid, function(data) {
-                        if (data) {
-                            $('.error').html(data);
-                        } else {
-                            window.back();
-                        }
-                    });
-                }
-            }
-
-            $(function() {
-                $(".timepicker").attr('placeholder', '00:00');
-                $('#trans_help').hide();
-                $('.transhelpparent').focusin(function(){
-                    $('#trans_help').slideDown('fast');
-                });
-                $('.transhelpparent').focusout(function(){
-                    $('#trans_help').hide();
-                });
-                $('#trans_sources').change(function() {
-                    $('#trans_add_source').prop('disabled', !($(this).val() > 0));
-                });
-                loadstatistics();
-                $('#goto').change(function(event) {
-                    window.location.href=odmf_ref('/dataset/') + $('#goto').val();
-                });
-                $('#gotods-btn').click(function() {
-                    window.location.href=odmf_ref('/dataset/') + $('#goto').val();;
-                });
-                // Javascript to enable link to tab
-                var url = document.location.toString();
-                if (url.match('#')) {
-                    $('#tabs a[href="#'+url.split('#')[1]+ '"]').tab('show') ;
-                }
-
-                // With HTML5 history API, we can easily prevent scrolling!
-                $('#tabs a').on('shown', function (e) {
-                    if (history.pushState) {
-                        history.pushState(null, null, e.target.hash);
-                    } else {
-                        window.location.hash = e.target.hash; //Polyfill for old browsers
-                    }
-                });
-            });
-
-            //]]>
-        </script>
+        <script type="text/javascript" src="${conf.root_url}/media/js/dataset-edit.js"></script>
     </py:block>
     <py:block name="style">
         <style>
@@ -182,9 +61,10 @@
                            href="#records">
                             records
                         </a>
-                        <a py:if="ds_act.is_timeseries() and is_member('editor') and users.current.level>=ds_act.access"
-                           href="${conf.root_url}/dataset/calibration?targetid=${ds_act.id}"
-                           class="nav-link flexbox border-top"
+                        <a id="calibrate-tab" class="nav-link flexbox border-top" data-toggle="pill"
+                                py:if="ds_act.is_timeseries() and is_member('editor') and users.current.level>=ds_act.access"
+                           href="#calibrate"
+
                         >
                             calibrate
                         </a>
@@ -211,7 +91,7 @@
     </py:block>
     <py:block name="content">
         <div class="container">
-            <div class="row mt-2 w-100">
+            <div id="error-row" class="row mt-2 w-100">
                 <div class="container">
                     <div class="container bg-danger text-white row w-100 border rounded"  py:if="error">
                         <h1 class="display-3 col-lg-2">Error</h1>
@@ -220,11 +100,11 @@
 
                 </div>
             </div>
-            <div class="row mt-2 w-100">
+            <div id="title-row" class="row mt-2 w-100">
                 <div class="container">
                     <div id="title-area" class="container bg-dark text-white row w-100 border rounded shadow" py:if="ds_act" py:with="n=ds_act.size()">
                         <div class="col-sm">
-                            <h2 class="display-3" py:content="f'ds{ds_act.id}'"/>
+                            <h2 class="display-3">ds<span id="dsid" py:content="ds_act.id"/></h2>
                         </div>
                         <div class="col-sm my-auto">
                             <h3 >
@@ -246,7 +126,7 @@
                 </div>
 
             </div>
-            <div class="row mt-2 w-100">
+            <div id="no-access-row" class="row mt-2 w-100">
                 <div class="container">
                     <div class="container bg-warning row w-100 border rounded"  py:if="ds_act.access > users.current.level ">
                         <h4 class="col-lg-4">Sorry, ${user()}</h4>
@@ -257,7 +137,7 @@
 
                 </div>
             </div>
-            <div class="tab-content row w-100 mt-2">
+            <div id="tab-row" class="tab-content row w-100 mt-2">
                 <div id="description" class="tab-pane active mx-auto" role="tabpanel" >
                     <table class="table mx-auto">
                         <tr>
@@ -787,10 +667,11 @@
                         </div>
                     </div>
                 </div>
-                <div id="records" class="tab-pane" role="tabpanel" py:if="is_member('editor') and ds_act and ds_act.is_timeseries() and users.current.level>=ds_act.access">
+                <div id="records" class="tab-pane" role="tabpanel"
+                     py:if="is_member('editor') and ds_act and ds_act.is_timeseries() and users.current.level>=ds_act.access">
                     <div class="row w-100">
                         <div class="col-sm">
-                            <button class="btn btn-primary w-100" onclick="loadrecords();">find records</button>
+                            <button class="btn btn-primary w-100" id="find-records">find records</button>
                         </div>
                         <div class="col-sm input-group" title="limit the number of records" data-toggle="tooltip">
                             <div class="input-group-prepend">
@@ -858,6 +739,43 @@
                         </div>
                     </div>
                     <div id="recordlist"/>
+                </div>
+                <div id="calibrate" class="tab-pane" role="tabpanel"
+                     py:if="ds_act.is_timeseries() and is_member('editor') and users.current.level>=ds_act.access">
+                    <div>
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                Calibrate from:
+                            </div>
+                            <select id="select-calibration-source" class="form-control">
+                                <option value="" style="font-style: italic;">&lt;Please select...&gt;</option>
+                                <option py:for="ds in potential_calibration_sources" value="${ds.id}"
+                                        py:content="ds"/>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="calibrate-source-properties" class="mt-2">
+                        <div class="row mt-2">
+                            <div class="col-sm">
+                                Records in timeseries:
+                            </div>
+                            <div class="col-sm" id="calibrate-source-count">0</div>
+                        </div>
+                        <div class="row mt-2">
+
+                            <div class="col-sm">Limit time error to:</div>
+                            <div class="col-sm">
+                                <input type="text" id="calibrate-limit-time-error" value="3600" class="form-control "/>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <button id="calibrate-button-start" class="btn btn-primary col">
+                                <i class="fas fa-redo mr-2"/>calculate
+                            </button>
+                        </div>
+
+                    </div>
+
                 </div>
                 <div id="export" class="tab-pane" role="tabpanel" py:if="is_member('logger') and users.current.level>=ds_act.access">
                     <ul>

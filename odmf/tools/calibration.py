@@ -114,3 +114,6 @@ class Calibration:
             self.offset = 0.0
             self.meanoffset = 0.0
             self.r2 = 0.0
+
+    def __jdict__(self):
+        return self.__dict__

@@ -16,6 +16,7 @@ from ...config import conf
 from pytz import common_timezones
 import cherrypy
 
+
 @web.show_in_nav_for(1, icon='clipboard')
 class DatasetPage:
     """
@@ -113,8 +114,12 @@ class DatasetPage:
                 quality=session.query(db.Quality).order_by(db.Quality.id),
                 datasources=session.query(db.Datasource),
                 projects=session.query(db.Project),
+                potential_calibration_sources=session.query(db.Dataset).filter(
+                    db.Dataset._site == active._site,
+                    db.Dataset.start <= active.end,
+                    db.Dataset.end >= active.start
+                )
             ).render()
-
 
     @expose_for(group.editor)
     def saveitem(self, **kwargs):
@@ -207,7 +212,6 @@ class DatasetPage:
                 # Return empty dataset statistics
                 return web.json_out(dict(mean=0, std=0, n=0))
 
-
     @expose_for(group.admin)
     def remove(self, dsid):
         """
@@ -285,7 +289,6 @@ class DatasetPage:
             # Convert object set to json
             return web.json_out(sorted(items))
 
-
     @expose_for()
     @web.mime.json
     def json(self, valuetype=None, user=None, site=None,
@@ -330,7 +333,7 @@ class DatasetPage:
                 if dsnew.comment:
                     dsnew.comment += '\n'
                 ds.comment += 'This dataset is created by a split done by ' + web.user() + ' at ' + web.formatdate() + \
-                    '. Orignal dataset is ' + str(ds)
+                              '. Orignal dataset is ' + str(ds)
                 return "New dataset: %s" % dsnew
         except:
             return traceback()
@@ -351,7 +354,7 @@ class DatasetPage:
                 d = dict(c=str(r.comment).replace('\r', '').replace('\n', ' / '),
                          v=r.calibrated if raw else r.value,
                          time=web.formatdate(r.time) + ' ' +
-                         web.formattime(r.time),
+                              web.formattime(r.time),
                          id=r.id,
                          ds=ds.id,
                          s=ds.site.id)
@@ -407,7 +410,7 @@ class DatasetPage:
     @web.mime.json
     def records_json(self, dataset,
                      mindate=None, maxdate=None, minvalue=None, maxvalue=None,
-                     threshold=None, limit=None, witherror=False)->dict:
+                     threshold=None, limit=None, witherror=False) -> dict:
         """
         Returns the records of the dataset as JSON
         """
@@ -583,6 +586,89 @@ class DatasetPage:
                 tts.updatetime()
         except Exception as e:
             return str(e)
+
+
+    @expose_for(group.editor)
+    @web.mime.json
+    def calibration_source_info(self, targetid, sourceid=None, limit=None, max_source_count=100):
+        """
+        Returns the calibration properties for a calibration proposal
+
+        Parameters
+        ----------
+        targetid
+            Dataset id, which should get calibrated
+        sourceid
+            Dataset id containing the "real" measurements
+        limit
+            Tolarated time gap between records of the target and records of the source
+        max_source_count: int
+            Do not perform calibration if there are more records in the source (to prevent long calculation times)
+        """
+        with db.session_scope() as session:
+            error = ''
+            target = session.query(db.Dataset).get(int(targetid))
+            if sourceid:
+                sourceid = int(sourceid)
+                source_ds: db.Dataset = session.query(db.Dataset).get(sourceid)
+                unit = source_ds.valuetype.unit
+            else:
+                unit = '?'
+            limit = web.conv(int, limit, 3600)
+            day = timedelta(days=1)
+            count = 0
+
+            try:
+                if sourceid:
+                    source = CalibrationSource(
+                        [sourceid], target.start - day, target.end + day)
+
+                    sourcerecords = source.records(session)
+                    count = sourcerecords.count()
+
+                    if count < max_source_count:
+                        result = Calibration(target, source, limit)
+                        if not result:
+                            error = 'No matching records for the given time limit is found'
+                    else:
+                        result = Calibration()
+            except:
+                error = traceback()
+
+            return web.as_json(
+                targetid=targetid,
+                sourceid=sourceid,
+                error=error,
+                count=count,
+                unit=unit,
+                limit=limit,
+                result=result
+            ).encode('utf-8')
+
+    @expose_for(group.editor)
+    @web.method.post
+    def apply_calibration(self, targetid, sourceid, slope, offset):
+        """
+        Applies calibration to dataset.
+        """
+        error = ''
+        with db.session_scope() as session:
+            try:
+                target = session.query(db.Dataset).get(int(targetid))
+                source = session.query(db.Dataset).get(int(sourceid))
+                target.calibration_slope = float(slope)
+                target.calibration_offset = float(offset)
+                if target.comment:
+                    target.comment += '\n'
+                target.comment += ("Calibrated against {} at {} by {}"
+                                   .format(source, web.formatdate(), users.current))
+            except:
+                error = traceback()
+        if error:
+            return error
+        else:
+            raise cherrypy.HTTPRedirect(f'{conf.root_url}/dataset/{targetid}#edit')
+
 
 
 class CalibratePage(object):
