@@ -5,12 +5,19 @@
         <script type="text/javascript" src="${conf.root_url}/media/js/dataset-edit.js"></script>
     </py:block>
     <py:block name="style">
+        <!-- insert additional styles -->
         <style>
             #plot .input-group-text {
                 min-width: 6rem;
             }
+            div.value {
+                text-align: right;
+                font-style: italic;
+            }
+            div.std:before {
+                content: "&plusmn;";
+            }
         </style>
-        <!-- insert additional styles -->
     </py:block>
     <py:block name="sidebar">
         <!-- insert sidebar content -->
@@ -62,7 +69,7 @@
                             records
                         </a>
                         <a id="calibrate-tab" class="nav-link flexbox border-top" data-toggle="pill"
-                                py:if="ds_act.is_timeseries() and is_member('editor') and users.current.level>=ds_act.access"
+                           py:if="ds_act.is_timeseries() and is_member('editor') and users.current.level>=ds_act.access"
                            href="#calibrate"
 
                         >
@@ -95,7 +102,7 @@
                 <div class="container">
                     <div class="container bg-danger text-white row w-100 border rounded"  py:if="error">
                         <h1 class="display-3 col-lg-2">Error</h1>
-                        <div class="lead col-lg-10" py:content="markdown(error)"/>
+                        <div id="error" class="lead col-lg-10" py:content="markdown(error)"/>
                     </div>
 
                 </div>
@@ -594,7 +601,7 @@
 
                         </div>
                         <div class="row">
-                            <div class="col-xl input-group mb-1">
+                            <div class="col-lg input-group mb-1">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text">marker:</span>
                                 </div>
@@ -742,24 +749,36 @@
                 </div>
                 <div id="calibrate" class="tab-pane" role="tabpanel"
                      py:if="ds_act.is_timeseries() and is_member('editor') and users.current.level>=ds_act.access">
-                    <div>
-                        <div class="input-group">
-                            <div class="input-group-text">
-                                Calibrate from:
+                    <div class="row">
+                        <div class="col-sm-11">
+                            <div class="input-group">
+                                <div class="input-group-text">
+                                    Calibrate from:
+                                </div>
+                                <select id="calibrate-select-source" class="form-control">
+                                    <option value="" style="font-style: italic;">&lt;Please select...&gt;</option>
+                                    <option py:for="ds in potential_calibration_sources" value="${ds.id}"
+                                            py:content="ds"/>
+                                </select>
                             </div>
-                            <select id="select-calibration-source" class="form-control">
-                                <option value="" style="font-style: italic;">&lt;Please select...&gt;</option>
-                                <option py:for="ds in potential_calibration_sources" value="${ds.id}"
-                                        py:content="ds"/>
-                            </select>
                         </div>
+                        <div class="col-sm-1 text-right">
+                            <button id="calibrate-button-start" class="btn btn-secondary ">
+                                <i class="fas fa-redo mr-2"/>
+                            </button>
+                        </div>
+
                     </div>
-                    <div id="calibrate-source-properties" class="mt-2">
+                    <div id="calibrate-source-properties" class="mt-2 d-none">
                         <div class="row mt-2">
                             <div class="col-sm">
                                 Records in timeseries:
                             </div>
-                            <div class="col-sm" id="calibrate-source-count">0</div>
+                            <div class="col-sm ">
+                                <div class="border border-rounded mx-1 p-1" id="calibrate-source-count">0</div>
+                            </div>
+
+
                         </div>
                         <div class="row mt-2">
 
@@ -768,13 +787,93 @@
                                 <input type="text" id="calibrate-limit-time-error" value="3600" class="form-control "/>
                             </div>
                         </div>
-                        <div class="row mt-2">
-                            <button id="calibrate-button-start" class="btn btn-primary col">
-                                <i class="fas fa-redo mr-2"/>calculate
-                            </button>
-                        </div>
-
                     </div>
+                    <div id="calibration-result" class="container mt-4 d-none">
+                        <h3>Calibration results</h3>
+                        <div class="">
+                            <div class="border">
+                                <div  class="row">
+                                    <h4 class="col ml-2">Statistics</h4>
+                                </div>
+                                <div  class="row">
+                                    <div class="col-6 text-right font-weight-bold" data-toggle="tooltip" title="Number or records in the source">n<sub>source</sub></div>
+                                    <div id="calibration-result-count" class="col value">0</div>
+                                    <div class="col"></div>
+                                    <div class="col"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6 text-right font-weight-bold">mean\((x_{target})\)</div>
+                                    <div id="calibration-result-target_mean" class="col value">0.0</div>
+                                    <div id="calibration-result-target_std" class="col std">0.0</div>
+                                    <div class="col unit">?</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6 text-right font-weight-bold">mean(x<sub>source</sub>)</div>
+                                    <div id="calibration-result-source_mean" class="col value">0.0</div>
+                                    <div id="calibration-result-source_std" class="col std">0.0</div>
+                                    <div class="col unit">?</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6 text-right font-weight-bold">R&sup2; / RMSE</div>
+                                    <div id="calibration-result-r2" class="col value" >0.0</div>
+                                    <div id="calibration-result-rmse" class="col value">0.0</div>
+                                    <div class="col unit">?</div>
+                                </div>
+                            </div>
+                            <div class="border">
+                                <div class="row mt-2">
+                                    <h4 class="col ml-2">Linear regression \(y=a \cdot x + b\)</h4>
+                                    <div class="col text-right mr-2">
+                                        <button id="calibrate-apply-regression" class="btn btn-primary do-calibration"><i class="fas fa-check-circle mr-2"/>apply</button>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6 text-right font-weight-bold">slope \(a\)</div>
+                                    <div id="calibration-result-slope" class="col value" >0.0</div>
+                                    <div class="col unit">?</div>
+                                    <div class="col"></div>
+                                </div>
+                                <div  class="row">
+                                    <div class="col-6 text-right font-weight-bold">offset \(b\)</div>
+                                    <div id="calibration-result-offset" class="col value" >0.0</div>
+                                    <div class="col unit">?</div>
+                                    <div class="col"></div>
+                                </div>
+                                <div  class="row">
+                                    <div class="col-6 text-right font-weight-bold">RMSE</div>
+                                    <div id="calibration-result-rmse_lr" class="col value" >0.0</div>
+                                    <div class="col unit">?</div>
+                                    <div class="col"></div>
+                                </div>
+
+                            </div>
+                            <div class="border">
+                                <div class="row mt-2">
+                                    <h4 class="col ml-2">Bias correction \(y = x + c\)</h4>
+                                    <div class="col text-right mr-2">
+                                        <button id="calibrate-apply-offset" class="btn btn-primary do-calibration"><i class="fas fa-check-circle mr-2"/>apply</button>
+                                    </div>
+                                </div>
+                                <div  class="row">
+                                    <div class="col-6 text-right font-weight-bold">offset \(c\)</div>
+                                    <div id="calibration-result-meanoffset" class="col value" >0.0</div>
+                                    <div class="col unit">?</div>
+                                    <div class="col"></div>
+
+                                </div>
+                                <div  class="row">
+                                    <div class="col-6 text-right font-weight-bold">RMSE</div>
+                                    <div id="calibration-result-rmse_off" class="col value" >0.0</div>
+                                    <div class="col unit">?</div>
+                                    <div class="col"></div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+
 
                 </div>
                 <div id="export" class="tab-pane" role="tabpanel" py:if="is_member('logger') and users.current.level>=ds_act.access">

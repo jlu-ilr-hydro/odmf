@@ -32,7 +32,7 @@ class DatasetPage:
         return web.render('datasetlist.html', error=error).render()
 
     @expose_for(group.guest)
-    def default(self, id='new', site_id=None, vt_id=None, user=None, error=''):
+    def default(self, id='new', site_id=None, vt_id=None, user=None, error='', _=None):
         """
         Returns the dataset view and manipulation page (datasettab.html). 
         Expects an valid dataset id, 'new' or 'last'. With new, a new dataset
@@ -589,6 +589,7 @@ class DatasetPage:
 
 
     @expose_for(group.editor)
+    @web.method.get
     @web.mime.json
     def calibration_source_info(self, targetid, sourceid=None, limit=None, max_source_count=100):
         """
@@ -617,6 +618,7 @@ class DatasetPage:
             limit = web.conv(int, limit, 3600)
             day = timedelta(days=1)
             count = 0
+            result = None
 
             try:
                 if sourceid:
@@ -626,12 +628,10 @@ class DatasetPage:
                     sourcerecords = source.records(session)
                     count = sourcerecords.count()
 
-                    if count < max_source_count:
+                    if count and count < web.conv(int, max_source_count, 0):
                         result = Calibration(target, source, limit)
                         if not result:
                             error = 'No matching records for the given time limit is found'
-                    else:
-                        result = Calibration()
             except:
                 error = traceback()
 
@@ -650,98 +650,22 @@ class DatasetPage:
     def apply_calibration(self, targetid, sourceid, slope, offset):
         """
         Applies calibration to dataset.
+
         """
         error = ''
-        with db.session_scope() as session:
-            try:
-                target = session.query(db.Dataset).get(int(targetid))
+        try:
+            with db.session_scope() as session:
+                target: db.Dataset = session.query(db.Dataset).get(int(targetid))
                 source = session.query(db.Dataset).get(int(sourceid))
                 target.calibration_slope = float(slope)
                 target.calibration_offset = float(offset)
+                target.valuetype = source.valuetype
                 if target.comment:
                     target.comment += '\n'
                 target.comment += ("Calibrated against {} at {} by {}"
                                    .format(source, web.formatdate(), users.current))
-            except:
-                error = traceback()
-        if error:
-            return error
-        else:
-            raise cherrypy.HTTPRedirect(f'{conf.root_url}/dataset/{targetid}#edit')
-
-
-
-class CalibratePage(object):
-    """
-    Handles the calibrate tab. Loaded per ajax
-    """
-    exposed = True
-
-    @expose_for(group.editor)
-    def index(self, targetid, sourceid=None, limit=None, calibrate=False):
-        """
-        Renders the calibration options.
-        """
-        with db.session_scope() as session:
-            error = ''
-            target = session.query(db.Dataset).get(int(targetid))
-            sources = session.query(db.Dataset).filter_by(site=target.site).filter(
-                db.Dataset.start <= target.end, db.Dataset.end >= target.start)
-            if sourceid:
-                sourceid = int(sourceid)
-            limit = web.conv(int, limit, 3600)
-            day = timedelta(days=1)
-            source = sourcerecords = None
-            sourcecount = 0
-            result = Calibration()
-            try:
-                if sourceid:
-                    source = CalibrationSource(
-                        [sourceid], target.start - day, target.end + day)
-                    sourcerecords = source.records(session)
-                    sourcecount = sourcerecords.count()
-
-                    if calibrate and calibrate != 'false':
-                        result = Calibration(target, source, limit)
-                        if not result:
-                            error = 'No matching records for the given time limit is found'
-                    source = session.query(db.Dataset).get(sourceid)
-            except:
-                error = traceback()
-            out = web.render('calibrate.html',
-                             error=error,
-                             target=target,
-                             sources=sources,
-                             source=source,
-                             limit=limit,
-                             sourcecount=sourcecount,
-                             result=result,
-                             ).render()
-
-        return out
-
-    @expose_for(group.editor)
-    def apply(self, targetid, sourceid, slope, offset):
-        """
-        Applies calibration to dataset.
-        """
-        session = db.Session()
-        error = ''
-        try:
-            target = session.query(db.Dataset).get(int(targetid))
-            source = session.query(db.Dataset).get(int(sourceid))
-            target.calibration_slope = float(slope)
-            target.calibration_offset = float(offset)
-            if target.comment:
-                target.comment += '\n'
-            target.comment += ("Calibrated against {} at {} by {}"
-                               .format(source, web.formatdate(), users.current))
-            session.commit()
         except:
             error = traceback()
-        finally:
-            session.close()
-            return error
+        return error
 
 
-DatasetPage.calibration = CalibratePage()

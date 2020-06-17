@@ -61,6 +61,7 @@ class Calibration:
         self.source_mean = 0.0
         self.source_std = 0.0
         self.target_std = 0.0
+        self.count = 0
         self.refresh()
 
     def __iter__(self):
@@ -72,20 +73,23 @@ class Calibration:
                        )
 
     def refresh(self):
-        if len(self.matches) > 1:
-            self.target_mean = self.source_mean = 0.0
-            n = float(len(self))
+        self.target_mean = self.source_mean = 0.0
+        n = float(len(self))
+        self.count = len(self)
+        if self.matches:
             for m in self.matches:
                 self.target_mean += m.target / n
                 self.source_mean += m.source / n
             cov = var_s = var_t = se = 0.0
+            self.meanoffset = self.source_mean - self.target_mean
+
+        if len(self.matches) > 1:
             for m in self.matches:
                 cov += (m.target - self.target_mean) * \
                     (m.source - self.source_mean)
                 var_s += (m.source - self.source_mean)**2
                 var_t += (m.target - self.target_mean)**2
                 se += (m.target - m.source)**2
-            self.meanoffset = self.source_mean - self.target_mean
             self.slope = cov / var_t
             self.offset = self.source_mean - self.slope * self.target_mean
             self.target_std = sqrt(var_t)

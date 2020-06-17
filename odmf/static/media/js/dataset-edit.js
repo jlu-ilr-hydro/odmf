@@ -84,7 +84,61 @@ function removeds(dsid,dsname,reccount) {
  * Calibration
  */
 
-function load_calibration() {
+function do_calibration(targetid, sourceid, limit, ask_to_calibrate=false) {
+    let record_count = +($('#calibrate-source-count').html());
+    let max_records = 100;
+    if (record_count > 100 && ask_to_calibrate &&
+        confirm(`Your calibration source has ${record_count} records. Do you really want to calibrate?`)) {
+        max_records = record_count;
+    }
+    $.get(
+        odmf_ref('/dataset/calibration_source_info'),
+        { targetid: targetid, sourceid: sourceid, limit: limit, max_source_count: max_records },
+        function(data) {
+            $('#calibrate-source-properties').removeClass('d-none');
+            $('#calibrate-source-count').html(data.count);
+            $('#error').html(data.error);
+            if (data.count > 100) {
+                $('#calibrate-source-count:parent').addClass('alert-warning');
+            } else {
+                $('#calibrate-source-count:parent').removeClass('alert-warning');
+            }
+            if (data.result && data.result.count) {
+                // Show result div
+                $('#calibration-result').removeClass('d-none');
+                // Set units
+                $('#calibration-result .unit').html(data.unit);
+                $.each(data.result, function(key, value) {
+                    if (! isNaN(value)) {
+                        $('#calibration-result-' + key).html(+value.toPrecision(4));
+                    }
+
+                });
+            } else {
+                $('#calibration-result').addClass('d-none');
+            }
+        }
+    );
+
+}
+
+function apply_calibration(targetid, sourceid, slope, offset) {
+        $.post(
+        // TODO: Get slope and offset from DOM
+        odmf_ref('/dataset/apply_calibration'),
+        {
+            targetid: targetid,
+            sourceid: sourceid,
+            slope: slope,
+            offset: offset
+        }, function(error) {
+            if (error) {
+                $('#error').html(error);
+            } else {
+                let timestamp = new Date().toISOString();
+                window.location.href=odmf_ref(`/dataset/${targetid}?_=${timestamp}#edit`);
+            }
+        });
 
 }
 
@@ -115,9 +169,8 @@ $(function() {
        loadrecords(dsid);
     });
     // Javascript to enable link to tab
-    let url = document.location.toString();
-    if (url.match('#')) {
-        $('#tabs a[href="#'+url.split('#')[1]+ '"]').tab('show') ;
+    if (window.location.hash) {
+        $(`#tabs a[href="${window.location.hash}"`).tab('show') ;
     }
 
     // With HTML5 history API, we can easily prevent scrolling!
@@ -132,19 +185,37 @@ $(function() {
     /*********************
      * Calibration
      */
-    $('#select-calibration-source').change(function() {
+    $('#calibrate-select-source').change(function() {
         let sourceid = $(this).val();
-        // $.get('calibration/sourceproperties', {target: dsid, source: sourceid}, function(data) {
-        //      $('#calibrate-source-properties').show();
-        //      $('#calibrate-source-properties div span').html(data.count);
-        // });
+        let limit = $('#calibrate-limit-time-error').val();
+        $('#calibration-result .value').removeClass('bg-warning');
         if (sourceid) {
-            $('#calibrate-source-count').html('1');
-            $('#calibrate-source-properties').removeClass('d-none');
+            do_calibration(dsid, sourceid, limit);
         } else {
             $('#calibrate-source-properties').addClass('d-none');
+            $('#calibration-result').addClass('d-none');
         }
 
+    });
+    $('#calibrate-button-start').click(function() {
+        let sourceid = $('#calibrate-select-source').val();
+        let limit = $('#calibrate-limit-time-error').val();
+        if (sourceid) {
+            do_calibration(dsid, sourceid, limit, true);
+        }
+    });
+    $('.do-calibration').click(function() {
+        let sourceid= +$('#calibrate-select-source').val();
+        let offset = 0;
+        let slope = 0;
+        if ($(this).prop('id').match("offset")) {
+            offset = + $('#calibration-result-meanoffset').html();
+            slope = 1.0;
+        } else {
+            offset = + $('#calibration-result-offset').html();
+            slope = + $('#calibration-result-slope').html();
+        }
+        apply_calibration(dsid, sourceid, slope, offset);
     });
 
 });
