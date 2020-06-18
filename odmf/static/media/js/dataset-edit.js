@@ -15,8 +15,8 @@ function loadrecords(dsid) {
     }
 
     var params={dataset:dsid,
-        mindate:$('#recordmindate').val() + ' ' + $('#recordmintime').val(),
-        maxdate:$('#recordmaxdate').val() + ' ' + $('#recordmaxtime').val(),
+        mindate:$('#recordmindate').val() + 'T' + $('#recordmintime').val(),
+        maxdate:$('#recordmaxdate').val() + 'T' + $('#recordmaxtime').val(),
         minvalue:$('#recordminvalue').val(),
         maxvalue:$('#recordmaxvalue').val(),
         threshold:threshold,
