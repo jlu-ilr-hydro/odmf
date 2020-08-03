@@ -456,6 +456,8 @@ class Plot(object):
                 plt.close('all')
                 io.seek(0)
                 return io.getvalue()
+        else:
+            return fig
 
     def killcache(self):
         for sp in self.subplots:
@@ -593,6 +595,14 @@ class PlotPage(object):
             plot.topref()
         except:
             return traceback()
+
+    @expose_for(plotgroup)
+    def image_d3(self, **kwargs):
+        plot: Plot = Plot.frompref(createplot=True)
+        from mpld3 import fig_to_html
+        fig = plot.draw(format=None)
+        html = fig_to_html(fig)
+        return html.encode('utf-8')
 
     @expose_for(plotgroup)
     @web.mime.png

@@ -2,6 +2,7 @@
  * @author philkraf
  */
 
+
 function toggle(id) {
 	$('#'+id).slideToggle('fast');
 }
@@ -16,13 +17,12 @@ function killplot() {
 	$('#plot').slideUp().html('Loading image...');
 
 }
-function renderplot(targetdiv, creationtime) {
+function renderplot(creationtime) {
 	$('#plot').html('Loading image...');
-	var div = $('#'+targetdiv);
-	$('#properties').slideUp();
-	var href = odmf_ref('/plot/image.png?create=' + creationtime);
-	div.html('<img src="' + href + '" alt="Loading image..." />');
-	div.slideDown();
+	// TODO: Transfer Plot data from client => render = save
+	$.get(odmf_ref('/plot/image.d3'), {creationtime: creationtime}, (result) => {
+		$('#plot').html(result);
+	});
 }
 function gettime(startOrEnd) {
 	var res = $('#'+ startOrEnd + 'date').val();
@@ -33,12 +33,16 @@ function gettime(startOrEnd) {
 	}
 	return res;
 }
+
+
+
 function changeprops() {
+	// TODO: Make obsolete, send data when rendering. Save plot states in client
 	$.post('changeplot', {
 		start:gettime('start'),
 		end:gettime('end'),
-		width:$('#plotwidth').val(),
-		height:$('#plotheight').val(),
+		width:$('#plot').width(),
+		height:$('#plot').height(),
 		rows:$('#plotrows').val(),
 		columns:$('#plotcolumns').val(),
 		aggregate:$('#plotaggregate').val(),
@@ -71,30 +75,7 @@ function exportall_csv() {
 	//alert(href);
 	window.location = href;
 }
-/*
-		function flotplot() {
-			$('#properties').slideUp();
-			$.getJSON(
-				odmf_ref('/plot/export.json'),
-				{subplot:0,line:0})
-				.done(
-					function(data) {
-						$.plot('#flotcanvas', [{label:'data',data:data} ],
-							{
-								xaxis:{
-									mode:'time',
-								},
-						});
-				})
-				.fail(
-					function( jqxhr, textStatus, error ) {
-						var err = textStatus + ", " + error;
-						$('#error').html(err);
-				});
 
-		}
-
-		 */
 function RegTime() {
 	var href = odmf_ref('/plot/RegularTimeseries.csv?tolerance=')+$('#Interpolation_Limit').val() + '&interpolation=' + $('#reg_interpolation').val();
 	//alert(href);
@@ -196,7 +177,7 @@ function popSelect(subplotpos, newlineprops) {
 				$('#vtselect_'+subplotpos).html(html).val(vt);
 			}
 		);
-						
+
 		$.getJSON(odmf_ref('/dataset/attrjson'),
 			{ attribute:'source',
 				valuetype:vt,
@@ -252,7 +233,7 @@ function popSelect(subplotpos, newlineprops) {
 						$('#levelselect_'+subplotpos).parent().hide(200);
 					}
 				});
-				
+
 			if (newlineprops) {
 				var color = newlineprops.color;
 				var line = newlineprops.linestyle;
@@ -261,18 +242,18 @@ function popSelect(subplotpos, newlineprops) {
 				$('#linepicker_'+subplotpos).val(line);
 				$('#colorpicker_'+subplotpos).val(color);
 			}
-				 
+
 		} else {
 			$('#levelselect_'+subplotpos).parent().hide(200);
 		}
-				
+
 		if (site != '' && vt != '') {
 			$('#addline_' + subplotpos).prop('disabled', false);
 		} else {
 			$('#addline_' + subplotpos).prop('disabled', true);
 		}
 	}
-			
+
 
 }
 function clearFilter() {
@@ -281,13 +262,34 @@ function clearFilter() {
 	$('#allsites').val(true);
 	popSelect(1);
 }
-$(function() {
+$(() => {
+	$(".timepicker").autocomplete({source: timerange(15)});
+	$('#addsubplot').prop('disabled', false);
+
+	$('#btn-clf').click(function() {
+		$.post('clf',{},seterror);
+		changeprops();
+	});
+    // Fluid layout doesn't seem to support 100% height; manually set it
+    $(window).resize(() => {
+    	let po = $('#plot').offset();
+    	po.totalHeight = $(window).height();
+		po.em1 = parseFloat(getComputedStyle($('#plot')[0]).fontSize);
+    	let plotHeight = po.totalHeight - po.top - 2 * po.em1;
+    	$('#plot').height(plotHeight);
+
+    });
+    $(window).resize();
 	$('.props').change(changeprops);
 	$('#saveplotbutton').click(function() {
 		var fn = prompt('The name of the actual plot','new plot');
 		if (fn) {
 			$.post('saveplot',{filename:fn,overwrite:true},seterror);
 		}
+	});
+	$('#reload_plot').click(() => {
+		let now = new Date().toISOString()
+		renderplot(now);
 	});
 	$('#loadplotbutton').click(function() {
 		toggle('loadplotdiv');
@@ -299,13 +301,13 @@ $(function() {
 	});
 	$('#deleteplotbutton').click(function() {
 		toggle('killplotdiv');
-				
+
 	});
 	$('.killplotfn').click(function(){
 		var fn = $(this).html();
 		if (confirm('Do you really want to delete your plot "' + fn + '" from the server'))
 			$.post('deleteplotfile',{filename:fn},seterror);
-				
+
 	});
 });
 

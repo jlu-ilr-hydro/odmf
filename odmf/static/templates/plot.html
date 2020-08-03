@@ -4,50 +4,17 @@
     <py:block name="scripts">
         <script type="text/javascript" src="${conf.root_url}/media/js/plot.js">
         </script>
-        <script type="text/javascript">
-            //<![CDATA[
-            $(function() {
-                $(".timepicker").autocomplete({source: timerange(15)});
-                for (var i=0;i<10;i++) {
+        <script>
+            $(() => {
+                for (let i = 0;i != 10;i++) {
                     popSelect(i,${literal(as_json(plot.newlineprops))});
                 }
-                $('#addsubplot').prop('disabled', false);
-
-                $('.description').click(function() {
-                    if ($('#description').html().substring(0,9)!='<textarea') {
-                        // Create textarea for editing of index.html
-                        $('#description').html('<textarea rows="5"/><br/><button>Save</button><button>Cancel</button><a href="${conf.root_url}/wiki/help"><img src="${conf.root_url}/media/ui-icons/help.png" /></a>');
-                        // Load current file in textarea
-                        $('#description textarea').val("${plot.description.replace('\n',r'\n')}");
-                        // Save file on click
-                        $('#description button').click(function(event) {
-                            if ($(this).text()=="Save") {
-                                var text=$('#description textarea').val();
-                                $.post('describe',{newdescription:text},seterror);
-                            } else {
-                                var text = '${markdown(plot.description, with_newline_literal=True)}';
-                                $('#description').html(text);
-                                event.stopPropagation();
-                            }
-                        });
-                    }
-                });
-                $('#btn-clf').click(function() {
-                    $.post('clf',{},seterror);
-                    changeprops();
-                })
             });
-            //]]>
         </script>
     </py:block>
     <py:block name="style">
         <style type="text/css">
             .firstoption {font-style: italic;color: grey;}
-            li.sp {
-                background-color: #E8F0FF;
-                border-radius: 0px;
-                border-top: 1px solid #000;
-            }
             li.line {
                 background-color: #FFF;
             }
@@ -63,26 +30,6 @@
             ul.doc {
                 list-style-image: url(${conf.root_url}/media/ui-icons/shimmer/document_16.png)
             }
-            span.box {
-                padding: 0px;
-                background-color: #FFF;
-                margin-right: 10px;
-                box-shadow: 5px 5px 8px #888;
-            }
-            span.box a{
-                padding: 0px 2px;
-                cursor: pointer;
-            }
-            span.box a:hover {
-                background-color:#32739D;
-                color:#FFF;
-                border-radius: 10px;
-                text-decoration: none;
-                cursor: pointer;
-            }
-            .tooltip span {
-                color: #111;
-            }
             .nowrap {white-space: nowrap;}
             #description textarea {
                 width: 100%;
@@ -92,307 +39,119 @@
         </style>
     </py:block>
     <py:block name="sidebar">
-        <div class="container-fluid">
-            <div class="container-fluid ml-8">
-                <div class="row">
-                    <a id="saveplotbutton" class="btn btn-outline-success rounded-pill">
-                        <i class="fas fa-save fa-lg"/>
-                    </a>
-                    <div class="dropdown">
-                        <button id="loadplotbutton" class="btn btn-outline-success rounded-pill" type="button"
-                                data-toggle="dropdown"
-                        >
-                            <i class="fas fa-folder-open fa-lg"/>
-                        </button>
-                        <div class="dropdown-menu" id="loadplotdiv" aria-labelledby="loadplotbutton">
-                            <a class="dropdown-item loadplotfn" py:content="fn" py:for="fn in plot.listdir()"/>
-                        </div>
-                    </div>
-                    <div class="dropdown">
-                        <button id="deleteplotbutton" class="btn btn-outline-danger rounded-pill" type="button"
-                                data-toggle="dropdown">
-                        <span class="fa-stack fa-xs">
-                            <i class="fas fa-file fa-stack-2x"/>
-                            <i class="fas fa-times fa-inverse fa-stack-1x"/>
+        <div class="container-fluid ">
+
+            <div id="collapse-buttons" class="btn-group-vertical w-100">
+                <button id="reload_plot" class="btn btn-primary">
+                    <i class="fas fa-sync-alt"/>
+                </button>
+                <button class="btn btn-outline-primary"
+                        id="toolbar-toggle" data-toggle="modal" data-target="#toolbar-dialog"
+                        role="button" aria-controls="toolbar-dialog">
+                    <i class="fas fa-file"/> File
+                </button>
+                <button class="btn btn-outline-primary"
+                        id="property-toggle" data-toggle="modal" data-target="#property-dialog"
+                        role="tab" aria-controls="property-dialog">
+                    <i class="fas fa-cog"/> Properties
+                </button>
+            </div>
+            <div id="content-dialog" class="row mt-2 w-100">
+
+
+                <!--
+                    Subplots
+                -->
+                <div py:for="sp in plot.subplots" class="card mb-2">
+                    <div class="card-header">
+                        <h5 class="card-title">plot #${sp.position}
+                            <span class="btn-group card-text">
+                            <button py:if="sp.position==len(plot.subplots)"
+                                    onclick="removesubplot(${sp.position})"
+                                    class="btn btn-sm btn-danger py-0" data-toggle="tooltip"
+                                    title="remove subplot ${sp.position} from figure"
+                            >
+                                <i class="fas fa-times-circle"/>
+                            </button>
+                            <button onclick="changeylimit(${sp.position})"
+                                    class="btn btn-sm btn-primary py-0" data-toggle="tooltip"
+                                    title="change y axis limit"
+                            >
+                                <i>y</i>&#x2195;
+                            </button>
+                            <button data-toggle="dropdown" class="btn btn-sm btn-primary py-0 dropdown-toggle">
+                                <i class="fas fa-tags" data-toggle="tooltip" title="Show logged events at a site in the graph"/> ${'for #%i' % sp.logsite if sp.logsite else ''}
+                            </button>
+                            <div id="logsiteselectdiv_${sp.position}" class="dropdown-menu" >
+                                <select class="form-control dropdown-item" id="logsiteselect_${sp.position}"
+                                        py:with="sites=sp.get_sites()"
+                                        onchange="changelogsite(${sp.position});"
+                                        size="${min(len(sites)+1,10)}">
+                                    <option value="" py:attrs="markoption(not sp.logsite in sites)">None</option>
+                                    <option py:for="siteid in sorted(sites)"
+                                            py:attrs="markoption(sp.logsite == siteid)"
+                                            value="${siteid}">${sites[siteid]}</option>
+                                </select>
+                            </div>
                         </span>
-
-                        </button>
-                        <div class="dropdown-menu" id="killplotdiv">
-                            <a py:for="fn in plot.listdir()" class="dropdown-item killplotfn" py:content="fn"/>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <br/>
-            <div class="container-fluid mt-4">
-                <a class="btn btn-outline-primary rounded-pill" title="Opens the graph as a pdf file." data-toggle="tooltip"
-                   href="${conf.root_url}/plot/image.pdf?create=${plot.createtime}">
-                    <i class="fas fa-file-pdf fa-lg" />
-                </a>
-                <a class="btn btn-outline-primary rounded-pill" title="Opens the graph as a png file." data-toggle="tooltip"
-                   href="${conf.root_url}/plot/image.png?create=${plot.createtime}">
-                    <i class="fas fa-file-image fa-lg" />
-                </a>
-
-            </div>
-            <div class="container-fluid mt-4">
-                <div id="export-options">
-                    <button py:if="is_member('editor')"
-                            class="btn btn-outline-primary rounded-pill"
-                            onclick="exportall_csv();" data-toggle="tooltip"
-                            title="Exports all datasets in this plot to a csv file.
-                               The exported file has multiple columns according
-                               to valuetypes, sites and levels. This feature is
-                               still experimental. Transformed timeseries are not
-                               part of the export."
-                    >
-                        export all
-                    </button>
-                    <select id="tolerance_skipper" data-toggle="tooltip" class="form-control"
-                            title="Specifies a tolerance time to keep values in the same line of the csv file.
-                            'no tolerance' means there is no tolerance, and the smallest difference in the timestamp
-                            of two values leads to a new line."
-                    >
-                        <option value="0">no tolerance</option>
-                        <option value="300">5Min</option>
-                        <option value="600">10Min</option>
-                        <option value="1800">30Min</option>
-                        <option value="3600">1h</option>
-                        <option value="86400">1day</option>
-                    </select>
-                    <button py:if="is_member('editor')"
-                            class="btn btn-outline-primary rounded-pill"
-                            data-toggle="tooltip"
-                            title="Exports all datasets in this plot to a csv file with regularized timesteps.
-                            The exported file has multiple columns according
-                            to valuetypes, sites and levels. This feature is
-                            still experimental."
-                            onclick="RegTime()">
-                        regular export
-                    </button>
-                    <select id="reg_interpolation" data-toggle="tooltip" class="form-control"
-                            title="Time resolution of all datasets in the output csv-file.">
-                        <option value="5Min">5Min</option>
-                        <option value="10Min">10Min</option>
-                        <option value="15Min">15Min</option>
-                        <option value="30Min">30Min</option>
-                        <option value="60Min">1h</option>
-                        <option value="1440Min">1day</option>
-
-                    </select>
-                    <select id="Interpolation_Limit" data-toggle="tooltip" class="form-control"
-                            title="Number of possible gaps in the data which will be filled through linear interpolation.">
-                        <option value="1">1Timestep</option>
-                        <option value="5">5Timesteps</option>
-                        <option value="10">10Timesteps</option>
-                        <option value="50">50Timesteps</option>
-                        <option value="100">100Timesteps</option>
-                        <option value="200">200Timesteps</option>
-                    </select>
-                </div>
-
-            </div>
-
-        </div>
-    </py:block>
-    <py:block name="content">
-        <div class="container-fluid">
-            <div class="row mt-2 w-100">
-                <div class="container ${'' if error else 'd-none'}">
-                    <div id="error" class="row bg-danger text-white border rounded p-4">
-                        <h1 class="display-3 col-lg-2">Error</h1>
-                        <div class="lead col-lg-10" py:content="markdown(error)"/>
+                        </h5>
                     </div>
 
-                </div>
-            </div>
-            <div class="row mt-2 w-100">
-                <div class="container border rounded p-4">
-                    <div class="">
-                        <a id="property-toggle" href="#properties" data-toggle="collapse"
-                           class="collapse-toggle btn btn-primary mr-2" aria-expanded="true">
-                            &#x25BE; Properties
-                        </a>
-                        <button id="btn-clf" class="btn btn-outline-danger rounded-pill"
-                                title="clf: removes all lines and subplots of the figure" data-toggle="tooltip">
-                            <i class="fas fa-times"/>
-                        </button>
-                    </div>
-                    <div id="properties" class="collapse show m-4" aria-labelledby="property-toggle">
-                        <div class="row mb-1">
-                            <div class="col-lg">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">start:</span>
-                                    </div>
-                                    <input class="props form-control" type="date" id="startdate"
-                                           value="${f'{plot.startdate:%Y-%m-%d}'}"/>
-                                    <input class="props timepicker form-control" id="starttime"
-                                           value="${f'{plot.startdate:%H:%M}'}"/>
-                                </div>
-                            </div>
-                            <div class="col-lg">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">end:</span>
-                                    </div>
-                                    <input class="props form-control" type="date" id="enddate"
-                                           value="${f'{plot.enddate:%Y-%m-%d}'}"/>
-                                    <input class="props timepicker form-control" id="starttime"
-                                           value="${f'{plot.enddate:%H:%M}'}"/>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mb-1">
-                            <div class="col-lg">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">size:</span>
-                                    </div>
-                                    <input class="props form-control" type="number" id="plotwidth" size="5" value="${'%g' % (plot.size[0]*100)}"/>
-                                    <input class="props form-control" type="number" id="plotheight" size="5" value="${'%g' % (plot.size[1]*100)}"/>
-                                </div>
-                            </div>
-                            <div class="col-lg">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">rows:</span>
-                                    </div>
-                                    <input class="props form-control" type="number" value="${plot.rows}" id="plotrows"/>
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">cols:</span>
-                                    </div>
-                                    <input class="props form-control" type="number" value="${plot.columns}"
-                                           id="plotcolumns"/>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mb-1">
-                            <div class="col-lg">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">Aggregation:</span>
-                                        <a class="btn btn-secondary"
-                                           href="${conf.root_url}/wiki/plot/aggregate"
-                                           title="What is aggregation?" data-toggle="tooltip"
-                                        >
-                                            <i class="fas fa-question"/>
-                                        </a>
-                                    </div>
-                                    <select id="plotaggregate" class="props form-control">
-                                        <option value="" py:attrs="markoption(plot.aggregate=='')">No aggregation</option>
-                                        <option value="30Min" py:attrs="markoption(plot.aggregate=='30Min')">Half hourly</option>
-                                        <option value="h" py:attrs="markoption(plot.aggregate=='h')">Hourly</option>
-                                        <option value="D" py:attrs="markoption(plot.aggregate=='D')">Daily</option>
-                                        <option value="W" py:attrs="markoption(plot.aggregate=='W')">Weekly</option>
-                                        <option value="M" py:attrs="markoption(plot.aggregate=='M')">Monthly</option>
-                                        <option value="Y" py:attrs="markoption(plot.aggregate=='Y')">Yearly</option>
-                                    </select>
-
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row mt-2 w-100">
-
-                <div id="subplots" class="container border rounded p-4" >
-
-                    <!--
-                        Subplots
-                    -->
-
-                    <ul class="box_24">
-                        <li py:for="sp in plot.subplots" class="border rounded">
-                            subplot ${sp.position}
-                            <span class="ml-1 nowrap">
-                                <button py:if="sp.position==len(plot.subplots)"
-                                   onclick="removesubplot(${sp.position})"
-                                   class="badge badge-dark shadow" data-toggle="tooltip"
-                                   title="remove subplot ${sp.position} from figure"
-                                >
-                                    &times;
+                    <ul class="list-group list-group-flush">
+                        <li py:for="i,l in enumerate(sp.lines)" class="line list-group-item">
+                            <span style="color:${l.color}">${l.linestyle+l.marker}</span> ${l}
+                            <div class="btn-group" id="linetools_${sp.position}_${i}">
+                                <button onclick="removeline(${sp.position},${i})" title="remove line"
+                                        class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
+                                    <i class="fas fa-times-circle"/>
                                 </button>
-                            </span>
-                            <span class="ml-1 nowrap">
-                                <button onclick="changeylimit(${sp.position})"
-                                   class="badge badge-dark shadow" data-toggle="tooltip"
-                                   title="change y axis limit"
-                                >
-                                    <i>y</i>&#x2195;
+                                <a href="${conf.root_url}/plot/export.csv?${'subplot=%i&amp;line=%i' % (sp.position,i)}"
+                                   class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip" title="export to csv file...">
+                                    <i class="fas fa-file-csv"/>
+
+                                </a>
+                                <button onclick="showlinedatasets(${sp.position},${i})"
+                                        class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip" title="show datasets of line">
+                                    <i class="fas fa-list"/>
                                 </button>
-                            </span>
-                            <span class="ml-1 nowrap dropdown">
-                                <button data-toggle="dropdown" class="badge badge-dark shadow dropdown-toggle">
-                                    show logs ${'for #%i' % sp.logsite if sp.logsite else ''}
+                                <button onclick="reloadline(${sp.position},${i})"
+                                        title="Reload this line from the database."
+                                        class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
+                                    <i class="fas fa-sync"/>
                                 </button>
-                                <div id="logsiteselectdiv_${sp.position}" class="dropdown-menu" >
-                                    <select class="form-control dropdown-item" id="logsiteselect_${sp.position}"
-                                            py:with="sites=sp.get_sites()"
-                                            onchange="changelogsite(${sp.position});"
-                                            size="${min(len(sites)+1,10)}">
-                                        <option value="" py:attrs="markoption(not sp.logsite in sites)">None</option>
-                                        <option py:for="siteid in sorted(sites)"
-                                                py:attrs="markoption(sp.logsite == siteid)"
-                                                value="${siteid}">${sites[siteid]}</option>
-                                    </select>
-                                </div>
-                            </span>
+                                <button onclick="editline(${sp.position},${i})" title="edit line"
+                                        class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
+                                    <i class="fas fa-edit"/>
+                                </button>
+                                <button onclick="copyline(${sp.position},${i})" title="copy line"
+                                        class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
+                                    <i class="fas fa-copy"/>
+                                </button>
 
-                            <ul class="brush">
-                                <li py:for="i,l in enumerate(sp.lines)" class="line mt-1">
-                                    <span class="nowrap" id="linetools_${sp.position}_${i}">
-                                        <button onclick="removeline(${sp.position},${i})" title="remove line"
-                                           class="badge badge-primary shadow" data-toggle="tooltip">
-                                            &#x2718;
-                                        </button>
-                                        <a href="${conf.root_url}/plot/export.csv?${'subplot=%i&amp;line=%i' % (sp.position,i)}"
-                                           class="badge badge-primary shadow" data-toggle="tooltip" title="export to csv file...">
-                                            csv&#x25B8;
+                            </div>
 
-                                        </a>
-                                        <button onclick="showlinedatasets(${sp.position},${i})"
-                                           class="badge badge-primary shadow" data-toggle="tooltip" title="show datasets of line">
-                                            &#x25BE;ds
-                                        </button>
-                                        <button onclick="reloadline(${sp.position},${i})"
-                                           title="Reload this line from the database."
-                                            class="badge badge-primary shadow" data-toggle="tooltip">
-                                            &#x21BB;
-                                        </button>
-                                        <button onclick="editline(${sp.position},${i})" title="edit line"
-                                            class="badge badge-primary shadow" data-toggle="tooltip">
-                                            edit
-                                        </button>
-                                        <button onclick="copyline(${sp.position},${i})" title="copy line"
-                                           class="badge badge-primary shadow" data-toggle="tooltip">
-                                            copy
-                                        </button>
-
-                                    </span>
-                                        ${l} (${l.color+l.linestyle+l.marker})
-                                    <ul id="datasetlist_${sp.position}_${i}" class="datasetlist small doc"/>
-                                </li>
-                                <li class="line mt-1">
-                                    <button onclick="addline(${sp.position})" class="tooltip" id="addline_${sp.position}">
-                                        <img src="${conf.root_url}/media/ui-icons/plus-small.png"/>
-                                        <span>Add the line to subplot ${sp.position}</span>
-                                    </button>
-                                    <span class="nowrap">
+                            <ul id="datasetlist_${sp.position}_${i}" class="datasetlist small doc"/>
+                        </li>
+                        <li id="new-line-li" class="line list-group-item">
+                            <button onclick="addline(${sp.position})" class="btn btn-sm btn-primary btn-outline shadow py-0"
+                                    id="addline_${sp.position}"
+                                    data-toggle="tooltip" title="Add the line to subplot ${sp.position}"
+                            >
+                                <i class="fas fa-plus-circle"/>
+                            </button>
+                            <span class="nowrap">
                                         value:
                                         <select id="vtselect_${sp.position}" onchange="popSelect(${sp.position});" class="border rounded filter vtselect">
                                             <option value="" class="firstoption">Please select...</option>
                                         </select>
                                     </span>
-                                    <span class="nowrap">
+                            <span class="nowrap">
                                         site:
                                         <select id="siteselect_${sp.position}" onchange="popSelect(${sp.position});" class="border rounded filter siteselect">
                                             <option value="" class="firstoption">Please select...</option>
                                         </select>
                                     </span>
-                                    <span class="nowrap">
+                            <span class="nowrap">
                                         level:
                                         <select id="levelselect_${sp.position}" onchange="popSelect(${sp.position});" class="border rounded filter levelselect">
                                             <option value="" class="firstoption">Please select...</option>
@@ -400,13 +159,13 @@
                                         m
                                     </span>
 
-                                    <span class="nowrap">
+                            <span class="nowrap">
                                         instrument:
                                         <select id="instrumentselect_${sp.position}" onchange="popSelect(${sp.position});" class="border rounded filter instrumentselect">
                                             <option value="" class="firstoption">Please select...</option>
                                         </select>
                                     </span>
-                                    <span class="nowrap">
+                            <span class="nowrap">
                                         marker:
                                         <select id="markerpicker_${sp.position}" class="border rounded">
                                             <option value="">none</option>
@@ -418,7 +177,7 @@
                                             <option value="*">*</option>
                                         </select>
                                     </span>
-                                    <span class="nowrap">
+                            <span class="nowrap">
                                         line:
                                         <select id="linepicker_${sp.position}" class="border rounded">
                                             <option value="-">-</option>
@@ -428,16 +187,16 @@
                                             <option value="-.">-.</option>
                                         </select>
                                     </span>
-                                    <span class="nowrap">
+                            <span class="nowrap">
                                         color:
                                         <select id="colorpicker_${sp.position}" class="border rounded">
-                                            <option py:for="c,ccode in [('k','#000'),('b','#00F'),('g','#0F0'),('r','#F00'),('y','#FF0'),('c','#0FF'),('m','#F0F')]"
-                                                    value="${c}" py:content="c" style="background-color: ${ccode}"
+                                            <option py:for="c in ['#000000' ,'#0000FF','#00FF00','#FF0000', '#FFFF00','#00FFFF','#FF00FF']"
+                                                    value="${c}" py:content="c" style="background-color: ${c}"
                                                     py:attrs="markoption(plot.newlineprops and plot.newlineprops['color']==c)"
                                             />
                                         </select>
                                     </span>
-                                    <span class="nowrap" py:if="plot.aggregate">
+                            <span class="nowrap" py:if="plot.aggregate">
                                         aggregate:
                                         <select id="aggpicker_${sp.position}" class="border rounded">
                                             <option value="mean">mean</option>
@@ -447,31 +206,299 @@
                                             <option value="sum">&Sigma;</option>
                                         </select>
                                     </span>
-                                </li>
-                            </ul>
-
-                        </li>
-                        <li class="sp">
-                            <button id="addsubplot" onclick="javascript:addsubplot()" class="tooltip">
-                                <img src="${conf.root_url}/media/ui-icons/plus-small.png"/>
-                                <span>Add a new subplot to the figure</span>
-                            </button>
-                            add subplot
                         </li>
                     </ul>
-                </div>
-            </div>
-            <div class="mt-2 w-100">
-                <h2><a href="#" onclick="renderplot('plot',Date.now())">&#x25BE; Load plot</a></h2>
-                <div id="plot">
 
                 </div>
-                <div class="description small">
-                    Figure description (<a class="description">click to edit</a>):
-                    <div id="description" class="small" py:content="markdown(plot.description)"/>
+
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <button id="addsubplot" onclick="javascript:addsubplot()" class="btn btn-primary mr-2">
+                                <i class="fas fa-plus-circle"/>
+                            </button>
+                            add subplot
+                        </h5>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+        </div>
+    </py:block>
+    <py:block name="content">
+        <div class="container-fluid m-0 p-0">
+            <div id="error-row" class="row mt-2 w-100">
+                <div class="container ${'' if error else 'd-none'}">
+                    <div id="error" class="row bg-danger text-white border rounded p-4">
+                        <h1 class="display-3 col-lg-2">Error</h1>
+                        <div class="lead col-lg-10" id="error" py:content="markdown(error)"/>
+                    </div>
+
+                </div>
+            </div>
+            <div id="plot-row" class="">
+                <div id="plot" class="bg-light border">
+                    PLOT
+                </div>
+
+
+            </div>
+        </div>
+
+    </py:block>
+    <py:block name="extrahtml">
+        <div id="property-dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit</h5>
+                    </div>
+                    <div class="modal-body form-group">
+                        <label for="startdatetime">start:</label>
+                        <div id="startdatetime" class="input-group">
+                            <input class="props form-control" type="date" id="startdate"
+                                   value="${f'{plot.startdate:%Y-%m-%d}'}"/>
+                            <input class="props timepicker form-control" id="starttime"
+                                   value="${f'{plot.startdate:%H:%M}'}"/>
+                        </div>
+                        <label for="enddatetime">end:</label>
+                        <div id="enddatetime" class="input-group">
+
+                            <input class="props form-control" type="date" id="enddate"
+                                   value="${f'{plot.enddate:%Y-%m-%d}'}"/>
+                            <input class="props timepicker form-control" id="starttime"
+                                   value="${f'{plot.enddate:%H:%M}'}"/>
+                        </div>
+                        <label for="rowcol">Subplots</label>
+                        <div id="rowcol" class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">rows:</span>
+                            </div>
+                            <input class="props form-control" type="number" value="${plot.rows}" id="plotrows"/>
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">cols:</span>
+                            </div>
+                            <input class="props form-control" type="number" value="${plot.columns}"
+                                   id="plotcolumns"/>
+                        </div>
+                        <label for="plotaggregate">Aggregation:
+                            <a class="btn btn-secondary"
+                               href="${conf.root_url}/wiki/plot/aggregate"
+                               title="What is aggregation?" data-toggle="tooltip"
+                            >
+                                <i class="fas fa-question"/>
+                            </a>
+                        </label>
+                        <select id="plotaggregate" class="props form-control">
+                            <option value="" py:attrs="markoption(plot.aggregate=='')">No aggregation</option>
+                            <option value="30Min" py:attrs="markoption(plot.aggregate=='30Min')">Half hourly</option>
+                            <option value="h" py:attrs="markoption(plot.aggregate=='h')">Hourly</option>
+                            <option value="D" py:attrs="markoption(plot.aggregate=='D')">Daily</option>
+                            <option value="W" py:attrs="markoption(plot.aggregate=='W')">Weekly</option>
+                            <option value="M" py:attrs="markoption(plot.aggregate=='M')">Monthly</option>
+                            <option value="Y" py:attrs="markoption(plot.aggregate=='Y')">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <div id="toolbar-dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">File</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div id="file-save-plot" class="input-group ">
+                            <div class="input-group-prepend">
+                                <button id="savebutton" class="btn btn-secondary" type="button" data-toggle="tooltip" title="save plot">
+                                    <i class="fas fa-save fa-lg"/>
+                                    save
+                                </button>
+                            </div>
+                            <input type="text" class="form-control" placeholder="plot name" />
+                        </div>
+                        <div id="file-load-plot" class="btn-group  mr-2">
+                            <button class="btn  btn-secondary dropdown-toggle text-left"
+                                    id="file-dropdown" data-toggle="dropdown"
+                                    aria-haspopup="true" aria-expanded="false"
+                            >
+                                load plot files
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-left" aria-labelledby="file-dropdown">
+                                <div class="dropdown-item file-list d-flex" py:for="fn in plot.listdir()" data-file="${fn}">
+                                    <a class="mr-auto">
+                                        <i class="fas fa-folder fa-lg"/>
+                                            ${fn}
+                                    </a>
+                                    <button class="btn btn-secondary file-delete-button">
+                                        <i class="fas fa-times-circle"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="export-image-tools" class="btn-group mr-2">
+                            <a class="btn btn-outline-secondary" title="Opens the graph as a pdf file." data-toggle="tooltip"
+                               href="${conf.root_url}/plot/image.pdf?create=${plot.createtime}">
+                                <i class="fas fa-file-pdf" />
+                            </a>
+                            <a class="btn btn-outline-secondary" title="Opens the graph as a png file." data-toggle="tooltip"
+                               href="${conf.root_url}/plot/image.png?create=${plot.createtime}">
+                                <i class="fas fa-file-image" />
+                            </a>
+                        </div>
+                        <div id="export-data-tools" class="input-group mr-2">
+                            <div class="input-group-prepend">
+
+                                <button py:if="is_member('editor')"
+                                        class="btn btn-secondary "
+                                        onclick="exportall_csv();" data-toggle="tooltip"
+                                        title="Exports all datasets in this plot to a csv file.
+                               The exported file has multiple columns according
+                               to valuetypes, sites and levels. This feature is
+                               still experimental. Transformed timeseries are not
+                               part of the export."
+                                >
+                                    <i class="fas fa-file-csv"/>
+                                </button>
+                            </div>
+                            <select id="tolerance_skipper" data-toggle="tooltip" class="form-control"
+                                    title="Specifies a tolerance time to keep values in the same line of the csv file.
+                            'no tolerance' means there is no tolerance, and the smallest difference in the timestamp
+                            of two values leads to a new line."
+                            >
+                                <option value="0">no tolerance</option>
+                                <option value="300">5Min</option>
+                                <option value="600">10Min</option>
+                                <option value="1800">30Min</option>
+                                <option value="3600">1h</option>
+                                <option value="86400">1day</option>
+                            </select>
+                        </div>
+                        <div id="export-data-tools2" class="input-group">
+                            <div class="input-group-prepend">
+                                <button py:if="is_member('editor')"
+                                        class="btn btn-secondary"
+                                        data-toggle="tooltip"
+                                        title="Exports all datasets in this plot to a csv file with regularized timesteps.
+                            The exported file has multiple columns according
+                            to valuetypes, sites and levels. This feature is
+                            still experimental."
+                                        onclick="RegTime()">
+                                    <i class="fas fa-table"/>
+                                </button>
+                            </div>
+                            <select id="reg_interpolation" data-toggle="tooltip" class="form-control"
+                                    title="Time resolution of all datasets in the output csv-file.">
+                                <option value="5Min">5Min</option>
+                                <option value="10Min">10Min</option>
+                                <option value="15Min">15Min</option>
+                                <option value="30Min">30Min</option>
+                                <option value="60Min">1h</option>
+                                <option value="1440Min">1day</option>
+
+                            </select>
+                            <select id="Interpolation_Limit" data-toggle="tooltip" class="form-control"
+                                    title="Number of possible gaps in the data which will be filled through linear interpolation.">
+                                <option value="1">1Timestep</option>
+                                <option value="5">5Timesteps</option>
+                                <option value="10">10Timesteps</option>
+                                <option value="50">50Timesteps</option>
+                                <option value="100">100Timesteps</option>
+                                <option value="200">200Timesteps</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+
+        <div id="newline-dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">New line for subplot #<span id="newline-subplot">0</span></h5>
+                    </div>
+                    <div class="modal-body form-group">
+                        <span class="nowrap">value:
+                            <select id="vtselect_${sp.position}" onchange="popSelect(${sp.position});" class="border rounded filter vtselect">
+                                <option value="" class="firstoption">Please select...</option>
+                            </select>
+                        </span>
+                        <span class="nowrap">site:
+                            <select id="siteselect_${sp.position}" onchange="popSelect(${sp.position});" class="border rounded filter siteselect">
+                                <option value="" class="firstoption">Please select...</option>
+                            </select>
+                        </span>
+                        <span class="nowrap">level:
+                            <select id="levelselect_${sp.position}" onchange="popSelect(${sp.position});" class="border rounded filter levelselect">
+                                <option value="" class="firstoption">Please select...</option>
+                            </select>
+                            m
+                        </span>
+
+                        <span class="nowrap">instrument:
+                            <select id="instrumentselect_${sp.position}" onchange="popSelect(${sp.position});" class="border rounded filter instrumentselect">
+                                <option value="" class="firstoption">Please select...</option>
+                            </select>
+                        </span>
+                        <span class="nowrap">marker:
+                            <select id="markerpicker_${sp.position}" class="border rounded">
+                                <option value="">none</option>
+                                <option value="x">x</option>
+                                <option value="o">o</option>
+                                <option value=".">.</option>
+                                <option value="|">|</option>
+                                <option value="+">+</option>
+                                <option value="*">*</option>
+                            </select>
+                        </span>
+                        <span class="nowrap">line:
+                            <select id="linepicker_${sp.position}" class="border rounded">
+                                <option value="-">-</option>
+                                <option value="">none</option>
+                                <option value=":">...</option>
+                                <option value="--">--</option>
+                                <option value="-.">-.</option>
+                            </select>
+                        </span>
+                        <span class="nowrap">color:
+                            <select id="colorpicker_${sp.position}" class="border rounded">
+                                <option py:for="c in ['#000000' ,'#0000FF','#00FF00','#FF0000', '#FFFF00','#00FFFF','#FF00FF']"
+                                        value="${c}" py:content="c" style="background-color: ${c}"
+                                        py:attrs="markoption(plot.newlineprops and plot.newlineprops['color']==c)"
+                                />
+                            </select>
+                        </span>
+                        <span class="nowrap" py:if="plot.aggregate">aggregate:
+                            <select id="aggpicker_${sp.position}" class="border rounded">
+                                <option value="mean">mean</option>
+                                <option value="min">min</option>
+                                <option value="max">max</option>
+                                <option value="stdev">stdev</option>
+                                <option value="sum">&Sigma;</option>
+                            </select>
+                        </span>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
     </py:block>
 </py:extends>
