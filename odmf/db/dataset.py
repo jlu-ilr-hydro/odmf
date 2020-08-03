@@ -60,7 +60,7 @@ class ValueType(Base):
     maxvalue = sql.Column(sql.Float)
 
     def __str__(self):
-        return "%s [%s] #%s" % (self.name, self.unit, self.id)
+        return f'{self.name} [{self.unit}]'
 
     def __eq__(self, other):
         return str(self.id).upper() == str(other).upper()
