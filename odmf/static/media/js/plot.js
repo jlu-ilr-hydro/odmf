@@ -13,10 +13,7 @@ function seterror(data) {
 		window.location.reload();
 	}
 }
-function killplot() {
-	$('#plot').slideUp().html('Loading image...');
 
-}
 function renderplot(creationtime) {
 	$('#plot').html('Loading image...');
 	// TODO: Transfer Plot data from client => render = save
@@ -34,41 +31,48 @@ function gettime(startOrEnd) {
 	return res;
 }
 
-
-
-function changeprops() {
-	// TODO: Make obsolete, send data when rendering. Save plot states in client
-	$.post('changeplot', {
-		start:gettime('start'),
-		end:gettime('end'),
-		width:$('#plot').width(),
-		height:$('#plot').height(),
-		rows:$('#plotrows').val(),
-		columns:$('#plotcolumns').val(),
-		aggregate:$('#plotaggregate').val(),
-	}, function(data){
-		if (data) seterror(data);
-		else $('.error').html('');
-	});
-	killplot();
+var plot = {
+	start:gettime('start'),
+	end:gettime('end'),
+	columns:$('#plotcolumns').val(),
+	aggregate:$('#plotaggregate').val(),
+	subplots: [{
+		lines: [],
+		ylim: null,
+		logsite: null,
+	}],
 }
+
+function plot_change() {
+	let txt_plot = JSON.stringify(plot);
+	sessionStorage.setItem('plot', txt_plot);
+	$('#json-row pre').html(txt_plot);
+
+}
+
 function addsubplot() {
 	$.post('addsubplot', {}, seterror);
-	killplot();
+	plot.subplots.push({lines: [], ylim: null, logsite: null});
+	plot_change();
+
 }
 function removesubplot(id) {
 	$.post('removesubplot', {subplotid:id}, seterror);
-	killplot();
+	plot.subplots.splice(id - 1, 1);
+	plot_change();
+
 }
 function changeylimit(id) {
 	var text = prompt('Enter the y axis limit as min,max, eg. 0.5,1.5.').split(',');
 	$.post('changeylim',{subplotid:id,ymin:text[0],ymax:text[1]},seterror);
-	killplot();
+	plot_change();
+
 }
 function changelogsite(id) {
 	var logsite = $('#logsiteselect_' + id).val();
 	$.post('changelogsite',{subplotid:id,logsite:logsite},seterror);
-	killplot();
+	plot_change();
+
 }
 function exportall_csv() {
 	var href = odmf_ref('/plot/exportall.csv?tolerance=') + $('#tolerance_skipper').val();
@@ -81,38 +85,62 @@ function RegTime() {
 	//alert(href);
 	window.location = href;
 }
-function addline(sp) {
-	var vt = $('#vtselect_'+sp).val();
-	var site = $('#siteselect_'+sp).val();
-	var inst = $('#instrumentselect_'+sp).val();
-	var level = $('#levelselect_'+sp).val();
-	var aggfunc = $('#aggpicker_'+sp).val();
-	$.post('addline', {
-		subplot:sp,
-		valuetypeid:vt,
-		siteid:site,
-		instrumentid:inst,
-		level:level,
-		color:$('#colorpicker_'+sp).val(),
-		linestyle:$('#linepicker_'+sp).val(),
-		marker:$('#markerpicker_'+sp).val(),
-		aggfunc:aggfunc,
-	},seterror);
-	killplot();
+
+function line_from_dialog() {
+	return {
+		valuetypeid: parseInt($('#nl-value').val()),
+		siteid: parseInt($('#nl-site').val()),
+		instrumentid: parseInt($('#nl-instrument').val()),
+		level:parseFloat($('#nl-level').val()),
+		color:$('#nl-color').val(),
+		linestyle:$('#nl-linestyle').val(),
+		marker:$('#nl-marker').val(),
+		aggfunc:$('#nl-aggregation').val()
+	}
 }
+
+function line_to_dialog(line) {
+	$('#nl-value').val(line.valuetypeid);
+	$('#nl-site').val(line.siteid);
+	$('#nl-instrument').val(line.instrumentid);
+	$('#nl-level').val(line.level);
+	$('#nl-color').val(line.color);
+	$('#nl-linestyle').val(line.linestyle);
+	$('#nl-marker').val(line.marker);
+	$('#nl-aggregation').val(line.aggfunc);
+}
+
+function open_line_dialog(line) {
+	if (line) {
+		line_to_dialog(line);
+	}
+	$('#newline-dialog').modal('show');
+}
+
 function removeline(subplot,line) {
-	$.post('removeline',{subplot:subplot,line:line},seterror);
-	killplot();
+	let sp = plot.subplots[subplot];
+	sp.lines.splice(line, 1);
+	plot_change()
 }
-function editline(subplot,line) {
-	$.post('removeline',{subplot:subplot, line:line, savelineprops:true}, seterror);
+function editline(subplot,line_no) {
+	try {
+		let line = plot.subplots[subplot].lines[line_no];
+		open_line_dialog(line);
+		plot.subplots[subplot].lines.splice(line_no, 1);
+		plot_change();
+	} catch (e) {
+		$('#error').html('Edit line failed: ' + e.toString());
+	}
+
+
+	$.post('removeline',{subplot:subplot, line:line_no, savelineprops:true}, seterror);
 }
 function copyline(subplot,line) {
 	$.post('copyline',{subplot:subplot,line:line},seterror);
 }
 function reloadline(subplot,line) {
 	$.post('reloadline',{subplot:subplot,line:line},seterror);
-	killplot();
+
 }
 function showlinedatasets(subplot,line) {
 	var content = $('#datasetlist_'+subplot+'_'+line).html();
@@ -150,13 +178,10 @@ function timerange(step)
 }
 
 function popSelect(subplotpos, newlineprops) {
-
-	if ($('#vtselect_'+ subplotpos).length) {
-
-		var vt = $('#vtselect_' + subplotpos).val();
-		var site = $('#siteselect_' + subplotpos).val();
-		var instrument = $('#instrumentselect_' + subplotpos).val();
-		var level = $('#levelselect_' + subplotpos).val();
+		var vt = $('#nl-value').val();
+		var site = $('#nl-site').val();
+		var instrument = $('#nl-instrument').val();
+		var level = $('#nl-level').val();
 		var date = ''; //$('#dateselect').val()
 		if (newlineprops && !vt) vt=newlineprops.valuetype;
 		if (newlineprops && !instrument) instrument=newlineprops.instrument;
@@ -174,7 +199,7 @@ function popSelect(subplotpos, newlineprops) {
 				$.each(data,function(index,item){
 					html+='<option value="'+item.id+'">'+item.name+'</option>';
 				});
-				$('#vtselect_'+subplotpos).html(html).val(vt);
+				$('#nl-value').html(html).val(vt);
 			}
 		);
 
@@ -191,7 +216,7 @@ function popSelect(subplotpos, newlineprops) {
 					if (item)
 						html+='<option value="'+item.id+'">'+item.name+'</option>';
 				});
-				$('#instrumentselect_'+subplotpos).html(html).val(instrument);
+				$('#nl-instrument').html(html).val(instrument);
 			}
 		);
 		$.getJSON(odmf_ref('/dataset/attrjson'),
@@ -205,7 +230,7 @@ function popSelect(subplotpos, newlineprops) {
 				$.each(data,function(index,item){
 					html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
 				});
-				$('#siteselect_'+subplotpos).html(html).val(site);
+				$('#nl-site').html(html).val(site);
 			}
 		);
 		if (vt!='' && site!='') {
@@ -227,32 +252,28 @@ function popSelect(subplotpos, newlineprops) {
 						}
 					});
 					if (show && vt!='' && site!='') {
-						$('#levelselect_'+subplotpos).html(html).val(level);
-						$('#levelselect_'+subplotpos).parent().show(200);
+						$('#nl-level').html(html).val(level);
+						$('#nl-level').parent().show(200);
 					} else {
-						$('#levelselect_'+subplotpos).parent().hide(200);
+						$('#nl-level').parent().hide(200);
 					}
 				});
 
 			if (newlineprops) {
-				var color = newlineprops.color;
-				var line = newlineprops.linestyle;
-				var marker = newlineprops.marker;
-				$('#markerpicker_'+subplotpos).val(marker);
-				$('#linepicker_'+subplotpos).val(line);
-				$('#colorpicker_'+subplotpos).val(color);
+				$('#nl-marker').val(newlineprops.marker);
+				$('#nl-linestyle').val(newlineprops.line);
+				$('#nl-color').val(newlineprops.color);
 			}
 
 		} else {
-			$('#levelselect_'+subplotpos).parent().hide(200);
+			$('#nl-level').parent().hide(200);
 		}
 
 		if (site != '' && vt != '') {
-			$('#addline_' + subplotpos).prop('disabled', false);
+			$('#nl-OK').prop('disabled', false);
 		} else {
-			$('#addline_' + subplotpos).prop('disabled', true);
+			$('#nl-OK').prop('disabled', true);
 		}
-	}
 
 
 }
@@ -268,7 +289,6 @@ $(() => {
 
 	$('#btn-clf').click(function() {
 		$.post('clf',{},seterror);
-		changeprops();
 	});
     // Fluid layout doesn't seem to support 100% height; manually set it
     $(window).resize(() => {
@@ -279,8 +299,32 @@ $(() => {
     	$('#plot').height(plotHeight);
 
     });
+
+    $('#nl-OK').click((event) => {
+    	let sp = parseInt($('#newline-subplot').text());
+    	while (plot.subplots.length < sp) {
+    		plot.subplots.push([]);
+		}
+		let line = line_from_dialog();
+		plot.subplots[sp - 1].lines.push(line);
+		$.post('addline', line,seterror);
+
+	});
+
     $(window).resize();
-	$('.props').change(changeprops);
+
+    $('#newline-dialog').on('show.bs.modal', (event) => {
+    	let button = $(event.relatedTarget);
+    	let sp_number = parseInt(button.data('subplot'));
+    	$('#newline-subplot').html(sp_number);
+    	popSelect(sp_number, null);
+	});
+
+    $('#newline-dialog .form-control').change(() => {
+    	let sp_number = parseInt($('#newline-subplot').html());
+    	popSelect(sp_number, null);
+	});
+
 	$('#saveplotbutton').click(function() {
 		var fn = prompt('The name of the actual plot','new plot');
 		if (fn) {
@@ -297,7 +341,7 @@ $(() => {
 	$('.loadplotfn').click(function(){
 		var fn = $(this).html();
 		$.post('loadplot',{filename:fn},seterror);
-		killplot();
+
 	});
 	$('#deleteplotbutton').click(function() {
 		toggle('killplotdiv');
