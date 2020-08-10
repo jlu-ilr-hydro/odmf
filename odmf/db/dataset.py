@@ -151,9 +151,9 @@ class Dataset(Base):
 
     def __str__(self):
         site = self.site.id if self.site else ''
-        level = f'{self.level} m offset' if self.level is not None else '',
-        return f'ds{self.id or -999:04d}: {self.valuetype} at #{site} {level} with {self.source} ' \
-               f'({self.start or "?"}-{self.end or "?"})'
+        level = f'{self.level:g} m offset' if self.level is not None else ''
+        return (f'ds{self.id or -999:04d}: {self.valuetype} at #{site} {level} with {self.source} ' 
+                f'({self.start or "?"} - {self.end or "?"})').replace("'", r"\'")
 
     def __jdict__(self):
         return dict(id=self.id,
