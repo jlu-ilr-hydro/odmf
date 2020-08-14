@@ -14,7 +14,6 @@ fi
 
 
 NAME="$1"
-USERNAME="odmf-$NAME"
 OPATH="/srv/odmf/$NAME"
 
 if [ -z "$2" ]; then
@@ -40,8 +39,3 @@ mkdir sessions
 mkdir -p preferences/plots
 mkdir datafiles
 
-echo "Add a new user $USERNAME"
-adduser --system  --gecos "ODMF/$NAME Service" --disabled-password --group --home $OPATH odmf-$NAME
-
-echo "Add your own user to the group of this service to act as an admin with this command:"
-echo "sudo adduser USER $USERNAME"
