@@ -19,8 +19,7 @@ from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from io import StringIO
 from io import BytesIO
-import time
-from base64 import b64encode
+
 from pandas import to_datetime
 import json
 from pathlib import Path
@@ -28,12 +27,10 @@ from pathlib import Path
 from ..config import conf
 from .. import db
 from . import lib as web
-from .preferences import Preferences
 from .auth import group, expose_for, users
 
 t0 = datetime(1, 1, 1)
 nan = np.nan
-
 
 
 if sys.platform == 'win32':
@@ -65,14 +62,27 @@ def asdict(obj):
         return obj
 
 
-class Line(object):
+class PlotError(web.cherrypy.HTTPError):
+
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(400, 'odmf-plot: Plot object is malformed, error: ' + message)
+
+    def get_error_page(self, *args, **kwargs):
+        from .lib import render
+        user = users.current
+        error = '## Plot object incorrect\n\n' + self.message
+        return render('plot.html', error=error).render().encode('utf-8')
+
+
+class Line:
     """
     Represents a single line of a subplot
     """
 
     def __init__(self, subplot, valuetype, site, instrument=None, level=None,
                  color='', marker='', linestyle='',
-                 transformation=None, usecache=False, aggregatefunction='mean'):
+                 transformation=None, aggregatefunction='mean'):
         """
         Create a Line:
         @param subplot: The Subplot to which this line belongs
@@ -97,7 +107,6 @@ class Line(object):
         self.level = level
         session.close()
         self.transformation = transformation
-        self.usecache = usecache
         self.aggregatefunction = aggregatefunction
 
     def getdatasets(self, session):
@@ -116,28 +125,6 @@ class Line(object):
         if self.level is not None:
             datasets = datasets.filter(db.Dataset.level == self.level)
         return datasets.order_by(db.Dataset.start).all()
-
-    def getcachename(self, t_or_v):
-        plot = self.subplot.plot
-        path = plot.getpath()
-        spno = self.subplot.position
-        lineno = self.subplot.lines.index(self)
-        return '%s.sp%i.l%i.%s.npy' % (path, spno, lineno, t_or_v)
-
-    def hascache(self):
-        if not self.usecache:
-            return False
-        now = time.time()
-        tname = self.getcachename('t')
-        vname = self.getcachename('v')
-        return (os.path.exists(tname) and
-                os.path.exists(vname) and
-                now - os.path.getmtime(tname) < 600)
-
-    def killcache(self):
-        for s in 'tv':
-            if os.path.exists(self.getcachename(s)):
-                os.remove(self.getcachename(s))
 
     def aggregate(self):
         session = db.Session()
@@ -169,16 +156,6 @@ class Line(object):
         if self.subplot.plot.aggregate:
             return self.aggregate()
         else:
-            if self.hascache():
-                print('Load from cache')
-                t = np.fromfile(self.getcachename('t'))
-                v = np.fromfile(self.getcachename('v'))
-                if not (len(t) == 0 or len(v) != len(t)):
-                    print(".../\./\|\...load from cache<-" +
-                          os.path.basename(self.getcachename('?')))
-                    return t, v
-            print(".../\./\|\...load from database->" +
-                  os.path.basename(self.getcachename('?')))
             session = db.Session()
             error = ''
             start = self.subplot.plot.startdate
@@ -189,24 +166,10 @@ class Line(object):
                 t, v = group.asarray(session)
             finally:
                 session.close()
-            if self.usecache:
-                t.tofile(self.getcachename('t'))
-                v.tofile(self.getcachename('v'))
-            print('Load complete')
 
-            # There werre problems with arrays from length 0
+            # There were problems with arrays from length 0
             if len(v) is 0 or len(t) is 0:
                 raise ValueError("No data to compute")
-
-            # except Exception as e:
-            #    raise e
-            # finally:
-            print("size(v)=", v.size,
-                  "mean(v)=", v[np.isnan(v) is False].mean(),
-                  "std(v)=", v[np.isnan(v) is False].std())
-            print("size(t)=", t.size,
-                  "min(t)=", matplotlib.dates.num2date(t.min()),
-                  "max(t)=", matplotlib.dates.num2date(t.max()))
             return t, v
 
     def draw(self, ax, startdate=None, enddate=None):
@@ -254,18 +217,8 @@ class Line(object):
                     level=self.level,
                     color=self.color, linestyle=self.linestyle, marker=self.marker,
                     transformation=self.transformation,
-                    usecache=self.usecache, aggregatefunction=self.aggregatefunction)
+                    aggregatefunction=self.aggregatefunction)
 
-    @classmethod
-    def fromdict(cls, subplot, d):
-        """
-        Creates the line element from a dictionary (for loading from session)
-        """
-        return cls(subplot, valuetype=d.get('valuetype'), site=d.get('site'), instrument=d.get('instrument'),
-                   color=d.get('color', 'k'), linestyle=d.get('linestyle', '-'), marker=d.get('marker', ''),
-                   transformation=d.get('transformation'), level=d.get('level'), usecache=d.get('usecache', False),
-                   aggregatefunction=d.get('aggregatefunction', 'mean')
-                   )
 
     def __str__(self):
         """
@@ -283,31 +236,32 @@ class Line(object):
             res += ' (%s/%s)' % (self.aggregatefunction,
                                  self.subplot.plot.aggregate)
         return res
-    # def __str__(self):
-    #   return str(self).encode('utf-8',errors='replace')
 
     def __repr__(self):
         return "plot.Line(%s@%s,'%s')" % (self.valuetype, self.site, self.color + self.linestyle + self.marker)
 
 
-class Subplot(object):
+class Subplot:
     """
     Represents a subplot of the plot
     """
 
-    def __init__(self, plot, position=1):
+    def __init__(self, plot, position=1, ylim=None, logsite:int=None, lines=None):
         """
         Create the subplot with Plot.addtimeplot
         """
         self.plot = plot
         self.position = position
         self.lines = []
-        self.ylim = None
-        self.logsite = None
+        if lines:
+            for l in lines:
+                self.addline(**l)
+        self.ylim = ylim
+        self.logsite = logsite
 
     def addline(self, valuetype, site, instrument=None, level=None,
                 color='k', linestyle='-', marker='',
-                usecache=False, aggfunc='mean'):
+                aggfunc='mean'):
         """
         Adds a line to the subplot
         @param valuetype: the id of a valuetype
@@ -320,8 +274,7 @@ class Subplot(object):
         """
         self.lines.append(Line(self, valuetype=valuetype, site=site, instrument=instrument, level=level,
                                color=color, linestyle=linestyle, marker=marker,
-                               usecache=usecache, aggregatefunction=aggfunc))
-        self.plot.createtime = web.formatdate()
+                               aggregatefunction=aggfunc))
         return self
 
     def get_sites(self):
@@ -379,18 +332,6 @@ class Subplot(object):
                     ylim=self.ylim, position=self.position,
                     logsite=self.logsite)
 
-    @classmethod
-    def fromdict(cls, plot, d):
-        """
-        Creates a subplot from a property dictionary
-        """
-        res = cls(plot=plot, position=d.get('position'))
-        res.ylim = d.get('ylim')
-        res.logsite = d.get('logsite')
-        if 'lines' in d:
-            for ld in d.get('lines'):
-                res.lines.append(Line.fromdict(res, ld))
-        return res
 
 
 class Plot(object):
@@ -398,31 +339,28 @@ class Plot(object):
     Represents a full plot (matplotlib figure)
     """
 
-    def __init__(self, size=(6.0, 4.8), columns=1, rows=1, startdate=None, enddate=None, **kwargs):
+    def __init__(self, size=(600, 480), columns=1, startdate=None, enddate=None, **kwargs):
         """
         @param size: A tuple (width,height), the size of the plot in inches (with 100dpi)
         @param columns: number of subplot columns
-        @param rows: number of subplot rows
         @param startdate: Date for the beginning x axis
         @param enddate: Date of the end of the x axis 
         """
         self.startdate = startdate or datetime.today() - timedelta(days=365)
         self.enddate = enddate or datetime.today()
         self.size = size
-        self.rows, self.columns = rows, columns
+        self.columns = columns
         self.subplots = []
-        self.createtime = web.formatdatetime()
-        self.name = 'plot'
-        self.newlineprops = None
-        self.args = kwargs
-        self.aggregate = ''
-        self.description = ''
+        self.name = kwargs.pop('name', '')
+        self.aggregate = kwargs.pop('description', '')
+        self.description = kwargs.pop('description', '')
+        self.subplots = []
+        subplts = kwargs.pop('subplots', [])
+        for i, sp in enumerate(subplts):
+            self.addtimeplot(i + 1, **sp)
 
-    def getpath(self):
-        username = web.user() or 'nologin'
-        plot_dir = os.path.join(conf.preferences, 'plots')
-        os.makedirs(plot_dir, exist_ok=True)
-        return os.path.join(plot_dir, username + '.' + self.name)
+        self.args = kwargs
+
 
     def addtimeplot(self):
         """
@@ -430,101 +368,55 @@ class Plot(object):
         """
         sp = Subplot(self, len(self.subplots) + 1)
         self.subplots.append(sp)
-        if self.rows * self.columns < len(self.subplots):
-            self.rows += 1
-        self.createtime = web.formatdatetime()
         return sp
 
-    def draw(self, format='png'):
+    def draw(self):
         """
         Draws the plot and returns the png file as a string
         """
-        was_interactive = plt.isinteractive()
-        plt.ioff()
-        fig, axes = plt.subplots(ncols=self.columns, nrows=self.rows,
-                                 figsize=self.size, dpi=100, sharex='all')
+        # calc. number of rows with ceiling division (https://stackoverflow.com/a/17511341/3032680)
+        rows = -(-len(self.subplots) // self.columns)
+        size_inch = self.size[0] / 100.0, self.size[1] / 100.0
+        fig, axes = plt.subplots(ncols=self.columns, nrows=rows,
+                                 figsize=size_inch, dpi=100, sharex='all')
         for sp in self.subplots:
             sp.draw(fig)
         fig.subplots_adjust(top=0.975, bottom=0.1, hspace=0.0)
-        if was_interactive:
-            plt.ion()
-            plt.draw()
-        elif format:
-            # Fixed stringio buffer
-            with BytesIO() as io:
-                fig.savefig(io, format=format)
-                plt.close('all')
-                io.seek(0)
-                return io.getvalue()
-        else:
-            return fig
+        return fig
 
-    def killcache(self):
-        for sp in self.subplots:
-            for l in sp.lines:
-                l.killcache()
+    def to_image(self, format: str, dpi=100) -> bytes:
+        """
+        Draws the plot and returns a byte string containing the image
+        """
+        fig = self.draw()
+        with BytesIO() as io:
+            fig.savefig(io, format=format, dpi=dpi)
+            plt.close('all')
+            io.seek(0)
+            return io.getvalue()
+
 
     def __jdict__(self):
         """
         Creates a dictionary with all properties of the plot, the subplots and their lines
         """
-        return dict(size=self.size, rows=self.rows, columns=self.columns,
+        return dict(size=self.size, columns=self.columns,
                     startdate=self.startdate, enddate=self.enddate,
-                    subplots=asdict(self.subplots), newlineprops=asdict(self.newlineprops),
-                    aggregate=self.aggregate, description=self.description)
-
-    @classmethod
-    def fromdict(cls, d):
-        """
-        Creates the plot from a dictionary
-        """
-        res = cls(size=d.get('size'), columns=d.get('columns'), rows=d.get('rows'),
-                  startdate=d.get('startdate'), enddate=d.get('enddate'))
-        if not (type(res.startdate) is datetime or res.startdate is None):
-            res.startdate = web.parsedate(res.startdate)
-        if not (type(res.enddate) is datetime or res.enddate is None):
-            res.enddate = web.parsedate(res.enddate)
-        if 'subplots' in d:
-            for sd in d.get('subplots'):
-                res.subplots.append(Subplot.fromdict(res, sd))
-        res.newlineprops = d.get('newlineprops')
-        res.aggregate = d.get('aggregate', '')
-        res.description = d.get('description', '')
-        return res
-
-    @classmethod
-    def frompref(cls, createplot=False):
-        """
-        Gets the plot from the preferences
-        """
-        pref = Preferences()
-        if 'plot' in pref:
-            return cls.fromdict(pref['plot'])
-        else:
-            if createplot:
-                plot = Plot()
-                plot.topref()
-                return plot
-            return
-
-    def topref(self):
-        """
-        Saves the plot to the preferences
-        """
-        pref = Preferences()
-        pref['plot'] = asdict(self)
+                    subplots=asdict(self.subplots),
+                    aggregate=self.aggregate,
+                    description=self.description)
 
     def save(self, fn):
         d = asdict(self)
         try:
             self.absfilename(fn).write_text(web.as_json(d))
         except:
-            return traceback()
+            raise PlotError(traceback())
 
     @classmethod
     def load(cls, fn):
         fp = cls.absfilename(fn).open()
-        plot = Plot.fromdict(json.load(fp))
+        plot = Plot(json.load(fp))
         return plot
 
     @classmethod
@@ -541,14 +433,18 @@ class Plot(object):
         if path.exists():
             path.unlink()
         else:
-            return "File %s does not exist" % fn
+            raise PlotError("File %s does not exist" % fn)
 
     @classmethod
     def absfilename(cls, fn: str=None)->Path:
+        username = web.user() or 'nologin'
+        plot_dir = os.path.join(conf.datafiles, username, 'plots')
+        os.makedirs(plot_dir, exist_ok=True)
+
         if fn:
-            return Path(conf.preferences).absolute() / 'plots' / f'{web.user()}.{fn}.plot'
+            return Path( f'{plot_dir}/{fn}.plot').absolute()
         else:
-            return Path(conf.preferences).absolute() / 'plots'
+            return Path( f'{plot_dir}/{fn}.plot').absolute()
 
 
 plotgroup = group.logger
@@ -558,25 +454,31 @@ class PlotPage(object):
 
     @expose_for(plotgroup)
     def index(self, valuetype=None, site=None, error=''):
-        plot = Plot.frompref(createplot=True)
+        plot = Plot()
         return web.render('plot.html', plot=plot, error=error).render()
 
     @expose_for(plotgroup)
     def loadplot(self, filename):
         try:
-            plot = Plot.load(filename)
-        except:
-            return traceback()
-        plot.topref()
+            return web.as_json(Plot.load(filename))
+        except Exception as e:
+            raise PlotError(str(e))
 
     @expose_for(plotgroup)
-    def saveplot(self, filename, overwrite=False):
+    @web.method.post
+    @web.json_in()
+    def saveplot(self):
+        """
+        Saves a plot object to the given filename
+
+        Usage: $.post('saveplot', [filename, plot]).fail(seterror);
+        """
+        filename, plot = web.cherrypy.request.json
+        plot = Plot(**plot)
         if not filename:
-            return 'No filename given'
-        elif filename in Plot.listdir() and not overwrite:
-            return 'Filename exists already. Choose another or delete this file'
+            raise PlotError('Cannot save file: no filename given')
         else:
-            return Plot.frompref().save(filename)
+            return plot.save(filename)
 
     @expose_for(plotgroup)
     def deleteplotfile(self, filename):
@@ -587,148 +489,70 @@ class PlotPage(object):
     def listplotfiles(self):
         return web.json_out(Plot.listdir())
 
-    @expose_for(plotgroup)
-    def describe(self, newdescription):
-        try:
-            plot = Plot.frompref(True)
-            plot.description = newdescription
-            plot.topref()
-        except:
-            return traceback()
 
     @expose_for(plotgroup)
+    @web.method.post
+    @web.json_in()
     def image_d3(self, **kwargs):
-        plot: Plot = Plot.frompref(createplot=True)
+        """
+        Creates html code with the plot as a d3 object using https://pypi.org/project/mpld3/
+
+        Usage: $.post(odmf_ref('/plot/image.d3'), plot)
+                .done($('#plot').html(result))
+                .fail(seterror)
+        """
+        plot_data = web.cherrypy.request.json
+        plot = Plot(**plot_data)
         from mpld3 import fig_to_html
-        fig = plot.draw(format=None)
+        fig = plot.draw()
         html = fig_to_html(fig)
         return html.encode('utf-8')
 
     @expose_for(plotgroup)
+    @web.method.post
+    @web.json_in()
     @web.mime.png
     def image_png(self, **kwargs):
-        plot = Plot.frompref()
-        if not plot:
-            raise web.redirect(conf.root_url + '/plot', error='No plot available')
-        return plot.draw(format='png')
+        plot: Plot = Plot(**web.cherrypy.request.json)
+        return plot.to_image('png')
 
     @expose_for(plotgroup)
+    @web.method.post
+    @web.json_in()
     @web.mime.pdf
     def image_pdf(self, **kwargs):
-        plot = Plot.frompref()
-        if not plot:
-            raise web.redirect(conf.root_url + '/plot', error='No plot available')
-        return plot.draw(format='pdf')
+        plot: Plot = Plot(**web.cherrypy.request.json)
+        return plot.to_image('pdf')
 
     @expose_for(plotgroup)
-    def addsubplot(self):
-        try:
-            plot = Plot.frompref(createplot=True)
-            plot.addtimeplot()
-            plot.topref()
-        except:
-            return traceback()
+    @web.method.post
+    @web.json_in()
+    @web.mime.svg
+    def image_svg(self, **kwargs):
+        plot: Plot = Plot(**web.cherrypy.request.json)
+        return plot.to_image('svg')
 
     @expose_for(plotgroup)
-    def removesubplot(self, subplotid):
-        try:
-            plot = Plot.frompref()
-            id = int(subplotid)
-            sp = plot.subplots.pop(id - 1)
-            for line in sp.lines:
-                line.killcache()
-            plot.topref()
-            return
-        except:
-            return traceback()
+    @web.method.post
+    @web.json_in()
+    @web.mime.tif
+    def image_svg(self, **kwargs):
+        plot: Plot = Plot(**web.cherrypy.request.json)
+        return plot.to_image('tif')
 
     @expose_for(plotgroup)
-    def changeylim(self, subplotid, ymin=None, ymax=None):
-        try:
-            plot = Plot.frompref(createplot=True)
-            id = int(subplotid)
-            sp = plot.subplots[id - 1]
-            try:
-                if ymin and ymax:
-                    sp.ylim = float(ymin), float(ymax)
-                else:
-                    sp.ylim = None
-            except ValueError:
-                sp.ylim = None
-                return "%s,%s is not a pair of numbers for ymin and ymax" % (ymin, ymax)
-            plot.createtime = web.formatdate()
-            plot.topref()
-            return
-        except:
-            return traceback()
-
-    @expose_for(plotgroup)
-    def changelogsite(self, subplotid, logsite):
-        try:
-            plot = Plot.frompref(createplot=True)
-            id = int(subplotid)
-            sp = plot.subplots[id - 1]
-            sp.logsite = web.conv(int, logsite, None)
-            plot.createtime = web.formatdate()
-            plot.topref()
-            return
-        except:
-            return traceback()
-
-    @expose_for(plotgroup)
-    def addline(self, subplot, valuetypeid, siteid, instrumentid, level,
-                color='k', linestyle='-', marker='',
-                usecache=False, aggfunc='mean'):
-        try:
-            plot = Plot.frompref(createplot=True)
-            spi = int(subplot)
-            if spi > len(plot.subplots):
-                sp = plot.addtimeplot()
-            else:
-                sp = plot.subplots[spi - 1]
-            if valuetypeid and siteid:
-                sp.addline(web.conv(int, valuetypeid), web.conv(int, siteid), web.conv(int, instrumentid), web.conv(float, level),
-                           color=color, linestyle=linestyle, marker=marker,
-                           aggfunc=aggfunc)
-            else:
-                return "You tried to add a line without site or value type. This is not possible"
-            plot.newlineprops = None
-            plot.topref()
-        except:
-            return traceback()
-
-    @expose_for(plotgroup)
-    def removeline(self, subplot, line, savelineprops=False):
-        plot = Plot.frompref()
-        sp = plot.subplots[int(subplot) - 1]
-        sp.lines[int(line)].killcache()
-        if savelineprops:
-            plot.newlineprops = sp.lines.pop(int(line))
-        else:
-            plot.newlineprops = None
-            del sp.lines[int(line)]
-        plot.topref()
-
-    @expose_for(plotgroup)
-    def copyline(self, subplot, line):
-        plot = Plot.frompref()
-        sp = plot.subplots[int(subplot) - 1]
-        plot.newlineprops = sp.lines[int(line)]
-        plot.topref()
-
-    @expose_for(plotgroup)
-    def reloadline(self, subplot, line):
-        plot = Plot.frompref()
-        sp = plot.subplots[int(subplot) - 1]
-        line = sp.lines[int(line)]
-        line.killcache()
+    @web.method.post
+    @web.json_in()
+    @web.mime.jpg
+    def image_jpg(self, **kwargs):
+        plot: Plot = Plot(**web.cherrypy.request.json)
+        return plot.to_image('jpg')
 
     @expose_for(plotgroup)
     @web.mime.json
     def linedatasets_json(self, subplot, line):
-        plot = Plot.frompref()
-        sp = plot.subplots[int(subplot) - 1]
-        line = sp.lines[int(line)]
+        plot: Plot = Plot(**web.cherrypy.request.json)
+        line = plot.subplots[int(subplot) - 1].lines[int(line)]
         with db.session_scope() as session:
             datasets = line.getdatasets(session)
             return web.json_out(datasets)
@@ -736,11 +560,9 @@ class PlotPage(object):
     @expose_for(plotgroup)
     @web.mime.csv
     def export_csv(self, subplot, line):
-        plot = Plot.frompref()
+        plot: Plot = Plot(**web.cherrypy.request.json)
         sp = plot.subplots[int(subplot) - 1]
         line = sp.lines[int(line)]
-
-
         io = StringIO()
         line.export_csv(io, plot.startdate, plot.enddate)
         io.seek(0)
@@ -749,7 +571,7 @@ class PlotPage(object):
     @expose_for(plotgroup)
     @web.mime.csv
     def export_json(self, subplot, line):
-        plot = Plot.frompref()
+        plot: Plot = Plot(**web.cherrypy.request.json)
         sp = plot.subplots[int(subplot) - 1]
         line = sp.lines[int(line)]
         io = StringIO()
@@ -760,13 +582,7 @@ class PlotPage(object):
     @expose_for(plotgroup)
     @web.mime.csv
     def exportall_csv(self, tolerance):
-        plot = Plot.frompref()
-#         datasetids=[]
-#         session=db.Session()
-#         for sp in plot.subplots:
-#             for line in sp.lines:
-#                 datasetids.extend(ds.id for ds in line.getdatasets(session))
-#         session.close()
+        plot: Plot = Plot(**web.cherrypy.request.json)
         lines = []
         for sp in plot.subplots:
             lines.extend(sp.lines)
@@ -777,17 +593,15 @@ class PlotPage(object):
 
     @expose_for(plotgroup)
     @web.mime.csv
-
     def RegularTimeseries_csv(self, tolerance=12, interpolation=''):
-        plot = Plot.frompref()
+        plot: Plot = Plot(**web.cherrypy.request.json)
         datasetids = []
-        session = db.Session()
-        lines = []
-        for sp in plot.subplots:
-            lines.extend(sp.lines)
-            for line in sp.lines:
-                datasetids.extend(ds.id for ds in line.getdatasets(session))
-        session.close()
+        with db.session_scope() as session:
+            lines = []
+            for sp in plot.subplots:
+                lines.extend(sp.lines)
+                for line in sp.lines:
+                    datasetids.extend(ds.id for ds in line.getdatasets(session))
         stream = StringIO()
         from ..tools.ExportRegularData import createPandaDfs
         # explicit decode() for byte to string
@@ -796,61 +610,5 @@ class PlotPage(object):
                        interpolationtime=interpolation, tolerance=float(tolerance))
         return stream.getvalue()
 
-    @expose_for(plotgroup)
-    def clf(self):
-        plot = Plot.frompref()
-        plot.killcache()
-        plot = Plot()
-        plot.topref()
 
-    @expose_for(plotgroup)
-    def changeplot(self, **kwargs):
-        try:
-            start = web.parsedate(kwargs.get('start'))
-            end = web.parsedate(kwargs.get('end'))
-            plot = Plot.frompref(createplot=True)
-            if start < plot.startdate or end > plot.enddate:
-                plot.killcache()
-            plot.startdate = start
-            plot.enddate = end
-            plot.size = float(kwargs.get('width')) / \
-                100., float(kwargs.get('height')) / 100.
-            plot.rows, plot.columns = int(
-                kwargs.get('rows')), int(kwargs.get('columns'))
-            plot.aggregate = kwargs.get('aggregate', '')
-            plot.createtime = web.formatdatetime()
-            plot.topref()
-        except:
-            return traceback()
 
-    @web.expose
-    @web.mime.png
-    def climate(self, enddate=None, days=1, site=47):
-        try:
-            enddate = web.parsedate(enddate)
-        except:
-            enddate = datetime.now()
-        days = float(days)
-        site = int(site)
-        startdate = enddate - timedelta(days=days)
-        plot = Plot((6., 9.), columns=1, rows=6,
-                    startdate=startdate, enddate=enddate, ylabelfs='8')
-        # 1 Temperature (vt=14)
-        Tsp = plot.addtimeplot()
-        Tsp.addline(14, site, color='r', linestyle='-', usecache=False)
-        Tsp.addline(8, site, color='b', linestyle='-',
-                    usecache=False)  # Water Temperature
-        # 2 Rainfall
-        plot.addtimeplot().addline(9, site, color='b', linestyle='-', usecache=False)
-        # 3 Discharge
-        plot.addtimeplot().addline(1, site, color='b', linestyle='-', usecache=False)
-        # 4 Radiation
-        plot.addtimeplot().addline(11, site, color='r', linestyle='-', usecache=False)
-        # 5 rH
-        plot.addtimeplot().addline(10, site, color='c', linestyle='-', usecache=False)
-        # 6 Windspeed
-        plot.addtimeplot().addline(12, site, color='k', linestyle='-', usecache=False)
-
-        plot64 = b64encode(plot.draw(format='png')).decode('utf-8')
-
-        return web.render('climateplot.html', climateplot=plot64, plot=plot).render()

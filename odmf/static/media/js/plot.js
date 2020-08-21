@@ -3,28 +3,34 @@
  */
 
 
-function toggle(id) {
-	$('#'+id).slideToggle('fast');
-}
-function seterror(data) {
-	if (data) {
-		$('#error').html(data);
+function seterror(jqhxr ,textStatus, errorThrown) {
+	if (textStatus) {
+		$('#error').html(textStatus);
+		$('#error-row').slideDown();
 	} else {
-		window.location.reload();
+		$('#error-row').slideUp(() => {$('#error').html('');});
 	}
 }
 
 function renderplot(creationtime) {
 	$('#plot').html('Loading image...');
-	// TODO: Transfer Plot data from client => render = save
-	$.get(odmf_ref('/plot/image.d3'), {creationtime: creationtime}, (result) => {
+	$.ajax({
+      method: 'POST',
+      url: odmf_ref('/plot/image.d3'),
+      contentType: 'application/json',
+      processData: false,
+      data: JSON.stringify(plot),
+      dataType: 'html'
+    })
+	.done((result) => {
 		$('#plot').html(result);
-	});
+	})
+	.fail(seterror);
 }
 function gettime(startOrEnd) {
-	var res = $('#'+ startOrEnd + 'date').val();
-	if (res>'') {
-		res += ' ' + $('#'+ startOrEnd + 'time').val();
+	let res = $('#'+ startOrEnd + 'date').val();
+	if (res) {
+		res += ' ' + ($('#'+ startOrEnd + 'time').val() || '00:00');
 	} else {
 		res = '';
 	}
@@ -34,8 +40,10 @@ function gettime(startOrEnd) {
 var plot = {
 	start:gettime('start'),
 	end:gettime('end'),
-	columns:$('#plotcolumns').val(),
+	columns:parseInt($('#prop-columns').val()),
 	aggregate:$('#plotaggregate').val(),
+	height: 640,
+	width: 480,
 	subplots: [{
 		lines: [],
 		ylim: null,
@@ -44,33 +52,64 @@ var plot = {
 }
 
 function plot_change() {
-	let txt_plot = JSON.stringify(plot);
+	if (plot.columns > plot.subplots.length) {
+		plot.columns = Math.max(1, plot.subplots.length);
+	}
+	let txt_plot = JSON.stringify(plot, null, 4);
+	render_content_tree(plot);
 	sessionStorage.setItem('plot', txt_plot);
 	$('#json-row pre').html(txt_plot);
 
 }
 
+function render_content_tree(plot) {
+	plot.subplots.forEach((subplot, index) => {
+		let txt = $('#subplot-template').html()
+			.replace(/§position§/g, index + 1)
+			.replace(/§logsite§/g, subplot.logsite)
+		let obj = $(txt);
+		let line_template = $('#line-template').html()
+		subplot.lines.forEach((line, lineindex) => {
+			let line_html = line_template.replace(/§sp_pos§/g, index + 1).replace(/§i§/g, lineindex)
+			for (let k in line) {
+				line_html = line_html.replace('{{' + k + '}}', line[k])
+			}
+			obj.children('newline').before(line_html);
+		})
+		$('#content-tree .subplot').remove();
+		$('#ct-new-subplot').before(obj);
+
+
+	})
+}
+
 function addsubplot() {
-	$.post('addsubplot', {}, seterror);
 	plot.subplots.push({lines: [], ylim: null, logsite: null});
 	plot_change();
 
 }
 function removesubplot(id) {
-	$.post('removesubplot', {subplotid:id}, seterror);
 	plot.subplots.splice(id - 1, 1);
 	plot_change();
 
 }
 function changeylimit(id) {
-	var text = prompt('Enter the y axis limit as min,max, eg. 0.5,1.5.').split(',');
-	$.post('changeylim',{subplotid:id,ymin:text[0],ymax:text[1]},seterror);
+	let text = prompt('Enter the y axis limit as min,max, eg. 0.5,1.5.').split(',');
+	try {
+		plot.subplots[id - 1].ylim = [parseFloat(text[0]), parseFloat(text[1])];
+	} catch (e) {
+		$('#error').html('Edit line failed: ' + e.toString());
+	}
 	plot_change();
 
 }
 function changelogsite(id) {
-	var logsite = $('#logsiteselect_' + id).val();
-	$.post('changelogsite',{subplotid:id,logsite:logsite},seterror);
+	let logsite = $('#logsiteselect_' + id).val();
+	try {
+		plot.subplots[id - 1].logsite = parseInt(logsite);
+	} catch (e) {
+		$('#error').html('Edit line failed: ' + e.toString());
+	}
 	plot_change();
 
 }
@@ -99,7 +138,12 @@ function line_from_dialog() {
 	}
 }
 
-function line_to_dialog(line) {
+function subplot_from_line_dialog() {
+	return sp = parseInt($('#newline-subplot').text()) - 1;
+}
+
+function line_to_dialog(subplot, line) {
+	$('#newline-subplot').html(subplot);
 	$('#nl-value').val(line.valuetypeid);
 	$('#nl-site').val(line.siteid);
 	$('#nl-instrument').val(line.instrumentid);
@@ -110,11 +154,15 @@ function line_to_dialog(line) {
 	$('#nl-aggregation').val(line.aggfunc);
 }
 
-function open_line_dialog(line) {
-	if (line) {
-		line_to_dialog(line);
-	}
+function open_line_dialog() {
 	$('#newline-dialog').modal('show');
+}
+
+function addline(sp, line) {
+	while (plot.subplots.length < sp) {
+		addsubplot();
+	}
+	plot.subplots[sp].lines.push(line);
 }
 
 function removeline(subplot,line) {
@@ -125,22 +173,23 @@ function removeline(subplot,line) {
 function editline(subplot,line_no) {
 	try {
 		let line = plot.subplots[subplot].lines[line_no];
+		line_to_dialog(subplot, line);
 		open_line_dialog(line);
 		plot.subplots[subplot].lines.splice(line_no, 1);
 		plot_change();
 	} catch (e) {
 		$('#error').html('Edit line failed: ' + e.toString());
 	}
-
-
-	$.post('removeline',{subplot:subplot, line:line_no, savelineprops:true}, seterror);
 }
+
 function copyline(subplot,line) {
-	$.post('copyline',{subplot:subplot,line:line},seterror);
-}
-function reloadline(subplot,line) {
-	$.post('reloadline',{subplot:subplot,line:line},seterror);
-
+	try {
+		let line = plot.subplots[subplot].lines[line_no];
+		line_to_dialog(subplot, line);
+		open_line_dialog(line);
+	} catch (e) {
+		$('#error').html('Edit line failed: ' + e.toString());
+	}
 }
 function showlinedatasets(subplot,line) {
 	var content = $('#datasetlist_'+subplot+'_'+line).html();
@@ -163,8 +212,7 @@ function showlinedatasets(subplot,line) {
 	}
 
 }
-function timerange(step)
-{
+function timerange(step) {
 	if (step == null) {step=60;}
 	var foo = [];
 	for (var i = 0; i <= 60*24; i+=step) {
@@ -277,6 +325,7 @@ function popSelect(subplotpos, newlineprops) {
 
 
 }
+
 function clearFilter() {
 	$('.filter').val('');
 	$('#dateselect').val('');
@@ -284,31 +333,40 @@ function clearFilter() {
 	popSelect(1);
 }
 $(() => {
-	$(".timepicker").autocomplete({source: timerange(15)});
+
+	let saved_plot = JSON.parse(sessionStorage.getItem('plot'))
+	if (saved_plot) {
+		plot = saved_plot
+	} else {
+		plot_change()
+	}
+	$(".date").datetimepicker({format: 'YYYY-MM-DD HH:mm'})
 	$('#addsubplot').prop('disabled', false);
 
 	$('#btn-clf').click(function() {
-		$.post('clf',{},seterror);
+		plot.subplots = [{
+			lines: [],
+			ylim: null,
+			logsite: null,
+		}];
 	});
     // Fluid layout doesn't seem to support 100% height; manually set it
     $(window).resize(() => {
-    	let po = $('#plot').offset();
+    	let plotElement = $('#plot');
+    	let po = plotElement.offset();
     	po.totalHeight = $(window).height();
-		po.em1 = parseFloat(getComputedStyle($('#plot')[0]).fontSize);
+		po.em1 = parseFloat(getComputedStyle(plotElement[0]).fontSize);
     	let plotHeight = po.totalHeight - po.top - 2 * po.em1;
-    	$('#plot').height(plotHeight);
+    	plotElement.height(plotHeight);
+    	plot.height = plotHeight;
+    	plot.width = plotElement.width();
+    	plot_change();
 
     });
 
     $('#nl-OK').click((event) => {
-    	let sp = parseInt($('#newline-subplot').text());
-    	while (plot.subplots.length < sp) {
-    		plot.subplots.push([]);
-		}
-		let line = line_from_dialog();
-		plot.subplots[sp - 1].lines.push(line);
-		$.post('addline', line,seterror);
-
+    	addline(subplot_from_line_dialog(), line_from_dialog());
+    	plot_change();
 	});
 
     $(window).resize();
@@ -334,19 +392,36 @@ $(() => {
 	$('#reload_plot').click(() => {
 		let now = new Date().toISOString()
 		renderplot(now);
-	});
-	$('#loadplotbutton').click(function() {
-		toggle('loadplotdiv');
+		plot_change();
 	});
 	$('.loadplotfn').click(function(){
 		var fn = $(this).html();
 		$.post('loadplot',{filename:fn},seterror);
 
 	});
-	$('#deleteplotbutton').click(function() {
-		toggle('killplotdiv');
 
+	$('#property-dialog').on('show.bs.modal', event => {
+		if (plot.start) {
+			$('#startdate').val(plot.start.split(' ')[0])
+			$('#starttime').val(plot.start.split(' ')[1])
+		}
+		if (plot.end) {
+			$('#enddate').val(plot.end.split(' ')[0])
+			$('#endtime').val(plot.end.split(' ')[1])
+		}
+
+		$('#prop-columns').val(plot.columns).attr('max', Math.max(1, plot.subplots.length))
+		$('#plotaggregate').val(plot.aggregate)
+		$('#prop-description').val(plot.description)
+	})
+	$('#prop-OK').click(event => {
+		plot.start = gettime('start')
+		plot.end = gettime('end')
+		plot.columns = parseInt($('#prop-columns').val())
+		plot.aggregate = $('#plotaggregate').val()
+		plot_change()
 	});
+
 	$('.killplotfn').click(function(){
 		var fn = $(this).html();
 		if (confirm('Do you really want to delete your plot "' + fn + '" from the server'))

@@ -2,16 +2,94 @@
 
 <py:extends href="bootstrap_navigation.html" xmlns:py="">
     <py:block name="scripts">
-        <script type="text/javascript" src="${conf.root_url}/media/js/plot.js">
-        </script>
-        <script>
-            $(() => {
-                for (let i = 0;i != 10;i++) {
-                    popSelect(i,${literal(as_json(plot.newlineprops))});
-                }
-            });
-        </script>
-    </py:block>
+        <script type="text/javascript" src="${conf.root_url}/media/lib/moment.min.js"/>
+        <script type="text/javascript" src="${conf.root_url}/media/lib/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"/>
+        <script type="text/javascript" src="${conf.root_url}/media/js/plot.js"/>
+
+        <script type="text/javascript">
+       </script>
+        <div class="d-none"  id="subplot-template" type="template" >
+            <div class="subplot card mb-2 w-100">
+                <div class="card-header">
+                    <h5 class="card-title">plot §position§
+                        <span class="btn-group card-text">
+                            <button disabled="disabled"
+                                    onclick="removesubplot(§position§)"
+                                    class="btn btn-sm btn-danger py-0" data-toggle="tooltip"
+                                    title="remove subplot §position§ from figure"
+                            >
+                                <i class="fas fa-times-circle"/>
+                            </button>
+                            <button onclick="changeylimit(§position§)"
+                                    class="btn btn-sm btn-primary py-0" data-toggle="tooltip"
+                                    title="change y axis limit"
+                            >
+                                <i>y</i>&#x2195;
+                            </button>
+                            <button data-toggle="dropdown" class="btn btn-sm btn-primary py-0 dropdown-toggle">
+                                <i class="fas fa-tags" data-toggle="tooltip" title="Show logged events at a site in the graph"/> §logsite§
+                            </button>
+                            <!--div id="logsiteselectdiv_§position§" class="dropdown-menu" >
+                                <select class="form-control dropdown-item" id="logsiteselect_§position§"
+                                        py:with="sites=sp.get_sites()"
+                                        onchange="changelogsite(§position§);"
+                                        size="">
+                                    <option value="" py:attrs="markoption(not sp.logsite in sites)">None</option>
+                                    <option py:for="siteid in sorted(sites)"
+                                            py:attrs="markoption(sp.logsite == siteid)"
+                                            value=""></option>
+                                </select>
+                            </div-->
+                        </span>
+                    </h5>
+                </div>
+
+                <ul class="list-group list-group-flush">
+                    <li class="newline list-group-item">
+                        <button class="btn btn-sm btn-primary btn-outline shadow py-0" data-toggle="modal" data-target="#newline-dialog"
+                                data-subplot="§position§"
+                        >
+                            <i class="fas fa-plus-circle"/> add line...
+                        </button>
+                    </li>
+                </ul>
+
+            </div>
+
+        </div>
+        <div class="d-none" id="line-template" type="template">
+            <li class="line list-group-item">
+                <span style="color:§color§">§linestyle§§marker§</span> §l§
+                <div class="btn-group" id="linetools_§sp_pos§_§index§">
+                    <button onclick="removeline(§sp_pos§,§i§)" title="remove line"
+                            class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
+                        <i class="fas fa-times-circle"/>
+                    </button>
+                    <button onclick="exportline(§sp_pos§,§i§)"
+                       class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip" title="export to csv file...">
+                        <i class="fas fa-file-csv"/>
+
+                    </button>
+                    <button onclick="showlinedatasets(§sp_pos§,§i§)"
+                            class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip" title="show datasets of line">
+                        <i class="fas fa-list"/>
+                    </button>
+                    <button onclick="editline(§sp_pos§,§i§)" title="edit line"
+                            class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
+                        <i class="fas fa-edit"/>
+                    </button>
+                    <button onclick="copyline(§sp_pos§,§i§)" title="copy line"
+                            class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
+                        <i class="fas fa-copy"/>
+                    </button>
+
+                </div>
+
+                <ul id="datasetlist_§sp_pos§_§i§" class="datasetlist small doc"/>
+            </li>
+
+        </div>
+    </py:block>0
     <py:block name="style">
         <style type="text/css">
             .firstoption {font-style: italic;color: grey;}
@@ -62,91 +140,11 @@
                 <!--
                     Subplots
                 -->
-                <div py:for="sp in plot.subplots" class="card mb-2 w-100">
-                    <div class="card-header">
-                        <h5 class="card-title">plot #${sp.position}
-                            <span class="btn-group card-text">
-                            <button py:if="sp.position==len(plot.subplots)"
-                                    onclick="removesubplot(${sp.position})"
-                                    class="btn btn-sm btn-danger py-0" data-toggle="tooltip"
-                                    title="remove subplot ${sp.position} from figure"
-                            >
-                                <i class="fas fa-times-circle"/>
-                            </button>
-                            <button onclick="changeylimit(${sp.position})"
-                                    class="btn btn-sm btn-primary py-0" data-toggle="tooltip"
-                                    title="change y axis limit"
-                            >
-                                <i>y</i>&#x2195;
-                            </button>
-                            <button data-toggle="dropdown" class="btn btn-sm btn-primary py-0 dropdown-toggle">
-                                <i class="fas fa-tags" data-toggle="tooltip" title="Show logged events at a site in the graph"/> ${'for #%i' % sp.logsite if sp.logsite else ''}
-                            </button>
-                            <div id="logsiteselectdiv_${sp.position}" class="dropdown-menu" >
-                                <select class="form-control dropdown-item" id="logsiteselect_${sp.position}"
-                                        py:with="sites=sp.get_sites()"
-                                        onchange="changelogsite(${sp.position});"
-                                        size="${min(len(sites)+1,10)}">
-                                    <option value="" py:attrs="markoption(not sp.logsite in sites)">None</option>
-                                    <option py:for="siteid in sorted(sites)"
-                                            py:attrs="markoption(sp.logsite == siteid)"
-                                            value="${siteid}">${sites[siteid]}</option>
-                                </select>
-                            </div>
-                        </span>
-                        </h5>
-                    </div>
 
-                    <ul class="list-group list-group-flush">
-                        <li py:for="i,l in enumerate(sp.lines)" class="line list-group-item">
-                            <span style="color:${l.color}">${l.linestyle+l.marker}</span> ${l}
-                            <div class="btn-group" id="linetools_${sp.position}_${i}">
-                                <button onclick="removeline(${sp.position},${i})" title="remove line"
-                                        class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
-                                    <i class="fas fa-times-circle"/>
-                                </button>
-                                <a href="${conf.root_url}/plot/export.csv?${'subplot=%i&amp;line=%i' % (sp.position,i)}"
-                                   class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip" title="export to csv file...">
-                                    <i class="fas fa-file-csv"/>
-
-                                </a>
-                                <button onclick="showlinedatasets(${sp.position},${i})"
-                                        class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip" title="show datasets of line">
-                                    <i class="fas fa-list"/>
-                                </button>
-                                <button onclick="reloadline(${sp.position},${i})"
-                                        title="Reload this line from the database."
-                                        class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
-                                    <i class="fas fa-sync"/>
-                                </button>
-                                <button onclick="editline(${sp.position},${i})" title="edit line"
-                                        class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
-                                    <i class="fas fa-edit"/>
-                                </button>
-                                <button onclick="copyline(${sp.position},${i})" title="copy line"
-                                        class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
-                                    <i class="fas fa-copy"/>
-                                </button>
-
-                            </div>
-
-                            <ul id="datasetlist_${sp.position}_${i}" class="datasetlist small doc"/>
-                        </li>
-                        <li id="new-line-li" class="line list-group-item">
-                            <button class="btn btn-sm btn-primary btn-outline shadow py-0" data-toggle="modal" data-target="#newline-dialog"
-                                    id="addline" data-subplot="${sp.position}"
-                            >
-                                <i class="fas fa-plus-circle"/> add line...
-                            </button>
-                        </li>
-                    </ul>
-
-                </div>
-
-                <div class="card mb-2 w-100">
+                <div id="ct-new-subplot" class="card mb-2 w-100">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <button id="addsubplot" onclick="javascript:addsubplot()" class="btn btn-primary mr-2">
+                            <button id="addsubplot" onclick="addsubplot()" class="btn btn-primary mr-2">
                                 <i class="fas fa-plus-circle"/>
                             </button>
                             add subplot
@@ -159,11 +157,11 @@
     </py:block>
     <py:block name="content">
         <div class="container-fluid m-0 p-0">
-            <div id="error-row" class="row mt-2 w-100">
-                <div class="container ${'' if error else 'd-none'}">
+            <div id="error-row" class="row mt-2 w-100 d-none">
+                <div class="container">
                     <div id="error" class="row bg-danger text-white border rounded p-4">
                         <h1 class="display-3 col-lg-2">Error</h1>
-                        <div class="lead col-lg-10" id="error" py:content="markdown(error)"/>
+                        <div class="lead col-lg-10" id="error" />
                     </div>
 
                 </div>
@@ -190,22 +188,23 @@
                     </div>
                     <div class="modal-body form-group">
                         <label for="startdatetime">start:</label>
-                        <div id="startdatetime" class="input-group">
-                            <input class="props form-control" type="date" id="startdate"
-                                   value="${f'{plot.startdate:%Y-%m-%d}'}"/>
-                            <input class="props timepicker form-control" id="starttime"
-                                   value="${f'{plot.startdate:%H:%M}'}"/>
+                        <div id="startdatetime" class="input-group date">
+                            <input class="props form-control" type="text" id="startdate"
+                                   value=""/>
+                            <span class="input-group-addon">
+                                <i class="fas fa-calendar"/>
+                            </span>
                         </div>
                         <label for="enddatetime">end:</label>
                         <div id="enddatetime" class="input-group">
 
                             <input class="props form-control" type="date" id="enddate"
-                                   value="${f'{plot.enddate:%Y-%m-%d}'}"/>
+                                   value=""/>
                             <input class="props timepicker form-control" id="starttime"
-                                   value="${f'{plot.enddate:%H:%M}'}"/>
+                                   value="00:00"/>
                         </div>
-                        <label for="prop-colums">Subplot columns</label>
-                        <input id ="prop-columns" class="props form-control" type="number" value="${plot.columns}" />
+                        <label for="prop-columns">Subplot columns</label>
+                        <input id ="prop-columns" class="props form-control" type="number" value="1" max="1" min="1"/>
                         <label for="plotaggregate">Aggregation:
                             <a class="btn btn-secondary"
                                href="${conf.root_url}/wiki/plot/aggregate"
@@ -223,6 +222,8 @@
                             <option value="M" py:attrs="markoption(plot.aggregate=='M')">Monthly</option>
                             <option value="Y" py:attrs="markoption(plot.aggregate=='Y')">Yearly</option>
                         </select>
+                        <label for="prop-description">Description (markdown)</label>
+                        <textarea id="prop-description" rows="" class="form-control"></textarea>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -256,10 +257,10 @@
                                 load plot files
                             </button>
                             <div class="dropdown-menu dropdown-menu-left" aria-labelledby="file-dropdown">
-                                <div class="dropdown-item file-list d-flex" py:for="fn in plot.listdir()" data-file="${fn}">
+                                <div class="dropdown-item file-list d-flex" py:for="fn in plot.listdir()" data-file="">
                                     <a class="mr-auto">
                                         <i class="fas fa-folder fa-lg"/>
-                                            ${fn}
+
                                     </a>
                                     <button class="btn btn-secondary file-delete-button">
                                         <i class="fas fa-times-circle"/>
@@ -268,12 +269,14 @@
                             </div>
                         </div>
                         <div id="export-image-tools" class="btn-group mr-2">
+                            <!-- Must post plot -->
                             <a class="btn btn-outline-secondary" title="Opens the graph as a pdf file." data-toggle="tooltip"
-                               href="${conf.root_url}/plot/image.pdf?create=${plot.createtime}">
+                               href="${conf.root_url}/plot/image.pdf">
                                 <i class="fas fa-file-pdf" />
                             </a>
+                            <!-- Must post plot -->
                             <a class="btn btn-outline-secondary" title="Opens the graph as a png file." data-toggle="tooltip"
-                               href="${conf.root_url}/plot/image.png?create=${plot.createtime}">
+                               href="${conf.root_url}/plot/image.png">
                                 <i class="fas fa-file-image" />
                             </a>
                         </div>
@@ -403,7 +406,7 @@
                         <select id="nl-color" class="form-control">
                             <option py:for="c in ['#000000' ,'#0000FF','#00FF00','#FF0000', '#FFFF00','#00FFFF','#FF00FF']"
                                     value="${c}" py:content="c" style="background-color: ${c}"
-                                    py:attrs="markoption(plot.newlineprops and plot.newlineprops['color']==c)"
+                                    py:attrs=""
                             />
                         </select>
 
@@ -426,7 +429,6 @@
                 </div>
             </div>
         </div>
-
 
     </py:block>
 </py:extends>
