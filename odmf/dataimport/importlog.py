@@ -292,7 +292,7 @@ class LogbookImport(object):
         try:
             # TODO: Nodata comparison here
             value = self.get_value(row, self.columns.value)
-            if value is None or value is '':
+            if not value:
                 v = None
             else:
                 v = float(value)
