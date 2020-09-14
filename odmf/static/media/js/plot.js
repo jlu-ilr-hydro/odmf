@@ -69,15 +69,21 @@ function render_content_tree(plot) {
 			.replace(/§logsite§/g, subplot.logsite)
 		let obj = $(txt);
 		let line_template = $('#line-template').html()
+		let newline_obj = obj.find('li.newline')
 		subplot.lines.forEach((line, lineindex) => {
-			let line_html = line_template.replace(/§sp_pos§/g, index + 1).replace(/§i§/g, lineindex)
+			let line_html = line_template
+				.replace(/§sp_pos§/g, index + 1)
+				.replace(/§i§/g, lineindex)
 			for (let k in line) {
-				line_html = line_html.replace('{{' + k + '}}', line[k])
+				line_html = line_html
+					.replace(`§${k}§`, line[k])
+
 			}
-			obj.children('newline').before(line_html);
+			newline_obj.before(line_html);
 		})
 		$('#content-tree .subplot').remove();
 		$('#ct-new-subplot').before(obj);
+
 
 
 	})

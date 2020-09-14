@@ -80,7 +80,7 @@ class Line:
     Represents a single line of a subplot
     """
 
-    def __init__(self, subplot, valuetype, site, instrument=None, level=None,
+    def __init__(self, subplot, valuetypeid, siteid, instrumentid=None, level=None,
                  color='', marker='', linestyle='',
                  transformation=None, aggregatefunction='mean'):
         """
@@ -100,10 +100,10 @@ class Line:
         self.linestyle = linestyle
         session = db.Session()
         self.valuetype = session.query(db.ValueType).get(
-            int(valuetype)) if valuetype else None
-        self.site = session.query(db.Site).get(int(site)) if site else None
+            int(valuetypeid)) if valuetypeid else None
+        self.site = session.query(db.Site).get(int(siteid)) if siteid else None
         self.instrument = session.query(db.Datasource).get(
-            int(instrument)) if instrument else None
+            int(instrumentid)) if instrumentid else None
         self.level = level
         session.close()
         self.transformation = transformation
@@ -116,7 +116,7 @@ class Line:
         userlevel = users.current.level if users.current else 0
         datasets = session.query(db.Dataset).filter(db.Dataset.valuetype == self.valuetype,
                                                     db.Dataset.site == self.site,
-                                                    db.Dataset.start <= self.subplot.plot.enddate,
+                                                    db.Dataset.start <= 10.subplot.plot.enddate,
                                                     db.Dataset.end >= self.subplot.plot.startdate,
                                                     db.Dataset.access <= userlevel
                                                     )

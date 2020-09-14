@@ -59,8 +59,10 @@
         </div>
         <div class="d-none" id="line-template" type="template">
             <li class="line list-group-item">
-                <span style="color:§color§">§linestyle§§marker§</span> §l§
                 <div class="btn-group" id="linetools_§sp_pos§_§index§">
+                    <button class="btn btn-sm btn-outline-secondary btn-disabled" style="color:§color§">
+                        §linestyle§ §marker§
+                    </button>
                     <button onclick="removeline(§sp_pos§,§i§)" title="remove line"
                             class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
                         <i class="fas fa-times-circle"/>
