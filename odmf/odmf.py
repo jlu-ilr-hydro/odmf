@@ -61,9 +61,14 @@ def configure(dbname, dbuser, dbpass, dbhost, port):
 
 @cli.command()
 def systemd_unit():
+    """
+    Makes a systemd service description file. Usage:
+    odmf systemd-unit
+    """
     from .config import conf
     bin_path = os.path.abspath(os.path.dirname(sys.executable))
-    print(f"""
+    cwd = os.path.abspath(os.getcwd())
+    content = f"""
 [Unit]
 Description={conf.description}
 After=network.target
@@ -76,7 +81,17 @@ Restart=always
 
 [Install]
 WantedBy=multi-user.target
-    """)
+    """
+    open(f'odmf-{conf.name}.service', 'w').write(content)
+    print(f'Created file: odmf-{conf.name}.service')
+    print()
+    print('For Debian-line systems do:')
+    print(f'    adduser --system  --gecos "ODMF/$NAME Service" --disabled-password --group --home {cwd} {conf.user}')
+    print("Add your own user to the group of this service to act as an admin with this command:")
+    print(f'    sudo adduser USER {conf.user}')
+    print(f'    sudo cp odmf-{conf.name}.service /etc/systemd/system')
+    print(f'    sudo systemctl enable odmf-{conf.name}.service')
+    print(f'    sudo systemctl start odmf-{conf.name}.service')
 
 
 @cli.command()

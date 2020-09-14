@@ -232,7 +232,7 @@
                                     \(f(x)\) transform
                                 </button>
                                 <button py:if="is_member('admin')" class="btn btn-outline-danger mr-2" title="remove dataset permanently" data-toggle="tooltip"
-                                        onclick="javascript:removeds(${ds_act.id},'${str(ds_act)}',${n});">
+                                        onclick="removeds(${ds_act.id},'${str(ds_act)}',${ds_act.size()});">
                                     <i class="fas fa-trash mr-2"/> delete dataset
                                 </button>
 
