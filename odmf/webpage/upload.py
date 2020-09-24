@@ -90,7 +90,7 @@ class DBImportPage(object):
 
         if 'commit' in kwargs and cancommit:
             di.savetoimports(path.absolute, web.user(), ["_various_as_its_manual"])
-            raise web.redirect(path.parent().href, error=error, msg=msg)
+            raise web.redirect(path.parent().href, error=error)
         else:
             return web.render(
                 'logimport.html', filename=path, logs=logs,
