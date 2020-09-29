@@ -39,7 +39,7 @@
                     username: $('#login-username').val(),
                     password: $('#login-password').val()
                 };
-                $.post('${conf.root_url}/api/login', data)
+                $.post('${conf.root_url}/api/login', $('#login-form').serialize())
                     .done(function() {
                         var curLoc =window.location.href;
                         curLoc = curLoc.replace(/error\=[^&]*/, '')
@@ -121,7 +121,7 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
                    py:content="users.current or 'login'" title="login">
                 </a>
                 <div class="dropdown-menu bg-dark dropdown-menu-right" aria-labelledby="login-link" style="min-width: 15rem;">
-                    <div id="login-form" class="m-2 bg-light border-rounded">
+                    <form id="login-form" class="m-2 bg-light border-rounded" >
                         <div class="form-group pt-2 px-2">
                             <label for="username">Username</label>
                             <input type="text" class="form-control" id="login-username" name="username" />
@@ -133,7 +133,7 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
                             <button id="login-btn"  class="btn btn-primary col mr-1">log in</button>
                             <button id="login-logout" class="btn btn-secondary col ml-1">log out</button>
                         </div>
-                    </div>
+                    </form>
 
                 </div>
             </li>
