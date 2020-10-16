@@ -6,9 +6,8 @@ from datetime import datetime, timedelta
 import time
 import cherrypy
 
-from .base import AbstractImport, ImportDescription, ImportColumn, ImportStat, LogImportDescription
-from .base import config_getdict
-from ..dataimport.importlog import LogbookImport, LogImportError, ILogColumn
+from .base import config_getdict, ImportDescription, ImportColumn
+from ..dataimport.importlog import LogbookImport, LogImportError
 from .xls import XlsImport
 from ..config import conf
 from re import search, sub
@@ -17,39 +16,98 @@ from .. import db
 from pytz import common_timezones_set
 
 
-class ManualMeasurementsColumns(ILogColumn):
+class LogImportDescription(ImportDescription):
     """
-    More specific LogColumn with full filling the requirements of @ManualMeasurementsImport
-
-    FIXME: Why this derives from ILogColumn when no super class attributes are used?
+    Temporary Helper Class
     """
+    # TODO: Refactor this into new class hierarchy
 
-    def __init__(self, config, section):
+    def __init__(self, instrument, skiplines=0, delimiter=',', decimalpoint='.',
+                 dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
+                 timezone=conf.datetime_default_timezone, project=None,
+                 site=None, dataset=None, value=None, logtext=None, msg=None,
+                 worksheet=1, nodata=[], sample_mapping=None):
+        """
+        instrument: the database id of the instrument that produced this file
+        skiplines: The number of lines prepending the actual data
+        delimiter: The delimiter sign of the columns. Use TAB for tab-delimited columns, otherwise ',' or ';'
+        """
 
-        def getvalue(option, t=str):
+        self.site = site
+        self.dataset = dataset
+        self.value = value
+        self.logtext = logtext
+        self.msg = msg
+
+        super(LogImportDescription, self)\
+            .__init__(instrument, skiplines, delimiter, decimalpoint,
+                      dateformat, datecolumns, timezone, project, nodata=nodata,
+                      worksheet=worksheet, sample_mapping=sample_mapping)
+
+    @classmethod
+    def from_config(cls, config):
+        """
+        Creates a TextImportDescriptor from a ConfigParser.RawConfigParser
+        by parsing its content
+        """
+
+        def getvalue(section, option, type=str):
             if config.has_option(section, option):
-                return t(config.get(section, option))
-
+                return type(config.get(section, option))
             else:
                 return None
 
-        self.column = config.getint(section, 'column'),
-        self.name = config.get(section, 'name'),
-        self.valuetype = config.getint(section, 'valuetype'),
-        self.factor = config.getfloat(section, 'factor'),
-        self.comment = getvalue('comment'),
-        self.difference = getvalue('difference'),
-        self.minvalue = getvalue('minvalue', float),
-        self.maxvalue = getvalue('maxvalue', float),
-        self.append = getvalue('append', int),
-        self.level = getvalue('level', float),
-        self.access = getvalue('access', int),
-        self.sample_mapping = config_getdict(config, section, 'sample_mapping')
+        sections = config.sections()
+        if not sections:
+            raise IOError('Empty config file')
 
-        self.dataset = config.getint(section, 'dataset')
+        # Check integrity of the data
+        with db.session_scope() as session:
+
+            # Get the data which shall be checked
+            project = getvalue(sections[0], 'project')
+            timezone = getvalue(sections[0], 'timezone')
+
+            if project:
+                rows = session.query(db.Project) \
+                    .filter(db.Project.id == project).count()
+                if rows != 1:
+                    raise ValueError('Error in import description: \'%s\' is no'
+                                     ' valid project identifier' % project)
+
+            if timezone:
+                # Search in pytz's "set" cause of the set is faster than the
+                # list
+                if timezone not in common_timezones_set:
+                    raise ValueError('Error in import description: \'%s\' is no'
+                                     ' valid timezone' % timezone)
+
+        # Create a new TextImportDescriptor from config file
+
+        tid = cls(instrument=config.getint(sections[0], 'instrument'),
+                  skiplines=config.getint(sections[0], 'skiplines'),
+                  delimiter=getvalue(sections[0], 'delimiter'),
+                  decimalpoint=getvalue(sections[0], 'decimalpoint'),
+                  dateformat=getvalue(sections[0], 'dateformat'),
+                  datecolumns=eval(config.get(sections[0], 'datecolumns')),
+                  project=getvalue(sections[0], 'project', int),
+                  timezone=getvalue(sections[0], 'timezone'),
+                  site=getvalue(sections[0], 'sitecolumn', int),
+                  dataset=getvalue(sections[0], 'dataset', int),
+                  value=getvalue(sections[0], 'value', float),
+                  logtext=getvalue(sections[0], 'logtext'),
+                  msg=getvalue(sections[0], 'msg'),
+                  worksheet=getvalue(sections[0], 'worksheet', int),
+                  sample_mapping=config_getdict(config, sections[0], 'sample_mapping')
+                  )
+        tid.name = sections[0]
+        for section in sections[1:]:
+            tid.columns.append(ImportColumn.from_config(config, section))
+            print(tid.columns)
+        return tid
 
 
-class ManualMeasurementsImport(LogbookImport):
+class ManualMeasurementsImport:
     """
     Importclass for Manual Measurements
     """
@@ -64,7 +122,7 @@ class ManualMeasurementsImport(LogbookImport):
         self.sheetName = sheetName
 
         if descr:
-            self.descr = descr
+            self.descr: LogImportDescription = descr
         else:
             self.descr = LogImportDescription.from_file(filename)
 
@@ -73,9 +131,8 @@ class ManualMeasurementsImport(LogbookImport):
         self.sheet = XlsImport.open_sheet(
             xlrd.open_workbook(filename, on_demand=True), filename, self.descr.worksheet, err)
 
-        #self.filename = configfile.file
 
-    def __call__(self, commit=False, preload=False):
+    def __call__(self, commit=False):
         session = db.Session()
         logs = []
         errors = {}
@@ -91,10 +148,6 @@ class ManualMeasurementsImport(LogbookImport):
         #                     "a server timeout. Please split your file and "
         #                     "proceed!")
 
-        if preload:
-            self.preload()
-
-        self._preload = preload
 
         try:
             for row in range(start, end):
@@ -128,97 +181,7 @@ class ManualMeasurementsImport(LogbookImport):
 
         return logs, not errors
 
-    # TODO: no signifcant performance throughout preload phase, TEST THIS @chris
-    def preload(self, session, start, end):
-        """
-        Preloads ds_columns and site columns
 
-        :param start:
-        :param end:
-        :return:
-        """
-        print("Preload starts ...")
-
-        t0 = time.time()
-
-        # preload sites, datasets and valuetypes (performance issue)
-        #
-        # after the preload they are stored in the look up tables
-        # ------------
-        # key => value
-        # id  => db.Object
-        # ------------
-        self._sites = dict()
-        self._valuetypes = dict()
-        self._datasets = dict()
-
-        # stores start, end interval of a datasets recors in the importing file
-        # 0 -> start
-        # 1 -> end
-        # 2 -> count of records between start and end
-        # 3 -> count of logs between start and end
-        self._times = dict()
-
-        for row in range(start, end):
-
-            # check site and add to lut
-            _site = int(self.sheet.cell_value(row, self.descr.site))
-            if _site not in list(self._sites.keys()):
-                self._sites[int(_site)] = session.query(db.Site).get(_site)
-
-            # check each column of one row
-            for column in self.descr.columns:
-                # check valuetype of a row and add to lut
-                _valuetype = column.valuetype
-                if _valuetype not in list(self._sites.keys()):
-                    self._valuetypes[int(_valuetype)] = session.query(
-                        db.ValueType).get(_valuetype)
-
-                # check dataset column of a valuetype in a row, add to lut
-                if column.ds_column:
-                    _dataset = int(self.get_value(row, column.ds_column))
-                    if _dataset not in list(self._datasets.keys()):
-                        self._datasets[int(_dataset)] = session.query(
-                            db.Dataset).get(_dataset)
-
-                    # check time intervals of records of a dataset
-                    _time = self.get_datetime(row)
-
-                    if _time:
-                        if _dataset in list(self._times.keys()):
-                            if self._times[_dataset][0] > _time:
-                                self._times[_dataset][0] = _time
-                            elif self._times[_dataset][1] < _time:
-                                self._times[_dataset][1] = _time
-                        else:
-                            self._times[_dataset] = [_time, _time, -1, -1]
-
-                        if self._times[_dataset][0] > self._times[_dataset][1]:
-                            raise RuntimeError("Caching Error. Please debug the "
-                                               "file you are importing ...")
-
-        td = timedelta(seconds=30)
-
-        for ds in list(self._times.keys()):
-            # if records are in interval from start - td until end + td
-            self._times[ds][2] = session.query(db.Record) \
-                .filter(db.Record.dataset == self._datasets[ds],
-                        db.Record.time >= self._times[ds][0] - td,
-                        db.Record.time <= self._times[ds][1] + td,
-                        db.Record.is_error == False).count()
-
-            # if logs are in interval from start - timedelta until end + timedelta
-            self._times[ds][3] = session.query(db.Log) \
-                .filter(db.Log.site == self._datasets[ds].site,
-                        db.sql.between(db.Log.time,
-                                       self._times[ds][0] - td,
-                                       self._times[ds][1] + td)).count()
-        t1 = time.time()
-
-        cherrypy.log("Preload in %.2f s" % (t1 - t0))
-
-    # TODO: rename LogColumns -> self.columns (holding (an instance of) class
-    # with attributes for importrow (check if all attributes are set))
     def importrow(self, session, row, valuetype_column=None, commit=False):
         """
         Imports a row from the excel file as log or record
@@ -237,10 +200,10 @@ class ManualMeasurementsImport(LogbookImport):
         try:
             # TODO: Rework date/time determination, make it consistent for all types of imports
             # TODO: Build test cases for date/time determination
-            date = self.get_date(row, self.columns.date)
+            date = self.get_date(row, self.descr.date)
 
-            if self.columns.time:
-                time = self.get_date(row, self.columns.time)
+            if self.descr.time:
+                time = self.get_date(row, self.descr.time)
 
             dt = self.get_datetime(row)
 
@@ -254,7 +217,7 @@ class ManualMeasurementsImport(LogbookImport):
             raise LogImportError(row, 'Could not read date and time')
 
         # Get site
-        site = self.get_value(row, self.columns.site)
+        site = self.get_value(row, self.descr.site)
 
         # Use mapping if provided by .conf file
         if self.descr.sample_mapping:
@@ -265,20 +228,14 @@ class ManualMeasurementsImport(LogbookImport):
                 raise LogImportError(row, 'Key {} cannot be found in the .conf file provided mapping'.format(key))
 
         # use cache
-        if self._preload:
-            if site not in list(self._sites.keys()):
-                raise LogImportError(row, 'Cache error')
-            else:
-                site = self._sites[site]
+        # Use value fetched from key value mapping from .conf
+        if self.descr.sample_mapping:
+            site, err = self.get_obj(session, db.Site, row=None, col=None, strvalue=site)
+        # Use row, col value else
         else:
-            # Use value fetched from key value mapping from .conf
-            if self.descr.sample_mapping:
-                site, err = self.get_obj(session, db.Site, row=None, col=None, strvalue=site)
-            # Use row, col value else
-            else:
-                site, err = self.get_obj(session, db.Site, row, self.columns.site)
-            if err:
-                raise LogImportError(row, err)
+            site, err = self.get_obj(session, db.Site, row, self.descr.site)
+        if err:
+            raise LogImportError(row, err)
 
         if not site:
             raise LogImportError(row, 'Missing site')
@@ -379,12 +336,6 @@ class ManualMeasurementsImport(LogbookImport):
         # Get logtype and message (for logs or as record comment)
         logtype = None
         msg = None
-        #logtype, msg = self.get_value(row, (self.columns.logtext, self.columns.msg))
-
-        # Get job, currently disabled. Column 7 hold the sample name
-        # job,err = self.get_obj(session, db.Job, row, self.columns.job)
-        # if err: raise LogImportError(row,'%s in not a valid Job.id')
-        job = None
 
         # Get the sample name if present
         sample = None
@@ -418,9 +369,6 @@ class ManualMeasurementsImport(LogbookImport):
         # rais error in case the dataset is none
         else:
             raise LogImportError(row, "A value is given, but no dataset")
-
-        if job:
-            job.make_done(self, date)
 
     def get_value(self, row, col):
         """
@@ -548,11 +496,11 @@ class ManualMeasurementsImport(LogbookImport):
 
         #date = self.get_value(row, self.columns.date)
 
-        date = self.get_date(row, self.columns.date)
+        date = self.get_date(row, self.descr.date)
 
         # if a time column is given, determine time
-        if self.columns.time:
-            act_time = self.get_value(row, self.columns.time)
+        if self.descr.time:
+            act_time = self.get_value(row, self.descr.time)
 
             date = date + timedelta(act_time)
         # otherwise not
