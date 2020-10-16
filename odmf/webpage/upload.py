@@ -54,7 +54,7 @@ def write_to_file(dest, src):
 @web.expose
 class DBImportPage(object):
     @staticmethod
-    def logimport(filename, kwargs, import_with_class=LogbookImport):
+    def logimport(filename, kwargs):
         """
 
         :param filename:
@@ -71,18 +71,8 @@ class DBImportPage(object):
         if error:
             raise web.redirect(path.parent().href, error=error)
 
-        config = None
-
-        if import_with_class == ManualMeasurementsImport:
-            config = ManualMeasurementsImport.from_file(path.absolute)
-
-        from cherrypy import log
-        log("Import with class %s" % import_with_class.__name__)
-
-        li = import_with_class(path.absolute, web.user(), config=config)
-        # TODO: Sometimes this is causing a delay
+        li = LogbookImport(path.absolute, web.user())
         logs, cancommit = li('commit' in kwargs)
-        # TODO: REFACTORING FOR MAINTAINABILITY
 
         t1 = time.time()
 
@@ -90,7 +80,7 @@ class DBImportPage(object):
 
         if 'commit' in kwargs and cancommit:
             di.savetoimports(path.absolute, web.user(), ["_various_as_its_manual"])
-            raise web.redirect(path.parent().href, error=error, msg=msg)
+            raise web.redirect(path.parent().href, error=error)
         else:
             return web.render(
                 'logimport.html', filename=path, logs=logs,
@@ -105,7 +95,28 @@ class DBImportPage(object):
         :param kwargs:
         :return:
         """
-        return DBImportPage.logimport(filename, kwargs, import_with_class=ManualMeasurementsImport)
+        t0 = time.time()
+
+        path = Path(filename.strip('/'))
+
+        error = di.checkimport(path.absolute)
+        if error:
+            raise web.redirect(path.parent().href, error=error)
+        li = ManualMeasurementsImport(path.absolute, web.user())
+        logs, cancommit = li('commit' in kwargs)
+
+        t1 = time.time()
+
+        log("Imported in %.2f s" % (t1 - t0))
+
+        if 'commit' in kwargs and cancommit:
+            di.savetoimports(path.absolute, web.user(), ["_various_as_its_manual"])
+            raise web.redirect(path.parent().href, error=error)
+        else:
+            return web.render(
+                'logimport.html', filename=path, logs=logs,
+                cancommit=cancommit, error=error
+            ).render()
 
     @staticmethod
     def instrumentimport(filename, kwargs):
