@@ -266,9 +266,7 @@ class XlsImport (AbstractImport):
 
                     # Value validation
                     # now added nodata validation
-                    if row[c.column] is not None \
-                            and row[c.column] is not ''\
-                            and row[c.column] not in self.descriptor.nodata:
+                    if row[c.column] and row[c.column] not in self.descriptor.nodata:
 
                         if inrange(c, row[c.column].value):
                             # TODO: Philip fragen (Ist das so ok?)

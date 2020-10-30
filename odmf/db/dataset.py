@@ -291,7 +291,7 @@ class Record(Base):
     is_error: if True, the record is marked as error and is not used for analysis
     """
     __tablename__ = 'record'
-    id = sql.Column(sql.Integer, primary_key=True)
+    id = sql.Column(sql.Integer, primary_key=True, autoincrement=True)
     _dataset = sql.Column("dataset", sql.Integer,
                           sql.ForeignKey('dataset.id'), primary_key=True)
     dataset = orm.relationship("Timeseries", backref=orm.backref(
