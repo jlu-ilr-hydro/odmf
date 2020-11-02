@@ -354,21 +354,14 @@ class Plot(object):
         self.name = kwargs.pop('name', '')
         self.aggregate = kwargs.pop('description', '')
         self.description = kwargs.pop('description', '')
-        self.subplots = []
-        subplts = kwargs.pop('subplots', [])
-        for i, sp in enumerate(subplts):
-            self.addtimeplot(i + 1, **sp)
+        self.subplots = [
+            Subplot(self, i + 1, **spargs)
+            for i, spargs in enumerate(kwargs.pop('subplots', []))
+        ]
 
         self.args = kwargs
 
 
-    def addtimeplot(self):
-        """
-        Adds a new subplot to the plot
-        """
-        sp = Subplot(self, len(self.subplots) + 1)
-        self.subplots.append(sp)
-        return sp
 
     def draw(self):
         """
