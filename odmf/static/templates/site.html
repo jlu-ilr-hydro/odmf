@@ -26,9 +26,9 @@
                     var html='';
                     $.each(data,function(index,item){
                         if (item.id != ${actualsite.id}) {
-                            html += '<option value="/site/' + item.id + '">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
+                            html += '<option value="${conf.root_url}/site/' + item.id + '">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
                         } else {
-                            html += '<option value="/site/' + item.id + '" selected="selected">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
+                            html += '<option value="${conf.root_url}/site/' + item.id + '" selected="selected">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
                         }
                     });
                     $('#siteselect').html(html);

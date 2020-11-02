@@ -64,8 +64,7 @@ class DBImportPage(object):
         
         t0 = time.time()
 
-        absfile = conf.abspath(filename.strip('/'))
-        path = Path(absfile)
+        path = Path(filename.strip('/'))
 
         error = di.checkimport(path.absolute)
         if error:
@@ -79,7 +78,7 @@ class DBImportPage(object):
         from cherrypy import log
         log("Import with class %s" % import_with_class.__name__)
 
-        li = import_with_class(absfile, web.user(), config=config)
+        li = import_with_class(path.absolute, web.user(), config=config)
         # TODO: Sometimes this is causing a delay
         logs, cancommit = li('commit' in kwargs)
         # TODO: REFACTORING FOR MAINTAINABILITY
@@ -89,8 +88,8 @@ class DBImportPage(object):
         log("Imported in %.2f s" % (t1 - t0))
 
         if 'commit' in kwargs and cancommit:
-            di.savetoimports(absfile, web.user(), ["_various_as_its_manual"])
-            raise web.redirect(path.parent().href, error=error, msg=msg)
+            di.savetoimports(path.absolute, web.user(), ["_various_as_its_manual"])
+            raise web.redirect(path.parent().href, error=error)
         else:
             return web.render(
                 'logimport.html', filename=path, logs=logs,
