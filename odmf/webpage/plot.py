@@ -5,7 +5,7 @@ Created on 01.10.2012
 '''
 import sys
 import matplotlib
-matplotlib.use('Agg', warn=False)
+matplotlib.use('Agg')
 import codecs
 
 import os
@@ -195,7 +195,7 @@ class Line(object):
             print('Load complete')
 
             # There werre problems with arrays from length 0
-            if len(v) is 0 or len(t) is 0:
+            if not (v or t):
                 raise ValueError("No data to compute")
 
             # except Exception as e:

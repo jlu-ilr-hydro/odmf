@@ -203,9 +203,10 @@ class LogbookImport:
 
         return msg
 
-if __name__ == '__main__':
-    import os
 
+if __name__ == '__main__':
+
+    import os
     os.chdir('instances/schwingbach')
     from odmf.dataimport import importlog as il
 
