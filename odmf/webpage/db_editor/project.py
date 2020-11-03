@@ -62,7 +62,7 @@ class ProjectPage:
         person = kwargs.get('person')
         comment = kwargs.get('comment')
 
-        if not (name and person):
+        if not (name or person):
             raise web.redirect(conf.root_url + '/project/add', error='Not all form fields were set')
 
         with db.session_scope() as session:

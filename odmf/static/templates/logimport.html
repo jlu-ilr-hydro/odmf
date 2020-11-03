@@ -8,7 +8,8 @@
         <!-- insert additional styles -->
     </py:block>
     <py:block name="sidebar">
-        <!-- insert sidebar content -->
+        <div class="container">
+        </div>
     </py:block>
     <py:block name="content">
 	<!--
@@ -18,15 +19,25 @@
 		cancommit: If True, a commit is possible
 	-->
         <div class="container">
-            <div class="error" py:content="error" />
-            <h3>${filename}</h3>
+            <h3 class="mt-4">${filename}</h3>
             <div class="alert alert-warning" py:if="not cancommit">
                 The log file has errors. Please remove the errors from the file and upload again.
                 If no errors are present, you can commit the file.
             </div>
             <form action="" method="post" >
-                <input type="submit" name="commit" value="commit" py:attrs="attrcheck('disabled',not cancommit)"/>
+                <button class="btn btn-outline-primary mr-2"
+                        type="submit" name="commit" value="commit" py:attrs="attrcheck('disabled',not cancommit)">
+                    <i class="fas fa-file-upload"/> upload
+                </button>
+                <a class="btn btn-outline-warning mr-2" data-toggle="tooltip" title="back to folder" href="${filename.parent().href}">
+                    <i class="fas fa-folder"/>cancel
+                </a>
+                <a class="btn btn-outline-secondary" data-toggle="tooltip" title="reload file" href="javascript:window.location.reload(true)">
+                    <i class="fas fa-redo"/>reload
+                </a>
+
             </form>
+            <div class="error" py:content="error" />
 
             <table class="table">
                 <tr>
