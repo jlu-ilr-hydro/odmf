@@ -224,21 +224,17 @@ class Dataset(Base):
                    project=self.project,
                    timezone=self.timezone)
 
-    def asarray(self, start=None, end=None):
-        raise NotImplementedError(
-            '%s(type=%s) - data set can not return values with "asarray". Is the type correct?' % (self, self.type))
-
     def size(self):
         return 0
 
     def statistics(self):
         """Calculates mean, stddev and number of records for this data set
         """
-        t, v = self.asarray()
-        if len(v) == 0:
+        s = self.asseries()
+        if len(s) == 0:
             return 0.0, 0.0, 0
         else:
-            return np.mean(v), np.std(v), len(v)
+            return np.mean(s), np.std(s), len(s)
 
     def iterrecords(self, witherrors=False):
         raise NotImplementedError(
@@ -454,41 +450,26 @@ class Timeseries(Dataset):
         """
         Adjusts the start and end properties to match the timespan of the records
         """
-        session = self.session()
-        session.query
+        Q = self.session().query
+        self.start = min(Q(sql.func.min(Record.time)).filter_by(_dataset=self.id).scalar(), self.start)
+        self.end = max(Q(sql.func.max(Record.time)).filter_by(_dataset=self.id).scalar(), self.end)
 
-    def asarray(self, start=None, end=None):
-        session = self.session()
-        records = session.query(Record).filter(Record._dataset == self.id)
-        records = records.order_by(Record.time).filter(~Record.is_error)
+    def asseries(self, start: datetime=None, end: datetime=None)->Series:
+        """
+        Loads the values of the timeseries dataset as a pandas series
+        """
+        import pandas as pd
+        records = self.records.filter_by(_dataset=self.id).filter(~Record.is_error).order_by(Record.time)
         if start:
             records = records.filter(Record.time >= start)
         if end:
             records = records.filter(Record.time <= end)
-        tz_local = self.tzinfo
-        t0 = tzwinter.localize(datetime(1, 1, 1))
-
-        def date2num(t):
-            return (t - t0).total_seconds() / 86400 + 1.0
-
-        def r2c(records):
-            for r in records:
-                if not r[0] is None:
-                    yield r[0], date2num(tz_local.localize(r[1]))
-                elif r[1]:
-                    yield np.log(-1), date2num(tz_local.localize(r[1]))
-
-        t = np.zeros(shape=records.count(), dtype=float)
-        v = np.zeros(shape=records.count(), dtype=float)
-        for i, r in enumerate(r2c(records.values('value', 'time'))):
-            v[i], t[i] = r
-        v *= self.calibration_slope
-        v += self.calibration_offset
-        return t, v
-
-    def asseries(self, start=None, end=None):
-        t, v = self.asarray(start, end)
-        return Series(v, index=t)
+        # Make a query iterator with only the fields needed
+        q_it = records.values('time', 'value')
+        df = pd.DataFrame(q_it)
+        df.index = df.time
+        # Do calibration
+        return self.calibration_slope * df.value + self.calibration_offset
 
     def size(self):
         return self.records.count()
@@ -539,15 +520,11 @@ class TransformedTimeseries(Dataset):
             pass
         else:
             for src in datasets:
-                t, v = src.asarray(start, end)
+                v = src.asseries(start, end)
                 v = self.transform(v)
-                data = data.append(Series(v, index=t))
+                data = data.append(v)
             data = data.sort_index()
         return data
-
-    def asarray(self, start=None, end=None):
-        data = self.asseries(start, end)
-        return np.array(data.index, dtype=float), np.array(data, dtype=float)
 
     def updatetime(self):
         self.start = min(ds.start for ds in self.sources)
@@ -603,56 +580,9 @@ class DatasetGroup(object):
             data = data.append(s)
         return data.sort_index()
 
-    def asarray(self, session):
-        data = self.asseries(session)
-        return np.array(data.index, dtype=float), np.array(data, dtype=float)
-
     def iterrecords(self, session, witherrors):
         datasets = self.datasets(session)
         for ds in datasets:
             for r in ds.iterrecords(witherrors):
                 yield r
 
-
-class Transformation(object):
-    """
-    The transformation object transforms multiple valuetypes together for a new result
-
-    the content is defined in a plugin module with a list of tuples 'variables'
-    and a function f getting t (time) as the first argument and the variables in the variable list
-    as the next argument. See plugin.transformation.example module as an example
-    """
-
-    def __init__(self, modulename):
-        # Make sure the cache is cleaned, importlib.invalidate_cache in python3
-        # For python2 use imp.find_module & imp.load_module
-        module = importlib.import_module(modulename)
-        self.variables = getattr(module, 'variables')
-        self.f = getattr(module, 'f')
-        # Check if variables and function signature fit together
-        assert '|'.join(inspect.getargspec(self.f).args) == '|'.join(
-            ['t'] + [v[0] for v in self.variables])
-        self.doc = inspect.getdoc(module)
-
-    def calculate(self, datasets, start, end):
-        """
-        Loops through the first variable
-        :param datasets:
-        :return: A panda timeseries with the right data
-        """
-
-        # make for each variable a datasetgroup from the datasets
-        variables = {v: DatasetGroup([ds.id for ds in datasets if ds.valuetype.id == vt],
-                                     start=start,
-                                     end=end)
-                     for v, vt in self.variables}
-        # Load the master timeseries
-        dsg0 = variables[self.variables[0]].asseries()
-        series_out = Series()
-        # Load all variables as series
-        for v, vt in self.variables:
-            dsg = variables[v]
-            # interpolate is not the right choice, but something similar
-            #values = [ds.interpolate(t1) for ds in self.datasets]
-            #series_out.append(t1, self.f(*values))
-        pass

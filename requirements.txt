@@ -9,7 +9,7 @@ kajiki>=0.8.2
 
 markdown
 
-matplotlib
+matplotlib==3.3.2
 mpld3
 jinja2>=2.7
 pandas>=1.0

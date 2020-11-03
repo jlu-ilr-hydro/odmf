@@ -369,11 +369,9 @@ class DatasetPage:
         """
         Plots the dataset. Might be deleted in future. Rather use PlotPage
         """
+        import pylab as plt
         with db.session_scope() as session:
-            import matplotlib
-            matplotlib.use('Agg', warn=False)
-            import pylab as plt
-            ds = session.query(db.Dataset).get(int(id))
+            ds: db.Timeseries = session.query(db.Dataset).get(int(id))
             if users.current.level < ds.access:
                 return f"""
                 <div class="alert alert-danger"><h2>No access</h2><p class="lead">
@@ -388,23 +386,23 @@ class DatasetPage:
                 end = web.parsedate(end.strip())
             else:
                 end = ds.end
-            t, v = ds.asarray(start, end)
-            fig = plt.figure(figsize=(10, 5))
-            ax = fig.gca()
-            ax.plot_date(t, v, color + marker + line)
-            ax.grid()
-            plt.xticks(rotation=15)
-            plt.ylabel('%s [%s]' % (ds.valuetype.name, ds.valuetype.unit))
-            plt.title(str(ds.site))
+            data = ds.asseries(start, end)
+        fig = plt.figure(figsize=(10, 5))
+        ax = fig.gca()
+        data.plot.line(ax=ax, color=color, marker=marker, line=line)
+        ax.grid()
+        plt.xticks(rotation=15)
+        plt.ylabel('%s [%s]' % (ds.valuetype.name, ds.valuetype.unit))
+        plt.title(str(ds.site))
 
-            if interactive and interactive != 'false':
-                import mpld3
-                return mpld3.fig_to_html(fig).encode('utf-8')
-            else:
-                bytesio = io.BytesIO()
-                fig.savefig(bytesio, dpi=100, format='png')
-                data = b64encode(bytesio.getvalue())
-                return b'<img src="data:image/png;base64, ' + data + b'"/>'
+        if interactive and interactive != 'false':
+            import mpld3
+            return mpld3.fig_to_html(fig).encode('utf-8')
+        else:
+            bytesio = io.BytesIO()
+            fig.savefig(bytesio, dpi=100, format='png')
+            data = b64encode(bytesio.getvalue())
+            return b'<img src="data:image/png;base64, ' + data + b'"/>'
 
     @web.expose
     @web.mime.json

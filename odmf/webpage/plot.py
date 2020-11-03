@@ -13,7 +13,7 @@ import pylab as plt
 from matplotlib.ticker import MaxNLocator
 import matplotlib.dates
 import numpy as np
-
+import pandas as pd
 
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
@@ -128,84 +128,54 @@ class Line:
 
     def aggregate(self):
         session = db.Session()
-        error = ''
-        start = self.subplot.plot.startdate
-        end = self.subplot.plot.enddate
-        # Get values from session as a pandas.Series
-        try:
-            datasets = self.getdatasets(session)
-            group = db.DatasetGroup([ds.id for ds in datasets], start, end)
-            series = group.asseries(session)
-        finally:
-            session.close()
-        # Change series.index to datetime64 type
-        t0 = plt.date2num(datetime(1970, 1, 1))
-        series.index = to_datetime((series.index.values - t0), unit='D')
+        series = self.load()
         # Use pandas resample mechanism for aggregation
         aggseries = series.resample(
             self.subplot.plot.aggregate, self.aggregatefunction)
-        # Rip series index and values apart and convert the datetime64 index (in ns) back to matplotlib value
-        t = aggseries.index.values.astype(float) / (24 * 60 * 60 * 1e9) + t0
-        v = aggseries.values
-        return t, v
+        return aggseries
 
-    def load(self, startdate=None, enddate=None):
+    def load(self) -> pd.Series:
         """
         Loads the records into an array
         """
-        if self.subplot.plot.aggregate:
-            return self.aggregate()
-        else:
-            session = db.Session()
+        with db.session_scope() as session:
             error = ''
             start = self.subplot.plot.startdate
             end = self.subplot.plot.enddate
-            try:
-                datasets = self.getdatasets(session)
-                group = db.DatasetGroup([ds.id for ds in datasets], start, end)
-                t, v = group.asarray(session)
-            finally:
-                session.close()
+            datasets = self.getdatasets(session)
+            group = db.DatasetGroup([ds.id for ds in datasets], start, end)
+            series = group.asseries(session)
 
-            # There were problems with arrays from length 0
-            if not (v and t):
-                raise ValueError("No data to compute")
-            return t, v
+        if self.subplot.plot.aggregate:
+            sampler = series.resample(self.subplot.plot.aggregate)
+            series = sampler.aggregate(self.aggregatefunction)
+
+        # There were problems with arrays from length 0
+        if not series:
+            raise ValueError("No data to compute")
+        return series
 
     def draw(self, ax, startdate=None, enddate=None):
         """
         Draws the line to the matplotlib axis ax
         """
         try:
-            t, v = self.load(startdate, enddate)
+            data = self.load(startdate, enddate)
             # Do the plot
             label = str(self)
             style = dict(color=self.color or 'k',
                          linestyle=self.linestyle, marker=self.marker)
-            ax.plot_date(t, v, label=label, **style)
-        except ValueError:
-            print('Zero-size Array')
+            data.plot.line(**style, ax=ax, label=label)
+        except ValueError as e:
+            print(e)
 
     def export_csv(self, stream, startdate=None, enddate=None):
         """
         Exports the line as csv file
         """
-        t, v = self.load(startdate, enddate)
-        # Epoch for excel dates
-        stream.write(codecs.BOM_UTF8.decode())
-        stream.write('Time,' + str(self.valuetype) + '\n')
-        for t, v in zip(matplotlib.dates.num2date(t), v):
-            stream.write('%s,%f\n' % (t.strftime('%Y-%m-%d %H:%M:%S'), v))
-
-    def export_json(self, stream, startdate=None, enddate=None):
-        t, v = self.load(startdate, enddate)
-        # Unix-Epoch
-        t0 = plt.date2num(datetime(1970, 1, 1))
-        # Flot expects ms since epoch -> (t-t0)*24*60*60*1000
-        stream.write('[')
-        for T, V in zip((t - t0) * 24 * 60 * 60 * 1000, v):
-            stream.write('[%f,%f],' % (T, V))
-        stream.write('[null,null]]')
+        data = self.load(startdate, enddate)
+        data.name = str(self.valuetype)
+        data.to_csv(stream, encoding='utf-8-sig')
 
     def __jdict__(self):
         """
@@ -561,16 +531,6 @@ class PlotPage(object):
         io.seek(0)
         return io
 
-    @expose_for(plotgroup)
-    @web.mime.csv
-    def export_json(self, subplot, line):
-        plot: Plot = Plot(**web.cherrypy.request.json)
-        sp = plot.subplots[int(subplot) - 1]
-        line = sp.lines[int(line)]
-        io = StringIO()
-        line.export_json(io, plot.startdate, plot.enddate)
-        io.seek(0)
-        return io
 
     @expose_for(plotgroup)
     @web.mime.csv
