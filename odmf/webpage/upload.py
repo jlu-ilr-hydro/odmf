@@ -21,7 +21,7 @@ from .auth import group, expose_for
 from .. import dataimport as di
 from ..dataimport import ManualMeasurementsImport
 
-from ..dataimport.importlog import LogbookImport
+from ..dataimport import importlog
 from ..tools import Path
 
 from ..config import conf
@@ -70,9 +70,12 @@ class DBImportPage(object):
         error = di.checkimport(path.absolute)
         if error:
             raise web.redirect(path.parent().href, error=error)
+        try:
+            li = importlog.LogbookImport(path.absolute, web.user())
+            logs, cancommit = li('commit' in kwargs)
 
-        li = LogbookImport(path.absolute, web.user())
-        logs, cancommit = li('commit' in kwargs)
+        except importlog.LogImportError as e:
+            raise web.redirect(path.parent().href, error=str(e))
 
         t1 = time.time()
 
@@ -209,14 +212,14 @@ class DBImportPage(object):
     def index(self, filename=None, **kwargs):
         if not filename:
             raise web.redirect('/download/')
-
+        import re
         # the lab import only fits on CFG_MANNUAL_MEASUREMENTS_PATTERN
         if ManualMeasurementsImport.extension_fits_to(filename):
             log("Import with labimport ( %s )" %
                 ManualMeasurementsImport.__name__)
             return self.mmimport(filename, kwargs)
-        # If the file ends with log.xls, import as log list
-        elif filename.endswith('log.xls'):
+        # If the file ends with log.xls[x], import as log list
+        elif re.match(r'(.*)_log\.xlsx?$', filename):
             log("Import with logimport")
             return self.logimport(filename, kwargs)
         # else import as instrument file
