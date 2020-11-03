@@ -16,7 +16,7 @@ function renderplot(creationtime) {
 	$('#plot').html('Loading image...');
 	$.ajax({
       method: 'POST',
-      url: odmf_ref('/plot/image.d3'),
+      url: odmf_ref('/plot/image_d3'),
       contentType: 'application/json',
       processData: false,
       data: JSON.stringify(plot),
@@ -72,9 +72,11 @@ function render_content_tree(plot) {
 		subplot.lines.forEach((line, lineindex) => {
 			let line_html = line_template.replace(/§sp_pos§/g, index + 1).replace(/§i§/g, lineindex)
 			for (let k in line) {
-				line_html = line_html.replace('{{' + k + '}}', line[k])
+				line_html = line_html.replace('§' + k + '§', line[k])
 			}
-			obj.children('newline').before(line_html);
+			let ul = obj.find('#line-list');
+			let nl = ul.find('.newline')
+			nl.before(line_html);
 		})
 		$('#content-tree .subplot').remove();
 		$('#ct-new-subplot').before(obj);

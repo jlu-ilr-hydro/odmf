@@ -1,11 +1,14 @@
-'''
+"""
 Created on 01.10.2012
 
 @author: philkraf
-'''
+"""
+
 import sys
 import matplotlib
+
 matplotlib.use('Agg')
+
 import codecs
 
 import os
@@ -20,7 +23,6 @@ from datetime import datetime, timedelta
 from io import StringIO
 from io import BytesIO
 
-from pandas import to_datetime
 import json
 from pathlib import Path
 
@@ -29,23 +31,12 @@ from .. import db
 from . import lib as web
 from .auth import group, expose_for, users
 
-t0 = datetime(1, 1, 1)
 nan = np.nan
 
 
 if sys.platform == 'win32':
     matplotlib.rc('font', **{'sans-serif': 'Arial',
                              'family': 'sans-serif'})
-
-
-def date2num(t):
-    """
-    Converts a datetime to a number 
-    """
-    if t is None:
-        return nan
-    else:
-        return (t - t0).total_seconds() / 86400 + 1.0
 
 
 def asdict(obj):
@@ -70,7 +61,6 @@ class PlotError(web.cherrypy.HTTPError):
 
     def get_error_page(self, *args, **kwargs):
         from .lib import render
-        user = users.current
         error = '## Plot object incorrect\n\n' + self.message
         return render('plot.html', error=error).render().encode('utf-8')
 
@@ -80,15 +70,15 @@ class Line:
     Represents a single line of a subplot
     """
 
-    def __init__(self, subplot, valuetype, site, instrument=None, level=None,
+    def __init__(self, subplot, valuetypeid, siteid, instrumentid=None, level=None,
                  color='', marker='', linestyle='',
                  transformation=None, aggregatefunction='mean'):
         """
         Create a Line:
         @param subplot: The Subplot to which this line belongs
-        @param valuetype: The valuetype id of the line
-        @param site: the site id of the line
-        @param instrument: the instrument of the line
+        @param valuetypeid: The valuetype id of the line
+        @param siteid: the site id of the line
+        @param instrumentid: the instrument of the line
         @param color: the color of the line (k,b,g,r,y,m,c)
         @param linestyle: the line style (-,--,:,-.)
         @param marker: the marker of the line data points (o,x,+,|,. etc.)
@@ -98,50 +88,46 @@ class Line:
         self.marker = marker
         self.color = color
         self.linestyle = linestyle
-        session = db.Session()
-        self.valuetype = session.query(db.ValueType).get(
-            int(valuetype)) if valuetype else None
-        self.site = session.query(db.Site).get(int(site)) if site else None
-        self.instrument = session.query(db.Datasource).get(
-            int(instrument)) if instrument else None
+        self.valuetypeid = valuetypeid
+        self.siteid = siteid
+        self.instrumentid = instrumentid
         self.level = level
-        session.close()
         self.transformation = transformation
         self.aggregatefunction = aggregatefunction
+
 
     def getdatasets(self, session):
         """
         Loads the datasets for this line
         """
         userlevel = users.current.level if users.current else 0
-        datasets = session.query(db.Dataset).filter(db.Dataset.valuetype == self.valuetype,
-                                                    db.Dataset.site == self.site,
+
+        datasets = session.query(db.Dataset).filter(db.Dataset._valuetype == self.valuetypeid,
+                                                    db.Dataset._site == self.siteid,
                                                     db.Dataset.start <= self.subplot.plot.enddate,
                                                     db.Dataset.end >= self.subplot.plot.startdate,
                                                     db.Dataset.access <= userlevel
                                                     )
-        if self.instrument:
-            datasets = datasets.filter(db.Dataset.source == self.instrument)
+        if self.instrumentid:
+            datasets = datasets.filter(db.Dataset._source == self.instrumentid)
         if self.level is not None:
             datasets = datasets.filter(db.Dataset.level == self.level)
         return datasets.order_by(db.Dataset.start).all()
 
     def aggregate(self):
-        session = db.Session()
         series = self.load()
         # Use pandas resample mechanism for aggregation
         aggseries = series.resample(
             self.subplot.plot.aggregate, self.aggregatefunction)
         return aggseries
 
-    def load(self) -> pd.Series:
+    def load(self, start=None, end=None) -> pd.Series:
         """
         Loads the records into an array
         """
         with db.session_scope() as session:
-            error = ''
-            start = self.subplot.plot.startdate
-            end = self.subplot.plot.enddate
+            start = start or self.subplot.plot.startdate
+            end = end or self.subplot.plot.enddate
             datasets = self.getdatasets(session)
             group = db.DatasetGroup([ds.id for ds in datasets], start, end)
             series = group.asseries(session)
@@ -169,38 +155,53 @@ class Line:
         except ValueError as e:
             print(e)
 
+    def valuetype(self):
+        with db.session_scope() as session:
+            return session.query(db.ValueType).get(
+                int(self.valuetypeid)) if self.valuetypeid else None
+
+    def site(self):
+        with db.session_scope() as session:
+
+            return session.query(db.Site).get(int(self.siteid)) if self.siteid else None
+
+    def instrument(self):
+        with db.session_scope() as session:
+            return session.query(db.Datasource).get(
+                int(self.instrumentid)) if self.instrumentid else None
+
     def export_csv(self, stream, startdate=None, enddate=None):
         """
         Exports the line as csv file
         """
         data = self.load(startdate, enddate)
-        data.name = str(self.valuetype)
+        data.name = str(self.valuetype())
         data.to_csv(stream, encoding='utf-8-sig')
 
     def __jdict__(self):
         """
         Returns a dictionary of the line
         """
-        return dict(valuetype=self.valuetype.id if self.valuetype else None,
-                    site=self.site.id if self.site else None,
-                    instrument=self.instrument.id if self.instrument else None,
+        return dict(valuetype=self.valuetypeid or None,
+                    site=self.siteid or None,
+                    instrument=self.instrumentid or None,
                     level=self.level,
                     color=self.color, linestyle=self.linestyle, marker=self.marker,
                     transformation=self.transformation,
                     aggregatefunction=self.aggregatefunction)
 
-
     def __str__(self):
         """
         Returns a string representation
         """
-        res = ''
-        if self.instrument:
-            res = '%s at #%i%s using %s' % (self.valuetype, self.site.id,
+        instrument = self.instrument()
+        valuetype = self.valuetype()
+        if instrument:
+            res = '%s at #%i%s using %s' % (valuetype, self.siteid,
                                             '(%gm)' % self.level if self.level is not None else '',
-                                            self.instrument.name)
+                                            instrument.name)
         else:
-            res = '%s at #%i%s' % (self.valuetype, self.site.id,
+            res = '%s at #%i%s' % (valuetype, self.siteid,
                                    '(%gm)' % self.level if self.level is not None else '')
         if self.subplot.plot.aggregate:
             res += ' (%s/%s)' % (self.aggregatefunction,
@@ -216,39 +217,19 @@ class Subplot:
     Represents a subplot of the plot
     """
 
-    def __init__(self, plot, position=1, ylim=None, logsite:int=None, lines=None):
+    def __init__(self, plot, position=1, ylim=None, logsite: int=None, lines=None):
         """
         Create the subplot with Plot.addtimeplot
         """
         self.plot = plot
         self.position = position
-        self.lines = []
-        if lines:
-            for l in lines:
-                self.addline(**l)
+        self.lines = [
+            Line(self, **ldict)
+            for ldict in lines
+        ]
         self.ylim = ylim
         self.logsite = logsite
 
-    def addline(self, valuetype, site, instrument=None, level=None,
-                color='k', linestyle='-', marker='',
-                aggfunc='mean'):
-        """
-        Adds a line to the subplot
-        @param valuetype: the id of a valuetype
-        @param site: the id of a site
-        @param instrument: the id of an instrument (can be omitted)
-        @param color: the color of the line (k,b,g,r,y,m,c)
-        @param linestyle: the line style (-,--,:,-.)
-        @param marker: the marker of the line data points (o,x,+,|,. etc.)
-        @param aggfunc: Type of aggregation function (mean,max,min) 
-        """
-        self.lines.append(Line(self, valuetype=valuetype, site=site, instrument=instrument, level=level,
-                               color=color, linestyle=linestyle, marker=marker,
-                               aggregatefunction=aggfunc))
-        return self
-
-    def get_sites(self):
-        return dict((line.site.id, str(line.site)) for line in self.lines)
 
     def draw(self, figure):
         """
@@ -264,14 +245,18 @@ class Subplot:
             if np.isfinite(self.ylim[1]):
                 plt.ylim(ymax=self.ylim[1])
 
-        # Show log book entries for the logsite of this subplot
+        with db.session_scope() as session:
 
-        # Get all site-ids of this subplot
-        sites = self.get_sites()
-        # Draw only logs if logsite is a site of the subplot's lines
-        if self.logsite in sites:
-            # open session - trying the new scoped_session
-            with db.session_scope() as session:
+            if self.lines:
+                l = self.lines[0]
+                valuetype = session.query(db.ValueType).get(l.valuetypeid)
+                plt.ylabel('%s [%s]' % (valuetype.name, valuetype.unit),
+                           fontsize=self.plot.args.get('ylabelfs', 'small'))
+
+            # Show log book entries for the logsite of this subplot
+            # Draw only logs if logsite is a site of the subplot's lines
+            if self.logsite in [l.siteid for l in self.lines]:
+
                 # Get logbook entries for logsite during the plot-time
                 logs = session.query(db.Log).filter_by(_site=self.logsite).filter(
                     db.Log.time >= self.plot.startdate).filter(db.Log.time <= self.plot.enddate)
@@ -282,17 +267,13 @@ class Subplot:
                                 alpha=0.5, linewidth=3)
                     plt.text(x, plt.ylim()[0], log.type,
                              ha='left', va='bottom', fontsize=8)
-        plt.xlim(date2num(self.plot.startdate), date2num(self.plot.enddate))
+        plt.xlim(self.plot.startdate, self.plot.enddate)
         plt.xticks(rotation=15)
         ax.yaxis.set_major_locator(MaxNLocator(prune='upper'))
         ax.tick_params(axis='both', which='major', labelsize=8)
 
         ax.grid()
         ax.legend(loc=0, prop=dict(size=9))
-        if self.lines:
-            l = self.lines[0]
-            plt.ylabel('%s [%s]' % (l.valuetype.name, l.valuetype.unit),
-                       fontsize=self.plot.args.get('ylabelfs', 'small'))
 
     def __jdict__(self):
         """
@@ -309,7 +290,7 @@ class Plot(object):
     Represents a full plot (matplotlib figure)
     """
 
-    def __init__(self, size=(600, 480), columns=1, startdate=None, enddate=None, **kwargs):
+    def __init__(self, height=None, width=None, columns=None, startdate=None, enddate=None, **kwargs):
         """
         @param size: A tuple (width,height), the size of the plot in inches (with 100dpi)
         @param columns: number of subplot columns
@@ -318,8 +299,8 @@ class Plot(object):
         """
         self.startdate = startdate or datetime.today() - timedelta(days=365)
         self.enddate = enddate or datetime.today()
-        self.size = size
-        self.columns = columns
+        self.size = (width or 640, height or 480)
+        self.columns = columns or 1
         self.subplots = []
         self.name = kwargs.pop('name', '')
         self.aggregate = kwargs.pop('description', '')
