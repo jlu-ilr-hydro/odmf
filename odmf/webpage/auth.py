@@ -143,6 +143,7 @@ class Users(collections.Mapping):
     filename = abspath('../users')
 
     def __init__(self):
+        self.default = User('guest', 0, None)
         self.dict = {}
 
 
@@ -193,7 +194,11 @@ class Users(collections.Mapping):
 
     @property
     def current(self) -> User:
-        return self.get(cherrypy.request.login, User('guest', 0, None))
+        return self.get(cherrypy.request.login, self.default)
+
+    def set_default(self, name):
+        self.default = self.dict.get(name, self.default)
+
 
     def login(self, username, password):
         self.load()

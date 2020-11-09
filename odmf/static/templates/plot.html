@@ -61,7 +61,7 @@
         </div>
         <div class="d-none" id="line-template" type="template">
             <li class="line list-group-item">
-                <span style="color:§color§">§linestyle§§marker§</span> §i§
+                <span style="color:§color§">§linestyle§§marker§</span> §name§
                 <div class="btn-group" id="linetools_§sp_pos§_§index§">
                     <button onclick="removeline(§sp_pos§,§i§)" title="remove line"
                             class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
@@ -135,6 +135,11 @@
                         role="tab" aria-controls="property-dialog">
                     <i class="fas fa-cog"/> Properties
                 </button>
+                <button class="btn btn-outline-secondary"
+                        id="json-toggle" data-toggle="modal" data-target="#json-dialog"
+                        role="tab" aria-controls="json-dialog">
+                    <i class="fas fa-file-code"/> JSON plot
+                </button>
             </div>
             <div id="content-tree" class="mt-2 w-100">
 
@@ -168,9 +173,6 @@
 
                 </div>
             </div>
-            <div id="json-row" class="row mt-2 w-100">
-                <pre></pre>
-            </div>
             <div id="plot-row" class="">
                 <div id="plot" class="bg-light border">
                     PLOT
@@ -190,7 +192,7 @@
                     </div>
                     <div class="modal-body form-group">
                         <label for="startdatetime">start:</label>
-                        <div id="startdatetime" class="input-group date">
+                        <div id="startdatetime" class="input-group">
                             <input class="props form-control" type="date" id="startdate"
                                    value=""/>
                             <input class="props timepicker form-control" id="starttime"
@@ -234,7 +236,7 @@
             </div>
         </div>
 
-        <div id="toolbar-dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div id="toolbar-dialog" class="modal fade" tabindex="-1" role="dialog"  aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -353,7 +355,7 @@
             </div>
         </div>
 
-        <div id="newline-dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div id="newline-dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header bg-primary text-light">
@@ -429,6 +431,24 @@
 
                 </div>
             </div>
+        </div>
+
+        <div id="json-dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-light">
+                        <h5 class="modal-title">JSON-Description of plot</h5>
+                    </div>
+                    <div class="modal-body" id="json-row">
+                        <pre></pre>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+
+            </div>
+
         </div>
 
     </py:block>

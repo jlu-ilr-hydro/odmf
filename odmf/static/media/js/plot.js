@@ -16,7 +16,7 @@ function renderplot(creationtime) {
 	$('#plot').html('Loading image...');
 	$.ajax({
       method: 'POST',
-      url: odmf_ref('/plot/image_d3'),
+      url: odmf_ref('/plot/figure'),
       contentType: 'application/json',
       processData: false,
       data: JSON.stringify(plot),
@@ -38,9 +38,10 @@ function gettime(startOrEnd) {
 }
 
 var plot = {
+	name:null,
 	start:gettime('start'),
 	end:gettime('end'),
-	columns:parseInt($('#prop-columns').val()),
+	columns:1,
 	aggregate:$('#plotaggregate').val(),
 	height: 640,
 	width: 480,
@@ -128,10 +129,31 @@ function RegTime() {
 }
 
 function line_from_dialog() {
+	let get_name_from_line_dialog = function() {
+		let name = $('#nl-name').val();
+		if (!name) {
+			name = 	$('#nl-value option:selected').text() + ' at #' + $('#nl-site').val()
+			let level = $('#nl-level').val();
+			if (level) {
+				name += '(' + level + ' m)'
+			}
+			let instrument = $('#nl-instrument option:selected').text()
+			if (instrument) {
+				name += ' using ' + instrument;
+			}
+			let aggfunc = $('#nl-aggregation').val();
+			if (aggfunc) {
+				name += '(' + aggfunc + ')'
+			}
+		}
+		return name;
+	}
+
 	return {
-		valuetypeid: parseInt($('#nl-value').val()),
-		siteid: parseInt($('#nl-site').val()),
-		instrumentid: parseInt($('#nl-instrument').val()),
+		name: get_name_from_line_dialog(),
+		valuetype: parseInt($('#nl-value').val()),
+		site: parseInt($('#nl-site').val()),
+		instrument: parseInt($('#nl-instrument').val()),
 		level:parseFloat($('#nl-level').val()),
 		color:$('#nl-color').val(),
 		linestyle:$('#nl-linestyle').val(),
@@ -146,9 +168,9 @@ function subplot_from_line_dialog() {
 
 function line_to_dialog(subplot, line) {
 	$('#newline-subplot').html(subplot);
-	$('#nl-value').val(line.valuetypeid);
-	$('#nl-site').val(line.siteid);
-	$('#nl-instrument').val(line.instrumentid);
+	$('#nl-value').val(line.valuetype);
+	$('#nl-site').val(line.site);
+	$('#nl-instrument').val(line.instrument);
 	$('#nl-level').val(line.level);
 	$('#nl-color').val(line.color);
 	$('#nl-linestyle').val(line.linestyle);
@@ -342,7 +364,7 @@ $(() => {
 	} else {
 		plot_change()
 	}
-	$(".date").datetimepicker({format: 'YYYY-MM-DD HH:mm'})
+	// $(".date").datetimepicker({format: 'YYYY-MM-DD HH:mm'})
 	$('#addsubplot').prop('disabled', false);
 
 	$('#btn-clf').click(function() {
