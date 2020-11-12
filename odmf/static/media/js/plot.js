@@ -64,14 +64,15 @@ function plot_change() {
 }
 
 function render_content_tree(plot) {
+	$('#content-tree .subplot').remove();
 	plot.subplots.forEach((subplot, index) => {
 		let txt = $('#subplot-template').html()
-			.replace(/§position§/g, index + 1)
+			.replace(/§position§/g, index)
 			.replace(/§logsite§/g, subplot.logsite)
 		let obj = $(txt);
 		let line_template = $('#line-template').html()
 		subplot.lines.forEach((line, lineindex) => {
-			let line_html = line_template.replace(/§sp_pos§/g, index + 1).replace(/§i§/g, lineindex)
+			let line_html = line_template.replace(/§sp_pos§/g, index).replace(/§i§/g, lineindex)
 			for (let k in line) {
 				line_html = line_html.replace('§' + k + '§', line[k])
 			}
@@ -79,7 +80,6 @@ function render_content_tree(plot) {
 			let nl = ul.find('.newline')
 			nl.before(line_html);
 		})
-		$('#content-tree .subplot').remove();
 		$('#ct-new-subplot').before(obj);
 
 
@@ -92,14 +92,14 @@ function addsubplot() {
 
 }
 function removesubplot(id) {
-	plot.subplots.splice(id - 1, 1);
+	plot.subplots.splice(id, 1);
 	plot_change();
 
 }
 function changeylimit(id) {
 	let text = prompt('Enter the y axis limit as min,max, eg. 0.5,1.5.').split(',');
 	try {
-		plot.subplots[id - 1].ylim = [parseFloat(text[0]), parseFloat(text[1])];
+		plot.subplots[id].ylim = [parseFloat(text[0]), parseFloat(text[1])];
 	} catch (e) {
 		$('#error').html('Edit line failed: ' + e.toString());
 	}
@@ -109,7 +109,7 @@ function changeylimit(id) {
 function changelogsite(id) {
 	let logsite = $('#logsiteselect_' + id).val();
 	try {
-		plot.subplots[id - 1].logsite = parseInt(logsite);
+		plot.subplots[id].logsite = parseInt(logsite);
 	} catch (e) {
 		$('#error').html('Edit line failed: ' + e.toString());
 	}
@@ -163,11 +163,12 @@ function line_from_dialog() {
 }
 
 function subplot_from_line_dialog() {
-	return sp = parseInt($('#newline-subplot').text()) - 1;
+	return sp = parseInt($('#newline-subplot').text());
 }
 
 function line_to_dialog(subplot, line) {
-	$('#newline-subplot').html(subplot);
+	$('#newline-subplot').html('' + subplot);
+	$('#nl-name').val(line.name);
 	$('#nl-value').val(line.valuetype);
 	$('#nl-site').val(line.site);
 	$('#nl-instrument').val(line.instrument);
@@ -198,7 +199,7 @@ function editline(subplot,line_no) {
 	try {
 		let line = plot.subplots[subplot].lines[line_no];
 		line_to_dialog(subplot, line);
-		open_line_dialog(line);
+		open_line_dialog();
 		plot.subplots[subplot].lines.splice(line_no, 1);
 		plot_change();
 	} catch (e) {
@@ -206,7 +207,7 @@ function editline(subplot,line_no) {
 	}
 }
 
-function copyline(subplot,line) {
+function copyline(subplot,line_no) {
 	try {
 		let line = plot.subplots[subplot].lines[line_no];
 		line_to_dialog(subplot, line);

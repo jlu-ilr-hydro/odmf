@@ -250,7 +250,7 @@ class Subplot:
                 l = self.lines[0]
                 valuetype = session.query(db.ValueType).get(l.valuetypeid)
                 ax.set_ylabel('%s [%s]' % (valuetype.name, valuetype.unit),
-                           fontsize=self.plot.args.get('ylabelfs', 'small'))
+                           fontsize=self.plot.fontsize(1.2))
 
             # Show log book entries for the logsite of this subplot
             # Draw only logs if logsite is a site of the subplot's lines
@@ -265,15 +265,15 @@ class Subplot:
                     ax.axvline(x, linestyle='-', color='r',
                                 alpha=0.5, linewidth=3)
                     ax.text(x, plt.ylim()[0], log.type,
-                             ha='left', va='bottom', fontsize=12)
+                             ha='left', va='bottom', fontsize=self.plot.fontsize(0.9))
         ax.set_xlim(self.plot.startdate, self.plot.enddate)
         for xtl in ax.get_xticklabels():
             xtl.set_rotation(15)
         ax.yaxis.set_major_locator(MaxNLocator(prune='upper'))
-        ax.tick_params(axis='both', which='major', labelsize=14)
+        ax.tick_params(axis='both', which='major', labelsize=self.plot.fontsize(1.1))
 
         ax.grid()
-        ax.legend(loc=0, prop=dict(size=12))
+        ax.legend(loc=0, prop=dict(size=self.plot.fontsize(1)))
 
     def __jdict__(self):
         """
@@ -310,6 +310,13 @@ class Plot(object):
 
         self.args = kwargs
 
+    def fontsize(self, em):
+        """
+        Returns the fontsize relative to the figure height. 1 em equals 1/60 of the height
+        """
+        return em * self.size[1] / 60
+    
+
     def draw(self) -> matplotlib.figure.Figure:
         """
         Draws the plot and returns the matplotlib.Figure object with the populated figure
@@ -340,7 +347,7 @@ class Plot(object):
         """
         Creates a dictionary with all properties of the plot, the subplots and their lines
         """
-        return dict(size=self.size, columns=self.columns,
+        return dict(width=self.size[0], height=self.size[1], columns=self.columns,
                     startdate=self.startdate, enddate=self.enddate,
                     subplots=asdict(self.subplots),
                     aggregate=self.aggregate,
@@ -448,10 +455,11 @@ class PlotPage(object):
         # html = fig_to_html(fig)
         import io, base64
         buf = io.BytesIO()
-        fig.savefig(buf, format='png')
-        data = base64.b64encode(buf.getvalue()).decode('ascii')
-        html = f'<img alt="plot" width={plot.size[0]} height={plot.size[1]} src="data:image/png;base64,{data}">'
-        return html.encode('utf-8')
+        fig.savefig(buf, format='svg')
+        html = buf.getvalue()
+        # data = base64.b64encode(buf.getvalue()).decode('ascii')
+        # html = f'<img alt="plot" width={plot.size[0]} height={plot.size[1]} src="data:image/png;base64,{data}">'.encode('utf-8')
+        return html
 
     @expose_for(plotgroup)
     @web.method.post

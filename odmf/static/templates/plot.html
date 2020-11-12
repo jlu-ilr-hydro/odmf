@@ -13,7 +13,7 @@
                 <div class="card-header">
                     <h5 class="card-title">plot §position§
                         <span class="btn-group card-text">
-                            <button disabled="disabled"
+                            <button
                                     onclick="removesubplot(§position§)"
                                     class="btn btn-sm btn-danger py-0" data-toggle="tooltip"
                                     title="remove subplot §position§ from figure"
@@ -135,11 +135,16 @@
                         role="tab" aria-controls="property-dialog">
                     <i class="fas fa-cog"/> Properties
                 </button>
-                <button class="btn btn-outline-secondary"
-                        id="json-toggle" data-toggle="modal" data-target="#json-dialog"
-                        role="tab" aria-controls="json-dialog">
-                    <i class="fas fa-file-code"/> JSON plot
-                </button>
+                <div class="btn-group" id="fig-export">
+                    <button class="btn btn-outline-primary"
+                            id="json-toggle" data-toggle="modal" data-target="#json-dialog"
+                            role="tab" aria-controls="json-dialog">
+                        {}
+                    </button>
+                    <button data-format="png" class="btn btn-outline-primary" data-toggle="tooltip" title="Export as PNG"><i class="fas fa-file-image"/></button>
+                    <button data-format="svg" class="btn btn-outline-primary" data-toggle="tooltip" title="Export as PNG"><i class="fas fa-file-code"/></button>
+                    <button data-format="pdf" class="btn btn-outline-primary" data-toggle="tooltip" title="Export as PNG"><i class="fas fa-file-pdf"/></button>
+                </div>
             </div>
             <div id="content-tree" class="mt-2 w-100">
 
