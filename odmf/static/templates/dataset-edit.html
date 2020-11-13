@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<py:extends href="bootstrap_navigation.html" xmlns:py="">
+<py:extends href="bootstrap_navigation.html" xmlns:py="" >
     <py:block name="scripts">
         <script>
             //<![CDATA[
@@ -93,6 +93,24 @@
                 $('.transhelpparent').focusin(function(){
                     $('#trans_help').slideDown('fast');
                 });
+                $('#ds-transform').click(() => {
+                    $.post(odmf_ref('/dataset/create_transformation/'),{sourceid:${ds_act.id}},reload)
+                })
+                $('#ds-remove').click(() => {
+                    removeds(${ds_act.id},'${str(ds_act)}',${n});
+                })
+                $('#ds-transform-remove-source').click(() => {
+                    $.post(odmf_ref('/dataset/transform_removesource/'),
+                            {transid:${ds_act.id},sourceid:$(this).data('sourceid')},
+                            reload)
+                })
+                $('#trans_add_source').click(() => {
+                    $.post(odmf_ref('/dataset/transform_addsource/'),{transid:${ds_act.id},sourceid:$('#trans_sources').val()},reload)
+                })
+                $('#ds-plot').click(() => {
+                    plotds(${ds_act.id})
+                })
+                $('#ds-find-records').click(loadrecords)
                 $('.transhelpparent').focusout(function(){
                     $('#trans_help').hide();
                 });
@@ -223,7 +241,7 @@
             <div class="row mt-2 w-100">
                 <div class="container">
                     <div id="title-area" class="container bg-dark text-white row w-100 border rounded shadow"
-                         py:if="ds_act is not None" py:with="n=ds_act.size()">
+                         py:if="ds_act is not None">
                         <div class="col-sm">
                             <h2 class="display-3" py:content="f'ds{ds_act.id}'"/>
                         </div>
@@ -346,13 +364,12 @@
                                 <button type="submit" id="save" name="save" class="btn btn-outline-success mr-2" >
                                     <i class="fas fa-save mr-2"/> Save
                                 </button>
-                                <button py:if="ds_act.is_timeseries() and is_member('editor')"
-                                        onclick="$.post(odmf_ref('/dataset/create_transformation/'),{sourceid:${ds_act.id}},reload)"
+                                <button py:if="ds_act.is_timeseries() and is_member('editor')" id="ds-transform"
                                         class="btn btn-outline-primary mr-2" data-toggle="tooltip" title="Create a transformed dataset for this">
                                     \(f(x)\) transform
                                 </button>
-                                <button py:if="is_member('admin')" class="btn btn-outline-danger mr-2" title="remove dataset permanently" data-toggle="tooltip"
-                                        onclick="javascript:removeds(${ds_act.id},'${str(ds_act)}',${n});">
+                                <button py:if="is_member('admin')" id="ds-remove"
+                                        class="btn btn-outline-danger mr-2" title="remove dataset permanently" data-toggle="tooltip">
                                     <i class="fas fa-trash mr-2"/> delete dataset
                                 </button>
 
@@ -667,8 +684,7 @@
                     <h3>This data set transforms the records of the following data sets:</h3>
                     <ul style="list-style:none;">
                         <li py:for="source in ds_act.sources" class="mb-1">
-                            <button class="btn btn-danger btn-small mr-1"
-                                    onclick="$.post(odmf_ref('/dataset/transform_removesource/'),{transid:${ds_act.id},sourceid:${source.id}},reload)"
+                            <button class="btn btn-danger btn-small mr-1" id="ds-transform-remove-source"
                                     title="Remove source from transformation" data-toggle="tooltip"
                             >
                                 &times;
@@ -679,8 +695,7 @@
                             </a>
                         </li>
                         <li class="flexbox">
-                            <button class="btn btn-success btn-small mr-1" id="trans_add_source"
-                                    onclick="$.post(odmf_ref('/dataset/transform_addsource/'),{transid:${ds_act.id},sourceid:$('#trans_sources').val()},reload)"
+                            <button class="btn btn-success btn-small mr-1" id="trans_add_source" data-sourceid="${source.id}"
                                     title="Adds the source for transformation" data-toggle="tooltip" disabled="disabled"
                             >
                                 +
@@ -762,8 +777,7 @@
 
                         </div>
                         <div class="row">
-                            <button class="btn btn-primary col-sm-3"
-                                    onclick="plotds(${ds_act.id});">
+                            <button class="btn btn-primary col-sm-3" id="ds-plot">
                                 <i class="fas fa-chart-line mr-1"/>plot
                             </button>
                             <div class="col-sm-3">
@@ -797,7 +811,7 @@
                 <div id="records" class="tab-pane" role="tabpanel" py:if="is_member('editor') and ds_act and ds_act.is_timeseries() and users.current.level>=ds_act.access">
                     <div class="row w-100">
                         <div class="col-sm">
-                            <button class="btn btn-primary w-100" onclick="loadrecords();">find records</button>
+                            <button class="btn btn-primary w-100" id="ds-find-records">find records</button>
                         </div>
                         <div class="col-sm input-group" title="limit the number of records" data-toggle="tooltip">
                             <div class="input-group-prepend">
@@ -869,12 +883,14 @@
                 <div id="export" class="tab-pane" role="tabpanel" py:if="is_member('logger') and users.current.level>=ds_act.access">
                     <ul>
                         <li py:if="ds_act">
-                            <button onclick="window.location=odmf_ref('/dataset/records.csv?dataset=${ds_act.id}');">Export as CSV</button>
+                            <a class="btn btn-primary" href="${conf.root_url}/dataset/records.csv?dataset=${ds_act.id}">
+                                Export as CSV
+                            </a>
                             Get Values as csv-file. Open with Excel if English language settings are chosen in Windows.
                         </li>
                         <li>
                             <a href="${conf.root_url}/datafiles/daten-vorlage.xls" style="float:left;">
-                                <img src="media/ui-icons/excel-icon.gif" />
+                                <img src="${conf.root_url}/media/ui-icons/excel-icon.gif" />
                             </a>
                             Download the excel template for data import
                             <a href="${conf.root_url}/datafiles/dataset-xxxx.xls">here</a>.
