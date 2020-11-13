@@ -61,16 +61,6 @@
                     listlogs();
                 })
             }
-            function remove(id) {
-                check = confirm('Do you really want to delete this log?');
-                if (check) {
-                    $.post(odmf_ref('/log/remove'), {id:id}, function(data) {
-                        if (data) {
-                            $('#error').html(data);
-                        }
-                    });
-                }
-            }
 
             function appendSiteToSiteList()
             {
@@ -90,6 +80,17 @@
 
             $(function() {
                 $(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
+                $('#log-remove').click(() =>{
+                    let check = confirm('Do you really want to delete this log?');
+                    if (check) {
+                        $.post(odmf_ref('/log/remove'), {id:${actuallog.id}}, function(data) {
+                            if (data) {
+                                $('#error').html(data);
+                        }
+                    });
+                }
+
+                })
                 listlogs(null,30);
             });
             // ]]>
@@ -144,7 +145,7 @@
         <!-- insert sidebar content -->
         <div class="container-fluid">
             <div class="mb-2">
-                <button class="btn btn-outline-danger rounded-pill shadow">
+                <button class="btn btn-outline-danger rounded-pill shadow" id="log-remove">
                     <i class="fas fa-minus" />
 
                 </button>
