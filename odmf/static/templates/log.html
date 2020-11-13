@@ -61,6 +61,16 @@
                     listlogs();
                 })
             }
+            function remove(id) {
+                check = confirm('Do you really want to delete this log?');
+                if (check) {
+                    $.post(odmf_ref('/log/remove'), {id:id}, function(data) {
+                        if (data) {
+                            $('#error').html(data);
+                        }
+                    });
+                }
+            }
 
             function appendSiteToSiteList()
             {
