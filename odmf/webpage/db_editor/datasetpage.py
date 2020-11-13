@@ -33,7 +33,7 @@ class DatasetPage:
     @expose_for(group.guest)
     def default(self, id='new', site_id=None, vt_id=None, user=None, error=''):
         """
-        Returns the dataset view and manipulation page (datasettab.html). 
+        Returns the dataset view and manipulation page (dataset-edit.html).
         Expects an valid dataset id, 'new' or 'last'. With new, a new dataset
         is created, if 'last' the last chosen dataset is taken   
         """
@@ -77,7 +77,7 @@ class DatasetPage:
                 project = None
 
             try:
-                # load data for datasettab.html:
+                # load data for dataset-edit.html:
                 # similar datasets (same site and same type)
                 similar_datasets = self.subset(session, valuetype=active.valuetype.id,
                                                site=active.site.id)
@@ -95,7 +95,7 @@ class DatasetPage:
             return web.render(
                 'dataset-edit.html',
                 # activedataset is the current dataset (id or new)
-                ds_act=active,
+                ds_act=active, n=active.size() if active else 0,
                 # Render error messages
                 error=error,
                 # similar and parallel datasets
@@ -482,7 +482,7 @@ class DatasetPage:
         """
         Returns a html-table of filtered records
         TODO: This method should be replaced by records_json. 
-        Needs change in datasettab.html to create DOM elements using 
+        Needs change in dataset-edit.html to create DOM elements using
         jquery from the delivered JSON
         """
         with db.session_scope() as session:
