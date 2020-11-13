@@ -159,10 +159,10 @@
                     }
                 });
                 $('#goto').change(function(event) {
-                    window.location.href=odmf_ref('/dataset/') + dsid;
+                    window.location.href=odmf_ref('/dataset/') + $('#goto').val();
                 });
                 $('#gotods-btn').click(function() {
-                    window.location.href=odmf_ref('/dataset/') + dsid;
+                    window.location.href=odmf_ref('/dataset/') + $('#goto').val();
                 });
 
                 popSelect();
