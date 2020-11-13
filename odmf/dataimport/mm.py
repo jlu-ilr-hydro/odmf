@@ -7,7 +7,7 @@ import time
 import cherrypy
 
 from .base import config_getdict, ImportDescription, ImportColumn
-from ..dataimport.importlog import LogbookImport, LogImportError
+from ..dataimport.importlog import LogbookImport, LogImportRowError
 from .xls import XlsImport
 from ..config import conf
 from re import search, sub
@@ -162,7 +162,7 @@ class ManualMeasurementsImport:
                                              error=False,
                                              log=log))
 
-                        except LogImportError as e:
+                        except LogImportRowError as e:
                             if not e.is_valuetype_error and row_has_error:
                                 continue
                             errors[e.row] = e.text
@@ -214,7 +214,7 @@ class ManualMeasurementsImport:
                     print("Warning: Something went wrong while parsing the datetime")
 
         except:
-            raise LogImportError(row, 'Could not read date and time')
+            raise LogImportRowError(row, 'Could not read date and time')
 
         # Get site
         site = self.get_value(row, self.descr.site)
@@ -225,7 +225,7 @@ class ManualMeasurementsImport:
                 key = site
                 site = self.descr.sample_mapping[key]
             except KeyError:
-                raise LogImportError(row, 'Key {} cannot be found in the .conf file provided mapping'.format(key))
+                raise LogImportRowError(row, 'Key {} cannot be found in the .conf file provided mapping'.format(key))
 
         # use cache
         # Use value fetched from key value mapping from .conf
@@ -235,10 +235,10 @@ class ManualMeasurementsImport:
         else:
             site, err = self.get_obj(session, db.Site, row, self.descr.site)
         if err:
-            raise LogImportError(row, err)
+            raise LogImportRowError(row, err)
 
         if not site:
-            raise LogImportError(row, 'Missing site')
+            raise LogImportRowError(row, 'Missing site')
 
         # valuetype
         valuetype, err = self.get_obj(
@@ -272,7 +272,7 @@ class ManualMeasurementsImport:
                     session, valuetype_column.valuetype, site.id)
 
             if err:
-                raise LogImportError(row, err)
+                raise LogImportRowError(row, err)
 
         # if valuetype_column.ds_column:
         #    ds = int(self.get_value(row, valuetype_column.ds_column))
@@ -281,16 +281,16 @@ class ManualMeasurementsImport:
         # If dataset is not manual measured or dataset is not at site throw
         # error
         if ds and (ds.source is None or ds.source.sourcetype != 'manual'):
-            raise LogImportError(row, '%s is not a manually measured dataset, '
+            raise LogImportRowError(row, '%s is not a manually measured dataset, '
                                       'if the dataset is correct please change '
                                       'the type of the datasource to manual'
-                                 % ds)
+                                    % ds)
 
         elif ds and ds.site.id != site.id:
-            raise LogImportError(row, '#%s is not at site #%i' % (ds, site.id))
+            raise LogImportRowError(row, '#%s is not at site #%i' % (ds, site.id))
 
         elif ds and ds._valuetype != valuetype_column.valuetype:
-            raise LogImportError(row, 'Target: #%s has no valuetype #%i' % (
+            raise LogImportRowError(row, 'Target: #%s has no valuetype #%i' % (
                 ds, valuetype_column.valuetype))
 
         # Get value
@@ -312,7 +312,7 @@ class ManualMeasurementsImport:
             v = None
 
         if (v is not None) and ds is None:
-            raise LogImportError(row, "A value is given, but no dataset")
+            raise LogImportRowError(row, "A value is given, but no dataset")
 
         # all record attributes ok
         # now check if a record is already in the database for that special timestamp
@@ -325,12 +325,12 @@ class ManualMeasurementsImport:
         if record == 1:
             if commit:
                 # happens when the database has already a record at this time, in the session
-                raise LogImportError(row, "Can't commit possible duplicate row for dataset '%s' and time '%s' "\
+                raise LogImportRowError(row, "Can't commit possible duplicate row for dataset '%s' and time '%s' "\
                                           "Please inspect your file." % (ds, dt))
-            raise LogImportError(row, "For dataset '%s' and time '%s', there is already a record in database" %
-                                 (ds, dt))
+            raise LogImportRowError(row, "For dataset '%s' and time '%s', there is already a record in database" %
+                                    (ds, dt))
         elif record > 1:
-            raise LogImportError(row, "For dataset '%s' and the time '%s', there are multiple records already in the "
+            raise LogImportRowError(row, "For dataset '%s' and the time '%s', there are multiple records already in the "
                                       "database" % (ds, dt))
 
         # Get logtype and message (for logs or as record comment)
@@ -360,7 +360,7 @@ class ManualMeasurementsImport:
                                  sample=(sample if sample else None))
 
             except ValueError as e:
-                raise LogImportError(row, e.message)
+                raise LogImportRowError(row, e.message)
 
             return "Add value %g %s to %s (%s)" % (v, ds.valuetype, ds, date)
         # if dataset exsist but the value is None the value will not be imported and a warning will be shown
@@ -368,7 +368,7 @@ class ManualMeasurementsImport:
             return "Warning: None-Value for Site %s at %s will not be added to %s" % (site, date, ds)
         # rais error in case the dataset is none
         else:
-            raise LogImportError(row, "A value is given, but no dataset")
+            raise LogImportRowError(row, "A value is given, but no dataset")
 
     def get_value(self, row, col):
         """
