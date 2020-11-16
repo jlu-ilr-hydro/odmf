@@ -273,7 +273,7 @@ class DownloadPage(object):
         if path.isfile():
             # TODO: Render/edit .md, .conf, .txt files. .csv, .xls also?
 
-            return serve_file(path.absolute)
+            return serve_file(path.absolute, name=path.basename)
         elif not (path.islegal() and path.exists()):
             raise HTTPFileNotFoundError(path)
         else:

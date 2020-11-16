@@ -82,7 +82,7 @@ class StaticServer:
         p = self.get_path(path)
 
         if p.is_file():
-            return serve_file(str(p))
+            return serve_file(str(p), name=p.name)
 
         elif self.listdir and p.is_dir():
             mime.html.set()
