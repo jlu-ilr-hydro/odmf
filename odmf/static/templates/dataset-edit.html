@@ -712,7 +712,7 @@
                             <input type="date" class="form-control" id="recordmaxdate" size="10"
                                    value="${formatdate(ds_act.end, '%Y-%m-%d')}"
                             />
-                            <input type="text" class="form-control timepicker" id="recordmaxtime" size="5"
+                            <input type="text" class="form-control timepicker" id="recordmintime" size="5"
                                    value="${formatdate(ds_act.end, '%H:%M')}"
                             />
                         </div>
@@ -879,7 +879,9 @@
                 <div id="export" class="tab-pane" role="tabpanel" py:if="is_member('logger') and users.current.level>=ds_act.access">
                     <ul>
                         <li py:if="ds_act">
-                            <button onclick="window.location=odmf_ref('/dataset/records.csv?dataset=${ds_act.id}');">Export as CSV</button>
+                            <a class="btn btn-primary" href="${conf.root_url}/dataset/records.csv?dataset=${ds_act.id}">
+                                Export as CSV
+                            </a>
                             Get Values as csv-file. Open with Excel if English language settings are chosen in Windows.
                         </li>
                         <li>
