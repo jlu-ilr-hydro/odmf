@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <!-- insert additional scripts -->
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <div class="container">
+        </div>
+    </py:block>
+    <py:block name="content">
+	<!--
+		filename: the filename to import
+		logs : the list of dictionaries as returned from importlog
+		error: some error messages
+		cancommit: If True, a commit is possible
+	-->
+        <div class="container">
+            <h3 class="mt-4">${filename}</h3>
+            <div class="alert alert-warning" py:if="not cancommit">
+                The log file has errors. Please remove the errors from the file and upload again.
+                If no errors are present, you can commit the file.
+            </div>
+            <form action="" method="post" >
+                <button class="btn btn-outline-primary mr-2"
+                        type="submit" name="commit" value="commit" py:attrs="attrcheck('disabled',not cancommit)">
+                    <i class="fas fa-file-upload"/> upload
+                </button>
+                <a class="btn btn-outline-warning mr-2" data-toggle="tooltip" title="back to folder" href="${filename.parent().href}">
+                    <i class="fas fa-folder"/>cancel
+                </a>
+                <a class="btn btn-outline-secondary" data-toggle="tooltip" title="reload file" href="javascript:window.location.reload(true)">
+                    <i class="fas fa-redo"/>reload
+                </a>
+
+            </form>
+            <div class="error" py:content="error" />
+
+            <table class="table">
+                <tr>
+                    <th>Row</th>
+                    <th>Error?</th>
+                    <th>Action</th>
+                </tr>
+                <tr py:for="log in logs" class="small${' bg-danger text-white' if log['error'] else ''}">
+                    <td py:content="log['row']" />
+                    <td py:content="'yes' if log['error'] else 'no'" />
+                    <td>${log['log']}</td>
+                </tr>
+            </table>
+        </div>
+    </py:block>
+
+</py:extends>

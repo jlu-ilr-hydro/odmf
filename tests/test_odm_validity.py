@@ -5,12 +5,12 @@
 import requests
 import psycopg2
 
-from context import conf
+from .context import conf
 
-from pprint import pprint
 
-connection = psycopg2.connect(database=conf.CFG_DATABASE_NAME, user=conf.CFG_DATABASE_USERNAME,
-                              password=conf.CFG_DATABASE_PASSWORD, host=conf.CFG_DATABASE_HOST)
+connection = psycopg2.connect(
+    database=conf.database_name, user=conf.database_username,
+    password=conf.database_password, host=conf.database_host)
 
 validity = True
 
@@ -56,4 +56,4 @@ with connection.cursor() as cursor:
 
 
 if validity:
-    print("CUAHSI WOF Data of database {} is valid".format(conf.CFG_DATABASE_NAME))
+    print("CUAHSI WOF Data of database {} is valid".format(conf.database_name))

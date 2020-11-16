@@ -3,20 +3,19 @@ Created on 25.09.2012
 
 @author: philkraf
 '''
-
-from .auth import expose_for, group, users
+from pathlib import Path
+from .auth import expose_for, users
 from . import lib as web
 import json
-
+from ..config import conf
 import traceback
 
-import os.path as op
 json_in = web.cherrypy.tools.json_in
 
 
 class Preferences(object):
     exposed = True
-    default = {'map': dict(lat=50.5, lng=8.55, zoom=16, type='hybrid'),
+    default = {'map': conf.map_default,
                'site': 1,
                }
     types = dict(map=dict(lat=float, lng=float, zoom=int, type=str),
@@ -35,9 +34,9 @@ class Preferences(object):
     @property
     def filename(self):
         if users.current:
-            return web.abspath('preferences/' + users.current.name + '.json')
+            return Path(conf.preferences) / f'{users.current.name}.json'
         else:
-            return web.abspath('preferences/any.json')
+            return Path(conf.preferences) / 'any.json'
 
     def __getitem__(self, item):
         return self.data.get(item)
@@ -52,19 +51,19 @@ class Preferences(object):
     def save(self):
         with open(self.filename, 'w') as f:
             # string cast needed since as_json returns bytes (due to python3 refactoring measures)
-            f.write(web.as_json(self.data).decode('utf-8'))
+            f.write(web.as_json(self.data))
 
     @expose_for()
+    @web.mime.json
     def index(self, item=''):
-        web.setmime(web.mime.json)
         data = self.data
         print("index for preferences")
         #
         # Seems pythons needs still explicit encoding
         if item in data:
-            return web.as_json(self.data[item])
+            return web.json_out(self.data[item])
         else:
-            return web.as_json(self.data)
+            return web.json_out(self.data)
 
     @expose_for()
     @json_in()

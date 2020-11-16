@@ -12,7 +12,7 @@
 
 import psycopg2
 import psycopg2.extras
-import conf
+from odmf import conf
 
 import numpy as np
 
@@ -76,8 +76,11 @@ def transform(record, transformation):
 #       target = transformation(source_record, source_dataset)
 
 
-connection = psycopg2.connect(database=conf.CFG_DATABASE_NAME, user=conf.CFG_DATABASE_USERNAME, password=conf.CFG_DATABASE_PASSWORD,
-                 host=conf.CFG_DATABASE_HOST)
+connection = psycopg2.connect(
+    database=conf.database_name,
+    user=conf.database_username,
+    password=conf.database_password,
+    host=conf.database_host)
 cur = connection.cursor()
 
 

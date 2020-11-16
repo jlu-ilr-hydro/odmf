@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Server configuration, see conf.py for HEAD_BASE -->
+    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
+
+	<link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Climate</title>
+	</head>
+	<body>
+        <h2 py:content="'Data of the last %i day(s)' % (plot.enddate - plot.startdate).days" style="padding-left: 1em;margin-top:0px;"/>
+		<div style="width: 600px;height: 960px; position: absolute; top: 40px;">
+			<img src="data:image/png;base64,${climateplot}" />
+		</div>
+		<div style="position: absolute; top: 40px; left: 550px;">
+			<div py:for="sp in plot.subplots" style="height: 110px; margin-top: 20px; width: 200px;">
+				<p py:for="line in sp.lines" py:with="t,v=line.load()">
+					<p py:content="line.valuetype"/>
+					<p py:content="'avg: %0.4g &plusmn; %0.4g %s' % (v.mean(),v.std(),line.valuetype.unit)" />
+					<p py:content="'range: %0.4g - %0.4g %s' % (v.min(),v.max(), line.valuetype.unit)" /> 
+				</p> 
+						
+				
+			</div>
+		</div>
+
+	</body>
+</html>

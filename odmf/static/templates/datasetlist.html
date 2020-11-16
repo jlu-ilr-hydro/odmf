@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <script>
+            //<![CDATA[
+            function popSelect() {
+                var vt = $('#vtselect').val()
+                var user = $('#userselect').val()
+                var site = $('#siteselect').val()
+                var date = $('#dateselect').val()
+                var type = $('#typeselect').val()
+                var instrument = $('#instrumentselect').val()
+                $.getJSON(odmf_ref('/dataset/attrjson'),
+                        { attribute:'valuetype',
+                            user:user,
+                            site:site,
+                            date:date,
+                            type:type,
+                            instrument:instrument,
+                        },
+                        function(data){
+                            var html='<option value="">value type...</option>';
+                            $.each(data,function(index,item){
+                                html+='<option value="'+item.id+'">'+item.name+'</option>';
+                            });
+                            $('#vtselect').html(html).val(vt);
+                        }
+                );
+
+                $.getJSON(odmf_ref('/dataset/attrjson'),
+                        { attribute:'measured_by',
+                            valuetype:vt,
+                            site:site,
+                            date:date,
+                            type:type,
+                            instrument:instrument
+                        },
+                        function(data){
+                            var html='<option value="">measured by user...</option>';
+                            $.each(data,function(index,item){
+                                html+='<option value="'+item.username+'">'+item.firstname+' '+item.surname+'</option>';
+                            });
+                            $('#userselect').html(html).val(user);
+                        }
+                );
+
+                $.getJSON(odmf_ref('/dataset/attrjson'),
+                        { attribute:'site',
+                            valuetype:vt,
+                            user:user,
+                            date:date,
+                            type:type,
+                            instrument:instrument,
+                        },
+                        function(data){
+                            var html='<option value="">site...</option>';
+                            $.each(data,function(index,item){
+                                html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
+                            });
+                            $('#siteselect').html(html).val(site);
+                        }
+                );
+                $.getJSON(odmf_ref('/dataset/attrjson'),
+                        { attribute:'type',
+                            valuetype:vt,
+                            user:user,
+                            date:date,
+                            site:site,
+                            instrument:instrument
+                        },
+                        function(data){
+                            var html='<option value="">type...</option>';
+                            $.each(data,function(index,item){
+                                html+='<option value="'+item+'">'+item+'</option>';
+                            });
+                            $('#typeselect').html(html).val(type);
+                        }
+                );
+                $.getJSON(odmf_ref('/dataset/attrjson'),
+                        { attribute:'source',
+                            valuetype:vt,
+                            user:user,
+                            date:date,
+                            site:site,
+                            type:type
+                        },
+                        function(data){
+                            var html='<option value="">instrument...</option>';
+                            $.each(data,function(index,item){
+                                if (item) {
+                                    html+='<option value="'+item.id+'">'+item.name+'</option>';
+                                } else {
+                                    html+='<option value="null">No instrument</option>';
+                                }
+                            });
+                            $('#instrumentselect').html(html).val(instrument);
+                        }
+                );
+                $('#exportrecords').prop('disabled',!(vt && site));
+                if (vt!='' || user!='' || site!='' || date!='' || type!='' || instrument!='') {
+                    setFilter();
+                }
+            }
+            function setFilter() {
+                // Linklist to datasets
+                var vt = $('#vtselect').val();
+                var user = $('#userselect').val();
+                var site = $('#siteselect').val();
+                var date = $('#dateselect').val();
+                var type = $('#typeselect').val();
+                var instrument = $('#instrumentselect').val()
+                $.getJSON(odmf_ref('/dataset/json'),
+                        {
+                            valuetype: vt,
+                            user:user,
+                            site:site,
+                            date:date,
+                            type:type,
+                            instrument:instrument
+                        },
+                        function(data){
+                            var items = [];
+                            var templ = '<a href="${conf.root_url}/dataset/ID" class="list-group-item list-group-item-action">LABEL</a>';
+                            $.each( data, function( index, item ) {
+                                items.push(templ.replace(/ID/, item.id).replace(/LABEL/, item.label));
+                            });
+                            $('#dscount').html(items.length + ' datasets');
+                            $('#dslist').html(items.join('\n'));
+                        }
+                );
+            }
+            function clearFilter() {
+                $('.filter').val('')
+                $('#dateselect').val('')
+                popSelect();
+                $('#dslist').html('')
+            }
+            $(function() {
+                $('#exportrecords').click(function() {
+                    var props = {
+                        valuetype:$('#vtselect').val(),
+                        user:$('#userselect').val(),
+                        site:$('#siteselect').val(),
+                        date:$('#dateselect').val(),
+                        type:$('#typeselect').val(),
+                        instrument:$('#instrumentselect').val(),
+                        witherrors:$('#exportrecordswitherror').prop('checked')
+                    };
+
+                    // Check if vt,site and instrument are selected, otherwise set error
+                    if (!(props.valuetype && props.site)) {
+                        $('.error').html('Cannot export values when valuetype, site or instrument are not selected');
+                    } else {
+                        // Call a function with the filter that generates a csv with all
+                        // records.
+                        //alert($.param(props));
+                        window.location = odmf_ref('/dataset/multirecords.csv?') +$.param(props)
+                    }
+                });
+                $('#goto').change(function(event) {
+                    window.location.href=odmf_ref('/dataset/') + $('#goto').val();
+                });
+                $('#gotods-btn').click(function() {
+                    window.location.href=odmf_ref('/dataset/') + $('#goto').val();
+                });
+
+                popSelect();
+
+            });
+            //]]>
+        </script>
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+
+        <div class="container-fluid" id="filter-collapse">
+            <div class="">
+                <a href="${conf.root_url}/dataset/new" class="btn btn-secondary w-100">
+                    <i class="fas fa-plus mr-1" />
+                    new dataset
+                </a>
+            </div>
+            <hr/>
+            <div id="filter" class="container" >
+                <div class="mb-1 row border rounded">
+                    <h4 class="col-sm-10"><i class="fas fa-filter fa-sm mr-2" />Filter</h4>
+                    <a class="btn btn-secondary col-sm-2 border-circle text-light" onclick="clearFilter()" title="clear filter" data-toggle="tooltip">
+                        <i class="fas fa-times" />
+                    </a>
+                </div>
+                <div class="form-group mb-1 row">
+                    <select id="vtselect" onchange="popSelect();" class="form-control filter" tabindex="2"/>
+                </div>
+                <div class="form-group mb-1 row">
+                    <select id="siteselect"  onchange="popSelect();" class="form-control filter" tabindex="3"/>
+                </div>
+
+                <div class="form-group mb-1 row">
+                    <select id="userselect" onchange="popSelect();" class="form-control filter" tabindex="4"/>
+                </div>
+                <div class="form-group mb-1 row">
+                    <select id="typeselect" onchange="popSelect();" class="form-control filter" tabindex="5"/>
+                </div>
+
+                <div class="form-group mb-1 row">
+                    <select id="instrumentselect" onchange="popSelect();" class="form-control filter" tabindex="6"
+                            title="Instument" data-toggle="tooltip"/>
+                </div>
+                <div class="form-group mb-1 row">
+                    <input id="dateselect" type="date" class="form-control" value="" tabindex="7" placeholder="date..."
+                           onchange="popSelect();" title="Show only sites with a dataset for this date" data-toggle="tooltip"/>
+                </div>
+            </div>
+        </div>
+
+    </py:block>
+    <py:block name="content">
+        <!-- insert main content -->
+
+        <div class="container">
+            <div class="row mt-2 w-100">
+                <div class="container">
+                    <div class="container bg-danger text-white row w-100 border rounded"  py:if="error">
+                        <h1 class="display-3 col-lg-2">Error</h1>
+                        <div class="lead col-lg-10" py:content="markdown(error)"/>
+                    </div>
+
+                </div>
+            </div>
+
+            <ul class="nav bg-light p-1 border mb-1">
+                <li id="dscount" class="nav-item my-auto mx-3 h4">0 datasets</li>
+                <li class="nav-item dropdown mr-auto">
+                    <button id="toggleexport"  data-toggle="dropdown"
+                            class="btn btn-secondary dropdown-toggle"
+                            aria-haspopup="true" aria-expanded="false"
+                    >
+                        export
+                    </button>
+                    <div class="dropdown-menu" id="exportdiv" aria-labelledby="toggleexport">
+                        <div class="dropdown-item">
+                            <h4 class="">Export records from all data sets</h4>
+                            <button id="exportrecords" disabled="disabled" class="btn btn-info"
+                                    title="Only available when valuetype and site are selected. Beware multi-instrument and multi-level situations."
+                                    data-toggle="tooltip"
+                            >
+                                export records
+                            </button>
+                            <span >
+                                    <input type="checkbox" id="exportrecordswitherror"
+                                           title="Check, if you want to have records mark as error exported also"
+                                           data-toggle="tooltip"
+                                    />
+                            include error records
+                        </span>
+
+                        </div>
+                    </div>
+                </li>
+                <li class="nav-item ">
+                    <div class="input-group ">
+                        <div class="input-group-prepend" >
+                            <button class="btn btn-secondary" id="gotods-btn"
+                            >
+                                <i class="fas fa-rocket" />
+                            </button>
+                        </div>
+                        <input class="form-control" type="number" id="goto" tabindex="1" placeholder="dataset-id"
+                               title="Go directly to a dataset by entering the id" data-toggle="tooltip"/>
+                    </div>
+                </li>
+            </ul>
+            <div id="dslist" class="overflow-auto list-group">
+            </div>
+
+        </div>
+    </py:block>
+
+</py:extends>
+

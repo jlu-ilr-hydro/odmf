@@ -4,10 +4,9 @@
 
 import requests
 
-from context import tools
-from context import conf
-from tools import mail
-
+from .context import tools, conf
+from .context.tools import mail
+import re
 from lxml import etree
 import logging
 
@@ -33,9 +32,9 @@ logger.addHandler(fh)
 logger.addHandler(ch)
 
 # configuration
-receivers = conf.CFG_WOFTESTER_RECEIVER_MAIL
-sender = conf.CFG_WOFTESTER_SENDER_MAIL
-endpoint_url = conf.CFG_CUAHSI_WSDL_ENDPOINT
+receivers = conf.woftester_receiver_mail
+sender = conf.woftester_sender_mail
+endpoint_url = conf.cuahsi_wsdl_endpoint
 
 success_msg = 'TEST_WOFINTERFACE successful'
 

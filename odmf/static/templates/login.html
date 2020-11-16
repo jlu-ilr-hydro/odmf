@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="sidebar">
+        <div class="container bg-secondary">
+            <h1 class="text-light">${users.current}</h1>
+            <form method="post" action="${conf.root_url}/login">
+                <input type="hidden" name="frompage" id="frompage" value="${frompage}"/>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <datalist id="users">
+                        <option py:for="u in users" value="${u}" py:content="u" />
+                    </datalist>
+                    <input type="text" class="form-control" id="username" name="username" list="users"/>
+                    <label for="password">Password:</label>
+                    <input type="password" name="password" id="password" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Log in" class="btn btn-primary"/>
+                    <input type="submit" value="Log out" name="logout" class="btn btn-secondary"/>
+                </div>
+            </form>
+        </div>
+    </py:block>
+    <py:block name="content">
+        <div class="container mt-1">
+            <div class="row alert bg-danger text-white" role="alert" py:if="error">
+                <h1 class="display-4 col-lg-2">Error</h1>
+                <p class="lead col-lg-10" py:content="markdown(error)"/>
+            </div>
+            <div class="card mx-auto" style="max-width: 50rem;">
+                <div class="card-img-top"
+                        style="
+                        background: url(${conf.root_url}/${conf.nav_background})
+                        no-repeat 50% 50%; width: 100%; height: 25rem; background-size: cover;"/>
+                <!--img src="${conf.root_url}/${conf.nav_background}" class="card-img-top"
+                     style="max-height:20rem; max-width: 48rem; width:auto; height:auto" /-->
+                <div class="card-body">
+                    <h1 class="display-4">About</h1>
+                    <a href="https://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
+                        <img src="${conf.root_url}/media/images/ilr-logo_4_klein_RGB.png" alt="ILR"/>
+                    </a>
+                    <a href="https://www.uni-giessen.de">
+                        <img src="${conf.root_url}/media/images/jlu-logo-150.png" alt="University Giessen"/>
+                    </a>
+
+                    <div class="space">
+                        This page is used as a database frontend for the measured data at the agro-environmental
+                        research facilities of the Justus-Liebig University Giessen. <br/>
+
+                    </div>
+                    <h2>
+                        Data usage
+                    </h2>
+                    <div class="space">
+                        The database contains raw and unpublished data,
+                        any usage beyond pure curiosity, especially the publication of data and derived products is not allowed without prior permission.
+                    </div>
+                    <h2>
+                        References
+                    </h2>
+                    <div class="space">
+                        Most graphical elements and the user interface are own work. Some icons,
+                        especially for downloads etc. are creative commons.
+                        The applying copyright notice can be found
+                        <a href="${conf.root_url}/media/ui-icons/shimmer/shimmer-icons-readme.html">here</a>.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </py:block>
+
+</py:extends>

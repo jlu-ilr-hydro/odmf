@@ -1,0 +1,80 @@
+:root {
+    --odmf-accent:#0078B6;
+    --odmf-background:#FFFFFF;
+    --odmf-accent2: #D88D25;
+    --odmf-accent3: #01A069;
+
+}
+
+
+body {
+    padding: 0;
+    margin: 0;
+    min-height: 100vh;
+    background: var(--odmf-background);
+}
+
+.navbar-for-all {
+    height: 3rem;
+}
+
+.logo {
+
+    height: 2rem;
+}
+
+.sidebar {
+    position: fixed;
+    top: 3rem;
+    bottom: 0;
+    left: 0;
+    z-index: 100; /* Behind the navbar */
+    padding: 0;
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+.sidebar-sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 3rem; /* Height of navbar */
+  height: calc(100vh - 3rem);
+  padding-top: .5rem;
+  overflow-x: hidden;
+  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+}
+
+.sidebar .nav-link {
+  font-weight: 500;
+  color: #333;
+}
+
+.flexbox {
+    display: flex;
+    justify-content: space-between;
+}
+
+.small {
+	font-size: small;
+}
+
+.center {
+    text-align: center;
+}
+
+.code {
+    background-color: white;
+    font-family: monospace;
+    white-space: pre;
+    border: solid 1px black;
+    padding: 1em;
+}
+
+blockquote {
+  background: #f9f9f9;
+  border-left: 10px solid #ccc;
+  margin: 1.5em 10px;
+  padding: 0.5em 10px;
+}
+blockquote p {
+    white-space: pre-line;
+}

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <script>
+            // <![CDATA[
+            function setmsg(text,label) {
+                $('#message').text(text);
+                $('#msghint').html(label);
+            }
+
+            function formatiso(isostr) { //from http://dev.enekoalonso.com/2010/09/21/date-from-iso-8601-string/
+                var parts = isostr.match(/\d+/g);
+                return parts[2] + '.' + parts[1] + '.' + parts[0] + ' ' + parts[3] + ':' + parts[4] + ':' + parts[5];
+            }
+            function toggle(id) {
+                var obj = $('#'+id)
+                if (obj.css('display')=='none') {
+                    obj.css('display','inline');
+                } else {
+                    obj.css('display','none');
+                }
+            }
+
+            function listlogs() {
+                until = $('#lastlogdate').val();
+                days = $('#days').val();
+                siteid = $('#siteid').val();
+                keywords = $('#keywords').val();
+                $.getJSON(odmf_ref('/log/json'),{until:until, days:days, siteid:siteid, keywords:keywords}, function(data) {
+                    html='';
+                    //templ='<li><a href="#href#">#text#</a></li>';
+
+                    templ='<tr>' +
+                            '   <td>#date#</td>' +
+                            '   <td><a href="#href#">#comment#</a></td>' +
+                            '   <td><a href="${conf.root_url}/site/#siteid#">#siteid#</a></td>' +
+                            '   <td><a href="${conf.root_url}/user/#userid#">#user#</a></td>' +
+                            '</tr>';
+
+                    $.each(data,function(index,item) {
+                        //text = formatiso(item.time)+': '
+                        //	+ item.message + ' at site#'+item.site.id
+                        //	+' ('+item.user.firstname + ' ' + item.user.surname + ')';
+
+                        html += templ.replace(/#href#/,odmf_ref('/log/')+item.id)
+                                .replace(/#comment#/,item.message)
+                                .replace(/#date#/, formatiso(item.time))
+                                .replace(/#siteid#/, item.site.id).replace(/#siteid#/, item.site.id)
+                                .replace(/#userid#/, item.user.username)
+                                .replace(/#user#/, item.user.firstname + ' ' + item.user.surname)
+                    });
+                    $('#loglist').html("");
+                    $('#loglist').html(html);
+                });
+            }
+            function pastelogs() {
+                var text = $('#pastebin').val();
+                $.post(odmf_ref('/log/fromclipboard'),{paste: text},function(data,textStatus,jqHXR) {
+                    $('#pasteerror').html(data);
+                    listlogs();
+                })
+            }
+            function remove(id) {
+                check = confirm('Do you really want to delete this log?');
+                if (check) {
+                    $.post(odmf_ref('/log/remove'), {id:id}, function(data) {
+                        if (data) {
+                            $('#error').html(data);
+                        }
+                    });
+                }
+            }
+
+            function appendSiteToSiteList()
+            {
+                var sitelist = $('#sitelist').val();
+                var site = $('#sitepicker').val();
+
+                if (sitelist == "")
+                {
+                    $('#sitelist').val(site);
+                }
+                else if (sitelist != "")
+                {
+                    $('#sitelist').val(sitelist + ', ' + site);
+                }
+
+            }
+
+            $(function() {
+                $(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
+                $('#log-remove').click(() =>{
+                    let check = confirm('Do you really want to delete this log?');
+                    if (check) {
+                        $.post(odmf_ref('/log/remove'), {id:${actuallog.id}}, function(data) {
+                            if (data) {
+                                $('#error').html(data);
+                            }
+                        });
+                    }
+                })
+                listlogs(null,30);
+            });
+            // ]]>
+        </script>
+    </py:block>
+    <py:block name="sidebar">
+        <!-- insert sidebar content -->
+        <div class="container-fluid">
+            <div class="mb-2">
+                <button class="btn btn-outline-danger rounded-pill shadow" id="log-remove">
+                    <i class="fas fa-minus" />
+
+                </button>
+                remove log
+            </div>
+            <div class="mb-2">
+                <a href="${conf.root_url}/log/new" class="btn btn-outline-success rounded-pill shadow" id="log-add">
+                    <i class="fas fa-plus" />
+                </a>
+                add new log
+            </div>
+            <div class="mb-2">
+                <button id="toggle-paste" type="button"
+                        class="btn btn-outline-primary rounded-pill shadow"
+                        data-toggle="modal" data-target="#pastediv"
+                >
+                    <i class="fas fa-paste" />
+                </button>
+                paste log from clipboard
+            </div>
+
+        </div>
+    </py:block>
+    <py:block name="content">
+        <div class="container">
+            <div class="row mt-2 w-100">
+                <div class="container">
+                    <div class="container bg-danger text-white row w-100 border rounded" py:if="error">
+                        <h1 class="display-3 col-lg-2">Error</h1>
+                        <div class="lead col-lg-10" py:content="markdown(error)"/>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="container" py:if="actuallog">
+                <div id="description" py:if="actuallog">
+                    <div class="row mt-2 w-100">
+                        <div class="container">
+                            <div id="title-area"
+                                 class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4">
+                                <h2 class="display-4">
+                                    <span py:content="formatdate(actuallog.time)"/>
+                                    (<a href="${conf.root_url}/user/${actuallog.user.username}"
+                                        py:content="actuallog.user"/>)
+                                </h2>
+                                <div class="display-4 col-sm my-auto text-right">
+                                    <i class="fas fa-tag mr-4"/>${actuallog.id}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-10">
+                                    <div class="container lead">
+                                        <a href="${conf.root_url}/site/${actuallog.site.id}" py:if="actuallog.site">
+                                            <img src="${conf.root_url}/media/mapicons/${actuallog.site.icon or 'unknown.png'}"/>
+                                                ${actuallog.site}
+                                        </a>
+                                    </div>
+
+                                    <hr/>
+                                    <div class="container" py:content="markdown(actuallog.message)"/>
+                                </div>
+                                <div class="col-lg-2 mb-2">
+                                    <a class="btn btn-secondary dropdown-toggle" href="#edit" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="edit">
+                                        <i class="fas fa-edit mr-2"/> edit
+                                    </a>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div id="edit" class="container collapse border rounded px-4 pt-4">
+                    <form id="logform" action="${conf.root_url}/log/saveitem" method="post"
+                          py:if="actuallog and is_member('logger')">
+                        <input class="d-none" value="${actuallog.id}" name="id"/>
+                        <div class="form-group row">
+                            <label for="user" class="col-form-label col-md-2">Who?</label>
+                            <select name="user" class="form-control col-md-10">
+                                <option py:for="p in persons"
+                                        py:attrs="markoption(p is actuallog.user)"
+                                        py:content="p"
+                                        value="${p.username}" />
+                            </select>
+
+                        </div>
+                        <div class="form-group row">
+                            <label for="date" class="col-form-label col-md-2">When?</label>
+                            <input name="date" class="form-control col-md-10" type="date" value="${formatdate(actuallog.time, '%Y-%m-%d')}"/>
+
+                        </div>
+                        <div class="form-group row">
+                            <label for="site" class="col-form-label col-md-2">Where?</label>
+                            <select name="site" class="form-control col-md-10">
+                                <option value=""><i>&lt;Please select...&gt;</i></option>
+                                <option py:for="s in sites"
+                                        py:attrs="markoption(s is actuallog.site)"
+                                        py:content="s"
+                                        value="${s.id}" />
+                            </select>
+
+                        </div>
+                        <div class="form-group row">
+                            <label for="message" class="col-form-label col-md-2">What?</label>
+                            <textarea name="message" id="message"
+                                      class="form-control col-md-10"
+                                      rows="10" py:content="actuallog.message" />
+                            <button py:if="is_member('logger')" type="submit" name="save" class="btn btn-outline-success">
+                                <i class="fas fa-save mr-2"/>save
+                            </button>
+
+                        </div>
+                    </form>
+                </div>
+
+                <div id="log-history">
+                    <h4>History</h4>
+                    Show Logbook until
+                    <input id="lastlogdate" type="date" class="form-control" onchange="listlogs();"/>
+                    for
+                    <select id="days" onchange="listlogs();" class="form-control">
+                        <option value="1">1</option>
+                        <option value="7">7</option>
+                        <option value="30" selected="selected">30</option>
+                        <option value="90">90</option>
+                        <option value="365">365</option>
+                    </select>
+                    days and site number
+
+                    <select id="siteid" onchange="listlogs();" class="form-control">
+                        <option>All</option>
+                        <option py:for="site in sites"
+                                py:content="site"
+                                py:attrs="markoption(site.id == sites[0].id)"
+                                value="${site.id}"></option>
+                    </select><br/>
+
+                    And with keywords (case sensitive) in comments
+                    <input type="text" name="keywords" id="keywords" class="form-control"/>
+
+                    <button onclick="listlogs();" class="btn btn-info">go</button>
+
+                    <table id="table-loglist" class="table">
+                        <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Message</th>
+                            <th>Siteid</th>
+                            <th>Measured By</th>
+                        </tr>
+                        </thead>
+                        <tbody id="loglist">
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <td colspan="4" style="text-align:center"><strong>End of Table</strong></td>
+                        </tr>
+                        </tfoot>
+                    </table>
+
+                </div>
+
+            </div>
+        </div>
+
+
+    </py:block>
+    <py:block name="extrahtml">
+        <div id="pastediv" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="toggle-paste" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        Paste logs from Excel here. The text from the clipboard needs to have the following structure:
+                        <br/>
+                        <code>Message|SiteID|Date</code> (| means tab)<br />
+                    </div>
+                    <div class="modal-body">
+                        <div id="pasteerror" class="alert alert-danger"></div>
+                        <textarea id="pastebin" rows="10" cols="50" class="form-control">Message	12	02.08.2012</textarea><br />
+
+                    </div>
+                    <div class="modal-footer">
+                        <button onclick="pastelogs()" class="btn btn-outline-success rounded-pill shadow" data-dismiss="modal">
+                            <i class="fas fa-plus" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </py:block>
+</py:extends>

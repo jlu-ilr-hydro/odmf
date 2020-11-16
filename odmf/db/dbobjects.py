@@ -20,6 +20,7 @@ from functools import total_ordering
 
 from io import BytesIO
 
+
 def memoryview_to_b64str(mview):
     if type(mview) is not bytes:
         mview = mview.tobytes()
@@ -303,7 +304,7 @@ class Log(Base):
     type = sql.Column(sql.String)
 
     def __str__(self):
-        return "%s, %s: %s (id:%i)" % (self.user, self.time, self.message, self.id)
+        return f'{self.user}, {self.time}: {self.message} (id:{self.id})'
 
     def __eq__(self, other):
         if not hasattr(other, 'id'):

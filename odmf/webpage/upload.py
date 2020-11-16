@@ -8,24 +8,25 @@ Created on 15.02.2012
 import time
 
 from . import lib as web
-from os import path as op
+
 import os
 from traceback import format_exc as traceback
-from genshi import escape, Markup
-from .auth import group, expose_for
 from io import StringIO, BytesIO
-from cherrypy import log
+from cherrypy import log, request, HTTPError, InternalRedirect
 import chardet
+from cherrypy.lib.static import serve_file
+from urllib.parse import urlencode
+from .auth import group, expose_for
 
 from .. import dataimport as di
 from ..dataimport import ManualMeasurementsImport
-from ..dataimport.base import ImportDescription, LogImportDescription
-from ..dataimport.importlog import LogbookImport
+
+from ..dataimport import importlog
 from ..tools import Path
 
-from .. import conf
-datapath = web.abspath('datafiles')
-home = web.abspath('.')
+from ..config import conf
+
+datapath = conf.abspath('datafiles')
 
 #
 # Shared utility
@@ -50,10 +51,10 @@ def write_to_file(dest, src):
     fout.close()
 
 
+@web.expose
 class DBImportPage(object):
-    exposed = True
-
-    def logimport(self, filename, kwargs, import_with_class=LogbookImport):
+    @staticmethod
+    def logimport(filename, kwargs):
         """
 
         :param filename:
@@ -64,46 +65,64 @@ class DBImportPage(object):
         
         t0 = time.time()
 
-        absfile = web.abspath(filename.strip('/'))
-        path = Path(absfile)
+        path = Path(filename.strip('/'))
 
-        error = web.markdown(di.checkimport(path.absolute))
+        error = di.checkimport(path.absolute)
+        if error:
+            raise web.redirect(path.parent().href, error=error)
+        try:
+            li = importlog.LogbookImport(path.absolute, web.user())
+            logs, cancommit = li('commit' in kwargs)
 
-        config = None
-        if import_with_class == ManualMeasurementsImport:
-            config = ManualMeasurementsImport.from_file(path.absolute)
-            print("path = %s;\nabsfile = %s" % (path, absfile))
-
-        from cherrypy import log
-        log("Import with class %s" % import_with_class.__name__)
-
-        li = import_with_class(absfile, web.user(), config=config)
-        # TODO: Sometimes this is causing a delay
-        logs, cancommit = li('commit' in kwargs)
-        # TODO: REFACTORING FOR MAINTAINABILITY
+        except importlog.LogImportError as e:
+            raise web.redirect(path.parent().href, error=str(e))
 
         t1 = time.time()
 
         log("Imported in %.2f s" % (t1 - t0))
 
         if 'commit' in kwargs and cancommit:
-            di.savetoimports(absfile, web.user(), ["_various_as_its_manual"])
-            raise web.HTTPRedirect('/download?dir=' + escape(path.up()))
+            di.savetoimports(path.absolute, web.user(), ["_various_as_its_manual"])
+            raise web.redirect(path.parent().href, error=error)
         else:
-            return web.render('logimport.html', filename=path, logs=logs,
-                              cancommit=cancommit, error=error)\
-                .render('html', doctype='html')
+            return web.render(
+                'logimport.html', filename=path, logs=logs,
+                cancommit=cancommit, error=error
+            ).render()
 
-    def mmimport(self, filename, kwargs):
+    @staticmethod
+    def mmimport(filename, kwargs):
         """
-
+        Imports a manual measurement
         :param filename:
         :param kwargs:
         :return:
         """
-        return self.logimport(filename, kwargs, import_with_class=ManualMeasurementsImport)
+        t0 = time.time()
 
-    def instrumentimport(self, filename, kwargs):
+        path = Path(filename.strip('/'))
+
+        error = di.checkimport(path.absolute)
+        if error:
+            raise web.redirect(path.parent().href, error=error)
+        li = ManualMeasurementsImport(path.absolute, web.user())
+        logs, cancommit = li('commit' in kwargs)
+
+        t1 = time.time()
+
+        log("Imported in %.2f s" % (t1 - t0))
+
+        if 'commit' in kwargs and cancommit:
+            di.savetoimports(path.absolute, web.user(), ["_various_as_its_manual"])
+            raise web.redirect(path.parent().href, error=error)
+        else:
+            return web.render(
+                'logimport.html', filename=path, logs=logs,
+                cancommit=cancommit, error=error
+            ).render()
+
+    @staticmethod
+    def instrumentimport(filename, kwargs):
         """
         Loads instrument data using a .conf file
 
@@ -120,82 +139,87 @@ class DBImportPage(object):
         errorstream = StringIO()
 
         # TODO: Major refactoring of this code logic, when to load gaps, etc.
-        path = Path(web.abspath(filename.strip('/')))
-        print("path = %s" % path)
+        path = Path(filename.strip('/'))
+        error = di.checkimport(path.absolute)
+        if error:
+            raise web.redirect(path.parent().href, error=error)
+        errorstream.write(error)
+        config = di.getconfig(path.absolute)
+
+        if not config:
+            raise web.redirect(
+                conf.root_url + f'/download/{web.escape(path.up())}',
+                error='No config available. Please provide a config for computing a decent result.'
+            )
+        else:
+
+            valuetype = [e.valuetype for e in config.columns]
+            config.href = Path(config.filename).href
+
+            adapter = di.get_adapter(
+                path.absolute, web.user(),
+                siteid=None, instrumentid=None
+            )
+
+            adapter.errorstream = errorstream
+            stats = adapter.get_statistic()
+            startdate = min(v.start for v in stats.values())
+            enddate = max(v.end for v in stats.values())
+
+
+            t1 = time.time()
+
+            log("Imported in %.2f s" % (t1 - t0))
+
+        return web.render(
+            'dbimport.html',
+            config=config,
+            stats=stats,
+            error=errorstream.getvalue(),
+            filename=filename,
+            dirlink=path.up(),
+            startdate=startdate, enddate=enddate
+        ).render()
+
+    @expose_for(group.editor)
+    @web.method.post
+    def do_import(self, filename, startdate, enddate, siteid):
+        path = Path(filename.strip('/'))
+        errorstream = StringIO()
         error = web.markdown(di.checkimport(path.absolute))
-        startdate = kwargs.get('startdate')
-        enddate = kwargs.get('enddate')
-        siteid = web.conv(int, kwargs.get('site'))
-        instrumentid = web.conv(int, kwargs.get('instrument'))
+        startdate = web.parsedate(startdate)
+        enddate = web.parsedate(enddate)
+        siteid = web.conv(int, siteid)
+        msg = ''
         config = di.getconfig(path.absolute)
 
         if not config:
             errorstream.write("No config available. Please provide a config for"
                               " computing a decent result.")
+        else:
+            datasets = di.importfile(path.absolute, web.user(), siteid,
+                                     config.instrument, startdate, enddate)
+            msg = f'### Import of {path.name} successful\n\nNew datasets:\n\n'
+            for ds in datasets:
+                msg += f'- ds{ds:04d}\n'
 
-        if config:
-            valuetype = [e.valuetype for e in config.columns]
+        error += errorstream.getvalue()
 
-        if config:
-            config.href = Path(config.filename).href
+        raise web.redirect(path.parent().href, error=error, msg=msg)
 
-        if startdate:
-            startdate = web.parsedate(startdate)
-
-        if enddate:
-            enddate = web.parsedate(enddate)
-
-        stats = gaps = datasets = None
-        sites = []
-        possible_datasets = []
-
-        if startdate and enddate:
-            gaps = [(startdate, enddate)]
-
-        if siteid and (instrumentid or config):
-            absfile = web.abspath(filename.strip('/'))
-            adapter = di.get_adapter(absfile, web.user(), siteid,
-                                     instrumentid, startdate, enddate)
-            adapter.errorstream = errorstream
-            if 'loadstat' in kwargs:
-                stats = adapter.get_statistic()
-                startdate = min(v.start for v in stats.values())
-                enddate = max(v.end for v in stats.values())
-            if 'importdb' in kwargs and startdate and enddate:
-                gaps = None
-                datasets = di.importfile(absfile, web.user(), siteid,
-                                         instrumentid, startdate, enddate)
-            else:
-                gaps = di.finddateGaps(siteid, instrumentid, valuetype,
-                                       startdate, enddate)
-                error = adapter.errorstream.getvalue()
-
-            adapter.errorstream.close()
-
-        t1 = time.time()
-
-        log("Imported in %.2f s" % (t1 - t0))
-
-        return web.render('dbimport.html', di=di, error=error,
-                          filename=filename, instrumentid=instrumentid,
-                          dirlink=path.up(), siteid=siteid, gaps=gaps,
-                          stats=stats, datasets=datasets, config=config,
-                          #mmimport=isinstance(config, di.mm.ImportManualMeasurementsDescription),
-                          sites=sites, possible_datasets=possible_datasets)\
-            .render('html', doctype='html')
 
     @expose_for(group.editor)
     def index(self, filename=None, **kwargs):
         if not filename:
-            raise web.HTTPRedirect('/download/')
-
+            raise web.redirect('/download/')
+        import re
         # the lab import only fits on CFG_MANNUAL_MEASUREMENTS_PATTERN
         if ManualMeasurementsImport.extension_fits_to(filename):
             log("Import with labimport ( %s )" %
                 ManualMeasurementsImport.__name__)
             return self.mmimport(filename, kwargs)
-        # If the file ends with log.xls, import as log list
-        elif filename.endswith('log.xls'):
+        # If the file ends with log.xls[x], import as log list
+        elif re.match(r'(.*)_log\.xlsx?$', filename):
             log("Import with logimport")
             return self.logimport(filename, kwargs)
         # else import as instrument file
@@ -204,153 +228,188 @@ class DBImportPage(object):
             return self.instrumentimport(filename, kwargs)
 
 
+class HTTPFileNotFoundError(HTTPError):
+    def __init__(self, path: Path):
+        super().__init__(status=404, message=f'{path.href} not found')
+        self.path = path
+
+    def get_error_page(self, *args, **kwargs):
+
+        error = f'Resource {self.path.href} not found'
+
+        text = web.render(
+            'download.html',
+            error=error, message='',
+            files=[],
+            directories=[],
+            curdir=self.path,
+            max_size=conf.upload_max_size
+        ).render()
+
+        return text.encode('utf-8')
+
+
+def goto(dir, error, msg):
+    return web.redirect(f'{conf.root_url}/download/{dir}'.strip('.'), error=error, msg=msg)
+
+
+@web.show_in_nav_for(0, 'file')
 class DownloadPage(object):
-    exposed = True
+    """The file management system. Used to upload, import and find files"""
     to_db = DBImportPage()
 
-    @expose_for(group.logger)
-    def index(self, dir='', error='', **kwargs):
-        path = Path(op.join(datapath, dir))
-        files = []
-        directories = []
-        if path.isdir() and path.is_legal:
-            for fn in path.listdir():
-                if not fn.startswith('.'):
-                    child = path.child(fn)
-                    if child.isdir():
-                        directories.append(child)
-                    elif child.isfile():
-                        files.append(child)
-            files.sort()
-            directories.sort()
+    def _cp_dispatch(self, vpath: list):
+        request.params['uri'] = '/'.join(vpath)
+        vpath.clear()
+        return self
+
+
+    @expose_for(group.guest)
+    @web.method.get
+    def index(self, uri='.', error='', msg='', _=None):
+        path = Path((datapath / uri).absolute())
+        directories, files = path.listdir()
+
+        if path.isfile():
+            # TODO: Render/edit .md, .conf, .txt files. .csv, .xls also?
+
+            return serve_file(path.absolute, name=path.basename)
+        elif not (path.islegal() and path.exists()):
+            raise HTTPFileNotFoundError(path)
         else:
-            error = '%s is not a valid directory' % dir
-        return web.render('download.html', error=error, files=files,
-                          directories=directories, curdir=path,
-                          max_size=conf.CFG_UPLOAD_MAX_SIZE)\
-            .render('html', doctype='html')
+            return web.render(
+                'download.html', error=error, message=msg,
+                files=sorted(files),
+                directories=sorted(directories),
+                curdir=path,
+                max_size=conf.upload_max_size
+            ).render()
 
     @expose_for(group.editor)
-    def upload(self, dir, datafile, **kwargs):
-        error = ''
-        fn = ''
-        if datafile:
-            path = Path(op.join(datapath, dir))
+    @web.method.post_or_put
+    def upload(self, dir, datafiles, **kwargs):
+        """
+        Uploads a list of files. Make sure the upload element is like
+
+        <input type="file" multiple="multiple"/>
+
+        Parameters
+        ----------
+        dir
+            The target directory
+        datafiles
+            The datafiles to upload
+        kwargs
+
+        """
+        error = []
+        msg = []
+        # Loop over incoming datafiles. Single files need some special treatment
+        for datafile in (list(datafiles) or [datafiles]):
+            path = Path((datapath / dir).absolute())
             if not path:
                 path.make()
             fn = path + datafile.filename
-            if not fn.is_legal:
-                error = "'%s' is not legal"
-            if fn and 'overwrite' not in kwargs:
-                error = "'%s' exists already, if you want to overwrite the old version, check allow overwrite" % fn.name
+            if not fn.islegal():
+                error.append(f'{fn.name} is not legal')
+            elif fn and 'overwrite' not in kwargs:
+                error.append(f"'{fn.name}' exists already, if you want to overwrite the old version, check allow overwrite")
+            else:
+                # Buffer file for first check encoding and secondly upload file
+                with BytesIO(datafile.file.read()) as filebuffer:
 
-            # Buffer file for first check encoding and secondly upload file
-            with BytesIO(datafile.file.read()) as filebuffer:
-                # determine file encodings
-                result = chardet.detect(filebuffer.read())
+                    try:
+                        write_to_file(fn.absolute, filebuffer)
+                        fn.setownergroup()
+                        msg.append(f'- {fn.href} uploaded')
+                    except Exception as e:
+                        error.append(f'- {fn.href} upload failed: {e}')
 
-                # Reset file buffer
-                filebuffer.seek(0)
-
-                # if chardet can determine file encoding, check it and warn respectively
-                # otherwise state not detecting
-                # TODO: chardet cannot determine sufficent amount of encodings, such as utf-16-le
-                if result['encoding']:
-                    file_encoding = result['encoding'].lower()
-                    # TODO: outsource valid encodings
-                    if not (file_encoding in ['utf-8', 'ascii'] or 'utf-8' in file_encoding):
-                        log.error("WARNING: encoding of file {} is {}".format(datafile.filename, file_encoding))
-                else:
-                    msg = "WARNING: encoding of file {} is not detectable".format(datafile.filename)
-                    log.error(msg)
-
-                try:
-                    write_to_file(fn.absolute, filebuffer)
-                    fn.setownergroup()
-                except:
-                    error += '\n' + traceback()
-                    print(error)
-
-        if "uploadimport" in kwargs and not error:
-            url = '/download/to_db?filename=' + escape(fn.href)
-        else:
-            url = '/download?dir=' + escape(dir)
-            if error:
-                url += '&error=' + escape(error)
-        raise web.HTTPRedirect(url)
+        raise goto(dir, '\n'.join(error), '\n'.join(msg))
 
     @expose_for(group.logger)
+    @web.method.post
     def saveindex(self, dir, s):
         """Saves the string s to index.html
         """
-        path = Path(op.join(datapath, dir, 'index.html'))
+        path = datapath / dir / 'index.html'
         s = s.replace('\r', '')
-        f = open(path.absolute, 'wb')
-        f.write(s)
-        f.close()
+        path.write_text(s)
         return web.markdown(s)
 
     @expose_for()
+    @web.method.get
     def getindex(self, dir):
-        index = Path(op.join(datapath, dir, 'index.html'))
+        index = datapath / dir / 'index.html'
         io = StringIO()
         if index.exists():
-            io.write(open(index.absolute).read())
-        imphist = Path(op.join(datapath, dir, '.import.hist'))
+            text = index.read_text()
+            io.write(text)
+        imphist = datapath / dir / '.import.hist'
         if imphist.exists():
             io.write('\n')
-            for l in open(imphist.absolute):
-                ls = l.split(',', 3)
-                io.write(' * file:%s/%s imported by user:%s at %s into %s\n' %
-                         tuple([imphist.up()] + ls))
+            for l in imphist.open():
+                fn, user, date, ds = l.split(',', 3)
+                io.write(f' * file:{dir}/{fn} imported by user:{user} at {date} into {ds}\n')
         return web.markdown(io.getvalue())
 
     @expose_for(group.editor)
+    @web.method.post_or_put
     def newfolder(self, dir, newfolder):
         error = ''
+        msg = ''
         if newfolder:
             if ' ' in newfolder:
                 error = "The folder name may not include a space!"
             else:
                 try:
-                    path = Path(op.join(datapath, dir, newfolder))
-                    if not path:
+                    path = Path((datapath / dir / newfolder).absolute())
+                    if not path.exists() and path.islegal():
                         path.make()
                         path.setownergroup()
+                        msg = f"{path.href} created"
                     else:
-                        error = "Folder %s exists already!" % newfolder
+                        error = f"Folder {newfolder} exists already"
                 except:
                     error = traceback()
         else:
             error = 'Forgotten to give your new folder a name?'
-        url = '/download?dir=' + escape(dir)
-        if error:
-            url += '&error=' + escape(error)
-        return self.index(dir=dir, error=error)
 
-    # @TODO: Is the usage of a dir post variable safe through foreign access?
+        if not error:
+            raise goto(dir + '/' + newfolder, error, msg)
+        else:
+            raise goto(dir, error, msg)
+
     @expose_for(group.admin)
+    @web.method.post_or_delete
     def removefile(self, dir, filename):
-        path = Path(op.join(datapath + '/' + dir, filename))
-        error = ''
+        path = Path((datapath / dir / filename).absolute())
+        error = msg = ''
 
-        if path.exists():
+        if path.isfile():
             try:
                 os.remove(path.absolute)
+                msg = f'{filename} deleted'
             except:
                 error = "Could not delete the file. A good reason would be a mismatch of user rights on the server " \
                         "file system"
+        elif path.isdir():
+            if path.isempty():
+                try:
+                    dirs, files = path.listdir()
+                    for f in files:
+                        if f.ishidden():
+                            os.remove(f.absolute)
+                    os.rmdir(path.absolute)
+                    msg = f'{filename} removed'
+                except (FileNotFoundError, OSError):
+                    error = f'Could not delete {path}. Please ask the administrators about this problem.'
+            else:
+                error = "Cannot remove directory. Not empty."
         else:
             error = "File not found. Is it already deleted?"
 
-        if dir == '.' and error == '':
-            return self.index()
-        else:
-            # TODO: Remove this hack
-            raise web.HTTPRedirect("/download/?dir=%s&error=%s" % (dir, error))
+        qs = urlencode({'error': error, 'msg': msg})
+        url = f'{conf.root_url}/download/{dir}'.strip('.')
+        return url + '?' + qs
 
-
-if __name__ == '__main__':
-    class Root:
-        download = DownloadPage()
-    web.start_server(Root(), autoreload=False, port=8081)

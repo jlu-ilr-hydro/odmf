@@ -17,13 +17,9 @@ import chardet
 
 import ast
 
-from .. import conf
-# AbstractImport
+from ..config import conf
 from traceback import format_exc as traceback
 from pytz import common_timezones_set
-from sqlalchemy import func
-
-from ..dataimport.importlog import LogColumns
 
 
 def findStartDate(siteid, instrumentid):
@@ -251,7 +247,7 @@ class ImportDescription(object):
 
     def __init__(self, instrument, skiplines=0, delimiter=',', decimalpoint='.',
                  dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
-                 timezone=conf.CFG_DATETIME_DEFAULT_TIMEZONE, project=None,
+                 timezone=conf.datetime_default_timezone, project=None,
                  nodata=[], worksheet=1, sample_mapping=None):
         """
         instrument: the database id of the instrument that produced this file
@@ -316,10 +312,10 @@ class ImportDescription(object):
         Adds the description of a column to the file format description
         """
         self.columns.append(ImportColumn(
-            column, name, valuetype, factor, comment, difference))
+            column, name, valuetype, factor, comment, difference, minvalue=minvalue, maxvalue=maxvalue))
         return self.columns[-1]
 
-    def to_config(self):
+    def to_config(self) -> RawConfigParser:
         """
         Returns a ConfigParser.RawConfigParser with the data of this description
         """
@@ -354,8 +350,22 @@ class ImportDescription(object):
             col.to_config(config, section)
         return config
 
+    def to_markdown(self) -> str:
+        """
+        Returns a string in markdown format showing the configuration setting
+        """
+        conf = self.to_config()
+        s = StringIO()
+        for section in conf.sections():
+            s.write(section + '\n')
+            s.write('-' * len(section) + '\n')
+            for k, v in conf.items():
+                s.write('- {k} = {v}')
+            s.write('\n')
+        return s.getvalue()
+
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config: RawConfigParser):
         """
         Creates a TextImportDescriptor from a ConfigParser.RawConfigParser
         by parsing its content
@@ -492,120 +502,7 @@ class LogImportColumn(ImportColumn):
                    )
 
 
-class LogImportDescription(ImportDescription):
-    """
-    Temporary Helper Class
-    """
-    # TODO: Refactor this into new class hierarchy
 
-    def __init__(self, instrument, skiplines=0, delimiter=',', decimalpoint='.',
-                 dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
-                 timezone=conf.CFG_DATETIME_DEFAULT_TIMEZONE, project=None,
-                 site=None, dataset=None, value=None, logtext=None, msg=None,
-                 worksheet=1, nodata=[], sample_mapping=None):
-        """
-        instrument: the database id of the instrument that produced this file
-        skiplines: The number of lines prepending the actual data
-        delimiter: The delimiter sign of the columns. Use TAB for tab-delimited columns, otherwise ',' or ';'
-        """
-
-        self.site = site
-        self.dataset = dataset
-        self.value = value
-        self.logtext = logtext
-        self.msg = msg
-
-        super(LogImportDescription, self)\
-            .__init__(instrument, skiplines, delimiter, decimalpoint,
-                      dateformat, datecolumns, timezone, project, nodata=nodata,
-                      worksheet=worksheet, sample_mapping=sample_mapping)
-
-    @classmethod
-    def from_config(cls, config):
-        """
-        Creates a TextImportDescriptor from a ConfigParser.RawConfigParser
-        by parsing its content
-        """
-
-        def getvalue(section, option, type=str):
-            if config.has_option(section, option):
-                return type(config.get(section, option))
-            else:
-                return None
-
-        sections = config.sections()
-        if not sections:
-            raise IOError('Empty config file')
-
-        # Check integrity of the data
-        with db.session_scope() as session:
-
-            # Get the data which shall be checked
-            project = getvalue(sections[0], 'project')
-            timezone = getvalue(sections[0], 'timezone')
-
-            if project:
-                rows = session.query(db.Project) \
-                    .filter(db.Project.id == project).count()
-                if rows != 1:
-                    raise ValueError('Error in import description: \'%s\' is no'
-                                     ' valid project identifier' % project)
-
-            if timezone:
-                # Search in pytz's "set" cause of the set is faster than the
-                # list
-                if timezone not in common_timezones_set:
-                    raise ValueError('Error in import description: \'%s\' is no'
-                                     ' valid timezone' % timezone)
-
-        # Create a new TextImportDescriptor from config file
-
-        tid = cls(instrument=config.getint(sections[0], 'instrument'),
-                  skiplines=config.getint(sections[0], 'skiplines'),
-                  delimiter=getvalue(sections[0], 'delimiter'),
-                  decimalpoint=getvalue(sections[0], 'decimalpoint'),
-                  dateformat=getvalue(sections[0], 'dateformat'),
-                  datecolumns=eval(config.get(sections[0], 'datecolumns')),
-                  project=getvalue(sections[0], 'project', int),
-                  timezone=getvalue(sections[0], 'timezone'),
-                  site=getvalue(sections[0], 'sitecolumn', int),
-                  dataset=getvalue(sections[0], 'dataset', int),
-                  value=getvalue(sections[0], 'value', float),
-                  logtext=getvalue(sections[0], 'logtext'),
-                  msg=getvalue(sections[0], 'msg'),
-                  worksheet=getvalue(sections[0], 'worksheet', int),
-                  sample_mapping=config_getdict(config, sections[0], 'sample_mapping')
-                  )
-        tid.name = sections[0]
-        for section in sections[1:]:
-            tid.columns.append(ImportColumn.from_config(config, section))
-            print(tid.columns)
-        return tid
-
-    def to_columns(self):
-
-        date = None
-        time = None
-
-        if len(self.datecolumns) == 1:
-            date = self.datecolumns[0]
-
-        if len(self.datecolumns) == 2:
-            date = self.datecolumns[0]
-            time = self.datecolumns[1]
-
-        res = LogColumns(
-            date=date,
-            time=time,
-            datetime=None,
-            site=self.site,
-            dataset=self.dataset,
-            value=self.value,
-            logtext=self.logtext,
-            msg=self.msg,
-            sample=None
-        )
-        return res
 
 
 class ImportStat(object):
@@ -663,7 +560,7 @@ class AbstractImport(object):
         # Get the dataset objects for the columns
         datasets = {}
         for k in self.datasets:
-            datasets[k] = db.Dataset.get(session, self.datasets[k])
+            datasets[k] = session.query(db.Dataset).get(self.datasets[k])
 
         # A dict to hold the current record id for each column k
         def newid(k):
@@ -760,7 +657,7 @@ class AbstractImport(object):
                                    start=self.startdate, end=datetime.today(), level=col.level,
                                    access=col.access if col.access is not None else 1,
                                    # Get timezone from descriptor or, if not present from global conf
-                                   timezone=self.descriptor.timezone or conf.CFG_DATETIME_DEFAULT_TIMEZONE,
+                                   timezone=self.descriptor.timezone or conf.datetime_default_timezone,
                                    project=self.descriptor.project)
             self.datasets[col.column] = ds.id
         session.commit()

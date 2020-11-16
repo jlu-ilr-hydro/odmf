@@ -5,34 +5,33 @@ Created on 12.07.2012
 '''
 from . import lib as web
 from .. import db
-from .datasetpage import DatasetPage
-from .preferences import Preferences
+from kajiki.template import literal
 
 
+@web.show_in_nav_for(0, icon='map')
 class MapPage(object):
-    exposed = True
+    """
+    The main map page
+    """
 
     @web.expose
     def index(self, site=None):
         if site is None:
             site = 'null'
         else:
-            session = db.Session()
+            with db.session_scope() as session:
+                site = literal(web.as_json(
+                    session.query(db.Site).get(int(site))
+                ))
 
-            # decode for valid json string
-            site = web.as_json(db.Site.get(session, int(site))).decode('utf-8')
-
-            session.close()
-        return web.render('map.html', site=site).render('html', doctype='html')
+        return web.render('map.html', site=site).render()
 
     @web.expose
+    @web.mime.json
     def sites(self):
-        session = db.Session()
-        web.setmime('application/json')
-        sites = session.query(db.Site).order_by(db.Site.id)
-        res = web.as_json(sites.all())
-        session.close()
-        return res
+        with db.session_scope() as session:
+
+            return web.json_out(session.query(db.Site).order_by(db.Site.id).all())
 
     @web.expose
     def sitedescription(self, siteid):
@@ -40,6 +39,6 @@ class MapPage(object):
             return('<div class="error">Site %s not found</div>' % siteid)
         session = db.Session()
         site = session.query(db.Site).get(int(siteid))
-        res = web.render('sitedescription.html', site=site).render('html')
+        res = web.render('sitedescription.html', site=site).render()
         session.close()
         return res

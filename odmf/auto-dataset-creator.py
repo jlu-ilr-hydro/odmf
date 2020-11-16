@@ -1,10 +1,12 @@
+"""
+Creates datasets from a .csv file including all the meta data
+"""
+
 import sys
 sys.path.insert(0, '.')
-from .tools.parseConf import parseConf
-from . import conf
-parseConf(conf)
+from .config import conf
 
-import db
+from . import db
 
 
 if __name__ == '__main__':

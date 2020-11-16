@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <script type="text/javascript" async="async" defer="defer"
+                src="https://maps.googleapis.com/maps/api/js?key=${conf.google_maps_api_key}">
+        </script>
+        <script type="text/javascript" src="${conf.root_url}/media/js/map.js"></script>
+        <script>
+            $(function() {
+                initMap(${site});
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip()
+                });
+
+            });
+        </script>
+    </py:block>
+    <py:block name="style">
+        <style>
+            .mapCanvasShort {
+
+            height: calc(100vh - 82px);
+            width: 100%;
+            margin: 0px;
+            padding: 0px;
+            }
+        </style>
+    </py:block>
+    <py:block name="sidebar">
+        <div class="container-fluid">
+            <h3>Current location</h3>
+            <div class="alert alert-dark">
+                <span id="coordinates">Not in map</span>
+            </div>
+            <div class="custom-control custom-switch" title="Use double click to create a new site" data-toggle="tooltip">
+                <input type="checkbox" id="createsite" class="custom-control-input"/>
+                <label class="custom-control-label" for="createsite">new site</label>
+            </div>
+
+        </div>
+        <div class="mt-3" id="filter-collapse">
+            <a href="#filter" id="filter-toggle" class="btn btn-secondary flexbox h1"
+                    data-toggle="collapse">
+                <span><i class="fas fa-filter mr-2"/>Filter</span><span><i class="fas fa-plus-circle"/></span>
+            </a>
+            <div id="filter" class="collapse card card-body" >
+                <div class="form-group small ">
+                    <label for="vtselect" class="col-form-label">value type:</label>
+                    <select id="vtselect" onchange="popSelect();" class="form-control">
+                        <option class="firstoption" value=""><i>value type...</i></option>
+                    </select>
+                </div>
+                <div class="form-group small ">
+                    <label for="userselect" class="col-form-label">user:</label>
+                    <select id="userselect" onchange="popSelect();" class="form-control">
+                        <option value=""><i>Please select...</i></option>
+                    </select>
+                </div>
+                <div class="form-group small ">
+                    <label for="instrumentselect" class="col-form-label">instrument:</label>
+                    <select id="instrumentselect" onchange="popSelect();" class="form-control">
+                        <option value=""><i>Please select...</i></option>
+                    </select>
+                </div>
+                <div class="form-group small mt-0 mb-0">
+                    <label for="dateselect" class="col-form-label">date:</label>
+                    <input id="dateselect" type="date" class="form-control" value=""
+                           onchange="popSelect();" title="Show only sites with a dataset for this date"/>
+                </div>
+                <div class="form-group small mt-0 mb-0">
+                    <label class="col-form-label" for="filter-buttons">apply:</label>
+                    <div id="filter-buttons" class="">
+                        <button onclick="popSelect();" title="Apply the filter" data-toggle="tooltip" class="btn btn-outline-dark">
+                            <img src="${conf.root_url}/media/ui-icons/filter_16.png" alt="set filter"/>
+                        </button>
+                        <button onclick="clearFilter();" title="Clear filter and show all sites"
+                                data-toggle="tooltip" data-placement="bottom"
+                                class="btn btn-outline-dark">
+                            <img src="${conf.root_url}/media/ui-icons/clearfilter_16.png" alt="clear filter"/>
+                        </button>
+                        <button onclick="zoomToMarkers();" title="Show all sites" data-toggle="tooltip" class="btn btn-outline-dark">
+                            <img src="${conf.root_url}/media/ui-icons/shimmer/world_16.png"  alt="zoom to markers"/>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group small mt-0 mb-0">
+                    <div class="custom-control custom-switch" data-toggle="tooltip" title="Show only sites with datasets">
+                        <input id="datasetsonly" type="checkbox" onchange="popSelect();" class="custom-control-input"/>
+                        <label for="datasetsonly" class="custom-control-label">only datasets</label>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+        <hr />
+
+        <div id="infotext">
+            <div class="card card-body">
+                <h5 class="card-title">No site selected</h5>
+            </div>
+        </div>
+    </py:block>
+    <py:block name="content">
+        <div id="map_canvas" class="mapCanvasShort row">Map</div>
+
+    </py:block>
+
+</py:extends>

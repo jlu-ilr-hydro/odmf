@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Server configuration, see conf.py for HEAD_BASE -->
+    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
+
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous" />
+
+	<link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Projects</title>
+</head>
+<style>
+	.form-horizontal {
+		padding: 15px;
+	}
+
+	div.space {
+		margin-top: 10px;
+		margin-bottom: 5px;
+	}
+	div.short {
+		width: 40em;
+	}
+
+    /*<!-- Only for the note --> */
+    #commentnote > div.col-sm-8 {
+        margin-top:1.5rem;
+    }
+
+    /*Fix Bootstrap overwride*/
+    body {
+        line-height: normal;
+    }
+</style>
+<body>
+	${navigation('New project')}
+	<div class="content">
+        <div class="error" py:content="error" />
+		<a href="${conf.root_url}/project">Back to all project</a>
+		<form method="post" action="${conf.root_url}/project/save">
+            <div class="form-group">
+				<label for="name" class="col-sm-2 control-label">Name</label>
+				<div class="col-sm-10">
+					<input name="name" id="name" type="text" class="form-control"/>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label for="person"
+					   class="col-sm-2 control-label">Person responsible</label>
+				<div class="col-sm-10">
+					<select name="person" id="person" class="form-control">
+						<option py:for="p in persons" value="${p.username}" py:content="p" />
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label for="comment" class="col-sm-2 control-label">Comment</label><br/>
+				<div class="col-sm-10">
+                    <textarea name="comment" id="comment" class="form-control"
+                        placeholder="Can be seen when downloading data of this project from the CUAHSI webinterface"></textarea>
+                </div>
+
+			</div>
+
+            <!-- Comment -->
+            <div id="commentnote" class="row from-group">
+                <div class="col-sm-8 col-sm-offset-2">
+                    <strong>Note:</strong> The comment is a description, which is part of the reponse, when
+                    requesting webservice methods of the <a href="${conf.root_url}/wof">WaterOneFlow interface</a>. E.g. it can be
+                    seen when downloading data from this project over the CUAHSI-Applications.
+                </div>
+            </div>
+
+            <div class="form-group">
+				<div class="col-sm-2">
+                    <button type="submit" name="save" value="Save" class="btn btn-success">Save</button>
+				</div>
+            </div>
+
+		</form>
+
+	</div>
+
+</body>
+</html>

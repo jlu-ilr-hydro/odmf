@@ -5,14 +5,12 @@ Created on 05.09.2012
 The file borrows heavily from 
 http://tools.cherrypy.org/wiki/AuthenticationAndAccessRestrictions
 '''
-from operator import le
+
 import os.path as op
 import collections
-#import md5
+
 import cherrypy
 
-from .. import db
-from sqlalchemy import func
 import bcrypt
 
 ACCESS_LEVELS = [["Guest", "0"],
@@ -42,9 +40,22 @@ def get_levels(level):
 SESSION_KEY = '#!35625/Schwingbach?Benutzer'
 
 
-def sessionuser():
+def sessionuser()->str:
     "Returns the username saved in the session"
     return cherrypy.session.get(SESSION_KEY)
+
+
+class HTTPAuthError(cherrypy.HTTPError):
+    def __init__(self, referrer=None):
+        self.referrer = referrer or cherrypy.request.path_info
+        super().__init__(401, f"You do not have sufficient rights to access {self.referrer}")
+
+    def get_error_page(self, *args, **kwargs):
+        from .lib import render
+        user = users.current
+        error = f'Sorry, {user.name}, your status as a **{user.group}** is not sufficient to access **{self.referrer}**. ' \
+                f'Either log in with more privileges or ask the administrators for elevated privileges.'
+        return render('login.html', error=error, frompage='').render().encode('utf-8')
 
 
 def check_auth(*args, **kwargs):
@@ -60,11 +71,9 @@ def check_auth(*args, **kwargs):
             for condition in conditions:
                 # A condition is just a callable that returns true or false
                 if not condition():
-                    raise cherrypy.HTTPRedirect(
-                        "/login?error=You are missing privileges to do what you liked to do.&frompage=" + cherrypy.request.path_info)
+                    raise HTTPAuthError()
         else:
-            raise cherrypy.HTTPRedirect(
-                "/login?error=You need to be logged in, to access this page&frompage=" + cherrypy.request.path_info)
+            raise HTTPAuthError()
 
 
 cherrypy.tools.auth = cherrypy.Tool('before_handler', check_auth)
@@ -135,7 +144,7 @@ class Users(collections.Mapping):
 
     def __init__(self):
         self.dict = {}
-        self.load()
+
 
     def __getitem__(self, name):
         return self.dict[name]
@@ -150,8 +159,8 @@ class Users(collections.Mapping):
         return user in self.dict
 
     def load(self):
+        from .. import db
         with db.session_scope() as session:
-
             q = session.query(db.Person).filter(db.Person.active == True)
 
             self.dict = {}
@@ -164,6 +173,7 @@ class Users(collections.Mapping):
     def check(self, username, password):
 
         if username not in self:
+            self.load()
             return "User '%s' not found" % username
         elif self[username].check(password):
             return
@@ -171,6 +181,8 @@ class Users(collections.Mapping):
             return "Password not correct"
 
     def list(self):
+        if not self:
+            self.load()
         return sorted(self)
 
     def save(self):
@@ -180,8 +192,8 @@ class Users(collections.Mapping):
         f.close()
 
     @property
-    def current(self):
-        return self.get(cherrypy.request.login)
+    def current(self) -> User:
+        return self.get(cherrypy.request.login, User('guest', 0, None))
 
     def login(self, username, password):
         self.load()
@@ -202,6 +214,7 @@ class Users(collections.Mapping):
 
 
 users = Users()
+
 
 
 def is_member(group):
@@ -244,6 +257,7 @@ def expose_for(groupname=None):
             f._cp_config.setdefault('auth.require', []).append(
                 member_of(groupname))
         f.exposed = True
+        f.level = groupname
         return f
     return decorate
 

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <script type="text/javascript" async="async" defer="defer"
+                src="https://maps.googleapis.com/maps/api/js?key=${conf.google_maps_api_key}">
+        </script>
+        <script type="text/javascript" src="${conf.root_url}/media/js/map.js"></script>
+
+        <script>
+            //<![CDATA[
+            function toggle(id) {
+                $('#'+id).slideToggle('fast');
+            }
+            function setbigimage(id) {
+                var url='';
+                var bigimg = $('#bigimage');
+                if (id) {
+                    url = odmf_ref('/picture/image/') + id;
+                }
+                bigimg.attr('src',url);
+
+            }
+
+            function popSelect() {
+                $.getJSON(odmf_ref('/site/json'),[],function(data){
+                    var html='';
+                    $.each(data,function(index,item){
+                        if (item.id != ${actualsite.id}) {
+                            html += '<option value="${conf.root_url}/site/' + item.id + '">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
+                        } else {
+                            html += '<option value="${conf.root_url}/site/' + item.id + '" selected="selected">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
+                        }
+                    });
+                    $('#siteselect').html(html);
+                });
+            }
+            function popInstruments() {
+                $.getJSON(odmf_ref('/site/getinstruments'),[],function(data){
+                    var html='<option value="">Please select...</option>';
+                    $.each(data, function(index,item){
+                        html += '<option value="' + item.id + '">' + item.name + '</option>';
+                    });
+                    $('#instruments').html(html);
+                });
+            }
+            function addinstrument() {
+                data = {instrumentid:$('#instruments').val(),
+                    date:escape($('#installationdate').val()),
+                    siteid:${actualsite.id}
+                };
+                if (data.instrumentid=='') {
+                    location.href=odmf_ref('/instrument/new')
+                }
+                $.post(odmf_ref('/site/addinstrument'),data,function (data,textStatus,jqHXR){
+                    if (data=='') {
+                        location.reload();
+                    } else {
+                        $('.error').html(data);
+                    }
+                });
+            }
+            function removeinstrument(installationid,instrumentid) {
+                data = {instrumentid:instrumentid,
+                    date:escape($('#installationdate').val()),
+                    siteid:${actualsite.id},
+                    installationid:installationid
+                };
+                $.post(odmf_ref('/site/removeinstrument'),data, function(data,textStatus,jqHXR) {
+                    if (data=='') {
+                        location.reload();
+                    } else {
+                        $('.error').html(data);
+                    }
+                });
+            }
+
+
+            $(function() {
+                $('#site-tab a').on('click', function (e) {
+                    e.preventDefault()
+                    $(this).tab('show')
+                });
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip()
+                });
+                popSelect();
+                popInstruments();
+
+
+                // decode json data, can't parse instead
+                var site = ${literal(as_json(actualsite) if actualsite else 'null')}
+
+                //
+                // Define createmap via "currying" to bind parameter site permant
+                //  and to call it ultimately via the google.maps.event.addDOMListener
+                var createmap = function(site) {
+                    console.log(site);
+                    var latlng = new google.maps.LatLng(site.lat, site.lon);
+                    var mapOptions = {
+                        zoom: 20,
+                        center: latlng,
+                        mapTypeId: 'hybrid'
+                    };
+                    var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+
+                    if (!site.icon) {
+                        icon='unknown.png';
+                    } else {
+                        icon = site.icon;
+                    }
+
+                    var image = new google.maps.MarkerImage(odmf_ref('/media/mapicons/') + icon,
+                            new google.maps.Size(24, 24),
+                            new google.maps.Point(0,0),
+                            new google.maps.Point(0, 24));
+
+                    var marker = new google.maps.Marker(
+                            {
+                                position: new google.maps.LatLng(site.lat,site.lon),
+                                title:'#' + site.id + '(' + site.name + ')',
+                                map:map,
+                                icon:image,
+                            });
+                }(site);
+
+                if (site) {
+                    google.maps.event.addDomListener(window, "load", createmap);
+                }
+            });
+            //]]>
+        </script>
+    </py:block>
+    <py:block name="style">
+        <style type="text/css">
+            .removed {
+                color: grey;
+            }
+
+        </style>
+    </py:block>
+    <py:block name="sidebar">
+        <div class="container-fluid">
+            <h2>
+                <img src="${conf.root_url}/media/mapicons/${actualsite.icon or 'unknown.png'}"/>
+                <span py:content="actualsite" />
+            </h2>
+            <a class="btn btn-primary" href="${conf.root_url}/map?site=${actualsite.id}">show on map...</a>
+            <hr/>
+            <div class="row box m-1 p-1" >
+                <form class="form-group row">
+                    <div class="container-fluid">
+                        <label for="siteselect" class="form-label">Select a site:</label>
+                        <div class="input-group col">
+                            <select onchange="location.href=this.options[this.selectedIndex].value"
+                                    id="siteselect"
+                                    class="form-control">
+                            </select>
+                            <div class="input-group-append">
+                                <a class="btn btn-secondary"
+                                   py:if="is_member('editor')" href="${conf.root_url}/site/new"
+                                   data-toggle="tooltip" data-placment="right" title="Create a new site"
+                                >+</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="nav flex-column nav-pills" role="tablist"  aria-orientation="vertical" id="site-tab">
+                        <a id="site-tab" class="nav-link active border-top" data-toggle="pill" href='#sitedescription'>site</a>
+                        <a id="map-tab" class="nav-link border-top" data-toggle="pill" href='#map'>map</a>
+                        <a id="edit-tab" class="nav-link border-top" data-toggle="pill" href="#edit">edit</a>
+                        <a id="message-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#messagelist">
+                            <span>messages</span><span class="badge badge-primary badge-pill" py:content="actualsite.logs.count()"/>
+                        </a>
+                        <a id="pic-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#pictures">
+                            <span>pictures</span><span class="badge badge-primary badge-pill" py:content="actualsite.images.count()"/>
+                        </a>
+                        <a id="instrument-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#instrumentlist">
+                            <span>instruments</span><span class="badge badge-primary badge-pill" py:content="actualsite.instruments.count()"/>
+                        </a>
+                        <a id="dataset-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#datasetlist">
+                            <span>datasets</span><span class="badge badge-primary badge-pill" py:content="actualsite.datasets.count()"/>
+                        </a>
+                        <a id="export-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#export">export</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </py:block>
+    <py:block name="content">
+        <!--<div class="row error" id="errordiv" />-->
+        <div py:if="actualsite" class="container-fluid">
+
+            <div class="tab-content" id="tab">
+                <div class="tab-pane active" id ="sitedescription" role="tabpanel">
+                    <div class="container">
+                        <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4" >
+                            <h2 class="display-4 mr-8" >
+                                <span py:content="actualsite.name" />
+
+                            </h2>
+                            <div class="display-4 col-sm my-auto text-right" >
+                                <img src="${conf.root_url}/media/mapicons/${actualsite.icon or 'unknown.png'}" height="48px" />
+                                #${actualsite.id}
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-sm-1">
+                                <a class="btn btn-outline-primary rounded-pill"
+                                   href="${conf.root_url}/map?site=${actualsite.id}"
+                                   title="show on map..." data-toggle="tooltip"
+                                >
+                                    <i class="fas fa-map"/>
+                                </a>
+
+                            </div>
+                            <div class="col-sm-5 text-center">
+                                <div py:content="actualsite.as_coordinatetext()"/>
+                            </div>
+                            <div class="col-sm-5 text-center">
+                                <div py:content="'UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
+                            </div>
+                        </div>
+                        <div class="row border rounded">
+                            <div class="col" py:content="markdown(actualsite.comment)"/>
+                        </div>
+
+                    </div>
+
+
+                </div>
+                <div class="tab-pane" id="map" role="tabpanel">
+                    <div id="map_canvas" style="width:100%;height:512px"></div>
+                </div>
+                <div class="tab-pane" id ="edit" role="tabpanel">
+                    <div py:if="not is_member('editor')" class="jumbotron">
+                        <h1>Sorry,</h1>
+                        <p class="lead">
+                            Editing sites is only available for users with <b>editor</b> status, you are a <b>${users.current.group}</b>.
+                        </p>
+                        <hr class="my-4"/>
+                        <p>If you need to edit sites, please ask the site-administrators to elevate your privileges.</p>
+                    </div>
+
+                    <form py:if="is_member('editor')"
+                          action="${conf.root_url}/site/saveitem" method="post"
+                          class="container-fluid mt-3">
+                        <div class="form-group row">
+                            <label for="id" class="col-sm-4 col-form-label">ID:</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="id" name="id" value="${actualsite.id}"
+                                       readonly="readonly" class="readonly form-control"/>
+
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="lon" class="col-sm-4 col-form-label">Longitude:</label>
+                            <div class="col-sm-8 input-group">
+                                <input type="text" id="lon" name="lon" value="${actualsite.lon}"  class="form-control"/>
+                                <div class="input-group-append"><span class="input-group-text">° N</span></div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="lat" class="col-sm-4 col-form-label">Latitude:</label>
+                            <div class="col-sm-8 input-group">
+                                <input type="text" id="lat" name="lat" value="${actualsite.lat}"  class="form-control"/>
+                                <div class="input-group-append"><span class="input-group-text">° E</span></div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="height" class="col-sm-4 col-form-label">Height:</label>
+                            <div class="col-sm-8 input-group">
+                                <input type="text" id="height" name="height" value="${actualsite.height}"  class="form-control"/>
+                                <div class="input-group-append"><span class="input-group-text">m a.s.l.</span></div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="name" class="col-sm-4 col-form-label">Name:</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="name" name="name" value="${actualsite.name}"  class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-4">
+                                <label for="iconfile" class="col-form-label">Icon:</label>
+                                <img src="${conf.root_url}/media/mapicons/${actualsite.icon if actualsite.icon else 'unknown.png'}" id="currenticon" />
+                            </div>
+                            <div class="col-sm-8">
+                                <div class="">
+                                    <button type="button" class="btn btn-outline-primary mr-1 mb-1"
+                                            onclick="$('#currenticon').attr('src',odmf_ref('/media/mapicons/${icon}'));$('#iconfile').val('${icon}');"
+                                            py:for="icon in icons"
+                                    >
+                                        <img src="${conf.root_url}/media/mapicons/${icon}"/>
+                                    </button>
+                                    <input name="icon" type="hidden" id="iconfile" value="${actualsite.icon}" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-4">
+                                <label for="comment">Comment</label>
+                                <a href="${conf.root_url}/wiki.help" title="Get help for using links and formats"
+                                   data-toggle="tooltip" data-placement="top"
+                                >
+                                    <img src="${conf.root_url}/media/ui-icons/help.png" />
+                                </a>
+                            </div>
+                            <div class="col-sm">
+                                <textarea id="comment" name="comment"
+                                          class="form-control"
+                                          rows="10" py:content="actualsite.comment"/>
+                            </div>
+                        </div>
+                        <input type="submit" id="save" name="save" value="save" style="width: 10em;" class="form-control"/>
+                    </form>
+                </div>
+                <div class="tab-pane" id="messagelist" role="tabpanel">
+                    <p>
+                        Please report briefly any actions you have performed on this site, or if you observed something unusual.
+                    </p>
+                    <ul>
+                        <li py:if="is_member('logger')">
+                            <a href="${conf.root_url}/log/new?siteid=${actualsite.id}" style="font-style: italic;">New message...</a>
+                        </li>
+                        <li py:for="log in actualsite.logs">
+                            <a href="${conf.root_url}/log/${log.id}" py:content="formatdatetime(log.time)"/>
+                                ${log.user}<sup>log:${log.id}</sup> ${markdown(log.message)}
+                        </li>
+                    </ul>
+
+                </div>
+
+                <div class="tab-pane" id="pictures" role="tabpanel">
+                    <div py:for="img in actualsite.images" style="display: inline">
+                        <img src="${conf.root_url}/picture/thumbnail/${img.id}"
+                             title="${'%s: %s (%s)' % (formatdatetime(img.time),img.name, img.by)}"
+                             onclick="location.href=odmf_ref('/picture?id=${img.id}')"
+                        />
+                    </div>
+                </div>
+
+                <div class="tab-pane" id="instrumentlist" role="tabpanel" >
+                    <div id="installations" class="container">
+                        <h1 class="mt-2 bg-dark text-white">Installations</h1>
+                        <h4>Add installation</h4>
+                        <div id="add-installation" class="input-group mb-2" py:if="is_member('editor')">
+                            <div class="input-group-prepend">
+                                <button py:if="is_member('editor')" onclick="addinstrument()" class="btn btn-outline-secondary">
+                                    <i class="fas fa-plus"/>
+                                </button>
+                            </div>
+                            <input type="date" class="form-control" id="installationdate" value="${formatdate()}"
+                                   data-toggle="tooltip"
+                                   title="When has the instrument been installed"
+                            />
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">
+                                    <i class="fas fa-map-marker-alt"/>
+                                </span>
+                            </div>
+                            <select id="siteselect" class="form-control"
+                                    data-toggle="tooltip"
+                                    title="Where has the instrument been installed"
+                            >
+                                <option disabled="disabled">select site...</option>
+                            </select>
+                        </div>
+                        <h4>Current installation</h4>
+                        <ul style="margin-top:0px;padding-top:0px;">
+                            <li py:for="inst in actualsite.instruments" >
+                                <a  href="${conf.root_url}/site/${inst.site.id}"
+                                    py:if="inst.active"
+                                    py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
+                                <span py:if="not inst.active" class="removed"
+                                      py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
+                                <a href="javascript:removeinstrument(${inst.id},${inst.site.id})"
+                                   py:if="is_member('editor') and inst.active"
+                                   class="btn btn-outline-primary btn-sm rounded-circle"
+                                   title="remove installation" data-toggle="tooltip"
+                                ><i class="fas fa-minus"/></a>
+                            </li>
+                        </ul>
+                    </div>
+
+
+                </div>
+
+                <div class="tab-pane" id="datasetlist" role="tabpanel"  >
+                    <ul style="list-style-type: none;">
+                        <li py:if="is_member('editor')" class="plus">
+                            <a href="${conf.root_url}/dataset/new?site_id=${actualsite.id}"
+                               style="font-style: italic;" >
+                                Add new dataset...
+                            </a>
+                        </li>
+                        <li py:for="ds in datasets">
+                            <a href="${conf.root_url}/dataset/${ds.id}?site_id=${actualsite.id}"
+                               py:content="ds" />
+                        </li>
+                        <li py:if="is_member('editor')">
+                            <script>
+                                function makeplotcover() {
+                                    $('#plotcoverageimg').attr('src',odmf_ref('/dataset/plot_coverage/${actualsite.id}'));
+                                }
+                            </script>
+                            <a href="javascript:makeplotcover();">Plot the time coverage of the datasets</a>
+                            <img src="" alt="plot time coverage" id="plotcoverageimg" />
+                        </li>
+                    </ul>
+                </div>
+                <div class="tab-pane" id="export" role="tabpanel">
+                    <a href="sites.csv" style="float:left;">
+                        <img src="${conf.root_url}/media/ui-icons/excel-icon.gif" />
+                    </a>
+                    <div class="box">
+                        You can <a href="${conf.root_url}/site/sites.csv">download</a> all sites as a csv-file for import to Excel <a href="${conf.root_url}/site/sites.csv">here</a>.<br/>
+                        Note: This works only if you are using English language settings in Windows.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </py:block>
+
+</py:extends>

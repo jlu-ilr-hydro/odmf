@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Server configuration, see conf.py for HEAD_BASE -->
+    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
+
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"
+          integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ=="
+          crossorigin="anonymous" />
+
+	<link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Projects</title>
+
+</head>
+<style>
+	a.button {
+		color: #000;
+	}
+	/*textarea {
+		min-width: 100%;
+	}
+	tr.fullwindow {
+		font-size: small;
+		border-bottom: solid 1px #888;
+		cursor: pointer;
+	}
+	tr.fullwindow>td {
+		border: dotted 1px #888;
+	}
+	tr.fullwindow:hover {
+		outline: solid 4px white;
+	}
+	table {
+		width: 100%;
+	}
+    */
+	div.space {
+		margin-top: 10px;
+		margin-bottom: 5px;
+	}
+	div.short {
+		width: 40em;
+	}
+	input {
+		width: 100%;
+	}
+    /*Fix Bootstrap overwride*/
+    body {
+        line-height: normal;
+    }
+</style>
+<body>
+	${navigation('Projects')}
+	<div class="content">
+		<div class="error" py:content="error" />
+		<table class="table table-condensed table-striped">
+			<tr>
+				<th>#</th>
+				<th>Name</th>
+				<th>Person responsible</th>
+			</tr>
+			<tr>
+				<td></td>
+				<td></td>
+				<td><input type="text" class="form-control" placeholder="Search"/></td>
+			</tr>
+			<tr py:for="p in projects">
+				<td>${p.id}</td>
+				<td><a href="${conf.root_url}/project/${p.id}">${p.name}</a></td>
+				<td><a href="user/${p.person_responsible.username}">${p.person_responsible}</a></td>
+			</tr>
+			<tr py:if="is_member('supervisor')" class="active">
+				<td><a class="btn btn-default" href="project/add">Add project</a></td>
+				<td></td>
+				<td></td>
+			</tr>
+		</table>
+	</div>
+
+</body>
+</html>
