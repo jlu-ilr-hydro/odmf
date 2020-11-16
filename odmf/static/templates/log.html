@@ -90,70 +90,35 @@
 
             $(function() {
                 $(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
+                $('#log-remove').click(() =>{
+                    let check = confirm('Do you really want to delete this log?');
+                    if (check) {
+                        $.post(odmf_ref('/log/remove'), {id:${actuallog.id}}, function(data) {
+                            if (data) {
+                                $('#error').html(data);
+                            }
+                        });
+                    }
+                })
                 listlogs(null,30);
             });
             // ]]>
         </script>
     </py:block>
-    <py:block name="style">
-        <!--
-        <style type="text/css">
-
-            table#table-loglist {
-        width: 95%;
-        margin: 10px 20px;
-    }
-
-    table#table-loglist, table#table-loglist > tbody > tr > td, table#table-loglist > thead > th{
-        border: 1px solid #000;
-    }
-
-    table#table-loglist tr {
-        padding: 0;
-    }
-
-    table#table-loglist td {
-        padding: 3px 2px;
-    }
-
-    table#table-loglist td:nth-child(3) {
-        padding: 0;
-    }
-
-    table#table-loglist td:nth-child(3) a {
-        margin: 0;
-        text-align: center;
-        display: block;
-        text-decoration: none;
-    }
-
-    table#table-loglist td:nth-child(3) a:hover {
-        background: #32739d;
-        color: #fff;
-    }
-
-    .msghint {
-        font-weight: bold;
-        color: red;
-    }
-
-    </style>
-         -->
-    </py:block>
     <py:block name="sidebar">
         <!-- insert sidebar content -->
         <div class="container-fluid">
             <div class="mb-2">
-                <button class="btn btn-outline-danger rounded-pill shadow">
+                <button class="btn btn-outline-danger rounded-pill shadow" id="log-remove">
                     <i class="fas fa-minus" />
 
                 </button>
                 remove log
             </div>
             <div class="mb-2">
-                <button class="btn btn-outline-success rounded-pill shadow">
+                <a href="${conf.root_url}/log/new" class="btn btn-outline-success rounded-pill shadow" id="log-add">
                     <i class="fas fa-plus" />
-                </button>
+                </a>
                 add new log
             </div>
             <div class="mb-2">
@@ -198,7 +163,7 @@
                             <div class="row">
                                 <div class="col-lg-10">
                                     <div class="container lead">
-                                        <a href="${conf.root_url}/site/${actuallog.site.id}">
+                                        <a href="${conf.root_url}/site/${actuallog.site.id}" py:if="actuallog.site">
                                             <img src="${conf.root_url}/media/mapicons/${actuallog.site.icon or 'unknown.png'}"/>
                                                 ${actuallog.site}
                                         </a>

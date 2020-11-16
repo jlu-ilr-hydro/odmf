@@ -5,7 +5,7 @@ Created on 01.10.2012
 '''
 import sys
 import matplotlib
-matplotlib.use('Agg', warn=False)
+matplotlib.use('Agg')
 import codecs
 
 import os
@@ -195,7 +195,7 @@ class Line(object):
             print('Load complete')
 
             # There werre problems with arrays from length 0
-            if len(v) is 0 or len(t) is 0:
+            if not (v.size or t.size):
                 raise ValueError("No data to compute")
 
             # except Exception as e:
@@ -220,8 +220,8 @@ class Line(object):
             style = dict(color=self.color or 'k',
                          linestyle=self.linestyle, marker=self.marker)
             ax.plot_date(t, v, label=label, **style)
-        except ValueError:
-            print('Zero-size Array')
+        except ValueError as e:
+            print(e)
 
     def export_csv(self, stream, startdate=None, enddate=None):
         """

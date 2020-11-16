@@ -60,7 +60,7 @@ class AdminPage(object):
             cherrypy.response.status = 400
             raise cherrypy.HTTPError(status=400, message='Bad Request')
 
-        if error is '':
+        if not error:
             msg = 'Successfully uploaded image. Reload page to view results'
             raise web.redirect(conf.root_url + '/admin', msg=msg)
         else:

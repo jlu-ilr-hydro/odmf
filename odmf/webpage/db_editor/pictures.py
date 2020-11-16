@@ -39,18 +39,6 @@ class PicturePage(object):
             else:
                 raise cherrypy.HTTPError(404)
 
-    @expose_for()
-    def imagelist_json(self, site=None, by=None):
-        session = db.Session()
-        imagelist = session.query(db.Image).order_by(
-            db.Image._site, db.Image.time)
-        if site:
-            imagelist.filter(db.Image._site == site)
-        if by:
-            imagelist.filter(db.Image._by == by)
-        res = literal(web.as_json(imagelist.all()))
-        session.close()
-        return bytearray(res)
 
     @expose_for()
     def index(self, id='', site='', by=''):
@@ -69,21 +57,17 @@ class PicturePage(object):
                     imagelist = imagelist.filter_by(_site=site)
                 if by:
                     imagelist = imagelist.filter_by(_by=by)
-            # TODO: UnboundLocalError: local variable 'image' referenced before assignment
             return web.render('picture.html', picture=img, error=error, imagelist=imagelist, site=site, by=by).render()
 
+    @web.method.post
     @expose_for(group.logger)
     def upload(self, imgfile, siteid, user):
-        session = db.Session()
-        site = session.query(db.Site).get(int(siteid)) if siteid else None
-        by = session.query(db.Person).get(user) if user else None
-        # io = StringIO()
-        # for l in imgfile:
-        #    io.write(l)
-        # io.seek(0)
-        img = db.Image(site=site, by=by, imagefile=imgfile.file)
-        session.add(img)
-        session.commit()
-        imgid = img.id
-        session.close()
-        raise web.redirect(conf.root_url + '/picture?id=%i' % imgid)
+        with db.session_scope() as session:
+            site = session.query(db.Site).get(int(siteid)) if siteid else None
+            by = session.query(db.Person).get(user) if user else None
+            img = db.Image(site=site, by=by, imagefile=imgfile.file)
+            session.add(img)
+            session.flush()
+            imgid = img.id
+
+        raise web.redirect(conf.root_url + '/picture', id=imgid)

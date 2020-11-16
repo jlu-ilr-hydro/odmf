@@ -21,7 +21,7 @@ from .auth import group, expose_for
 from .. import dataimport as di
 from ..dataimport import ManualMeasurementsImport
 
-from ..dataimport.importlog import LogbookImport
+from ..dataimport import importlog
 from ..tools import Path
 
 from ..config import conf
@@ -53,7 +53,7 @@ def write_to_file(dest, src):
 @web.expose
 class DBImportPage(object):
     @staticmethod
-    def logimport(filename, kwargs, import_with_class=LogbookImport):
+    def logimport(filename, kwargs):
         """
 
         :param filename:
@@ -64,33 +64,25 @@ class DBImportPage(object):
         
         t0 = time.time()
 
-        absfile = conf.abspath(filename.strip('/'))
-        path = Path(absfile)
+        path = Path(filename.strip('/'))
 
         error = di.checkimport(path.absolute)
         if error:
             raise web.redirect(path.parent().href, error=error)
+        try:
+            li = importlog.LogbookImport(path.absolute, web.user())
+            logs, cancommit = li('commit' in kwargs)
 
-        config = None
-
-        if import_with_class == ManualMeasurementsImport:
-            config = ManualMeasurementsImport.from_file(path.absolute)
-
-        from cherrypy import log
-        log("Import with class %s" % import_with_class.__name__)
-
-        li = import_with_class(absfile, web.user(), config=config)
-        # TODO: Sometimes this is causing a delay
-        logs, cancommit = li('commit' in kwargs)
-        # TODO: REFACTORING FOR MAINTAINABILITY
+        except importlog.LogImportError as e:
+            raise web.redirect(path.parent().href, error=str(e))
 
         t1 = time.time()
 
         log("Imported in %.2f s" % (t1 - t0))
 
         if 'commit' in kwargs and cancommit:
-            di.savetoimports(absfile, web.user(), ["_various_as_its_manual"])
-            raise web.redirect(path.parent().href, error=error, msg=msg)
+            di.savetoimports(path.absolute, web.user(), ["_various_as_its_manual"])
+            raise web.redirect(path.parent().href, error=error)
         else:
             return web.render(
                 'logimport.html', filename=path, logs=logs,
@@ -105,7 +97,28 @@ class DBImportPage(object):
         :param kwargs:
         :return:
         """
-        return DBImportPage.logimport(filename, kwargs, import_with_class=ManualMeasurementsImport)
+        t0 = time.time()
+
+        path = Path(filename.strip('/'))
+
+        error = di.checkimport(path.absolute)
+        if error:
+            raise web.redirect(path.parent().href, error=error)
+        li = ManualMeasurementsImport(path.absolute, web.user())
+        logs, cancommit = li('commit' in kwargs)
+
+        t1 = time.time()
+
+        log("Imported in %.2f s" % (t1 - t0))
+
+        if 'commit' in kwargs and cancommit:
+            di.savetoimports(path.absolute, web.user(), ["_various_as_its_manual"])
+            raise web.redirect(path.parent().href, error=error)
+        else:
+            return web.render(
+                'logimport.html', filename=path, logs=logs,
+                cancommit=cancommit, error=error
+            ).render()
 
     @staticmethod
     def instrumentimport(filename, kwargs):
@@ -198,14 +211,14 @@ class DBImportPage(object):
     def index(self, filename=None, **kwargs):
         if not filename:
             raise web.redirect('/download/')
-
+        import re
         # the lab import only fits on CFG_MANNUAL_MEASUREMENTS_PATTERN
         if ManualMeasurementsImport.extension_fits_to(filename):
             log("Import with labimport ( %s )" %
                 ManualMeasurementsImport.__name__)
             return self.mmimport(filename, kwargs)
-        # If the file ends with log.xls, import as log list
-        elif filename.endswith('log.xls'):
+        # If the file ends with log.xls[x], import as log list
+        elif re.match(r'(.*)_log\.xlsx?$', filename):
             log("Import with logimport")
             return self.logimport(filename, kwargs)
         # else import as instrument file
@@ -259,7 +272,7 @@ class DownloadPage(object):
         if path.isfile():
             # TODO: Render/edit .md, .conf, .txt files. .csv, .xls also?
 
-            return serve_file(path.absolute)
+            return serve_file(path.absolute, name=path.basename)
         elif not (path.islegal() and path.exists()):
             raise HTTPFileNotFoundError(path)
         else:

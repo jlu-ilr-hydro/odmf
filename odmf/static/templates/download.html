@@ -51,7 +51,7 @@
                     }).then(function(text) {
                         $('#help-edit textarea').val(text);
                     });
-                    $('#help-edit-save').prop('disabled', ${bool2js(is_member('editor'))});
+                    $('#help-edit-save').prop('disabled', !${bool2js(is_member('editor'))});
                 // Save file on click
                 });
                 $('#help-edit-save').click(function() {
@@ -126,19 +126,6 @@
                 </li>
             </ul>
             <div class="container m-1 p-1">
-                <form method="post" action="${conf.root_url}/download/newfolder" class="form-group">
-                    <div class="input-group">
-                        <input type="text" name="newfolder" class="form-control" placeholder="new folder name"/>
-                        <span class="input-group-append">
-                            <button class="btn btn-secondary" type="submit"
-                                    title="Add new folder" data-toggle="tooltip" data-placement="right"
-                            >
-                                <i class="fa fa-folder-plus"></i>
-                            </button>
-                        </span>
-                    </div>
-                    <input name="dir" type="hidden" value="${curdir}" />
-                </form>
             </div>
         </div>
 
@@ -167,7 +154,51 @@
                 </div>
             </div>
             <div class="row" py:if="curdir.isdir()">
+
                 <div class="col-lg">
+                    <div class="row" py:if="is_member('logger')">
+                        <div class="col-lg">
+                            <form method="post" action="${conf.root_url}/download/newfolder" class="form-group">
+                                <div class="input-group">
+                                    <input type="text" name="newfolder" class="form-control" placeholder="new folder name"/>
+                                    <span class="input-group-append">
+                                        <button class="btn btn-secondary" type="submit"
+                                                title="Add new folder" data-toggle="tooltip" data-placement="right"
+                                        >
+                                            <i class="fa fa-folder-plus"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                                <input name="dir" type="hidden" value="${curdir}" />
+                            </form>
+                        </div>
+                        <div class="col-lg">
+                            <form id="upload-form" method="post" enctype="multipart/form-data" action="${conf.root_url}/download/upload" class="form-group">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <button type="submit" class="btn btn-secondary">
+                                            <i class="fas fa-file-upload fa-lg" />
+                                        </button>
+                                    </div>
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input form-control"
+                                               name="datafiles" id="datafile" multiple="multiple"
+                                        />
+                                        <label id="upload-label" class="custom-file-label" for="datafile">upload...</label>
+                                    </div>
+                                    <input name="dir" type="hidden" value="${curdir}" />
+                                    <div class="input-group-append">
+                                        <div class="input-group-text">
+                                            <input id="overwrite" type="checkbox" value="overwrite" name="overwrite"
+                                                   data-toggle="tooltip" title="Allow to overwrite existing file with the same name"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
                     <div class="card p-3" >
                         <h3 class="card-title">
                             files in <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
@@ -220,29 +251,6 @@
                             </li>
                             <li py:if="is_member('logger')" class="nav-item mt-4">
 
-                                <form id="upload-form" method="post" enctype="multipart/form-data" action="${conf.root_url}/download/upload" class="form-group">
-                                    <div class="input-group mb-3">
-                                        <div class="input-group-prepend">
-                                            <button type="submit" class="btn btn-secondary">
-                                                <i class="fas fa-file-upload fa-lg" />
-                                            </button>
-                                        </div>
-                                        <div class="custom-file">
-                                            <input type="file" class="custom-file-input form-control"
-                                                   name="datafiles" id="datafile" multiple="multiple"
-                                            />
-                                            <label id="upload-label" class="custom-file-label" for="datafile">upload...</label>
-                                        </div>
-                                        <input name="dir" type="hidden" value="${curdir}" />
-                                        <div class="input-group-append">
-                                            <div class="input-group-text">
-                                                <input id="overwrite" type="checkbox" value="overwrite" name="overwrite"
-                                                       data-toggle="tooltip" title="Allow to overwrite existing file with the same name"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
                             </li>
                         </ul>
                     </div>
