@@ -12,7 +12,7 @@ import os
 from configparser import RawConfigParser
 from io import StringIO
 from math import isnan
-
+import typing
 import chardet
 
 import ast
@@ -142,6 +142,7 @@ class ImportColumn:
         level: Level property of the dataset. Use this for Instruments measuring at one site in different depth
         access: Access property of the dataset
         ds_column: explicit dataset for uploading column @see: mm.py
+
         """
         self.column = int(column)
         self.name = name
@@ -244,6 +245,11 @@ class ImportDescription(object):
     Describes the file format and content of a delimited text file for
     import to the database.
     """
+    columns: typing.List[ImportColumn]
+    name: str
+    instrument: int
+    skiplines: int
+
 
     def __init__(self, instrument, skiplines=0, delimiter=',', decimalpoint='.',
                  dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
@@ -261,6 +267,8 @@ class ImportDescription(object):
         nodata: list of values that don't represent valid data. E.g. ['NaN']. Is optional and default is empty list.
         worksheet: The position of the worksheet of an excel file. Optional and default is the first (1)
         sample_mapping: Mapping of labcodes to site ids. Is Optional and default is None
+        sitecolumn:
+
         """
         self.name = ''
         self.fileextension = ''
@@ -461,48 +469,6 @@ class ImportDescription(object):
         descr = cls.from_config(config)
         descr.filename = path
         return descr
-
-
-class LogImportColumn(ImportColumn):
-
-    def __init__(self):
-
-        # TODO: define fallback dataset attribute
-        pass
-
-    @classmethod
-    def to_config(cls, config, section):
-        # TODO: define fallback dataset
-        pass
-
-    @classmethod
-    def from_config(cls, config, section):
-        """
-        Get the column description from a config-file
-        """
-        ImportColumn.from_config(config, section)
-
-        def getvalue(option, type=str):
-            if config.has_option(section, option):
-                return type(config.get(section, option))
-            else:
-                return None
-
-        return cls(column=config.getint(section, 'column'),
-                   name=config.get(section, 'name'),
-                   valuetype=config.getint(section, 'valuetype'),
-                   factor=config.getfloat(section, 'factor'),
-                   comment=getvalue('comment'),
-                   difference=getvalue('difference'),
-                   minvalue=getvalue('minvalue', float),
-                   maxvalue=getvalue('maxvalue', float),
-                   append=getvalue('append', int),
-                   level=getvalue('level', float),
-                   access=getvalue('access', int)
-                   )
-
-
-
 
 
 class ImportStat(object):
