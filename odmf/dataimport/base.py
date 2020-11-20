@@ -118,6 +118,7 @@ def finddateGaps(siteid, instrumentid, valuetype, startdate=None, enddate=None):
         print("[LOG] - finddateGaps - Returning %d gap(s)" % len(res))
         return res
 
+
 class ImportColumn:
     """
     Describes the content of a column in a delimited text file
@@ -250,11 +251,10 @@ class ImportDescription(object):
     instrument: int
     skiplines: int
 
-
-    def __init__(self, instrument, skiplines=0, delimiter=',', decimalpoint='.',
+    def __init__(self, instrument, skiplines=0, skipfooter=None, delimiter=',', decimalpoint='.',
                  dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
                  timezone=conf.datetime_default_timezone, project=None,
-                 nodata=[], worksheet=1, sample_mapping=None):
+                 nodata=[], worksheet=1, samplecolumn=None, sample_mapping=None, encoding=None):
         """
         instrument: the database id of the instrument that produced this file
         skiplines: The number of lines prepending the actual data
@@ -266,6 +266,7 @@ class ImportDescription(object):
         project: str project for the dataset to link to. Optional.
         nodata: list of values that don't represent valid data. E.g. ['NaN']. Is optional and default is empty list.
         worksheet: The position of the worksheet of an excel file. Optional and default is the first (1)
+        sample_column: Column number containing the name of a sample
         sample_mapping: Mapping of labcodes to site ids. Is Optional and default is None
         sitecolumn:
 
@@ -274,6 +275,7 @@ class ImportDescription(object):
         self.fileextension = ''
         self.instrument = int(instrument)
         self.skiplines = skiplines
+        self.skipfooter = skipfooter
         self.delimiter = delimiter
         # Replace space and tab keywords
         if self.delimiter and self.delimiter.upper() == 'TAB':
@@ -306,9 +308,10 @@ class ImportDescription(object):
         if worksheet is None:
             worksheet = 1
         self.worksheet = worksheet
-
+        self.samplecolumn = samplecolumn
         # Sample mapping can be None
         self.sample_mapping = sample_mapping
+        self.encoding = encoding
 
     def __str__(self):
         io = StringIO()
@@ -328,16 +331,16 @@ class ImportDescription(object):
         Returns a ConfigParser.RawConfigParser with the data of this description
         """
         config = RawConfigParser(allow_no_value=True)
-        session = db.Session()
-        inst = session.query(db.Datasource).get(self.instrument)
-        if not inst:
-            raise ValueError(
-                'Error in import description: %s is not a valid instrument id')
-        session.close()
-        section = str(inst)
+        with db.session_scope() as session:
+            inst = session.query(db.Datasource).get(self.instrument)
+            if not inst:
+                raise ValueError(
+                    'Error in import description: %s is not a valid instrument id')
+            section = str(inst)
         config.add_section(section)
         config.set(section, 'instrument', self.instrument)
         config.set(section, 'skiplines', self.skiplines)
+        config.set(section, 'skipfooter', self.skipfooter)
         # Replace space and tab by keywords
         config.set(section, 'delimiter', {' ': 'SPACE', '\t': 'TAB'}.get(
             self.delimiter, self.delimiter))
@@ -394,12 +397,13 @@ class ImportDescription(object):
         if not sections:
             raise IOError('Empty config file')
 
+        # Get the data which shall be checked
+        project = getvalue(sections[0], 'project')
+        timezone = getvalue(sections[0], 'timezone')
+
         # Check integrity of the data
         with db.session_scope() as session:
 
-            # Get the data which shall be checked
-            project = getvalue(sections[0], 'project')
-            timezone = getvalue(sections[0], 'timezone')
 
             if project:
                 rows = session.query(db.Project)\
@@ -408,16 +412,17 @@ class ImportDescription(object):
                     raise ValueError('Error in import description: \'%s\' is no'
                                      ' valid project identifier' % project)
 
-            if timezone:
-                # Search in pytz's "set" cause of the set is faster than the
-                # list
-                if timezone not in common_timezones_set:
-                    raise ValueError('Error in import description: \'%s\' is no'
-                                     ' valid timezone' % timezone)
+        if timezone:
+            # Search in pytz's "set" cause of the set is faster than the
+            # list
+            if timezone not in common_timezones_set:
+                raise ValueError('Error in import description: \'%s\' is no'
+                                 ' valid timezone' % timezone)
 
         # Create a new TextImportDescriptor from config file
-        tid = cls(instrument=config.getint(sections[0], 'instrument'),
-                  skiplines=config.getint(sections[0], 'skiplines'),
+        tid = cls(instrument=config.getint(sections[0], 'instrument', fallback=0),
+                  skiplines=config.getint(sections[0], 'skiplines', fallback=0),
+                  skipfooter=config.getint(sections[0], 'skipfooter', fallback=0),
                   delimiter=getvalue(sections[0], 'delimiter'),
                   decimalpoint=getvalue(sections[0], 'decimalpoint'),
                   dateformat=getvalue(sections[0], 'dateformat'),
@@ -426,7 +431,10 @@ class ImportDescription(object):
                   timezone=getvalue(sections[0], 'timezone'),
                   nodata=config_getlist(sections[0], 'nodata'),
                   worksheet=getvalue(sections[0], 'worksheet', int),
+                  samplecolumn=getvalue(sections[0], 'samplecolumn', int),
+                  encoding=getvalue(sections[0], 'encoding'),
                   sample_mapping=config_getdict(config, sections[0], 'sample_mapping'))
+
         tid.name = sections[0]
         for section in sections[1:]:
             tid.columns.append(ImportColumn.from_config(config, section))
