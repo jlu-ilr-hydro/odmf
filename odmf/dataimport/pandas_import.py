@@ -14,9 +14,28 @@ class DataImportError(RuntimeError):
     ...
 
 
+def _get_last_ds_for_site(session, idescr: ImportDescription, col: ImportColumn, siteid: int):
+    """
+    Returns the newest dataset for a site with instrument, valuetype and level fitting to the ImportDescription's column
+    To be used by lab imports where a site is encoded into the sample name.
+
+    ------ Untested ----------------
+    """
+    q = session.query(db.Dataset).filter(
+        db.Dataset._site == siteid,
+        db.Dataset._valuetype == col.valuetype,
+        db.Dataset._source == idescr.instrument,
+    )
+    if col.level is not None:
+        q = q.filter(db.Dataset.level == col.level)
+
+    return q.order_by(db.Dataset.end.desc).limit(1).scalar()
+
+
 def _new_datasets_from_descr(session, idescr: ImportDescription,
                              user: str, siteid: int, filepath: Path=None,
-                             start: datetime.datetime=None, end: datetime.datetime=None) -> typing.Dict[typing.Any, db.Dataset]:
+                             start: datetime.datetime=None, end: datetime.datetime=None
+                             ) -> typing.Dict[typing.Any, db.Dataset]:
     """
     Creates new db.Dataset objects according to the import description.
     This works only for idescrs with
@@ -27,19 +46,11 @@ def _new_datasets_from_descr(session, idescr: ImportDescription,
     The id's of the datasets are only available after flush/commit of the session
     """
 
-    # Get instrument, user and site object from db
-    inst = session.query(db.Datasource).get(idescr.instrument)
-    user = session.query(db.Person).get(user)
-    site = session.query(db.Site).get(siteid)
 
     def col_to_dataset(col: ImportColumn):
         """
         Creates a dataset from an ImportColumn.
         """
-        # Get "raw" as data quality, to use as a default value
-        raw = session.query(db.Quality).get(0)
-        # Get the valuetype (vt) from db
-        vt = session.query(db.ValueType).get(col.valuetype)
 
         if col.ds_column:
             # Columns that reference a dataset column are not referenced by
@@ -55,7 +66,9 @@ def _new_datasets_from_descr(session, idescr: ImportDescription,
 
         else:
             # New dataset with metadata from above
-            ds = db.Timeseries(measured_by=user, valuetype=vt, site=site, name=col.name,
+            ds = db.Timeseries(measured_by=user,
+                               valuetype=valuetypes[col.valuetype],
+                               site=site, name=col.name,
                                filename=filepath.name, comment=col.comment, source=inst, quality=raw,
                                start=start, end=end, level=col.level,
                                access=col.access if col.access is not None else 1,
@@ -64,15 +77,32 @@ def _new_datasets_from_descr(session, idescr: ImportDescription,
                                project=idescr.project)
         return ds
 
-    return {
-        col.column: col_to_dataset(col)
-        for col in idescr.columns
-    }
+    with session.no_autoflush:
+        # Get instrument, user and site object from db
+        inst = session.query(db.Datasource).get(idescr.instrument)
+        user = session.query(db.Person).get(user)
+        site = session.query(db.Site).get(siteid)
+        # Get "raw" as data quality, to use as a default value
+        raw = session.query(db.Quality).get(0)
+        # Get all the relevant valuetypes (vt) from db as a dict for fast look up
+        valuetypes = {
+            vt.id: vt for vt in
+            session.query(db.ValueType).filter(
+                db.ValueType.id.in_([col.valuetype for col in idescr.columns])
+            )
+        }
+
+        return {
+            col.column: col_to_dataset(col)
+            for col in idescr.columns
+        }
 
 
 def _prepare_ds_column_datasets(session, column: ImportColumn, data: pd.DataFrame):
     """
-    Checks the Dataframe data for the datasets to be used by the ds_column
+    Extends the start / end times in the datasets used in dataset column
+
+    ------------- Untested -----------------
     """
     missing_ds = []
     ds_ids = data['dataset for ' + column.name]
@@ -125,7 +155,10 @@ def _make_time_column_as_datetime(df: pd.DataFrame):
     del df['date']
 
 
-def load_excel(idescr: ImportDescription, filepath: Path, columns: list, names: list) -> pd.DataFrame:
+def _load_excel(idescr: ImportDescription, filepath: Path, columns: list, names: list) -> pd.DataFrame:
+    """
+    loads data from excel, called by load_dataframe
+    """
     try:
         return pd.read_excel(
             filepath.absolute,
@@ -140,7 +173,12 @@ def load_excel(idescr: ImportDescription, filepath: Path, columns: list, names: 
         raise DataImportError(f'{filepath} read error. Is this an excel file? Underlying message: {str(e)}')
 
 
-def load_csv(idescr: ImportDescription, filepath: Path, columns: list, names: list) -> pd.DataFrame:
+def _load_csv(idescr: ImportDescription, filepath: Path, columns: list, names: list) -> pd.DataFrame:
+    """
+    Loads the data from a csv like file
+
+    called by load_dataframe
+    """
     try:
         encoding = idescr.encoding or 'utf-8'
         return pd.read_csv(
@@ -159,7 +197,7 @@ def load_csv(idescr: ImportDescription, filepath: Path, columns: list, names: li
         raise DataImportError(f'{filepath} read error. Is this a seperated text file? Underlying message: {str(e)}')
 
 
-def load_dataframe(idescr: ImportDescription, filepath: Path) -> pd.DataFrame:
+def load_dataframe(idescr: ImportDescription, filepath: typing.Union[Path, str]) -> typing.Tuple[pd.DataFrame, typing.List[str]]:
     """
     Loads a pandas dataframe from a data file (csv or xls[x]) using an import description
     """
@@ -169,15 +207,24 @@ def load_dataframe(idescr: ImportDescription, filepath: Path) -> pd.DataFrame:
     names = ['date', 'time'][:len(idescr.datecolumns)] + [col.name for col in idescr.columns] + \
             ['dataset for ' + col.name for col in idescr.columns if col.ds_column]
 
+    if type(filepath) is not Path:
+        filepath = Path(filepath)
+
     if idescr.samplecolumn:
         columns += [idescr.samplecolumn]
         names += ['sample']
-        if re.match(r'.*\.xls[xmb]?$', filepath):
-            df = load_excel(idescr, filepath, columns, names)
-        else:
-            df = load_csv(idescr, filepath, columns, names)
+
+    if re.match(r'.*\.xls[xmb]?$', filepath.name):
+        df = _load_excel(idescr, filepath, columns, names)
+        if df.empty:
+            raise DataImportError(
+                f'No data to import found in {filepath}. If this file was generated by a third party program '
+                f'(eg. logger software), open in excel and save as a new .xlsx - file')
+    else:
+        df = _load_csv(idescr, filepath, columns, names)
 
     _make_time_column_as_datetime(df)
+
     warnings = []
 
     for col in idescr.columns:
@@ -188,8 +235,8 @@ def load_dataframe(idescr: ImportDescription, filepath: Path) -> pd.DataFrame:
         # Remove all values, where one of the columns is outside its minvalue / maxvalue range
         not_in_range = (df[col.name] < col.minvalue) | (df[col.name] > col.maxvalue)
         if any(not_in_range):
-            warnings.append('Removed {} records, because {} was not in its allowed range'.format(sum(not_in_range), str(col)))
-        df.drop(index=not_in_range, inplace=True)
+            df.drop(index=df[not_in_range].index, inplace=True)
+            warnings.append(f'Removed {sum(not_in_range)} records, because {col} was not in {col.minvalue}..{col.maxvalue}')
 
         # Apply unit conversion factor factor
         df[col.name] *= col.factor
@@ -197,9 +244,35 @@ def load_dataframe(idescr: ImportDescription, filepath: Path) -> pd.DataFrame:
     return df, warnings
 
 
+def _make_column_dataframe(col: ImportColumn, df: pd.DataFrame, datasetids: typing.Dict[int, int]):
+    """
+    Prepares nad populates a dataframe with the layout of the db.Record-Table
+
+    col: The import column
+    df: The dataframe containing all data to import
+    datasetids: a dictionary mapping column positions to dataset id's
+    """
+
+    col_df = pd.DataFrame(df.time)
+    if not col.ds_column:
+        col_df['dataset'] = datasetids[col.column]
+        if not col.append:
+            col_df['id'] = df.index
+    else:
+        col_df['dataset'] = df['dataset for ' + col.name]
+    col_df['value'] = df[col.name]
+
+    if 'sample' in df.columns:
+        col_df['sample'] = df['sample']
+
+    return col_df
+
+
 def submit(idescr: ImportDescription, filepath: Path, user: str, siteid: int):
     """
     Loads tabular data from a file, creates or loads necessary datasets and imports the data as records
+
+    -------- Untested ----------
     """
     df, _ = load_dataframe(idescr, filepath)
 
@@ -229,18 +302,10 @@ def submit(idescr: ImportDescription, filepath: Path, user: str, siteid: int):
 
     # Make dataframe in the style of the records table
     for col in idescr.columns:
-        col_df = pd.DataFrame(df.time)
-        if not col.ds_column:
-            col_df['dataset'] = datasetids[col.column]
-        else:
-            col_df['dataset'] = df['dataset for ' + col.name]
-        col_df['value'] = df[col.name]
-
-        if idescr.samplecolumn:
-            col_df['sample'] = df['sample']
-
-    # Now submit the data
-    col_df.to_sql('record', db.engine, if_exists='append')
+        # make the records table to append to the records
+        col_df = _make_column_dataframe(col, df, datasetids)
+        # Now submit the data
+        col_df.to_sql('record', db.engine, if_exists='append')
 
 
 

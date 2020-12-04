@@ -303,10 +303,6 @@ class ImportDescription(object):
             raise ValueError(
                 "nodata value %s has to be an instance of a list" % nodata)
 
-        # added after some issues with xls-files where the data worksheet
-        # wasn't the first one
-        if worksheet is None:
-            worksheet = 1
         self.worksheet = worksheet
         self.samplecolumn = samplecolumn
         # Sample mapping can be None
@@ -368,11 +364,13 @@ class ImportDescription(object):
         conf = self.to_config()
         s = StringIO()
         for section in conf.sections():
-            s.write(section + '\n')
-            s.write('-' * len(section) + '\n')
-            for k, v in conf.items():
-                s.write('- {k} = {v}')
-            s.write('\n')
+            if conf[section]:
+                s.write(section + '\n')
+                s.write('-' * len(section) + '\n')
+                for k, v in conf[section].items():
+                    if k[0]!=';':
+                        s.write(f'- {k} = {v}\n')
+                s.write('\n')
         return s.getvalue()
 
     @classmethod
@@ -441,17 +439,16 @@ class ImportDescription(object):
         return tid
 
     @classmethod
-    def from_file(cls, path, stoppath='datafiles', pattern='*.conf'):
+    def from_file(cls, path, pattern='*.conf'):
         """
         Searches in the parent directories of the given path for .conf file
         until the stoppath is reached.
         """
         # As long as no *.conf file is in the path
         while not glob(op.join(path, pattern)):
-            # Go to the parent directory
             path = op.dirname(path)
             # if stoppath is found raise an error
-            if op.basename(path) == stoppath:
+            if op.basename(path) == op.basename(conf.datafiles):
                 raise IOError('Could not find .conf file for file description')
         # Use the first .conf file in the directory
         path = glob(op.join(path, pattern))[0]
