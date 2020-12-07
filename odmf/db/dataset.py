@@ -412,9 +412,7 @@ class Timeseries(Dataset):
     def maxrecordid(self):
         """Finds the highest record id for this dataset"""
         session = self.session()
-        q = session.query(sql.func.max(Record.id)).select_from(Record)
-        q = q.filter_by(dataset=self).scalar()
-        return q if q is not None else 1
+        return session.query(sql.func.max(Record.id)).filter_by(_dataset=self.id).scalar() or 0
 
     def addrecord(self, Id=None, value=None, time=None, comment=None, sample=None):
         """Adds a record to the dataset
@@ -642,3 +640,18 @@ class Transformation(object):
             #values = [ds.interpolate(t1) for ds in self.datasets]
             #series_out.append(t1, self.f(*values))
         pass
+
+
+class DatasetItemGetter:
+    """
+    Helper class for interactive session for simple dataset access
+
+    dsg = DatasetItemGetter(session)
+    ds0 = dsg[0]
+    """
+
+    def __init__(self, session):
+        self.session = session
+
+    def __getitem__(self, item) -> Dataset:
+        return Dataset.get(self.session, item)
