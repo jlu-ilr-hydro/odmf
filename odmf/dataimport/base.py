@@ -778,3 +778,21 @@ def checkimport(filename):
                 d = dict(fn=ls[0], dt=ls[2], u=ls[1], ds=ls[3])
                 return "%(u)s has already imported %(fn)s at %(dt)s as %(ds)s" % d
     return ''
+
+
+def get_last_ds_for_site(session, idescr: ImportDescription, col: ImportColumn, siteid: int):
+    """
+    Returns the newest dataset for a site with instrument, valuetype and level fitting to the ImportDescription's column
+    To be used by lab imports where a site is encoded into the sample name.
+
+    """
+    q = session.query(db.Dataset).filter(
+        db.Dataset._site == siteid,
+        db.Dataset._valuetype == col.valuetype,
+        db.Dataset._source == idescr.instrument,
+    )
+    if col.level is not None:
+        q = q.filter(db.Dataset.level == col.level)
+
+    return q.order_by(db.Dataset.end.desc()).limit(1).scalar()
+
