@@ -20,7 +20,8 @@ import inspect
 
 import numpy as np
 from ..config import conf
-
+from logging import getLogger
+logger = getLogger(__name__)
 
 tzberlin = pytz.timezone('Europe/Berlin')
 tzwinter = pytz.FixedOffset(60)
@@ -60,7 +61,7 @@ class ValueType(Base):
     maxvalue = sql.Column(sql.Float)
 
     def __str__(self):
-        return "%s [%s] #%s" % (self.name, self.unit, self.id)
+        return f'{self.name} [{self.unit}] ({self.id})'
 
     def __eq__(self, other):
         return str(self.id).upper() == str(other).upper()
@@ -149,17 +150,10 @@ class Dataset(Base):
                          nullable=True)
 
     def __str__(self):
-        return ('ds%(id)03i: %(valuetype)s at site #%(site)s %(level)s with %(instrument)s (%(start)s-%(end)s)' %
-                dict(id=self.id,
-                     start=self.start.strftime(
-                         '%d.%m.%Y') if self.start else '?',
-                     end=self.end.strftime('%d.%m.%Y') if self.end else '?',
-                     site=self.site.id if self.site else '',
-                     instrument=self.source if self.source else None,
-                     valuetype=self.valuetype.name if self.valuetype else '',
-                     level=('%g m offset' %
-                            self.level) if self.level is not None else '',
-                     ))
+        site = self.site.id if self.site else ''
+        level = f'{self.level} m offset' if self.level is not None else '',
+        return f'ds{self.id or -999:04d}: {self.valuetype} at #{site} {level} with {self.source} ' \
+               f'({self.start or "?"}-{self.end or "?"})'
 
     def __jdict__(self):
         return dict(id=self.id,
@@ -226,7 +220,8 @@ class Dataset(Base):
 
     def asarray(self, start=None, end=None):
         raise NotImplementedError(
-            '%s(type=%s) - data set can not return values with "asarray". Is the type correct?' % (self, self.type))
+            f'{self}(type={self.type}) - data set can not return values with "asarray". Is the type correct?'
+        )
 
     def size(self):
         return 0
@@ -242,7 +237,8 @@ class Dataset(Base):
 
     def iterrecords(self, witherrors=False):
         raise NotImplementedError(
-            '%s(type=%s) - data set has no records to iterate. Is the type correct?' % (self, self.type))
+            f'{self}(type={self.type}) - data set has no records to iterate. Is the type correct?'
+        )
 
 
 def removedataset(*args):
@@ -259,7 +255,7 @@ def removedataset(*args):
             reccount = 0
         session.delete(ds)
         session.commit()
-        print("Deleted ds%03i and %i records" % (dsid, reccount))
+        logger.info(f"Deleted ds{dsid:04i} and {reccount} records")
 
 
 class MemRecord(object):
@@ -316,8 +312,7 @@ class Record(Base):
             return None
 
     def __str__(self):
-        return "%s[%i] = %g %s" % (self.dataset.name, self.id,
-                                   self.value, self.dataset.valuetype.unit)
+        return f'{self.dataset.name}[{self.id}] = {self.value} {self.dataset.valuetype.unit}'
 
     @classmethod
     def query(cls, session):
@@ -353,12 +348,11 @@ class Timeseries(Dataset):
             sql.desc(Record.time)).first()
         if not next or not last:
             raise RuntimeError(
-                "Split time %s is not between two records of %s" % (time, self))
-        self.comment = str(
-            self.comment) + 'Dataset is splitted at %s to allow for different calibration' % time
+                f'Split time {time} is not between two records of {self}')
+        self.comment = f'{self.comment} Dataset is splitted at {time} to allow for different calibration'
         dsnew = self.copy(id=newid(Dataset, session))
-        self.comment += '. Other part of the dataset is ds%03i\n' % dsnew.id
-        dsnew.comment += '. Other part of the dataset is ds%03i\n' % self.id
+        self.comment += f'. Other part of the dataset is ds{dsnew.id}\n'
+        dsnew.comment += f'. Other part of the dataset is ds{self.id}\n'
         self.end = last.time
         dsnew.start = next.time
         records = self.records.filter(Record.time >= next.time)
@@ -405,7 +399,7 @@ class Timeseries(Dataset):
         elif last:
             return last.value, (time - last.time).total_seconds()
         else:
-            raise RuntimeError('%s has no records' % self)
+            raise RuntimeError(f'{self} has no records')
 
     def calibratevalue(self, value):
         """Calibrates a value
@@ -431,31 +425,23 @@ class Timeseries(Dataset):
         """
         value = float(value)
         session = self.session()
-        # After perfomance issues with maxrecordid, TODO: delete this
-        # if Id is None:
-        #maxid = self.maxrecordid()
-        #Id = record_id_seq.next_value()
-        # Id=maxid+1
+
         if time is None:
             time = datetime.now()
+
         if (not self.valuetype.inrange(value)):
-            raise ValueError('RECORD does not fit VALUETYPE: %(v)g %(u)s is out of range for %(vt)s'
-                             % dict(v=value, u=self.valuetype.unit, vt=self.valuetype.name))
+            raise ValueError(f'RECORD does not fit VALUETYPE: {value:g} {self.valuetype.unit} is out of '
+                             f'range for {self.valuetype.name}')
         if not (self.start <= time <= self.end):
-            raise ValueError('RECORD does not fit DATASET: You tried to insert a record for date %s ' +
-                             'to dataset %s, which allows only records between %s and %s'
-                             % (time, self, self.start, self.end))
+            raise ValueError(
+                f'RECORD does not fit DATASET: You tried to insert a record for date {time} ' 
+                f'to dataset {self}, which allows only records between {self.start} and {self.end}'
+            )
+
         result = Record(time=time, value=value, dataset=self,
                         comment=comment, sample=sample)
         session.add(result)
         return result
-
-    def adjusttimespan(self):
-        """
-        Adjusts the start and end properties to match the timespan of the records
-        """
-        session = self.session()
-        session.query
 
     def asarray(self, start=None, end=None):
         session = self.session()
