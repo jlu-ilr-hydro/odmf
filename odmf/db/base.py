@@ -24,10 +24,8 @@ def abspath(fn):
     return op.join(basepath, normpath)
 
 
-def newid(cls, session=None):
+def newid(cls, session):
     """Creates a new id for all mapped classes with an field called id, which is of integer type"""
-    if not session:
-        session = Session()
     max_id = session.query(sql.func.max(cls.id)).select_from(cls).scalar()
     if max_id is not None:
         return max_id + 1
