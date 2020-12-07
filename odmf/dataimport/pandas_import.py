@@ -201,7 +201,9 @@ def _load_csv(idescr: ImportDescription, filepath: Path, columns: list, names: l
     except FileNotFoundError:
         raise DataImportError(f'{filepath} does not exist')
     except UnicodeDecodeError:
-        raise DataImportError(f'{filepath} could not be read. Is this a {encoding} encoded textfile?')
+        raise DataImportError(
+            f'{filepath} could not be read as {encoding} encoding. Specify correct encoding (eg. windows-1252) in {idescr.filename}'
+        )
     except Exception as e:
         raise DataImportError(f'{filepath} read error. Is this a seperated text file? Underlying message: {str(e)}')
 
@@ -248,6 +250,7 @@ def load_dataframe(
             df[col.name] = df[col.name].diff()
 
         # Apply unit conversion factor factor
+        print(col.name)
         df[col.name] *= col.factor
 
     return df, warnings

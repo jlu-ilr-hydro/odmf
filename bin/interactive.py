@@ -2,7 +2,7 @@ from odmf.config import conf
 from odmf.tools import Path
 from odmf import db
 import yaml
-
+from odmf.dataimport import pandas_import as pi
 import contextlib
 
 import odmf.dataimport.base as b
@@ -17,13 +17,16 @@ def timeit(name='action'):
 
 session: db.orm.Session = db.Session()
 
-fn = Path('soil-moisture/ArableLand_25/EM9767 11Nov20-1247.xlsx')
-
-with timeit('load data frame'):
+fn = Path('climate-data/178_upSchwingbach/CR1000_upSchwingbach_Table1_2020_11_10_16_20.dat')
+print(fn.absolute)
+with timeit('get description'):
     if not fn.exists():
         raise IOError(f'{fn} does not exist')
     idescr = b.ImportDescription.from_file(fn.absolute)
-    from odmf.dataimport import pandas_import as pi
+    print(idescr)
+
+with timeit('load data frame'):
+    
     df, warning = pi.load_dataframe(idescr, fn)
 
 print()
@@ -38,4 +41,4 @@ with timeit('submit'):
 print('\n'.join(msg))
 
 dsg = db.DatasetItemGetter(session)
-session.rollback()
+# session.rollback()
