@@ -1,7 +1,7 @@
 from odmf.config import conf
 from odmf.tools import Path
 from odmf import db
-
+import yaml
 
 import contextlib
 
@@ -15,8 +15,7 @@ def timeit(name='action'):
     d = time.time() - tstart
     print(f'------------ {name} took {d:0.3f} seconds')
 
-with timeit('get session'):
-    session = db.Session()
+session: db.orm.Session = db.Session()
 
 fn = Path('soil-moisture/ArableLand_25/EM9767 11Nov20-1247.xlsx')
 
@@ -33,9 +32,10 @@ print('\n'.join(warning))
 print()
 print(df.describe())
 
-with timeit('make datasets'):
-    datasets = pi._new_datasets_from_descr(session, idescr, 'philipp', 25, fn, df.time.min().to_pydatetime(), df.time.max().to_pydatetime())
+with timeit('submit'):
+    msg = pi.submit(session, idescr, fn, user='philipp', siteid=25)
 
-print(datasets)
+print('\n'.join(msg))
 
+dsg = db.DatasetItemGetter(session)
 session.rollback()

@@ -1,4 +1,3 @@
-from typing import Dict
 
 from .base import ImportDescription, ImportColumn
 import typing
@@ -14,69 +13,89 @@ class DataImportError(RuntimeError):
     ...
 
 
-def _get_last_ds_for_site(session, idescr: ImportDescription, col: ImportColumn, siteid: int):
+class ColumnDataset:
     """
-    Returns the newest dataset for a site with instrument, valuetype and level fitting to the ImportDescription's column
-    To be used by lab imports where a site is encoded into the sample name.
+    A combination of an ImportColumn and a Dataset, used for import.
 
-    ------ Untested ----------------
+    The datasets are created in the db if the column is not for appending.
+    The datasets start and end time is already adjusted
     """
-    q = session.query(db.Dataset).filter(
-        db.Dataset._site == siteid,
-        db.Dataset._valuetype == col.valuetype,
-        db.Dataset._source == idescr.instrument,
-    )
-    if col.level is not None:
-        q = q.filter(db.Dataset.level == col.level)
+    id: int
+    dataset: db.Dataset
+    column: ImportColumn
+    idescr: ImportDescription
+    record_count: int = 0
 
-    return q.order_by(db.Dataset.end.desc).limit(1).scalar()
+    def __init__(self, session, idescr: ImportDescription, col: ImportColumn,
+                 id: int, user: db.Person, site: db.Site, inst: db.Datasource,
+                 valuetypes: typing.Dict[int, db.ValueType], raw: db.Quality,
+                 start: datetime.datetime, end: datetime.datetime,
+                 filename: typing.Optional[str] = None
+                 ):
 
+        self.column = col
+        self.idescr = idescr
+        self.id = id
 
-def _new_datasets_from_descr(session, idescr: ImportDescription,
-                             user: str, siteid: int, filepath: Path=None,
-                             start: datetime.datetime=None, end: datetime.datetime=None
-                             ) -> typing.Dict[typing.Any, db.Dataset]:
-    """
-    Creates new db.Dataset objects according to the import description.
-    This works only for idescrs with
+        assert not col.ds_column, "Cannot create a ColumnDataset for a column with variable dataset target"
 
-    Returns:
-         Dictionary mapping columns (id/names) to db.Dataset objects
-
-    The id's of the datasets are only available after flush/commit of the session
-    """
-
-
-    def col_to_dataset(col: ImportColumn):
-        """
-        Creates a dataset from an ImportColumn.
-        """
-
-        if col.ds_column:
-            # Columns that reference a dataset column are not referenced by
-            return None
-        elif col.append:
+        if col.append:
             try:
-                ds = session.query(db.Dataset).get(int(col.append))
-                ds.start = min(start, ds.start)
-                ds.end = max(end, ds.end)
+                self.dataset = session.query(db.Dataset).get(int(col.append))
+                self.dataset.start = min(start, self.dataset.start)
+                self.dataset.end = max(end, self.dataset.end)
+                self.record_count = self.dataset.size()
+
             except (TypeError, ValueError):
                 raise DataImportError(
                     f'{idescr.filename}:{col.name} wants to append data ds:{col.append}. This dataset does not exist')
 
         else:
             # New dataset with metadata from above
-            ds = db.Timeseries(measured_by=user,
-                               valuetype=valuetypes[col.valuetype],
-                               site=site, name=col.name,
-                               filename=filepath.name, comment=col.comment, source=inst, quality=raw,
-                               start=start, end=end, level=col.level,
-                               access=col.access if col.access is not None else 1,
-                               # Get timezone from descriptor or, if not present from global conf
-                               timezone=idescr.timezone or conf.datetime_default_timezone,
-                               project=idescr.project)
-        return ds
+            self.dataset = db.Timeseries(
+                id=id, measured_by=user,
+                valuetype=valuetypes[col.valuetype],
+                site=site, name=col.name,
+                filename=filename, comment=col.comment, source=inst, quality=raw,
+                start=start, end=end, level=col.level,
+                access=col.access if col.access is not None else 1,
+                # Get timezone from descriptor or, if not present from global conf
+                timezone=idescr.timezone or conf.datetime_default_timezone,
+                project=idescr.project)
+            session.add(self.dataset)
 
+    def to_record_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Prepares nad populates a dataframe with the layout of the db.Record-Table
+
+        df: The dataframe containing all data to import
+        """
+
+        # Remove all values, where one of the columns is outside its minvalue / maxvalue range
+        values_ok = check_column_values(self.column, df)
+        col_df = pd.DataFrame(df.time)
+        col_df = col_df[values_ok]
+        col_df['dataset'] = self.id
+        col_df['id'] = df.index + self.record_count
+        col_df['value'] = df[self.column.name]
+        if 'sample' in df.columns:
+            col_df['sample'] = df['sample']
+
+        return col_df
+
+    def __repr__(self):
+        return f'ColumnDataset: {self.column} -> ds:{self.dataset.id}'
+
+
+def columndatasets_from_description(
+        session, idescr: ImportDescription,
+        user: str, siteid: int, filepath: Path = None,
+        start: datetime.datetime = None, end: datetime.datetime = None
+) -> typing.List[ColumnDataset]:
+
+    """
+    Creates fitting
+    """
     with session.no_autoflush:
         # Get instrument, user and site object from db
         inst = session.query(db.Datasource).get(idescr.instrument)
@@ -91,33 +110,19 @@ def _new_datasets_from_descr(session, idescr: ImportDescription,
                 db.ValueType.id.in_([col.valuetype for col in idescr.columns])
             )
         }
-
-        return {
-            col.column: col_to_dataset(col)
-            for col in idescr.columns
-        }
-
-
-def _prepare_ds_column_datasets(session, column: ImportColumn, data: pd.DataFrame):
-    """
-    Extends the start / end times in the datasets used in dataset column
-
-    ------------- Untested -----------------
-    """
-    missing_ds = []
-    ds_ids = data['dataset for ' + column.name]
-    for dsid in ds_ids.unique():
-        ds = session.query(db.Dataset).get(dsid)
-        if ds:
-            # Filter data for the current ds
-            ds_data = data[ds_ids == dsid]
-            ds.start = min(ds.start, ds_data.date.min().to_pydatetime())
-            ds.end = max(ds.end, ds_data.date.max().to_pydatetime())
-        else:
-            missing_ds.append(dsid)
-
-    if missing_ds:
-        raise DataImportError(f'{column.name} misses the following datasets {missing_ds!s}.')
+        newid = db.newid(db.Dataset, session)
+        datasets = []
+        for col in idescr.columns:
+            if not col.ds_column:  # Do not create or find datasets for columns with varying datasets
+                datasets.append(
+                    ColumnDataset(
+                        session, idescr, col,
+                        newid + len(datasets),
+                        user, site, inst, valuetypes, raw,
+                        start, end, filepath.name
+                    )
+                )
+        return datasets
 
 
 def _make_time_column_as_datetime(df: pd.DataFrame):
@@ -127,7 +132,7 @@ def _make_time_column_as_datetime(df: pd.DataFrame):
     Possible cases:
 
     1. The 'time' column contains 'datetime.time' objects -> Add to date column
-    2. A 'date' column exists 'time' column contains strings like '13:30' or a datetime like 2020-01-01 13:30 (wrong date)
+    2. A 'date' column exists 'time' column contains strings like '13:30' or like 2020-01-01 13:30 (wrong date)
         -> convert and add to date column
     3. No 'date' column, and the 'time' column contains already a datetime or a string representation of a datetime
         -> convert to datetime
@@ -138,7 +143,7 @@ def _make_time_column_as_datetime(df: pd.DataFrame):
         """
         try:
             return pd.to_datetime(c, dayfirst=True)
-        except:
+        except Exception:
             raise DataImportError(f'The column {c.name} is not convertible to a date')
 
     if 'time' in df.columns:
@@ -153,6 +158,10 @@ def _make_time_column_as_datetime(df: pd.DataFrame):
         df['time'] = convert_time_column(df['date'])
 
     del df['date']
+
+
+def check_column_values(col: ImportColumn, df: pd.DataFrame):
+    return df[col.name].between(col.minvalue, col.maxvalue)
 
 
 def _load_excel(idescr: ImportDescription, filepath: Path, columns: list, names: list) -> pd.DataFrame:
@@ -179,8 +188,8 @@ def _load_csv(idescr: ImportDescription, filepath: Path, columns: list, names: l
 
     called by load_dataframe
     """
+    encoding = idescr.encoding or 'utf-8'
     try:
-        encoding = idescr.encoding or 'utf-8'
         return pd.read_csv(
             filepath.absolute,
             names=names, usecols=columns,
@@ -197,13 +206,19 @@ def _load_csv(idescr: ImportDescription, filepath: Path, columns: list, names: l
         raise DataImportError(f'{filepath} read error. Is this a seperated text file? Underlying message: {str(e)}')
 
 
-def load_dataframe(idescr: ImportDescription, filepath: typing.Union[Path, str]) -> typing.Tuple[pd.DataFrame, typing.List[str]]:
+def load_dataframe(
+        idescr: ImportDescription,
+        filepath: typing.Union[Path, str]
+) -> typing.Tuple[pd.DataFrame, typing.List[str]]:
     """
     Loads a pandas dataframe from a data file (csv or xls[x]) using an import description
     """
 
-    columns = list(idescr.datecolumns) + [col.column for col in idescr.columns] + \
-              [col.ds_column for col in idescr.columns if col.ds_column]
+    columns = (
+            list(idescr.datecolumns)
+            + [col.column for col in idescr.columns]
+            + [col.ds_column for col in idescr.columns if col.ds_column]
+    )
     names = ['date', 'time'][:len(idescr.datecolumns)] + [col.name for col in idescr.columns] + \
             ['dataset for ' + col.name for col in idescr.columns if col.ds_column]
 
@@ -232,81 +247,97 @@ def load_dataframe(idescr: ImportDescription, filepath: typing.Union[Path, str])
         if col.difference:
             df[col.name] = df[col.name].diff()
 
-        # Remove all values, where one of the columns is outside its minvalue / maxvalue range
-        not_in_range = (df[col.name] < col.minvalue) | (df[col.name] > col.maxvalue)
-        if any(not_in_range):
-            df.drop(index=df[not_in_range].index, inplace=True)
-            warnings.append(f'Removed {sum(not_in_range)} records, because {col} was not in {col.minvalue}..{col.maxvalue}')
-
         # Apply unit conversion factor factor
         df[col.name] *= col.factor
 
     return df, warnings
 
 
-def _make_column_dataframe(col: ImportColumn, df: pd.DataFrame, datasetids: typing.Dict[int, int]):
+def get_dataframe_for_ds_column(session, column: ImportColumn, data: pd.DataFrame):
     """
-    Prepares nad populates a dataframe with the layout of the db.Record-Table
+    To be used for columns with ds_column:
 
-    col: The import column
-    df: The dataframe containing all data to import
-    datasetids: a dictionary mapping column positions to dataset id's
+    Creates a dataframe in the layout of the record table and adjusts all start / end dates of the fitting datasets
+
+    ------------- Untested -----------------
     """
 
-    col_df = pd.DataFrame(df.time)
-    if not col.ds_column:
-        col_df['dataset'] = datasetids[col.column]
-        if not col.append:
-            col_df['id'] = df.index
-    else:
-        col_df['dataset'] = df['dataset for ' + col.name]
-    col_df['value'] = df[col.name]
+    assert column.ds_column, "no ds_column available"
+    missing_ds = []
+    ds_ids = data['dataset for ' + column.name]
 
-    if 'sample' in df.columns:
-        col_df['sample'] = df['sample']
+    newids = {}
 
-    return col_df
+    def get_newid_range(ds: db.Timeseries):
+        start = ds.maxrecordid() + 1
+        end = start + (ds_ids == ds.id).sum()
+        return range(start, end)
+
+    for dsid in ds_ids.unique():
+        ds = session.query(db.Dataset).get(dsid)
+        if ds:
+            # Filter data for the current ds
+            ds_data = data[ds_ids == dsid]
+            newids[dsid] = get_newid_range(ds)
+
+            ds.start = min(ds.start, ds_data.date.min().to_pydatetime())
+            ds.end = max(ds.end, ds_data.date.max().to_pydatetime())
+        else:
+            missing_ds.append(dsid)
+
+    if missing_ds:
+        raise DataImportError(f'{column.name} misses the following datasets {missing_ds!s}.')
+
+    col_df = pd.DataFrame(data.time)
+
+    col_df['dataset'] = data['dataset for ' + column.name]
+    col_df['id'] = data.index
+    col_df['value'] = data[column.name]
+
+    if 'sample' in data.columns:
+        col_df['sample'] = data['sample']
+
+    return col_df[~pd.isna(col_df['value'])]
 
 
-def submit(idescr: ImportDescription, filepath: Path, user: str, siteid: int):
+def submit(session: db.Session, idescr: ImportDescription, filepath: Path, user: str, siteid: int):
     """
     Loads tabular data from a file, creates or loads necessary datasets and imports the data as records
 
-    -------- Untested ----------
     """
-    df, _ = load_dataframe(idescr, filepath)
+    df, messages = load_dataframe(idescr, filepath)
 
     if len(df) == 0:
         raise DataImportError(f'No records to import from {filepath} with {idescr.filename}.')
 
     start = df.time.min().to_pydatetime()
     end = df.time.max().to_pydatetime()
-    messages = []
-    with db.session_scope() as session:
-        datasets = _new_datasets_from_descr(session, idescr, user=user, siteid=siteid,
-                                            filepath=filepath, start=start, end=end)
-        # TODO: Inform about import actions (eg. Datasets created)
 
-        for col in idescr.columns:
-            if col.ds_column:
-                _prepare_ds_column_datasets(session, col, df)
+    record_frames = []
+    datasets = columndatasets_from_description(
+        session, idescr, user=user, siteid=siteid,
+        filepath=filepath, start=start, end=end
+    )
+    session.flush()
+    messages.extend(
+        f'ds:{cds.id} : Import {cds.column} of {filepath}'
+        for cds in datasets
+    )
 
-        # Commit session to generate id's for new datasets
-        session.commit()
+    record_frames.extend(
+        cds.to_record_dataframe(df)
+        for cds in datasets
+    )
 
-        # Get the dataset id's
-        datasetids = {
-            col: datasets[col].id
-            for col in datasets
-        }
+    record_frames.extend(
+        get_dataframe_for_ds_column(session, col, df)
+        for col in idescr.columns
+        if col.ds_column
+    )
 
+    conn = session.connection()
     # Make dataframe in the style of the records table
-    for col in idescr.columns:
-        # make the records table to append to the records
-        col_df = _make_column_dataframe(col, df, datasetids)
-        # Now submit the data
-        col_df.to_sql('record', db.engine, if_exists='append')
+    for rf in record_frames:
+        rf.to_sql('record', conn, if_exists='append', index=False)
 
-
-
-
+    return messages
