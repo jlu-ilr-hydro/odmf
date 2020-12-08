@@ -21,6 +21,10 @@ from ..config import conf
 from traceback import format_exc as traceback
 from pytz import common_timezones_set
 
+from logging import getLogger
+logger = getLogger(__name__)
+
+
 
 def findStartDate(siteid, instrumentid):
     session = db.Session()
@@ -45,8 +49,8 @@ def finddateGaps(siteid, instrumentid, valuetype, startdate=None, enddate=None):
     :param enddate:
     :return:
     """
-    print("[LOG] - finddateGaps - START")
-    print("[LOG] - finddateGaps - valutype(s) list=%s" % valuetype)
+    logger.info("finddateGaps - START")
+    logger.info("finddateGaps - valutype(s) list=%s" % valuetype)
 
     with db.session_scope() as session:
 
@@ -56,40 +60,40 @@ def finddateGaps(siteid, instrumentid, valuetype, startdate=None, enddate=None):
                     db.Dataset._valuetype.in_(valuetype)) \
             .order_by(db.Dataset._valuetype, db.Dataset.start)
 
-        print("[LOG] - finddateGaps - %d rows after query" % dss.count())
+        logger.info("finddateGaps - %d rows after query" % dss.count())
 
         if dss.count() != 0:
             # Filter for datasets which are in our period
             if startdate:
                 dss = dss.filter(db.Dataset.end > startdate)
-                print("[LOG] - finddateGaps - %d rows after startdatefilter %s" %
+                logger.info("finddateGaps - %d rows after startdatefilter %s" %
                       (dss.count(), startdate))
             else:
-                print("[LOG] - finddateGaps - No startdate")
+                logger.info("finddateGaps - No startdate")
             if enddate:
                 dss = dss.filter(db.Dataset.start < enddate)
-                print("[LOG] - finddateGaps - %d rows after enddatefilter %s" %
+                logger.info("finddateGaps - %d rows after enddatefilter %s" %
                       (dss.count(), enddate))
             else:
-                print("[LOG] - finddateGaps - No enddate")
+                logger.info("finddateGaps - No enddate")
 
         # Check if their are datasets in our period
         if dss is None or dss.count() == 0:
             # There is no data. Allow full upload
             if startdate and enddate:
-                print("[LOG] - finddateGaps - Full upload allowed / ",
+                logger.info("finddateGaps - Full upload allowed / ",
                       startdate, " ", enddate, " /")
                 return [(startdate, enddate)]
             else:
-                print("[LOG] - finddateGaps - No datasets")
+                logger.info("finddateGaps - No datasets")
                 return None
 
         # Make start and enddate if not present
         if not startdate:
-            print("[LOG] - finddateGaps - Create startdate at ", dss[0].start)
+            logger.info("finddateGaps - Create startdate at ", dss[0].start)
             startdate = dss[0].start
         if not enddate:
-            print("[LOG] - finddateGaps - Create enddate at ", dss[-1].end)
+            logger.info("finddateGaps - Create enddate at ", dss[-1].end)
             enddate = dss[-1].end
 
         # Start search
@@ -97,7 +101,7 @@ def finddateGaps(siteid, instrumentid, valuetype, startdate=None, enddate=None):
 
         # Is there space before the first dataset?
         if startdate < dss[0].start:
-            print("[LOG] - finddateGaps - Append %s - %s - v:%s" %
+            logger.info("finddateGaps - Append %s - %s - v:%s" %
                   (startdate, dss[0].start, dss[0].valuetype))
             res.append((startdate, dss[0].start))
 
@@ -105,17 +109,17 @@ def finddateGaps(siteid, instrumentid, valuetype, startdate=None, enddate=None):
         for ds1, ds2 in zip(dss[:-1], dss[1:]):
             # if there is a gap between
             if ds2.start - ds1.end >= timedelta(days=1):
-                print("[LOG] - finddateGaps - Append %s - %s - v:%s - v:%s" %
+                logger.info("finddateGaps - Append %s - %s - v:%s - v:%s" %
                       (ds1.end, ds2.start, ds1.valuetype, ds2.valuetype))
                 res.append((ds1.end, ds2.start))
 
         # Is there space after the last dataset
         if enddate > dss[-1].end:
-            print("[LOG] - finddateGaps - Append %s - %s - v:%s" %
+            logger.info("finddateGaps - Append %s - %s - v:%s" %
                   (dss[-1].end, enddate, dss[-1].valuetype))
             res.append((dss[-1].end, enddate))
 
-        print("[LOG] - finddateGaps - Returning %d gap(s)" % len(res))
+        logger.info("finddateGaps - Returning %d gap(s)" % len(res))
         return res
 
 
@@ -727,14 +731,14 @@ class AbstractImport(object):
 
         if not overlap(new_dataset, dataset):
             # upload
-            print("Upload completed successful")
+            logger.info("Upload completed successful")
         else:
-            print("Report conflicts")
+            logger.info("Report conflicts")
             if new_dataset.count() > MAX_ROWS:
 
                 if dataset.count() > MAX_ROWS:
 
-                    print("Normally no upload allowed")
+                    logger.info("Normally no upload allowed")
                     # Only for Admins
                     # Except other
 
@@ -744,17 +748,17 @@ class AbstractImport(object):
                 uploadable, conflicts = get_report(new_dataset, dataset)
 
             if conflicts.real == 0:
-                print("Allow normal merge")
+                logger.info("Allow normal merge")
 
             else:
-                print("Print multiple choice")
+                logger.info(" multiple choice")
 
 
 def savetoimports(filename, user, datasets=None):
     """
     Adds the filename to the import history file .import.hist
     """
-    print(("savetoimports:", filename))
+    logger.info("savetoimports:", filename)
     d = os.path.dirname(filename)
     f = open(os.path.join(d, '.import.hist'), 'a')
     f.write('%s,%s,%s' % (os.path.basename(filename), user, datetime.now()))
@@ -766,7 +770,7 @@ def savetoimports(filename, user, datasets=None):
 
 # TODO: Rebuild this with database mechanism. Make things more independent
 def checkimport(filename):
-    print(("checkimport:", filename))
+    logger.info("checkimport:", filename)
     d = os.path.dirname(filename)
     fn = os.path.join(d, '.import.hist')
     if os.path.exists(fn):
