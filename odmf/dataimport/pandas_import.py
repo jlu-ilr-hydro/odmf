@@ -7,7 +7,8 @@ import re
 import datetime
 from ..config import conf
 from odmf.tools import Path
-
+from logging import getLogger
+logger = getLogger(__name__)
 
 class DataImportError(RuntimeError):
     ...
@@ -142,7 +143,7 @@ def _make_time_column_as_datetime(df: pd.DataFrame):
         Converts a column to_datetime and raises a LogImportStructError on failure
         """
         try:
-            return pd.to_datetime(c, dayfirst=True)
+            return pd.to_datetime(c.str.replace('24:', '00:'), dayfirst=True)
         except Exception:
             raise DataImportError(f'The column {c.name} is not convertible to a date')
 
@@ -196,7 +197,7 @@ def _load_csv(idescr: ImportDescription, filepath: Path, columns: list, names: l
             skiprows=idescr.skiplines, skipfooter=idescr.skipfooter or 0,
             delimiter=idescr.delimiter, decimal=idescr.decimalpoint,
             na_values=idescr.nodata,
-            encoding=encoding, engine='python'
+            encoding=encoding, engine='python', quotechar='"'
         )
     except FileNotFoundError:
         raise DataImportError(f'{filepath} does not exist')
@@ -249,8 +250,6 @@ def load_dataframe(
         if col.difference:
             df[col.name] = df[col.name].diff()
 
-        # Apply unit conversion factor factor
-        print(col.name)
         df[col.name] *= col.factor
 
     return df, warnings
@@ -303,44 +302,57 @@ def get_dataframe_for_ds_column(session, column: ImportColumn, data: pd.DataFram
     return col_df[~pd.isna(col_df['value'])]
 
 
+def _get_recordframe(session: db.Session, idescr: ImportDescription,
+                     datasets: typing.List[ColumnDataset], df: pd.DataFrame):
+    """
+    Returns a single dataframe in the Layout of the record table including all records to export
+    """
+    return pd.concat([
+        cds.to_record_dataframe(df)
+        for cds in datasets
+    ] + [
+        get_dataframe_for_ds_column(session, col, df)
+        for col in idescr.columns
+        if col.ds_column
+    ])
+
+
+
+
+
+
 def submit(session: db.Session, idescr: ImportDescription, filepath: Path, user: str, siteid: int):
     """
     Loads tabular data from a file, creates or loads necessary datasets and imports the data as records
 
     """
     df, messages = load_dataframe(idescr, filepath)
+    logger.debug(f'loaded {filepath}, got {len(df)} rows with {len(df.columns)} columns')
 
     if len(df) == 0:
         raise DataImportError(f'No records to import from {filepath} with {idescr.filename}.')
 
-    start = df.time.min().to_pydatetime()
-    end = df.time.max().to_pydatetime()
 
-    record_frames = []
     datasets = columndatasets_from_description(
-        session, idescr, user=user, siteid=siteid,
-        filepath=filepath, start=start, end=end
+        session, idescr, user=user,
+        siteid=siteid, filepath=filepath,
+        start=df.time.min().to_pydatetime(),
+        end=df.time.max().to_pydatetime()
     )
+
+    # make datasets available in the session
     session.flush()
+
+    logger.debug(f'created or referenced {len(datasets)} datasets')
     messages.extend(
-        f'ds:{cds.id} : Import {cds.column} of {filepath}'
+        f'ds:{cds.id} : Import {cds.column} of file:{filepath}'
         for cds in datasets
     )
 
-    record_frames.extend(
-        cds.to_record_dataframe(df)
-        for cds in datasets
-    )
-
-    record_frames.extend(
-        get_dataframe_for_ds_column(session, col, df)
-        for col in idescr.columns
-        if col.ds_column
-    )
+    recordframe = _get_recordframe(session, idescr, datasets, df)
+    logger.info(f'insert {len(recordframe)} records into {len(recordframe.dataset.unique())} datasets')
 
     conn = session.connection()
-    # Make dataframe in the style of the records table
-    for rf in record_frames:
-        rf.to_sql('record', conn, if_exists='append', index=False)
+    recordframe.to_sql('record', conn, if_exists='append', index=False, method='multi', chunksize=1000)
 
     return messages

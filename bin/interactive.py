@@ -8,6 +8,12 @@ import contextlib
 import odmf.dataimport.base as b
 import time
 
+import logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s | %(name)s | %(levelname)s | %(message)s'
+)
+
 @contextlib.contextmanager
 def timeit(name='action'):
     tstart = time.time()
@@ -41,4 +47,4 @@ with timeit('submit'):
 print('\n'.join(msg))
 
 dsg = db.DatasetItemGetter(session)
-# session.rollback()
+session.rollback()
