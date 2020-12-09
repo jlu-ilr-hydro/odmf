@@ -23,7 +23,7 @@ def timeit(name='action'):
 
 session: db.orm.Session = db.Session()
 
-fn = Path('climate-data/178_upSchwingbach/CR1000_upSchwingbach_Table1_2020_11_10_16_20.dat')
+fn = Path('climate-data/47_rückhalte/CR1000_Table1_2020_11_10_12_20.dat')
 print(fn.absolute)
 with timeit('get description'):
     if not fn.exists():
@@ -32,19 +32,15 @@ with timeit('get description'):
     print(idescr)
 
 with timeit('load data frame'):
-    
-    df, warning = pi.load_dataframe(idescr, fn)
+    df = pi.load_dataframe(idescr, fn)
 
 print()
-print(f'{len(warning)} warnings:')
-print('\n'.join(warning))
-print()
-print(df.describe())
+print(pi.get_statistics(idescr, df))
 
 with timeit('submit'):
-    msg = pi.submit(session, idescr, fn, user='philipp', siteid=25)
-
-print('\n'.join(msg))
+    ...
+    # msg = pi.submit(session, idescr, fn, user='philipp', siteid=25)
+    # print('\n'.join(msg))
 
 dsg = db.DatasetItemGetter(session)
 session.rollback()

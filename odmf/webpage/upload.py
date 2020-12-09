@@ -19,9 +19,9 @@ from urllib.parse import urlencode
 from .auth import group, expose_for
 
 from .. import dataimport as di
-from ..dataimport import ManualMeasurementsImport
-
+from .. import db
 from ..dataimport import importlog
+from ..dataimport import pandas_import as pi
 from ..tools import Path
 
 from ..config import conf
@@ -51,181 +51,103 @@ def write_to_file(dest, src):
     fout.close()
 
 
-@web.expose
-class DBImportPage(object):
-    @staticmethod
-    def logimport(filename, kwargs):
-        """
+def logimport(filename, kwargs):
+    """
 
-        :param filename:
-        :param kwargs:
-        :param import_with_class:
-        :return:
-        """
-        
-        t0 = time.time()
+    :param filename:
+    :param kwargs:
+    :param import_with_class:
+    :return:
+    """
 
-        path = Path(filename.strip('/'))
+    t0 = time.time()
 
-        error = di.checkimport(path.absolute)
-        if error:
-            raise web.redirect(path.parent().href, error=error)
-        try:
-            li = importlog.LogbookImport(path.absolute, web.user())
-            logs, cancommit = li('commit' in kwargs)
+    path = Path(filename.strip('/'))
 
-        except importlog.LogImportError as e:
-            raise web.redirect(path.parent().href, error=str(e))
-
-        t1 = time.time()
-
-        log("Imported in %.2f s" % (t1 - t0))
-
-        if 'commit' in kwargs and cancommit:
-            di.savetoimports(path.absolute, web.user(), ["_various_as_its_manual"])
-            raise web.redirect(path.parent().href, error=error)
-        else:
-            return web.render(
-                'logimport.html', filename=path, logs=logs,
-                cancommit=cancommit, error=error
-            ).render()
-
-    @staticmethod
-    def mmimport(filename, kwargs):
-        """
-        Imports a manual measurement
-        :param filename:
-        :param kwargs:
-        :return:
-        """
-        t0 = time.time()
-
-        path = Path(filename.strip('/'))
-
-        error = di.checkimport(path.absolute)
-        if error:
-            raise web.redirect(path.parent().href, error=error)
-        li = ManualMeasurementsImport(path.absolute, web.user())
+    error = di.checkimport(path.absolute)
+    if error:
+        raise web.redirect(path.parent().href, error=error)
+    try:
+        li = importlog.LogbookImport(path.absolute, web.user())
         logs, cancommit = li('commit' in kwargs)
 
+    except importlog.LogImportError as e:
+        raise web.redirect(path.parent().href, error=str(e))
+
+    t1 = time.time()
+
+    log("Imported in %.2f s" % (t1 - t0))
+
+    if 'commit' in kwargs and cancommit:
+        di.savetoimports(path.absolute, web.user(), ["_various_as_its_manual"])
+        raise web.redirect(path.parent().href, error=error)
+    else:
+        return web.render(
+            'logimport.html', filename=path, logs=logs,
+            cancommit=cancommit, error=error
+        ).render()
+
+def instrumentimport(filename, kwargs):
+    """
+    Loads instrument data using a .conf file
+
+    Wheter 'loadstat' or 'impordb' is in kwargs, the method returns the import page with the stats or with a commit
+    message
+
+    :param filename:
+    :param kwargs: May contain a force value, to import even if the file has been uploaded before
+    """
+
+    t0 = time.time()
+
+    # Error streams
+    errorstream = StringIO()
+
+    # TODO: Major refactoring of this code logic, when to load gaps, etc.
+    path = Path(filename.strip('/'))
+    # Check if the file has already been uploaded
+    error = di.checkimport(path.absolute)
+
+    if error and not kwargs.get('force'):
+        raise web.redirect(path.parent().href, error=error)
+
+    errorstream.write(error)
+    config = di.getconfig(path.absolute)
+
+    if not config:
+        raise web.redirect(
+            conf.root_url + f'/download/{web.escape(path.up())}',
+            error='No config available. Please provide a config for computing a decent result.'
+        )
+    else:
+
+        valuetype = [e.valuetype for e in config.columns]
+        config.href = Path(config.filename).href
+
+        adapter = di.get_adapter(
+            path.absolute, web.user(),
+            siteid=None, instrumentid=None
+        )
+
+        adapter.errorstream = errorstream
+        stats = adapter.get_statistic()
+        startdate = min(v.start for v in stats.values())
+        enddate = max(v.end for v in stats.values())
+
+
         t1 = time.time()
 
         log("Imported in %.2f s" % (t1 - t0))
 
-        if 'commit' in kwargs and cancommit:
-            di.savetoimports(path.absolute, web.user(), ["_various_as_its_manual"])
-            raise web.redirect(path.parent().href, error=error)
-        else:
-            return web.render(
-                'logimport.html', filename=path, logs=logs,
-                cancommit=cancommit, error=error
-            ).render()
-
-    @staticmethod
-    def instrumentimport(filename, kwargs):
-        """
-        Loads instrument data using a .conf file
-
-        Wheter 'loadstat' or 'impordb' is in kwargs, the method returns the import page with the stats or with a commit
-        message
-
-        :param filename:
-        :param kwargs:
-        """
-
-        t0 = time.time()
-
-        # Error streams
-        errorstream = StringIO()
-
-        # TODO: Major refactoring of this code logic, when to load gaps, etc.
-        path = Path(filename.strip('/'))
-        error = di.checkimport(path.absolute)
-        if error:
-            raise web.redirect(path.parent().href, error=error)
-        errorstream.write(error)
-        config = di.getconfig(path.absolute)
-
-        if not config:
-            raise web.redirect(
-                conf.root_url + f'/download/{web.escape(path.up())}',
-                error='No config available. Please provide a config for computing a decent result.'
-            )
-        else:
-
-            valuetype = [e.valuetype for e in config.columns]
-            config.href = Path(config.filename).href
-
-            adapter = di.get_adapter(
-                path.absolute, web.user(),
-                siteid=None, instrumentid=None
-            )
-
-            adapter.errorstream = errorstream
-            stats = adapter.get_statistic()
-            startdate = min(v.start for v in stats.values())
-            enddate = max(v.end for v in stats.values())
-
-
-            t1 = time.time()
-
-            log("Imported in %.2f s" % (t1 - t0))
-
-        return web.render(
-            'dbimport.html',
-            config=config,
-            stats=stats,
-            error=errorstream.getvalue(),
-            filename=filename,
-            dirlink=path.up(),
-            startdate=startdate, enddate=enddate
-        ).render()
-
-    @expose_for(group.editor)
-    @web.method.post
-    def do_import(self, filename, startdate, enddate, siteid):
-        path = Path(filename.strip('/'))
-        errorstream = StringIO()
-        error = web.markdown(di.checkimport(path.absolute))
-        startdate = web.parsedate(startdate)
-        enddate = web.parsedate(enddate)
-        siteid = web.conv(int, siteid)
-        msg = ''
-        config = di.getconfig(path.absolute)
-
-        if not config:
-            errorstream.write("No config available. Please provide a config for"
-                              " computing a decent result.")
-        else:
-            datasets = di.importfile(path.absolute, web.user(), siteid,
-                                     config.instrument, startdate, enddate)
-            msg = f'### Import of {path.name} successful\n\nNew datasets:\n\n'
-            for ds in datasets:
-                msg += f'- ds{ds:04d}\n'
-
-        error += errorstream.getvalue()
-
-        raise web.redirect(path.parent().href, error=error, msg=msg)
-
-
-    @expose_for(group.editor)
-    def index(self, filename=None, **kwargs):
-        if not filename:
-            raise web.redirect('/download/')
-        import re
-        # the lab import only fits on CFG_MANNUAL_MEASUREMENTS_PATTERN
-        if ManualMeasurementsImport.extension_fits_to(filename):
-            log("Import with labimport ( %s )" %
-                ManualMeasurementsImport.__name__)
-            return self.mmimport(filename, kwargs)
-        # If the file ends with log.xls[x], import as log list
-        elif re.match(r'(.*)_log\.xlsx?$', filename):
-            log("Import with logimport")
-            return self.logimport(filename, kwargs)
-        # else import as instrument file
-        else:
-            log("Import with instrumentimport")
-            return self.instrumentimport(filename, kwargs)
+    return web.render(
+        'dbimport.html',
+        config=config,
+        stats=stats,
+        error=errorstream.getvalue(),
+        filename=filename,
+        dirlink=path.up(),
+        startdate=startdate, enddate=enddate
+    ).render()
 
 
 class HTTPFileNotFoundError(HTTPError):
@@ -249,20 +171,119 @@ class HTTPFileNotFoundError(HTTPError):
         return text.encode('utf-8')
 
 
-def goto(dir, error, msg):
+@web.expose
+class DbImportPage:
+    """
+    Class to handle data imports from files
+    """
+
+    @expose_for(group.editor)
+    def index(self, filename, **kwargs):
+        filepath = Path(filename)
+        if not filepath.exists():
+            raise goto(f'/download/', f'{filepath} not found - cannot import')
+        import re
+        # If the file ends with log.xls[x], import as log list
+        if re.match(r'(.*)_log\.xlsx?$', filename):
+            log("Import with logimport")
+            return self.as_logimport(filename, **kwargs)
+        # else import as instrument file
+        else:
+            return self.with_config(filename, **kwargs)
+
+    @staticmethod
+    def as_logimport(filename, **kwargs):
+        path = Path(filename.strip('/'))
+        error = di.checkimport(path.absolute)
+        if error:
+            raise web.redirect(path.parent().href, error=error)
+        try:
+            li = importlog.LogbookImport(path.absolute, web.user())
+            logs, cancommit = li('commit' in kwargs)
+        except importlog.LogImportError as e:
+            raise web.redirect(path.parent().href, error=str(e))
+
+        if 'commit' in kwargs and cancommit:
+            di.savetoimports(path.absolute, web.user(), ["_various_as_its_manual"])
+            raise web.redirect(path.parent().href, error=error)
+        else:
+            return web.render(
+                'logimport.html', filename=path, logs=logs,
+                cancommit=cancommit, error=error
+            ).render()
+
+    @staticmethod
+    def with_config(filename, **kwargs):
+        """
+        Shows dbimport.html with the datafile loaded and ready for import
+        """
+        path = Path(filename.strip('/'))
+        error = di.checkimport(path)
+        rawcontent = open(path.absolute, 'rb').read(1024).decode('utf-8', 'ignore')
+        try:
+            config = di.ImportDescription.from_file(path.absolute)
+            df = pi.load_dataframe(config, path)
+            stats, startdate, enddate = pi.get_statistics(config, df)
+            table = df.to_html(
+                float_format=lambda f: f'{f:0.5g}',
+                classes=('table', 'thead-dark', 'table-responsive', 'table-striped'),
+                border=0,
+                max_rows=30
+            )
+
+        except pi.DataImportError as e:
+            stats, startdate, enddate, table = {}, None, None, ''
+            error = str(e)
+
+
+        return web.render(
+            'dbimport.html',
+            rawcontent=rawcontent,
+            config=config,
+            stats=stats,
+            error=error,
+            table=table,
+            filename=filename,
+            dirlink=path.up(),
+            startdate=startdate, enddate=enddate
+        ).render()
+
+
+
+    @expose_for(group.editor)
+    @web.method.post
+    def submit_config(self, filename, siteid, **kwargs):
+        path = Path(filename.strip('/'))
+        siteid = web.conv(int, siteid)
+        user = kwargs.pop('user', web.user())
+        config = di.ImportDescription.from_file(path.absolute)
+        try:
+            with db.session_scope() as session:
+                messages = pi.submit(session, config, path, user, siteid)
+                di.savetoimports(path.absolute, web.user(), [m.split()[0] for m in messages])
+
+        except pi.DataImportError as e:
+            raise web.redirect('..', error=str(e))
+
+        else:
+            raise web.redirect(path.parent().href, msg='\n'.join(f' - {msg}' for msg in messages))
+
+
+
+def goto(dir, error=None, msg=None):
     return web.redirect(f'{conf.root_url}/download/{dir}'.strip('.'), error=error, msg=msg)
 
 
 @web.show_in_nav_for(0, 'file')
 class DownloadPage(object):
     """The file management system. Used to upload, import and find files"""
-    to_db = DBImportPage()
 
     def _cp_dispatch(self, vpath: list):
         request.params['uri'] = '/'.join(vpath)
         vpath.clear()
         return self
 
+    to_db = DbImportPage()
 
     @expose_for(group.guest)
     @web.method.get
@@ -326,6 +347,7 @@ class DownloadPage(object):
                         error.append(f'- {fn.href} upload failed: {e}')
 
         raise goto(dir, '\n'.join(error), '\n'.join(msg))
+
 
     @expose_for(group.logger)
     @web.method.post

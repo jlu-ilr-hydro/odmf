@@ -36,16 +36,16 @@ class ColumnDataset:
 
         self.column = col
         self.idescr = idescr
-        self.id = id
 
         assert not col.ds_column, "Cannot create a ColumnDataset for a column with variable dataset target"
 
         if col.append:
             try:
-                self.dataset = session.query(db.Dataset).get(int(col.append))
+                self.dataset: db.Timeseries = session.query(db.Dataset).get(int(col.append))
+                assert self.dataset.type == 'timeseries'
                 self.dataset.start = min(start, self.dataset.start)
                 self.dataset.end = max(end, self.dataset.end)
-                self.record_count = self.dataset.size()
+                self.record_count = self.dataset.maxrecordid()
 
             except (TypeError, ValueError):
                 raise DataImportError(
@@ -65,6 +65,8 @@ class ColumnDataset:
                 project=idescr.project)
             session.add(self.dataset)
 
+        self.id = self.dataset.id
+
     def to_record_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Prepares nad populates a dataframe with the layout of the db.Record-Table
@@ -77,7 +79,7 @@ class ColumnDataset:
         col_df = pd.DataFrame(df.time)
         col_df = col_df[values_ok]
         col_df['dataset'] = self.id
-        col_df['id'] = df.index + self.record_count
+        col_df['id'] = df[values_ok].index + self.record_count + 1
         col_df['value'] = df[self.column.name]
         if 'sample' in df.columns:
             col_df['sample'] = df['sample']
@@ -95,7 +97,7 @@ def columndatasets_from_description(
 ) -> typing.List[ColumnDataset]:
 
     """
-    Creates fitting
+    Creates fitting ColumnDataset combinations for an ImportDescription
     """
     with session.no_autoflush:
         # Get instrument, user and site object from db
@@ -112,21 +114,32 @@ def columndatasets_from_description(
             )
         }
         newid = db.newid(db.Dataset, session)
-        datasets = []
+
+        newdatasets = []
+        appendatasets = []
         for col in idescr.columns:
-            if not col.ds_column:  # Do not create or find datasets for columns with varying datasets
-                datasets.append(
+            if col.append:
+                appendatasets.append(
                     ColumnDataset(
-                        session, idescr, col,
-                        newid + len(datasets),
+                        session, idescr, col, None,
                         user, site, inst, valuetypes, raw,
                         start, end, filepath.name
                     )
                 )
-        return datasets
+            elif not col.ds_column:
+                newdatasets.append(
+                    ColumnDataset(
+                        session, idescr, col,
+                        newid + len(newdatasets),
+                        user, site, inst, valuetypes, raw,
+                        start, end, filepath.name
+                    )
+                )
+
+        return appendatasets + newdatasets
 
 
-def _make_time_column_as_datetime(df: pd.DataFrame):
+def _make_time_column_as_datetime(df: pd.DataFrame, fmt=None):
     """
     Converts the time column to a datetime
 
@@ -142,9 +155,19 @@ def _make_time_column_as_datetime(df: pd.DataFrame):
         """
         Converts a column to_datetime and raises a LogImportStructError on failure
         """
+        # TODO: If c.dtype == object:
+        # c.str.replace('24:', '00:')
         try:
-            return pd.to_datetime(c.str.replace('24:', '00:'), dayfirst=True)
-        except Exception:
+            return pd.to_datetime(c, dayfirst=True, infer_datetime_format=True, format=fmt)
+        except Exception as e:
+            if any('24:' in a for a in e.args):
+                # Deal with 24:00 in a datetime string
+                problems = c.str.contains('24:00')  # Mark the problems
+                # Make dates by replacing 24:00 with 00:00
+                changed = pd.to_datetime(c.str.replace('24:00', '00:00'))  # Convert to datetime
+                # Change date from eg. 2.12.2020 24:00 -> 3.12.2020 00:00
+                changed[problems] += datetime.timedelta(days=1)
+                return changed
             raise DataImportError(f'The column {c.name} is not convertible to a date')
 
     if 'time' in df.columns:
@@ -162,43 +185,54 @@ def _make_time_column_as_datetime(df: pd.DataFrame):
 
 
 def check_column_values(col: ImportColumn, df: pd.DataFrame):
-    return df[col.name].between(col.minvalue, col.maxvalue)
+    try:
+        return df[col.name].between(col.minvalue, col.maxvalue)
+    except TypeError:
+        return pd.Series(False, index=df.index)
 
 
-def _load_excel(idescr: ImportDescription, filepath: Path, columns: list, names: list) -> pd.DataFrame:
+def _load_excel(idescr: ImportDescription, filepath: Path) -> pd.DataFrame:
     """
     loads data from excel, called by load_dataframe
     """
+    columns, names = idescr.get_column_names()
     try:
-        return pd.read_excel(
+        df = pd.read_excel(
             filepath.absolute,
             sheet_name=idescr.worksheet or 0,
-            names=names, usecols=columns,
+            header=None,
             skiprows=idescr.skiplines, skipfooter=idescr.skipfooter,
             na_values=idescr.nodata
         )
+        df = df[columns]
+        df.columns = names
+        return df
+
     except FileNotFoundError:
         raise DataImportError(f'{filepath} does not exist')
     except Exception as e:
         raise DataImportError(f'{filepath} read error. Is this an excel file? Underlying message: {str(e)}')
 
 
-def _load_csv(idescr: ImportDescription, filepath: Path, columns: list, names: list) -> pd.DataFrame:
+def _load_csv(idescr: ImportDescription, filepath: Path) -> pd.DataFrame:
     """
     Loads the data from a csv like file
 
     called by load_dataframe
     """
     encoding = idescr.encoding or 'utf-8'
+    columns, names = idescr.get_column_names()
     try:
-        return pd.read_csv(
-            filepath.absolute,
-            names=names, usecols=columns,
+        df = pd.read_csv(
+            filepath.absolute, header=None,
             skiprows=idescr.skiplines, skipfooter=idescr.skipfooter or 0,
             delimiter=idescr.delimiter, decimal=idescr.decimalpoint,
             na_values=idescr.nodata,
             encoding=encoding, engine='python', quotechar='"'
         )
+        df = df[columns]
+        df.columns = names
+        return df
     except FileNotFoundError:
         raise DataImportError(f'{filepath} does not exist')
     except UnicodeDecodeError:
@@ -212,47 +246,63 @@ def _load_csv(idescr: ImportDescription, filepath: Path, columns: list, names: l
 def load_dataframe(
         idescr: ImportDescription,
         filepath: typing.Union[Path, str]
-) -> typing.Tuple[pd.DataFrame, typing.List[str]]:
+) -> pd.DataFrame:
     """
     Loads a pandas dataframe from a data file (csv or xls[x]) using an import description
     """
 
-    columns = (
-            list(idescr.datecolumns)
-            + [col.column for col in idescr.columns]
-            + [col.ds_column for col in idescr.columns if col.ds_column]
-    )
-    names = ['date', 'time'][:len(idescr.datecolumns)] + [col.name for col in idescr.columns] + \
-            ['dataset for ' + col.name for col in idescr.columns if col.ds_column]
 
     if type(filepath) is not Path:
         filepath = Path(filepath)
 
-    if idescr.samplecolumn:
-        columns += [idescr.samplecolumn]
-        names += ['sample']
 
     if re.match(r'.*\.xls[xmb]?$', filepath.name):
-        df = _load_excel(idescr, filepath, columns, names)
+        df = _load_excel(idescr, filepath)
         if df.empty:
             raise DataImportError(
                 f'No data to import found in {filepath}. If this file was generated by a third party program '
                 f'(eg. logger software), open in excel and save as a new .xlsx - file')
     else:
-        df = _load_csv(idescr, filepath, columns, names)
-
-    _make_time_column_as_datetime(df)
-
-    warnings = []
+        df = _load_csv(idescr, filepath)
+    _make_time_column_as_datetime(df, idescr.dateformat)
 
     for col in idescr.columns:
         # Apply the difference operation
         if col.difference:
             df[col.name] = df[col.name].diff()
+        try:
+            df[col.name] *= col.factor
+        except TypeError:
+            ...
 
-        df[col.name] *= col.factor
+    return df
 
-    return df, warnings
+
+def get_statistics(idescr: ImportDescription, df: pd.DataFrame) \
+        -> typing.Tuple[typing.Dict[str, typing.Dict[str, float]], datetime.datetime, datetime.datetime]:
+    """
+    Creates some statistics for a dataframe
+    """
+    res = {}
+    startdate = df['time'].min().to_pydatetime()
+    enddate = df['time'].max().to_pydatetime()
+    for col in idescr.columns:
+        s = df[col.name]
+        res[col.name] = {}
+        # If the column is not float some of the stats don't make sense, just skip them
+        try:
+            res[col.name]['start'] = startdate
+            res[col.name]['end'] = enddate
+            res[col.name]['n'] = s.size
+            res[col.name]['n_out_of_range'] = len(s) - check_column_values(col, df).sum()
+            res[col.name]['min'] = s.min()
+            res[col.name]['max'] = s.max()
+            res[col.name]['sum'] = s.sum()
+            res[col.name]['mean'] = s.mean()
+        except (TypeError, ValueError):
+            ...
+
+    return res, startdate, enddate
 
 
 def get_dataframe_for_ds_column(session, column: ImportColumn, data: pd.DataFrame):
@@ -318,20 +368,17 @@ def _get_recordframe(session: db.Session, idescr: ImportDescription,
 
 
 
-
-
-
 def submit(session: db.Session, idescr: ImportDescription, filepath: Path, user: str, siteid: int):
     """
     Loads tabular data from a file, creates or loads necessary datasets and imports the data as records
 
     """
-    df, messages = load_dataframe(idescr, filepath)
+    messages = []
+    df = load_dataframe(idescr, filepath)
     logger.debug(f'loaded {filepath}, got {len(df)} rows with {len(df.columns)} columns')
 
     if len(df) == 0:
         raise DataImportError(f'No records to import from {filepath} with {idescr.filename}.')
-
 
     datasets = columndatasets_from_description(
         session, idescr, user=user,
@@ -345,7 +392,7 @@ def submit(session: db.Session, idescr: ImportDescription, filepath: Path, user:
 
     logger.debug(f'created or referenced {len(datasets)} datasets')
     messages.extend(
-        f'ds:{cds.id} : Import {cds.column} of file:{filepath}'
+        f'ds{cds.id} : Import {cds.column} from file:{filepath}'
         for cds in datasets
     )
 

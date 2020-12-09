@@ -7,6 +7,7 @@ import sys
 from datetime import datetime, timedelta
 from .. import db
 from glob import glob
+from odmf.tools import Path
 import os.path as op
 import os
 from configparser import RawConfigParser
@@ -256,7 +257,7 @@ class ImportDescription(object):
     skiplines: int
 
     def __init__(self, instrument, skiplines=0, skipfooter=None, delimiter=',', decimalpoint='.',
-                 dateformat='%d/%m/%Y %H:%M:%S', datecolumns=(0, 1),
+                 dateformat=None, datecolumns=(0, 1),
                  timezone=conf.datetime_default_timezone, project=None,
                  nodata=[], worksheet=1, samplecolumn=None, sample_mapping=None, encoding=None):
         """
@@ -317,6 +318,38 @@ class ImportDescription(object):
         io = StringIO()
         self.to_config().write(io)
         return io.getvalue()
+
+    def get_column_names(self) -> typing.Tuple[typing.List[int], typing.List[str]]:
+        """
+        Get the column positions and column names to be used by self
+
+        Includess (in that order)
+        - date / time columns,
+        - data columns,
+        - columns referencing specific datasets (ds_column)
+        - a column containing sample names if samplecolumn is given
+
+        To be used for file loading eg.
+
+        >>>import pandas as pd
+        >>>idescr = ImportDescription()
+        >>>columns, names = idescr.get_column_names()
+        >>>pd.read_csv('...', usecols=columns, names=names)
+        """
+
+        columns = (
+                list(self.datecolumns)
+                + [col.column for col in self.columns]
+                + [col.ds_column for col in self.columns if col.ds_column]
+        )
+        names = ['date', 'time'][:len(self.datecolumns)] + [col.name for col in self.columns] + \
+                ['dataset for ' + col.name for col in self.columns if col.ds_column]
+
+        if self.samplecolumn:
+            columns += [self.samplecolumn]
+            names += ['sample']
+
+        return columns, names
 
     def addcolumn(self, column, name, valuetype, factor=1.0, comment=None, difference=None, minvalue=-1e308, maxvalue=1e308):
         """
@@ -763,25 +796,26 @@ def savetoimports(filename, user, datasets=None):
     f = open(os.path.join(d, '.import.hist'), 'a')
     f.write('%s,%s,%s' % (os.path.basename(filename), user, datetime.now()))
     for ds in datasets:
-        f.write(',ds%s' % ds)
+        f.write(',%s' % ds)
     f.write('\n')
     f.close()
 
 
-# TODO: Rebuild this with database mechanism. Make things more independent
-def checkimport(filename):
-    logger.info("checkimport:", filename)
-    d = os.path.dirname(filename)
-    fn = os.path.join(d, '.import.hist')
-    if os.path.exists(fn):
-        f = open(fn)
-        b = os.path.basename(filename)
+def checkimport(filename: Path):
+    """
+    Checks if
+    """
+    logger.debug("checkimport:", filename)
+    d = filename.parent()
+    fn = d + '.import.hist'
+    if fn.exists():
+        f = open(fn.absolute)
+        b = filename.basename
         for l in f:
-            ls = l.split(',', 3)
-            if b in ls[0]:
-                d = dict(fn=ls[0], dt=ls[2], u=ls[1], ds=ls[3])
-                return "%(u)s has already imported %(fn)s at %(dt)s as %(ds)s" % d
-    return ''
+            fn, user, dt, ds = l.split(',', 3)
+            if filename.basename in fn:
+                return f'{user} has already imported file:{fn} at {dt} as {ds}'
+    return None
 
 
 def get_last_ds_for_site(session, idescr: ImportDescription, col: ImportColumn, siteid: int):
