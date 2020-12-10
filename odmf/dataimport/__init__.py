@@ -8,7 +8,7 @@ Created on 13.07.2012
 from . import base
 
 from .base import finddateGaps, findStartDate, savetoimports, checkimport, \
-    ImportDescription
+    ImportDescription, ImportColumn
 
 
 

@@ -170,6 +170,20 @@
                 </div>
             </div>
             <div class="card m-2">
+                <div class="card-body">
+                    <h3 class="card-title">Plots</h3>
+                    <div class="card-text">
+                        <button class="btn btn-secondary mr-2" data-toggle="collapse" data-target="#plots">show</button>
+                        <div id="plots" class="collapse card-text">
+                            <div py:for="col in plots" >
+                                <h5 py:content="col"/>
+                                <div py:content="literal(plots[col])" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card m-2">
                 <div class="card-body p-2">
                     <h3 class="card-title">Data</h3>
                     <div class="card-text">
