@@ -51,105 +51,6 @@ def write_to_file(dest, src):
     fout.close()
 
 
-def logimport(filename, kwargs):
-    """
-
-    :param filename:
-    :param kwargs:
-    :param import_with_class:
-    :return:
-    """
-
-    t0 = time.time()
-
-    path = Path(filename.strip('/'))
-
-    error = di.checkimport(path.absolute)
-    if error:
-        raise web.redirect(path.parent().href, error=error)
-    try:
-        li = importlog.LogbookImport(path.absolute, web.user())
-        logs, cancommit = li('commit' in kwargs)
-
-    except importlog.LogImportError as e:
-        raise web.redirect(path.parent().href, error=str(e))
-
-    t1 = time.time()
-
-    log("Imported in %.2f s" % (t1 - t0))
-
-    if 'commit' in kwargs and cancommit:
-        di.savetoimports(path.absolute, web.user(), ["_various_as_its_manual"])
-        raise web.redirect(path.parent().href, error=error)
-    else:
-        return web.render(
-            'logimport.html', filename=path, logs=logs,
-            cancommit=cancommit, error=error
-        ).render()
-
-def instrumentimport(filename, kwargs):
-    """
-    Loads instrument data using a .conf file
-
-    Wheter 'loadstat' or 'impordb' is in kwargs, the method returns the import page with the stats or with a commit
-    message
-
-    :param filename:
-    :param kwargs: May contain a force value, to import even if the file has been uploaded before
-    """
-
-    t0 = time.time()
-
-    # Error streams
-    errorstream = StringIO()
-
-    # TODO: Major refactoring of this code logic, when to load gaps, etc.
-    path = Path(filename.strip('/'))
-    # Check if the file has already been uploaded
-    error = di.checkimport(path.absolute)
-
-    if error and not kwargs.get('force'):
-        raise web.redirect(path.parent().href, error=error)
-
-    errorstream.write(error)
-    config = di.getconfig(path.absolute)
-
-    if not config:
-        raise web.redirect(
-            conf.root_url + f'/download/{web.escape(path.up())}',
-            error='No config available. Please provide a config for computing a decent result.'
-        )
-    else:
-
-        valuetype = [e.valuetype for e in config.columns]
-        config.href = Path(config.filename).href
-
-        adapter = di.get_adapter(
-            path.absolute, web.user(),
-            siteid=None, instrumentid=None
-        )
-
-        adapter.errorstream = errorstream
-        stats = adapter.get_statistic()
-        startdate = min(v.start for v in stats.values())
-        enddate = max(v.end for v in stats.values())
-
-
-        t1 = time.time()
-
-        log("Imported in %.2f s" % (t1 - t0))
-
-    return web.render(
-        'dbimport.html',
-        config=config,
-        stats=stats,
-        error=errorstream.getvalue(),
-        filename=filename,
-        dirlink=path.up(),
-        startdate=startdate, enddate=enddate
-    ).render()
-
-
 class HTTPFileNotFoundError(HTTPError):
     def __init__(self, path: Path):
         super().__init__(status=404, message=f'{path.href} not found')
@@ -219,6 +120,8 @@ class DbImportPage:
         """
         path = Path(filename.strip('/'))
         error = di.checkimport(path)
+
+        # The content of the file
         rawcontent = open(path.absolute, 'rb').read(1024).decode('utf-8', 'ignore')
         try:
             config = di.ImportDescription.from_file(path.absolute)
@@ -267,7 +170,6 @@ class DbImportPage:
 
         else:
             raise web.redirect(path.parent().href, msg='\n'.join(f' - {msg}' for msg in messages))
-
 
 
 def goto(dir, error=None, msg=None):
