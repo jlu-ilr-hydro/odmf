@@ -170,30 +170,29 @@
                 </div>
             </div>
             <div class="card m-2">
-                <div class="card-body">
-                    <h3 class="card-title">Plots</h3>
-                    <div class="card-text">
-                        <button class="btn btn-secondary mr-2" data-toggle="collapse" data-target="#plots">show</button>
-                        <div id="plots" class="collapse card-text">
-                            <div py:for="col in plots" >
-                                <h5 py:content="col"/>
-                                <div py:content="literal(plots[col])" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="card m-2">
                 <div class="card-body p-2">
                     <h3 class="card-title">Data</h3>
                     <div class="card-text">
-                        <button class="btn btn-secondary mr-2" data-toggle="collapse" data-target="#data-raw">show raw content</button>
-                        <button class="btn btn-secondary mr-2" data-toggle="collapse" data-target="#data-table">show table</button>
+                        <button class="btn btn-secondary mr-2" data-toggle="collapse" data-target="#data-raw">
+                            <i class="fas fa-file"/> show raw content
+                        </button>
+                        <button class="btn btn-secondary mr-2" data-toggle="collapse" data-target="#data-table">
+                            <i class="fas fa-table"/> show table
+                        </button>
+                        <button class="btn btn-secondary mr-2" data-toggle="collapse" data-target="#plots">
+                            <i class="fas fa-chart-line"/> show plots
+                        </button>
 
                     </div>
                     <div class="card-text collapse" id="data-table" py:content="literal(table)"></div>
                     <div class="card-text collapse" id="data-raw">
                         <pre py:content="rawcontent" />
+                    </div>
+                    <div id="plots" class="collapse card-text">
+                        <div py:for="col in plots" >
+                            <h5 py:content="col"/>
+                            <div py:content="literal(plots[col])" />
+                        </div>
                     </div>
                 </div>
 
