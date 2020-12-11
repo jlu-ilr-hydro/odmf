@@ -61,6 +61,15 @@ def configure(dbname, dbuser, dbpass, dbhost, port):
 
 @cli.command()
 def systemd_unit():
+    """
+    Creates a systemd service file.
+
+    Usage:
+       $ odmf systemd-unit >odmf-NAME.service
+       $ sudo cp odmf-schwingbach.service /etc/systemd/system/odmf-schwingbach.service
+       $ sudo systemctl start odmf-schwingbach.service
+       $ sudo systemctl enable odmf-schwingbach.service
+    """
     from .config import conf
     bin_path = os.path.abspath(os.path.dirname(sys.executable))
     print(f"""
