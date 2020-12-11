@@ -2,8 +2,8 @@ import cherrypy
 
 from .. import lib as web
 from ...config import conf
-from ..auth import users, group, expose_for
-from ..upload import write_to_file
+from ..auth import group, expose_for
+from odmf.webpage.filemanager.upload import write_to_file
 
 import os
 from traceback import format_exc as traceback
