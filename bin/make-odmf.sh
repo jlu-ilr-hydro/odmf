@@ -53,6 +53,12 @@ adduser --system  --gecos "ODMF/$NAME Service" --disabled-password --group --hom
 chown $USERNAME:$USERNAME -R $OPATH
 chmod ug+rw -R $OPATH
 
+echo "#!/usr/bin/env bash
+pip install $ODMF_SRC --upgrade
+sudo systemctl restart $USERNAME.service
+" > upgrade.sh
+chmod ug+rwx upgrade.sh
+
 echo "Add me ($SUDO_USER) to the group of $USERNAME"
 adduser $SUDO_USER $USERNAME"
 
