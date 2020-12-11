@@ -22,6 +22,7 @@ from ...config import conf
 from .dbimport import DbImportPage
 
 
+
 def write_to_file(dest, src):
     """
     Write data of src (file in) into location of dest (filename)
@@ -30,14 +31,12 @@ def write_to_file(dest, src):
     :param src: file contents input buffer
     :return:
     """
-
-    fout = open(dest, 'wb')
-    while True:
-        data = src.read(8192)
-        if not data:
-            break
-        fout.write(data)
-    fout.close()
+    with open(os.open(dest, os.O_CREAT | os.O_WRONLY, 0o770), 'w') as fout:
+        while True:
+            data = src.read(8192)
+            if not data:
+                break
+            fout.write(data)
 
 
 class HTTPFileNotFoundError(HTTPError):
