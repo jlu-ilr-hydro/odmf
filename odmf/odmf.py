@@ -60,6 +60,26 @@ def configure(dbname, dbuser, dbpass, dbhost, port):
 
 
 @cli.command()
+def systemd_unit():
+    from .config import conf
+    bin_path = os.path.abspath(os.path.dirname(sys.executable))
+    print(f"""
+[Unit]
+Description={conf.description}
+After=network.target
+
+[Service]
+User={conf.user}
+WorkingDirectory={conf.home}
+ExecStart={bin_path}/odmf start
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+    """)
+
+
+@cli.command()
 @click.option('--new_admin_pass', '-p', help='Password of the new admin',
               prompt=True, hide_input=True, confirmation_prompt=True)
 def make_db(new_admin_pass):

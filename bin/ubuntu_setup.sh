@@ -39,10 +39,10 @@ sudo apt -y install libapache2-mod-wsgi-py3
 sudo apt-get install software-properties-common
 sudo add-apt-repository universe
 sudo add-apt-repository ppa:certbot/certbot
-sudo apt-get update
-sudo apt-get install certbot python-certbot-apache
+sudo apt update
+sudo apt -y install certbot python-certbot-apache
 
-
+sudo apt -y install postgresql pgcli
 
 sudo apt -y install chrony
 # install Remote-Desktop Connection
@@ -69,7 +69,7 @@ then
   sudo python$PYTHON_VER -m pip install wheel
 fi
 
-PYTHON_VER=3.8
+
 if [ ! -f ~/.bash_aliases ]; then
   echo "
   export PYTHON_VERSION=$PYTHON_VER

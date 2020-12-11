@@ -7,6 +7,7 @@
 import yaml
 from pathlib import Path
 import sys
+import os
 
 from logging import getLogger
 from . import prefix
@@ -85,6 +86,8 @@ class Configuration:
     root_url = '/'
     datafiles = './datafiles'
     preferences = './preferences'
+    description = 'A server for data-management for quantitative field research'
+    user = os.environ.get('USER')
 
     def __bool__(self):
         return ... not in vars(self).values()
