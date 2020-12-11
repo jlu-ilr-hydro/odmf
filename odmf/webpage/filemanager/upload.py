@@ -161,7 +161,7 @@ class DownloadPage(object):
 
         if imphist.exists():
             io.write('\n')
-            for l in open(imphist):
+            for l in open(imphist.absolute):
                 fn, user, date, ds = l.split(',', 3)
                 io.write(f' * file:{dir}/{fn} imported by user:{user} at {date} into {ds}\n')
         return web.markdown(io.getvalue())
