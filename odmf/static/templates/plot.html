@@ -48,8 +48,7 @@
                     <ul id="line-list" class="list-group list-group-flush">
                         <li class="newline list-group-item">
                             <button class="btn btn-sm btn-primary btn-outline shadow py-0" data-toggle="modal" data-target="#newline-dialog"
-                                    data-subplot="§position§"
-                            >
+                                    data-subplot="§position§" id="addline_§position§">
                                 <i class="fas fa-plus-circle"/> add line...
                             </button>
                         </li>
@@ -63,25 +62,25 @@
             <li class="line list-group-item">
                 <span style="color:§color§">§linestyle§§marker§</span> §name§
                 <div class="btn-group" id="linetools_§sp_pos§_§index§">
-                    <button onclick="removeline(§sp_pos§,§i§)" title="remove line"
-                            class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
+                    <button title="remove line" class="btn btn-sm py-0 btn-secondary removeline" id="removeline_§position§_§i§"
+                            data-toggle="tooltip"  data-lineno="§i§" data-subplot="§sp_pos§">
                         <i class="fas fa-times-circle"/>
                     </button>
-                    <button onclick="exportline(§sp_pos§,§i§)"
-                       class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip" title="export to csv file...">
+                    <button class="btn btn-sm py-0 btn-secondary exportline" id="exportline_§position§_§i§"
+                            data-toggle="tooltip" title="export to csv file..." data-lineno="§i§" data-subplot="§sp_pos§">
                         <i class="fas fa-file-csv"/>
 
                     </button>
-                    <button onclick="showlinedatasets(§sp_pos§,§i§)"
-                            class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip" title="show datasets of line">
+                    <button class="btn btn-sm py-0 btn-secondary showdataset" id="showdataset_§position§_§i§"
+                            data-toggle="tooltip" title="show datasets of line" data-lineno="§i§" data-subplot="§sp_pos§">
                         <i class="fas fa-list"/>
                     </button>
-                    <button onclick="editline(§sp_pos§,§i§)" title="edit line"
-                            class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
+                    <button title="edit line" class="btn btn-sm py-0 btn-secondary editline" id="editline_§position§_§i§" data-toggle="modal" data-target="#newline-dialog"
+                            data-lineno="§i§" data-subplot="§sp_pos§" data-replace="replace">
                         <i class="fas fa-edit"/>
                     </button>
-                    <button onclick="copyline(§sp_pos§,§i§)" title="copy line"
-                            class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
+                    <button title="copy line" class="btn btn-sm py-0 btn-secondary editline" data-toggle="modal" data-target="#newline-dialog" id="copyline_§position§_§i§"
+                            data-lineno="§i§" data-subplot="§sp_pos§">
                         <i class="fas fa-copy"/>
                     </button>
 

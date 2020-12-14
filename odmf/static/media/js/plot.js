@@ -12,21 +12,6 @@ function seterror(jqhxr ,textStatus, errorThrown) {
 	}
 }
 
-function renderplot(creationtime) {
-	$('#plot').html('Loading image...');
-	$.ajax({
-      method: 'POST',
-      url: odmf_ref('/plot/figure'),
-      contentType: 'application/json',
-      processData: false,
-      data: JSON.stringify(plot),
-      dataType: 'html'
-    })
-	.done((result) => {
-		$('#plot').html(result);
-	})
-	.fail(seterror);
-}
 function gettime(startOrEnd) {
 	let res = $('#'+ startOrEnd + 'date').val();
 	if (res) {
@@ -37,95 +22,134 @@ function gettime(startOrEnd) {
 	return res;
 }
 
-var plot = {
-	name:null,
-	start:gettime('start'),
-	end:gettime('end'),
-	columns:1,
-	aggregate:$('#plotaggregate').val(),
-	height: 640,
-	width: 480,
-	subplots: [{
-		lines: [],
-		ylim: null,
-		logsite: null,
-	}],
-}
+class Plot {
+	constructor() {
+		let saved_plot = JSON.parse(sessionStorage.getItem('plot'))
+		if (saved_plot && !$.isEmptyObject(saved_plot)) {
+			this.name =   saved_plot.name || ''
+			this.start =  saved_plot.start || gettime('start')
+			this.end =  saved_plot.end || gettime('end')
+			this.columns =  saved_plot.columns || 1
+			this.aggregate =  saved_plot.aggregate ||''
+			this.height =  saved_plot.height || 640
+			this.width =  saved_plot.width || 480
+			this.subplots =  saved_plot.subplots || []
 
-function plot_change() {
-	if (plot.columns > plot.subplots.length) {
-		plot.columns = Math.max(1, plot.subplots.length);
+		} else {
+			this.name =  null
+			this.start = gettime('start')
+			this.end =  gettime('end')
+			this.columns =  1
+			this.aggregate = ''
+			this.height =  640
+			this.width =  480
+			this.subplots = [{
+				lines: [],
+				ylim: null,
+				logsite: null,
+			}]
+
+		}
 	}
-	let txt_plot = JSON.stringify(plot, null, 4);
-	render_content_tree(plot);
-	sessionStorage.setItem('plot', txt_plot);
-	$('#json-row pre').html(txt_plot);
-
-}
-
-function render_content_tree(plot) {
-	$('#content-tree .subplot').remove();
-	plot.subplots.forEach((subplot, index) => {
-		let txt = $('#subplot-template').html()
-			.replace(/§position§/g, index)
-			.replace(/§logsite§/g, subplot.logsite)
-		let obj = $(txt);
-		let line_template = $('#line-template').html()
-		subplot.lines.forEach((line, lineindex) => {
-			let line_html = line_template.replace(/§sp_pos§/g, index).replace(/§i§/g, lineindex)
-			for (let k in line) {
-				line_html = line_html.replace('§' + k + '§', line[k])
-			}
-			let ul = obj.find('#line-list');
-			let nl = ul.find('.newline')
-			nl.before(line_html);
+	render() {
+		$('#plot').html('Loading image...');
+		$.ajax({
+			method: 'POST',
+			url: odmf_ref('/plot/figure'),
+			contentType: 'application/json',
+			processData: false,
+			data: JSON.stringify(this),
+			dataType: 'html'
 		})
-		$('#ct-new-subplot').before(obj);
-
-
-	})
-}
-
-function addsubplot() {
-	plot.subplots.push({lines: [], ylim: null, logsite: null});
-	plot_change();
-
-}
-function removesubplot(id) {
-	plot.subplots.splice(id, 1);
-	plot_change();
-
-}
-function changeylimit(id) {
-	let text = prompt('Enter the y axis limit as min,max, eg. 0.5,1.5.').split(',');
-	try {
-		plot.subplots[id].ylim = [parseFloat(text[0]), parseFloat(text[1])];
-	} catch (e) {
-		$('#error').html('Edit line failed: ' + e.toString());
+			.done((result) => {
+				$('#plot').html(result);
+			})
+			.fail(seterror);
+		return this.apply()
 	}
-	plot_change();
 
-}
-function changelogsite(id) {
-	let logsite = $('#logsiteselect_' + id).val();
-	try {
-		plot.subplots[id].logsite = parseInt(logsite);
-	} catch (e) {
-		$('#error').html('Edit line failed: ' + e.toString());
+	addsubplot() {
+		this.subplots.push({lines: [], ylim: null, logsite: null});
+		return this.apply()
 	}
-	plot_change();
 
-}
-function exportall_csv() {
-	var href = odmf_ref('/plot/exportall.csv?tolerance=') + $('#tolerance_skipper').val();
-	//alert(href);
-	window.location = href;
+	apply(width, height) {
+		if (width) {
+			this.width = width
+		}
+		if (height)
+			this.height = height
+		if (this.columns > this.subplots.length) {
+			this.columns = Math.max(1, this.subplots.length);
+		}
+		let txt_plot = JSON.stringify(this, null, 4);
+		$('#content-tree .subplot').remove();
+		this.subplots.forEach((subplot, index) => {
+			let txt = $('#subplot-template').html()
+				.replace(/§position§/g, index)
+				.replace(/§logsite§/g, subplot.logsite)
+			let obj = $(txt);
+			let line_template = $('#line-template').html()
+			subplot.lines.forEach((line, lineindex) => {
+				let line_html = line_template.replace(/§sp_pos§/g, index).replace(/§i§/g, lineindex)
+				for (let k in line) {
+					line_html = line_html.replace('§' + k + '§', line[k])
+				}
+				let ul = obj.find('#line-list');
+				let nl = ul.find('.newline')
+				nl.before(line_html);
+			})
+			$('#ct-new-subplot').before(obj);
+		})
+		$('.removeline').click(remove_handler)
+
+		sessionStorage.setItem('plot', txt_plot);
+		$('#json-row pre').html(txt_plot);
+
+		return this
+	}
+	removesubplot(id) {
+		this.subplots.splice(id, 1);
+		return this.apply()
+	}
+	changeylimit(id) {
+		let text = prompt('Enter the y axis limit as min,max, eg. 0.5,1.5.').split(',');
+		try {
+			this.subplots[id].ylim = [parseFloat(text[0]), parseFloat(text[1])];
+		} catch (e) {
+			$('#error').html('Edit line failed: ' + e.toString());
+		}
+		return this.apply()
+
+	}
+	changelogsite(id) {
+		let logsite = $('#logsiteselect_' + id).val();
+		try {
+			this.subplots[id].logsite = parseInt(logsite);
+		} catch (e) {
+			$('#error').html('Edit line failed: ' + e.toString());
+		}
+		return this.apply()
+	}
+
+	// *********************************************
+	// Line management
+	removeline(subplot,line) {
+		let sp = this.subplots[subplot];
+		if (sp && line >= 0)
+			sp.lines.splice(line, 1);
+		return this
+	}
 }
 
-function RegTime() {
-	var href = odmf_ref('/plot/RegularTimeseries.csv?tolerance=')+$('#Interpolation_Limit').val() + '&interpolation=' + $('#reg_interpolation').val();
-	//alert(href);
-	window.location = href;
+
+var plot_global = new Plot();
+
+function remove_handler(event) {
+	console.info(JSON.stringify(event))
+	let btn = $(event.target);
+	plot_global.removeline(btn.data('subplot'), btn.data('lineno')).apply()
+
 }
 
 function line_from_dialog() {
@@ -162,60 +186,21 @@ function line_from_dialog() {
 	}
 }
 
-function subplot_from_line_dialog() {
-	return sp = parseInt($('#newline-subplot').text());
+function line_to_dialog(line) {
+	let dlg =$('#newline-dialog')
+	$('#newline-subplot').html(dlg.data('subplot') + '.' + dlg.data('lineno') + ' ' + dlg.data('replace'));
+	$('#nl-name').val(line.name || '');
+	$('#nl-value').val(line.valuetype || '');
+	$('#nl-site').val(line.site || '');
+	$('#nl-instrument').val(line.instrument || '');
+	$('#nl-level').val(line.level || '');
+	$('#nl-color').val(line.color || '#000000');
+	$('#nl-linestyle').val(line.linestyle || '-');
+	$('#nl-marker').val(line.marker || '');
+	$('#nl-aggregation').val(line.aggfunc || '');
 }
 
-function line_to_dialog(subplot, line) {
-	$('#newline-subplot').html('' + subplot);
-	$('#nl-name').val(line.name);
-	$('#nl-value').val(line.valuetype);
-	$('#nl-site').val(line.site);
-	$('#nl-instrument').val(line.instrument);
-	$('#nl-level').val(line.level);
-	$('#nl-color').val(line.color);
-	$('#nl-linestyle').val(line.linestyle);
-	$('#nl-marker').val(line.marker);
-	$('#nl-aggregation').val(line.aggfunc);
-}
 
-function open_line_dialog() {
-	$('#newline-dialog').modal('show');
-}
-
-function addline(sp, line) {
-	while (plot.subplots.length < sp) {
-		addsubplot();
-	}
-	plot.subplots[sp].lines.push(line);
-}
-
-function removeline(subplot,line) {
-	let sp = plot.subplots[subplot];
-	sp.lines.splice(line, 1);
-	plot_change()
-}
-function editline(subplot,line_no) {
-	try {
-		let line = plot.subplots[subplot].lines[line_no];
-		line_to_dialog(subplot, line);
-		open_line_dialog();
-		plot.subplots[subplot].lines.splice(line_no, 1);
-		plot_change();
-	} catch (e) {
-		$('#error').html('Edit line failed: ' + e.toString());
-	}
-}
-
-function copyline(subplot,line_no) {
-	try {
-		let line = plot.subplots[subplot].lines[line_no];
-		line_to_dialog(subplot, line);
-		open_line_dialog(line);
-	} catch (e) {
-		$('#error').html('Edit line failed: ' + e.toString());
-	}
-}
 function showlinedatasets(subplot,line) {
 	var content = $('#datasetlist_'+subplot+'_'+line).html();
 	$('#datasetlist_'+subplot+'_'+line).slideUp('fast').html('');
@@ -250,16 +235,12 @@ function timerange(step) {
 	return foo;
 }
 
-function popSelect(subplotpos, newlineprops) {
+function popSelect() {
 		var vt = $('#nl-value').val();
 		var site = $('#nl-site').val();
 		var instrument = $('#nl-instrument').val();
 		var level = $('#nl-level').val();
-		var date = ''; //$('#dateselect').val()
-		if (newlineprops && !vt) vt=newlineprops.valuetype;
-		if (newlineprops && !instrument) instrument=newlineprops.instrument;
-		if (newlineprops && !site) site=newlineprops.site;
-		if (newlineprops && !level) level=newlineprops.level;
+		var date = '';
 
 		$.getJSON(odmf_ref('/dataset/attrjson'),
 			{ attribute:'valuetype',
@@ -306,7 +287,7 @@ function popSelect(subplotpos, newlineprops) {
 				$('#nl-site').html(html).val(site);
 			}
 		);
-		if (vt!='' && site!='') {
+		if (vt && site) {
 			$.getJSON(odmf_ref('/dataset/attrjson'),
 				{
 					attribute:'level',
@@ -324,25 +305,20 @@ function popSelect(subplotpos, newlineprops) {
 							show=true;
 						}
 					});
-					if (show && vt!='' && site!='') {
-						$('#nl-level').html(html).val(level);
-						$('#nl-level').parent().show(200);
+					let nl_level = $('#nl-level')
+					if (show && vt && site) {
+						nl_level.html(html).val(level);
+						nl_level.parent().show(200);
 					} else {
-						$('#nl-level').parent().hide(200);
+						nl_level.parent().hide(200);
 					}
 				});
-
-			if (newlineprops) {
-				$('#nl-marker').val(newlineprops.marker);
-				$('#nl-linestyle').val(newlineprops.line);
-				$('#nl-color').val(newlineprops.color);
-			}
 
 		} else {
 			$('#nl-level').parent().hide(200);
 		}
 
-		if (site != '' && vt != '') {
+		if (site && vt) {
 			$('#nl-OK').prop('disabled', false);
 		} else {
 			$('#nl-OK').prop('disabled', true);
@@ -357,23 +333,20 @@ function clearFilter() {
 	$('#allsites').val(true);
 	popSelect(1);
 }
-$(() => {
 
-	let saved_plot = JSON.parse(sessionStorage.getItem('plot'))
-	if (saved_plot) {
-		plot = saved_plot
-	} else {
-		plot_change()
-	}
+$(() => {
+	plot_global.apply()
 	// $(".date").datetimepicker({format: 'YYYY-MM-DD HH:mm'})
 	$('#addsubplot').prop('disabled', false);
 
 	$('#btn-clf').click(function() {
+		let plot = plot_global
 		plot.subplots = [{
 			lines: [],
 			ylim: null,
 			logsite: null,
 		}];
+		plot.apply()
 	});
     // Fluid layout doesn't seem to support 100% height; manually set it
     $(window).resize(() => {
@@ -383,30 +356,56 @@ $(() => {
 		po.em1 = parseFloat(getComputedStyle(plotElement[0]).fontSize);
     	let plotHeight = po.totalHeight - po.top - 2 * po.em1;
     	plotElement.height(plotHeight);
-    	plot.height = plotHeight;
-    	plot.width = plotElement.width();
-    	plot_change();
-
+		plot_global.apply(plotElement.width(), plotHeight)
     });
-
-    $('#nl-OK').click((event) => {
-    	addline(subplot_from_line_dialog(), line_from_dialog());
-    	plot_change();
-	});
 
     $(window).resize();
 
     $('#newline-dialog').on('show.bs.modal', (event) => {
     	let button = $(event.relatedTarget);
-    	let sp_number = parseInt(button.data('subplot'));
-    	$('#newline-subplot').html(sp_number);
-    	popSelect(sp_number, null);
-	});
+    	let dlg =$('#newline-dialog')
+    	let sp = button.data('subplot')
+		let ln = button.data('lineno')
+    	dlg.data('subplot', sp);
+    	dlg.data('lineno', ln);
+    	dlg.data('replace', button.data('replace'));
+    	let plot = plot_global;
+    	let line = {}
+    	if (!sp) {
+    		$('#error').html()
+		}
+    	else if (ln) {
+    		line = plot.subplots[sp].lines[ln]
+		}
+    	popSelect();
+		line_to_dialog(line)
+    });
 
     $('#newline-dialog .form-control').change(() => {
-    	let sp_number = parseInt($('#newline-subplot').html());
-    	popSelect(sp_number, null);
+    	popSelect();
 	});
+
+
+    $('#nl-OK').click(() => {
+    	let dlg =$('#newline-dialog')
+    	let plot = plot_global
+		let line = line_from_dialog()
+		let sp_no = dlg.data('subplot')
+		let line_no = dlg.data('lineno')
+		let replace = dlg.data('replace')
+		if (!(sp_no >=0)) console.warn('Somehow the dialog was opened but received no subplot')
+
+		let sp = plot.subplots[sp_no]
+
+		if (replace) {
+			sp.lines[line_no] = line
+		} else {
+			sp.lines.push(line)
+		}
+		plot.apply()
+	});
+
+
 
 	$('#saveplotbutton').click(function() {
 		var fn = prompt('The name of the actual plot','new plot');
@@ -414,11 +413,12 @@ $(() => {
 			$.post('saveplot',{filename:fn,overwrite:true},seterror);
 		}
 	});
+
 	$('#reload_plot').click(() => {
-		let now = new Date().toISOString()
-		renderplot(now);
-		plot_change();
+		let plot = plot_global
+		plot.render()
 	});
+
 	$('.loadplotfn').click(function(){
 		var fn = $(this).html();
 		$.post('loadplot',{filename:fn},seterror);
@@ -434,24 +434,24 @@ $(() => {
 			$('#enddate').val(plot.end.split(' ')[0])
 			$('#endtime').val(plot.end.split(' ')[1])
 		}
-
 		$('#prop-columns').val(plot.columns).attr('max', Math.max(1, plot.subplots.length))
 		$('#plotaggregate').val(plot.aggregate)
 		$('#prop-description').val(plot.description)
 	})
+
 	$('#prop-OK').click(event => {
+		let plot = plot_global
 		plot.start = gettime('start')
 		plot.end = gettime('end')
 		plot.columns = parseInt($('#prop-columns').val())
 		plot.aggregate = $('#plotaggregate').val()
-		plot_change()
+		plot.apply()
 	});
 
-	$('.killplotfn').click(function(){
+	$('.killplotfn').click(function() {
 		var fn = $(this).html();
 		if (confirm('Do you really want to delete your plot "' + fn + '" from the server'))
 			$.post('deleteplotfile',{filename:fn},seterror);
-
 	});
 });
 
