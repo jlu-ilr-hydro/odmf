@@ -2,12 +2,12 @@
 
 <py:extends href="bootstrap_navigation.html" xmlns:py="">
     <py:block name="scripts">
-        <script type="text/javascript" src="${conf.root_url}/media/lib/moment.min.js"/>
-        <script type="text/javascript" src="${conf.root_url}/media/lib/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"/>
+        <script type="text/javascript">
+            sessionStorage.setItem('plot', JSON.stringify(${literal(as_json(plot))}));
+        </script>
+
         <script type="text/javascript" src="${conf.root_url}/media/js/plot.js"/>
 
-        <script type="text/javascript">
-       </script>
         <div class="d-none"  id="subplot-template" type="template" >
             <div class="subplot card mb-2 w-100">
                 <div class="card-header">
@@ -363,7 +363,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header bg-primary text-light">
-                        <h5 class="modal-title">New line for subplot #<span id="newline-subplot">0</span></h5>
+                        <h5 class="modal-title">Subplot <span id="newline-subplot">0</span></h5>
                     </div>
                     <div class="modal-body form-group">
                         <label for="nl-name">Name:</label>

@@ -17,6 +17,8 @@ import matplotlib.figure
 import numpy as np
 import pandas as pd
 
+from cherrypy.lib.static import serve_fileobj
+
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from io import StringIO
@@ -24,7 +26,7 @@ from io import BytesIO
 
 import json
 from pathlib import Path
-
+from ..tools import Path as OPath
 from ..config import conf
 from .. import db
 from . import lib as web
@@ -353,12 +355,12 @@ class Plot(object):
                     aggregate=self.aggregate,
                     description=self.description)
 
-    def save(self, fn):
+    def save(self, fn='~/default.plot'):
         d = asdict(self)
-        try:
-            self.absfilename(fn).write_text(web.as_json(d))
-        except:
-            raise PlotError(traceback())
+        p = self.absfilename(fn)
+        if not p.parent.exists():
+            p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(web.as_json(d))
 
     @classmethod
     def load(cls, fn):
@@ -370,8 +372,8 @@ class Plot(object):
     def listdir(cls):
 
         return [
-            fn.name.replace(web.user() + '.', '').replace('.plot', '')
-            for fn in cls.absfilename().glob(f'{web.user()}.*.plot')
+            fn.name.replace('.plot', '')
+            for fn in cls.absfilename('~/').glob('*.plot')
         ]
 
     @classmethod
@@ -380,18 +382,12 @@ class Plot(object):
         if path.exists():
             path.unlink()
         else:
-            raise PlotError("File %s does not exist" % fn)
+            raise IOError("File %s does not exist" % fn)
 
     @classmethod
-    def absfilename(cls, fn: str=None)->Path:
-        username = web.user() or 'nologin'
-        plot_dir = os.path.join(conf.datafiles, username, 'plots')
-        os.makedirs(plot_dir, exist_ok=True)
-
-        if fn:
-            return Path( f'{plot_dir}/{fn}.plot').absolute()
-        else:
-            return Path( f'{plot_dir}/{fn}.plot').absolute()
+    def absfilename(cls, fn: str='~/')->Path:
+        fn = fn.replace('~/', f'{web.user() or "nologin"}/plots/')
+        return conf.abspath(conf.datafiles) / fn
 
 
 plotgroup = group.logger
@@ -400,8 +396,46 @@ plotgroup = group.logger
 class PlotPage(object):
 
     @expose_for(plotgroup)
-    def index(self, valuetype=None, site=None, error=''):
-        plot = Plot()
+    def index(self, f=None, j=None, error=''):
+        """
+        Shows the plot page
+
+        Parameters
+        ----------
+        f
+            Filename to a plot file
+        j
+            JSON text representation of a plot
+        error
+            an error message
+
+        Returns
+        -------
+            Plot page
+        """
+        error = ''
+        if not j:
+            try:
+                if f:
+                    j = Plot.absfilename(f).read_text()
+                else:
+                    p = Plot.absfilename('~/default.plot')
+                    if p.exists():
+                        j = Plot.absfilename('~/default.plot').read_text()
+                    else:
+                        j = '{}'
+            except IOError as e:
+                error = str(e)
+                j = '{}'
+        try:
+            jplot = json.loads(j)
+        except json.JSONDecodeError as e:
+            error = '\n'.join(f'{i:3} | {l}' for i, l in enumerate(j.split('\n'))) + f'\n\n {e}'
+            plot = Plot()
+        else:
+            plot = Plot(**jplot)
+            plot.save('~/default.plot')
+
         return web.render('plot.html', plot=plot, error=error).render()
 
     @expose_for(plotgroup)
@@ -450,15 +484,12 @@ class PlotPage(object):
         """
         plot_data = web.cherrypy.request.json
         plot = Plot(**plot_data)
+        plot.save()
         fig = plot.draw()
-        # from mpld3 import fig_to_html
-        # html = fig_to_html(fig)
-        import io, base64
+        import io
         buf = io.BytesIO()
         fig.savefig(buf, format='svg')
         html = buf.getvalue()
-        # data = base64.b64encode(buf.getvalue()).decode('ascii')
-        # html = f'<img alt="plot" width={plot.size[0]} height={plot.size[1]} src="data:image/png;base64,{data}">'.encode('utf-8')
         return html
 
     @expose_for(plotgroup)
@@ -511,6 +542,7 @@ class PlotPage(object):
             return web.json_out(datasets)
 
     @expose_for(plotgroup)
+    @web.json_in()
     @web.mime.csv
     def export_csv(self, subplot, line):
         plot: Plot = Plot(**web.cherrypy.request.json)
@@ -519,7 +551,7 @@ class PlotPage(object):
         io = StringIO()
         line.export_csv(io, plot.startdate, plot.enddate)
         io.seek(0)
-        return io
+        return serve_fileobj(io, 'attachment', line.name + '.csv')
 
 
     @expose_for(plotgroup)
@@ -532,7 +564,8 @@ class PlotPage(object):
         stream = StringIO()
         from ..tools.exportdatasets import exportLines
         exportLines(stream, lines, web.conv(float, tolerance, 60))
-        return stream.getvalue()
+        stream.seek(0)
+        return serve_fileobj(stream)
 
     @expose_for(plotgroup)
     @web.mime.csv

@@ -143,14 +143,17 @@ class Plot {
 }
 
 
-var plot_global = new Plot();
+
 
 function remove_handler(event) {
-	console.info(JSON.stringify(event))
 	let btn = $(event.target);
-	plot_global.removeline(btn.data('subplot'), btn.data('lineno')).apply()
+	window.plot.removeline(btn.data('subplot'), btn.data('lineno')).apply()
 
 }
+function export_handler(event) {
+	let btn = $(event.target);
+}
+
 
 function line_from_dialog() {
 	let get_name_from_line_dialog = function() {
@@ -188,18 +191,17 @@ function line_from_dialog() {
 
 function line_to_dialog(line) {
 	let dlg =$('#newline-dialog')
-	$('#newline-subplot').html(dlg.data('subplot') + '.' + dlg.data('lineno') + ' ' + dlg.data('replace'));
-	$('#nl-name').val(line.name || '');
-	$('#nl-value').val(line.valuetype || '');
-	$('#nl-site').val(line.site || '');
-	$('#nl-instrument').val(line.instrument || '');
-	$('#nl-level').val(line.level || '');
-	$('#nl-color').val(line.color || '#000000');
-	$('#nl-linestyle').val(line.linestyle || '-');
-	$('#nl-marker').val(line.marker || '');
-	$('#nl-aggregation').val(line.aggfunc || '');
+	$('#newline-subplot').html(dlg.data('subplot') + ' line ' + dlg.data('lineno'));
+	$('#nl-name').val(line.name);
+	$('#nl-value').val(line.valuetype);
+	$('#nl-site').val(line.site);
+	$('#nl-instrument').val(line.instrument);
+	$('#nl-level').val(line.level);
+	$('#nl-color').val(line.color);
+	$('#nl-linestyle').val(line.linestyle);
+	$('#nl-marker').val(line.marker);
+	$('#nl-aggregation').val(line.aggfunc);
 }
-
 
 function showlinedatasets(subplot,line) {
 	var content = $('#datasetlist_'+subplot+'_'+line).html();
@@ -222,107 +224,96 @@ function showlinedatasets(subplot,line) {
 	}
 
 }
-function timerange(step) {
-	if (step == null) {step=60;}
-	var foo = [];
-	for (var i = 0; i <= 60*24; i+=step) {
-		var m = i % 60;
-		var h = (i-m)/60;
-		if (h<10) { h='0' + h;} else {h='' + h;}
-		if (m<10) { m='0' + m;} else {m='' + m;}
-		foo.push(h+':'+m);
-	}
-	return foo;
-}
 
 function popSelect() {
-		var vt = $('#nl-value').val();
-		var site = $('#nl-site').val();
-		var instrument = $('#nl-instrument').val();
-		var level = $('#nl-level').val();
-		var date = '';
+	var vt = $('#nl-value').val();
+	var site = $('#nl-site').val();
+	var instrument = $('#nl-instrument').val();
+	var level = $('#nl-level').val();
+	var date = '';
 
-		$.getJSON(odmf_ref('/dataset/attrjson'),
-			{ attribute:'valuetype',
-				site:site,
-				date:date,
-				onlyaccess:true,
-			},
-			function(data){
-				var html='<option class="firstoption" value="">Please select...</option>';
-				$.each(data,function(index,item){
+	$.getJSON(odmf_ref('/dataset/attrjson'),
+		{ attribute:'valuetype',
+			site:site,
+			date:date,
+			onlyaccess:true,
+		},
+		function(data){
+			var html='<option class="firstoption" value="">Please select...</option>';
+			$.each(data,function(index,item){
+				html+='<option value="'+item.id+'">'+item.name+'</option>';
+			});
+			$('#nl-value').html(html).val(vt);
+		}
+	);
+
+	$.getJSON(odmf_ref('/dataset/attrjson'),
+		{ attribute:'source',
+			valuetype:vt,
+			site:site,
+			date:date,
+			onlyaccess:true,
+		},
+		function(data) {
+			var html='<option class="firstoption" value="">Please select...</option>';
+			$.each(data,function(index,item){
+				if (item)
 					html+='<option value="'+item.id+'">'+item.name+'</option>';
-				});
-				$('#nl-value').html(html).val(vt);
-			}
-		);
+			});
+			$('#nl-instrument').html(html).val(instrument);
+		}
+	);
 
+	$.getJSON(odmf_ref('/dataset/attrjson'),
+		{ attribute:'site',
+			valuetype:vt,
+			date:date,
+			onlyaccess:true,
+		},
+		function(data){
+			var html='<option value="">Please select...</option>';
+			$.each(data,function(index,item){
+				html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
+			});
+			$('#nl-site').html(html).val(site);
+		}
+	);
+	if (vt && site) {
 		$.getJSON(odmf_ref('/dataset/attrjson'),
-			{ attribute:'source',
+			{
+				attribute:'level',
 				valuetype:vt,
-				site:site,
 				date:date,
+				site:site,
 				onlyaccess:true,
 			},
 			function(data) {
-				var html='<option class="firstoption" value="">Please select...</option>';
+				var show=false;
+				var html='<option value="" class="firstoption">Please select...</option>';
 				$.each(data,function(index,item){
-					if (item)
-						html+='<option value="'+item.id+'">'+item.name+'</option>';
-				});
-				$('#nl-instrument').html(html).val(instrument);
-			}
-		);
-		$.getJSON(odmf_ref('/dataset/attrjson'),
-			{ attribute:'site',
-				valuetype:vt,
-				date:date,
-				onlyaccess:true,
-			},
-			function(data){
-				var html='<option value="">Please select...</option>';
-				$.each(data,function(index,item){
-					html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
-				});
-				$('#nl-site').html(html).val(site);
-			}
-		);
-		if (vt && site) {
-			$.getJSON(odmf_ref('/dataset/attrjson'),
-				{
-					attribute:'level',
-					valuetype:vt,
-					date:date,
-					site:site,
-					onlyaccess:true,
-				},
-				function(data) {
-					var show=false;
-					var html='<option value="" class="firstoption">Please select...</option>';
-					$.each(data,function(index,item){
-						if (item!=null) {
-							html+='<option value="'+item+'">'+item+'</option>';
-							show=true;
-						}
-					});
-					let nl_level = $('#nl-level')
-					if (show && vt && site) {
-						nl_level.html(html).val(level);
-						nl_level.parent().show(200);
-					} else {
-						nl_level.parent().hide(200);
+					if (item!=null) {
+						html+='<option value="'+item+'">'+item+'</option>';
+						show=true;
 					}
 				});
+				let nl_level = $('#nl-level')
+				if (show && vt && site) {
+					nl_level.html(html).val(level);
+					nl_level.parent().show(200);
+				} else {
+					nl_level.parent().hide(200);
+				}
+			});
 
-		} else {
-			$('#nl-level').parent().hide(200);
-		}
+	} else {
+		$('#nl-level').parent().hide(200);
+	}
 
-		if (site && vt) {
-			$('#nl-OK').prop('disabled', false);
-		} else {
-			$('#nl-OK').prop('disabled', true);
-		}
+	if (site && vt) {
+		$('#nl-OK').prop('disabled', false);
+	} else {
+		$('#nl-OK').prop('disabled', true);
+	}
 
 
 }
@@ -335,12 +326,13 @@ function clearFilter() {
 }
 
 $(() => {
-	plot_global.apply()
+	window.plot = new Plot()
+	window.plot.apply()
 	// $(".date").datetimepicker({format: 'YYYY-MM-DD HH:mm'})
 	$('#addsubplot').prop('disabled', false);
 
 	$('#btn-clf').click(function() {
-		let plot = plot_global
+		let plot = window.plot
 		plot.subplots = [{
 			lines: [],
 			ylim: null,
@@ -356,7 +348,7 @@ $(() => {
 		po.em1 = parseFloat(getComputedStyle(plotElement[0]).fontSize);
     	let plotHeight = po.totalHeight - po.top - 2 * po.em1;
     	plotElement.height(plotHeight);
-		plot_global.apply(plotElement.width(), plotHeight)
+		window.plot.apply(plotElement.width(), plotHeight)
     });
 
     $(window).resize();
@@ -369,16 +361,16 @@ $(() => {
     	dlg.data('subplot', sp);
     	dlg.data('lineno', ln);
     	dlg.data('replace', button.data('replace'));
-    	let plot = plot_global;
+    	let plot = window.plot;
     	let line = {}
-    	if (!sp) {
-    		$('#error').html()
+    	if (!(sp >= 0)) {
+    		$('#error').html('#' + button.id + ' has no subplot').parent().parent().fadeIn()
 		}
-    	else if (ln) {
+    	else if (ln >= 0) {
     		line = plot.subplots[sp].lines[ln]
 		}
-    	popSelect();
 		line_to_dialog(line)
+    	popSelect();
     });
 
     $('#newline-dialog .form-control').change(() => {
@@ -388,7 +380,7 @@ $(() => {
 
     $('#nl-OK').click(() => {
     	let dlg =$('#newline-dialog')
-    	let plot = plot_global
+    	let plot = window.plot
 		let line = line_from_dialog()
 		let sp_no = dlg.data('subplot')
 		let line_no = dlg.data('lineno')
@@ -415,7 +407,7 @@ $(() => {
 	});
 
 	$('#reload_plot').click(() => {
-		let plot = plot_global
+		let plot = window.plot
 		plot.render()
 	});
 
@@ -440,7 +432,7 @@ $(() => {
 	})
 
 	$('#prop-OK').click(event => {
-		let plot = plot_global
+		let plot = window.plot
 		plot.start = gettime('start')
 		plot.end = gettime('end')
 		plot.columns = parseInt($('#prop-columns').val())
