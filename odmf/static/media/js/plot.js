@@ -102,6 +102,7 @@ class Plot {
 			$('#ct-new-subplot').before(obj);
 		})
 		$('.removeline').click(remove_handler)
+		$('.exportline').click(export_handler)
 
 		sessionStorage.setItem('plot', txt_plot);
 		$('#json-row pre').html(txt_plot);
@@ -150,8 +151,21 @@ function remove_handler(event) {
 	window.plot.removeline(btn.data('subplot'), btn.data('lineno')).apply()
 
 }
+
+function download_on_post(url,  data) {
+	let form = $('<form>').attr("action", url).attr("method", "POST")
+	$.each(data, (key, value) => {
+		let input = $('<input>').attr("type", "hidden").attr("name", key).val(value)
+		form.append(input)
+	})
+	console.debug(form.html())
+	$(form).appendTo('body').submit()
+}
+
 function export_handler(event) {
-	let btn = $(event.target);
+	let btn = $(event.currentTarget);
+	download_on_post('export_csv', {plot: JSON.stringify(window.plot), subplot: btn.data('subplot'), line: btn.data('lineno')})
+
 }
 
 

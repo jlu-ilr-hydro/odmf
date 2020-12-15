@@ -44,7 +44,7 @@ echo "source odmf-complete.sh" >> $OPATH/venv/bin/activate
 
 echo "Create data directories"
 mkdir $OPATH/sessions
-mkdir -p $OPATH/preferences/plots
+mkdir $OPATH/preferences
 mkdir $OPATH/datafiles
 
 echo "Add a new user $USERNAME"

@@ -124,8 +124,8 @@ class Line:
 
         datasets = session.query(db.Dataset).filter(db.Dataset._valuetype == self.valuetypeid,
                                                     db.Dataset._site == self.siteid,
-                                                    db.Dataset.start <= self.subplot.plot.enddate,
-                                                    db.Dataset.end >= self.subplot.plot.startdate,
+                                                    db.Dataset.start <= self.subplot.plot.end,
+                                                    db.Dataset.end >= self.subplot.plot.start,
                                                     db.Dataset.access <= userlevel
                                                     )
         if self.instrumentid:
@@ -146,8 +146,8 @@ class Line:
         Loads the records into an array
         """
         with db.session_scope() as session:
-            start = start or self.subplot.plot.startdate
-            end = end or self.subplot.plot.enddate
+            start = start or self.subplot.plot.start
+            end = end or self.subplot.plot.end
             datasets = self.getdatasets(session)
             group = db.DatasetGroup([ds.id for ds in datasets], start, end)
             series = group.asseries(session)
@@ -162,12 +162,12 @@ class Line:
             raise ValueError("No data to compute")
         return series
 
-    def draw(self, ax, startdate=None, enddate=None):
+    def draw(self, ax, start=None, end=None):
         """
         Draws the line to the matplotlib axis ax
         """
         try:
-            data = self.load(startdate, enddate)
+            data = self.load(start, end)
             # Do the plot
             style = dict(color=self.color or 'k',
                          linestyle=self.linestyle, marker=self.marker)
@@ -186,12 +186,12 @@ class Line:
         return session.query(db.Datasource).get(
             int(self.instrumentid)) if self.instrumentid else None
 
-    def export_csv(self, stream, startdate=None, enddate=None):
+    def export_csv(self, stream, start=None, end=None):
         """
         Exports the line as csv file
         """
-        data = self.load(startdate, enddate)
-        data.to_csv(stream, encoding='utf-8-sig')
+        data = self.load(start, end)
+        data.to_csv(stream, encoding='utf-8-sig', index_label='time')
 
     def __jdict__(self):
         """
@@ -238,7 +238,7 @@ class Subplot:
         Draws the subplot on a matplotlib figure
         """
         for l in self.lines:
-            l.draw(ax, self.plot.startdate, self.plot.enddate)
+            l.draw(ax, self.plot.start, self.plot.end)
 
         if self.ylim:
             if np.isfinite(self.ylim[0]):
@@ -260,7 +260,7 @@ class Subplot:
 
                 # Get logbook entries for logsite during the plot-time
                 logs = session.query(db.Log).filter_by(_site=self.logsite).filter(
-                    db.Log.time >= self.plot.startdate).filter(db.Log.time <= self.plot.enddate)
+                    db.Log.time >= self.plot.start).filter(db.Log.time <= self.plot.end)
                 # Traverse logs and draw them
                 for log in logs:
                     x = plt.date2num(log.time)
@@ -268,7 +268,7 @@ class Subplot:
                                 alpha=0.5, linewidth=3)
                     ax.text(x, plt.ylim()[0], log.type,
                              ha='left', va='bottom', fontsize=self.plot.fontsize(0.9))
-        ax.set_xlim(self.plot.startdate, self.plot.enddate)
+        ax.set_xlim(self.plot.start, self.plot.end)
         for xtl in ax.get_xticklabels():
             xtl.set_rotation(15)
         ax.yaxis.set_major_locator(MaxNLocator(prune='upper'))
@@ -285,25 +285,25 @@ class Subplot:
                     ylim=self.ylim, logsite=self.logsite)
 
 
-class Plot(object):
+class Plot:
     """
     Represents a full plot (matplotlib figure)
     """
 
-    def __init__(self, height=None, width=None, columns=None, startdate=None, enddate=None, **kwargs):
+    def __init__(self, height=None, width=None, columns=None, start=None, end=None, **kwargs):
         """
         @param size: A tuple (width,height), the size of the plot in inches (with 100dpi)
         @param columns: number of subplot columns
-        @param startdate: Date for the beginning x axis
-        @param enddate: Date of the end of the x axis 
+        @param start: Date for the beginning x axis
+        @param end: Date of the end of the x axis
         """
-        self.startdate = startdate or datetime.today() - timedelta(days=365)
-        self.enddate = enddate or datetime.today()
+        self.start = start or datetime.today() - timedelta(days=365)
+        self.end = end or datetime.today()
         self.size = (width or 640, height or 480)
         self.columns = columns or 1
         self.subplots = []
         self.name = kwargs.pop('name', '')
-        self.aggregate = kwargs.pop('description', '')
+        self.aggregate = kwargs.pop('aggregate', '')
         self.description = kwargs.pop('description', '')
         self.subplots = [
             Subplot(self, **spargs)
@@ -350,13 +350,15 @@ class Plot(object):
         Creates a dictionary with all properties of the plot, the subplots and their lines
         """
         return dict(width=self.size[0], height=self.size[1], columns=self.columns,
-                    startdate=self.startdate, enddate=self.enddate,
+                    start=self.start, end=self.end,
                     subplots=asdict(self.subplots),
                     aggregate=self.aggregate,
                     description=self.description)
 
     def save(self, fn='~/default.plot'):
         d = asdict(self)
+        if not '/' in fn:
+            fn = '~/' + fn
         p = self.absfilename(fn)
         if not p.parent.exists():
             p.parent.mkdir(parents=True, exist_ok=True)
@@ -386,7 +388,7 @@ class Plot(object):
 
     @classmethod
     def absfilename(cls, fn: str='~/')->Path:
-        fn = fn.replace('~/', f'{web.user() or "nologin"}/plots/')
+        fn = fn.replace('~/', f'{web.user() or "guest"}/plots/')
         return conf.abspath(conf.datafiles) / fn
 
 
@@ -542,16 +544,18 @@ class PlotPage(object):
             return web.json_out(datasets)
 
     @expose_for(plotgroup)
-    @web.json_in()
-    @web.mime.csv
-    def export_csv(self, subplot, line):
-        plot: Plot = Plot(**web.cherrypy.request.json)
+    @web.method.post
+    def export_csv(self, plot, subplot, line):
+        # jplot, sp_no, line_no = web.cherrypy.request.json
+        jplot = json.loads(plot)
+        plot: Plot = Plot(**jplot)
         sp = plot.subplots[int(subplot) - 1]
         line = sp.lines[int(line)]
+        filename = ''.join(c if (c.isalnum() or c in '.-_') else '_' for c in line.name) + '.csv'
         io = StringIO()
-        line.export_csv(io, plot.startdate, plot.enddate)
+        line.export_csv(io, plot.start, plot.end)
         io.seek(0)
-        return serve_fileobj(io, 'attachment', line.name + '.csv')
+        return serve_fileobj(io, str(web.mime.csv), 'attachment', filename)
 
 
     @expose_for(plotgroup)
@@ -582,7 +586,7 @@ class PlotPage(object):
         from ..tools.ExportRegularData import createPandaDfs
         # explicit decode() for byte to string
         stream.write(codecs.BOM_UTF8.decode())
-        createPandaDfs(lines, plot.startdate, plot.enddate, stream,
+        createPandaDfs(lines, plot.start, plot.end, stream,
                        interpolationtime=interpolation, tolerance=float(tolerance))
         return stream.getvalue()
 
