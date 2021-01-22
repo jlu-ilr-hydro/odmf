@@ -303,9 +303,12 @@ class API(BaseAPI):
 
         returns Status 200 on success
         """
-        req = cherrypy.request
-        cl = req.headers['Content-Length']
-        body = req.body.read(int(cl))
+        if not data:
+            req = cherrypy.request
+            cl = req.headers['Content-Length']
+            body = req.body.read(int(cl))
+            data = dict(item.split('=') for item in body.decode('utf-8').split('&'))
+
         error = users.login(data['username'], data['password'])
         if error:
             cherrypy.response.status = 401
