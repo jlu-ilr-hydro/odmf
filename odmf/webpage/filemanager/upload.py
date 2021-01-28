@@ -31,7 +31,7 @@ def write_to_file(dest, src):
     :param src: file contents input buffer
     :return:
     """
-    with open(os.open(dest, os.O_CREAT | os.O_WRONLY, 0o770), 'w') as fout:
+    with open(os.open(dest, os.O_CREAT | os.O_WRONLY, 0o770), 'wb') as fout:
         while True:
             data = src.read(8192)
             if not data:
@@ -117,7 +117,7 @@ class DownloadPage(object):
         msg = []
         # Loop over incoming datafiles. Single files need some special treatment
         for datafile in (list(datafiles) or [datafiles]):
-            path = Path(dir).absolute
+            path = Path(dir)
             if not path:
                 path.make()
             fn = path + datafile.filename
@@ -131,7 +131,6 @@ class DownloadPage(object):
 
                     try:
                         write_to_file(fn.absolute, filebuffer)
-                        fn.setownergroup()
                         msg.append(f'- {fn.href} uploaded')
                     except Exception as e:
                         error.append(f'- {fn.href} upload failed: {e}')
@@ -176,10 +175,9 @@ class DownloadPage(object):
                 error = "The folder name may not include a space!"
             else:
                 try:
-                    path = Path(dir, newfolder).absolute()
+                    path = Path(dir, newfolder)
                     if not path.exists() and path.islegal():
                         path.make()
-                        path.setownergroup()
                         msg = f"{path.href} created"
                     else:
                         error = f"Folder {newfolder} exists already"
@@ -196,7 +194,7 @@ class DownloadPage(object):
     @expose_for(group.admin)
     @web.method.post_or_delete
     def removefile(self, dir, filename):
-        path = Path(dir, filename).absolute
+        path = Path(dir, filename)
         error = msg = ''
 
         if path.isfile():
