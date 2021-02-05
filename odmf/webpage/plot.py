@@ -26,7 +26,6 @@ from io import BytesIO
 
 import json
 from pathlib import Path
-from ..tools import Path as OPath
 from ..config import conf
 from .. import db
 from . import lib as web

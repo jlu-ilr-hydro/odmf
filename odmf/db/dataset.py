@@ -16,7 +16,6 @@ import pytz
 from pandas import Series
 
 import importlib
-import inspect
 
 import numpy as np
 from ..config import conf
