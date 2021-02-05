@@ -239,6 +239,15 @@ function showlinedatasets(subplot,line) {
 
 }
 
+function make_option_html(data, get_value, get_name) {
+	let html='<option class="firstoption" value="">Please select...</option>\n';
+	$.each(data,function(index,item){
+		html+=`<option value="${get_value(item)}">${get_name(item)}</option>\n`;
+	});
+	return html
+}
+
+
 function popSelect() {
 	var vt = $('#nl-value').val();
 	var site = $('#nl-site').val();
@@ -246,83 +255,30 @@ function popSelect() {
 	var level = $('#nl-level').val();
 	var date = '';
 
-	$.getJSON(odmf_ref('/dataset/attrjson'),
-		{ attribute:'valuetype',
-			site:site,
-			date:date,
+
+	$.getJSON(
+		odmf_ref('/dataset/attributes'),
+		{
+			valuetype: vt,
+			site: site,
+			date: date,
 			onlyaccess:true,
 		},
-		function(data){
-			var html='<option class="firstoption" value="">Please select...</option>';
-			$.each(data,function(index,item){
-				html+='<option value="'+item.id+'">'+item.name+'</option>';
-			});
-			$('#nl-value').html(html).val(vt);
+		(data) => {
+			console.log(JSON.stringify(data))
+			$('#nl-value').html(make_option_html(data.valuetype, x => x ? x.id: null, x => x ? x.name: '')).val(vt);
+			$('#nl-instrument').html(make_option_html(data.source, x => x ? x.id: null, x => x ? x.name: '')).val(instrument)
+			$('#nl-site').html(make_option_html(data.site, x => x ? x.id: null, x => `#${x.id} (${x.name})`)).val(site);
+
+			let nl_level = $('#nl-level')
+			if (vt && site && data.level.some(x => x)) {
+				nl_level.html(make_option_html(data.level, x => x, x => x)).val(level);
+				nl_level.parent().show(200)
+			} else {
+				nl_level.parent().hide(200)
+			}
 		}
 	);
-
-	$.getJSON(odmf_ref('/dataset/attrjson'),
-		{ attribute:'source',
-			valuetype:vt,
-			site:site,
-			date:date,
-			onlyaccess:true,
-		},
-		function(data) {
-			var html='<option class="firstoption" value="">Please select...</option>';
-			$.each(data,function(index,item){
-				if (item)
-					html+='<option value="'+item.id+'">'+item.name+'</option>';
-			});
-			$('#nl-instrument').html(html).val(instrument);
-		}
-	);
-
-	$.getJSON(odmf_ref('/dataset/attrjson'),
-		{ attribute:'site',
-			valuetype:vt,
-			date:date,
-			onlyaccess:true,
-		},
-		function(data){
-			var html='<option value="">Please select...</option>';
-			$.each(data,function(index,item){
-				html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
-			});
-			$('#nl-site').html(html).val(site);
-		}
-	);
-	if (vt && site) {
-		$.getJSON(odmf_ref('/dataset/attrjson'),
-			{
-				attribute:'level',
-				valuetype:vt,
-				date:date,
-				site:site,
-				onlyaccess:true,
-			},
-			function(data) {
-				var show=false;
-				var html='<option value="" class="firstoption">Please select...</option>';
-				$.each(data,function(index,item){
-					if (item!=null) {
-						html+='<option value="'+item+'">'+item+'</option>';
-						show=true;
-					}
-				});
-				let nl_level = $('#nl-level')
-				if (show && vt && site) {
-					nl_level.html(html).val(level);
-					nl_level.parent().show(200);
-				} else {
-					nl_level.parent().hide(200);
-				}
-			});
-
-	} else {
-		$('#nl-level').parent().hide(200);
-	}
-
 	if (site && vt) {
 		$('#nl-OK').prop('disabled', false);
 	} else {
@@ -342,6 +298,7 @@ function clearFilter() {
 $(() => {
 	window.plot = new Plot()
 	window.plot.apply()
+	popSelect();
 	// $(".date").datetimepicker({format: 'YYYY-MM-DD HH:mm'})
 	$('#addsubplot').prop('disabled', false);
 
