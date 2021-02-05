@@ -225,11 +225,11 @@ class DatasetPage:
 
     def subset(self, session, valuetype=None, user=None,
                site=None, date=None, instrument=None,
-               type=None, level=None, onlyaccess=False):
+               type=None, level=None, onlyaccess=False) -> db.orm.Query:
         """
         A not exposed helper function to get a subset of available datasets using filter
         """
-        datasets = session.query(db.Dataset)
+        datasets: db.orm.Query = session.query(db.Dataset)
         if user:
             user = session.query(db.Person).get(user)
             datasets = datasets.filter_by(measured_by=user)
@@ -288,6 +288,38 @@ class DatasetPage:
 
             # Convert object set to json
             return web.json_out(sorted(items))
+
+    @expose_for()
+    @web.mime.json
+    def attributes(self, valuetype=None, user=None, site=None, date=None, instrument=None,
+                   type=None, level=None, onlyaccess=False):
+        """
+        Gets for each dataset attribute a unique list of values fitting to the filter
+
+        Should replace multiple calls to attrjson
+        """
+        ds_attributes = ['valuetype', 'measured_by', 'site', 'source', 'type', 'level',
+                          'uses_dst', 'timezone', 'project', 'quality']
+
+        with db.session_scope() as session:
+            # Get dataset for filter
+            datasets = self.subset(session, valuetype, user,
+                                   site, date, instrument,
+                                   type, level, onlyaccess).all()
+
+            # For each attribute iterate all datasets and find the unique values of the dataset
+            result = {
+                attr.strip('_'): sorted(
+                    set(
+                        getattr(ds, attr)
+                        for ds in datasets
+                    ),
+                    key=lambda x: (x is not None, x)
+                )
+                for attr in ds_attributes
+            }
+            return web.json_out(result)
+
 
     @expose_for()
     @web.mime.json
