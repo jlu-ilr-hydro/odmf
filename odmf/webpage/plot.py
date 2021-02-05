@@ -155,8 +155,7 @@ class Line(object):
         t0 = plt.date2num(datetime(1970, 1, 1))
         series.index = to_datetime((series.index.values - t0), unit='D')
         # Use pandas resample mechanism for aggregation
-        aggseries = series.resample(
-            self.subplot.plot.aggregate, self.aggregatefunction)
+        aggseries = series.resample(self.subplot.plot.aggregate).aggregate(self.aggregatefunction)
         # Rip series index and values apart and convert the datetime64 index (in ns) back to matplotlib value
         t = aggseries.index.values.astype(float) / (24 * 60 * 60 * 1e9) + t0
         v = aggseries.values
