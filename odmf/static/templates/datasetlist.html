@@ -26,6 +26,7 @@
                     id: x=>x ? x.id : '',
                     name: x=>x ? x.name : '',
                     site: x => x ? '#' + x.id + ' (' + x.name + ')' : '#???',
+                    user: x=>x.firstname + ' ' + x.surname,
                     self: x => x
                 }
                 $.getJSON(
@@ -39,7 +40,7 @@
                             instrument:instrument,
                         },
                         data => {
-                            $('#userselect').html(options(data.measured_by, x=>x.username, x=>x.firstname + ' ' + x.surname))
+                            $('#userselect').html(options(data.measured_by, x=>x.username, fmt.user))
                             $('#vtselect').html(options(data.valuetype, fmt.id, fmt.name)).val(vt);
                             $('#siteselect').html(options(data.site, fmt.id, fmt.site)).val(site);
                             $('#instrumentselect').html(options(data.source, fmt.id, fmt.name)).val(instrument)

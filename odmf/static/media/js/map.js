@@ -132,55 +132,56 @@
 		}
 		
 		function popSelect() {
-			var vt = $('#vtselect').val();
-			var user = $('#userselect').val();
-			var date = $('#dateselect').val();
-			var instrument = $('#instrumentselect').val();
-			if (vt || user || date) {
-					$('#datasetsonly').prop('checked',true);
+			let vt = $('#vtselect').val();
+			let user = $('#userselect').val();
+			let date = $('#dateselect').val();
+			let instrument = $('#instrumentselect').val();
+
+			let options = (data, get_value, get_name) => {
+				let html = '<option class="firstoption" value="">Please select...</option>\n';
+				$.each(data, (index, item) => {
+					html += '<option value="' + get_value(item) + '">' + get_name(item) + '</option>\n';
+				});
+				return html
+
 			}
-			$.getJSON(odmf_ref('/dataset/attrjson'),
-								{ attribute:'valuetype',
-								  user:user,
-								  date:date
-								},
-								function(data){
-									var html='<option class="firstoption" value="">Please select...</option>';
-									$.each(data,function(index,item){
-										html+='<option value="'+item.id+'">'+item.name+'</option>';
-									});
-									$('#vtselect').html(html).val(vt);
-								}
-			);
-					
-			$.getJSON(odmf_ref('/dataset/attrjson'),
-								{ attribute:'measured_by',
-									valuetype:vt,
-								  date:date
-								},
-								function(data) {
-									var html='<option class="firstoption" value="">Please select...</option>';
-									$.each(data,function(index,item){
-										html+='<option value="'+item.username+'">'+item.firstname+' '+item.surname+'</option>';
-									});
-									$('#userselect').html(html).val(user);
-								}
+			let fmt = {
+				id: x=>x ? x.id : '',
+				name: x=>x ? x.name : '',
+				site: x => x ? '#' + x.id + ' (' + x.name + ')' : '#???',
+				user: x=>x.firstname + ' ' + x.surname,
+				self: x => x
+			}
+
+
+			if (vt || user || date) {
+				$('#datasetsonly').prop('checked',true);
+			}
+			$.getJSON(
+				odmf_ref('/dataset/attributes'),
+				{
+					valuetype:vt,
+					user:user,
+					date:date,
+				},
+				data => {
+					$('#vtselect').html(options(data.valuetype, fmt.id, fmt.name)).val(vt);
+					$('#userselect').html(options(data.measured_by, x=>x.username, fmt.user)).val(user)
+				}
 			);
 			$.getJSON(odmf_ref('/site/getinstalledinstruments'),{},function(data){
-									var html='<option class="firstoption" value="">Please select...</option>';
-									$.each(data,function(index,item){
-										html+='<option value="'+item.id+'">'+item.name+'</option>';
-									});
-									$('#instrumentselect').html(html).val(instrument);
+				let html=options(data, fmt.id, fmt.name)
+				$('#instrumentselect').html(html).val(instrument);
 			});
+
 			if ($('#datasetsonly').prop('checked')) {
 				setmarkers(odmf_ref('/dataset/attrjson'),
-										{attribute:'site',
-										 valuetype:vt,
-										 user:user,
-										 date:date,
-										 instrument:instrument,
-									});											
+					{attribute:'site',
+						valuetype:vt,
+						user:user,
+						date:date,
+						instrument:instrument,
+					});
 			} else if (instrument){
 				setmarkers(odmf_ref('/site/with_instrument'),{instrumentid:instrument});
 			} else {
