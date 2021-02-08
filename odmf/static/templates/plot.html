@@ -13,33 +13,24 @@
                 <div class="card-header">
                     <h5 class="card-title">plot §position§
                         <span class="btn-group card-text">
-                            <button
-                                    onclick="removesubplot(§position§)"
-                                    class="btn btn-sm btn-danger py-0" data-toggle="tooltip"
+                            <button data-subplot="§position§"
+                                    class="sp-remove-button btn btn-sm btn-danger py-0" data-toggle="tooltip"
                                     title="remove subplot §position§ from figure"
                             >
                                 <i class="fas fa-times-circle"/>
                             </button>
-                            <button onclick="changeylimit(§position§)"
-                                    class="btn btn-sm btn-primary py-0" data-toggle="tooltip"
+                            <button class="sp-changeylimit-button btn btn-sm btn-primary py-0" data-toggle="tooltip" data-subplot="§position§"
                                     title="change y axis limit"
                             >
                                 <i>y</i>&#x2195;
                             </button>
-                            <button data-toggle="dropdown" class="btn btn-sm btn-primary py-0 dropdown-toggle">
-                                <i class="fas fa-tags" data-toggle="tooltip" title="Show logged events at a site in the graph"/> §logsite§
+                            <button data-toggle="dropdown" class="btn btn-sm btn-primary py-0 dropdown-toggle sp-logsite-button"
+                                    data-subplot="§position§">
+                                <i class="fas fa-tags" data-toggle="tooltip" title="Show logged events at a site in the graph"/> #§logsite§
                             </button>
-                            <!--div id="logsiteselectdiv_§position§" class="dropdown-menu" >
-                                <select class="form-control dropdown-item" id="logsiteselect_§position§"
-                                        py:with="sites=sp.get_sites()"
-                                        onchange="changelogsite(§position§);"
-                                        size="">
-                                    <option value="" py:attrs="markoption(not sp.logsite in sites)">None</option>
-                                    <option py:for="siteid in sorted(sites)"
-                                            py:attrs="markoption(sp.logsite == siteid)"
-                                            value=""></option>
-                                </select>
-                            </div-->
+                            <div class="dropdown-menu sp-logsite-list" data-subplot="§position§">
+                                <div class="dropdown-item" py:for="i in range(10)">test - ${i}</div>
+                            </div>
                         </span>
                     </h5>
                 </div>
@@ -62,20 +53,20 @@
             <li class="line list-group-item">
                 <span style="color:§color§">§linestyle§§marker§</span> §name§
                 <div class="btn-group" id="linetools_§sp_pos§_§index§">
-                    <button title="remove line" class="btn btn-sm py-0 btn-secondary removeline" id="removeline_§position§_§i§"
-                            data-toggle="tooltip"  data-lineno="§i§" data-subplot="§sp_pos§">
+                    <button title="remove line" class="btn btn-sm py-0 btn-secondary removeline"
+                            data-toggle="tooltip"  data-html="true" data-lineno="§i§" data-subplot="§sp_pos§">
                         <i class="fas fa-times-circle"/>
                     </button>
-                    <button class="btn btn-sm py-0 btn-secondary exportline" id="exportline_§position§_§i§"
+                    <button class="btn btn-sm py-0 btn-secondary exportline"
                             data-toggle="tooltip" title="export to csv file..." data-lineno="§i§" data-subplot="§sp_pos§">
                         <i class="fas fa-file-csv"/>
 
                     </button>
-                    <button class="btn btn-sm py-0 btn-secondary showdataset" id="showdataset_§position§_§i§"
-                            data-toggle="tooltip" title="show datasets of line" data-lineno="§i§" data-subplot="§sp_pos§">
+                    <button class="btn btn-sm py-0 btn-secondary showdataset"
+                            data-toggle="tooltip" data-html="true"  title="show datasets of line" data-lineno="§i§" data-subplot="§sp_pos§">
                         <i class="fas fa-list"/>
                     </button>
-                    <button title="edit line" class="btn btn-sm py-0 btn-secondary editline" id="editline_§position§_§i§" data-toggle="modal" data-target="#newline-dialog"
+                    <button title="edit line" class="btn btn-sm py-0 btn-secondary editline" data-toggle="modal" data-target="#newline-dialog"
                             data-lineno="§i§" data-subplot="§sp_pos§" data-replace="replace">
                         <i class="fas fa-edit"/>
                     </button>
@@ -99,15 +90,6 @@
             }
             .filter {
                 max-width: 8em;
-            }
-            ul.brush {
-                list-style-image: url(${conf.root_url}/media/ui-icons/shimmer/brush_16.png)
-            }
-            ul.box_24 {
-                list-style-image: url(${conf.root_url}/media/ui-icons/plot.png)
-            }
-            ul.doc {
-                list-style-image: url(${conf.root_url}/media/ui-icons/shimmer/document_16.png)
             }
             .nowrap {white-space: nowrap;}
             #description textarea {
@@ -141,8 +123,8 @@
                         {}
                     </button>
                     <button data-format="png" class="btn btn-outline-primary" data-toggle="tooltip" title="Export as PNG"><i class="fas fa-file-image"/></button>
-                    <button data-format="svg" class="btn btn-outline-primary" data-toggle="tooltip" title="Export as PNG"><i class="fas fa-file-code"/></button>
-                    <button data-format="pdf" class="btn btn-outline-primary" data-toggle="tooltip" title="Export as PNG"><i class="fas fa-file-pdf"/></button>
+                    <button data-format="svg" class="btn btn-outline-primary" data-toggle="tooltip" title="Export as SVG"><i class="fas fa-file-code"/></button>
+                    <button data-format="pdf" class="btn btn-outline-primary" data-toggle="tooltip" title="Export as PDF"><i class="fas fa-file-pdf"/></button>
                 </div>
             </div>
             <div id="content-tree" class="mt-2 w-100">

@@ -262,7 +262,7 @@ class Subplot:
                     db.Log.time >= self.plot.start).filter(db.Log.time <= self.plot.end)
                 # Traverse logs and draw them
                 for log in logs:
-                    x = plt.date2num(log.time)
+                    x = np.datetime64(log.time)
                     ax.axvline(x, linestyle='-', color='r',
                                 alpha=0.5, linewidth=3)
                     ax.text(x, plt.ylim()[0], log.type,
@@ -495,48 +495,18 @@ class PlotPage(object):
 
     @expose_for(plotgroup)
     @web.method.post
-    @web.json_in()
-    @web.mime.png
-    def image_png(self, **kwargs):
-        plot: Plot = Plot(**web.cherrypy.request.json)
-        return plot.to_image('png')
+    def image(self, format, plot):
+        web.mime.set(format)
+        plot_dict = web.json.loads(plot)
+        plot: Plot = Plot(**plot_dict)
+        return plot.to_image(format)
 
-    @expose_for(plotgroup)
-    @web.method.post
-    @web.json_in()
-    @web.mime.pdf
-    def image_pdf(self, **kwargs):
-        plot: Plot = Plot(**web.cherrypy.request.json)
-        return plot.to_image('pdf')
-
-    @expose_for(plotgroup)
-    @web.method.post
-    @web.json_in()
-    @web.mime.svg
-    def image_svg(self, **kwargs):
-        plot: Plot = Plot(**web.cherrypy.request.json)
-        return plot.to_image('svg')
-
-    @expose_for(plotgroup)
-    @web.method.post
-    @web.json_in()
-    @web.mime.tif
-    def image_tif(self, **kwargs):
-        plot: Plot = Plot(**web.cherrypy.request.json)
-        return plot.to_image('tif')
-
-    @expose_for(plotgroup)
-    @web.method.post
-    @web.json_in()
-    @web.mime.jpg
-    def image_jpg(self, **kwargs):
-        plot: Plot = Plot(**web.cherrypy.request.json)
-        return plot.to_image('jpg')
 
     @expose_for(plotgroup)
     @web.mime.json
-    def linedatasets_json(self, subplot, line):
-        plot: Plot = Plot(**web.cherrypy.request.json)
+    def linedatasets_json(self, subplot, line, plot):
+        plot_dict = web.json.loads(plot)
+        plot: Plot = Plot(**plot_dict)
         line = plot.subplots[int(subplot) - 1].lines[int(line)]
         with db.session_scope() as session:
             datasets = line.getdatasets(session)
