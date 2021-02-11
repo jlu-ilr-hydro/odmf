@@ -112,7 +112,7 @@ class Plot {
 			this.subplots =  saved_plot.subplots || []
 
 		} else {
-			this.name =  null
+			this.name =  ''
 			this.start = gettime('start')
 			this.end =  gettime('end')
 			this.columns =  1
@@ -396,12 +396,12 @@ function set_line_dialog_handlers() {
 function set_property_dialog_handlers() {
 	$('#property-dialog').on('show.bs.modal', event => {
 		if (plot.start) {
-			$('#startdate').val(plot.start.split(' ')[0])
-			$('#starttime').val(plot.start.split(' ')[1])
+			$('#startdate').val(plot.start.split(/[T,\s]/)[0])
+			$('#starttime').val(plot.start.split(/[T,\s]/)[1])
 		}
 		if (plot.end) {
-			$('#enddate').val(plot.end.split(' ')[0])
-			$('#endtime').val(plot.end.split(' ')[1])
+			$('#enddate').val(plot.end.split(/[T,\s]/)[0])
+			$('#endtime').val(plot.end.split(/[T,\s]/)[1])
 		}
 		$('#prop-columns').val(plot.columns).attr('max', Math.max(1, plot.subplots.length))
 		$('#plotaggregate').val(plot.aggregate)

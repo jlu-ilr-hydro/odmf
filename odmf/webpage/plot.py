@@ -414,7 +414,7 @@ class PlotPage(object):
         -------
             Plot page
         """
-        error = ''
+
         if not j:
             try:
                 if f:
@@ -466,11 +466,43 @@ class PlotPage(object):
     def deleteplotfile(self, filename):
         return Plot.killfile(filename)
 
-    @expose_for(plotgroup)
-    @web.mime.json
-    def listplotfiles(self):
-        return web.json_out(Plot.listdir())
 
+    @expose_for(plotgroup)
+    @web.method.get
+    def filedialog(self, path):
+        path = ...
+        files = ...
+        directories = ...
+        return web.render(
+            'plot.filedialog.html',
+            path=path,
+            files=files,
+            directories=directories
+        )
+
+    @expose_for(plotgroup)
+    @web.method.get
+    def exportdialog(self):
+        return web.render('plot.exportdialog.html')
+
+    @expose_for(plotgroup)
+    @web.method.post
+    def export(self, plot, format, method, tolerance, timestep):
+        """
+        Compare to export_csv
+
+        Parameters
+        ----------
+        plot: The plot as JSON
+        format: csv, excel, json, feather
+        tolerance: in seconds
+        method: as_first, all_timesteps, regular
+
+        Returns
+        -------
+
+        """
+        ...
 
     @expose_for(plotgroup)
     @web.method.post

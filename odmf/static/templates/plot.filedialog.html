@@ -1,0 +1,60 @@
+<html xmlns:py="">
+<!--
+Template for webpage.plot.PlotPage.filedialog()
+
+To be included as AJAH into modal dialog in plot.html
+POST /plot/filedialog {path: download/$USER}
+
+Variables:
+
+path: Current path (default download/$USER)
+directories: mapping of subdirectories
+files: mapping of files in current path
+
+-->
+<script>
+    $(() => {
+        $('#plotname').val(window.plot.name).change(event => {
+            window.plot.name = $(event.currentTarget).val()
+        })
+
+    })
+</script>
+<div id="file-save-plot" class="row">
+    <div class="col-3">
+        <button id="savebutton" class="btn btn-secondary" type="button" data-toggle="tooltip" title="save plot">
+            <i class="fas fa-save fa-lg"/>
+        </button>
+    </div>
+    <div class="button-group col-9">
+        <button id="savebutton" class="btn btn-secondary" type="button" data-toggle="dropdown" title="save plot as ...">
+            <i class="fas fa-save fa-lg"/> save as ...
+        </button>
+        <div class="dropdown-menu">
+            <h6 class="dropdown-header">save as name</h6>
+            <div class="dropdown-item">
+                <input type="text" class="form-control" value="" id="plotname"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="file-load-plot" class="container">
+    <h3><i class="fas fa-folder-open"/>load...</h3>
+    <div class="file-list d-flex" py:for="fn in directories">
+        <a class="mr-auto" href="${directories[fn]}">
+            <i class="fas fa-folder fa-lg"/>
+            ${fn}
+        </a>
+    </div>
+    <div class="file-list d-flex" py:for="fn in files">
+        <a class="mr-auto" href="${files[fn]}">
+            <i class="fas fa-file-alt fa-lg"/>
+            ${fn}
+        </a>
+        <button class="btn btn-secondary file-delete-button">
+            <i class="fas fa-times-circle"/>
+        </button>
+    </div>
+</div>
+
+</html>

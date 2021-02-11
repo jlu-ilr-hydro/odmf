@@ -29,7 +29,6 @@
                                 <i class="fas fa-tags" data-toggle="tooltip" title="Show logged events at a site in the graph"/> #§logsite§
                             </button>
                             <div class="dropdown-menu sp-logsite-list" data-subplot="§position§">
-                                <div class="dropdown-item" py:for="i in range(10)">test - ${i}</div>
                             </div>
                         </span>
                     </h5>
@@ -100,7 +99,7 @@
                 cursor: auto;
             }
             .transition {
-                transition: 1s;
+                transition: 0.5s;
             }
             .semitransparent {
                 opacity: 30%;
@@ -115,8 +114,8 @@
                     <i class="fas fa-times-circle"/> clear figure
                 </button>
                 <button class="btn btn-outline-primary"
-                        id="toolbar-toggle" data-toggle="modal" data-target="#toolbar-dialog"
-                        role="button" aria-controls="toolbar-dialog">
+                        id="toolbar-toggle" data-toggle="modal" data-target="#file-dialog"
+                        role="button" aria-controls="file-dialog">
                     <i class="fas fa-file"/> File...
                 </button>
                 <button class="btn btn-outline-primary"
@@ -215,13 +214,13 @@
                             </a>
                         </label>
                         <select id="plotaggregate" class="props form-control">
-                            <option value="" py:attrs="markoption(plot.aggregate=='')">No aggregation</option>
-                            <option value="30Min" py:attrs="markoption(plot.aggregate=='30Min')">Half hourly</option>
-                            <option value="h" py:attrs="markoption(plot.aggregate=='h')">Hourly</option>
-                            <option value="D" py:attrs="markoption(plot.aggregate=='D')">Daily</option>
-                            <option value="W" py:attrs="markoption(plot.aggregate=='W')">Weekly</option>
-                            <option value="M" py:attrs="markoption(plot.aggregate=='M')">Monthly</option>
-                            <option value="Y" py:attrs="markoption(plot.aggregate=='Y')">Yearly</option>
+                            <option value="">No aggregation</option>
+                            <option value="30Min">Half hourly</option>
+                            <option value="h" >Hourly</option>
+                            <option value="D" >Daily</option>
+                            <option value="W" >Weekly</option>
+                            <option value="M" >Monthly</option>
+                            <option value="Y" >Yearly</option>
                         </select>
                         <label for="prop-description">Description (markdown)</label>
                         <textarea id="prop-description" rows="" class="form-control"></textarea>
@@ -234,114 +233,13 @@
             </div>
         </div>
 
-        <div id="toolbar-dialog" class="modal fade" tabindex="-1" role="dialog"  aria-hidden="true">
+        <div id="file-dialog" class="modal fade" tabindex="-1" role="dialog"  aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header bg-primary text-light">
                         <h5 class="modal-title">File</h5>
                     </div>
-                    <div class="modal-body">
-                        <div id="file-save-plot" class="input-group ">
-                            <div class="input-group-prepend">
-                                <button id="savebutton" class="btn btn-secondary" type="button" data-toggle="tooltip" title="save plot">
-                                    <i class="fas fa-save fa-lg"/>
-                                    save
-                                </button>
-                            </div>
-                            <input type="text" class="form-control" placeholder="plot name" />
-                        </div>
-                        <div id="file-load-plot" class="btn-group  mr-2">
-                            <button class="btn  btn-secondary dropdown-toggle text-left"
-                                    id="file-dropdown" data-toggle="dropdown"
-                                    aria-haspopup="true" aria-expanded="false"
-                            >
-                                load plot files
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-left" aria-labelledby="file-dropdown">
-                                <div class="dropdown-item file-list d-flex" py:for="fn in plot.listdir()" data-file="">
-                                    <a class="mr-auto">
-                                        <i class="fas fa-folder fa-lg"/>
-
-                                    </a>
-                                    <button class="btn btn-secondary file-delete-button">
-                                        <i class="fas fa-times-circle"/>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="export-image-tools" class="btn-group mr-2">
-                            <!-- Must post plot -->
-                            <a class="btn btn-outline-secondary" title="Opens the graph as a pdf file." data-toggle="tooltip"
-                               href="${conf.root_url}/plot/image.pdf">
-                                <i class="fas fa-file-pdf" />
-                            </a>
-                            <!-- Must post plot -->
-                            <a class="btn btn-outline-secondary" title="Opens the graph as a png file." data-toggle="tooltip"
-                               href="${conf.root_url}/plot/image.png">
-                                <i class="fas fa-file-image" />
-                            </a>
-                        </div>
-                        <div id="export-data-tools" class="input-group mr-2">
-                            <div class="input-group-prepend">
-
-                                <button py:if="is_member('editor')"
-                                        class="btn btn-secondary "
-                                        onclick="exportall_csv();" data-toggle="tooltip"
-                                        title="Exports all datasets in this plot to a csv file.
-                               The exported file has multiple columns according
-                               to valuetypes, sites and levels. This feature is
-                               still experimental. Transformed timeseries are not
-                               part of the export."
-                                >
-                                    <i class="fas fa-file-csv"/>
-                                </button>
-                            </div>
-                            <select id="tolerance_skipper" data-toggle="tooltip" class="form-control"
-                                    title="Specifies a tolerance time to keep values in the same line of the csv file.
-                            'no tolerance' means there is no tolerance, and the smallest difference in the timestamp
-                            of two values leads to a new line."
-                            >
-                                <option value="0">no tolerance</option>
-                                <option value="300">5Min</option>
-                                <option value="600">10Min</option>
-                                <option value="1800">30Min</option>
-                                <option value="3600">1h</option>
-                                <option value="86400">1day</option>
-                            </select>
-                        </div>
-                        <div id="export-data-tools2" class="input-group">
-                            <div class="input-group-prepend">
-                                <button py:if="is_member('editor')"
-                                        class="btn btn-secondary"
-                                        data-toggle="tooltip"
-                                        title="Exports all datasets in this plot to a csv file with regularized timesteps.
-                            The exported file has multiple columns according
-                            to valuetypes, sites and levels. This feature is
-                            still experimental."
-                                        onclick="RegTime()">
-                                    <i class="fas fa-table"/>
-                                </button>
-                            </div>
-                            <select id="reg_interpolation" data-toggle="tooltip" class="form-control"
-                                    title="Time resolution of all datasets in the output csv-file.">
-                                <option value="5Min">5Min</option>
-                                <option value="10Min">10Min</option>
-                                <option value="15Min">15Min</option>
-                                <option value="30Min">30Min</option>
-                                <option value="60Min">1h</option>
-                                <option value="1440Min">1day</option>
-
-                            </select>
-                            <select id="Interpolation_Limit" data-toggle="tooltip" class="form-control"
-                                    title="Number of possible gaps in the data which will be filled through linear interpolation.">
-                                <option value="1">1Timestep</option>
-                                <option value="5">5Timesteps</option>
-                                <option value="10">10Timesteps</option>
-                                <option value="50">50Timesteps</option>
-                                <option value="100">100Timesteps</option>
-                                <option value="200">200Timesteps</option>
-                            </select>
-                        </div>
+                    <div class="modal-body" id="file-dialog-content">
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -407,7 +305,7 @@
                         <select id="nl-color" class="form-control">
                             <option py:for="c in ['#000000' ,'#0000FF','#00FF00','#FF0000', '#FFFF00','#00FFFF','#FF00FF']"
                                     value="${c}" py:content="c" style="background-color: ${c}"
-                                    py:attrs=""
+
                             />
                         </select>
 
