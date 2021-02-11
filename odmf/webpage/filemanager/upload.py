@@ -165,6 +165,23 @@ class DownloadPage(object):
                 io.write(f' * file:{dir}/{fn} imported by user:{user} at {date} into {ds}\n')
         return web.markdown(io.getvalue())
 
+    @expose_for()
+    @web.method.get
+    @web.mime.json
+    def listdir(self, dir, pattern=None):
+        import re
+        path = Path(dir)
+        directories, files = path.listdir()
+        return web.as_json(
+            directories={d.basename: d.href for d in sorted(directories)},
+            files={
+                f.basename: f.href
+                for f in sorted(files)
+                if (pattern is None
+                    or re.match(pattern, f.basename))
+            }
+        ).encode('utf-8')
+
     @expose_for(group.editor)
     @web.method.post_or_put
     def newfolder(self, dir, newfolder):
