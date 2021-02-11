@@ -1,7 +1,6 @@
 /**
  * @author philkraf
  *
- * TODO: Autoshow plot
  * TODO: Property dialog - populate dates etc.
  * TODO: File dialog to save(as) / load / delete .plot file
  * TODO: Export to data dialog to export as multiple series / sparse table / interpolated table
@@ -140,6 +139,8 @@ class Plot {
 		})
 			.done((result) => {
 				$('#plot').html(result);
+				$('#plot-reload-button').addClass('d-none')
+				$('#plot').removeClass('semitransparent')
 			})
 			.fail(seterror);
 		return this.apply()
@@ -178,9 +179,10 @@ class Plot {
 			})
 			$('#ct-new-subplot').before(obj);
 		})
-
 		sessionStorage.setItem('plot', txt_plot);
 		$('#json-row pre').html(txt_plot);
+		$('#plot-reload-button').css('top',this.height / 2).css('left', this.width / 3).removeClass('d-none')
+		$('#plot').addClass('semitransparent')
 		set_content_tree_handlers();
 		return this
 	}
@@ -458,8 +460,7 @@ $(() => {
 	});
 
 	$('#reload_plot').click(() => {
-		let plot = window.plot
-		plot.render()
+		window.plot.render()
 	});
 
 	$('.loadplotfn').click(function(){
@@ -474,8 +475,6 @@ $(() => {
 			download_on_post('image', {format: fmt, plot: JSON.stringify(window.plot)})
 		}
 	})
-
-
 
 
 	$('.killplotfn').click(function() {

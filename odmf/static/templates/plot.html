@@ -97,15 +97,18 @@
                 font-family: monospace;
                 cursor: auto;
             }
+            .transition {
+                transition: 1s;
+            }
+            .semitransparent {
+                opacity: 30%;
+            }
         </style>
     </py:block>
     <py:block name="sidebar">
         <div class="container-fluid ">
 
             <div id="collapse-buttons" class="btn-group-vertical w-100">
-                <button id="reload_plot" class="btn btn-primary">
-                    <i class="fas fa-sync-alt"/>
-                </button>
                 <button class="btn btn-outline-primary"
                         id="toolbar-toggle" data-toggle="modal" data-target="#toolbar-dialog"
                         role="button" aria-controls="toolbar-dialog">
@@ -163,7 +166,11 @@
                 <div id="plot" class="bg-light border">
                     PLOT
                 </div>
-
+                <div id="plot-reload-button" class="position-absolute" style="top: 10em; left: 10em">
+                    <button id="reload_plot" class="btn btn-outline-primary bg-light shadow transition">
+                        <h3><i class="fas fa-sync-alt"/> reload plot</h3>
+                    </button>
+                </div>
 
             </div>
         </div>
@@ -173,8 +180,8 @@
         <div id="property-dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Edit</h5>
+                    <div class="modal-header bg-primary text-light">
+                        <h5 class="modal-title"><i class="fas fa-cog"/> Properties</h5>
                     </div>
                     <div class="modal-body form-group">
                         <label for="startdatetime">start:</label>
@@ -225,7 +232,7 @@
         <div id="toolbar-dialog" class="modal fade" tabindex="-1" role="dialog"  aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header">
+                    <div class="modal-header bg-primary text-light">
                         <h5 class="modal-title">File</h5>
                     </div>
                     <div class="modal-body">
