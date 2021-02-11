@@ -65,6 +65,14 @@
                         The applying copyright notice can be found
                         <a href="${conf.root_url}/media/ui-icons/shimmer/shimmer-icons-readme.html">here</a>.
                     </div>
+                    <div py:if="is_member('admin')">
+                        <h1 class="display-4">Configuration</h1>
+                        <ul>
+                            <li py:for="k, v in conf.to_dict().items()" py:if=" not ('key' in k or 'pass' in k)">
+                                ${k} = ${v}
+                            </li>
+                        </ul>
+                    </div>
                 </div>
 
             </div>

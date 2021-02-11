@@ -87,8 +87,9 @@ class PersonPage:
                         error = 'Passwords not equal'
                 # Simple Validation
                 # if users.current.level == ACCESS_LEVELS['Supervisor']:
-                if 'access_level' in kwargs and kwargs.get('access_level') <= users.current.level:
-                    p_act.access_level = int(kwargs.get('access_level'))
+                acl = web.conv(int, kwargs.get('access_level'))
+                if acl and acl <= users.current.level:
+                    p_act.access_level = acl
                 msg = f'{username} saved'
         else:
             error=f'As a {users.current.group} user, you may only change your own values'

@@ -2,57 +2,49 @@
 
 <py:extends href="bootstrap_navigation.html" xmlns:py="">
     <py:block name="scripts">
-        <script type="text/javascript" src="${conf.root_url}/media/lib/moment.min.js"/>
-        <script type="text/javascript" src="${conf.root_url}/media/lib/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"/>
+        <script type="text/javascript">
+            sessionStorage.setItem('plot', JSON.stringify(${literal(as_json(plot))}));
+        </script>
+
         <script type="text/javascript" src="${conf.root_url}/media/js/plot.js"/>
 
-        <script type="text/javascript">
-       </script>
         <div class="d-none"  id="subplot-template" type="template" >
             <div class="subplot card mb-2 w-100">
                 <div class="card-header">
                     <h5 class="card-title">plot §position§
                         <span class="btn-group card-text">
-                            <button disabled="disabled"
-                                    onclick="removesubplot(§position§)"
-                                    class="btn btn-sm btn-danger py-0" data-toggle="tooltip"
+                            <button data-subplot="§position§"
+                                    class="sp-remove-button btn btn-sm btn-danger py-0" data-toggle="tooltip"
                                     title="remove subplot §position§ from figure"
                             >
                                 <i class="fas fa-times-circle"/>
                             </button>
-                            <button onclick="changeylimit(§position§)"
-                                    class="btn btn-sm btn-primary py-0" data-toggle="tooltip"
+                            <button class="sp-changeylimit-button btn btn-sm btn-primary py-0" data-toggle="tooltip" data-subplot="§position§"
                                     title="change y axis limit"
                             >
                                 <i>y</i>&#x2195;
                             </button>
-                            <button data-toggle="dropdown" class="btn btn-sm btn-primary py-0 dropdown-toggle">
-                                <i class="fas fa-tags" data-toggle="tooltip" title="Show logged events at a site in the graph"/> §logsite§
+                            <button data-toggle="dropdown" class="btn btn-sm btn-primary py-0 dropdown-toggle sp-logsite-button"
+                                    data-subplot="§position§">
+                                <i class="fas fa-tags" data-toggle="tooltip" title="Show logged events at a site in the graph"/> #§logsite§
                             </button>
-                            <!--div id="logsiteselectdiv_§position§" class="dropdown-menu" >
-                                <select class="form-control dropdown-item" id="logsiteselect_§position§"
-                                        py:with="sites=sp.get_sites()"
-                                        onchange="changelogsite(§position§);"
-                                        size="">
-                                    <option value="" py:attrs="markoption(not sp.logsite in sites)">None</option>
-                                    <option py:for="siteid in sorted(sites)"
-                                            py:attrs="markoption(sp.logsite == siteid)"
-                                            value=""></option>
-                                </select>
-                            </div-->
+                            <div class="dropdown-menu sp-logsite-list" data-subplot="§position§">
+                                <div class="dropdown-item" py:for="i in range(10)">test - ${i}</div>
+                            </div>
                         </span>
                     </h5>
                 </div>
+                <div class="card-body">
 
-                <ul class="list-group list-group-flush">
-                    <li class="newline list-group-item">
-                        <button class="btn btn-sm btn-primary btn-outline shadow py-0" data-toggle="modal" data-target="#newline-dialog"
-                                data-subplot="§position§"
-                        >
-                            <i class="fas fa-plus-circle"/> add line...
-                        </button>
-                    </li>
-                </ul>
+                    <ul id="line-list" class="list-group list-group-flush">
+                        <li class="newline list-group-item">
+                            <button class="btn btn-sm btn-primary btn-outline shadow py-0" data-toggle="modal" data-target="#newline-dialog"
+                                    data-subplot="§position§" id="addline_§position§">
+                                <i class="fas fa-plus-circle"/> add line...
+                            </button>
+                        </li>
+                    </ul>
+                </div>
 
             </div>
 
@@ -63,25 +55,25 @@
                     <button class="btn btn-sm btn-outline-secondary btn-disabled" style="color:§color§">
                         §linestyle§ §marker§
                     </button>
-                    <button onclick="removeline(§sp_pos§,§i§)" title="remove line"
-                            class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
+                    <button title="remove line" class="btn btn-sm py-0 btn-secondary removeline"
+                            data-toggle="tooltip"  data-html="true" data-lineno="§i§" data-subplot="§sp_pos§">
                         <i class="fas fa-times-circle"/>
                     </button>
-                    <button onclick="exportline(§sp_pos§,§i§)"
-                       class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip" title="export to csv file...">
+                    <button class="btn btn-sm py-0 btn-secondary exportline"
+                            data-toggle="tooltip" title="export to csv file..." data-lineno="§i§" data-subplot="§sp_pos§">
                         <i class="fas fa-file-csv"/>
 
                     </button>
-                    <button onclick="showlinedatasets(§sp_pos§,§i§)"
-                            class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip" title="show datasets of line">
+                    <button class="btn btn-sm py-0 btn-secondary showdataset"
+                            data-toggle="tooltip" data-html="true"  title="show datasets of line" data-lineno="§i§" data-subplot="§sp_pos§">
                         <i class="fas fa-list"/>
                     </button>
-                    <button onclick="editline(§sp_pos§,§i§)" title="edit line"
-                            class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
+                    <button title="edit line" class="btn btn-sm py-0 btn-secondary editline" data-toggle="modal" data-target="#newline-dialog"
+                            data-lineno="§i§" data-subplot="§sp_pos§" data-replace="replace">
                         <i class="fas fa-edit"/>
                     </button>
-                    <button onclick="copyline(§sp_pos§,§i§)" title="copy line"
-                            class="btn btn-sm py-0 btn-secondary" data-toggle="tooltip">
+                    <button title="copy line" class="btn btn-sm py-0 btn-secondary editline" data-toggle="modal" data-target="#newline-dialog" id="copyline_§position§_§i§"
+                            data-lineno="§i§" data-subplot="§sp_pos§">
                         <i class="fas fa-copy"/>
                     </button>
 
@@ -101,20 +93,17 @@
             .filter {
                 max-width: 8em;
             }
-            ul.brush {
-                list-style-image: url(${conf.root_url}/media/ui-icons/shimmer/brush_16.png)
-            }
-            ul.box_24 {
-                list-style-image: url(${conf.root_url}/media/ui-icons/plot.png)
-            }
-            ul.doc {
-                list-style-image: url(${conf.root_url}/media/ui-icons/shimmer/document_16.png)
-            }
             .nowrap {white-space: nowrap;}
             #description textarea {
                 width: 100%;
                 font-family: monospace;
                 cursor: auto;
+            }
+            .transition {
+                transition: 1s;
+            }
+            .semitransparent {
+                opacity: 30%;
             }
         </style>
     </py:block>
@@ -122,19 +111,29 @@
         <div class="container-fluid ">
 
             <div id="collapse-buttons" class="btn-group-vertical w-100">
-                <button id="reload_plot" class="btn btn-primary">
-                    <i class="fas fa-sync-alt"/>
+                <button class="btn btn-outline-danger" id="btn-clf" role="button">
+                    <i class="fas fa-times-circle"/> clear figure
                 </button>
                 <button class="btn btn-outline-primary"
                         id="toolbar-toggle" data-toggle="modal" data-target="#toolbar-dialog"
                         role="button" aria-controls="toolbar-dialog">
-                    <i class="fas fa-file"/> File
+                    <i class="fas fa-file"/> File...
                 </button>
                 <button class="btn btn-outline-primary"
                         id="property-toggle" data-toggle="modal" data-target="#property-dialog"
                         role="tab" aria-controls="property-dialog">
-                    <i class="fas fa-cog"/> Properties
+                    <i class="fas fa-cog"/> Properties...
                 </button>
+                <div class="btn-group" id="fig-export">
+                    <button class="btn btn-outline-primary"
+                            id="json-toggle" data-toggle="modal" data-target="#json-dialog"
+                            role="tab" aria-controls="json-dialog">
+                        {}
+                    </button>
+                    <button data-format="png" class="btn btn-outline-primary" data-toggle="tooltip" title="Export as PNG"><i class="fas fa-file-image"/></button>
+                    <button data-format="svg" class="btn btn-outline-primary" data-toggle="tooltip" title="Export as SVG"><i class="fas fa-file-code"/></button>
+                    <button data-format="pdf" class="btn btn-outline-primary" data-toggle="tooltip" title="Export as PDF"><i class="fas fa-file-pdf"/></button>
+                </div>
             </div>
             <div id="content-tree" class="mt-2 w-100">
 
@@ -145,12 +144,12 @@
 
                 <div id="ct-new-subplot" class="card mb-2 w-100">
                     <div class="card-body">
-                        <h5 class="card-title">
+                        <div class="card-title">
                             <button id="addsubplot" onclick="addsubplot()" class="btn btn-primary mr-2">
                                 <i class="fas fa-plus-circle"/>
                             </button>
                             add subplot
-                        </h5>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -168,14 +167,15 @@
 
                 </div>
             </div>
-            <div id="json-row" class="row mt-2 w-100">
-                <pre></pre>
-            </div>
             <div id="plot-row" class="">
                 <div id="plot" class="bg-light border">
                     PLOT
                 </div>
-
+                <div id="plot-reload-button" class="position-absolute" style="top: 10em; left: 10em">
+                    <button id="reload_plot" class="btn btn-outline-primary bg-light shadow transition">
+                        <h3><i class="fas fa-sync-alt"/> reload plot</h3>
+                    </button>
+                </div>
 
             </div>
         </div>
@@ -185,24 +185,23 @@
         <div id="property-dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Edit</h5>
+                    <div class="modal-header bg-primary text-light">
+                        <h5 class="modal-title"><i class="fas fa-cog"/> Properties</h5>
                     </div>
                     <div class="modal-body form-group">
                         <label for="startdatetime">start:</label>
-                        <div id="startdatetime" class="input-group date">
-                            <input class="props form-control" type="text" id="startdate"
+                        <div id="startdatetime" class="input-group">
+                            <input class="props form-control" type="date" id="startdate"
                                    value=""/>
-                            <span class="input-group-addon">
-                                <i class="fas fa-calendar"/>
-                            </span>
+                            <input class="props timepicker form-control" id="starttime"
+                                   value="00:00"/>
                         </div>
                         <label for="enddatetime">end:</label>
                         <div id="enddatetime" class="input-group">
 
                             <input class="props form-control" type="date" id="enddate"
                                    value=""/>
-                            <input class="props timepicker form-control" id="starttime"
+                            <input class="props timepicker form-control" id="endtime"
                                    value="00:00"/>
                         </div>
                         <label for="prop-columns">Subplot columns</label>
@@ -235,10 +234,10 @@
             </div>
         </div>
 
-        <div id="toolbar-dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div id="toolbar-dialog" class="modal fade" tabindex="-1" role="dialog"  aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header">
+                    <div class="modal-header bg-primary text-light">
                         <h5 class="modal-title">File</h5>
                     </div>
                     <div class="modal-body">
@@ -354,11 +353,11 @@
             </div>
         </div>
 
-        <div id="newline-dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div id="newline-dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header bg-primary text-light">
-                        <h5 class="modal-title">New line for subplot #<span id="newline-subplot">0</span></h5>
+                        <h5 class="modal-title">Subplot <span id="newline-subplot">0</span></h5>
                     </div>
                     <div class="modal-body form-group">
                         <label for="nl-name">Name:</label>
@@ -430,6 +429,24 @@
 
                 </div>
             </div>
+        </div>
+
+        <div id="json-dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-light">
+                        <h5 class="modal-title">JSON-Description of plot</h5>
+                    </div>
+                    <div class="modal-body" id="json-row">
+                        <pre></pre>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+
+            </div>
+
         </div>
 
     </py:block>

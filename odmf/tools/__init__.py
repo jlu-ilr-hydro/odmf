@@ -1,24 +1,28 @@
+from __future__ import annotations
+
 import os
 import os.path as op
+import typing
 from ..config import conf
+
 __all__ = ['mail', 'Path']
 
 
 class Path(object):
-    def __init__(self, path: str):
+    def __init__(self, *path: str):
         self.datapath = op.realpath(conf.datafiles)
-        if str(path).startswith('/'):
-            self.absolute = op.realpath(path)
+        if str(path[0]).startswith('/'):
+            self.absolute = op.realpath(op.join(*path))
         else:
-            self.absolute = op.join(self.datapath, path)
+            self.absolute = op.join(self.datapath, *path)
         self.name = op.relpath(self.absolute, self.datapath).replace('\\', '/')
 
     @property
-    def basename(self):
+    def basename(self)->str:
         return op.basename(self.absolute)
 
     @property
-    def href(self):
+    def href(self)->str:
         return f'{conf.root_url}/download/{self.name}'
 
     def __bool__(self):
@@ -27,7 +31,7 @@ class Path(object):
     def __str__(self):
         return self.name
 
-    def formatsize(self):
+    def formatsize(self)->str:
         size = op.getsize(self.absolute)
         unit = 0
         units = "B KB MB GB".split()
@@ -36,7 +40,7 @@ class Path(object):
             unit += 1
         return "%5.4g %s" % (size, units[unit])
 
-    def islegal(self):
+    def islegal(self) -> bool:
         return self.absolute.startswith(self.datapath)
 
     def __lt__(self, other):
@@ -54,7 +58,7 @@ class Path(object):
     def make(self):
         os.makedirs(self.absolute, mode=0o770)
 
-    def breadcrumbs(self):
+    def breadcrumbs(self) -> str:
         res = [self]
         p = op.dirname(self.absolute)
         while self.datapath in p:
@@ -83,7 +87,7 @@ class Path(object):
     def ishidden(self):
         return self.basename.startswith('.') or self.basename == 'index.html'
 
-    def listdir(self)->(list, list):
+    def listdir(self) -> (typing.List[Path], typing.List[Path]):
         """
         Lists all members of the path in
         2 lists:
@@ -106,7 +110,7 @@ class Path(object):
         else:
             return [], []
 
-    def isempty(self)->bool:
+    def isempty(self) -> bool:
         """
         Returns True, if self isdir and has no entries
         """
@@ -116,6 +120,6 @@ class Path(object):
                  ]
         return not bool(dirs or files)
 
-    def up(self):
+    def up(self) -> str:
         return op.dirname(self.name)
 

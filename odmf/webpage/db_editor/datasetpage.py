@@ -34,7 +34,7 @@ class DatasetPage:
     @expose_for(group.guest)
     def default(self, id='new', site_id=None, vt_id=None, user=None, error='', _=None):
         """
-        Returns the dataset view and manipulation page (datasettab.html). 
+        Returns the dataset view and manipulation page (dataset-edit.html).
         Expects an valid dataset id, 'new' or 'last'. With new, a new dataset
         is created, if 'last' the last chosen dataset is taken   
         """
@@ -78,7 +78,7 @@ class DatasetPage:
                 project = None
 
             try:
-                # load data for datasettab.html:
+                # load data for dataset-edit.html:
                 # similar datasets (same site and same type)
                 similar_datasets = self.subset(session, valuetype=active.valuetype.id,
                                                site=active.site.id)
@@ -96,7 +96,7 @@ class DatasetPage:
             return web.render(
                 'dataset-edit.html',
                 # activedataset is the current dataset (id or new)
-                ds_act=active,
+                ds_act=active, n=active.size() if active else 0,
                 # Render error messages
                 error=error,
                 # similar and parallel datasets
@@ -225,11 +225,11 @@ class DatasetPage:
 
     def subset(self, session, valuetype=None, user=None,
                site=None, date=None, instrument=None,
-               type=None, level=None, onlyaccess=False):
+               type=None, level=None, onlyaccess=False) -> db.orm.Query:
         """
         A not exposed helper function to get a subset of available datasets using filter
         """
-        datasets = session.query(db.Dataset)
+        datasets: db.orm.Query = session.query(db.Dataset)
         if user:
             user = session.query(db.Person).get(user)
             datasets = datasets.filter_by(measured_by=user)
@@ -288,6 +288,38 @@ class DatasetPage:
 
             # Convert object set to json
             return web.json_out(sorted(items))
+
+    @expose_for()
+    @web.mime.json
+    def attributes(self, valuetype=None, user=None, site=None, date=None, instrument=None,
+                   type=None, level=None, onlyaccess=False):
+        """
+        Gets for each dataset attribute a unique list of values fitting to the filter
+
+        Should replace multiple calls to attrjson
+        """
+        ds_attributes = ['valuetype', 'measured_by', 'site', 'source', 'type', 'level',
+                          'uses_dst', 'timezone', 'project', 'quality']
+
+        with db.session_scope() as session:
+            # Get dataset for filter
+            datasets = self.subset(session, valuetype, user,
+                                   site, date, instrument,
+                                   type, level, onlyaccess).all()
+
+            # For each attribute iterate all datasets and find the unique values of the dataset
+            result = {
+                attr.strip('_'): sorted(
+                    set(
+                        getattr(ds, attr)
+                        for ds in datasets
+                    ),
+                    key=lambda x: (x is not None, x)
+                )
+                for attr in ds_attributes
+            }
+            return web.json_out(result)
+
 
     @expose_for()
     @web.mime.json
@@ -369,11 +401,9 @@ class DatasetPage:
         """
         Plots the dataset. Might be deleted in future. Rather use PlotPage
         """
+        import pylab as plt
         with db.session_scope() as session:
-            import matplotlib
-            matplotlib.use('Agg', warn=False)
-            import pylab as plt
-            ds = session.query(db.Dataset).get(int(id))
+            ds: db.Timeseries = session.query(db.Dataset).get(int(id))
             if users.current.level < ds.access:
                 return f"""
                 <div class="alert alert-danger"><h2>No access</h2><p class="lead">
@@ -388,23 +418,23 @@ class DatasetPage:
                 end = web.parsedate(end.strip())
             else:
                 end = ds.end
-            t, v = ds.asarray(start, end)
-            fig = plt.figure(figsize=(10, 5))
-            ax = fig.gca()
-            ax.plot_date(t, v, color + marker + line)
-            ax.grid()
-            plt.xticks(rotation=15)
-            plt.ylabel('%s [%s]' % (ds.valuetype.name, ds.valuetype.unit))
-            plt.title(str(ds.site))
+            data = ds.asseries(start, end)
+        fig = plt.figure(figsize=(10, 5))
+        ax = fig.gca()
+        data.plot.line(ax=ax, color=color, marker=marker, line=line)
+        ax.grid()
+        plt.xticks(rotation=15)
+        plt.ylabel('%s [%s]' % (ds.valuetype.name, ds.valuetype.unit))
+        plt.title(str(ds.site))
 
-            if interactive and interactive != 'false':
-                import mpld3
-                return mpld3.fig_to_html(fig).encode('utf-8')
-            else:
-                bytesio = io.BytesIO()
-                fig.savefig(bytesio, dpi=100, format='png')
-                data = b64encode(bytesio.getvalue())
-                return b'<img src="data:image/png;base64, ' + data + b'"/>'
+        if interactive and interactive != 'false':
+            import mpld3
+            return mpld3.fig_to_html(fig).encode('utf-8')
+        else:
+            bytesio = io.BytesIO()
+            fig.savefig(bytesio, dpi=100, format='png')
+            data = b64encode(bytesio.getvalue())
+            return b'<img src="data:image/png;base64, ' + data + b'"/>'
 
     @web.expose
     @web.mime.json
@@ -451,7 +481,7 @@ class DatasetPage:
         """
         Returns a html-table of filtered records
         TODO: This method should be replaced by records_json. 
-        Needs change in datasettab.html to create DOM elements using 
+        Needs change in dataset-edit.html to create DOM elements using
         jquery from the delivered JSON
         """
         with db.session_scope() as session:

@@ -4,97 +4,48 @@
     <py:block name="scripts">
         <script>
             //<![CDATA[
+
             function popSelect() {
-                var vt = $('#vtselect').val()
-                var user = $('#userselect').val()
-                var site = $('#siteselect').val()
-                var date = $('#dateselect').val()
-                var type = $('#typeselect').val()
-                var instrument = $('#instrumentselect').val()
-                $.getJSON(odmf_ref('/dataset/attrjson'),
-                        { attribute:'valuetype',
+
+                let options = (data, get_value, get_name) => {
+                    let html = '<option class="firstoption" value="">Please select...</option>\n';
+                    $.each(data, function (index, item) {
+                        html += '<option value="' + get_value(item) + '">' + get_name(item) + '</option>\n';
+                    });
+                    return html
+
+                }
+
+                let vt = $('#vtselect').val()
+                let user = $('#userselect').val()
+                let site = $('#siteselect').val()
+                let date = $('#dateselect').val()
+                let type = $('#typeselect').val()
+                let instrument = $('#instrumentselect').val()
+                let fmt = {
+                    id: x=>x ? x.id : '',
+                    name: x=>x ? x.name : '',
+                    site: x => x ? '#' + x.id + ' (' + x.name + ')' : '#???',
+                    user: x=>x.firstname + ' ' + x.surname,
+                    self: x => x
+                }
+                $.getJSON(
+                        odmf_ref('/dataset/attributes'),
+                        {
+                            valuetype:vt,
                             user:user,
                             site:site,
                             date:date,
                             type:type,
                             instrument:instrument,
                         },
-                        function(data){
-                            var html='<option value="">value type...</option>';
-                            $.each(data,function(index,item){
-                                html+='<option value="'+item.id+'">'+item.name+'</option>';
-                            });
-                            $('#vtselect').html(html).val(vt);
-                        }
-                );
+                        data => {
+                            $('#userselect').html(options(data.measured_by, x=>x.username, fmt.user))
+                            $('#vtselect').html(options(data.valuetype, fmt.id, fmt.name)).val(vt);
+                            $('#siteselect').html(options(data.site, fmt.id, fmt.site)).val(site);
+                            $('#instrumentselect').html(options(data.source, fmt.id, fmt.name)).val(instrument)
+                            $('#typeselect').html(options(data.type, fmt.self, fmt.self)).val(type)
 
-                $.getJSON(odmf_ref('/dataset/attrjson'),
-                        { attribute:'measured_by',
-                            valuetype:vt,
-                            site:site,
-                            date:date,
-                            type:type,
-                            instrument:instrument
-                        },
-                        function(data){
-                            var html='<option value="">measured by user...</option>';
-                            $.each(data,function(index,item){
-                                html+='<option value="'+item.username+'">'+item.firstname+' '+item.surname+'</option>';
-                            });
-                            $('#userselect').html(html).val(user);
-                        }
-                );
-
-                $.getJSON(odmf_ref('/dataset/attrjson'),
-                        { attribute:'site',
-                            valuetype:vt,
-                            user:user,
-                            date:date,
-                            type:type,
-                            instrument:instrument,
-                        },
-                        function(data){
-                            var html='<option value="">site...</option>';
-                            $.each(data,function(index,item){
-                                html+='<option value="'+item.id+'">#'+item.id+' ('+item.name+')</option>';
-                            });
-                            $('#siteselect').html(html).val(site);
-                        }
-                );
-                $.getJSON(odmf_ref('/dataset/attrjson'),
-                        { attribute:'type',
-                            valuetype:vt,
-                            user:user,
-                            date:date,
-                            site:site,
-                            instrument:instrument
-                        },
-                        function(data){
-                            var html='<option value="">type...</option>';
-                            $.each(data,function(index,item){
-                                html+='<option value="'+item+'">'+item+'</option>';
-                            });
-                            $('#typeselect').html(html).val(type);
-                        }
-                );
-                $.getJSON(odmf_ref('/dataset/attrjson'),
-                        { attribute:'source',
-                            valuetype:vt,
-                            user:user,
-                            date:date,
-                            site:site,
-                            type:type
-                        },
-                        function(data){
-                            var html='<option value="">instrument...</option>';
-                            $.each(data,function(index,item){
-                                if (item) {
-                                    html+='<option value="'+item.id+'">'+item.name+'</option>';
-                                } else {
-                                    html+='<option value="null">No instrument</option>';
-                                }
-                            });
-                            $('#instrumentselect').html(html).val(instrument);
                         }
                 );
                 $('#exportrecords').prop('disabled',!(vt && site));
@@ -159,10 +110,10 @@
                     }
                 });
                 $('#goto').change(function(event) {
-                    window.location.href=odmf_ref('/dataset/') + dsid;
+                    window.location.href=odmf_ref('/dataset/') + $('#goto').val();
                 });
                 $('#gotods-btn').click(function() {
-                    window.location.href=odmf_ref('/dataset/') + dsid;
+                    window.location.href=odmf_ref('/dataset/') + $('#goto').val();
                 });
 
                 popSelect();

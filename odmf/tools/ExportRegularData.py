@@ -9,7 +9,6 @@ from traceback import format_exc as traceback
 import sys
 import pandas as pd
 import numpy as np
-import pylab as plt
 import matplotlib.dates
 
 

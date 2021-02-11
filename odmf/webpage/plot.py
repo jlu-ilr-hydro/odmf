@@ -1,51 +1,42 @@
-'''
+"""
 Created on 01.10.2012
 
 @author: philkraf
-'''
+"""
+
 import sys
-import matplotlib
-matplotlib.use('Agg', warn=False)
+# import matplotlib
+# matplotlib.use('Agg')
+
 import codecs
 
 import os
 import pylab as plt
 from matplotlib.ticker import MaxNLocator
-import matplotlib.dates
+import matplotlib.figure
 import numpy as np
+import pandas as pd
 
+from cherrypy.lib.static import serve_fileobj
 
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from io import StringIO
 from io import BytesIO
 
-from pandas import to_datetime
 import json
 from pathlib import Path
-
 from ..config import conf
 from .. import db
 from . import lib as web
 from .auth import group, expose_for, users
 
-t0 = datetime(1, 1, 1)
 nan = np.nan
 
 
 if sys.platform == 'win32':
     matplotlib.rc('font', **{'sans-serif': 'Arial',
                              'family': 'sans-serif'})
-
-
-def date2num(t):
-    """
-    Converts a datetime to a number 
-    """
-    if t is None:
-        return nan
-    else:
-        return (t - t0).total_seconds() / 86400 + 1.0
 
 
 def asdict(obj):
@@ -70,7 +61,6 @@ class PlotError(web.cherrypy.HTTPError):
 
     def get_error_page(self, *args, **kwargs):
         from .lib import render
-        user = users.current
         error = '## Plot object incorrect\n\n' + self.message
         return render('plot.html', error=error).render().encode('utf-8')
 
@@ -80,9 +70,9 @@ class Line:
     Represents a single line of a subplot
     """
 
-    def __init__(self, subplot, valuetypeid, siteid, instrumentid=None, level=None,
+    def __init__(self, subplot, valuetype, site, instrument=None, level=None,
                  color='', marker='', linestyle='',
-                 transformation=None, aggregatefunction='mean'):
+                 transformation=None, aggregatefunction='mean', name=None):
         """
         Create a Line:
         @param subplot: The Subplot to which this line belongs
@@ -98,147 +88,130 @@ class Line:
         self.marker = marker
         self.color = color
         self.linestyle = linestyle
-        session = db.Session()
-        self.valuetype = session.query(db.ValueType).get(
-            int(valuetypeid)) if valuetypeid else None
-        self.site = session.query(db.Site).get(int(siteid)) if siteid else None
-        self.instrument = session.query(db.Datasource).get(
-            int(instrumentid)) if instrumentid else None
+        self.valuetypeid = valuetype
+        self.siteid = site
+        self.instrumentid = instrument
         self.level = level
-        session.close()
         self.transformation = transformation
         self.aggregatefunction = aggregatefunction
+        self.name = name or self.generate_name()
+
+    def generate_name(self):
+        """
+        Generates a name for the line from its meta data
+        """
+        with db.session_scope() as session:
+            instrument = self.instrument(session)
+            valuetype = self.valuetype(session)
+            if instrument:
+                name = '%s at #%i%s using %s' % (valuetype, self.siteid,
+                                                 '(%gm)' % self.level if self.level is not None else '',
+                                                 instrument.name)
+            else:
+                name = '%s at #%i%s' % (valuetype, self.siteid,
+                                        '(%gm)' % self.level if self.level is not None else '')
+            if self.subplot.plot.aggregate:
+                name += ' (%s/%s)' % (self.aggregatefunction,
+                                      self.subplot.plot.aggregate)
+        return name
 
     def getdatasets(self, session):
         """
         Loads the datasets for this line
         """
         userlevel = users.current.level if users.current else 0
-        datasets = session.query(db.Dataset).filter(db.Dataset.valuetype == self.valuetype,
-                                                    db.Dataset.site == self.site,
-                                                    db.Dataset.start <= 10.subplot.plot.enddate,
-                                                    db.Dataset.end >= self.subplot.plot.startdate,
+
+        datasets = session.query(db.Dataset).filter(db.Dataset._valuetype == self.valuetypeid,
+                                                    db.Dataset._site == self.siteid,
+                                                    db.Dataset.start <= self.subplot.plot.end,
+                                                    db.Dataset.end >= self.subplot.plot.start,
                                                     db.Dataset.access <= userlevel
                                                     )
-        if self.instrument:
-            datasets = datasets.filter(db.Dataset.source == self.instrument)
+        if self.instrumentid:
+            datasets = datasets.filter(db.Dataset._source == self.instrumentid)
         if self.level is not None:
             datasets = datasets.filter(db.Dataset.level == self.level)
         return datasets.order_by(db.Dataset.start).all()
 
     def aggregate(self):
-        session = db.Session()
-        error = ''
-        start = self.subplot.plot.startdate
-        end = self.subplot.plot.enddate
-        # Get values from session as a pandas.Series
-        try:
-            datasets = self.getdatasets(session)
-            group = db.DatasetGroup([ds.id for ds in datasets], start, end)
-            series = group.asseries(session)
-        finally:
-            session.close()
-        # Change series.index to datetime64 type
-        t0 = plt.date2num(datetime(1970, 1, 1))
-        series.index = to_datetime((series.index.values - t0), unit='D')
+        series = self.load()
         # Use pandas resample mechanism for aggregation
         aggseries = series.resample(
             self.subplot.plot.aggregate, self.aggregatefunction)
-        # Rip series index and values apart and convert the datetime64 index (in ns) back to matplotlib value
-        t = aggseries.index.values.astype(float) / (24 * 60 * 60 * 1e9) + t0
-        v = aggseries.values
-        return t, v
+        return aggseries
 
-    def load(self, startdate=None, enddate=None):
+    def load(self, start=None, end=None) -> pd.Series:
         """
         Loads the records into an array
         """
+        with db.session_scope() as session:
+            start = start or self.subplot.plot.start
+            end = end or self.subplot.plot.end
+            datasets = self.getdatasets(session)
+            group = db.DatasetGroup([ds.id for ds in datasets], start, end)
+            series = group.asseries(session)
+            series.name = self.name
+
         if self.subplot.plot.aggregate:
-            return self.aggregate()
-        else:
-            session = db.Session()
-            error = ''
-            start = self.subplot.plot.startdate
-            end = self.subplot.plot.enddate
-            try:
-                datasets = self.getdatasets(session)
-                group = db.DatasetGroup([ds.id for ds in datasets], start, end)
-                t, v = group.asarray(session)
-            finally:
-                session.close()
+            sampler = series.resample(self.subplot.plot.aggregate)
+            series = sampler.aggregate(self.aggregatefunction)
 
-            # There were problems with arrays from length 0
-            if len(v) is 0 or len(t) is 0:
-                raise ValueError("No data to compute")
-            return t, v
+        # There were problems with arrays from length 0
+        if series.empty:
+            raise ValueError("No data to compute")
+        return series
 
-    def draw(self, ax, startdate=None, enddate=None):
+    def draw(self, ax, start=None, end=None):
         """
         Draws the line to the matplotlib axis ax
         """
         try:
-            t, v = self.load(startdate, enddate)
+            data = self.load(start, end)
             # Do the plot
-            label = str(self)
             style = dict(color=self.color or 'k',
                          linestyle=self.linestyle, marker=self.marker)
-            ax.plot_date(t, v, label=label, **style)
-        except ValueError:
-            print('Zero-size Array')
+            data.plot.line(**style, ax=ax, label=self.name)
+        except ValueError as e:
+            print(e)
 
-    def export_csv(self, stream, startdate=None, enddate=None):
+    def valuetype(self, session):
+        return session.query(db.ValueType).get(
+            int(self.valuetypeid)) if self.valuetypeid else None
+
+    def site(self, session):
+        return session.query(db.Site).get(int(self.siteid)) if self.siteid else None
+
+    def instrument(self, session):
+        return session.query(db.Datasource).get(
+            int(self.instrumentid)) if self.instrumentid else None
+
+    def export_csv(self, stream, start=None, end=None):
         """
         Exports the line as csv file
         """
-        t, v = self.load(startdate, enddate)
-        # Epoch for excel dates
-        stream.write(codecs.BOM_UTF8.decode())
-        stream.write('Time,' + str(self.valuetype) + '\n')
-        for t, v in zip(matplotlib.dates.num2date(t), v):
-            stream.write('%s,%f\n' % (t.strftime('%Y-%m-%d %H:%M:%S'), v))
-
-    def export_json(self, stream, startdate=None, enddate=None):
-        t, v = self.load(startdate, enddate)
-        # Unix-Epoch
-        t0 = plt.date2num(datetime(1970, 1, 1))
-        # Flot expects ms since epoch -> (t-t0)*24*60*60*1000
-        stream.write('[')
-        for T, V in zip((t - t0) * 24 * 60 * 60 * 1000, v):
-            stream.write('[%f,%f],' % (T, V))
-        stream.write('[null,null]]')
+        data = self.load(start, end)
+        data.to_csv(stream, encoding='utf-8-sig', index_label='time')
 
     def __jdict__(self):
         """
         Returns a dictionary of the line
         """
-        return dict(valuetype=self.valuetype.id if self.valuetype else None,
-                    site=self.site.id if self.site else None,
-                    instrument=self.instrument.id if self.instrument else None,
+        return dict(valuetype=self.valuetypeid or None,
+                    site=self.siteid or None,
+                    instrument=self.instrumentid or None,
                     level=self.level,
                     color=self.color, linestyle=self.linestyle, marker=self.marker,
                     transformation=self.transformation,
-                    aggregatefunction=self.aggregatefunction)
-
+                    aggregatefunction=self.aggregatefunction, name=self.name)
 
     def __str__(self):
         """
         Returns a string representation
         """
-        res = ''
-        if self.instrument:
-            res = '%s at #%i%s using %s' % (self.valuetype, self.site.id,
-                                            '(%gm)' % self.level if self.level is not None else '',
-                                            self.instrument.name)
-        else:
-            res = '%s at #%i%s' % (self.valuetype, self.site.id,
-                                   '(%gm)' % self.level if self.level is not None else '')
-        if self.subplot.plot.aggregate:
-            res += ' (%s/%s)' % (self.aggregatefunction,
-                                 self.subplot.plot.aggregate)
-        return res
+        return self.name
 
     def __repr__(self):
-        return "plot.Line(%s@%s,'%s')" % (self.valuetype, self.site, self.color + self.linestyle + self.marker)
+        return f"plot.Line({self.valuetypeid}@#{self.siteid},'{self.color}{self.linestyle}{self.marker}')"
 
 
 class Subplot:
@@ -246,141 +219,116 @@ class Subplot:
     Represents a subplot of the plot
     """
 
-    def __init__(self, plot, position=1, ylim=None, logsite:int=None, lines=None):
+    def __init__(self, plot, ylim=None, logsite: int=None, lines=None):
         """
         Create the subplot with Plot.addtimeplot
         """
         self.plot = plot
-        self.position = position
-        self.lines = []
-        if lines:
-            for l in lines:
-                self.addline(**l)
+        self.lines = [
+            Line(self, **ldict)
+            for ldict in lines
+        ]
         self.ylim = ylim
         self.logsite = logsite
 
-    def addline(self, valuetype, site, instrument=None, level=None,
-                color='k', linestyle='-', marker='',
-                aggfunc='mean'):
-        """
-        Adds a line to the subplot
-        @param valuetype: the id of a valuetype
-        @param site: the id of a site
-        @param instrument: the id of an instrument (can be omitted)
-        @param color: the color of the line (k,b,g,r,y,m,c)
-        @param linestyle: the line style (-,--,:,-.)
-        @param marker: the marker of the line data points (o,x,+,|,. etc.)
-        @param aggfunc: Type of aggregation function (mean,max,min) 
-        """
-        self.lines.append(Line(self, valuetype=valuetype, site=site, instrument=instrument, level=level,
-                               color=color, linestyle=linestyle, marker=marker,
-                               aggregatefunction=aggfunc))
-        return self
 
-    def get_sites(self):
-        return dict((line.site.id, str(line.site)) for line in self.lines)
-
-    def draw(self, figure):
+    def draw(self, ax: matplotlib.figure.Axes):
         """
         Draws the subplot on a matplotlib figure
         """
-        ax = figure.axes[self.position - 1]
-        plt.sca(ax)
         for l in self.lines:
-            l.draw(ax, self.plot.startdate, self.plot.enddate)
+            l.draw(ax, self.plot.start, self.plot.end)
+
         if self.ylim:
             if np.isfinite(self.ylim[0]):
-                plt.ylim(ymin=self.ylim[0])
+                ax.set_ylim(bottom=self.ylim[0])
             if np.isfinite(self.ylim[1]):
-                plt.ylim(ymax=self.ylim[1])
+                ax.set_ylim(top=self.ylim[1])
 
-        # Show log book entries for the logsite of this subplot
+        with db.session_scope() as session:
 
-        # Get all site-ids of this subplot
-        sites = self.get_sites()
-        # Draw only logs if logsite is a site of the subplot's lines
-        if self.logsite in sites:
-            # open session - trying the new scoped_session
-            with db.session_scope() as session:
+            if self.lines:
+                l = self.lines[0]
+                valuetype = session.query(db.ValueType).get(l.valuetypeid)
+                ax.set_ylabel('%s [%s]' % (valuetype.name, valuetype.unit),
+                           fontsize=self.plot.fontsize(1.2))
+
+            # Show log book entries for the logsite of this subplot
+            # Draw only logs if logsite is a site of the subplot's lines
+            if self.logsite in [l.siteid for l in self.lines]:
+
                 # Get logbook entries for logsite during the plot-time
                 logs = session.query(db.Log).filter_by(_site=self.logsite).filter(
-                    db.Log.time >= self.plot.startdate).filter(db.Log.time <= self.plot.enddate)
+                    db.Log.time >= self.plot.start).filter(db.Log.time <= self.plot.end)
                 # Traverse logs and draw them
                 for log in logs:
-                    x = plt.date2num(log.time)
-                    plt.axvline(x, linestyle='-', color='r',
+                    x = np.datetime64(log.time)
+                    ax.axvline(x, linestyle='-', color='r',
                                 alpha=0.5, linewidth=3)
-                    plt.text(x, plt.ylim()[0], log.type,
-                             ha='left', va='bottom', fontsize=8)
-        plt.xlim(date2num(self.plot.startdate), date2num(self.plot.enddate))
-        plt.xticks(rotation=15)
+                    ax.text(x, plt.ylim()[0], log.type,
+                             ha='left', va='bottom', fontsize=self.plot.fontsize(0.9))
+        ax.set_xlim(self.plot.start, self.plot.end)
+        for xtl in ax.get_xticklabels():
+            xtl.set_rotation(15)
         ax.yaxis.set_major_locator(MaxNLocator(prune='upper'))
-        ax.tick_params(axis='both', which='major', labelsize=8)
+        ax.tick_params(axis='both', which='major', labelsize=self.plot.fontsize(1.1))
 
         ax.grid()
-        ax.legend(loc=0, prop=dict(size=9))
-        if self.lines:
-            l = self.lines[0]
-            plt.ylabel('%s [%s]' % (l.valuetype.name, l.valuetype.unit),
-                       fontsize=self.plot.args.get('ylabelfs', 'small'))
+        ax.legend(loc=0, prop=dict(size=self.plot.fontsize(1)))
 
     def __jdict__(self):
         """
         Returns a dictionary with the properties of this plot
         """
         return dict(lines=asdict(self.lines),
-                    ylim=self.ylim, position=self.position,
-                    logsite=self.logsite)
+                    ylim=self.ylim, logsite=self.logsite)
 
 
-
-class Plot(object):
+class Plot:
     """
     Represents a full plot (matplotlib figure)
     """
 
-    def __init__(self, size=(600, 480), columns=1, startdate=None, enddate=None, **kwargs):
+    def __init__(self, height=None, width=None, columns=None, start=None, end=None, **kwargs):
         """
         @param size: A tuple (width,height), the size of the plot in inches (with 100dpi)
         @param columns: number of subplot columns
-        @param startdate: Date for the beginning x axis
-        @param enddate: Date of the end of the x axis 
+        @param start: Date for the beginning x axis
+        @param end: Date of the end of the x axis
         """
-        self.startdate = startdate or datetime.today() - timedelta(days=365)
-        self.enddate = enddate or datetime.today()
-        self.size = size
-        self.columns = columns
+        self.start = start or datetime.today() - timedelta(days=365)
+        self.end = end or datetime.today()
+        self.size = (width or 640, height or 480)
+        self.columns = columns or 1
         self.subplots = []
         self.name = kwargs.pop('name', '')
-        self.aggregate = kwargs.pop('description', '')
+        self.aggregate = kwargs.pop('aggregate', '')
         self.description = kwargs.pop('description', '')
-        self.subplots = []
-        subplts = kwargs.pop('subplots', [])
-        for i, sp in enumerate(subplts):
-            self.addtimeplot(i + 1, **sp)
+        self.subplots = [
+            Subplot(self, **spargs)
+            for i, spargs in enumerate(kwargs.pop('subplots', []))
+        ]
 
         self.args = kwargs
 
+    def fontsize(self, em):
+        """
+        Returns the fontsize relative to the figure height. 1 em equals 1/60 of the height
+        """
+        return em * self.size[1] / 60
 
-    def addtimeplot(self):
-        """
-        Adds a new subplot to the plot
-        """
-        sp = Subplot(self, len(self.subplots) + 1)
-        self.subplots.append(sp)
-        return sp
 
-    def draw(self):
+    def draw(self) -> matplotlib.figure.Figure:
         """
-        Draws the plot and returns the png file as a string
+        Draws the plot and returns the matplotlib.Figure object with the populated figure
         """
         # calc. number of rows with ceiling division (https://stackoverflow.com/a/17511341/3032680)
         rows = -(-len(self.subplots) // self.columns)
         size_inch = self.size[0] / 100.0, self.size[1] / 100.0
-        fig, axes = plt.subplots(ncols=self.columns, nrows=rows,
+        fig, axes = plt.subplots(ncols=self.columns, nrows=rows, squeeze=False,
                                  figsize=size_inch, dpi=100, sharex='all')
-        for sp in self.subplots:
-            sp.draw(fig)
+        for sp, ax in zip(self.subplots, axes.ravel()):
+            sp.draw(ax)
         fig.subplots_adjust(top=0.975, bottom=0.1, hspace=0.0)
         return fig
 
@@ -400,18 +348,20 @@ class Plot(object):
         """
         Creates a dictionary with all properties of the plot, the subplots and their lines
         """
-        return dict(size=self.size, columns=self.columns,
-                    startdate=self.startdate, enddate=self.enddate,
+        return dict(width=self.size[0], height=self.size[1], columns=self.columns,
+                    start=self.start, end=self.end,
                     subplots=asdict(self.subplots),
                     aggregate=self.aggregate,
                     description=self.description)
 
-    def save(self, fn):
+    def save(self, fn='~/default.plot'):
         d = asdict(self)
-        try:
-            self.absfilename(fn).write_text(web.as_json(d))
-        except:
-            raise PlotError(traceback())
+        if not '/' in fn:
+            fn = '~/' + fn
+        p = self.absfilename(fn)
+        if not p.parent.exists():
+            p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(web.as_json(d))
 
     @classmethod
     def load(cls, fn):
@@ -423,8 +373,8 @@ class Plot(object):
     def listdir(cls):
 
         return [
-            fn.name.replace(web.user() + '.', '').replace('.plot', '')
-            for fn in cls.absfilename().glob(f'{web.user()}.*.plot')
+            fn.name.replace('.plot', '')
+            for fn in cls.absfilename('~/').glob('*.plot')
         ]
 
     @classmethod
@@ -433,18 +383,12 @@ class Plot(object):
         if path.exists():
             path.unlink()
         else:
-            raise PlotError("File %s does not exist" % fn)
+            raise IOError("File %s does not exist" % fn)
 
     @classmethod
-    def absfilename(cls, fn: str=None)->Path:
-        username = web.user() or 'nologin'
-        plot_dir = os.path.join(conf.datafiles, username, 'plots')
-        os.makedirs(plot_dir, exist_ok=True)
-
-        if fn:
-            return Path( f'{plot_dir}/{fn}.plot').absolute()
-        else:
-            return Path( f'{plot_dir}/{fn}.plot').absolute()
+    def absfilename(cls, fn: str='~/')->Path:
+        fn = fn.replace('~/', f'{web.user() or "guest"}/plots/')
+        return conf.abspath(conf.datafiles) / fn
 
 
 plotgroup = group.logger
@@ -453,8 +397,46 @@ plotgroup = group.logger
 class PlotPage(object):
 
     @expose_for(plotgroup)
-    def index(self, valuetype=None, site=None, error=''):
-        plot = Plot()
+    def index(self, f=None, j=None, error=''):
+        """
+        Shows the plot page
+
+        Parameters
+        ----------
+        f
+            Filename to a plot file
+        j
+            JSON text representation of a plot
+        error
+            an error message
+
+        Returns
+        -------
+            Plot page
+        """
+        error = ''
+        if not j:
+            try:
+                if f:
+                    j = Plot.absfilename(f).read_text()
+                else:
+                    p = Plot.absfilename('~/default.plot')
+                    if p.exists():
+                        j = Plot.absfilename('~/default.plot').read_text()
+                    else:
+                        j = '{}'
+            except IOError as e:
+                error = str(e)
+                j = '{}'
+        try:
+            jplot = json.loads(j)
+        except json.JSONDecodeError as e:
+            error = '\n'.join(f'{i:3} | {l}' for i, l in enumerate(j.split('\n'))) + f'\n\n {e}'
+            plot = Plot()
+        else:
+            plot = Plot(**jplot)
+            plot.save('~/default.plot')
+
         return web.render('plot.html', plot=plot, error=error).render()
 
     @expose_for(plotgroup)
@@ -493,91 +475,57 @@ class PlotPage(object):
     @expose_for(plotgroup)
     @web.method.post
     @web.json_in()
-    def image_d3(self, **kwargs):
+    def figure(self, **kwargs):
         """
-        Creates html code with the plot as a d3 object using https://pypi.org/project/mpld3/
+        POST: Creates html code with the plot
 
-        Usage: $.post(odmf_ref('/plot/image.d3'), plot)
+        Usage: $.post(odmf_ref('/plot/figure'), plot)
                 .done($('#plot').html(result))
                 .fail(seterror)
         """
         plot_data = web.cherrypy.request.json
         plot = Plot(**plot_data)
-        from mpld3 import fig_to_html
+        plot.save()
         fig = plot.draw()
-        html = fig_to_html(fig)
-        return html.encode('utf-8')
+        import io
+        buf = io.BytesIO()
+        fig.savefig(buf, format='svg')
+        html = buf.getvalue()
+        return html
 
     @expose_for(plotgroup)
     @web.method.post
-    @web.json_in()
-    @web.mime.png
-    def image_png(self, **kwargs):
-        plot: Plot = Plot(**web.cherrypy.request.json)
-        return plot.to_image('png')
+    def image(self, format, plot):
+        web.mime.set(format)
+        plot_dict = web.json.loads(plot)
+        plot: Plot = Plot(**plot_dict)
+        return plot.to_image(format)
 
-    @expose_for(plotgroup)
-    @web.method.post
-    @web.json_in()
-    @web.mime.pdf
-    def image_pdf(self, **kwargs):
-        plot: Plot = Plot(**web.cherrypy.request.json)
-        return plot.to_image('pdf')
-
-    @expose_for(plotgroup)
-    @web.method.post
-    @web.json_in()
-    @web.mime.svg
-    def image_svg(self, **kwargs):
-        plot: Plot = Plot(**web.cherrypy.request.json)
-        return plot.to_image('svg')
-
-    @expose_for(plotgroup)
-    @web.method.post
-    @web.json_in()
-    @web.mime.tif
-    def image_svg(self, **kwargs):
-        plot: Plot = Plot(**web.cherrypy.request.json)
-        return plot.to_image('tif')
-
-    @expose_for(plotgroup)
-    @web.method.post
-    @web.json_in()
-    @web.mime.jpg
-    def image_jpg(self, **kwargs):
-        plot: Plot = Plot(**web.cherrypy.request.json)
-        return plot.to_image('jpg')
 
     @expose_for(plotgroup)
     @web.mime.json
-    def linedatasets_json(self, subplot, line):
-        plot: Plot = Plot(**web.cherrypy.request.json)
+    def linedatasets_json(self, subplot, line, plot):
+        plot_dict = web.json.loads(plot)
+        plot: Plot = Plot(**plot_dict)
         line = plot.subplots[int(subplot) - 1].lines[int(line)]
         with db.session_scope() as session:
             datasets = line.getdatasets(session)
             return web.json_out(datasets)
 
     @expose_for(plotgroup)
-    @web.mime.csv
-    def export_csv(self, subplot, line):
-        plot: Plot = Plot(**web.cherrypy.request.json)
+    @web.method.post
+    def export_csv(self, plot, subplot, line):
+        # jplot, sp_no, line_no = web.cherrypy.request.json
+        jplot = json.loads(plot)
+        plot: Plot = Plot(**jplot)
         sp = plot.subplots[int(subplot) - 1]
         line = sp.lines[int(line)]
+        filename = ''.join(c if (c.isalnum() or c in '.-_') else '_' for c in line.name) + '.csv'
         io = StringIO()
-        line.export_csv(io, plot.startdate, plot.enddate)
+        line.export_csv(io, plot.start, plot.end)
         io.seek(0)
-        return io
+        return serve_fileobj(io, str(web.mime.csv), 'attachment', filename)
 
-    @expose_for(plotgroup)
-    @web.mime.csv
-    def export_json(self, subplot, line):
-        plot: Plot = Plot(**web.cherrypy.request.json)
-        sp = plot.subplots[int(subplot) - 1]
-        line = sp.lines[int(line)]
-        io = StringIO()
-        line.export_json(io, plot.startdate, plot.enddate)
-        io.seek(0)
-        return io
 
     @expose_for(plotgroup)
     @web.mime.csv
@@ -589,7 +537,8 @@ class PlotPage(object):
         stream = StringIO()
         from ..tools.exportdatasets import exportLines
         exportLines(stream, lines, web.conv(float, tolerance, 60))
-        return stream.getvalue()
+        stream.seek(0)
+        return serve_fileobj(stream)
 
     @expose_for(plotgroup)
     @web.mime.csv
@@ -606,7 +555,7 @@ class PlotPage(object):
         from ..tools.ExportRegularData import createPandaDfs
         # explicit decode() for byte to string
         stream.write(codecs.BOM_UTF8.decode())
-        createPandaDfs(lines, plot.startdate, plot.enddate, stream,
+        createPandaDfs(lines, plot.start, plot.end, stream,
                        interpolationtime=interpolation, tolerance=float(tolerance))
         return stream.getvalue()
 

@@ -32,6 +32,8 @@ sudo apt -y install openmpi-bin openmpi-common \
                     openssh-client openssh-server \
                     libopenmpi-dbg libopenmpi-devsudo
 
+# set timeserver
+sudo sed -i 's|#NTP=|NTP=ntp2.uni-giessen.de|' /etc/systemd/timesyncd.conf
 
 # install apache2
 sudo apt -y install apache2
@@ -44,9 +46,6 @@ sudo apt -y install certbot python-certbot-apache
 
 sudo apt -y install postgresql pgcli
 
-sudo apt -y install chrony
-# install Remote-Desktop Connection
-# sudo apt -y install xrdp
 
 # install software to mount Windows shared folders
 sudo apt -y install cifs-utils

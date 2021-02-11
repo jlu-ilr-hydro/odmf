@@ -2,8 +2,8 @@ import cherrypy
 
 from .. import lib as web
 from ...config import conf
-from ..auth import users, group, expose_for
-from ..upload import write_to_file
+from ..auth import group, expose_for
+from odmf.webpage.filemanager.upload import write_to_file
 
 import os
 from traceback import format_exc as traceback
@@ -60,7 +60,7 @@ class AdminPage(object):
             cherrypy.response.status = 400
             raise cherrypy.HTTPError(status=400, message='Bad Request')
 
-        if error is '':
+        if not error:
             msg = 'Successfully uploaded image. Reload page to view results'
             raise web.redirect(conf.root_url + '/admin', msg=msg)
         else:

@@ -32,9 +32,6 @@
                 }
 
             }
-            function showconfig(href) {
-                $('#configtext').load(href).slideToggle();
-            }
             function submitform() {
                 document.forms[0].submit();
             }
@@ -65,11 +62,19 @@
     </py:block>
     <py:block name="sidebar">
         <a href="${conf.root_url}/download/${dirlink}">back to download...</a>
-        <h3>Import specifications</h3>
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title">Import configuration</h3>
+                <button class="btn btn-secondary" data-toggle="collapse" data-target="#config-content">${config.filename}</button>
+                <div class="card-text" id="config-content" py:content="markdown(config.to_markdown())"></div>
+            </div>
+
+        </div>
+
     </py:block>
     <py:block name="content">
         <div class="container">
-            <div class="alert bg-danger text-white mt-3" role="alert" py:if="error">
+            <div class="alert bg-danger text-white mt-3" role="alert" py:if="defined('error') and error">
                 <div class="row">
                     <div class="col-lg-1">
                         <i class="fas fa-exclamation-circle fa-3x"/>
@@ -80,7 +85,7 @@
                 </div>
             </div>
 
-            <div class="alert alert-success mt-3" role="alert" py:if="defined('message')" >
+            <div class="alert alert-success mt-3" role="alert" py:if="defined('message') and message" >
                 <div class="row">
                     <div class="col-lg-1">
                         <i class="fas fa-info-circle fa-3x"/>
@@ -96,81 +101,102 @@
     filename
     stats
      -->
+            <div class="card m-2">
+                <div class="card-body">
+                    <form action="${conf.root_url}/download/to_db/submit_config" method="post">
+                        <div class="container">
+                            <div class="form-group row">
+                                <label for="filename" class="col-sm-2 col-form-label card-title">
+                                    File for upload:
+                                </label>
 
-            <form action="${conf.root_url}/download/to_db/do_import" method="post">
-                <div>
-                    <div class="form-group row">
-                        <label for="filename" class="col-sm-2 col-form-label">
-                            File for upload:
-                        </label>
+                                <input type="text" id="filename" name="filename"
+                                       value="${filename}" size="50"  class="form-control-plaintext h3 col-sm-10" />
 
-                        <input type="text" id="filename" name="filename"
-                               value="${filename}" size="50"  class="form-control-plaintext h3 col-sm-10" />
+                            </div>
+                            <div class="form-group row">
+                                <label for="siteselect" class="col-sm-2 col-form-label">
+                                    Site:
+                                </label>
+
+                                <select id="siteselect" name="siteid" class="form-control col-sm-10"/>
+
+                            </div>
+                            <div class="form-group row startend">
+                                <label for="" class="col-sm-2 col-form-label">
+                                    Start date:
+                                </label>
+
+                                <input name="startdate" id="startdate" type="date" class="form-control col-sm-10"
+                                       value="${formatdatetime(startdate, '%Y-%m-%d')}"/>
+
+                            </div>
+                            <div class="form-group row startend">
+                                <label for="enddate" class="col-sm-2 col-form-label">
+                                    End date:
+                                </label>
+                                <input name="enddate" id="enddate" type="date" class="form-control col-sm-10"
+                                       value="${formatdatetime(enddate, '%Y-%m-%d')}"/>
+                            </div>
+                        </div>
+                        <div class="container">
+                            <a href="#datasets" class="dropdown-toggle h3" data-toggle="collapse">Similar datasets</a>
+                            <ul id="datasets" class="collapse list-group" >
+                                <li class="list-group-item">No datasets loaded</li>
+                            </ul>
+                            <div>
+                                <h3>Statistics for ${filename}</h3>
+                                <table id="statistics" class="table">
+                                    <tr >
+                                        <th>item</th><th>Mean</th><th>Min</th><th>Max</th><th>n</th><th>N/A values</th><th>start</th><th>end</th>
+                                    </tr>
+                                    <tr py:for="k,item in stats.items()">
+                                        <td py:content="k" />
+                                        <td py:content="formatfloat(item.get('mean'), '%g')" />
+                                        <td py:content="formatfloat(item.get('min'), '%g')" />
+                                        <td py:content="formatfloat(item.get('max'), '%g')" />
+                                        <td py:content="item.get('n', 'N/A')" />
+                                        <td py:content="item.get('n_out_of_range', 'N/A')" />
+                                        <td py:content="formatdatetime(item.get('start', 'N/A'))" />
+                                        <td py:content="formatdatetime(item.get('end', 'N/A'))" />
+                                    </tr>
+                                </table>
+                            </div>
+                            <input id="importdb" type="submit" value="start import" disabled="disabled"
+                                   class="btn btn-primary col-sm-2" />
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="card m-2">
+                <div class="card-body p-2">
+                    <h3 class="card-title">Data</h3>
+                    <div class="card-text">
+                        <button class="btn btn-secondary mr-2" data-toggle="collapse" data-target="#data-raw">
+                            <i class="fas fa-file"/> show raw content
+                        </button>
+                        <button class="btn btn-secondary mr-2" data-toggle="collapse" data-target="#data-table">
+                            <i class="fas fa-table"/> show table
+                        </button>
+                        <button class="btn btn-secondary mr-2" data-toggle="collapse" data-target="#plots">
+                            <i class="fas fa-chart-line"/> show plots
+                        </button>
 
                     </div>
-                    <div class="form-group row">
-                        <label for="instrument" class="col-sm-2 col-form-label">
-                            Adapter:
-                        </label>
-
-                        <div py:if="config">
-                            <a href="javascript:showconfig('${config.href}')" py:content="config.href" />
-                            <div class="small">
-                                Please check the configuration. Copy the fitting .conf file to the directory of the file!
-                            </div>
-                            <div class="collapse code" id="configtext" />
+                    <div class="card-text collapse" id="data-table" py:content="literal(table)"></div>
+                    <div class="card-text collapse" id="data-raw">
+                        <pre py:content="rawcontent" />
+                    </div>
+                    <div id="plots" class="collapse card-text">
+                        <div py:for="col in plots" >
+                            <h5 py:content="col"/>
+                            <div py:content="literal(plots[col])" />
                         </div>
                     </div>
-                    <div class="form-group row">
-                        <label for="siteselect" class="col-sm-2 col-form-label">
-                            Site:
-                        </label>
-
-                        <select id="siteselect" name="siteid" class="form-control col-sm-10"/>
-
-                    </div>
-                    <div class="form-group row startend">
-                        <label for="" class="col-sm-2 col-form-label">
-                            Start date:
-                        </label>
-
-                        <input name="startdate" id="startdate" type="date" class="form-control col-sm-10"
-                               value="${formatdatetime(startdate, '%Y-%m-%d')}"/>
-
-                    </div>
-                    <div class="form-group row startend">
-                        <label for="enddate" class="col-sm-2 col-form-label">
-                            End date:
-                        </label>
-                        <input name="enddate" id="enddate" type="date" class="form-control col-sm-10"
-                               value="${formatdatetime(enddate, '%Y-%m-%d')}"/>
-                    </div>
                 </div>
 
-                <a href="#datasets" class="dropdown-toggle h3" data-toggle="collapse">Similar datasets</a>
-                <ul id="datasets" class="collapse list-group" >
-                    <li class="list-group-item">No datasets loaded</li>
-                </ul>
-                <div>
-                    <h3>Statistics for ${filename}</h3>
-                    <table id="statistics" class="table">
-                        <tr >
-                            <th>item</th><th>Mean</th><th>Min</th><th>Max</th><th>n</th><th>start</th><th>end</th>
-                        </tr>
-                        <tr py:for="k,item in stats.items()">
-                            <td py:content="k" />
-                            <td py:content="('%g' % item.mean) if item.n else 'N/A'" />
-                            <td py:content="'%g' % item.min" />
-                            <td py:content="'%g' % item.max" />
-                            <td py:content="'%i' % item.n" />
-                            <td py:content="formatdatetime(item.start)" />
-                            <td py:content="formatdatetime(item.end)" />
-                        </tr>
-                    </table>
-                </div>
-                <input id="importdb" type="submit" value="start import" disabled="disabled"
-                       class="form-control col-sm-2" />
-            </form>
+            </div>
 
         </div>
 

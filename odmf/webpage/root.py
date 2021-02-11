@@ -1,6 +1,3 @@
-import cherrypy
-import json
-
 from .. import prefix
 from . import lib as web
 from .auth import users, group, expose_for
@@ -12,7 +9,7 @@ from datetime import datetime, timedelta
 from . import collaboration as cll
 from . import db_editor as dbe
 from . import map
-from . import upload
+from .filemanager import upload
 from .preferences import Preferences
 from . import plot
 from . import api

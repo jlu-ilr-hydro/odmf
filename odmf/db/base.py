@@ -15,19 +15,10 @@ from ..config import conf
 
 from contextlib import contextmanager
 from logging import info
+from functools import total_ordering
 
-
-def abspath(fn):
-    "Returns the absolute path to the relative filename fn"
-    basepath = op.abspath(op.dirname(__file__))
-    normpath = op.normpath(fn)
-    return op.join(basepath, normpath)
-
-
-def newid(cls, session=None):
+def newid(cls, session):
     """Creates a new id for all mapped classes with an field called id, which is of integer type"""
-    if not session:
-        session = Session()
     max_id = session.query(sql.func.max(cls.id)).select_from(cls).scalar()
     if max_id is not None:
         return max_id + 1
@@ -80,7 +71,7 @@ def table(obj) -> sql.Table:
     except AttributeError:
         raise TypeError(f'{obj!r} is not a mapper class')
 
-
+@total_ordering
 class Base(object):
     """Hooks into SQLAlchemy's magic to make :meth:`__repr__`s."""
 
@@ -99,6 +90,19 @@ class Base(object):
         args = ', '.join(formats(reprs()))
         classy = type(self).__name__
         return f'{classy}({args})'
+
+    def __lt__(self, other):
+        if isinstance(other, type(self)) and hasattr('id', self):
+            return self.id < other.id
+        else:
+            raise TypeError(
+                f'\'<\' not supported between instances of {self.__class__.__name__} and {other.__class__.__name__}')
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+    def __hash__(self):
+        return hash(repr(self.__class__.__name__))
 
     def session(self):
         return Session.object_session(self)

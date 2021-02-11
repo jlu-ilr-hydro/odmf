@@ -294,7 +294,7 @@ class API(BaseAPI):
     @expose_for()
     @web.method.post
     @web.mime.plain
-    def login(self, username=None, password=None):
+    def login(self, **data):
         """
         Login for the web app (including API)
 
@@ -303,7 +303,13 @@ class API(BaseAPI):
 
         returns Status 200 on success
         """
-        error = users.login(username, password)
+        if not data:
+            req = cherrypy.request
+            cl = req.headers['Content-Length']
+            body = req.body.read(int(cl))
+            data = dict(item.split('=') for item in body.decode('utf-8').split('&'))
+
+        error = users.login(data['username'], data['password'])
         if error:
             cherrypy.response.status = 401
             return 'Username or password wrong'.encode('utf-8')

@@ -16,11 +16,11 @@ import pytz
 from pandas import Series
 
 import importlib
-import inspect
 
 import numpy as np
 from ..config import conf
-
+from logging import getLogger
+logger = getLogger(__name__)
 
 tzberlin = pytz.timezone('Europe/Berlin')
 tzwinter = pytz.FixedOffset(60)
@@ -60,7 +60,7 @@ class ValueType(Base):
     maxvalue = sql.Column(sql.Float)
 
     def __str__(self):
-        return f'{self.name} [{self.unit}]'
+        return f'{self.name} [{self.unit}] ({self.id})'
 
     def __eq__(self, other):
         return str(self.id).upper() == str(other).upper()
@@ -149,17 +149,10 @@ class Dataset(Base):
                          nullable=True)
 
     def __str__(self):
-        return ('ds%(id)03i: %(valuetype)s at site #%(site)s %(level)s with %(instrument)s (%(start)s-%(end)s)' %
-                dict(id=self.id,
-                     start=self.start.strftime(
-                         '%d.%m.%Y') if self.start else '?',
-                     end=self.end.strftime('%d.%m.%Y') if self.end else '?',
-                     site=self.site.id if self.site else '',
-                     instrument=self.source if self.source else None,
-                     valuetype=self.valuetype.name if self.valuetype else '',
-                     level=('%g m offset' %
-                            self.level) if self.level is not None else '',
-                     ))
+        site = self.site.id if self.site else ''
+        level = f'{self.level:g} m offset' if self.level is not None else ''
+        return (f'ds{self.id or -999:04d}: {self.valuetype} at #{site} {level} with {self.source} ' 
+                f'({self.start or "?"} - {self.end or "?"})').replace("'", r"\'")
 
     def __jdict__(self):
         return dict(id=self.id,
@@ -224,25 +217,22 @@ class Dataset(Base):
                    project=self.project,
                    timezone=self.timezone)
 
-    def asarray(self, start=None, end=None):
-        raise NotImplementedError(
-            '%s(type=%s) - data set can not return values with "asarray". Is the type correct?' % (self, self.type))
-
     def size(self):
         return 0
 
     def statistics(self):
         """Calculates mean, stddev and number of records for this data set
         """
-        t, v = self.asarray()
-        if len(v) == 0:
+        s = self.asseries()
+        if len(s) == 0:
             return 0.0, 0.0, 0
         else:
-            return np.mean(v), np.std(v), len(v)
+            return np.mean(s), np.std(s), len(s)
 
     def iterrecords(self, witherrors=False):
         raise NotImplementedError(
-            '%s(type=%s) - data set has no records to iterate. Is the type correct?' % (self, self.type))
+            f'{self}(type={self.type}) - data set has no records to iterate. Is the type correct?'
+        )
 
 
 def removedataset(*args):
@@ -259,7 +249,7 @@ def removedataset(*args):
             reccount = 0
         session.delete(ds)
         session.commit()
-        print("Deleted ds%03i and %i records" % (dsid, reccount))
+        logger.info(f"Deleted ds{dsid:04i} and {reccount} records")
 
 
 class MemRecord(object):
@@ -291,7 +281,7 @@ class Record(Base):
     is_error: if True, the record is marked as error and is not used for analysis
     """
     __tablename__ = 'record'
-    id = sql.Column(sql.Integer, primary_key=True)
+    id = sql.Column(sql.Integer, primary_key=True, autoincrement=True)
     _dataset = sql.Column("dataset", sql.Integer,
                           sql.ForeignKey('dataset.id'), primary_key=True)
     dataset = orm.relationship("Timeseries", backref=orm.backref(
@@ -316,8 +306,7 @@ class Record(Base):
             return None
 
     def __str__(self):
-        return "%s[%i] = %g %s" % (self.dataset.name, self.id,
-                                   self.value, self.dataset.valuetype.unit)
+        return f'{self.dataset.name}[{self.id}] = {self.value} {self.dataset.valuetype.unit}'
 
     @classmethod
     def query(cls, session):
@@ -353,12 +342,11 @@ class Timeseries(Dataset):
             sql.desc(Record.time)).first()
         if not next or not last:
             raise RuntimeError(
-                "Split time %s is not between two records of %s" % (time, self))
-        self.comment = str(
-            self.comment) + 'Dataset is splitted at %s to allow for different calibration' % time
+                f'Split time {time} is not between two records of {self}')
+        self.comment = f'{self.comment} Dataset is splitted at {time} to allow for different calibration'
         dsnew = self.copy(id=newid(Dataset, session))
-        self.comment += '. Other part of the dataset is ds%03i\n' % dsnew.id
-        dsnew.comment += '. Other part of the dataset is ds%03i\n' % self.id
+        self.comment += f'. Other part of the dataset is ds{dsnew.id}\n'
+        dsnew.comment += f'. Other part of the dataset is ds{self.id}\n'
         self.end = last.time
         dsnew.start = next.time
         records = self.records.filter(Record.time >= next.time)
@@ -405,7 +393,7 @@ class Timeseries(Dataset):
         elif last:
             return last.value, (time - last.time).total_seconds()
         else:
-            raise RuntimeError('%s has no records' % self)
+            raise RuntimeError(f'{self} has no records')
 
     def calibratevalue(self, value):
         """Calibrates a value
@@ -418,9 +406,7 @@ class Timeseries(Dataset):
     def maxrecordid(self):
         """Finds the highest record id for this dataset"""
         session = self.session()
-        q = session.query(sql.func.max(Record.id)).select_from(Record)
-        q = q.filter_by(dataset=self).scalar()
-        return q if q is not None else 1
+        return session.query(sql.func.max(Record.id)).filter_by(_dataset=self.id).scalar() or 0
 
     def addrecord(self, Id=None, value=None, time=None, comment=None, sample=None):
         """Adds a record to the dataset
@@ -431,20 +417,19 @@ class Timeseries(Dataset):
         """
         value = float(value)
         session = self.session()
-        # After perfomance issues with maxrecordid, TODO: delete this
-        # if Id is None:
-        #maxid = self.maxrecordid()
-        #Id = record_id_seq.next_value()
-        # Id=maxid+1
+
         if time is None:
             time = datetime.now()
+
         if (not self.valuetype.inrange(value)):
-            raise ValueError('RECORD does not fit VALUETYPE: %(v)g %(u)s is out of range for %(vt)s'
-                             % dict(v=value, u=self.valuetype.unit, vt=self.valuetype.name))
+            raise ValueError(f'RECORD does not fit VALUETYPE: {value:g} {self.valuetype.unit} is out of '
+                             f'range for {self.valuetype.name}')
         if not (self.start <= time <= self.end):
-            raise ValueError('RECORD does not fit DATASET: You tried to insert a record for date %s ' +
-                             'to dataset %s, which allows only records between %s and %s'
-                             % (time, self, self.start, self.end))
+            raise ValueError(
+                f'RECORD does not fit DATASET: You tried to insert a record for date {time} ' 
+                f'to dataset {self}, which allows only records between {self.start} and {self.end}'
+            )
+
         result = Record(time=time, value=value, dataset=self,
                         comment=comment, sample=sample)
         session.add(result)
@@ -454,41 +439,26 @@ class Timeseries(Dataset):
         """
         Adjusts the start and end properties to match the timespan of the records
         """
-        session = self.session()
-        session.query
+        Q = self.session().query
+        self.start = min(Q(sql.func.min(Record.time)).filter_by(_dataset=self.id).scalar(), self.start)
+        self.end = max(Q(sql.func.max(Record.time)).filter_by(_dataset=self.id).scalar(), self.end)
 
-    def asarray(self, start=None, end=None):
-        session = self.session()
-        records = session.query(Record).filter(Record._dataset == self.id)
-        records = records.order_by(Record.time).filter(~Record.is_error)
+    def asseries(self, start: datetime=None, end: datetime=None)->Series:
+        """
+        Loads the values of the timeseries dataset as a pandas series
+        """
+        import pandas as pd
+        records = self.records.filter_by(_dataset=self.id).filter(~Record.is_error).order_by(Record.time)
         if start:
             records = records.filter(Record.time >= start)
         if end:
             records = records.filter(Record.time <= end)
-        tz_local = self.tzinfo
-        t0 = tzwinter.localize(datetime(1, 1, 1))
-
-        def date2num(t):
-            return (t - t0).total_seconds() / 86400 + 1.0
-
-        def r2c(records):
-            for r in records:
-                if not r[0] is None:
-                    yield r[0], date2num(tz_local.localize(r[1]))
-                elif r[1]:
-                    yield np.log(-1), date2num(tz_local.localize(r[1]))
-
-        t = np.zeros(shape=records.count(), dtype=float)
-        v = np.zeros(shape=records.count(), dtype=float)
-        for i, r in enumerate(r2c(records.values('value', 'time'))):
-            v[i], t[i] = r
-        v *= self.calibration_slope
-        v += self.calibration_offset
-        return t, v
-
-    def asseries(self, start=None, end=None):
-        t, v = self.asarray(start, end)
-        return Series(v, index=t)
+        # Make a query iterator with only the fields needed
+        q_it = records.values('time', 'value')
+        df = pd.DataFrame(q_it)
+        df.index = df.time
+        # Do calibration
+        return self.calibration_slope * df.value + self.calibration_offset
 
     def size(self):
         return self.records.count()
@@ -539,15 +509,11 @@ class TransformedTimeseries(Dataset):
             pass
         else:
             for src in datasets:
-                t, v = src.asarray(start, end)
+                v = src.asseries(start, end)
                 v = self.transform(v)
-                data = data.append(Series(v, index=t))
+                data = data.append(v)
             data = data.sort_index()
         return data
-
-    def asarray(self, start=None, end=None):
-        data = self.asseries(start, end)
-        return np.array(data.index, dtype=float), np.array(data, dtype=float)
 
     def updatetime(self):
         self.start = min(ds.start for ds in self.sources)
@@ -603,10 +569,6 @@ class DatasetGroup(object):
             data = data.append(s)
         return data.sort_index()
 
-    def asarray(self, session):
-        data = self.asseries(session)
-        return np.array(data.index, dtype=float), np.array(data, dtype=float)
-
     def iterrecords(self, session, witherrors):
         datasets = self.datasets(session)
         for ds in datasets:
@@ -614,45 +576,16 @@ class DatasetGroup(object):
                 yield r
 
 
-class Transformation(object):
+class DatasetItemGetter:
     """
-    The transformation object transforms multiple valuetypes together for a new result
+    Helper class for interactive session for simple dataset access
 
-    the content is defined in a plugin module with a list of tuples 'variables'
-    and a function f getting t (time) as the first argument and the variables in the variable list
-    as the next argument. See plugin.transformation.example module as an example
+    dsg = DatasetItemGetter(session)
+    ds0 = dsg[0]
     """
 
-    def __init__(self, modulename):
-        # Make sure the cache is cleaned, importlib.invalidate_cache in python3
-        # For python2 use imp.find_module & imp.load_module
-        module = importlib.import_module(modulename)
-        self.variables = getattr(module, 'variables')
-        self.f = getattr(module, 'f')
-        # Check if variables and function signature fit together
-        assert '|'.join(inspect.getargspec(self.f).args) == '|'.join(
-            ['t'] + [v[0] for v in self.variables])
-        self.doc = inspect.getdoc(module)
+    def __init__(self, session):
+        self.session = session
 
-    def calculate(self, datasets, start, end):
-        """
-        Loops through the first variable
-        :param datasets:
-        :return: A panda timeseries with the right data
-        """
-
-        # make for each variable a datasetgroup from the datasets
-        variables = {v: DatasetGroup([ds.id for ds in datasets if ds.valuetype.id == vt],
-                                     start=start,
-                                     end=end)
-                     for v, vt in self.variables}
-        # Load the master timeseries
-        dsg0 = variables[self.variables[0]].asseries()
-        series_out = Series()
-        # Load all variables as series
-        for v, vt in self.variables:
-            dsg = variables[v]
-            # interpolate is not the right choice, but something similar
-            #values = [ds.interpolate(t1) for ds in self.datasets]
-            #series_out.append(t1, self.f(*values))
-        pass
+    def __getitem__(self, item) -> Dataset:
+        return Dataset.get(self.session, item)
