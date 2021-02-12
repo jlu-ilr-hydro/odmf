@@ -127,6 +127,14 @@ class Plot {
 
 		}
 	}
+	update(obj) {
+		for (let key in obj) {
+			if (obj.hasOwnProperty(key)) {
+				this[key] = obj[key]
+			}
+		}
+		this.apply()
+	}
 	render() {
 		$('#plot').html('Loading image...');
 		$.ajax({
@@ -169,7 +177,7 @@ class Plot {
 			let obj = $(txt);
 			let line_template = $('#line-template').html()
 			subplot.lines.forEach((line, lineindex) => {
-				let line_html = line_template.replace(/§sp_pos§/g, index).replace(/§i§/g, lineindex)
+				let line_html = line_template.replace(/§sp_pos§/g, index).replace(/§i§/g, lineindex).replace(/§linename§/g, line.name)
 				for (let k in line) {
 					line_html = line_html.replace('§' + k + '§', line[k])
 				}
@@ -451,23 +459,10 @@ $(() => {
 	set_line_dialog_handlers()
 	set_property_dialog_handlers()
 
-
-	$('#saveplotbutton').click(function() {
-		var fn = prompt('The name of the actual plot','new plot');
-		if (fn) {
-			$.post('saveplot',{filename:fn,overwrite:true},seterror);
-		}
-	});
-
 	$('#reload_plot').click(() => {
 		window.plot.render()
 	});
 
-	$('.loadplotfn').click(function(){
-		var fn = $(this).html();
-		$.post('loadplot',{filename:fn},seterror);
-
-	});
 
 	$('#fig-export button').click(event => {
 		let fmt=$(event.currentTarget).data('format');
@@ -475,7 +470,12 @@ $(() => {
 			download_on_post('image', {format: fmt, plot: JSON.stringify(window.plot)})
 		}
 	})
+	$('#file-dialog').on('show.bs.modal', event => {
+		$.get('filedialog', {}, html =>{
+			$('#file-dialog-content').html(html)
+		})
 
+	})
 
 	$('.killplotfn').click(function() {
 		var fn = $(this).html();

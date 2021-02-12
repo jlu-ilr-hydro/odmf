@@ -1,60 +1,86 @@
-<html xmlns:py="">
-<!--
-Template for webpage.plot.PlotPage.filedialog()
+<html>
+    <!--
+    Template for webpage.plot.PlotPage.filedialog()
 
-To be included as AJAH into modal dialog in plot.html
-POST /plot/filedialog {path: download/$USER}
+    To be included as AJAH into modal dialog in plot.html
+    POST /plot/filedialog {path: download/$USER}
 
-Variables:
+    Variables:
 
-path: Current path (default download/$USER)
-directories: mapping of subdirectories
-files: mapping of files in current path
+    path: Current path (default download/$USER)
+    directories: mapping of subdirectories
+    files: mapping of files in current path
 
--->
-<script>
-    $(() => {
-        $('#plotname').val(window.plot.name).change(event => {
-            window.plot.name = $(event.currentTarget).val()
-        })
+    -->
+        <script>
+            $(() => {
+                $('#plotname').val(window.plot.name)
+                $('#save-button-text').html(window.plot.name)
+                $('#plotname').change(event => {
+                    window.plot.name = $(event.currentTarget).val()
+                    // $('#save-as-button').dropdown('toggle')
+                    $('#save-button-text').html(window.plot.name)
+                })
+                $('.load-file').click(event =>{
+                    let href = $(event.currentTarget).data('href')
+                    $.getJSON(href, {}, data =>{
+                        window.plot.update(data)
+                    })
+                })
+                $('.change-dir').click(event =>{
+                    let href = $(event.currentTarget).data('href')
+                    $.get('filedialog', {path: href}, html => {
+                        $('#file-dialog-content').html(html)
+                    })
+                })
+                $('#save-button').click(event => {
+                    $.post(odmf_ref('plot/filedialog/save'), {
+                        plot: JSON.stringify(window.plot),
+                        path: '${path}/' + window.plot.name + '.plot'
+                    }).done(response => {
+                        $('.modal').modal('hide')
+                    }).fail(seterror)
+                })
 
-    })
-</script>
-<div id="file-save-plot" class="row">
-    <div class="col-3">
-        <button id="savebutton" class="btn btn-secondary" type="button" data-toggle="tooltip" title="save plot">
-            <i class="fas fa-save fa-lg"/>
-        </button>
-    </div>
-    <div class="button-group col-9">
-        <button id="savebutton" class="btn btn-secondary" type="button" data-toggle="dropdown" title="save plot as ...">
-            <i class="fas fa-save fa-lg"/> save as ...
-        </button>
-        <div class="dropdown-menu">
-            <h6 class="dropdown-header">save as name</h6>
-            <div class="dropdown-item">
-                <input type="text" class="form-control" value="" id="plotname"/>
+            })
+        </script>
+        <div class="container">
+
+            <div id="save-plot-container" class="container border p-3">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <button id="save-button" class="btn btn-secondary" type="button" >
+                            <i class="fas fa-save fa-lg"/>
+                        </button>
+                        <div class="input-group-text">
+                            as:
+                        </div>
+                    </div>
+                    <input type="text" class="form-control" value="" id="plotname"/>
+                </div>
+            </div>
+            <div id="load-plot-container" class="container border p-3 mt-1">
+                <h3><i class="fas fa-folder-open"/>load...</h3>
+                <div class="file-list d-flex border-bottom mt-1" py:if="path.absolute != path.datapath">
+                    <button class="btn change-dir mr-auto" data-href="${path.parent()}">
+                        <i class="fas fa-folder fa-lg mr-2"/>..
+                    </button>
+                </div>
+                <div class="file-list d-flex border-bottom mt-1" py:for="fn in directories">
+                    <button class="btn change-dir mr-auto" data-href="${fn}">
+                        <i class="fas fa-folder fa-lg mr-2"/>
+                            ${fn.basename}
+                    </button>
+                </div>
+                <div class="file-list d-flex border-bottom mt-1" py:for="fn in files">
+                    <button class="btn load-file mr-auto" data-href="${fn.href}">
+                        <i class="fas fa-file-alt fa-lg mr-2"/>
+                            ${fn.basename}
+                    </button>
+                    <button class="btn btn-danger btn-sm file-delete-button">
+                        <i class="fas fa-times-circle"/>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-</div>
-<div id="file-load-plot" class="container">
-    <h3><i class="fas fa-folder-open"/>load...</h3>
-    <div class="file-list d-flex" py:for="fn in directories">
-        <a class="mr-auto" href="${directories[fn]}">
-            <i class="fas fa-folder fa-lg"/>
-            ${fn}
-        </a>
-    </div>
-    <div class="file-list d-flex" py:for="fn in files">
-        <a class="mr-auto" href="${files[fn]}">
-            <i class="fas fa-file-alt fa-lg"/>
-            ${fn}
-        </a>
-        <button class="btn btn-secondary file-delete-button">
-            <i class="fas fa-times-circle"/>
-        </button>
-    </div>
-</div>
-
 </html>

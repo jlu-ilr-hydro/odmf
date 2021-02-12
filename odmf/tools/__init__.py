@@ -14,7 +14,7 @@ class Path(object):
         if str(path[0]).startswith('/'):
             self.absolute = op.realpath(op.join(*path))
         else:
-            self.absolute = op.join(self.datapath, *path)
+            self.absolute = op.realpath(op.join(self.datapath, *path))
         self.name = op.relpath(self.absolute, self.datapath).replace('\\', '/')
 
     @property
@@ -122,4 +122,7 @@ class Path(object):
 
     def up(self) -> str:
         return op.dirname(self.name)
+
+    def delete(self):
+        os.unlink(self.absolute)
 

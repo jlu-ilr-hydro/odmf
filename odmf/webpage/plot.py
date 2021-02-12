@@ -25,6 +25,8 @@ from io import StringIO
 from io import BytesIO
 
 import json
+from ..tools import Path as OPath
+
 from pathlib import Path
 from ..config import conf
 from .. import db
@@ -121,12 +123,13 @@ class Line:
         """
         userlevel = users.current.level if users.current else 0
 
-        datasets = session.query(db.Dataset).filter(db.Dataset._valuetype == self.valuetypeid,
-                                                    db.Dataset._site == self.siteid,
-                                                    db.Dataset.start <= self.subplot.plot.end,
-                                                    db.Dataset.end >= self.subplot.plot.start,
-                                                    db.Dataset.access <= userlevel
-                                                    )
+        datasets = session.query(db.Dataset).filter(
+            db.Dataset._valuetype == self.valuetypeid,
+            db.Dataset._site == self.siteid,
+            db.Dataset.start <= self.subplot.plot.end,
+            db.Dataset.end >= self.subplot.plot.start,
+            db.Dataset.access <= userlevel
+        )
         if self.instrumentid:
             datasets = datasets.filter(db.Dataset._source == self.instrumentid)
         if self.level is not None:
@@ -354,47 +357,80 @@ class Plot:
                     aggregate=self.aggregate,
                     description=self.description)
 
-    def save(self, fn='~/default.plot'):
-        d = asdict(self)
-        if not '/' in fn:
-            fn = '~/' + fn
-        p = self.absfilename(fn)
-        if not p.parent.exists():
-            p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(web.as_json(d))
 
-    @classmethod
-    def load(cls, fn):
-        fp = cls.absfilename(fn).open()
-        plot = Plot(json.load(fp))
-        return plot
 
-    @classmethod
-    def listdir(cls):
+#TODO: Define plotgroup
+plotgroup = None
 
-        return [
-            fn.name.replace('.plot', '')
-            for fn in cls.absfilename('~/').glob('*.plot')
-        ]
 
-    @classmethod
-    def killfile(cls, fn):
-        path = cls.absfilename(fn)
-        if path.exists():
-            path.unlink()
+class PlotFileDialog:
+    """
+    Handles the file dialog of the plot page
+    """
+    exposed = True
+
+    @expose_for(plotgroup)
+    @web.method.get
+    def index(self, path=None):
+        """
+        Shows the file dialog
+
+        Parameters
+        ----------
+        path
+            The path to show, if None defaults to $USER
+
+        """
+        p = OPath(path or web.user())
+        if not p.islegal():
+            raise web.HTTPError(403, 'No access to ' + path)
+        if not p.exists():
+            p = OPath('.')
+        directories, files = p.listdir()
+        files = [f for f in files if f.basename.endswith('.plot')]
+        res = web.render(
+            'plot.filedialog.html',
+            path=p,
+            directories=directories,
+            files=files
+        ).render()
+        return res
+
+    @expose_for(plotgroup)
+    @web.method.post
+    def save(self, plot, path):
+        """
+        Saves a plot object to the given filename
+
+        Usage: $.post('saveplot', {plot: JSON.stringify(window.plot, path: ${path}).fail(seterror);
+        """
+        if not path:
+            path = web.user()
+        p = OPath(path)
+        if not p.islegal() or not p.parent().exists:
+            raise web.HTTPError(403, 'No access to ' + path)
+        with open(p.absolute) as f:
+            with open(p.absolute, 'w') as f:
+                f.write(plot)
+
+
+    @expose_for(plotgroup)
+    @web.method.post
+    def delete(self, path):
+        """
+        Deletes a plot file
+        """
+        p = OPath(path)
+        if not p.islegal() or not p.parent().exists:
+            raise web.HTTPError(403, 'No access to ' + path)
         else:
-            raise IOError("File %s does not exist" % fn)
-
-    @classmethod
-    def absfilename(cls, fn: str='~/')->Path:
-        fn = fn.replace('~/', f'{web.user() or "guest"}/plots/')
-        return conf.abspath(conf.datafiles) / fn
+            p.delete()
 
 
-plotgroup = group.logger
 
 @web.show_in_nav_for(0, 'chart-line')
 class PlotPage(object):
+    filedialog = PlotFileDialog()
 
     @expose_for(plotgroup)
     def index(self, f=None, j=None, error=''):
@@ -417,14 +453,15 @@ class PlotPage(object):
 
         if not j:
             try:
-                if f:
-                    j = Plot.absfilename(f).read_text()
+                if not f:
+                    f = '~/default.plot'
+                if f[0] == '~':
+                    f = web.user() + f[1:]
+                p = conf.abspath(f)
+                if p.exists():
+                    j = p.read_text()
                 else:
-                    p = Plot.absfilename('~/default.plot')
-                    if p.exists():
-                        j = Plot.absfilename('~/default.plot').read_text()
-                    else:
-                        j = '{}'
+                    j = '{}'
             except IOError as e:
                 error = str(e)
                 j = '{}'
@@ -434,8 +471,7 @@ class PlotPage(object):
             error = '\n'.join(f'{i:3} | {l}' for i, l in enumerate(j.split('\n'))) + f'\n\n {e}'
             plot = Plot()
         else:
-            plot = Plot(**jplot)
-            plot.save('~/default.plot')
+            plot = None
 
         return web.render('plot.html', plot=plot, error=error).render()
 
@@ -446,39 +482,6 @@ class PlotPage(object):
         except Exception as e:
             raise PlotError(str(e))
 
-    @expose_for(plotgroup)
-    @web.method.post
-    @web.json_in()
-    def saveplot(self):
-        """
-        Saves a plot object to the given filename
-
-        Usage: $.post('saveplot', [filename, plot]).fail(seterror);
-        """
-        filename, plot = web.cherrypy.request.json
-        plot = Plot(**plot)
-        if not filename:
-            raise PlotError('Cannot save file: no filename given')
-        else:
-            return plot.save(filename)
-
-    @expose_for(plotgroup)
-    def deleteplotfile(self, filename):
-        return Plot.killfile(filename)
-
-
-    @expose_for(plotgroup)
-    @web.method.get
-    def filedialog(self, path):
-        path = ...
-        files = ...
-        directories = ...
-        return web.render(
-            'plot.filedialog.html',
-            path=path,
-            files=files,
-            directories=directories
-        )
 
     @expose_for(plotgroup)
     @web.method.get
@@ -517,7 +520,6 @@ class PlotPage(object):
         """
         plot_data = web.cherrypy.request.json
         plot = Plot(**plot_data)
-        plot.save()
         fig = plot.draw()
         import io
         buf = io.BytesIO()
