@@ -26,7 +26,7 @@ from io import BytesIO
 
 import json
 from ..tools import Path as OPath
-
+from .markdown import MarkDown
 from pathlib import Path
 from ..config import conf
 from .. import db
@@ -40,6 +40,7 @@ if sys.platform == 'win32':
     matplotlib.rc('font', **{'sans-serif': 'Arial',
                              'family': 'sans-serif'})
 
+markdown = MarkDown()
 
 def asdict(obj):
     """
@@ -409,9 +410,9 @@ class PlotFileDialog:
         p = OPath(path)
         if not p.islegal() or not p.parent().exists:
             raise web.HTTPError(403, 'No access to ' + path)
-        with open(p.absolute) as f:
-            with open(p.absolute, 'w') as f:
-                f.write(plot)
+        with open(p.absolute, 'w') as f:
+            f.write(plot)
+        return str(p.parent()).encode('utf-8')
 
 
     @expose_for(plotgroup)
@@ -421,11 +422,12 @@ class PlotFileDialog:
         Deletes a plot file
         """
         p = OPath(path)
+
         if not p.islegal() or not p.parent().exists:
             raise web.HTTPError(403, 'No access to ' + path)
         else:
             p.delete()
-
+        return str(p.parent()).encode('utf-8')
 
 
 @web.show_in_nav_for(0, 'chart-line')
@@ -453,34 +455,26 @@ class PlotPage(object):
 
         if not j:
             try:
-                if not f:
-                    f = '~/default.plot'
-                if f[0] == '~':
+                if not f or not web.user():
+                    f = '~/plots/default.plot'
+                if f[0] == '~' and web.user():
                     f = web.user() + f[1:]
-                p = conf.abspath(f)
-                if p.exists():
-                    j = p.read_text()
+                p = OPath(f or '')
+                if p.exists() and p.islegal():
+                    with open(p.absolute) as f:
+                        j = f.read()
                 else:
                     j = '{}'
             except IOError as e:
                 error = str(e)
                 j = '{}'
         try:
-            jplot = json.loads(j)
+            plot = json.loads(j)
         except json.JSONDecodeError as e:
             error = '\n'.join(f'{i:3} | {l}' for i, l in enumerate(j.split('\n'))) + f'\n\n {e}'
-            plot = Plot()
-        else:
             plot = None
 
         return web.render('plot.html', plot=plot, error=error).render()
-
-    @expose_for(plotgroup)
-    def loadplot(self, filename):
-        try:
-            return web.as_json(Plot.load(filename))
-        except Exception as e:
-            raise PlotError(str(e))
 
 
     @expose_for(plotgroup)
@@ -524,6 +518,7 @@ class PlotPage(object):
         import io
         buf = io.BytesIO()
         fig.savefig(buf, format='svg')
+        buf.write(f'<div class="fig-subtitle">{markdown(plot.description)}</div>'.encode('utf-8'))
         html = buf.getvalue()
         return html
 

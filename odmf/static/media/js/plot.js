@@ -2,7 +2,6 @@
  * @author philkraf
  *
  * TODO: Property dialog - populate dates etc.
- * TODO: File dialog to save(as) / load / delete .plot file
  * TODO: Export to data dialog to export as multiple series / sparse table / interpolated table
  */
 
@@ -43,7 +42,7 @@ function set_content_tree_handlers() {
 	})
 	$('.exportline').click(event => {
 		let btn = $(event.currentTarget);
-		download_on_post('export_csv', {plot: JSON.stringify(window.plot), subplot: btn.data('subplot'), line: btn.data('lineno')})
+		download_on_post('export_csv', {plot: JSON.stringify(window.plot, null, 4), subplot: btn.data('subplot'), line: btn.data('lineno')})
 	})
 
 	$('.showdataset').click(event => {
@@ -57,7 +56,7 @@ function set_content_tree_handlers() {
 				{
 					subplot: sp,
 					line: line,
-					plot: JSON.stringify(window.plot)
+					plot: JSON.stringify(window.plot, null, 4)
 				},
 				data => {
 					let home = odmf_ref('dataset')
@@ -134,6 +133,7 @@ class Plot {
 			}
 		}
 		this.apply()
+		return this
 	}
 	render() {
 		$('#plot').html('Loading image...');
@@ -142,7 +142,7 @@ class Plot {
 			url: odmf_ref('/plot/figure'),
 			contentType: 'application/json',
 			processData: false,
-			data: JSON.stringify(this),
+			data: JSON.stringify(this, null, 4),
 			dataType: 'html'
 		})
 			.done((result) => {
@@ -169,6 +169,7 @@ class Plot {
 			this.columns = Math.max(1, this.subplots.length);
 		}
 		let txt_plot = JSON.stringify(this, null, 4);
+		$('#plot-name').html(this.name)
 		$('#content-tree .subplot').remove();
 		this.subplots.forEach((subplot, index) => {
 			let txt = $('#subplot-template').html()
@@ -467,7 +468,7 @@ $(() => {
 	$('#fig-export button').click(event => {
 		let fmt=$(event.currentTarget).data('format');
 		if (fmt) {
-			download_on_post('image', {format: fmt, plot: JSON.stringify(window.plot)})
+			download_on_post('image', {format: fmt, plot: JSON.stringify(window.plot, null, 4)})
 		}
 	})
 	$('#file-dialog').on('show.bs.modal', event => {

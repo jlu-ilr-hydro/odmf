@@ -3,10 +3,16 @@
 <py:extends href="bootstrap_navigation.html" xmlns:py="">
     <py:block name="scripts">
         <script type="text/javascript" py:if="plot">
-            sessionStorage.setItem('plot', JSON.stringify(${literal(as_json(plot))}));
+            sessionStorage.setItem('plot', JSON.stringify(${literal(as_json(plot))}, 4));
         </script>
 
         <script type="text/javascript" src="${conf.root_url}/media/js/plot.js"/>
+        <script type="text/javascript" py:if="error">
+            $(() =>{
+                $('#error').html('${markdown(error)}')
+                $('#error-row').removeClass('d-none')
+            })
+        </script>
 
         <div class="d-none"  id="subplot-template" type="template" >
             <div class="subplot card mb-2 w-100">
@@ -51,8 +57,8 @@
         <div class="d-none" id="line-template" type="template">
             <li class="line list-group-item">
                 <div class="btn-group" id="linetools_§sp_pos§_§i§">
-                    <div class="btn btn-sm btn-light" style="color:§color§"
-                         data-toggle="tooltip" title="§linename§">
+                    <div class="btn btn-sm btn-light" style="color:§color§; font-weight: bolder"
+                         data-toggle="collapse" data-target="#line-name_§sp_pos§_§i§" aria-expanded="false" aria-controls="line-name_§sp_pos§_§i§">
                         §linestyle§ §marker§
                     </div>
                     <button title="remove line" class="btn btn-sm py-0 btn-secondary removeline"
@@ -78,6 +84,7 @@
                     </button>
 
                 </div>
+                <div id="line-name_§sp_pos§_§i§" class="collapse">§linename§</div>
 
                 <ul id="datasetlist_§sp_pos§_§i§" class="datasetlist small doc"/>
             </li>
@@ -104,6 +111,9 @@
             }
             .semitransparent {
                 opacity: 30%;
+            }
+            .fig-subtitle {
+                border-top: black 1px;
             }
         </style>
     </py:block>
@@ -136,7 +146,7 @@
                 </div>
             </div>
             <div id="content-tree" class="mt-2 w-100">
-
+                <h4 id="plot-name">name...</h4>
 
                 <!--
                     Subplots
@@ -160,7 +170,7 @@
         <div class="container-fluid m-0 p-0">
             <div id="error-row" class="row mt-2 w-100 d-none">
                 <div class="container">
-                    <div id="error" class="row bg-danger text-white border rounded p-4">
+                    <div class="row bg-danger text-white border rounded p-4">
                         <h1 class="display-3 col-lg-2">Error</h1>
                         <div class="lead col-lg-10" id="error" />
                     </div>
@@ -235,20 +245,7 @@
         </div>
 
         <div id="file-dialog" class="modal fade" tabindex="-1" role="dialog"  aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-light">
-                        <h5 class="modal-title">File</h5>
-                    </div>
-                    <div class="modal-body" id="file-dialog-content">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
-                    </div>
-
-
-                </div>
+            <div class="modal-dialog" id="file-dialog-content">
             </div>
         </div>
 

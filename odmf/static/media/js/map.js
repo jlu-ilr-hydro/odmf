@@ -5,7 +5,7 @@ function toggle(id) {
 function setpref(data) {
 	$.ajaxSetup({ scriptCharset:"utf-8",
 		contentType:"application/json; charset=utf-8" });
-	$.post(odmf_ref('/preferences/update'),JSON.stringify(data),null,'json');
+	$.post(odmf_ref('/preferences/update'),JSON.stringify(data, null, 4),null,'json');
 }
 // Saves the actual map preferences to the session / file
 function savemappref() {
@@ -72,7 +72,7 @@ function zoomToSelected() {
 	$.each(markers,function(index,item){
 		if (item.get('id') == selectedmarker) {
 			marker = item;
-			alert('marker found!' + JSON.stringify(marker));
+			alert('marker found!' + JSON.stringify(marker, null, 4));
 			return false;
 		}
 	});

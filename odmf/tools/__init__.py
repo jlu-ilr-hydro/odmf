@@ -11,11 +11,15 @@ __all__ = ['mail', 'Path']
 class Path(object):
     def __init__(self, *path: str):
         self.datapath = op.realpath(conf.datafiles)
-        if str(path[0]).startswith('/'):
-            self.absolute = op.realpath(op.join(*path))
+        if path:
+            if str(path[0]).startswith('/'):
+                self.absolute = op.realpath(op.join(*path))
+            else:
+                self.absolute = op.realpath(op.join(self.datapath, *path))
+            self.name = op.relpath(self.absolute, self.datapath).replace('\\', '/')
         else:
-            self.absolute = op.realpath(op.join(self.datapath, *path))
-        self.name = op.relpath(self.absolute, self.datapath).replace('\\', '/')
+            self.absolute = self.datapath
+            self.name = '/'
 
     @property
     def basename(self)->str:
