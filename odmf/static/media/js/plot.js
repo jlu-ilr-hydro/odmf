@@ -1,8 +1,7 @@
 /**
  * @author philkraf
  *
- * TODO: Property dialog - populate dates etc.
- * TODO: Export to data dialog to export as multiple series / sparse table / interpolated table
+ * TODO: Move line dialog to extra template and fill on server side
  */
 
 
@@ -332,7 +331,7 @@ function popSelect() {
 
 			let nl_level = $('#nl-level')
 			if (vt && site && data.level.some(x => x)) {
-				nl_level.html(make_option_html(data.level, x => x, x => x)).val(level);
+				nl_level.html(make_option_html(data.level, x => x.toString(), x => x.toString())).val(level.toString());
 				nl_level.parent().show(200)
 			} else {
 				nl_level.parent().hide(200)
@@ -356,10 +355,10 @@ function clearFilter() {
 }
 
 function set_line_dialog_handlers() {
-	    $('#newline-dialog').on('show.bs.modal', (event) => {
-    	let button = $(event.relatedTarget);
-    	let dlg =$('#newline-dialog')
-    	let sp = button.data('subplot')
+	$('#newline-dialog').on('show.bs.modal', (event) => {
+		let button = $(event.relatedTarget);
+		let dlg =$('#newline-dialog')
+		let sp = button.data('subplot')
 		let ln = button.data('lineno')
     	dlg.data('subplot', sp);
     	dlg.data('lineno', ln);
@@ -402,31 +401,6 @@ function set_line_dialog_handlers() {
 
 }
 
-function set_property_dialog_handlers() {
-	$('#property-dialog').on('show.bs.modal', event => {
-		if (plot.start) {
-			$('#startdate').val(plot.start.split(/[T,\s]/)[0])
-			$('#starttime').val(plot.start.split(/[T,\s]/)[1])
-		}
-		if (plot.end) {
-			$('#enddate').val(plot.end.split(/[T,\s]/)[0])
-			$('#endtime').val(plot.end.split(/[T,\s]/)[1])
-		}
-		$('#prop-columns').val(plot.columns).attr('max', Math.max(1, plot.subplots.length))
-		$('#plotaggregate').val(plot.aggregate)
-		$('#prop-description').val(plot.description)
-	})
-
-	$('#prop-OK').click(event => {
-		let plot = window.plot
-		plot.start = gettime('start')
-		plot.end = gettime('end')
-		plot.columns = parseInt($('#prop-columns').val())
-		plot.aggregate = $('#plotaggregate').val()
-		plot.apply()
-	});
-
-}
 
 $(() => {
 	window.plot = new Plot()
@@ -458,7 +432,6 @@ $(() => {
     $(window).resize();
 
 	set_line_dialog_handlers()
-	set_property_dialog_handlers()
 
 	$('#reload_plot').click(() => {
 		window.plot.render()
@@ -471,11 +444,16 @@ $(() => {
 			download_on_post('image', {format: fmt, plot: JSON.stringify(window.plot, null, 4)})
 		}
 	})
-	$('#file-dialog').on('show.bs.modal', event => {
-		$.get('filedialog', {}, html =>{
-			$('#file-dialog-content').html(html)
-		})
 
+	$('#property-dialog').on('show.bs.modal', event => {
+		$('#property-dialog-content').load('property/')
+	})
+
+	$('#file-dialog').on('show.bs.modal', event => {
+		$('#file-dialog-content').load('filedialog/')
+	})
+	$('#export-dialog').on('show.bs.modal', event => {
+		$('#export-dialog-content').load('exportdialog/')
 	})
 
 	$('.killplotfn').click(function() {

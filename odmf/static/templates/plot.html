@@ -125,14 +125,19 @@
                     <i class="fas fa-times-circle"/> clear figure
                 </button>
                 <button class="btn btn-outline-primary"
+                        id="property-toggle" data-toggle="modal" data-target="#property-dialog"
+                        role="tab" aria-controls="property-dialog">
+                    <i class="fas fa-cog"/> Properties...
+                </button>
+                <button class="btn btn-outline-primary"
                         id="toolbar-toggle" data-toggle="modal" data-target="#file-dialog"
                         role="button" aria-controls="file-dialog">
                     <i class="fas fa-file"/> File...
                 </button>
                 <button class="btn btn-outline-primary"
-                        id="property-toggle" data-toggle="modal" data-target="#property-dialog"
-                        role="tab" aria-controls="property-dialog">
-                    <i class="fas fa-cog"/> Properties...
+                        id="property-toggle" data-toggle="modal" data-target="#export-dialog"
+                        role="tab" aria-controls="export-dialog">
+                    <i class="fas fa-file-export"/> Export data...
                 </button>
                 <div class="btn-group" id="fig-export">
                     <button class="btn btn-outline-primary"
@@ -193,64 +198,23 @@
     </py:block>
     <py:block name="extrahtml">
         <div id="property-dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-light">
-                        <h5 class="modal-title"><i class="fas fa-cog"/> Properties</h5>
-                    </div>
-                    <div class="modal-body form-group">
-                        <label for="startdatetime">start:</label>
-                        <div id="startdatetime" class="input-group">
-                            <input class="props form-control" type="date" id="startdate"
-                                   value=""/>
-                            <input class="props timepicker form-control" id="starttime"
-                                   value="00:00"/>
-                        </div>
-                        <label for="enddatetime">end:</label>
-                        <div id="enddatetime" class="input-group">
-
-                            <input class="props form-control" type="date" id="enddate"
-                                   value=""/>
-                            <input class="props timepicker form-control" id="endtime"
-                                   value="00:00"/>
-                        </div>
-                        <label for="prop-columns">Subplot columns</label>
-                        <input id ="prop-columns" class="props form-control" type="number" value="1" max="1" min="1"/>
-                        <label for="plotaggregate">Aggregation:
-                            <a class="btn btn-secondary"
-                               href="${conf.root_url}/wiki/plot/aggregate"
-                               title="What is aggregation?" data-toggle="tooltip"
-                            >
-                                <i class="fas fa-question"/>
-                            </a>
-                        </label>
-                        <select id="plotaggregate" class="props form-control">
-                            <option value="">No aggregation</option>
-                            <option value="30Min">Half hourly</option>
-                            <option value="h" >Hourly</option>
-                            <option value="D" >Daily</option>
-                            <option value="W" >Weekly</option>
-                            <option value="M" >Monthly</option>
-                            <option value="Y" >Yearly</option>
-                        </select>
-                        <label for="prop-description">Description (markdown)</label>
-                        <textarea id="prop-description" rows="" class="form-control"></textarea>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button id="prop-OK" type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
-                    </div>
-                </div>
+            <div class="modal-dialog" id="property-dialog-content">
             </div>
         </div>
 
         <div id="file-dialog" class="modal fade" tabindex="-1" role="dialog"  aria-hidden="true">
-            <div class="modal-dialog" id="file-dialog-content">
+            <div id="file-dialog-content" class="modal-dialog">
+
+            </div>
+        </div>
+        <div id="export-dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+            <div id="export-dialog-content" class="modal-dialog">
+
             </div>
         </div>
 
         <div id="newline-dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog">
+            <div class="modal-dialog" id="line-dialog-content">
                 <div class="modal-content">
                     <div class="modal-header bg-primary text-light">
                         <h5 class="modal-title">Subplot <span id="newline-subplot">0</span></h5>

@@ -137,13 +137,6 @@ class Line:
             datasets = datasets.filter(db.Dataset.level == self.level)
         return datasets.order_by(db.Dataset.start).all()
 
-    def aggregate(self):
-        series = self.load()
-        # Use pandas resample mechanism for aggregation
-        aggseries = series.resample(
-            self.subplot.plot.aggregate, self.aggregatefunction)
-        return aggseries
-
     def load(self, start=None, end=None) -> pd.Series:
         """
         Loads the records into an array
@@ -152,6 +145,8 @@ class Line:
             start = start or self.subplot.plot.start
             end = end or self.subplot.plot.end
             datasets = self.getdatasets(session)
+            if not datasets:
+                raise ValueError("No data to compute")
             group = db.DatasetGroup([ds.id for ds in datasets], start, end)
             series = group.asseries(session)
             series.name = self.name
@@ -390,7 +385,7 @@ class PlotFileDialog:
         directories, files = p.listdir()
         files = [f for f in files if f.basename.endswith('.plot')]
         res = web.render(
-            'plot.filedialog.html',
+            'plot/filedialog.html',
             path=p,
             directories=directories,
             files=files
@@ -435,6 +430,7 @@ class PlotPage(object):
     filedialog = PlotFileDialog()
 
     @expose_for(plotgroup)
+    @web.method.get
     def index(self, f=None, j=None, error=''):
         """
         Shows the plot page
@@ -476,17 +472,21 @@ class PlotPage(object):
 
         return web.render('plot.html', plot=plot, error=error).render()
 
+    @expose_for(plotgroup)
+    @web.method.get
+    def property(self):
+        return web.render('plot/property.html').render()
 
     @expose_for(plotgroup)
     @web.method.get
     def exportdialog(self):
-        return web.render('plot.exportdialog.html')
+        return web.render('plot/exportdialog.html').render()
 
     @expose_for(plotgroup)
     @web.method.post
     def export(self, plot, format, method, tolerance, timestep):
         """
-        Compare to export_csv
+        TODO: Compare to exportall_csv and RegularExport
 
         Parameters
         ----------

@@ -1,0 +1,71 @@
+<html xmlns:py="">
+<!--
+Template for webpage.plot.PlotPage.exportdialog()
+
+To be included as AJAH into modal dialog in plot.html
+GET /plot/exportdialog
+
+
+-->
+<div class="modal-content">
+    <div class="modal-header bg-primary text-light">
+        <h5 class="modal-title"><i class="fas fa-file-export mr-2"/>Export data</h5>
+    </div>
+
+    <div class="modal-body">
+        <label for="export-format">File format</label>
+        <select name="format" class="form-control">
+            <option value="xlsx">Excel</option>
+            <option value="csv">CSV (comma seperated variable)</option>
+            <option value="tsv">TSV (tab seperated variable) </option>
+            <option value="hdf5">HDF5</option>
+        </select>
+        <label for="export-method">Time step:</label>
+        <select name="format" class="form-control">
+            <option value="as1st">Use first column for date index</option>
+            <option value="any">Mix all date indices with tolerance</option>
+            <option value="regular">Use regular time steps</option>
+        </select>
+        <label for="export-tolerance">Time step tolerance</label>
+        <select id="tolerance_skipper" data-toggle="tooltip" class="form-control"
+                title="Specifies a tolerance time to keep values in the same line of the csv file.
+'no tolerance' means there is no tolerance, and the smallest difference in the timestamp
+of two values leads to a new line."
+        >
+            <option value="0">no tolerance</option>
+            <option value="300">5Min</option>
+            <option value="600">10Min</option>
+            <option value="1800">30Min</option>
+            <option value="3600">1h</option>
+            <option value="86400">1day</option>
+        </select>
+        <label for="export-grid">Regular grid</label>
+        <select id="export-grid" data-toggle="tooltip" class="form-control"
+                title="Time resolution of all datasets in the output csv-file.">
+            <option value="5Min">5Min</option>
+            <option value="10Min">10Min</option>
+            <option value="15Min">15Min</option>
+            <option value="30Min">30Min</option>
+            <option value="60Min">1h</option>
+            <option value="1440Min">1day</option>
+
+        </select>
+        <label for="export-interpolation-size">Length of gaps to be filled via interpolation</label>
+        <select id="Interpolation_Limit" data-toggle="tooltip" class="form-control"
+                title="Number of possible gaps in the data which will be filled through linear interpolation.">
+            <option value="1">1Timestep</option>
+            <option value="5">5Timesteps</option>
+            <option value="10">10Timesteps</option>
+            <option value="50">50Timesteps</option>
+            <option value="100">100Timesteps</option>
+            <option value="200">200Timesteps</option>
+        </select>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button id="save-button" type="button" class="btn btn-primary" data-dismiss="modal">Export</button>
+    </div>
+
+</div>
+
+</html>
