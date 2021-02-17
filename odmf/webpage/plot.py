@@ -506,7 +506,7 @@ class PlotPage(object):
     @web.json_in()
     def figure(self, **kwargs):
         """
-        POST: Creates html code with the plot
+        POST: Creates html code to display the plot
 
         Usage: $.post(odmf_ref('/plot/figure'), plot)
                 .done($('#plot').html(result))
@@ -518,7 +518,7 @@ class PlotPage(object):
         import io
         buf = io.BytesIO()
         fig.savefig(buf, format='svg')
-        buf.write(f'<div class="fig-subtitle">{markdown(plot.description)}</div>'.encode('utf-8'))
+        # buf.write(f'<div class="fig-subtitle">{markdown(plot.description)}</div>'.encode('utf-8'))
         html = buf.getvalue()
         return html
 
