@@ -223,26 +223,24 @@
                         <label for="nl-name">Name:</label>
                         <input type="text" id="nl-name" class="form-control"/>
                         <label for="nl-value">value:</label>
-                        <select id="nl-value" class="form-control">
+                        <select id="nl-value" class="form-control dataset-select">
                             <option value="" class="firstoption">Please select...</option>
                         </select>
 
                         <label for="nl-site">site:</label>
-                        <select id="nl-site"  class="form-control">
+                        <select id="nl-site"  class="form-control dataset-select">
                             <option value="" class="firstoption">Please select...</option>
                         </select>
-                        <div class="form-group">
-                            <label for="nl-level">level:</label>
-                            <select id="nl-level"  class="form-control">
-                                <option value="" class="firstoption">Please select...</option>
-                            </select>
-                        </div>
+                        <label for="nl-level">level:</label>
+                        <select id="nl-level"  class="form-control dataset-select">
+                            <option value="" class="firstoption">Please select...</option>
+                        </select>
 
                         <label for="nl-instrument">instrument:</label>
-                        <select id="nl-instrument" class="form-control">
+                        <select id="nl-instrument" class="form-control dataset-select">
                             <option value="" class="firstoption">Please select...</option>
                         </select>
-
+                        <hr/>
                         <label for="nl-marker">marker:</label>
                         <select id="nl-marker" class="form-control">
                             <option value="">none</option>
@@ -267,7 +265,6 @@
                         <select id="nl-color" class="form-control">
                             <option py:for="c in ['#000000' ,'#0000FF','#00FF00','#FF0000', '#FFFF00','#00FFFF','#FF00FF']"
                                     value="${c}" py:content="c" style="background-color: ${c}"
-
                             />
                         </select>
 

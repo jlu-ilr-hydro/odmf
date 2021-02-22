@@ -267,11 +267,9 @@ function line_from_dialog() {
 function line_to_dialog(line) {
 	let dlg =$('#newline-dialog')
 	$('#newline-subplot').html(dlg.data('subplot') + ' line ' + dlg.data('lineno'));
-	$('#nl-name').val(line.name);
-	$('#nl-value').val(line.valuetype);
-	$('#nl-site').val(line.site);
-	$('#nl-instrument').val(line.instrument);
-	$('#nl-level').val(line.level);
+	$('#nl-value').val(line.valuetype)
+	$('#nl-site').val(line.site)
+	lineDialogPopSelect(line, true)
 	$('#nl-color').val(line.color);
 	$('#nl-linestyle').val(line.linestyle);
 	$('#nl-marker').val(line.marker);
@@ -308,30 +306,36 @@ function make_option_html(data, get_value, get_name) {
 	return html
 }
 
-function popSelect() {
-	var vt = $('#nl-value').val();
-	var site = $('#nl-site').val();
-	var instrument = $('#nl-instrument').val();
-	var level = $('#nl-level').val();
-	var date = '';
-
+function lineDialogPopSelect(line, override) {
+	let vt = $('#nl-value').val();
+	let site = $('#nl-site').val();
+	let instrument = !override && $('#nl-instrument').val() || line.instrument;
+	let level = !override && $('#nl-level').val() || line.level;
 
 	$.getJSON(
 		odmf_ref('/dataset/attributes'),
 		{
 			valuetype: vt,
 			site: site,
-			date: date,
 			onlyaccess:true,
 		},
 		(data) => {
-			$('#nl-value').html(make_option_html(data.valuetype, x => x ? x.id: null, x => x ? x.name: '')).val(vt);
-			$('#nl-instrument').html(make_option_html(data.source, x => x ? x.id: null, x => x ? x.name: '')).val(instrument)
-			$('#nl-site').html(make_option_html(data.site, x => x ? x.id: null, x => `#${x.id} (${x.name})`)).val(site);
+			$('#nl-value').html(
+				make_option_html(data.valuetype,x => x ? x.id: null, x => x ? x.name: '')
+			).val(vt);
+			$('#nl-instrument').html(
+				make_option_html(data.source, x => x ? x.id: null, x => x ? x.name: '')
+			).val(instrument)
+			$('#nl-site').html(
+				make_option_html(data.site, x => x ? x.id: null, x => `#${x.id} (${x.name})`)
+			).val(site);
 
 			let nl_level = $('#nl-level')
+			// Check if there are levels in the available datasets
 			if (vt && site && data.level.some(x => x)) {
-				nl_level.html(make_option_html(data.level, x => x.toString(), x => x.toString())).val(level.toString());
+				nl_level.html(
+					make_option_html(data.level, x => x.toString(), x => x.toString())
+				).val(level.toString());
 				nl_level.parent().show(200)
 			} else {
 				nl_level.parent().hide(200)
@@ -347,12 +351,6 @@ function popSelect() {
 
 }
 
-function clearFilter() {
-	$('.filter').val('');
-	$('#dateselect').val('');
-	$('#allsites').val(true);
-	popSelect();
-}
 
 function set_line_dialog_handlers() {
 	$('#newline-dialog').on('show.bs.modal', (event) => {
@@ -372,11 +370,14 @@ function set_line_dialog_handlers() {
     		line = plot.subplots[sp].lines[ln]
 		}
 		line_to_dialog(line)
-    	popSelect();
     });
 
     $('#newline-dialog .form-control').change(() => {
-    	popSelect();
+		let dlg =$('#newline-dialog')
+		let sp = dlg.data('subplot')
+		let ln = dlg.data('lineno')
+		let line = window.plot.subplots[sp].lines[ln]
+		lineDialogPopSelect(line, false)
 	});
 
 
@@ -405,7 +406,6 @@ function set_line_dialog_handlers() {
 $(() => {
 	window.plot = new Plot()
 	window.plot.apply()
-	popSelect();
 	// $(".date").datetimepicker({format: 'YYYY-MM-DD HH:mm'})
 	$('#addsubplot').prop('disabled', false);
 
