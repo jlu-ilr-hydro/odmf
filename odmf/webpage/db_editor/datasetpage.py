@@ -233,18 +233,18 @@ class DatasetPage:
         if user:
             user = session.query(db.Person).get(user)
             datasets = datasets.filter_by(measured_by=user)
-        if site:
-            site = session.query(db.Site).get(int(site))
+        if site and site!='NaN':
+            site = session.query(db.Site).get(web.conv(int, site))
             datasets = datasets.filter_by(site=site)
         if date:
             date = web.parsedate(date)
             datasets = datasets.filter(
                 db.Dataset.start <= date, db.Dataset.end >= date)
-        if valuetype:
-            vt = session.query(db.ValueType).get(int(valuetype))
+        if valuetype and valuetype!='NaN':
+            vt = session.query(db.ValueType).get(web.conv(int, valuetype))
             datasets = datasets.filter_by(valuetype=vt)
         if instrument:
-            if instrument == 'null':
+            if instrument in ('null', 'NaN'):
                 source = None
             else:
                 source = session.query(db.Datasource).get(int(instrument))

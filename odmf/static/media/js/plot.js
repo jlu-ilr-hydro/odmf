@@ -229,7 +229,6 @@ class Plot {
 	}
 }
 
-
 function line_from_dialog() {
 	let get_name_from_line_dialog = function() {
 		let name = $('#nl-name').val();
@@ -266,10 +265,15 @@ function line_from_dialog() {
 
 function line_to_dialog(line) {
 	let dlg =$('#newline-dialog')
-	$('#newline-subplot').html(dlg.data('subplot') + ' line ' + dlg.data('lineno'));
+	let sp = dlg.data('subplot')
+	let ln = dlg.data('lineno')
+	let repl = dlg.data('replace')
+	$('#newline-subplot').html(`${sp} line ${ln} - ${repl}`);
 	$('#nl-value').val(line.valuetype)
 	$('#nl-site').val(line.site)
-	lineDialogPopSelect(line, true)
+	$('#nl-instrument').val(line.instrument)
+	$('#nl-level').val(line.level)
+
 	$('#nl-color').val(line.color);
 	$('#nl-linestyle').val(line.linestyle);
 	$('#nl-marker').val(line.marker);
@@ -306,47 +310,44 @@ function make_option_html(data, get_value, get_name) {
 	return html
 }
 
-function lineDialogPopSelect(line, override) {
-	let vt = $('#nl-value').val();
-	let site = $('#nl-site').val();
-	let instrument = !override && $('#nl-instrument').val() || line.instrument;
-	let level = !override && $('#nl-level').val() || line.level;
-
+function lineDialogPopSelect(valuetype, site, set_values) {
+	$('#newline-dialog .form-control').prop('disabled', true)
 	$.getJSON(
 		odmf_ref('/dataset/attributes'),
 		{
-			valuetype: vt,
+			valuetype: valuetype,
 			site: site,
 			onlyaccess:true,
 		},
 		(data) => {
 			$('#nl-value').html(
 				make_option_html(data.valuetype,x => x ? x.id: null, x => x ? x.name: '')
-			).val(vt);
+			);
 			$('#nl-instrument').html(
 				make_option_html(data.source, x => x ? x.id: null, x => x ? x.name: '')
-			).val(instrument)
+			)
 			$('#nl-site').html(
 				make_option_html(data.site, x => x ? x.id: null, x => `#${x.id} (${x.name})`)
-			).val(site);
+			)
 
 			let nl_level = $('#nl-level')
 			// Check if there are levels in the available datasets
-			if (vt && site && data.level.some(x => x)) {
+			if (data.level.some(x => x)) {
 				nl_level.html(
-					make_option_html(data.level, x => x.toString(), x => x.toString())
-				).val(level.toString());
-				nl_level.parent().show(200)
+					make_option_html(data.level, x => x ? x.toString() : null, x => x ? x.toString() : 'N/A')
+				)
+				nl_level.parents('.row').show(200)
 			} else {
-				nl_level.parent().hide(200)
+				nl_level.parents('.row').hide(200)
 			}
+
+			if (set_values) {
+				set_values()
+			}
+			$('#newline-dialog .form-control').prop('disabled', false)
+
 		}
 	);
-	if (site && vt) {
-		$('#nl-OK').prop('disabled', false);
-	} else {
-		$('#nl-OK').prop('disabled', true);
-	}
 
 
 }
@@ -369,16 +370,28 @@ function set_line_dialog_handlers() {
     	else if (ln >= 0) {
     		line = plot.subplots[sp].lines[ln]
 		}
-		line_to_dialog(line)
+		lineDialogPopSelect(line.valuetype, line.site, ()=>{line_to_dialog(line)})
+
     });
 
-    $('#newline-dialog .form-control').change(() => {
+    $('#newline-dialog .dataset-select').change(() => {
 		let dlg =$('#newline-dialog')
-		let sp = dlg.data('subplot')
-		let ln = dlg.data('lineno')
-		let line = window.plot.subplots[sp].lines[ln]
-		lineDialogPopSelect(line, false)
+		let line = line_from_dialog()
+		let	valuetype = parseInt($('#nl-value').val())
+		let site = parseInt($('#nl-site').val())
+		lineDialogPopSelect(valuetype, site, () => {line_to_dialog(line)})
+
+		if (site && valuetype) {
+			$('#nl-OK').prop('disabled', false);
+		} else {
+			$('#nl-OK').prop('disabled', true);
+		}
+
 	});
+
+    $('#nl-color').change(event => {
+    	$('#nl-color-text').html($(event.currentTarget).val())
+	})
 
 
     $('#nl-OK').click(() => {
@@ -392,7 +405,7 @@ function set_line_dialog_handlers() {
 
 		let sp = plot.subplots[sp_no]
 
-		if (replace) {
+		if (replace == 'replace') {
 			sp.lines[line_no] = line
 		} else {
 			sp.lines.push(line)

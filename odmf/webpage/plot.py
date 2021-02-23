@@ -19,7 +19,6 @@ import pandas as pd
 
 from cherrypy.lib.static import serve_fileobj
 
-from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 from io import StringIO
 from io import BytesIO
@@ -27,8 +26,6 @@ from io import BytesIO
 import json
 from ..tools import Path as OPath
 from .markdown import MarkDown
-from pathlib import Path
-from ..config import conf
 from .. import db
 from . import lib as web
 from .auth import group, expose_for, users

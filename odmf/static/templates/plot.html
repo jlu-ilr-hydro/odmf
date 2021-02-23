@@ -44,7 +44,7 @@
                     <ul id="line-list" class="list-group list-group-flush">
                         <li class="newline list-group-item">
                             <button class="btn btn-sm btn-primary btn-outline shadow py-0" data-toggle="modal" data-target="#newline-dialog"
-                                    data-subplot="§position§" id="addline_§position§">
+                                    data-subplot="§position§" id="addline_§position§" data-replace="new">
                                 <i class="fas fa-plus-circle"/> add line...
                             </button>
                         </li>
@@ -57,7 +57,7 @@
         <div class="d-none" id="line-template" type="template">
             <li class="line list-group-item">
                 <div class="btn-group" id="linetools_§sp_pos§_§i§">
-                    <div class="btn btn-sm btn-light" style="color:§color§; font-weight: bolder"
+                    <div class="btn btn-sm btn-light border" style="color:§color§; font-weight: bolder"
                          data-toggle="collapse" data-target="#line-name_§sp_pos§_§i§" aria-expanded="false" aria-controls="line-name_§sp_pos§_§i§">
                         §linestyle§ §marker§
                     </div>
@@ -79,12 +79,12 @@
                         <i class="fas fa-edit"/>
                     </button>
                     <button title="copy line" class="btn btn-sm py-0 btn-secondary editline" data-toggle="modal" data-target="#newline-dialog" id="copyline_§position§_§i§"
-                            data-lineno="§i§" data-subplot="§sp_pos§">
+                            data-lineno="§i§" data-subplot="§sp_pos§" data-replace="copy">
                         <i class="fas fa-copy"/>
                     </button>
 
                 </div>
-                <div id="line-name_§sp_pos§_§i§" class="collapse">§linename§</div>
+                <div id="line-name_§sp_pos§_§i§" class="collapse show">§linename§</div>
 
                 <ul id="datasetlist_§sp_pos§_§i§" class="datasetlist small doc"/>
             </li>
@@ -219,65 +219,94 @@
                     <div class="modal-header bg-primary text-light">
                         <h5 class="modal-title">Subplot <span id="newline-subplot">0</span></h5>
                     </div>
-                    <div class="modal-body form-group">
-                        <label for="nl-name">Name:</label>
-                        <input type="text" id="nl-name" class="form-control"/>
-                        <label for="nl-value">value:</label>
-                        <select id="nl-value" class="form-control dataset-select">
-                            <option value="" class="firstoption">Please select...</option>
-                        </select>
+                    <div class="modal-body">
+                        <div class="form-group row">
+                            <label for="nl-name" class="col-sm-3 col-form-label">Name:</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="nl-name" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="nl-value" class="col-sm-3 col-form-label">value:</label>
+                            <div class="col-sm-9">
+                                <select id="nl-value" class="form-control dataset-select">
+                                    <option value="" class="firstoption">Please select...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="nl-site" class="col-sm-3 col-form-label">site:</label>
+                            <div class="col-sm-9">
+                                <select id="nl-site"  class="form-control dataset-select">
+                                    <option value="" class="firstoption">Please select...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="nl-level" class="col-sm-3 col-form-label">level:</label>
+                            <div class="col-sm-9">
+                                <select id="nl-level"  class="form-control dataset-select">
+                                    <option value="" class="firstoption">Please select...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
 
-                        <label for="nl-site">site:</label>
-                        <select id="nl-site"  class="form-control dataset-select">
-                            <option value="" class="firstoption">Please select...</option>
-                        </select>
-                        <label for="nl-level">level:</label>
-                        <select id="nl-level"  class="form-control dataset-select">
-                            <option value="" class="firstoption">Please select...</option>
-                        </select>
-
-                        <label for="nl-instrument">instrument:</label>
-                        <select id="nl-instrument" class="form-control dataset-select">
-                            <option value="" class="firstoption">Please select...</option>
-                        </select>
+                            <label for="nl-instrument" class="col-sm-3 col-form-label">instrument:</label>
+                            <div class="col-sm-9">
+                                <select id="nl-instrument" class="form-control dataset-select">
+                                    <option value="" class="firstoption">Please select...</option>
+                                </select>
+                            </div>
+                        </div>
                         <hr/>
-                        <label for="nl-marker">marker:</label>
-                        <select id="nl-marker" class="form-control">
-                            <option value="">none</option>
-                            <option value="x">x</option>
-                            <option value="o">o</option>
-                            <option value=".">.</option>
-                            <option value="|">|</option>
-                            <option value="+">+</option>
-                            <option value="*">*</option>
-                        </select>
+                        <div class="form-group row">
 
-                        <label for="nl-linestyle">line:</label>
-                        <select id="nl-linestyle" class="form-control">
-                            <option value="-">-</option>
-                            <option value="">none</option>
-                            <option value=":">...</option>
-                            <option value="--">--</option>
-                            <option value="-.">-.</option>
-                        </select>
+                            <label for="nl-marker" class="col-sm-3 col-form-label">marker:</label>
+                            <div class="col-sm-9">
+                                <select id="nl-marker" class="form-control">
+                                    <option value="">none</option>
+                                    <option value="x">x</option>
+                                    <option value="o">o</option>
+                                    <option value=".">.</option>
+                                    <option value="|">|</option>
+                                    <option value="+">+</option>
+                                    <option value="*">*</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
 
-                        <label for="nl-color">color:</label>
-                        <select id="nl-color" class="form-control">
-                            <option py:for="c in ['#000000' ,'#0000FF','#00FF00','#FF0000', '#FFFF00','#00FFFF','#FF00FF']"
-                                    value="${c}" py:content="c" style="background-color: ${c}"
-                            />
-                        </select>
+                            <label for="nl-linestyle" class="col-sm-3 col-form-label">line:</label>
+                            <div class="col-sm-9">
+                                <select id="nl-linestyle" class="form-control">
+                                    <option value="-">-</option>
+                                    <option value="">none</option>
+                                    <option value=":">...</option>
+                                    <option value="--">--</option>
+                                    <option value="-.">-.</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
 
-                        <label for="nl-aggregation">aggregate:</label>
-                        <select id="nl-aggregation" class="form-control">
-                            <option value="mean">mean</option>
-                            <option value="min">min</option>
-                            <option value="max">max</option>
-                            <option value="stdev">stdev</option>
-                            <option value="sum">&Sigma;</option>
-                        </select>
-
-
+                            <label for="nl-color" class="col-sm-3 col-form-label">color:</label>
+                            <div class="col-sm-9">
+                                <input type="color" id="nl-color" class="form-control" value="" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="nl-aggregation" class="col-sm-3 col-form-label">aggregate:</label>
+                            <div class="col-sm-9">
+                                <select id="nl-aggregation" class="form-control">
+                                    <option value="mean">mean</option>
+                                    <option value="min">min</option>
+                                    <option value="max">max</option>
+                                    <option value="stdev">stdev</option>
+                                    <option value="sum">&Sigma;</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
