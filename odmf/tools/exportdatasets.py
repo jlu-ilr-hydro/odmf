@@ -5,18 +5,94 @@ Created on 05.06.2013
 
 @author: kraft-p
 '''
-from .. import db
-from io import StringIO
 import codecs
-from traceback import format_exc as traceback
-import sys
 from datetime import datetime, timedelta
+import pandas as pd
+import typing
 import matplotlib.dates
 t0 = datetime(1, 1, 1)
 
 
 def num2date(t):
     return t0 + timedelta(days=t)
+
+
+def _make_intersection_timeindex(series: typing.List[pd.Series], tolerance: str) -> pd.DatetimeIndex:
+    ...
+
+
+def _make_timeindex(series: typing.List[pd.Series], timeindexsource: typing.Union[str, int], tolerance: str) -> pd.DatetimeIndex:
+
+    if timeindexsource == 'union':
+        result = series[0].index
+        return result.union_many(s.index for s in series)
+
+    elif timeindexsource == 'intersection':
+        return _make_intersection_timeindex(series, tolerance)
+
+    elif type(timeindexsource) is int:
+        return series[timeindexsource].index
+
+    else:
+        # interprete timeindexsource as frequency for a regular grid
+        freq = timeindexsource
+        start = min(s.index.min() for s in series).floor(freq)
+        end = max(s.index.max() for s in series).ceil(freq)
+        return pd.date_range(start, end, freq=freq)
+
+
+def merge_series(
+        series: typing.List[pd.Series],
+        timeindexsource: typing.Union[str, int],
+        tolerance: typing.Union[pd.Timedelta, str, None]=None,
+        interpolation=None) -> pd.DataFrame:
+    """
+    Merges multiple time series to a dataframe using different techniques to merge the time indices
+
+
+    Parameters
+    ----------
+    series
+        List of time series
+
+    timeindexsource
+        Indicator of what to use for the timeindex:
+
+        * "union" - use all time steps, regularized to "tolerance"
+        * "intersection" - use only timesteps where every series has data
+        * int - use index of the series at the position indicated by the int
+        * a pandas timestep (or text representation) for the frequency of a regular grid
+
+    tolerance
+        a pandas timestep (or text representation) of the allowed tolerance between indices
+
+    interpolation : str, default 'nearest'
+        Interpolation technique to use. One of:
+
+        * 'index', 'values': use the actual numerical values of the index.
+        * 'pad': Fill in NaNs using existing values.
+        * 'nearest', 'zero', 'slinear', 'quadratic', 'cubic': Passed to
+          `scipy.interpolate.interp1d`. These methods use the numerical
+          values of the index.  Both 'polynomial' and 'spline' require that
+          you also specify an `order` (int), e.g.
+          ``df.interpolate(method='polynomial', order=5)``.
+
+
+    Returns
+    -------
+
+    """
+    if not series:
+        raise ValueError('At least one series needed to create a dataframe')
+    tolerance = pd.Timedelta(tolerance)
+    index = _make_timeindex(series, timeindexsource, tolerance)
+    df = pd.DataFrame(index=index)
+    if not interpolation:
+        for s in series:
+            df = pd.merge_asof(df, s, left_index=True, right_index=True, tolerance=tolerance, direction='nearest')
+    else:
+        for s in series:
+            ...
 
 
 def exportLines(fout, lines, tolerance=60):
