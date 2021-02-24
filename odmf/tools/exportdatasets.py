@@ -5,24 +5,98 @@ Created on 05.06.2013
 
 @author: kraft-p
 '''
-import codecs
-from datetime import datetime, timedelta
+
 import pandas as pd
 import typing
-import matplotlib.dates
-t0 = datetime(1, 1, 1)
+
+def _merge_sparse(index: pd.DatetimeIndex, series: typing.List[pd.Series], tolerance: pd.Timedelta) -> pd.DataFrame:
+    """
+    Applies the 'pandas.DataFrame.merge_asof' function to merge all the series using the given 'index' and 'tolerance'
+
+    Parameters
+    ----------
+    index
+        The target index of the merge
+    series
+        A list of heterogeneous timeseries
+    tolerance
+        The tolerance of the merge
+
+    Returns
+    -------
+    pd.DataFrame
+
+    """
+    df = pd.DataFrame(index=index)
+    for s in series:
+        df = pd.merge_asof(df, s, left_index=True, right_index=True, tolerance=tolerance, direction='nearest')
+    return df
 
 
-def num2date(t):
-    return t0 + timedelta(days=t)
+def _merge_interpolation(
+        index: pd.DatetimeIndex,
+        series: typing.List[pd.Series],
+        method: str,
+        limit: typing.Optional[int] = None
+) -> pd.DataFrame:
+    """
+    For each of the series extend the index with the target index, interpolate over the gaps with
+    'interpolation_method' and 'interpolation_limit' and select from the result the values at the target index
+
+    Parameters
+    ----------
+    index
+        The target index as produced by _make_timeindex
+    series
+        A list of series
+    method
+        An interpolation method name: 'nearest', 'zero', 'slinear', 'quadratic', 'cubic': Passed to
+          `scipy.interpolate.interp1d`. These methods use the numerical
+          values of the index.
+    limit
+        Maximum length of gaps to be filled
 
 
-def _make_intersection_timeindex(series: typing.List[pd.Series], tolerance: str) -> pd.DatetimeIndex:
-    ...
+    """
+    df = pd.DataFrame(index=index)
+
+    for s in series:
+        union_index = df.index.union(s.index).unique()
+        single_index_series = s[~s.index.duplicated()]
+        padded_series = single_index_series.reindex(union_index)
+        padded_series.interpolate(method, inplace=True, limit=limit, limit_area='inside')
+        df[s.name] = padded_series.reindex(df.index)
+    return df
 
 
-def _make_timeindex(series: typing.List[pd.Series], timeindexsource: typing.Union[str, int], tolerance: str) -> pd.DatetimeIndex:
+def _make_intersection_timeindex(series: typing.List[pd.Series], tolerance: pd.Timedelta) -> pd.DatetimeIndex:
+    """
+    Creates a new index from the DatetimeIndex of the series, where all series (using the tolerance) have data.
+    A short tolerance produces often an empty index, long tolerances can lead to data loss
+    """
+    union_df = _merge_sparse(series[0].index, series, tolerance)
+    take = ~pd.isna(union_df).any(axis=1)
+    return union_df[take].index
 
+
+def _make_timeindex(series: typing.List[pd.Series], timeindexsource: typing.Union[str, int], tolerance: pd.Timedelta) -> pd.DatetimeIndex:
+    """
+    Creates a new timeindex based on the indices of the series and the 'timeindexsource'
+
+    Parameters
+    ----------
+    series
+        A list of time series
+    timeindexsource
+        see merge_series
+
+    tolerance
+        Tolerance for 'intersect'
+
+    Returns
+    -------
+
+    """
     if timeindexsource == 'union':
         result = series[0].index
         return result.union_many(s.index for s in series)
@@ -35,7 +109,7 @@ def _make_timeindex(series: typing.List[pd.Series], timeindexsource: typing.Unio
 
     else:
         # interprete timeindexsource as frequency for a regular grid
-        freq = timeindexsource
+        freq = pd.Timedelta(timeindexsource)
         start = min(s.index.min() for s in series).floor(freq)
         end = max(s.index.max() for s in series).ceil(freq)
         return pd.date_range(start, end, freq=freq)
@@ -43,113 +117,71 @@ def _make_timeindex(series: typing.List[pd.Series], timeindexsource: typing.Unio
 
 def merge_series(
         series: typing.List[pd.Series],
-        timeindexsource: typing.Union[str, int],
+        timeindexsource,
         tolerance: typing.Union[pd.Timedelta, str, None]=None,
-        interpolation=None) -> pd.DataFrame:
+        interpolation_method=None, interpolation_limit=None) -> pd.DataFrame:
     """
     Merges multiple time series to a dataframe using different techniques to merge the time indices
 
 
     Parameters
     ----------
-    series
+    series: List of pd.Series
         List of time series
 
-    timeindexsource
-        Indicator of what to use for the timeindex:
+    timeindexsource: str, int
 
-        * "union" - use all time steps, regularized to "tolerance"
-        * "intersection" - use only timesteps where every series has data
-        * int - use index of the series at the position indicated by the int
-        * a pandas timestep (or text representation) for the frequency of a regular grid
+        - union - use all time steps, regularized to "tolerance"
+        - intersection - use only timesteps where every series has data
+        - int - use index of the series at the position indicated by the int
+        - a pandas timestep (or text representation) for the frequency of a regular grid
 
     tolerance
         a pandas timestep (or text representation) of the allowed tolerance between indices
 
-    interpolation : str, default 'nearest'
+    interpolation_name : str, default 'nearest'
         Interpolation technique to use. One of:
 
-        * 'index', 'values': use the actual numerical values of the index.
-        * 'pad': Fill in NaNs using existing values.
-        * 'nearest', 'zero', 'slinear', 'quadratic', 'cubic': Passed to
+        - 'nearest', 'zero', 'slinear', 'quadratic', 'cubic': Passed to
           `scipy.interpolate.interp1d`. These methods use the numerical
-          values of the index.  Both 'polynomial' and 'spline' require that
-          you also specify an `order` (int), e.g.
-          ``df.interpolate(method='polynomial', order=5)``.
+          values of the index.
 
+    interpolation_limit: int
+        Limits the number of NaN entries to be interpolated
 
     Returns
     -------
+    pandas.DataFrame
 
     """
     if not series:
         raise ValueError('At least one series needed to create a dataframe')
+    for i, s in enumerate(series):
+        s.name = s.name or f'column_{i}'
+
     tolerance = pd.Timedelta(tolerance)
     index = _make_timeindex(series, timeindexsource, tolerance)
-    df = pd.DataFrame(index=index)
-    if not interpolation:
-        for s in series:
-            df = pd.merge_asof(df, s, left_index=True, right_index=True, tolerance=tolerance, direction='nearest')
+    index = index[~index.duplicated(keep='first')]
+
+    if not interpolation_method:
+        return _merge_sparse(index, series, tolerance)
     else:
-        for s in series:
-            ...
+        return _merge_interpolation(index, series, interpolation_method, interpolation_limit)
 
 
-def exportLines(fout, lines, tolerance=60):
-    """
-    Exports multiple lines from a plot as a table with each line as a column
-    To align the values in the rows a tolerance is chosen, by which measure
-    times may differ, but should still be combined in the same row.
-    """
-    # Make sure the tolerance is > 0
-    tolerance = max(tolerance, 0.01)
+if __name__ == '__main__':
+    import numpy as np
+    np.random.seed(1)
+    t0 = pd.Timestamp('2020-01-01', 'Min')
 
-    # prepare the output file, Excel needs the BOM to recognize csv files with
-    # UTF-8
-    fout.write(codecs.BOM_UTF8.decode('utf-8'))
-
-    # simplify fileoutput
-    def writeline(line):
-        fout.write(','.join((str(s)
-                             if s else '') for s in line) + '\n')
-
-    # Write headers
-    fout.write('time,')
-    writeline(lines)
-    fout.write('\n')
-
-    # Load all time and value arrays for the lines. This is a huge memory
-    # consumer
-    tvpairs = [l.load() for l in lines]
-    # Create counters, holding the position of a line point
-    counters = [0] * len(tvpairs)
-    # Last time step
-    told = 0.0
-    # Hold the data of the current line
-    linedata = []
-    # Loop on with the counters until all data is consumed
-    while any(c < len(tv[0]) for c, tv in zip(counters, tvpairs)):
-        # Get the current time step
-        t = min(tv[0][c] for c, tv in zip(counters, tvpairs) if c < len(tv[0]))
-        # If the current time step is past the tolerance time in seconds
-        if t - told >= tolerance / 86400.:
-            # Get the datetime
-            time = matplotlib.dates.num2date(t).strftime("%Y-%m-%d %H:%M:%S")
-            # Save the current linedata to the file
-            if linedata:
-                writeline(linedata)
-            # Make a new linedata
-            linedata = [time] + ([None] * len(lines))
-            # Current t gets the old time
-            told = t
-
-        # Populate the linedata for each line
-        for i in range(len(lines)):
-            # Check if there is data left and the current data is inside the
-            # tolerance time
-            if (counters[i] < len(tvpairs[i][0]) and
-                    tvpairs[i][0][counters[i]] - t < tolerance):
-                # Get the value
-                linedata[i + 1] = tvpairs[i][1][counters[i]]
-                # Move on with counter
-                counters[i] += 1
+    def make_rnd_series(size, i):
+        return pd.Series(
+            np.random.uniform(0, 1, size),
+            t0 + t0.freq * np.random.uniform(0, 5 * size, size).astype(int),
+            name=f's{i}'
+        ).sort_index()
+    series = [make_rnd_series(1000, i) for i in range(10)]
+    print(merge_series(
+        series, '5Min', '20Min',
+        interpolation_method='linear')
+    )
