@@ -415,6 +415,11 @@ function set_line_dialog_handlers() {
 
 }
 
+function get_all_lines() {
+	lines = []
+	window.plot.subplots.map(sp => sp.lines).forEach(ln => {lines.push(ln)})
+	return lines
+}
 
 $(() => {
 	window.plot = new Plot()

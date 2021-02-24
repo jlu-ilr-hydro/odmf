@@ -20,9 +20,7 @@ import pandas as pd
 from cherrypy.lib.static import serve_fileobj
 
 from datetime import datetime, timedelta
-from io import StringIO
-from io import BytesIO
-
+import io
 import json
 from ..tools import Path as OPath
 from .markdown import MarkDown
@@ -145,8 +143,7 @@ class Line:
             if not datasets:
                 raise ValueError("No data to compute")
             group = db.DatasetGroup([ds.id for ds in datasets], start, end)
-            series = group.asseries(session)
-            series.name = self.name
+            series = group.asseries(session, self.name)
 
         if self.subplot.plot.aggregate:
             sampler = series.resample(self.subplot.plot.aggregate)
@@ -227,6 +224,8 @@ class Subplot:
         self.ylim = ylim
         self.logsite = logsite
 
+    def __iter__(self):
+        return iter(self.lines)
 
     def draw(self, ax: matplotlib.figure.Axes):
         """
@@ -333,11 +332,11 @@ class Plot:
         Draws the plot and returns a byte string containing the image
         """
         fig = self.draw()
-        with BytesIO() as io:
-            fig.savefig(io, format=format, dpi=dpi)
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer, format=format, dpi=dpi)
             plt.close('all')
-            io.seek(0)
-            return io.getvalue()
+            buffer.seek(0)
+            return buffer.getvalue()
 
 
     def __jdict__(self):
@@ -481,22 +480,66 @@ class PlotPage(object):
 
     @expose_for(plotgroup)
     @web.method.post
-    def export(self, plot, format, method, tolerance, timestep):
+    def export(self, plot, fileformat, timeindex, tolerance, grid, interpolation_method, interpolation_limit):
         """
         TODO: Compare to exportall_csv and RegularExport
 
         Parameters
         ----------
         plot: The plot as JSON
-        format: csv, excel, json, feather
+        fileformat: csv, xlsx, pickle, tsv, json
         tolerance: in seconds
-        method: as_first, all_timesteps, regular
+        timeindex: as_first, all_timesteps, regular
 
         Returns
         -------
 
         """
-        ...
+        from ..tools.exportdatasets import merge_series
+        if fileformat not in ('xlsx', 'csv', 'tsv', 'pickle', 'json', 'msgpack'):
+            raise web.HTTPError(500, 'Unknown fileformat: ' + fileformat)
+        plot_dict = web.json.loads(plot)
+        plot: Plot = Plot(**plot_dict)
+        lines = [line for lines in plot.subplots for line in lines]
+        series = [line.load(plot.start, plot.end) for line in lines]
+        timeindex = web.conv(int, timeindex, timeindex)
+        if timeindex == 'regular':
+            timeindex = grid
+        try:
+            dataframe = merge_series(
+                series, timeindex, tolerance, interpolation_method, interpolation_limit)
+        except Exception as e:
+            raise web.HTTPError(message=str(e))
+
+        buffer = io.BytesIO()
+        mime = web.mime.binary
+
+        if fileformat == 'xlsx':
+            dataframe.to_excel(buffer, engine='xlsxwriter')
+            mime = web.mime.xlsx
+        elif fileformat == 'csv':
+            dataframe.to_csv(buffer, encoding='utf-8', index=True, index_label='time')
+            mime = web.mime.csv
+        elif fileformat == 'tsv':
+            dataframe.to_csv(buffer, encoding='utf-8', sep='\t', index=True, index_label='time')
+            mime = web.mime.tsv
+        elif fileformat == 'pickle':
+            dataframe.to_pickle(buffer)
+            mime = web.mime.binary
+        elif fileformat == 'json':
+            dataframe.to_json(buffer)
+            mime = web.mime.json
+        elif fileformat == 'msgpack':
+            dataframe.to_msgpack(buffer)
+
+        buffer.seek(0)
+        plotname = plot.name or f'export-{datetime.now():%Y-%m-%d_%H-%M}'
+        return serve_fileobj(
+            buffer,
+            str(mime),
+            'attachment',
+            plotname + '.' + fileformat
+        )
 
     @expose_for(plotgroup)
     @web.method.post
@@ -547,43 +590,10 @@ class PlotPage(object):
         sp = plot.subplots[int(subplot) - 1]
         line = sp.lines[int(line)]
         filename = ''.join(c if (c.isalnum() or c in '.-_') else '_' for c in line.name) + '.csv'
-        io = StringIO()
+        buffer = io.StringIO()
         line.export_csv(io, plot.start, plot.end)
-        io.seek(0)
-        return serve_fileobj(io, str(web.mime.csv), 'attachment', filename)
-
-
-    @expose_for(plotgroup)
-    @web.mime.csv
-    def exportall_csv(self, tolerance):
-        plot: Plot = Plot(**web.cherrypy.request.json)
-        lines = []
-        for sp in plot.subplots:
-            lines.extend(sp.lines)
-        stream = StringIO()
-        from ..tools.exportdatasets import exportLines
-        exportLines(stream, lines, web.conv(float, tolerance, 60))
-        stream.seek(0)
-        return serve_fileobj(stream)
-
-    @expose_for(plotgroup)
-    @web.mime.csv
-    def RegularTimeseries_csv(self, tolerance=12, interpolation=''):
-        plot: Plot = Plot(**web.cherrypy.request.json)
-        datasetids = []
-        with db.session_scope() as session:
-            lines = []
-            for sp in plot.subplots:
-                lines.extend(sp.lines)
-                for line in sp.lines:
-                    datasetids.extend(ds.id for ds in line.getdatasets(session))
-        stream = StringIO()
-        from ..tools.ExportRegularData import createPandaDfs
-        # explicit decode() for byte to string
-        stream.write(codecs.BOM_UTF8.decode())
-        createPandaDfs(lines, plot.start, plot.end, stream,
-                       interpolationtime=interpolation, tolerance=float(tolerance))
-        return stream.getvalue()
+        buffer.seek(0)
+        return serve_fileobj(buffer, str(web.mime.csv), 'attachment', filename)
 
 
 

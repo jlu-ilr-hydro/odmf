@@ -561,9 +561,9 @@ class DatasetGroup(object):
     def datasets(self, session):
         return session.query(Dataset).filter(Dataset.id.in_(self.datasetids)).order_by(Dataset.start).all()
 
-    def asseries(self, session):
+    def asseries(self, session, name=None):
         datasets = self.datasets(session)
-        data = Series()
+        data = Series(name=name)
         for src in datasets:
             s = src.asseries(self.start, self.end)
             data = data.append(s)

@@ -54,12 +54,14 @@ class Mime:
     jpeg = jpg = jpe = MimeType('image/jpeg')
     png = MimeType('image/png')
     csv = MimeType('text/comma-separated-values')
+    tsv = MimeType('text/tab-separated-values')
     pdf = MimeType('application/pdf')
     xls = MimeType('application/msexcel')
     xlsx = MimeType('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     svg = MimeType('image/svg+xml')
     tif = MimeType('image/tiff')
     kml = MimeType('application/vnd.google-earth.kml+xml')
+    binary = MimeType('application/octet-stream')
 
     def __getitem__(self, item):
         if item[0] == '.':

@@ -181,7 +181,14 @@ if __name__ == '__main__':
             name=f's{i}'
         ).sort_index()
     series = [make_rnd_series(1000, i) for i in range(10)]
-    print(merge_series(
+    df = merge_series(
         series, '5Min', '20Min',
-        interpolation_method='linear')
+        interpolation_method='linear'
     )
+    import io
+    buf = io.BytesIO()
+    df.to_parquet(buf, index=True)
+    del df
+    buf.seek(0)
+    df2 = pd.read_parquet()
+    print(df2)

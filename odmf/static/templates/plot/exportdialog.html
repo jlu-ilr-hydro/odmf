@@ -5,67 +5,97 @@ Template for webpage.plot.PlotPage.exportdialog()
 To be included as AJAH into modal dialog in plot.html
 GET /plot/exportdialog
 
-
 -->
+<script>
+    $(()=>{
+        $('#export-method').append(
+            get_all_lines().map(
+                (line, index) => $(`<option value="${index}">Timesteps from ${line.name}</option>`)
+            )
+        )
+        $('#export-plot').val(JSON.stringify(window.plot))
+        $('#export-method').change(e => {
+            if ($(e.currentTarget).val() === 'regular') {
+                $('#export-grid').parents('.row').show(200)
+            } else {
+                $('#export-grid').parents('.row').hide(200)
+            }
+        })
+        $('#export-interpolation-method').change(e => {
+            if ($(e.currentTarget).val()) {
+                $('#export-interpolation-limit').parents('.row').show(200)
+            } else {
+                $('#export-interpolation-limit').parents('.row').hide(200)
+            }
+        })
+    })
+</script>
+<form action="export" method="post">
 <div class="modal-content">
     <div class="modal-header bg-primary text-light">
         <h5 class="modal-title"><i class="fas fa-file-export mr-2"/>Export data</h5>
     </div>
 
     <div class="modal-body">
-        <label for="export-format">File format</label>
-        <select name="format" class="form-control">
-            <option value="xlsx">Excel</option>
-            <option value="csv">CSV (comma seperated variable)</option>
-            <option value="tsv">TSV (tab seperated variable) </option>
-            <option value="hdf5">HDF5</option>
-        </select>
-        <label for="export-method">Time step:</label>
-        <select name="format" class="form-control">
-            <option value="as1st">Use first column for date index</option>
-            <option value="any">Mix all date indices with tolerance</option>
-            <option value="regular">Use regular time steps</option>
-        </select>
-        <label for="export-tolerance">Time step tolerance</label>
-        <select id="tolerance_skipper" data-toggle="tooltip" class="form-control"
-                title="Specifies a tolerance time to keep values in the same line of the csv file.
-'no tolerance' means there is no tolerance, and the smallest difference in the timestamp
-of two values leads to a new line."
-        >
-            <option value="0">no tolerance</option>
-            <option value="300">5Min</option>
-            <option value="600">10Min</option>
-            <option value="1800">30Min</option>
-            <option value="3600">1h</option>
-            <option value="86400">1day</option>
-        </select>
-        <label for="export-grid">Regular grid</label>
-        <select id="export-grid" data-toggle="tooltip" class="form-control"
-                title="Time resolution of all datasets in the output csv-file.">
-            <option value="5Min">5Min</option>
-            <option value="10Min">10Min</option>
-            <option value="15Min">15Min</option>
-            <option value="30Min">30Min</option>
-            <option value="60Min">1h</option>
-            <option value="1440Min">1day</option>
-
-        </select>
-        <label for="export-interpolation-size">Length of gaps to be filled via interpolation</label>
-        <select id="Interpolation_Limit" data-toggle="tooltip" class="form-control"
-                title="Number of possible gaps in the data which will be filled through linear interpolation.">
-            <option value="1">1Timestep</option>
-            <option value="5">5Timesteps</option>
-            <option value="10">10Timesteps</option>
-            <option value="50">50Timesteps</option>
-            <option value="100">100Timesteps</option>
-            <option value="200">200Timesteps</option>
-        </select>
+        <input id="export-plot" name="plot" class="d-none" />
+        <div class="form-group row">
+            <label class="col-sm-3" for="export-format">File format</label>
+            <div class="col-sm-9">
+                <select name="fileformat" class="form-control">
+                    <option value="xlsx">Excel</option>
+                    <option value="csv">CSV (comma separated variable)</option>
+                    <option value="tsv">TSV (tab separated variable)</option>
+                    <option value="pickle">Python pickled dataframe</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-3" for="export-method">Time step:</label>
+            <div class="col-sm-9">
+                <select id="export-method" name="timeindex" class="form-control">
+                    <option value="union">union: Use all timesteps from all time series</option>
+                    <option value="intersection">intersection: Use only timesteps where all series have data (within tolerance)</option>
+                    <option value="regular">Use regular time steps</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-3" for="export-tolerance">Time step tolerance</label>
+            <div class="col-sm-9">
+                <input id="export-tolerance" name="tolerance"
+                       pattern="[0-9]*[Y,M,W,D,h,s,m]" placeholder="5 days = 5D, 2 minutes = 2m, a week = 1W"/>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-3" for="export-grid">Regular time spacing</label>
+            <div class="col-sm-9">
+                <input id="export-grid" name="grid" pattern="[0-9]*[Y,M,W,D,h,s,m]"/>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-3" for="export-interpolation-method">Interpolation method</label>
+            <div class="col-sm-9">
+                <select id="export-interpolation-method" name="interpolation_method" class="form-control">
+                    <option value="">no interpolation</option>
+                    <option value="nearest">nearest neighbor</option>
+                    <option value="slinear">linear</option>
+                    <option value="quadratic">quadratic</option>
+                    <option value="cubic">cubic</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-3" for="export-interpolation-limit">Length of gaps to be filled via interpolation</label>
+            <div class="col-sm-9">
+                <input type="number" name="interpolation_limit" id="export-interpolation-limit" min="0" class="form-control"/>
+            </div>
+        </div>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <button id="save-button" type="button" class="btn btn-primary" data-dismiss="modal">Export</button>
+        <button id="export-start-button" type="submit" class="btn btn-primary" data-dismiss="modal">Export</button>
     </div>
 
 </div>
-
+</form>
 </html>
