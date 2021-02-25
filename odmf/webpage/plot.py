@@ -152,6 +152,7 @@ class Line:
         # There were problems with arrays from length 0
         if series.empty:
             raise ValueError("No data to compute")
+        series.name = str(self)
         return series
 
     def draw(self, ax, start=None, end=None):
@@ -503,31 +504,31 @@ class PlotPage(object):
         lines = [line for lines in plot.subplots for line in lines]
         series = [line.load(plot.start, plot.end) for line in lines]
         timeindex = web.conv(int, timeindex, timeindex)
+
+
         if timeindex == 'regular':
             timeindex = grid
         try:
+            tolerance = pd.Timedelta(tolerance or '0s')
             dataframe = merge_series(
                 series, timeindex, tolerance, interpolation_method, interpolation_limit)
         except Exception as e:
-            raise web.HTTPError(message=str(e))
+            raise PlotError(message=str(e))
 
         buffer = io.BytesIO()
         mime = web.mime.binary
 
         if fileformat == 'xlsx':
-            dataframe.to_excel(buffer, engine='xlsxwriter')
+            dataframe.to_excel(buffer, engine='openpyxl', index=True, index_label='time')
             mime = web.mime.xlsx
         elif fileformat == 'csv':
-            dataframe.to_csv(buffer, encoding='utf-8', index=True, index_label='time')
+            buffer.write(dataframe.to_csv(index=True, index_label='time').encode('utf-8'))
             mime = web.mime.csv
         elif fileformat == 'tsv':
-            dataframe.to_csv(buffer, encoding='utf-8', sep='\t', index=True, index_label='time')
+            buffer.write(dataframe.to_csv(sep='\t', index=True, index_label='time').encode('utf-8'))
             mime = web.mime.tsv
-        elif fileformat == 'pickle':
-            dataframe.to_pickle(buffer)
-            mime = web.mime.binary
         elif fileformat == 'json':
-            dataframe.to_json(buffer)
+            buffer.write(dataframe.to_json(indent=2).encode('utf-8'))
             mime = web.mime.json
         elif fileformat == 'msgpack':
             dataframe.to_msgpack(buffer)

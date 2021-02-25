@@ -209,6 +209,78 @@
         </div>
         <div id="export-dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
             <div id="export-dialog-content" class="modal-dialog">
+                <form action="export" method="post" id="export-form">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-light">
+                            <h5 class="modal-title"><i class="fas fa-file-export mr-2"/>Export data</h5>
+                        </div>
+
+                        <div class="modal-body">
+                            <input id="export-plot" name="plot" class="d-none" />
+                            <div class="form-group row">
+                                <label class="col-lg-3" for="export-format">File format</label>
+                                <div class="col-lg-9">
+                                    <select name="fileformat" class="form-control">
+                                        <option value="xlsx">Excel</option>
+                                        <option value="csv">CSV (comma separated variable)</option>
+                                        <option value="tsv">TSV (tab separated variable)</option>
+                                        <option value="json">JSON notation</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-lg-3" for="export-method">Time step</label>
+                                <div class="col-lg-9">
+                                    <select id="export-method" name="timeindex" class="form-control">
+                                        <option value="union">union: Use all timesteps from all time series</option>
+                                        <option value="intersection">intersection: Use only timesteps where all series have data (within tolerance)</option>
+                                        <option value="regular">Use regular time steps</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <h6>Time steps</h6>
+                            <div class="small">Use a number of time units, eg. 5D, 1W, 3h, 3h5m4s</div>
+
+                            <div class="form-group row">
+                                <label class="col-lg-3" for="export-grid">Regular gird</label>
+                                <div class="col-lg-9">
+                                    <input id="export-grid" name="grid" pattern="([0-9]+[YWDhsm])*" class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-lg-3" for="export-tolerance">Tolerance</label>
+                                <div class="col-lg-9">
+                                    <input id="export-tolerance" name="tolerance" class="form-control"
+                                           pattern="([0-9]+[YWDhsm])*" />
+                                </div>
+                            </div>
+                            <h6>Interpolation</h6>
+                            <div class="form-group row">
+                                <label class="col-lg-3" for="export-interpolation-method">Method</label>
+                                <div class="col-lg-9">
+                                    <select id="export-interpolation-method" name="interpolation_method" class="form-control">
+                                        <option value="">no interpolation</option>
+                                        <option value="nearest">nearest neighbor</option>
+                                        <option value="slinear">linear</option>
+                                        <option value="quadratic">quadratic</option>
+                                        <option value="cubic">cubic</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-lg-3" for="export-interpolation-limit">Limit</label>
+                                <div class="col-lg-9">
+                                    <input type="number" name="interpolation_limit" id="export-interpolation-limit" min="0" class="form-control" value="0"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            <button id="export-start-button" type="submit" form="export-form" value="ok" class="btn btn-primary">Export</button>
+                        </div>
+
+                    </div>
+                </form>
 
             </div>
         </div>

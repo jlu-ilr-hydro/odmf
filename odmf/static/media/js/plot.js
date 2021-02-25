@@ -58,9 +58,10 @@ function set_content_tree_handlers() {
 					plot: JSON.stringify(window.plot, null, 4)
 				},
 				data => {
-					let home = odmf_ref('dataset')
-					let html = data.map(item => `<li><a href="${home}/${item.id}">${item.label}</a></li>`).reduce((acc, v) => acc + '\n' + v);
-					// btn.attr('data-original-title', html).tooltip('update').tooltip('show')
+					let home = odmf_ref('/dataset')
+					let html = ''
+					if (data)
+						html += data.map(item => `<li><a href="${home}/${item.id}">${item.label}</a></li>`).reduce((acc, v) => acc + '\n' + v);
 					$(`#datasetlist_${sp}_${line}`).html(html)
 				}
 			);
@@ -416,9 +417,31 @@ function set_line_dialog_handlers() {
 }
 
 function get_all_lines() {
-	lines = []
-	window.plot.subplots.map(sp => sp.lines).forEach(ln => {lines.push(ln)})
-	return lines
+	return window.plot.subplots.map(sp => sp.lines).flat()
+}
+
+function makeExportDialog() {
+	$('#export-method').remove('.timeindex_from_line').append(
+		get_all_lines().map(
+			(line, index) => $(`<option value="${index}" class="timeindex_from_line">Timesteps from ${line.name}</option>`)
+		)
+	)
+	$('#export-plot').val(JSON.stringify(window.plot))
+	$('#export-method').change(e => {
+		if ($(e.currentTarget).val() === 'regular') {
+			$('#export-grid').parents('.row').show(200)
+		} else {
+			$('#export-grid').parents('.row').hide(200)
+		}
+	}).val('union').change()
+	$('#export-interpolation-method').change(e => {
+		if ($(e.currentTarget).val()) {
+			$('#export-interpolation-limit').parents('.row').show(200)
+		} else {
+			$('#export-interpolation-limit').parents('.row').hide(200)
+		}
+	}).val('').change()
+
 }
 
 $(() => {
@@ -470,9 +493,7 @@ $(() => {
 	$('#file-dialog').on('show.bs.modal', event => {
 		$('#file-dialog-content').load('filedialog/')
 	})
-	$('#export-dialog').on('show.bs.modal', event => {
-		$('#export-dialog-content').load('exportdialog/')
-	})
+	$('#export-dialog').on('show.bs.modal', makeExportDialog)
 
 	$('.killplotfn').click(function() {
 		var fn = $(this).html();
