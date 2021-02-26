@@ -496,16 +496,16 @@ class PlotPage(object):
         -------
 
         """
-        from ..tools.exportdatasets import merge_series
+        from ..tools.exportdatasets import merge_series, export_dataframe
         if fileformat not in ('xlsx', 'csv', 'tsv', 'pickle', 'json', 'msgpack'):
             raise web.HTTPError(500, 'Unknown fileformat: ' + fileformat)
         plot_dict = web.json.loads(plot)
         plot: Plot = Plot(**plot_dict)
         lines = [line for lines in plot.subplots for line in lines]
         series = [line.load(plot.start, plot.end) for line in lines]
+        # Convert timeindex to int if possible
         timeindex = web.conv(int, timeindex, timeindex)
-
-
+        # If timeindex is 'regular', replace with time grid
         if timeindex == 'regular':
             timeindex = grid
         try:
@@ -516,25 +516,10 @@ class PlotPage(object):
             raise PlotError(message=str(e))
 
         buffer = io.BytesIO()
-        mime = web.mime.binary
-
-        if fileformat == 'xlsx':
-            dataframe.to_excel(buffer, engine='openpyxl', index=True, index_label='time')
-            mime = web.mime.xlsx
-        elif fileformat == 'csv':
-            buffer.write(dataframe.to_csv(index=True, index_label='time').encode('utf-8'))
-            mime = web.mime.csv
-        elif fileformat == 'tsv':
-            buffer.write(dataframe.to_csv(sep='\t', index=True, index_label='time').encode('utf-8'))
-            mime = web.mime.tsv
-        elif fileformat == 'json':
-            buffer.write(dataframe.to_json(indent=2).encode('utf-8'))
-            mime = web.mime.json
-        elif fileformat == 'msgpack':
-            dataframe.to_msgpack(buffer)
-
-        buffer.seek(0)
+        mime = web.mime.get(fileformat, web.mime.binary)
+        buffer = export_dataframe(buffer, dataframe, fileformat)
         plotname = plot.name or f'export-{datetime.now():%Y-%m-%d_%H-%M}'
+        buffer.seek(0)
         return serve_fileobj(
             buffer,
             str(mime),

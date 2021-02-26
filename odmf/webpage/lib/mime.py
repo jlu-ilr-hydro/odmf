@@ -75,6 +75,12 @@ class Mime:
             else:
                 raise KeyError(f'mimetype "{item}" not found')
 
+    def get(self, item, default=None):
+        if item in self:
+            return self[item]
+        else:
+            return default
+
     def __getattr__(self, item):
         t, e = mimetypes.guess_type('bla.' + item)
         if t:

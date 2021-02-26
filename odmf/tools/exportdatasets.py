@@ -169,6 +169,20 @@ def merge_series(
         return _merge_interpolation(index, series, interpolation_method, interpolation_limit)
 
 
+def export_dataframe(stream, data: pd.DataFrame, fileformat: str):
+    if fileformat == 'xlsx':
+        data.to_excel(stream, engine='openpyxl', index=True, index_label='time')
+    elif fileformat == 'csv':
+        stream.write(data.to_csv(index=True, index_label='time').encode('utf-8'))
+    elif fileformat == 'tsv':
+        stream.write(data.to_csv(sep='\t', index=True, index_label='time').encode('utf-8'))
+    elif fileformat == 'json':
+        stream.write(data.to_json(indent=2).encode('utf-8'))
+    elif fileformat == 'msgpack':
+        data.to_msgpack(stream)
+    return stream
+
+
 if __name__ == '__main__':
     import numpy as np
     np.random.seed(1)
