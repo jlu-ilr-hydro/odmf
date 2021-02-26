@@ -7,9 +7,14 @@ All objects defined here will be available inside of the templates
 import cherrypy as __cp
 
 
-from ..markdown import MarkDown as __md
+from ..markdown import MarkDown as __MarkDown
+__md = __MarkDown()
 
-markdown = __md()
+
+def markdown(s):
+    from kajiki.template import literal
+    return literal(__md(s))
+
 
 from ..auth import users, is_member
 from datetime import datetime, timedelta

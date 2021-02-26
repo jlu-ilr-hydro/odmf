@@ -130,20 +130,19 @@ def adcon2pandas(filename: str='soil_moisture_02_03_2020_1.csv', lookup: pd.Seri
     # Bring df into shape for import (add and remove columns)
     del df['variablename']
     del df['unit']
-    df['is_error'] = False
-    df['comment'] = None
-    df['sample'] = None
-    df['id'] = df.index
 
     return df
 
 def write_to_db(session, df):
     conn = session.connection()
+    df['is_error'] = False
+    df['comment'] = None
+    df['sample'] = None
+    df['id'] = df.index
     df.to_sql('record', conn, if_exists='append', index=False, method='multi', chunksize=1000)
 
 if __name__ == '__main__':
     from odmf import db
-    lookup = get_lookup()
-    df = adcon2pandas(lookup=lookup)
+    df = pd.read_pickle('adcon_sb.pickle')
     with db.session_scope() as session:
         write_to_db(session, df)

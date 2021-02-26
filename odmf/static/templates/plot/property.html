@@ -10,7 +10,7 @@
                 $('#endtime').val(plot.end.split(/[T,\s]/)[1])
             }
             $('#prop-columns').val(plot.columns).attr('max', Math.max(1, plot.subplots.length))
-            $('#plotaggregate').val(plot.aggregate)
+            $('#plotaggregate').val(plot.aggregate || '')
             $('#prop-description').val(plot.description)
 
             $('#prop-OK').click(event => {

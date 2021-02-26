@@ -7,10 +7,11 @@
 
 function seterror(jqhxr ,textStatus, errorThrown) {
 	if (textStatus) {
-		$('#error').html(textStatus);
-		$('#error-row').slideDown();
+		$('#error').html(jqhxr.responseText);
+		$('#error-row').removeClass('d-none');
 	} else {
-		$('#error-row').slideUp(() => {$('#error').html('');});
+		$('#error-row').addClass('d-none');
+		$('#error').html('');
 	}
 }
 
@@ -149,6 +150,7 @@ class Plot {
 				$('#plot').html(result);
 				$('#plot-reload-button').addClass('d-none')
 				$('#plot').removeClass('semitransparent')
+				$('#error-row').addClass('d-none')
 			})
 			.fail(seterror);
 		return this.apply()
@@ -293,7 +295,7 @@ function showlinedatasets(subplot,line) {
 			function(data){
 				var html='';
 				$.each(data,function(index,item){
-					html+='<li><a href="/dataset/'+item.id + '">' + item.label + '</a></li>';
+					html+=`<li><a href="/dataset/${item.id}" title="${item.label}">ds${item.id}</a></li>`;
 				});
 				$('#datasetlist_'+subplot+'_'+line).html(html)
 				$('#datasetlist_'+subplot+'_'+line).slideDown('fast');
@@ -421,7 +423,8 @@ function get_all_lines() {
 }
 
 function makeExportDialog() {
-	$('#export-method').remove('.timeindex_from_line').append(
+	$('.timeindex_from_line').remove()
+	$('#export-method').append(
 		get_all_lines().map(
 			(line, index) => $(`<option value="${index}" class="timeindex_from_line">Timesteps from ${line.name}</option>`)
 		)
@@ -457,6 +460,8 @@ $(() => {
 			ylim: null,
 			logsite: null,
 		}];
+		plot.aggregate = null
+		plot.columns = 1
 		plot.apply()
 	});
     // Fluid layout doesn't seem to support 100% height; manually set it

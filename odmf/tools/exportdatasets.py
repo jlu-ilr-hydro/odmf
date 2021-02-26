@@ -64,7 +64,7 @@ def _merge_interpolation(
         union_index = df.index.union(s.index).unique()
         single_index_series = s[~s.index.duplicated()]
         padded_series = single_index_series.reindex(union_index)
-        padded_series.interpolate(method, inplace=True, limit=limit, limit_area='inside')
+        padded_series.interpolate(method, inplace=True, limit=limit or None, limit_area='inside')
         df[s.name] = padded_series.reindex(df.index)
     return df
 

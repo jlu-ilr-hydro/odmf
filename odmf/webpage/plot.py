@@ -5,18 +5,14 @@ Created on 01.10.2012
 """
 
 import sys
-# import matplotlib
-# matplotlib.use('Agg')
 
-import codecs
-
-import os
 import pylab as plt
 from matplotlib.ticker import MaxNLocator
 import matplotlib.figure
 import numpy as np
 import pandas as pd
 
+import cherrypy
 from cherrypy.lib.static import serve_fileobj
 
 from datetime import datetime, timedelta
@@ -51,7 +47,7 @@ def asdict(obj):
         return obj
 
 
-class PlotError(web.cherrypy.HTTPError):
+class PlotError(web.HTTPError):
 
     def __init__(self, message: str):
         self.message = message
@@ -60,7 +56,7 @@ class PlotError(web.cherrypy.HTTPError):
     def get_error_page(self, *args, **kwargs):
         from .lib import render
         error = '## Plot object incorrect\n\n' + self.message
-        return render('plot.html', error=error).render().encode('utf-8')
+        return render('plot.html', plot=None, error=error).render().encode('utf-8')
 
 
 class Line:
@@ -147,7 +143,7 @@ class Line:
 
         if self.subplot.plot.aggregate:
             sampler = series.resample(self.subplot.plot.aggregate)
-            series = sampler.aggregate(self.aggregatefunction)
+            series = sampler.aggregate(self.aggregatefunction or 'mean')
 
         # There were problems with arrays from length 0
         if series.empty:
@@ -159,14 +155,11 @@ class Line:
         """
         Draws the line to the matplotlib axis ax
         """
-        try:
-            data = self.load(start, end)
-            # Do the plot
-            style = dict(color=self.color or 'k',
-                         linestyle=self.linestyle, marker=self.marker)
-            data.plot.line(**style, ax=ax, label=self.name)
-        except ValueError as e:
-            print(e)
+        data = self.load(start, end)
+        # Do the plot
+        style = dict(color=self.color or 'k',
+                     linestyle=self.linestyle, marker=self.marker)
+        data.plot.line(**style, ax=ax, label=self.name)
 
     def valuetype(self, session):
         return session.query(db.ValueType).get(
@@ -351,10 +344,16 @@ class Plot:
                     description=self.description)
 
 
+plotgroup = group.logger
 
-#TODO: Define plotgroup
-plotgroup = None
 
+class AJAXError(web.HTTPError):
+    def __init__(self, status: int, message: str):
+        self.message = message
+        super().__init__(status, str(message))
+
+    def get_error_page(self, *args, **kwargs):
+        return self.message.encode('utf-8')
 
 class PlotFileDialog:
     """
@@ -445,11 +444,9 @@ class PlotPage(object):
         -------
             Plot page
         """
-
-        if not j:
+        plot = None
+        if not j and f:
             try:
-                if not f or not web.user():
-                    f = '~/plots/default.plot'
                 if f[0] == '~' and web.user():
                     f = web.user() + f[1:]
                 p = OPath(f or '')
@@ -457,27 +454,23 @@ class PlotPage(object):
                     with open(p.absolute) as f:
                         j = f.read()
                 else:
-                    j = '{}'
+                    j = None
             except IOError as e:
                 error = str(e)
-                j = '{}'
-        try:
-            plot = json.loads(j)
-        except json.JSONDecodeError as e:
-            error = '\n'.join(f'{i:3} | {l}' for i, l in enumerate(j.split('\n'))) + f'\n\n {e}'
-            plot = None
+                j = None
+        if j:
+            try:
+                plot = json.loads(j)
+            except json.JSONDecodeError as e:
+                error = '\n'.join(f'{i:3} | {l}' for i, l in enumerate(j.split('\n'))) + f'\n\n {e}'
+                plot = None
 
-        return web.render('plot.html', plot=plot, error=error).render()
+        return web.render('plot.html', plot=plot, error=error.replace("'", r"\'")).render()
 
     @expose_for(plotgroup)
     @web.method.get
     def property(self):
         return web.render('plot/property.html').render()
-
-    @expose_for(plotgroup)
-    @web.method.get
-    def exportdialog(self):
-        return web.render('plot/exportdialog.html').render()
 
     @expose_for(plotgroup)
     @web.method.post
@@ -510,10 +503,13 @@ class PlotPage(object):
             timeindex = grid
         try:
             tolerance = pd.Timedelta(tolerance or '0s')
+            interpolation_limit = web.conv(int, interpolation_limit)
             dataframe = merge_series(
-                series, timeindex, tolerance, interpolation_method, interpolation_limit)
+                series, timeindex, tolerance,
+                interpolation_method, interpolation_limit
+            )
         except Exception as e:
-            raise PlotError(message=str(e))
+            raise web.redirect(url='/plot', error=str(e))
 
         buffer = io.BytesIO()
         mime = web.mime.get(fileformat, web.mime.binary)
@@ -539,14 +535,18 @@ class PlotPage(object):
                 .fail(seterror)
         """
         plot_data = web.cherrypy.request.json
-        plot = Plot(**plot_data)
-        fig = plot.draw()
+        try:
+            plot = Plot(**plot_data)
+            fig = plot.draw()
+        except Exception as e:
+            raise AJAXError(500, message=str(e))
         import io
         buf = io.BytesIO()
         fig.savefig(buf, format='svg')
         # buf.write(f'<div class="fig-subtitle">{markdown(plot.description)}</div>'.encode('utf-8'))
-        html = buf.getvalue()
-        return html
+        svg = buf.getvalue()
+        caption = '<div class="container">' + markdown(plot.description) + '</div>'
+        return svg + caption.encode('utf-8')
 
     @expose_for(plotgroup)
     @web.method.post

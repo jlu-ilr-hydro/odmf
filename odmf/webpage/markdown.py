@@ -236,6 +236,6 @@ class MarkDown:
             )
             if with_newline_literal:
                 cleaned_html = cleaned_html.replace('\n', r'\n')
-            return literal(cleaned_html)
+            return cleaned_html
         else:
             return s
