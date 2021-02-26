@@ -455,15 +455,14 @@ $(() => {
 
 	$('#btn-clf').click(function() {
 		let plot = window.plot
-		plot.subplots = [{
-			lines: [],
-			ylim: null,
-			logsite: null,
-		}];
+		plot.subplots = [];
 		plot.aggregate = null
 		plot.columns = 1
 		plot.apply()
 	});
+	$('#addsubplot').click(e => {
+		window.plot.addsubplot()
+	})
     // Fluid layout doesn't seem to support 100% height; manually set it
     $(window).resize(() => {
     	let plotElement = $('#plot');
