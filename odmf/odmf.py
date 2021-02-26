@@ -233,5 +233,32 @@ def uri_tree(only_navigatable, level):
         print(f'{r.uri}: {r.doc}')
 
 
+@cli.command()
+def interactive():
+    """
+    Launches an IPython shell with odmf related symbols. Needs IPython
+    """
+    from IPython import embed
+    from .config import conf
+    from . import db
+    import pandas as pd
+    import numpy as np
+    greeting = """
+Defined symbols
+---------------
+
+db: the odmf.db module
+session: a SQLAlchemy session to load Database objects
+q: a shortcut for session.query
+
+eg load a dataset:
+>>>ds = q(db.Dataset).get(1000)"""
+
+    with db.session_scope() as session:
+        q = session.query
+        embed(colors='Neutral', header=greeting)
+
+
+
 if __name__ == '__main__':
     cli()
