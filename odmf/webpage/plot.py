@@ -18,12 +18,16 @@ import io
 import json
 from ..tools import Path as OPath
 from ..plot import Plot
-from ..plot import draw_plotly as plot_backend
 from .markdown import MarkDown
 from .. import db
 from . import lib as web
 from .auth import group, expose_for, users
 
+# Try to use plotly, if not available use matplotlib
+try:
+    from ..plot import draw_plotly as plot_backend
+except ImportError:
+    from ..plot import draw_mpl as plot_backend
 nan = np.nan
 
 logger = getLogger(__name__)
