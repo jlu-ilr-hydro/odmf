@@ -141,8 +141,3 @@ def write_to_db(session, df):
     df['id'] = df.index
     df.to_sql('record', conn, if_exists='append', index=False, method='multi', chunksize=1000)
 
-if __name__ == '__main__':
-    from odmf import db
-    df = pd.read_pickle('adcon_sb.pickle')
-    with db.session_scope() as session:
-        write_to_db(session, df)
