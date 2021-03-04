@@ -219,7 +219,7 @@ class MarkDown:
 
         self.md = markdown.Markdown(extensions=['admonition', 'extra', se, al])
 
-    def __call__(self, s, *, with_newline_literal=False):
+    def __call__(self, s, *, with_newline_literal=False) -> str:
         if s:
             if type(s) is str:
                 pass

@@ -28,5 +28,10 @@ humanize
 # woftester only
 lxml
 coloredlogs
+ipython==7.2.0
 # tests only
 requests
+
+# using plotly backend
+plotly==4.14.3
+psutil==5.8.0
