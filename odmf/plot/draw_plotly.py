@@ -10,6 +10,7 @@ import io
 from . import Plot, Line
 from ..config import conf
 
+
 def _draw_line(line: Line, start, end) -> go.Scatter:
 
     data = line.load(start, end)

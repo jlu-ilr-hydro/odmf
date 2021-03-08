@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <py:extends href="bootstrap_navigation.html" xmlns:py="">
     <py:block name="scripts">
-        <script type="text/javascript" async="async" defer="defer"
-                src="https://maps.googleapis.com/maps/api/js?key=${conf.google_maps_api_key}">
-        </script>
+
         <script type="text/javascript" src="${conf.root_url}/media/js/map.js"></script>
+        <script type="text/javascript" async="async" defer="defer"
+                src="https://maps.googleapis.com/maps/api/js?${google_maps_querystring}">
+        </script>
         <script>
             $(function() {
-                initMap(${site});
                 $(function () {
                     $('[data-toggle="tooltip"]').tooltip()
                 });
