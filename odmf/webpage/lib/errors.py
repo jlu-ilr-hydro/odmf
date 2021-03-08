@@ -49,10 +49,10 @@ class HTTPError(_HTTPError):
             text = '\n```\n' + self.traceback + '\n```\n'
         else:
             text = None
-        return to_html(error=self.message, text=text)
+        return to_html(error=self.message, text=text).encode('utf-8')
 
 
-class HTTPAPIError(_HTTPError):
+class APIError(_HTTPError):
 
     def __init__(self, status: int, message: str):
         self.message = message

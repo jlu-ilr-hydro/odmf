@@ -75,7 +75,7 @@ class DownloadPage(object):
 
     to_db = DbImportPage()
 
-    @expose_for(group.guest)
+    @expose_for(group.logger)
     @web.method.get
     def index(self, uri='.', error='', msg='', _=None):
         path = Path(uri)
@@ -147,7 +147,7 @@ class DownloadPage(object):
         open(path.absolute, 'w').write(s)
         return web.markdown(s)
 
-    @expose_for()
+    @expose_for(group.logger)
     @web.method.get
     def getindex(self, dir):
         index = Path(dir, 'index.html')
@@ -165,7 +165,7 @@ class DownloadPage(object):
                 io.write(f' * file:{dir}/{fn} imported by user:{user} at {date} into {ds}\n')
         return web.markdown(io.getvalue())
 
-    @expose_for()
+    @expose_for(group.logger)
     @web.method.get
     @web.mime.json
     def listdir(self, dir, pattern=None):

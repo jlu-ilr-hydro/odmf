@@ -61,7 +61,6 @@ class Root(object):
                 raise web.redirect(conf.root_url + '/job')
         return self.map.index()
 
-
     @expose_for()
     @web.show_in_nav_for(icon='key')
     def login(self, frompage=None, username=None, password=None, error='', logout=None):
@@ -124,9 +123,17 @@ class Root(object):
     @expose_for()
     @web.mime.plain
     def robots_txt(self):
+        """
+        Disallows search engine in ODMF servers
+
+        Returns:
+            User-agent: *
+            Disallow: /
+        """
         return "User-agent: *\nDisallow: /\n"
 
     @expose_for()
+    @web.method.get
     def resources(self, format='json'):
         """
         Returns a json object representing all resources of this cherrypy web-application
@@ -172,5 +179,8 @@ class Root(object):
 
 
     def __init__(self):
+        """
+        Creates the root page and marks self as the root object
+        """
         web.render.set_root(self)
 
