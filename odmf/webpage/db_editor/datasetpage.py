@@ -447,7 +447,7 @@ class DatasetPage:
         with db.session_scope() as session:
             ds = session.query(db.Dataset).get(int(dataset))
             if users.current.level < ds.access:  # @UndefinedVariable
-                raise cherrypy.HTTPError(403, 'User privileges not sufficient to access ds:' +
+                raise web.HTTPError(403, 'User privileges not sufficient to access ds:' +
                                          str(dataset))
             records = ds.records.order_by(db.Record.time)
             if witherror:
@@ -472,7 +472,7 @@ class DatasetPage:
                             db.Record.value < float(maxvalue))
                     records = records.limit(limit)
             except:
-                raise cherrypy.HTTPError(500, traceback())
+                raise web.HTTPError(500, traceback())
             return web.json_out({'error': None, 'data': records.all()})
 
     @expose_for(group.editor)

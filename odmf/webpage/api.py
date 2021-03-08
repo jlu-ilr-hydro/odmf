@@ -70,11 +70,11 @@ class DatasetAPI(BaseAPI):
     @staticmethod
     def parse_id(dsid: str) -> int:
         if dsid[:2] != 'ds':
-            raise cherrypy.HTTPError(404, f'Dataset id does not start with ds. Got {dsid}')
+            raise web.HTTPError(404, f'Dataset id does not start with ds. Got {dsid}')
         try:
             return int(dsid[2:])
         except (TypeError, ValueError):
-            raise cherrypy.HTTPError(404, f'Last part of dataset id is not a number. Got {dsid}')
+            raise web.HTTPError(404, f'Last part of dataset id is not a number. Got {dsid}')
 
     @staticmethod
     @contextmanager
@@ -83,9 +83,9 @@ class DatasetAPI(BaseAPI):
         with db.session_scope() as session:
             ds = session.query(db.Dataset).get(dsid)
             if not ds:
-                raise cherrypy.HTTPError(404, f'ds{dsid} does not exist')
+                raise web.HTTPError(404, f'ds{dsid} does not exist')
             elif check_access and not has_level(ds.access):
-                raise cherrypy.HTTPError(403, f'ds{dsid} is protected. Need a higher access level')
+                raise web.HTTPError(403, f'ds{dsid} is protected. Need a higher access level')
             else:
                 yield ds
 
@@ -200,7 +200,7 @@ class DatasetAPI(BaseAPI):
 
             except:
                 # On error render the error message
-                raise cherrypy.HTTPError(400, traceback())
+                raise web.HTTPError(400, traceback())
 
     @expose_for(group.editor)
     @web.method.post_or_put
@@ -229,7 +229,7 @@ class DatasetAPI(BaseAPI):
                 new_rec = ds.addrecord(Id=recid, time=time, value=value, comment=comment, sample=sample)
                 return str(new_rec.id)
             except:
-                raise cherrypy.HTTPError(400, 'Could not add record, error:\n' + traceback())
+                raise web.HTTPError(400, 'Could not add record, error:\n' + traceback())
 
     @web.json_in()
     @expose_for(group.guest)
@@ -335,9 +335,9 @@ class API(BaseAPI):
                 path.make()
             fn = path + datafile.filename
             if not fn.islegal:
-                raise cherrypy.HTTPError(400, f"'{fn}' is not legal")
+                raise web.HTTPError(400, f"'{fn}' is not legal")
             if fn and not overwrite:
-                raise cherrypy.HTTPError(400, f"'{fn}' exists already and overwrite is not allowed, set overwrite")
+                raise web.HTTPError(400, f"'{fn}' exists already and overwrite is not allowed, set overwrite")
 
             # Buffer file for first check encoding and secondly upload file
             with BytesIO(datafile.file.read()) as filebuffer:
@@ -361,7 +361,7 @@ class API(BaseAPI):
                     write_to_file(fn.absolute, filebuffer)
                     return ('\n'.join(errors)).encode('utf-8')
                 except:
-                    return cherrypy.HTTPError(400, traceback())
+                    return web.HTTPError(400, traceback())
 
     @expose_for()
     @web.method.get

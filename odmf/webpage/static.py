@@ -5,7 +5,7 @@ import cherrypy
 
 from cherrypy.lib.static import serve_file
 
-from .lib import expose, mime, method
+from . import lib as web
 from ..config import conf
 from pathlib import Path
 from markdown import markdown
@@ -16,7 +16,7 @@ def filelist2html(files):
     return markdown(text)
 
 
-@expose
+@web.expose
 class StaticServer:
     """
     Serves static files, either from the user directory or the library directory
@@ -70,11 +70,11 @@ class StaticServer:
                 if abs_path == home or home in parents:
                     return abs_path
                 else:
-                    raise cherrypy.HTTPError(403)
-        raise cherrypy.HTTPError(404)
+                    raise web.HTTPError(403, 'Illegal path')
+        raise web.HTTPError(404, 'Path not found')
 
-    @expose
-    @method.get
+    @web.expose
+    @web.method.get
     def index(self, path='.'):
         """
         Serves the static content from the relative path
@@ -85,8 +85,8 @@ class StaticServer:
             return serve_file(str(p), name=p.name)
 
         elif self.listdir and p.is_dir():
-            mime.html.set()
+            web.mime.html.set()
             return filelist2html(p.iterdir())
         else:
-            raise cherrypy.HTTPError(404)
+            raise web.HTTPError(404)
 

@@ -6,12 +6,12 @@ Created on 15.02.2012
 @author: philkraf
 '''
 
-from odmf.webpage import lib as web
+from .. import lib as web
 
 import os
 from traceback import format_exc as traceback
 from io import StringIO, BytesIO
-from cherrypy import request, HTTPError
+import cherrypy
 from cherrypy.lib.static import serve_file
 from urllib.parse import urlencode
 from ..auth import group, expose_for
@@ -39,7 +39,7 @@ def write_to_file(dest, src):
             fout.write(data)
 
 
-class HTTPFileNotFoundError(HTTPError):
+class HTTPFileNotFoundError(cherrypy.HTTPError):
     def __init__(self, path: Path):
         super().__init__(status=404, message=f'{path.href} not found')
         self.path = path
@@ -69,7 +69,7 @@ class DownloadPage(object):
     """The file management system. Used to upload, import and find files"""
 
     def _cp_dispatch(self, vpath: list):
-        request.params['uri'] = '/'.join(vpath)
+        cherrypy.request.params['uri'] = '/'.join(vpath)
         vpath.clear()
         return self
 

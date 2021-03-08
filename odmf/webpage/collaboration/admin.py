@@ -58,7 +58,7 @@ class AdminPage(object):
         else:
             cherrypy.log.error('Adminpage form value imgtype is wrong')
             cherrypy.response.status = 400
-            raise cherrypy.HTTPError(status=400, message='Bad Request')
+            raise web.HTTPError(status=400, message='Bad Request')
 
         if not error:
             msg = 'Successfully uploaded image. Reload page to view results'

@@ -18,12 +18,14 @@ from .conversion import *
 from . import method
 from .mime import mime
 
+from .errors import AJAXError, HTTPError
+
 expose = cherrypy.expose
 
 json_in = cherrypy.tools.json_in
 
 HTTPRedirect = cherrypy.HTTPRedirect
-HTTPError = cherrypy.HTTPError
+
 
 def redirect(url, **kwargs):
     """

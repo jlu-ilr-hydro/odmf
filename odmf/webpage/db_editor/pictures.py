@@ -25,7 +25,7 @@ class PicturePage(object):
                 res = img.image
                 return res
             else:
-                raise cherrypy.HTTPError(404)
+                raise web.HTTPError(404)
 
     @expose_for()
     def thumbnail(self, id):
@@ -37,7 +37,7 @@ class PicturePage(object):
                 res = img.thumbnail
                 return res
             else:
-                raise cherrypy.HTTPError(404)
+                raise web.HTTPError(404)
 
 
     @expose_for()

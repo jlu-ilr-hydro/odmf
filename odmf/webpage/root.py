@@ -49,6 +49,7 @@ class Root(object):
     datafiles = static.StaticServer('datafiles', True)
 
     @expose_for()
+    @web.method.get
     def index(self):
         """
         Root home: Shows the map page if the current user has no urgent jobs.
@@ -93,18 +94,13 @@ class Root(object):
 
     @expose_for(group.admin)
     @web.mime.json
+    @web.method.get
     def showjson(self, **kwargs):
+        """
+        A helper function to display keywords as json. Only for debugging, no data leaks possible
+        """
         return web.json_out(kwargs)
 
-    @expose_for(group.editor)
-    def datastatus(self):
-        with db.session_scope() as session:
-            func = db.sql.func
-            q = session.query(db.Datasource.name, db.Dataset._site, func.count(db.Dataset.id),
-                              func.min(db.Dataset.start), func.max(db.Dataset.end)
-                              ).join(db.Dataset.source).group_by(db.Datasource.name, db.Dataset._site)
-            for r in q:
-                yield str(r) + '\n'
 
     @expose_for()
     def markdown(self, fn):
@@ -141,7 +137,7 @@ class Root(object):
         if format == 'json':
             return web.json_out(
                 {
-                    r.uri: [r.level, r.doc]
+                    r.uri:  {'level': r.level, 'doc': r.doc, 'methods': r.methods}
                     for r in root.walk()
                     if not r.level or is_member(r.level)
                 }
@@ -151,11 +147,11 @@ class Root(object):
             import io
             df = pd.DataFrame(
                 [
-                    [r.uri, r.level, r.doc, r.icon]
+                    [r.uri, r.level, r.doc, r.icon, str(r.methods)]
                     for r in root.walk()
                     if not r.level or is_member(r.level)
                 ],
-                columns=['uri', 'level', 'doc', 'icon']
+                columns=['uri', 'level', 'doc', 'icon', 'methods']
             )
             if format == 'xlsx':
                 buf = io.BytesIO()
