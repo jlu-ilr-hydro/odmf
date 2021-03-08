@@ -10,6 +10,7 @@ import bleach
 
 
 
+
 class PatternLink(markdown.inlinepatterns.Pattern):
     """
     Creates a link from a specific Regular Expression pattern
@@ -148,27 +149,28 @@ class UrlizePattern(markdown.inlinepatterns.Pattern):
 class SchwingbachExtension(markdown.Extension):
     def extendMarkdown(self, md, md_globals):
         """ Replace autolink with UrlizePattern """
+        from ..config import conf
         def user2name(s):
             return ' '.join(S.title() for S in s.group(3).split('.'))
 
         md.inlinePatterns['link datasets'] = PatternLink(
-            md, '(ds)([0-9]+)', r'/dataset/\3/', '\u25B8' + r'\2\3')
+            md, '(ds)([0-9]+)', conf.root_url + r'/dataset/\3/', '\u25B8' + r'\2\3')
         md.inlinePatterns['link files'] = PatternLink(
-            md, r'(file:)(\S+)', r'/datafiles/\3', '\u25B8' + r'\3')
+            md, r'(file:)(\S+)', conf.root_url + r'/download/\3', '\u25B8' + r'\3')
         md.inlinePatterns['link sites'] = PatternLink(
             md, '(#)([0-9]+)', r'/site/\3', '\u25B8' + r'\2\3')
         md.inlinePatterns['link job'] = PatternLink(
-            md, '(job:)([0-9]+)', r'/job/\3', '\u25B8' + r'\2\3')
+            md, '(job:)([0-9]+)', conf.root_url + r'/job/\3', '\u25B8' + r'\2\3')
         md.inlinePatterns['link dir'] = PatternLink(
-            md, '(dir:)(\S+)', r'/download?dir=\3', '\u25B8' + r'\3')
+            md, '(dir:)(\S+)', conf.root_url + r'/download/\3', '\u25B8' + r'\3')
         md.inlinePatterns['link user'] = PatternLink(
-            md, r'(user:)([a-zA-Z\.]+)', r'/user/\3', user2name)
+            md, r'(user:)([a-zA-Z\.]+)', conf.root_url + r'/user/\3', user2name)
         md.inlinePatterns['link photo'] = PatternLink(
-            md, '(photo:)([0-9]+)', r'/picture/?id=\3', '\u25B8' + r'\2\3')
+            md, '(photo:)([0-9]+)', conf.root_url + r'/picture/?id=\3', '\u25B8' + r'\2\3')
         md.inlinePatterns['link log'] = PatternLink(
-            md, '(log:)([0-9]+)', r'/log/\3', '\u25B8' + r'\2\3')
+            md, '(log:)([0-9]+)', conf.root_url + r'/log/\3', '\u25B8' + r'\2\3')
         md.inlinePatterns['link wiki'] = PatternLink(
-            md, '(wiki:)([\w/]+)', r'/wiki/\3', '[\\3]')
+            md, '(wiki:)([\w/]+)', conf.root_url + r'/download/\3', '[\\3]')
         md.inlinePatterns['replace rarrow'] = SymbolPattern(
             md, r'(-->)', '\u2192')
         md.inlinePatterns['replace larrow'] = SymbolPattern(
@@ -181,8 +183,6 @@ class SchwingbachExtension(markdown.Extension):
             md, r'(alpha-video:)([\w\.\:\-\/]*)(\[\d+\])?(\[\d+\])?')
         md.inlinePatterns['video'] = VideoPattern(
             md, r'(video:)([\w\.\:\-\/]*)')
-
-
 
 
 class UrlizeExtension(markdown.Extension):
