@@ -7,7 +7,7 @@ Created on 15.02.2012
 '''
 
 from .. import lib as web
-
+import re
 import os
 from traceback import format_exc as traceback
 from io import StringIO, BytesIO
@@ -20,7 +20,7 @@ from ...tools import Path
 from ...config import conf
 
 from .dbimport import DbImportPage
-
+from . import filehandlers as fh
 
 
 def write_to_file(dest, src):
@@ -64,10 +64,16 @@ def goto(dir, error=None, msg=None):
     return web.redirect(f'{conf.root_url}/download/{dir}'.strip('.'), error=error, msg=msg)
 
 
+
+
 @web.show_in_nav_for(0, 'file')
 class DownloadPage(object):
     """The file management system. Used to upload, import and find files"""
-
+    handlers = [
+        fh.MarkDownFileHandler(),
+        fh.ExcelFileHandler(r'.*\.xls?'),
+        fh.BaseFileHandler()
+    ]
     def _cp_dispatch(self, vpath: list):
         cherrypy.request.params['uri'] = '/'.join(vpath)
         vpath.clear()
@@ -77,14 +83,30 @@ class DownloadPage(object):
 
     @expose_for(group.logger)
     @web.method.get
-    def index(self, uri='.', error='', msg='', _=None):
+    def index(self, uri='.', error='', msg='', serve=False, _=None):
         path = Path(uri)
         directories, files = path.listdir()
 
         if path.isfile():
-            # TODO: Render/edit .md, .conf, .txt files. .csv, .xls also?
+            if not serve:
+                for h in self.handlers:
+                    if h.matches(path):
+                        try:
+                            content = h(path)
+                        except:
+                            pass
+                        else:
+                            return web.render(
+                                'download.html', error=error, message=msg,
+                                content=content,
+                                files=sorted(files),
+                                directories=sorted(directories),
+                                curdir=path,
+                                max_size=conf.upload_max_size
+                            ).render()
+            return serve_file(path.absolute, disposition='attachment', name=path.basename)
 
-            return serve_file(path.absolute, name=path.basename)
+
         elif not (path.islegal() and path.exists()):
             raise HTTPFileNotFoundError(path)
         else:

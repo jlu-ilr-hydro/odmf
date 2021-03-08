@@ -288,6 +288,12 @@
                     </div>
                 </div>
             </div>
+            <div class="row" py:if="defined('content')">
+                <div class="container" py:if="content">
+                    <a class="btn btn-primary" href="./?serve=True">Download</a>
+                </div>
+                <div class="container mt-4 border" py:content="literal(content)"/>
+            </div>
         </div>
     </py:block>
 
