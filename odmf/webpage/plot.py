@@ -9,7 +9,7 @@ import sys
 import matplotlib.figure
 import numpy as np
 import pandas as pd
-from traceback import format_exc as traceback
+
 from cherrypy.lib.static import serve_fileobj
 from logging import getLogger
 
@@ -54,15 +54,6 @@ class PlotError(web.HTTPError):
 
 plotgroup = group.logger
 
-
-class AJAXError(web.HTTPError):
-    def __init__(self, status: int, message: str):
-        self.message = message
-        logger.warning(traceback())
-        super().__init__(status, str(message))
-
-    def get_error_page(self, *args, **kwargs):
-        return markdown(self.message).encode('utf-8')
 
 
 class PlotFileDialog:

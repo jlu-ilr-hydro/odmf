@@ -73,6 +73,14 @@ class Resource:
                (getattr(self.obj, 'default', None) and inspect.getdoc(self.obj.default))
 
     @property
+    def methods(self):
+        cp_config: dict = self.get_attr('_cp_config')
+        if cp_config:
+            return cp_config.get('tools.allow.methods')
+        else:
+            return None
+
+    @property
     def uri(self):
         if self.parent:
             return self.parent.uri + self.name + '/'

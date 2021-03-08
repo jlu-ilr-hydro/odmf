@@ -16,6 +16,7 @@ class MapPage(object):
     """
 
     @web.expose
+    @web.method.get
     def index(self):
 
         # The & is not working in the xml template as an uri literal. We define it here - that is simpler
