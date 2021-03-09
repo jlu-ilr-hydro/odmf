@@ -4,7 +4,7 @@
 __all__ = [
     'render', 'markdown', 'literal', 'user',
     'cherrypy', 'method', 'mime', 'escape',
-    'expose', 'json_in', 'HTTPRedirect', 'HTTPError', 'Resource'
+    'expose', 'json_in', 'HTTPRedirect', 'HTTPError', 'Resource', 'AJAXError'
 ]
 
 import cherrypy
@@ -17,13 +17,13 @@ from .conversion import *
 
 from . import method
 from .mime import mime
-
+from .errors import AJAXError, HTTPError
 expose = cherrypy.expose
 
 json_in = cherrypy.tools.json_in
 
 HTTPRedirect = cherrypy.HTTPRedirect
-HTTPError = cherrypy.HTTPError
+
 
 def redirect(url, **kwargs):
     """

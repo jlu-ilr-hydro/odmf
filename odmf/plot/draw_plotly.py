@@ -26,11 +26,10 @@ def _draw_line(line: Line, start, end) -> go.Scatter:
         symboldict = {'o': 'circle', 'x': 'x-thin', ',': 'line-ns', '+': 'cross-thin', '*': 'asterisk', '.':  'circle'}
         if line.marker in symbols:
             symbol = line.marker
-        elif line.marker in symboldict:
-            symbol = symboldict[line.marker]
         else:
-            symbol = 'circle'
-        marker = {'color': line.color, 'symbol': symbol.get(line.marker, 'circle')}
+            symbol = symboldict.get(line.marker, 'circle')
+
+        marker = {'color': line.color, 'symbol': symbol}
 
     return go.Scatter(x=data.index, y=data, mode=mode, line=linestyle, marker=marker, name=line.name)
 
