@@ -5,130 +5,8 @@
                 src="https://maps.googleapis.com/maps/api/js?key=${conf.google_maps_api_key}">
         </script>
         <script type="text/javascript" src="${conf.root_url}/media/js/map.js"></script>
+        <script type="text/javascript" src="${conf.root_url}/media/js/site.js"></script>
 
-        <script>
-            //<![CDATA[
-            function toggle(id) {
-                $('#'+id).slideToggle('fast');
-            }
-            function setbigimage(id) {
-                var url='';
-                var bigimg = $('#bigimage');
-                if (id) {
-                    url = odmf_ref('/picture/image/') + id;
-                }
-                bigimg.attr('src',url);
-
-            }
-
-            function popSelect() {
-                $.getJSON(odmf_ref('/site/json'),[],function(data){
-                    var html='';
-                    $.each(data,function(index,item){
-                        if (item.id != ${actualsite.id}) {
-                            html += '<option value="${conf.root_url}/site/' + item.id + '">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
-                        } else {
-                            html += '<option value="${conf.root_url}/site/' + item.id + '" selected="selected">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
-                        }
-                    });
-                    $('#siteselect').html(html);
-                });
-            }
-            function popInstruments() {
-                $.getJSON(odmf_ref('/site/getinstruments'),[],function(data){
-                    var html='<option value="">Please select...</option>';
-                    $.each(data, function(index,item){
-                        html += '<option value="' + item.id + '">' + item.name + '</option>';
-                    });
-                    $('#instruments').html(html);
-                });
-            }
-            function addinstrument() {
-                data = {instrumentid:$('#instruments').val(),
-                    date:escape($('#installationdate').val()),
-                    siteid:${actualsite.id}
-                };
-                if (data.instrumentid=='') {
-                    location.href=odmf_ref('/instrument/new')
-                }
-                $.post(odmf_ref('/site/addinstrument'),data,function (data,textStatus,jqHXR){
-                    if (data=='') {
-                        location.reload();
-                    } else {
-                        $('.error').html(data);
-                    }
-                });
-            }
-            function removeinstrument(installationid,instrumentid) {
-                data = {instrumentid:instrumentid,
-                    date:escape($('#installationdate').val()),
-                    siteid:${actualsite.id},
-                    installationid:installationid
-                };
-                $.post(odmf_ref('/site/removeinstrument'),data, function(data,textStatus,jqHXR) {
-                    if (data=='') {
-                        location.reload();
-                    } else {
-                        $('.error').html(data);
-                    }
-                });
-            }
-
-
-            $(function() {
-                $('#site-tab a').on('click', function (e) {
-                    e.preventDefault()
-                    $(this).tab('show')
-                });
-                $(function () {
-                    $('[data-toggle="tooltip"]').tooltip()
-                });
-                popSelect();
-                popInstruments();
-
-
-                // decode json data, can't parse instead
-                var site = ${literal(as_json(actualsite) if actualsite else 'null')}
-
-                //
-                // Define createmap via "currying" to bind parameter site permant
-                //  and to call it ultimately via the google.maps.event.addDOMListener
-                var createmap = function(site) {
-                    console.log(site);
-                    var latlng = new google.maps.LatLng(site.lat, site.lon);
-                    var mapOptions = {
-                        zoom: 20,
-                        center: latlng,
-                        mapTypeId: 'hybrid'
-                    };
-                    var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
-
-                    if (!site.icon) {
-                        icon='unknown.png';
-                    } else {
-                        icon = site.icon;
-                    }
-
-                    var image = new google.maps.MarkerImage(odmf_ref('/media/mapicons/') + icon,
-                            new google.maps.Size(24, 24),
-                            new google.maps.Point(0,0),
-                            new google.maps.Point(0, 24));
-
-                    var marker = new google.maps.Marker(
-                            {
-                                position: new google.maps.LatLng(site.lat,site.lon),
-                                title:'#' + site.id + '(' + site.name + ')',
-                                map:map,
-                                icon:image,
-                            });
-                }(site);
-
-                if (site) {
-                    google.maps.event.addDomListener(window, "load", createmap);
-                }
-            });
-            //]]>
-        </script>
     </py:block>
     <py:block name="style">
         <style type="text/css">
@@ -290,8 +168,8 @@
                             </div>
                             <div class="col-sm-8">
                                 <div class="">
-                                    <button type="button" class="btn btn-outline-primary mr-1 mb-1"
-                                            onclick="$('#currenticon').attr('src',odmf_ref('/media/mapicons/${icon}'));$('#iconfile').val('${icon}');"
+                                    <button type="button" class="icon-button btn btn-outline-primary mr-1 mb-1"
+                                            data-icon="${icon}"
                                             py:for="icon in icons"
                                     >
                                         <img src="${conf.root_url}/media/mapicons/${icon}"/>
@@ -336,10 +214,12 @@
 
                 <div class="tab-pane" id="pictures" role="tabpanel">
                     <div py:for="img in actualsite.images" style="display: inline">
-                        <img src="${conf.root_url}/picture/thumbnail/${img.id}"
-                             title="${'%s: %s (%s)' % (formatdatetime(img.time),img.name, img.by)}"
-                             onclick="location.href=odmf_ref('/picture?id=${img.id}')"
-                        />
+                        <a href="${conf.root_url}/picture?id=${img.id}">
+                            <img src="${conf.root_url}/picture/thumbnail/${img.id}"
+                                 title="${'%s: %s (%s)' % (formatdatetime(img.time),img.name, img.by)}"
+                                 data-toggle="tooltip"
+                            />
+                        </a>
                     </div>
                 </div>
 
@@ -347,28 +227,25 @@
                     <div id="installations" class="container">
                         <h1 class="mt-2 bg-dark text-white">Installations</h1>
                         <h4>Add installation</h4>
-                        <div id="add-installation" class="input-group mb-2" py:if="is_member('editor')">
-                            <div class="input-group-prepend">
-                                <button py:if="is_member('editor')" onclick="addinstrument()" class="btn btn-outline-secondary">
-                                    <i class="fas fa-plus"/>
-                                </button>
-                            </div>
+
+                        <form id="add-installation" class="form-group row" py:if="is_member('editor')">
+                            <input type="hidden" value="${actualsite.id}" id="actualsite-input"/>
+                            <label for="installationdate">Installation date</label>
                             <input type="date" class="form-control" id="installationdate" value="${formatdate()}"
                                    data-toggle="tooltip"
                                    title="When has the instrument been installed"
                             />
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">
-                                    <i class="fas fa-map-marker-alt"/>
-                                </span>
-                            </div>
-                            <select id="siteselect" class="form-control"
+                            <label for="instrumentselect"></label>
+                            <select id="instrumentselect" class="form-control"
                                     data-toggle="tooltip"
-                                    title="Where has the instrument been installed"
                             >
-                                <option disabled="disabled">select site...</option>
+                                <option value="">Please select an instrument to add</option>
+                                <option py:for="inst in instruments" value="${inst.id}">${inst.name}</option>
                             </select>
-                        </div>
+                            <button id="add-instrument-button" class="btn btn-outline-secondary">
+                                <i class="fas fa-plus"/> add instrument
+                            </button>
+                        </form>
                         <h4>Current installation</h4>
                         <ul style="margin-top:0px;padding-top:0px;">
                             <li py:for="inst in actualsite.instruments" >
@@ -377,11 +254,13 @@
                                     py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
                                 <span py:if="not inst.active" class="removed"
                                       py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
-                                <a href="javascript:removeinstrument(${inst.id},${inst.site.id})"
+                                <button data-installation="${inst.id}"
                                    py:if="is_member('editor') and inst.active"
-                                   class="btn btn-outline-primary btn-sm rounded-circle"
+                                   class="btn btn-outline-primary btn-sm rounded-circle installation-remove-button"
                                    title="remove installation" data-toggle="tooltip"
-                                ><i class="fas fa-minus"/></a>
+                                >
+                                    <i class="fas fa-minus"/>
+                                </button>
                             </li>
                         </ul>
                     </div>

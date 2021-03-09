@@ -26,43 +26,42 @@ class SitePage:
         """
         Shows the page for a single site.
         """
-        session = db.Session()
-        pref = Preferences()
+        with db.session_scope() as session:
+            pref = Preferences()
 
-        if not actualsite_id:
-            actualsite_id = pref['site']
-        else:
-            pref['site'] = actualsite_id
+            if not actualsite_id:
+                actualsite_id = pref['site']
+            else:
+                pref['site'] = actualsite_id
 
-        try:
-            actualsite = session.query(db.Site).get(int(actualsite_id))
-            datasets = actualsite.datasets.join(db.ValueType)
-            datasets = datasets.order_by(
-                db.ValueType.name, db.sql.desc(db.Dataset.end))
-        except:
-            error = traceback()
-            datasets = []
-            actualsite = None
-        result = web.render('site.html', actualsite=actualsite, error=error,
-                            datasets=datasets, icons=self.geticons()
-                            ).render()
-        session.close()
-        return result
+            datasets = instruments = []
+            try:
+                actualsite = session.query(db.Site).get(int(actualsite_id))
+                datasets = actualsite.datasets.join(db.ValueType).order_by(
+                    db.ValueType.name, db.sql.desc(db.Dataset.end)
+                )
+                instruments = session.query(db.Datasource).order_by(db.Datasource.name)
+            except:
+                error = traceback()
+                actualsite = None
+            return web.render('site.html', actualsite=actualsite, error=error,
+                              datasets=datasets, icons=self.geticons(), instruments=instruments
+                              ).render()
 
     @expose_for(group.editor)
     def new(self, lat=None, lon=None, name=None, error=''):
-        session = db.Session()
-        try:
-            actualsite = db.Site(id=db.newid(db.Site, session),
-                                 lon=web.conv(float, lon) or 8.55, lat=web.conv(float, lat) or 50.5,
-                                 name=name or '<enter site name>')
-        except:
-            error = traceback()
-            actualsite = None
-        result = web.render('site.html', actualsite=actualsite, error=error,
-                            datasets=actualsite.datasets, icons=self.geticons()
-                            ).render()
-        session.close()
+        with db.session_scope() as session:
+            try:
+                actualsite = db.Site(id=db.newid(db.Site, session),
+                                     lon=web.conv(float, lon) or 8.55, lat=web.conv(float, lat) or 50.5,
+                                     name=name or '<enter site name>')
+            except:
+                error = traceback()
+                actualsite = None
+
+            return web.render('site.html', actualsite=actualsite, error=error,
+                                datasets=actualsite.datasets, icons=self.geticons()
+                                ).render()
         return result
 
     @expose_for(group.editor)
@@ -113,12 +112,12 @@ class SitePage:
             return web.json_out(sorted(inst))
 
     @expose_for(group.editor)
+    @web.method.post
     def addinstrument(self, siteid, instrumentid, date=None):
         if not instrumentid:
             raise web.redirect(conf.root_url + '/instrument/new')
         with db.session_scope() as session:
 
-            error = ''
             try:
                 date = web.parsedate(date)
                 site = session.query(db.Site).get(int(siteid))
@@ -134,56 +133,48 @@ class SitePage:
                     instid = 0
                 inst = db.Installation(site, instrument, instid + 1, date)
                 session.add(inst)
-                session.commit()
-            except:
-                return traceback()
+
+            except Exception as e:
+                raise web.AJAXError(500, str(e))
+
 
     @expose_for(group.editor)
-    def removeinstrument(self, siteid, instrumentid, installationid, date=None):
-        session = db.Session()
-        error = ''
-        try:
-            date = web.parsedate(date)
-            site = session.query(db.Site).get(int(siteid))
-            instrument = session.query(db.Datasource).get(int(instrumentid))
-            pot_installations = session.query(db.Installation)
-            pot_installations = pot_installations.filter(
-                db.Installation.instrument == instrument, db.Installation.site == site)
-            pot_installations = pot_installations.order_by(
-                db.sql.desc(db.Installation.id))
-            inst = pot_installations.filter_by(id=int(installationid)).first()
-            if inst:
-                inst.removedate = date
-                session.commit()
-            else:
-                error = 'Could not find installation to remove (siteid=%s,instrument=%s,id=%s)' % (
-                    siteid, instrumentid, installationid)
-                session.rollback()
-        except:
-            error = traceback()
-            session.rollback()
-        finally:
-            session.close()
-        return error
+    @web.method.post
+    def removeinstrument(self, siteid, installationid, date=None):
+        with db.session_scope() as session:
+            try:
+                date = web.parsedate(date)
+                site = session.query(db.Site).get(int(siteid))
+                inst: db.Installation = session.query(db.Installation).get(int(installationid))
+                if inst and inst.site == site:
+                    inst.removedate = date
+                    return 'Installation ' + str(int) + ' removed'
+                else:
+                    error = f'Could not find installation to remove (siteid={site} id={instrumentid})'
+                    raise web.AJAXError(500, error)
+
+            except Exception as e:
+                raise web.AJAXError(500, str(e))
+
 
     @expose_for()
     @web.mime.json
+    @web.method.get
     def json(self):
         with db.session_scope() as session:
             return web.json_out(session.query(db.Site).order_by(db.Site.id).all())
 
     @expose_for()
     @web.mime.kml
+    @web.method.get
     def kml(self, sitefilter=None):
-        session = db.Session()
-        query = session.query(db.Site)
-        if filter:
-            query = query.filter(sitefilter)
-        stream = web.render('sites.xml', sites=query.all(),
-                            actid=0, descriptor=SitePage.kml_description)
-        result = stream.render('xml')
-        session.close()
-        return result
+        with db.session_scope() as session:
+            query = session.query(db.Site)
+            if filter:
+                query = query.filter(sitefilter)
+            stream = web.render('sites.xml', sites=query.all(),
+                                actid=0, descriptor=SitePage.kml_description)
+            return stream.render('xml')
 
     @classmethod
     def kml_description(cls, site):
@@ -212,26 +203,26 @@ class SitePage:
 
     @expose_for(group.guest)
     @web.mime.json
+    @web.method.get
     def with_instrument(self, instrumentid):
         with db.session_scope() as session:
-            sites = []
             inst = session.query(db.Datasource).get(int(instrumentid))
             return web.json_out(sorted(set(i.site for i in inst.sites)))
 
     @expose_for(group.logger)
     @web.mime.csv
+    @web.method.get
     def sites_csv(self):
-        session = db.Session()
-        query = session.query(db.Site).order_by(db.Site.id)
-        st = BytesIO()
-        # TODO: Py3 encoding
-        st.write(
-            '"ID","long","lat","x_proj","y_proj","height","name","comment"\n'.encode('latin1'))
-        for s in query:
-            c = s.comment.replace('\r', '').replace('\n', ' / ')
-            h = '%0.3f' % s.height if s.height else ''
-            Z, x, y = s.as_UTM()
-            st.write(('%s,%f,%f,%0.1f,%0.1f,%s,"%s","%s"\n' %
-                      (s.id, s.lon, s.lat, x, y, h, s.name, c)).encode('latin1'))
-        session.close()
-        return st.getvalue()
+        with db.session_scope() as session:
+            query = session.query(db.Site).order_by(db.Site.id)
+            st = BytesIO()
+            # TODO: Py3 encoding
+            st.write(
+                '"ID","long","lat","x_proj","y_proj","height","name","comment"\n'.encode('utf-8'))
+            for s in query:
+                c = s.comment.replace('\r', '').replace('\n', ' / ')
+                h = '%0.3f' % s.height if s.height else ''
+                Z, x, y = s.as_UTM()
+                st.write(('%s,%f,%f,%0.1f,%0.1f,%s,"%s","%s"\n' %
+                          (s.id, s.lon, s.lat, x, y, h, s.name, c)).encode('utf-8'))
+            return st.getvalue()
