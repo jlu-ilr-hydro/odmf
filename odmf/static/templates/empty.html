@@ -1,26 +1,39 @@
 <!DOCTYPE html>
-<html>
 
-<head>
-    <!-- Server configuration, see conf.py for HEAD_BASE -->
-    <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <!-- insert additional scripts -->
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <!-- insert sidebar content -->
+    </py:block>
+    <py:block name="content">
+        <div class="container m-0 p-0">
+            <div id="error-row" class="row mt-2 w-100 d-none">
+                <div class="container">
+                    <div class="row bg-danger text-white border rounded p-4">
+                        <h1 class="display-3 col-lg-2">Error</h1>
+                        <div class="lead col-lg-10" id="error" py:content="markdown(error)"/>
+                    </div>
+                </div>
+            </div>
+            <div class="alert alert-success" role="alert" py:if="success">
+                <div class="row">
+                    <div class="col-lg-1">
+                        <i class="fas fa-info-circle fa-3x"/>
+                    </div>
+                    <div class="col-lg-11">
+                        <p class="" py:content="markdown(success)"/>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="row"/>
+            </div>
 
-	<link href="${conf.root_url}/media/css/odmf.css" rel="stylesheet" type="text/css"/>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>${title}</title>
-	<!--more for the head-->
-	<style>
-	input { width: 100%;}
-	select { width: 100%;}
-	</style>
-</head>
-<body>
-	${navigation(title)}
-	<div class="content">
-    <div class="error" py:content="error" />
-    <div id="content">
-    	<!--content goes here-->
-    </div>
-  </div>
-</body>
-</html>
+        </div>
+    </py:block>
+</py:extends>

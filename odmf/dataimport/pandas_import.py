@@ -155,20 +155,22 @@ def _make_time_column_as_datetime(df: pd.DataFrame, fmt=None):
         """
         Converts a column to_datetime and raises a LogImportStructError on failure
         """
-        # TODO: If c.dtype == object:
-        # c.str.replace('24:', '00:')
-        try:
-            return pd.to_datetime(c, dayfirst=True, infer_datetime_format=True, format=fmt)
-        except Exception as e:
-            if any('24:' in a for a in e.args):
-                # Deal with 24:00 in a datetime string
-                problems = c.str.contains('24:00')  # Mark the problems
-                # Make dates by replacing 24:00 with 00:00
-                changed = pd.to_datetime(c.str.replace('24:00', '00:00'))  # Convert to datetime
-                # Change date from eg. 2.12.2020 24:00 -> 3.12.2020 00:00
-                changed[problems] += datetime.timedelta(days=1)
-                return changed
-            raise DataImportError(f'The column {c.name} is not convertible to a date')
+        # First try the given format, second try with a "free" format. Needed eg. for a two column format
+        for timeformat in [fmt, None]:
+            try:
+                return pd.to_datetime(c, dayfirst=True, infer_datetime_format=True, format=timeformat)
+            except Exception as e:  # difficult to get more specific, as Pandas Exception model is a bit strange
+                # Some sensors believe 24:00 is a valid time, pandas not
+                if any('24:' in a for a in e.args):  # Checks if the error message contains 24
+                    # Deal with 24:00 in a datetime string
+                    problems = c.str.contains('24:00')  # Mark the problems
+                    # Make dates by replacing 24:00 with 00:00
+                    changed = pd.to_datetime(c.str.replace('24:00', '00:00'))  # Convert to datetime
+                    # Change date from eg. 2.12.2020 24:00 -> 3.12.2020 00:00
+                    changed[problems] += datetime.timedelta(days=1)
+                    return changed
+
+        raise DataImportError(f'The column {c.name} is not convertible to a date')
 
     if 'time' in df.columns:
         if type(df['time'][0]) is datetime.time:
@@ -227,7 +229,7 @@ def _load_csv(idescr: ImportDescription, filepath: Path) -> pd.DataFrame:
             filepath.absolute, header=None,
             skiprows=idescr.skiplines, skipfooter=idescr.skipfooter or 0,
             delimiter=idescr.delimiter, decimal=idescr.decimalpoint,
-            na_values=idescr.nodata,
+            na_values=idescr.nodata, skipinitialspace=True,
             encoding=encoding, engine='python', quotechar='"'
         )
         df = df[columns]

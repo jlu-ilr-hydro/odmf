@@ -5,6 +5,7 @@ Created on 12.07.2012
 '''
 from . import lib as web
 from .. import db
+from ..config import conf
 from kajiki.template import literal
 
 
@@ -15,16 +16,13 @@ class MapPage(object):
     """
 
     @web.expose
-    def index(self, site=None):
-        if site is None:
-            site = 'null'
-        else:
-            with db.session_scope() as session:
-                site = literal(web.as_json(
-                    session.query(db.Site).get(int(site))
-                ))
+    @web.method.get
+    def index(self):
 
-        return web.render('map.html', site=site).render()
+        # The & is not working in the xml template as an uri literal. We define it here - that is simpler
+        google_maps_querystring = f'key={conf.google_maps_api_key}&callback=initMap'
+
+        return web.render('map.html', google_maps_querystring=google_maps_querystring).render()
 
     @web.expose
     @web.mime.json

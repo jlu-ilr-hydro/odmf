@@ -131,21 +131,49 @@ class Root(object):
         return "User-agent: *\nDisallow: /\n"
 
     @expose_for()
-    @web.mime.json
-    def resources(self):
+    def resources(self, format='json'):
         """
         Returns a json object representing all resources of this cherrypy web-application
         """
         from .auth import is_member
         root = web.Resource('/', self).create_tree()
+        web.mime.set(format)
+        if format == 'json':
+            return web.json_out(
+                {
+                    r.uri: [r.level, r.doc]
+                    for r in root.walk()
+                    if not r.level or is_member(r.level)
+                }
+            )
+        elif format in ['xlsx', 'csv', 'tsv']:
+            import pandas as pd
+            import io
+            df = pd.DataFrame(
+                [
+                    [r.uri, r.level, r.doc, r.icon]
+                    for r in root.walk()
+                    if not r.level or is_member(r.level)
+                ],
+                columns=['uri', 'level', 'doc', 'icon']
+            )
+            if format == 'xlsx':
+                buf = io.BytesIO()
+                df.to_excel(buf)
+                return buf.getvalue()
 
-        return web.json_out(
-            {
-                r.uri: [r.level, r.doc]
-                for r in root.walk()
-                if not r.level or is_member(r.level)
-            }
-        )
+            elif format == 'csv':
+                buf = io.StringIO()
+                df.to_csv(buf)
+                return buf.getvalue().encode('utf-8')
+
+            elif format == 'tsv':
+                buf = io.StringIO()
+                df.to_csv(buf, sep='\t')
+                return buf.getvalue().encode('utf-8')
+
+
+
 
     def __init__(self):
         web.render.set_root(self)

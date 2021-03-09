@@ -230,14 +230,14 @@ class Plot:
         self.args = kwargs
 
     def lines(self):
-        return sum(self.subplots, [])
+
+        return [line for sp in self.subplots for line in sp.lines]
 
     def fontsize(self, em):
         """
         Returns the fontsize relative to the figure height. 1 em equals 1/60 of the height
         """
         return em * self.size[1] / 60
-
 
     def __jdict__(self):
         """
