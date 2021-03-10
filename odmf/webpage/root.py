@@ -41,7 +41,7 @@ class Root(object):
     instrument = dbe.DatasourcePage()
     wiki = cll.Wiki()
     user = dbe.PersonPage()
-    admin = cll.AdminPage()
+    # admin = cll.AdminPage()
     api = api.API()
 
     preferences = Preferences()
