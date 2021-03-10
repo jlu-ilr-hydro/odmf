@@ -4,7 +4,7 @@
 __all__ = [
     'render', 'markdown', 'literal', 'user',
     'cherrypy', 'method', 'mime', 'escape',
-    'expose', 'json_in', 'HTTPRedirect', 'HTTPError', 'Resource'
+    'expose', 'json_in', 'HTTPRedirect', 'HTTPError', 'Resource', 'AJAXError'
 ]
 
 import cherrypy

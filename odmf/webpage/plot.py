@@ -240,7 +240,7 @@ class PlotPage(object):
             plot = Plot(**plot_data)
             svg = plot_backend.to_html(plot)
         except Exception as e:
-            raise AJAXError(500, message=str(e))
+            raise web.AJAXError(500, message=str(e))
         caption = '<div class="container">' + markdown(plot.description) + '</div>'
         return svg + caption.encode('utf-8')
 
