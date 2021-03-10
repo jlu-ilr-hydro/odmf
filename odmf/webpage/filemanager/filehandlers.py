@@ -5,13 +5,38 @@ from ..markdown import MarkDown
 
 markdown = MarkDown()
 
+
 class BaseFileHandler:
 
     def __init__(self, pattern: str = ''):
         self.pattern = re.compile(pattern)
 
     def matches(self, path: Path):
+        """
+        Checks if a path matches the file pattern
+        """
         return bool(self.pattern.match(path.absolute))
+
+    def to_html(self, source) -> str:
+        """
+        Converts a string to a html text
+        Overwrite for different handles
+        """
+        raise NotImplementedError
+
+    def read_file(self, path: Path):
+        """
+        Reads the content of a path
+        """
+        raise NotImplementedError
+
+    def __call__(self, path: Path):
+        return self.to_html(self.read_file(path))
+
+
+class TextFileHandler(BaseFileHandler):
+    def __init__(self, pattern: str):
+        super().__init__(pattern)
 
     def to_html(self, source) -> str:
         """
@@ -28,12 +53,9 @@ class BaseFileHandler:
         with open(path.absolute) as f:
             return f.read()
 
-    def __call__(self, path: Path):
-        return self.to_html(self.read_file(path))
 
 
-class MarkDownFileHandler(BaseFileHandler):
-
+class MarkDownFileHandler(TextFileHandler):
 
     def __init__(self, pattern: str=r'.*\.(md|wiki)'):
         super().__init__(pattern)
@@ -44,7 +66,7 @@ class MarkDownFileHandler(BaseFileHandler):
 
 class ExcelFileHandler(BaseFileHandler):
 
-    def __init__(self, pattern: str=r'.*\.xlsx'):
+    def __init__(self, pattern: str=r'.*\.xls?'):
         super().__init__(pattern)
 
     def read_file(self, path: Path):
