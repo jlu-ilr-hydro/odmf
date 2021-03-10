@@ -36,22 +36,29 @@ class SitePage:
 
             datasets = instruments = []
             try:
-                actualsite = session.query(db.Site).get(int(actualsite_id))
-                datasets = actualsite.datasets.join(db.ValueType).order_by(
-                    db.ValueType.name, db.sql.desc(db.Dataset.end)
-                )
                 instruments = session.query(db.Datasource).order_by(db.Datasource.name)
+                all_sites = session.query(db.Site).order_by(db.Site.id)
+                actualsite = session.query(db.Site).get(int(actualsite_id))
+                if not actualsite:
+                    error = f'Site #{actualsite_id} does not exist'
+                else:
+                    datasets = actualsite.datasets.join(db.ValueType).order_by(
+                        db.ValueType.name, db.sql.desc(db.Dataset.end)
+                    )
             except:
                 error = traceback()
                 actualsite = None
-            return web.render('site.html', actualsite=actualsite, error=error,
-                              datasets=datasets, icons=self.geticons(), instruments=instruments
+            return web.render('site.html', id=int(actualsite_id), actualsite=actualsite, error=error,
+                              datasets=datasets, icons=self.geticons(), instruments=instruments, all_sites=all_sites
                               ).render()
 
     @expose_for(group.editor)
     def new(self, lat=None, lon=None, name=None, error=''):
         with db.session_scope() as session:
+            datasets = instruments = []
             try:
+                instruments = session.query(db.Datasource).order_by(db.Datasource.name)
+                all_sites = session.query(db.Site).order_by(db.Site.id)
                 actualsite = db.Site(id=db.newid(db.Site, session),
                                      lon=web.conv(float, lon) or 8.55, lat=web.conv(float, lat) or 50.5,
                                      name=name or '<enter site name>')
@@ -59,10 +66,9 @@ class SitePage:
                 error = traceback()
                 actualsite = None
 
-            return web.render('site.html', actualsite=actualsite, error=error,
-                                datasets=actualsite.datasets, icons=self.geticons()
-                                ).render()
-        return result
+            return web.render('site.html', id=int(actualsite.id), actualsite=actualsite, error=error,
+                              datasets=datasets, icons=self.geticons(), instruments=instruments, all_sites=all_sites
+                              ).render()
 
     @expose_for(group.editor)
     @web.method.post
@@ -114,8 +120,6 @@ class SitePage:
     @expose_for(group.editor)
     @web.method.post
     def addinstrument(self, siteid, instrumentid, date=None):
-        if not instrumentid:
-            raise web.redirect(conf.root_url + '/instrument/new')
         with db.session_scope() as session:
 
             try:
@@ -140,15 +144,17 @@ class SitePage:
 
     @expose_for(group.editor)
     @web.method.post
-    def removeinstrument(self, siteid, installationid, date=None):
+    def removeinstrument(self, siteid, instrumentid, installationid, date=None):
         with db.session_scope() as session:
             try:
                 date = web.parsedate(date)
                 site = session.query(db.Site).get(int(siteid))
-                inst: db.Installation = session.query(db.Installation).get(int(installationid))
-                if inst and inst.site == site:
+                inst: db.Installation = session.query(db.Installation).filter_by(
+                    _site=int(siteid), _instrument=int(instrumentid), id=int(installationid)
+                ).first()
+                if inst:
                     inst.removedate = date
-                    return 'Installation ' + str(int) + ' removed'
+                    return 'Installation ' + str(inst) + ' removed'
                 else:
                     error = f'Could not find installation to remove (siteid={site} id={instrumentid})'
                     raise web.AJAXError(500, error)

@@ -1,3 +1,34 @@
+function createMap() {
+    console.log(site);
+    var latlng = new google.maps.LatLng(site.lat, site.lon);
+    var mapOptions = {
+        zoom: 20,
+        center: latlng,
+        mapTypeId: 'hybrid'
+    };
+    var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+
+    if (!site.icon) {
+        icon='unknown.png';
+    } else {
+        icon = site.icon;
+    }
+
+    var image = new google.maps.MarkerImage(
+        odmf_ref('/media/mapicons/') + icon,
+        new google.maps.Size(24, 24),
+        new google.maps.Point(0,0),
+        new google.maps.Point(0, 24));
+
+    var marker = new google.maps.Marker(
+        {
+            position: new google.maps.LatLng(site.lat,site.lon),
+            title:'#' + site.id + '(' + site.name + ')',
+            map:map,
+            icon:image,
+        });
+};
+
 
 $(function() {
     $('#site-tab a').on('click', function (e) {
@@ -8,10 +39,11 @@ $(function() {
     // Javascript to enable link to tab (from: https://stackoverflow.com/a/9393768/3032680)
     var hash = location.hash.replace(/^#/, '');  // ^ means starting, meaning only match the first hash
     if (hash) {
-        $('.nav-tabs a[href="#' + hash + '"]').tab('show');
+        let elem = $('.nav-pills a[href="#' + hash + '"]')
+        elem.tab('show');
     }
     // Change hash for page-reload
-    $('.nav-tabs a').on('shown.bs.tab', function (e) {
+    $('.nav-pills a').on('shown.bs.tab', function (e) {
         window.location.hash = e.target.hash;
     })
     $('.icon-button').click(e => {
@@ -20,13 +52,21 @@ $(function() {
         $('#iconfile').val(icon);
     })
     $('.installation-remove-button').click(e => {
+        let t = $(e.currentTarget)
         $.post(odmf_ref('/site/removeinstrument'),
             {
                 date:escape($('#installationdate').val()),
-                siteid:$('#actualsite-input').val(),
-                installationid:$(e.currentTarget).data('installation')
+                siteid:t.data('site'),
+                installationid:t.data('installation'),
+                instrumentid: t.data('instrument')
             }
-        ).done(location.reload).fail(jqhxr => $('.error').html(jqhxr.responseText))
+        ).done(response => {
+            console.debug(response)
+            location.reload()
+        }).fail(jqhxr => {
+            console.warn(jqhxr.responseText)
+            $('.error').html(jqhxr.responseText)
+        })
     });
     $('#add-instrument-button').click(e => {
         $.post(odmf_ref('/site/addinstrument'),
@@ -36,46 +76,16 @@ $(function() {
                 siteid:$('#actualsite-input').val(),
                 installationid:$(e.currentTarget).data('installation')
             }
-        ).done(location.reload).fail(jqhxr => $('.error').html(jqhxr.responseText))
+        ).done(response => {
+            console.debug(response)
+            location.reload()
+        }).fail(jqhxr => {
+            console.warn(jqhxr.responseText)
+            $('.error').html(jqhxr.responseText)
+        })
     })
 
 
-    const site = $('actualsite-input').val()
 
-    function createmap() {
-        console.log(site);
-        var latlng = new google.maps.LatLng(site.lat, site.lon);
-        var mapOptions = {
-            zoom: 20,
-            center: latlng,
-            mapTypeId: 'hybrid'
-        };
-        var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
 
-        if (!site.icon) {
-            icon='unknown.png';
-        } else {
-            icon = site.icon;
-        }
-
-        var image = new google.maps.MarkerImage(
-            odmf_ref('/media/mapicons/') + icon,
-            new google.maps.Size(24, 24),
-            new google.maps.Point(0,0),
-            new google.maps.Point(0, 24));
-
-        var marker = new google.maps.Marker(
-            {
-                position: new google.maps.LatLng(site.lat,site.lon),
-                title:'#' + site.id + '(' + site.name + ')',
-                map:map,
-                icon:image,
-            });
-    };
-
-    createmap()
-
-    if (site) {
-        google.maps.event.addDomListener(window, "load", createmap);
-    }
 });

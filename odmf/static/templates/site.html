@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <py:extends href="bootstrap_navigation.html" xmlns:py="">
     <py:block name="scripts">
-        <script type="text/javascript" async="async" defer="defer"
-                src="https://maps.googleapis.com/maps/api/js?key=${conf.google_maps_api_key}">
+        <script type="text/javascript">
+            const site = ${literal(as_json(actualsite) or '{}')};
         </script>
-        <script type="text/javascript" src="${conf.root_url}/media/js/map.js"></script>
         <script type="text/javascript" src="${conf.root_url}/media/js/site.js"></script>
+        <script type="text/javascript" async="async" defer="defer"
+                src="${conf.google_maps_api('createMap')}">
+        </script>
 
     </py:block>
     <py:block name="style">
@@ -13,37 +15,39 @@
             .removed {
                 color: grey;
             }
+            #sites-dropdown {
+                max-height: 50vh;
+                overflow-y: auto;
+
+            }
 
         </style>
     </py:block>
     <py:block name="sidebar">
         <div class="container-fluid">
-            <h2>
+            <h4 py:if="actualsite">
                 <img src="${conf.root_url}/media/mapicons/${actualsite.icon or 'unknown.png'}"/>
                 <span py:content="actualsite" />
-            </h2>
-            <a class="btn btn-primary" href="${conf.root_url}/map?site=${actualsite.id}">show on map...</a>
+            </h4>
+            <a class="btn btn-primary" href="${conf.root_url}/map?site=${id}">show on map...</a>
             <hr/>
-            <div class="row box m-1 p-1" >
-                <form class="form-group row">
-                    <div class="container-fluid">
-                        <label for="siteselect" class="form-label">Select a site:</label>
-                        <div class="input-group col">
-                            <select onchange="location.href=this.options[this.selectedIndex].value"
-                                    id="siteselect"
-                                    class="form-control">
-                            </select>
-                            <div class="input-group-append">
-                                <a class="btn btn-secondary"
-                                   py:if="is_member('editor')" href="${conf.root_url}/site/new"
-                                   data-toggle="tooltip" data-placment="right" title="Create a new site"
-                                >+</a>
-                            </div>
-                        </div>
-                    </div>
-                </form>
+            <div>
+                goto:
             </div>
-            <div class="row">
+            <div class="btn-group dropright" role="group">
+                <a href="./${id - 1}" class="btn btn-secondary form-control" py:attrs="{'disabled':'disabled'} if id == 1 else {}">&lt;</a>
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="sites_dropdown_button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    sites
+                </button>
+                <div id="sites-dropdown" class="dropdown-menu">
+                    <a href="./new#edit" class="dropdown-item"><i class="fas fa-plus mr-2"/>create a new site...</a>
+                    <a href="./${s.id}" py:for="s in all_sites" py:content="s" class="dropdown-item"/>
+                </div>
+                <a href="./${id + 1}" class="btn btn-secondary form-control">&gt;</a>
+            </div>
+            <hr/>
+            <div class="row"  py:if="actualsite">
                 <div class="col">
                     <div class="nav flex-column nav-pills" role="tablist"  aria-orientation="vertical" id="site-tab">
                         <a id="site-tab" class="nav-link active border-top" data-toggle="pill" href='#sitedescription'>site</a>
@@ -69,10 +73,19 @@
         </div>
     </py:block>
     <py:block name="content">
-        <!--<div class="row error" id="errordiv" />-->
-        <div py:if="actualsite" class="container-fluid">
+        <div class="container-fluid">
+            <div class="alert bg-danger text-white" role="alert" py:if="error">
+                <div class="row">
+                    <div class="col-lg-1">
+                        <i class="fas fa-exclamation-circle fa-3x"/>
+                    </div>
+                    <div class="col-lg-11">
+                        <p class="lead" py:content="markdown(error)"/>
+                    </div>
+                </div>
+            </div>
 
-            <div class="tab-content" id="tab">
+            <div class="tab-content" id="tab" py:if="actualsite" >
                 <div class="tab-pane active" id ="sitedescription" role="tabpanel">
                     <div class="container">
                         <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4" >
@@ -181,10 +194,10 @@
                         <div class="form-group row">
                             <div class="col-sm-4">
                                 <label for="comment">Comment</label>
-                                <a href="${conf.root_url}/wiki.help" title="Get help for using links and formats"
-                                   data-toggle="tooltip" data-placement="top"
+                                <a title="Get help for using links and formats"
+                                   data-toggle="tooltip" data-placement="top" class="wiki-help" href="${conf.root_url}/download/wiki/help.wiki"
                                 >
-                                    <img src="${conf.root_url}/media/ui-icons/help.png" />
+                                    <i class="fas fa-question-circle"/>
                                 </a>
                             </div>
                             <div class="col-sm">
@@ -193,7 +206,7 @@
                                           rows="10" py:content="actualsite.comment"/>
                             </div>
                         </div>
-                        <input type="submit" id="save" name="save" value="save" style="width: 10em;" class="form-control"/>
+                        <button type="submit" id="save" name="save" class="btn btn-success">save</button>
                     </form>
                 </div>
                 <div class="tab-pane" id="messagelist" role="tabpanel">
@@ -226,40 +239,51 @@
                 <div class="tab-pane" id="instrumentlist" role="tabpanel" >
                     <div id="installations" class="container">
                         <h1 class="mt-2 bg-dark text-white">Installations</h1>
-                        <h4>Add installation</h4>
-
-                        <form id="add-installation" class="form-group row" py:if="is_member('editor')">
+                        <button class="btn btn-primary" data-toggle="collapse" data-target="#add-installation" aria-expanded="false" aria-controls="add-installation">
+                            add installation
+                        </button>
+                        <form class="container border py-4 collapse" id="add-installation" py:if="is_member('editor')">
                             <input type="hidden" value="${actualsite.id}" id="actualsite-input"/>
-                            <label for="installationdate">Installation date</label>
-                            <input type="date" class="form-control" id="installationdate" value="${formatdate()}"
-                                   data-toggle="tooltip"
-                                   title="When has the instrument been installed"
-                            />
-                            <label for="instrumentselect"></label>
-                            <select id="instrumentselect" class="form-control"
-                                    data-toggle="tooltip"
-                            >
-                                <option value="">Please select an instrument to add</option>
-                                <option py:for="inst in instruments" value="${inst.id}">${inst.name}</option>
-                            </select>
-                            <button id="add-instrument-button" class="btn btn-outline-secondary">
-                                <i class="fas fa-plus"/> add instrument
+                            <div class="form-group row" >
+                                <label class="col-lg-4" for="installationdate">Installation date</label>
+                                <div class="col-lg-8 ">
+                                    <input type="date" class="form-control" id="installationdate" value="${datetime.today().strftime('%Y-%m-%d')}"
+                                           data-toggle="tooltip"
+                                           title="When has the instrument been installed"
+                                    />
+                                </div>
+                            </div>
+                            <div class="form-group row" >
+                                <div class="col-lg-4">
+                                    <label for="instrumentselect">Instrument</label>
+                                    <a href="${conf.root_url}/instrument/new" class="btn btn-outline-secondary btn-sm" title="create a new instrument" data-toggle="tooltip"><i class="fas fa-plus mr-2" /><i class="fas fa-thermometer-half" /></a>
+                                </div>
+                                <div class="col-lg-8 ">
+                                    <select id="instrumentselect" class="form-control"
+                                            data-toggle="tooltip"
+                                    >
+                                        <option value="" disabled="disabled" selected="selected" >Please select an instrument to add</option>
+                                        <option py:for="inst in instruments" value="${inst.id}">${inst} (${inst.id})</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button id="add-instrument-button" class="btn btn-success">
+                                ok
                             </button>
                         </form>
-                        <h4>Current installation</h4>
-                        <ul style="margin-top:0px;padding-top:0px;">
+                        <ul class="mt-4 border">
                             <li py:for="inst in actualsite.instruments" >
-                                <a  href="${conf.root_url}/site/${inst.site.id}"
+                                <a  href="${conf.root_url}/instrument/${inst.instrument.id}"
                                     py:if="inst.active"
-                                    py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
+                                    py:content="f'since {formatdate(inst.installdate)}: {inst.instrument}'" />
                                 <span py:if="not inst.active" class="removed"
-                                      py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
-                                <button data-installation="${inst.id}"
-                                   py:if="is_member('editor') and inst.active"
-                                   class="btn btn-outline-primary btn-sm rounded-circle installation-remove-button"
-                                   title="remove installation" data-toggle="tooltip"
+                                      py:content="f'until {formatdate(inst.removedate)}: {inst.instrument}'" />
+                                <button data-installation="${inst.id}" data-instrument="${inst.instrument.id}" data-site="${inst.site.id}"
+                                        py:if="is_member('editor') and inst.active"
+                                        class="btn btn-outline-danger btn-sm rounded-circle installation-remove-button"
+                                        title="remove installation" data-toggle="tooltip"
                                 >
-                                    <i class="fas fa-minus"/>
+                                    <i class="fas fa-times"/>
                                 </button>
                             </li>
                         </ul>
@@ -279,15 +303,6 @@
                         <li py:for="ds in datasets">
                             <a href="${conf.root_url}/dataset/${ds.id}?site_id=${actualsite.id}"
                                py:content="ds" />
-                        </li>
-                        <li py:if="is_member('editor')">
-                            <script>
-                                function makeplotcover() {
-                                    $('#plotcoverageimg').attr('src',odmf_ref('/dataset/plot_coverage/${actualsite.id}'));
-                                }
-                            </script>
-                            <a href="javascript:makeplotcover();">Plot the time coverage of the datasets</a>
-                            <img src="" alt="plot time coverage" id="plotcoverageimg" />
                         </li>
                     </ul>
                 </div>
