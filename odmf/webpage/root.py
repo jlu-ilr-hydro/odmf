@@ -45,8 +45,8 @@ class Root(object):
     api = api.API()
 
     preferences = Preferences()
-    media = static.StaticServer('media', True)
-    datafiles = static.StaticServer('datafiles', True)
+    media = static.StaticServer('media', listdir=True)
+    datafiles = static.StaticServer(conf.datafiles, listdir=True)
 
     @expose_for()
     @web.method.get

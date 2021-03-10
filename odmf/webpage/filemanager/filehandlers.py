@@ -1,6 +1,7 @@
 from ...tools import Path
+from .. import lib as web
 import re
-import pandas
+
 from ..markdown import MarkDown
 
 markdown = MarkDown()
@@ -17,42 +18,32 @@ class BaseFileHandler:
         """
         return bool(self.pattern.match(path.absolute))
 
-    def to_html(self, source) -> str:
+    def to_html(self, path) -> str:
         """
         Converts a string to a html text
         Overwrite for different handles
         """
         raise NotImplementedError
 
-    def read_file(self, path: Path):
-        """
-        Reads the content of a path
-        """
-        raise NotImplementedError
-
     def __call__(self, path: Path):
-        return self.to_html(self.read_file(path))
+        return self.to_html(path)
 
 
 class TextFileHandler(BaseFileHandler):
     def __init__(self, pattern: str):
         super().__init__(pattern)
 
-    def to_html(self, source) -> str:
+    def render(self, source) -> str:
+        return '\n<pre>\n' + source + '\n</pre>\n'
+
+    def to_html(self, path) -> str:
         """
         Converts a string to a html text by creating surrounding pre tags.
         Overwrite for different handles
         """
-        return '\n<pre>\n' + source + '\n</pre>\n'
-
-    def read_file(self, path: Path):
-        """
-        Reads the content of path using a text reader. Overwrite for binary files
-
-        """
         with open(path.absolute) as f:
-            return f.read()
-
+            source = f.read()
+        return web.render('textfile_editor.html', html=self.render(source), source=source, path=path).render()
 
 
 class MarkDownFileHandler(TextFileHandler):
@@ -60,25 +51,30 @@ class MarkDownFileHandler(TextFileHandler):
     def __init__(self, pattern: str=r'.*\.(md|wiki)'):
         super().__init__(pattern)
 
-    def to_html(self, source) -> str:
+    def render(self, source) -> str:
         return markdown(source)
-
 
 class ExcelFileHandler(BaseFileHandler):
 
     def __init__(self, pattern: str=r'.*\.xls?'):
         super().__init__(pattern)
 
-    def read_file(self, path: Path):
-        with open(path.absolute, 'rb') as f:
-            return f.read()
 
-    def to_html(self, source) -> str:
+    def to_html(self, path) -> str:
         import pandas as pd
-        import io
-        reader = io.BytesIO()
-        reader.write(source)
-        reader.seek(0)
-        df = pd.read_excel(reader)
-        html = df.to_html(classes=['table'])
-        return html
+        with open(path.absolute, 'rb') as f:
+            df = pd.read_excel(f)
+            html = df.to_html(classes=['table'])
+            return html
+
+class PdfFileHandler(BaseFileHandler):
+
+    def __init__(self, pattern: str=r'.*\.pdf'):
+        super().__init__(pattern)
+
+    def to_html(self, path) -> str:
+        return f'''
+        <object id="pdf-iframe" data="{path.href.replace('download', 'datafiles')}" type="application/pdf"></iframe>
+        '''
+
+

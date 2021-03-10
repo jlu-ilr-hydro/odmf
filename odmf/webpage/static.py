@@ -32,11 +32,14 @@ class StaticServer:
         listdir
             Indicates if this static page should list its content
         """
-        self.homes = [
-            (Path(static_home) / home_dir).absolute()
-            for static_home in conf.static
-            if (Path(static_home) / home_dir).exists()
-        ]
+        if home_dir.startswith('/'):
+            self.homes = [home_dir]
+        else:
+            self.homes = [
+                (Path(static_home) / home_dir).absolute()
+                for static_home in conf.static
+                if (Path(static_home) / home_dir).exists()
+            ]
         self.listdir = listdir
 
     def _cp_dispatch(self, vpath):

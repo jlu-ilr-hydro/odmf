@@ -1,0 +1,51 @@
+<html lang="en" xmlns:py="">
+<script>
+    $(()=> {
+        $('#source-editor-save').click(e => {
+            $.post(
+                '${conf.root_url}/download/write_to_file',
+                {
+                    path: '${path}',
+                    text: $('#source-editor-ta').val()
+                }
+            ).done(response => {location.reload()})
+        })
+    })
+</script>
+<div id="accordion">
+    <div class="card">
+        <div class="card-header" id="h-preview">
+            <h5 class="mb-0">
+                <button class="btn btn-link" data-toggle="collapse" data-target="#preview" aria-expanded="true" aria-controls="preview">
+                    File content
+                </button>
+            </h5>
+        </div>
+
+        <div id="preview" class="collapse show" aria-labelledby="h-preview" data-parent="#accordion">
+            <div class="card-body">
+                    ${literal(html)}
+            </div>
+        </div>
+    </div>
+    <div class="card" py:if="is_member('editor')">
+        <div class="card-header" id="h-source-editor">
+            <h5 class="mb-0">
+                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#source-editor"
+                        aria-expanded="false" aria-controls="source-editor">
+                    <i class="fas fa-edit mr-2"/>edit
+                </button>
+            </h5>
+        </div>
+        <div id="source-editor" class="collapse" aria-labelledby="h-source-editor" data-parent="#accordion">
+            <div class="card-body">
+                <textarea id="source-editor-ta" class="form-control" rows="20">${literal(source)}</textarea>
+            </div>
+            <div>
+                <button id="source-editor-save" class="btn btn-success">save</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+</html>

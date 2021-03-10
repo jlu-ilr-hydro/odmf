@@ -12,9 +12,6 @@
                 return size > MAX_SIZE;
             }
 
-
-
-
             $(function() {
                 $('.remove-button').click(function() {
                     var name = $(this).data('name');
@@ -77,19 +74,6 @@
     </py:block>
     <py:block name="style">
         <style>
-            .dbimport {
-                display: inline-block;
-                width: 32px;
-                height: 32px;
-                background-image: url(${conf.root_url}/ui-icons/shimmer/document_32.png);
-                background-repeat:no-repeat;
-                color:white;
-            }
-            .dbimport:hover {
-                background-image: url(${conf.root_url}/ui-icons/shimmer/document_add_32.png);
-                color:#32739D;
-                cursor: pointer;
-            }
             a:hover {
                 background-color: #4665A2;
                 color: white;
@@ -100,6 +84,11 @@
                 width: 100%;
                 font-family: monospace;
                 cursor: auto;
+            }
+            #pdf-iframe {
+                overflow: hidden;
+                height: 800px;
+                width: 100%;
             }
 
         </style>
@@ -290,9 +279,10 @@
             </div>
             <div class="row" py:if="defined('content')">
                 <div class="container" py:if="content">
-                    <a class="btn btn-primary" href="./?serve=True">Download</a>
+                    <a class="btn btn-primary" href="./?serve=True"><i class="fas fa-file-download mr-4"/>download</a>
+                    <a class="btn btn-outline-primary" href="${curdir.parent().href}"><i class="fas fa-folder-open mr-4"/>..</a>
                 </div>
-                <div class="container mt-4 border" py:content="literal(content)"/>
+                <div class="container mt-4 h100" py:content="literal(content)"/>
             </div>
         </div>
     </py:block>

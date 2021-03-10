@@ -7,7 +7,7 @@ Created on 15.02.2012
 '''
 
 from .. import lib as web
-import re
+import datetime
 import os
 from traceback import format_exc as traceback
 from io import StringIO, BytesIO
@@ -70,9 +70,10 @@ def goto(dir, error=None, msg=None):
 class DownloadPage(object):
     """The file management system. Used to upload, import and find files"""
     handlers = [
-        fh.MarkDownFileHandler(),
+        fh.MarkDownFileHandler(r'.*\.(md|wiki)'),
         fh.ExcelFileHandler(r'.*\.xls?'),
-        fh.BaseFileHandler()
+        fh.PdfFileHandler(),
+        fh.TextFileHandler('.*')
     ]
     def _cp_dispatch(self, vpath: list):
         cherrypy.request.params['uri'] = '/'.join(vpath)
@@ -93,7 +94,7 @@ class DownloadPage(object):
                     if h.matches(path):
                         try:
                             content = h(path)
-                        except:
+                        except Exception as e:
                             pass
                         else:
                             return web.render(
@@ -164,7 +165,7 @@ class DownloadPage(object):
     def saveindex(self, dir, s):
         """Saves the string s to index.html
         """
-        path = Path(dir / 'index.html')
+        path = Path(dir,  'index.html')
         s = s.replace('\r', '')
         open(path.absolute, 'w').write(s)
         return web.markdown(s)
@@ -262,4 +263,22 @@ class DownloadPage(object):
         qs = urlencode({'error': error, 'msg': msg})
         url = f'{conf.root_url}/download/{dir}'.strip('.')
         return url + '?' + qs
+
+    @expose_for(group.editor)
+    @web.method.post
+    def write_to_file(self, path, text):
+        path = Path(path)
+        error = msg = ''
+        if not path.islegal() or path.isdir():
+            raise goto(path, error='Write failed at ' + str(path))
+
+        if path.exists() and path.isfile():
+            import shutil
+            try:
+                shutil.move(path.absolute, path.absolute + f'.{datetime.datetime.now():%Y-%m-%d}.bak')
+            except Exception as e:
+                raise goto(path, error='Failed to create backup at ' + str(path))
+
+        with open(path.absolute, 'w') as f:
+            f.write(text)
 
