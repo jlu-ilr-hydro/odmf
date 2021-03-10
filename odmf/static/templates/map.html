@@ -4,7 +4,7 @@
 
         <script type="text/javascript" src="${conf.root_url}/media/js/map.js"></script>
         <script type="text/javascript" async="async" defer="defer"
-                src="https://maps.googleapis.com/maps/api/js?${google_maps_querystring}">
+                src="${conf.google_maps_api('initMap')}">
         </script>
         <script>
             $(function() {

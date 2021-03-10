@@ -15,7 +15,7 @@ def jsonhandler(obj):
         return obj.__dict__
 
 
-def as_json(*args, **kwargs):
+def as_json(*args, **kwargs) -> str:
     """
     Builds a JSON string representation of the given object using __jdict__ methods
     of the objects or of owned objects

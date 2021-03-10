@@ -142,6 +142,9 @@ class Configuration:
         """
         yaml.safe_dump(self.to_dict(), stream)
 
+    def google_maps_api(self, callback: str):
+        return f'https://maps.googleapis.com/maps/api/js?key={self.google_maps_api_key}&callback={callback}'
+
 
 def load_config():
     conf_file = Path(prefix) / 'config.yml'

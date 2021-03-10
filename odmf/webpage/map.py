@@ -19,10 +19,7 @@ class MapPage(object):
     @web.method.get
     def index(self):
 
-        # The & is not working in the xml template as an uri literal. We define it here - that is simpler
-        google_maps_querystring = f'key={conf.google_maps_api_key}&callback=initMap'
-
-        return web.render('map.html', google_maps_querystring=google_maps_querystring).render()
+        return web.render('map.html').render()
 
     @web.expose
     @web.mime.json
