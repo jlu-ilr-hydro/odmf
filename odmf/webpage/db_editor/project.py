@@ -94,7 +94,7 @@ class ProjectPage:
     def change(self, name=None, person=None, comment=None, project_id=None):
 
         if (project_id is None) or (name is None) or (person is None):
-            raise cherrypy.HTTPError(500)
+            raise web.HTTPError(500)
 
         with db.session_scope() as session:
 

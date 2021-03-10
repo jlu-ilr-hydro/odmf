@@ -90,7 +90,7 @@ class Resource:
     def has_attr(self, attr: str) -> bool:
         return hasattr(self.obj, attr) or hasattr(type(self.obj), attr)
 
-    def get_attr(self, attr: str) -> bool:
+    def get_attr(self, attr: str):
         return (
             getattr(self.obj, attr, None) or
             getattr(type(self.obj), attr, None)

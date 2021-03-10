@@ -49,6 +49,7 @@ class Root(object):
     datafiles = static.StaticServer('datafiles', True)
 
     @expose_for()
+    @web.method.get
     def index(self):
         """
         Root home: Shows the map page if the current user has no urgent jobs.
@@ -59,7 +60,6 @@ class Root(object):
             if user and user.jobs.filter(db.Job.done == False, db.Job.due - datetime.now() < timedelta(days=7)).count():
                 raise web.redirect(conf.root_url + '/job')
         return self.map.index()
-
 
     @expose_for()
     @web.show_in_nav_for(icon='key')
@@ -93,18 +93,13 @@ class Root(object):
 
     @expose_for(group.admin)
     @web.mime.json
+    @web.method.get
     def showjson(self, **kwargs):
+        """
+        A helper function to display keywords as json. Only for debugging, no data leaks possible
+        """
         return web.json_out(kwargs)
 
-    @expose_for(group.editor)
-    def datastatus(self):
-        with db.session_scope() as session:
-            func = db.sql.func
-            q = session.query(db.Datasource.name, db.Dataset._site, func.count(db.Dataset.id),
-                              func.min(db.Dataset.start), func.max(db.Dataset.end)
-                              ).join(db.Dataset.source).group_by(db.Datasource.name, db.Dataset._site)
-            for r in q:
-                yield str(r) + '\n'
 
     @expose_for()
     def markdown(self, fn):
@@ -128,9 +123,17 @@ class Root(object):
     @expose_for()
     @web.mime.plain
     def robots_txt(self):
+        """
+        Disallows search engine in ODMF servers
+
+        Returns:
+            User-agent: *
+            Disallow: /
+        """
         return "User-agent: *\nDisallow: /\n"
 
     @expose_for()
+    @web.method.get
     def resources(self, format='json'):
         """
         Returns a json object representing all resources of this cherrypy web-application
@@ -141,7 +144,7 @@ class Root(object):
         if format == 'json':
             return web.json_out(
                 {
-                    r.uri: [r.level, r.doc]
+                    r.uri:  {'level': r.level, 'doc': r.doc, 'methods': r.methods}
                     for r in root.walk()
                     if not r.level or is_member(r.level)
                 }
@@ -151,11 +154,11 @@ class Root(object):
             import io
             df = pd.DataFrame(
                 [
-                    [r.uri, r.level, r.doc, r.icon]
+                    [r.uri, r.level, r.doc, r.icon, str(r.methods)]
                     for r in root.walk()
                     if not r.level or is_member(r.level)
                 ],
-                columns=['uri', 'level', 'doc', 'icon']
+                columns=['uri', 'level', 'doc', 'icon', 'methods']
             )
             if format == 'xlsx':
                 buf = io.BytesIO()
@@ -176,5 +179,8 @@ class Root(object):
 
 
     def __init__(self):
+        """
+        Creates the root page and marks self as the root object
+        """
         web.render.set_root(self)
 

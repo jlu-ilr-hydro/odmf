@@ -17,7 +17,9 @@ from .conversion import *
 
 from . import method
 from .mime import mime
-from .errors import AJAXError, HTTPError
+
+from .errors import AJAXError, HTTPError, APIError
+
 expose = cherrypy.expose
 
 json_in = cherrypy.tools.json_in

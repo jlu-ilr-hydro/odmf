@@ -25,6 +25,7 @@ class DatasetPage:
     exposed = True
 
     @expose_for(group.logger)
+    @web.method.get
     def index(self, error=''):
         """
         Returns the query page (datasetlist.html). Site logic is handled with ajax
@@ -32,6 +33,7 @@ class DatasetPage:
         return web.render('datasetlist.html', error=error).render()
 
     @expose_for(group.guest)
+    @web.method.get
     def default(self, id='new', site_id=None, vt_id=None, user=None, error='', _=None):
         """
         Returns the dataset view and manipulation page (dataset-edit.html).
@@ -122,6 +124,7 @@ class DatasetPage:
             ).render()
 
     @expose_for(group.editor)
+    @web.method.post
     def saveitem(self, **kwargs):
         """
         Saves the changes for an edited dataset
@@ -196,6 +199,7 @@ class DatasetPage:
         raise web.redirect(str(id))
 
     @expose_for()
+    @web.method.get
     @web.mime.json
     def statistics(self, id):
         """
@@ -213,6 +217,7 @@ class DatasetPage:
                 return web.json_out(dict(mean=0, std=0, n=0))
 
     @expose_for(group.admin)
+    @web.method.post_or_delete
     def remove(self, dsid):
         """
         Removes a dataset. Called by javascript, page reload handled by client
@@ -259,6 +264,7 @@ class DatasetPage:
         return datasets.join(db.ValueType).order_by(db.ValueType.name, db.sql.desc(db.Dataset.end))
 
     @expose_for()
+    @web.method.get
     @web.mime.json
     def attrjson(self, attribute, valuetype=None, user=None,
                  site=None, date=None, instrument=None,
@@ -290,6 +296,7 @@ class DatasetPage:
             return web.json_out(sorted(items))
 
     @expose_for()
+    @web.method.get
     @web.mime.json
     def attributes(self, valuetype=None, user=None, site=None, date=None, instrument=None,
                    type=None, level=None, onlyaccess=False):
@@ -322,6 +329,7 @@ class DatasetPage:
 
 
     @expose_for()
+    @web.method.get
     @web.mime.json
     def json(self, valuetype=None, user=None, site=None,
              date=None, instrument=None, type=None,
@@ -336,6 +344,7 @@ class DatasetPage:
             ).all())
 
     @expose_for(group.editor)
+    @web.method.post
     def updaterecorderror(self, dataset, records):
         """
         Mark record id (records) as is_error for dataset. Called by javascript
@@ -348,6 +357,7 @@ class DatasetPage:
                 r.is_error = True
 
     @expose_for(group.editor)
+    @web.method.post
     def setsplit(self, datasetid, recordid):
         """
         Splits the datset at record id
@@ -371,10 +381,13 @@ class DatasetPage:
             return traceback()
 
     @expose_for(group.logger)
+    @web.method.get
     @web.mime.csv
     def records_csv(self, dataset, raw=False):
         """
         Exports the records of the timeseries as csv
+
+        TODO: replace with export function with multiple formats using pandas
         """
         with db.session_scope() as session:
             ds = session.query(db.Dataset).get(dataset)
@@ -397,6 +410,7 @@ class DatasetPage:
             return st.getvalue()
 
     @expose_for(group.logger)
+    @web.method.get
     def plot(self, id, start='', end='', marker='', line='-', color='k', interactive=False):
         """
         Plots the dataset. Might be deleted in future. Rather use PlotPage
@@ -427,14 +441,10 @@ class DatasetPage:
         plt.ylabel('%s [%s]' % (ds.valuetype.name, ds.valuetype.unit))
         plt.title(str(ds.site))
 
-        if interactive and interactive != 'false':
-            import mpld3
-            return mpld3.fig_to_html(fig).encode('utf-8')
-        else:
-            bytesio = io.BytesIO()
-            fig.savefig(bytesio, dpi=100, format='png')
-            data = b64encode(bytesio.getvalue())
-            return b'<img src="data:image/png;base64, ' + data + b'"/>'
+        bytesio = io.BytesIO()
+        fig.savefig(bytesio, dpi=100, format='png')
+        data = b64encode(bytesio.getvalue())
+        return b'<img src="data:image/png;base64, ' + data + b'"/>'
 
     @web.expose
     @web.mime.json
@@ -447,7 +457,7 @@ class DatasetPage:
         with db.session_scope() as session:
             ds = session.query(db.Dataset).get(int(dataset))
             if users.current.level < ds.access:  # @UndefinedVariable
-                raise cherrypy.HTTPError(403, 'User privileges not sufficient to access ds:' +
+                raise web.HTTPError(403, 'User privileges not sufficient to access ds:' +
                                          str(dataset))
             records = ds.records.order_by(db.Record.time)
             if witherror:
@@ -472,10 +482,11 @@ class DatasetPage:
                             db.Record.value < float(maxvalue))
                     records = records.limit(limit)
             except:
-                raise cherrypy.HTTPError(500, traceback())
+                raise web.HTTPError(500, traceback())
             return web.json_out({'error': None, 'data': records.all()})
 
     @expose_for(group.editor)
+    @web.method.get
     def records(self, dataset, mindate, maxdate, minvalue, maxvalue,
                 threshold=None, limit=None, offset=None):
         """
@@ -521,6 +532,7 @@ class DatasetPage:
             return res
 
     @expose_for(group.editor)
+    @web.method.get
     @web.mime.png
     def plot_coverage(self, siteid):
         """
@@ -556,6 +568,7 @@ class DatasetPage:
         return st.getvalue()
 
     @expose_for(group.editor)
+    @web.method.post
     def create_transformation(self, sourceid):
         """
         Creates a transformed timeseries from a timeseries. 
@@ -588,6 +601,7 @@ class DatasetPage:
         return 'goto:/dataset/%s' % id
 
     @expose_for(group.editor)
+    @web.method.post
     def transform_removesource(self, transid, sourceid):
         """
         Remove a source from a transformed timeseries. 
@@ -603,6 +617,7 @@ class DatasetPage:
             return str(e)
 
     @expose_for(group.editor)
+    @web.method.post
     def transform_addsource(self, transid, sourceid):
         """
         Adds a source to a transformed timeseries. 
