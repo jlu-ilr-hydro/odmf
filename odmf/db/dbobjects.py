@@ -526,7 +526,10 @@ class Project(Base):
     _person_responsible = sql.Column('person_responsible', sql.String,
                                      sql.ForeignKey('person.username'))
     person_responsible = sql.orm.relationship(
-        "Person", primaryjoin='Project._person_responsible==Person.username')
+        "Person",
+        primaryjoin='Project._person_responsible==Person.username',
+        backref=orm.backref('leads_projects', lazy='dynamic')
+    )
     name = sql.Column(sql.String)
     comment = sql.Column(sql.String)
 
