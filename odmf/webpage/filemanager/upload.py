@@ -71,6 +71,7 @@ class DownloadPage(object):
     """The file management system. Used to upload, import and find files"""
     handlers = [
         fh.MarkDownFileHandler(r'.*\.(md|wiki)'),
+        fh.PlotFileHandler(r'.*\.plot'),
         fh.ExcelFileHandler(r'.*\.xls?'),
         fh.PdfFileHandler(),
         fh.TextFileHandler('.*')
@@ -94,7 +95,9 @@ class DownloadPage(object):
                     if h.matches(path):
                         try:
                             content = h(path)
-                        except Exception as e:
+                        except web.HTTPRedirect:
+                            raise
+                        except UnicodeDecodeError as e:
                             pass
                         else:
                             return web.render(

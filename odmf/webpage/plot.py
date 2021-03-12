@@ -41,7 +41,6 @@ if sys.platform == 'win32':
 markdown = MarkDown()
 
 
-
 class PlotError(web.HTTPError):
 
     def __init__(self, message: str):
@@ -55,7 +54,6 @@ class PlotError(web.HTTPError):
 
 
 plotgroup = group.logger
-
 
 
 class PlotFileDialog:
@@ -240,6 +238,8 @@ class PlotPage(object):
         plot_data = web.cherrypy.request.json
         try:
             plot = Plot(**plot_data)
+            if not plot.subplots:
+                raise IndexError('Nothing to plot, add a subplot')
             svg = plot_backend.to_html(plot)
         except Exception as e:
             if users.current.is_member('admin'):
@@ -283,6 +283,3 @@ class PlotPage(object):
         line.export_csv(io, plot.start, plot.end)
         buffer.seek(0)
         return serve_fileobj(buffer, str(web.mime.csv), 'attachment', filename)
-
-
-

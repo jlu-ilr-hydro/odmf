@@ -1,6 +1,7 @@
 from ...tools import Path
 from .. import lib as web
 import re
+from ...config import conf
 
 from ..markdown import MarkDown
 
@@ -44,6 +45,19 @@ class TextFileHandler(BaseFileHandler):
         with open(path.absolute) as f:
             source = f.read()
         return web.render('textfile_editor.html', html=self.render(source), source=source, path=path).render()
+
+class PlotFileHandler(BaseFileHandler):
+    def __init__(self, pattern: str = r'.*\.plot'):
+        super().__init__(pattern)
+
+    def render(self, source) -> str:
+        return '\n<pre>\n' + source + '\n</pre>\n'
+
+    def to_html(self, path) -> str:
+        """
+        redirects to plot using the plot file
+        """
+        raise web.redirect(conf.root_url + '/plot', f=str(path))
 
 
 class MarkDownFileHandler(TextFileHandler):
