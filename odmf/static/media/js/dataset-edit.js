@@ -53,7 +53,7 @@ function reload(error) {
 
 function plotds(id) {
 
-    $.get(odmf_ref('/dataset/plot'), {
+    $.post(odmf_ref('/dataset/plot'), {
         id: id,
         start: $('#plotstart').val() + 'T' + $('#plotstart_t').val(),
         end: $('#plotend').val() + 'T' + $('#plotend_t').val(),
@@ -63,6 +63,8 @@ function plotds(id) {
         interactive: $('#interactive').is(':checked')
     }, function(html) {
         $('#plot-div').html(html);
+    }).fail(jqhxr => {
+        $('#plot-div').html('<div class="alert alert-danger">' + jqhxr.responseText + '</div>')
     });
 }
 function removeds(dsid,dsname,reccount) {

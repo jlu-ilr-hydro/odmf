@@ -12,6 +12,13 @@ markdown = MarkDown()
 logger = getLogger(__name__)
 
 
+def format_traceback(tb: str) -> str:
+    if users.current.is_member(group.admin):
+        return f'\n\n```\n{tb}\n```\n'
+    else:
+        return ''
+
+
 class AJAXError(_HTTPError):
     """
     To be raised from a method that is called with an AJAX method like
@@ -25,12 +32,14 @@ class AJAXError(_HTTPError):
     )
     """
     def __init__(self, status: int, message: str):
+        self.traceback = traceback()
         self.message = message
-        logger.warning(traceback())
+        logger.warning(self.traceback)
         super().__init__(status, str(message))
 
     def get_error_page(self, *args, **kwargs):
-        return markdown(self.message).encode('utf-8')
+
+        return markdown(self.message + format_traceback(self.traceback)).encode('utf-8')
 
 
 def to_html(error=None, success=None, text=None):

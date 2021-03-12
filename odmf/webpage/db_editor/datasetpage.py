@@ -410,41 +410,47 @@ class DatasetPage:
             return st.getvalue()
 
     @expose_for(group.logger)
-    @web.method.get
+    @web.method.post
     def plot(self, id, start='', end='', marker='', line='-', color='k', interactive=False):
         """
         Plots the dataset. Might be deleted in future. Rather use PlotPage
         """
         import pylab as plt
-        with db.session_scope() as session:
-            ds: db.Timeseries = session.query(db.Dataset).get(int(id))
-            if users.current.level < ds.access:
-                return f"""
-                <div class="alert alert-danger"><h2>No access</h2><p class="lead">
-                    Sorry, {users.current.name}, you need higher privileges to see the content of {ds}
-                </p></div>
-                """
-            if start.strip():
-                start = web.parsedate(start.strip())
-            else:
-                start = ds.start
-            if end.strip():
-                end = web.parsedate(end.strip())
-            else:
-                end = ds.end
-            data = ds.asseries(start, end)
-        fig = plt.figure(figsize=(10, 5))
-        ax = fig.gca()
-        data.plot.line(ax=ax, color=color, marker=marker, line=line)
-        ax.grid()
-        plt.xticks(rotation=15)
-        plt.ylabel('%s [%s]' % (ds.valuetype.name, ds.valuetype.unit))
-        plt.title(str(ds.site))
+        try:
+            with db.session_scope() as session:
+                ds: db.Timeseries = session.query(db.Dataset).get(int(id))
+                if users.current.level < ds.access:
+                    return f"""
+                    <div class="alert alert-danger"><h2>No access</h2><p class="lead">
+                        Sorry, {users.current.name}, you need higher privileges to see the content of {ds}
+                    </p></div>
+                    """
+                if start.strip():
+                    start = web.parsedate(start.strip())
+                else:
+                    start = ds.start
+                if end.strip():
+                    end = web.parsedate(end.strip())
+                else:
+                    end = ds.end
+                data = ds.asseries(start, end)
+                ylabel = f'{ds.valuetype.name} [{ds.valuetype.unit}]'
+                title = f'{ds.site}'
 
-        bytesio = io.BytesIO()
-        fig.savefig(bytesio, dpi=100, format='png')
-        data = b64encode(bytesio.getvalue())
-        return b'<img src="data:image/png;base64, ' + data + b'"/>'
+            fig = plt.figure(figsize=(10, 5))
+            ax = fig.gca()
+            data.plot.line(ax=ax, color=color, marker=marker, linestyle=line)
+            ax.grid()
+            plt.xticks(rotation=15)
+            plt.ylabel(ylabel)
+            plt.title(title)
+
+            bytesio = io.BytesIO()
+            fig.savefig(bytesio, dpi=100, format='png')
+            data = b64encode(bytesio.getvalue())
+            return b'<img src="data:image/png;base64, ' + data + b'"/>'
+        except Exception as e:
+            raise web.AJAXError(500, str(e))
 
     @web.expose
     @web.mime.json
@@ -486,7 +492,7 @@ class DatasetPage:
             return web.json_out({'error': None, 'data': records.all()})
 
     @expose_for(group.editor)
-    @web.method.get
+    @web.method.post
     def records(self, dataset, mindate, maxdate, minvalue, maxvalue,
                 threshold=None, limit=None, offset=None):
         """
@@ -524,12 +530,11 @@ class DatasetPage:
                         records = records.limit(limit)
                     currentcount = records.count()
             except:
-                return web.literal('<div class="error">' + traceback() + '</div>')
-            res = web.render('record.html', records=records, currentcount=currentcount,
+                return web.literal('<div class="alert alert-danger">' + traceback() + '</div>')
+            return web.render('record.html', records=records, currentcount=currentcount,
                              totalrecords=totalcount, dataset=ds, actionname="split dataset",
                              action="/dataset/setsplit",
                              action_help='/wiki/dataset/split').render()
-            return res
 
     @expose_for(group.editor)
     @web.method.get
