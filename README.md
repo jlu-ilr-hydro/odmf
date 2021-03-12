@@ -11,18 +11,15 @@ This project provides a webinterface for managing scientific data measurement ba
 [build-image]: https://travis-ci.org/jlu-ilr-hydro/odmf.svg?branch=master
 [build-link]: https://travis-ci.org/jlu-ilr-hydro/odmf
 
-The data is made usable by the [CUAHSI WaterOneFlow](http://his.cuahsi.org/wofws.html)
-interface, implemented by the [HydroServer](https://github.com/CUAHSI/HydroServerLite).
 
 For further information please visit the [documenation](https://jlu-ilr-hydro.github.io/odmf).
 
 # Installation
 
-    $ git clone https://github.com/jlu-ilr-hydro/odmf.git
-    $ cd odmf
-    $ pip install -r requirements.txt
-    $ cd odmf
-    $ cp conf-template.py conf.py
+    $ git clone https://github.com/jlu-ilr-hydro/odmf.git odmf-src
+    $ pip install -e odmf-src
+    $ odmf 
+    $ 
 
 Change the config with the instructions from [conf.py](https://jlu-ilr-hydro.github.io/odmf/source/conf.py) wiki page.
 When the configuration is edited to meet your requirements, start the server and browse to https://localhost:8080

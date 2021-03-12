@@ -10,6 +10,8 @@ import matplotlib.figure
 import numpy as np
 import pandas as pd
 
+from traceback import format_exc as traceback
+
 from cherrypy.lib.static import serve_fileobj
 from logging import getLogger
 
@@ -240,7 +242,11 @@ class PlotPage(object):
             plot = Plot(**plot_data)
             svg = plot_backend.to_html(plot)
         except Exception as e:
-            raise web.AJAXError(500, message=str(e))
+            if users.current.is_member('admin'):
+                msg = str(e) + '\n\n```\n' + traceback() + '\n```\n'
+            else:
+                msg = str(e)
+            raise web.AJAXError(500, message=msg)
         caption = '<div class="container">' + markdown(plot.description) + '</div>'
         return svg + caption.encode('utf-8')
 

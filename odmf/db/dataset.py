@@ -455,10 +455,15 @@ class Timeseries(Dataset):
             records = records.filter(Record.time <= end)
         # Make a query iterator with only the fields needed
         q_it = records.values('time', 'value')
+
+        # handle empty queries
         df = pd.DataFrame(q_it)
-        df.index = df.time
-        # Do calibration
-        return self.calibration_slope * df.value + self.calibration_offset
+        if len(df):
+            df.index = df.time
+            # Do calibration
+            return self.calibration_slope * df.value + self.calibration_offset
+        else:
+            return pd.Series([], index=pd.to_datetime([]))
 
     def size(self):
         return self.records.count()
