@@ -33,7 +33,7 @@ class StaticServer:
             Indicates if this static page should list its content
         """
         if home_dir.startswith('/'):
-            self.homes = [home_dir]
+            self.homes = [Path(home_dir)]
         else:
             self.homes = [
                 (Path(static_home) / home_dir).absolute()
