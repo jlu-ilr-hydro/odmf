@@ -15,7 +15,7 @@
     -->
     <script>
         function reload(path) {
-        $.get('filedialog/', {path: path}, html => {
+        $.get(odmf_ref('/plot/filedialog/'), {path: path}, html => {
             $('#file-dialog-content').html(html)
         })
 
@@ -32,7 +32,7 @@
                 $('#save-button-text').html(window.plot.name)
             })
             $('.load-file').click(event =>{
-                let href = $(event.currentTarget).data('href')
+                let href = odmf_ref('/datafiles/' + $(event.currentTarget).data('href'))
                 $.getJSON(href, {}, data =>{
                     window.plot.update(data)
                     hide_me()
@@ -43,14 +43,14 @@
                 reload(href)
             })
             $('#save-button').click(event => {
-                $.post(odmf_ref('filedialog/save/'), {
+                $.post(odmf_ref('/plot/filedialog/save/'), {
                     plot: JSON.stringify(window.plot, null, 4),
                     path: '${path}/' + window.plot.name + '.plot'
                 }).fail(seterror)
             })
             $('.delete-button').click(event => {
                 let href = $(event.currentTarget).data('path');
-                $.post('filedialog/delete/', {path: href}).done(reload).fail(seterror);
+                $.post(odmf_ref('/plot/filedialog/delete/'), {path: href}).done(reload).fail(seterror);
             })
         })
     </script>
@@ -79,7 +79,7 @@
                     </button>
                 </div>
                 <div class="file-list d-flex border-bottom mt-1" py:for="fn in files" >
-                    <button class="btn load-file mr-auto" data-href="${fn.href}">
+                    <button class="btn load-file mr-auto" data-href="${fn}">
                         <i class="fas fa-file-alt fa-lg mr-2"/>
                             ${fn.basename}
                     </button>
