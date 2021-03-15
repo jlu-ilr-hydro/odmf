@@ -4,15 +4,16 @@ import os
 import os.path as op
 import typing
 from ..config import conf
+import pathlib
 
 __all__ = ['mail', 'Path']
 
 
 class Path(object):
-    def __init__(self, *path: str):
+    def __init__(self, *path: str, absolute=False):
         self.datapath = op.realpath(conf.datafiles)
         if path:
-            if str(path[0]).startswith('/'):
+            if str(path[0]).startswith('/') or absolute:
                 self.absolute = op.realpath(op.join(*path))
             else:
                 self.absolute = op.realpath(op.join(self.datapath, *path))
@@ -70,22 +71,22 @@ class Path(object):
             p = op.dirname(p)
         return res
 
-    def child(self, filename):
+    def child(self, filename) -> Path:
         return Path(op.join(self.absolute, filename))
 
-    def isdir(self):
+    def isdir(self) -> bool:
         return op.isdir(self.absolute)
 
-    def isroot(self):
+    def isroot(self) -> bool:
         return self.absolute == self.datapath
 
-    def isfile(self):
+    def isfile(self) -> bool:
         return op.isfile(self.absolute)
 
-    def exists(self):
+    def exists(self) -> bool:
         return op.exists(self.absolute)
 
-    def parent(self):
+    def parent(self) -> Path:
         return Path(op.dirname(self.absolute))
 
     def ishidden(self):
@@ -129,4 +130,11 @@ class Path(object):
 
     def delete(self):
         os.unlink(self.absolute)
+
+    def to_pythonpath(self) -> pathlib.Path:
+        return pathlib.Path(self.absolute)
+
+    @classmethod
+    def from_pythonpath(cls, pypath: pathlib.Path):
+        return cls(str(pypath.absolute()), absolute=True)
 
