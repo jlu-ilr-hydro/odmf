@@ -205,7 +205,7 @@ class SitePage:
 
     def geticons(self):
         path = conf.abspath('media/mapicons')
-        return [op.basename(p) for p in glob(op.join(path, '*.png')) if not op.basename(p) == 'selection.png']
+        return sorted(op.basename(p) for p in glob(op.join(path, '*.png')) if not op.basename(p) == 'selection.png')
 
     @expose_for(group.guest)
     @web.mime.json
