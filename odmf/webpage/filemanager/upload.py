@@ -14,7 +14,8 @@ from io import StringIO, BytesIO
 import cherrypy
 from cherrypy.lib.static import serve_file
 from urllib.parse import urlencode
-from ..auth import group, expose_for
+from ..auth import group, expose_for, users
+from .file_auth import AccessFile
 from ...tools import Path
 
 from ...config import conf
@@ -64,8 +65,6 @@ def goto(dir, error=None, msg=None):
     return web.redirect(f'{conf.root_url}/download/{dir}'.strip('.'), error=error, msg=msg)
 
 
-
-
 @web.show_in_nav_for(0, 'file')
 class DownloadPage(object):
     """The file management system. Used to upload, import and find files"""
@@ -87,6 +86,9 @@ class DownloadPage(object):
     @web.method.get
     def index(self, uri='.', error='', msg='', serve=False, _=None):
         path = Path(uri)
+        f_acc = AccessFile(path.to_pythonpath())
+        if not f_acc.check(users.current):
+            raise web.HTTPError(403, f'Forbidden access to resource {path} for {users.current.name}')
         directories, files = path.listdir()
 
         if path.isfile():
@@ -109,7 +111,6 @@ class DownloadPage(object):
                                 max_size=conf.upload_max_size
                             ).render()
             return serve_file(path.absolute, disposition='attachment', name=path.basename)
-
 
         elif not (path.islegal() and path.exists()):
             raise HTTPFileNotFoundError(path)
