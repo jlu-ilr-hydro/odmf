@@ -5,7 +5,7 @@ import pandas as pd
 import os
 import numpy as np
 import contextlib
-
+import time
 import logging
 logging.basicConfig(
     level=logging.DEBUG,
@@ -19,7 +19,18 @@ def timeit(name='action'):
     d = time.time() - tstart
     print(f'------------ {name} took {d:0.3f} seconds')
 
+
 session: db.orm.Session = db.Session()
+q = session.query
+
+class DbItemGetter:
+    def __init__(self, cls):
+        self.cls = cls
+
+    def __getitem__(self, item):
+        return q(self.cls).get(item)
+person = DbItemGetter(db.Person)
+ds = DbItemGetter(db.Dataset)
 
 # Set default user
 from odmf.webpage import auth
