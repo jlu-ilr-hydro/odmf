@@ -13,7 +13,7 @@ from sqlalchemy.schema import ForeignKey
 from datetime import datetime
 from .dbobjects import newid
 import pytz
-from pandas import Series
+import pandas as pd
 
 import importlib
 
@@ -443,11 +443,10 @@ class Timeseries(Dataset):
         self.start = min(Q(sql.func.min(Record.time)).filter_by(_dataset=self.id).scalar(), self.start)
         self.end = max(Q(sql.func.max(Record.time)).filter_by(_dataset=self.id).scalar(), self.end)
 
-    def asseries(self, start: datetime=None, end: datetime=None)->Series:
+    def asseries(self, start: datetime=None, end: datetime=None)->pd.Series:
         """
         Loads the values of the timeseries dataset as a pandas series
         """
-        import pandas as pd
         records = self.records.filter_by(_dataset=self.id).filter(~Record.is_error).order_by(Record.time)
         if start:
             records = records.filter(Record.time >= start)
@@ -507,7 +506,7 @@ class TransformedTimeseries(Dataset):
 
     def asseries(self, start=None, end=None):
         datasets = self.sources
-        data = Series()
+        data = pd.Series()
         if self.expression.startswith('plugin.transformation'):
             # This is a plugin transformation
             # import transformation module
@@ -525,6 +524,12 @@ class TransformedTimeseries(Dataset):
         self.end = max(ds.end for ds in self.sources)
 
     def transform(self, x):
+        np_dict = vars(np)
+        expression = self.expression
+        for bi in dir(__builtins__):
+            if bi not in np_dict:
+                expression = expression.replace(bi, '_' + bi)
+
         return eval(self.expression, {'x': x}, np.__dict__)
 
     def iterrecords(self, witherrors=False, start=None, end=None):
@@ -568,7 +573,7 @@ class DatasetGroup(object):
 
     def asseries(self, session, name=None):
         datasets = self.datasets(session)
-        data = Series(name=name)
+        data = pd.Series(name=name)
         for src in datasets:
             s = src.asseries(self.start, self.end)
             data = data.append(s)

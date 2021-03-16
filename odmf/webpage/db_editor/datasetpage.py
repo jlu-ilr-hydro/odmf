@@ -602,8 +602,8 @@ class DatasetPage:
                 session.add(tts)
                 tts.sources.append(sts)
         except Exception as e:
-            return str(e)
-        return 'goto:/dataset/%s' % id
+            raise web.AJAXError(500, str(e))
+        return '/dataset/%s' % id
 
     @expose_for(group.editor)
     @web.method.post

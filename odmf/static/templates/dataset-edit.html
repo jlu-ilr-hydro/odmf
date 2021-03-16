@@ -100,7 +100,7 @@
         <div class="container">
             <div id="error-row" class="row mt-2 w-100">
                 <div class="container">
-                    <div class="container bg-danger text-white row w-100 border rounded"  py:if="error">
+                    <div class="container bg-danger text-white row w-100 border rounded ${'' if error else 'd-none'} " >
                         <h1 class="display-3 col-lg-2">Error</h1>
                         <div id="error" class="lead col-lg-10" py:content="markdown(error)"/>
                     </div>
@@ -216,24 +216,27 @@
                             </td>
                         </tr>
                     </table>
+                    <button py:if="ds_act.is_timeseries() and is_member('editor')" id="create-transformation"
+                            class="btn btn-outline-primary mr-2" data-toggle="tooltip"
+                            title="Create a transformed dataset for this">
+                        \(f(x)\) transform
+                    </button>
+                    <button py:if="is_member('admin')" class="btn btn-outline-danger mr-2"
+                            title="remove dataset permanently" data-toggle="tooltip"
+                            onclick="removeds(${ds_act.id},'${str(ds_act)}',${ds_act.size()});">
+                        <i class="fas fa-trash mr-2"/> delete dataset
+                    </button>
+
+
                 </div>
                 <div id="edit" class="tab-pane w-100 mr-4" role="tabpanel" py:if="is_member('editor') and users.current.level>=ds_act.access">
                     <form action="${conf.root_url}/dataset/saveitem" method="post">
-                        <input type="text" name="id" value="${ds_act.id}" style="display: none;" />
+                        <input type="hidden" name="id" value="${ds_act.id}" id="id-input" />
                         <div class="container w-100">
                             <div id="edit-top-buttons" class="form-row mb-2">
 
                                 <button type="submit" id="save" name="save" class="btn btn-outline-success mr-2" >
                                     <i class="fas fa-save mr-2"/> Save
-                                </button>
-                                <button py:if="ds_act.is_timeseries() and is_member('editor')"
-                                        onclick="$.post(odmf_ref('/dataset/create_transformation/'),{sourceid:${ds_act.id}},reload)"
-                                        class="btn btn-outline-primary mr-2" data-toggle="tooltip" title="Create a transformed dataset for this">
-                                    \(f(x)\) transform
-                                </button>
-                                <button py:if="is_member('admin')" class="btn btn-outline-danger mr-2" title="remove dataset permanently" data-toggle="tooltip"
-                                        onclick="removeds(${ds_act.id},'${str(ds_act)}',${ds_act.size()});">
-                                    <i class="fas fa-trash mr-2"/> delete dataset
                                 </button>
 
                             </div>

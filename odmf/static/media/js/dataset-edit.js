@@ -150,6 +150,17 @@ function apply_calibration(targetid, sourceid, slope, offset) {
 $(function() {
     const dsid = parseInt($("#dsid").html());
     $(".timepicker").attr('placeholder', '00:00');
+
+    $('#create-transformation').click(e => {
+        $.post(odmf_ref('/dataset/create_transformation/'),
+            {sourceid: $('#id-input').val()}
+        ).done(data => {
+            location.href = odmf_ref(data)
+        }).fail(jqhxr => {
+            $('#error').html(jqhxr.responseText)
+            $('#error-row').removeClass('d-none')
+        })
+    })
     $('#trans_help').hide();
     $('.transhelpparent').focusin(function(){
         $('#trans_help').slideDown('fast');
