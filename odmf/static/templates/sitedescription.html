@@ -18,28 +18,28 @@
         </div>
         <div id="site-comment" class="collapse" py:content="markdown(site.comment)"/>
 
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="${conf.root_url}/site/${site.id}#datasetlist">
                 <i class="fas fa-table mr-2"/>
                 <span >
                     ${site.datasets.count()} datasets
                 </span>
-            </li>
-            <li class="list-group-item">
+            </a>
+            <a class="list-group-item" href="${conf.root_url}/site/${site.id}#instrumentlist">
                 <i class="fas fa-thermometer-half mr-2"/>
                 <span >
                     ${site.instruments.count()} installations
                 </span>
-            </li>
-            <li class="list-group-item">
+            </a>
+            <a class="list-group-item" href="${conf.root_url}/site/${site.id}#messagelist">
                 <i class="fas fa-tags mr-2"/>
                 <span >
                     ${site.logs.count()} log entries
                 </span>
-            </li>
+            </a>
 
 
-        </ul>
+        </div>
 
     </div>
     <div class="card-footer bg-dark">
