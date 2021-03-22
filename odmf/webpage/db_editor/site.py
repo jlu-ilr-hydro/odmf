@@ -5,6 +5,7 @@ Created on 13.07.2012
 
 @author: philkraf
 '''
+import datetime
 from .. import lib as web
 from ... import db
 from traceback import format_exc as traceback
@@ -166,9 +167,75 @@ class SitePage:
     @expose_for()
     @web.mime.json
     @web.method.get
-    def json(self):
-        with db.session_scope() as session:
-            return web.json_out(session.query(db.Site).order_by(db.Site.id).all())
+    def json(self, valuetype=None, instrument=None, user=None, date=None, max_data_age=None, fulltext=None):
+        """
+        Returns the sites matching the filter variables as json representation
+
+        Parameters
+        ----------
+        valuetype: id
+            Return only sites with datasets containing this valuetype
+
+        user:
+            user name of user doing measurements at this site
+        date:
+
+        max_data_age
+        instrument: id
+            Return only sites with an active installation of the given instrument_id,
+            use '*' to match any active installation, negative number to include removed installations
+
+        """
+        try:
+            valuetype = web.conv(int, valuetype)
+            date = web.parsedate(date, False)
+            max_data_age = web.conv(int, max_data_age)
+            with db.session_scope() as session:
+                Q = session.query
+                if any([valuetype, user, date, max_data_age]):
+                    datasets = Q(db.Dataset)
+                    if valuetype:
+                        datasets = datasets.filter_by(_valuetype=valuetype)
+                    if user:
+                        datasets = datasets.filter_by(_measured_by=user)
+                    if date:
+                        datasets = datasets.filter(
+                            db.Dataset.start <= date, db.Dataset.end >= date)
+                    if max_data_age:
+                        age = datetime.timedelta(days=max_data_age * 365.25)
+                        oldest = datetime.datetime.today() - age
+                        datasets = datasets.filter(db.Dataset.end >= oldest)
+                    sites = {ds.site for ds in datasets}
+                else:
+                    sites = set(session.query(db.Site))
+
+                if instrument:
+                    if instrument == 'any':
+                        installations = Q(db.Installation).filter(db.Installation.removedate == None)
+                    elif instrument == 'installed':
+                        installations = Q(db.Installation).join(db.Datasource).filter(
+                            db.Installation.removedate == None,
+                            db.Datasource.sourcetype != 'manual'
+                        )
+                    else:
+                        instrument = web.conv(int, instrument)
+                        installations = Q(db.Installation).filter_by(_instrument=abs(instrument))
+                        if instrument > 0 :
+                            installations = installations.filter(db.Installation.removedate == None)
+                    sites &= {inst.site for inst in installations}
+                if fulltext:
+                    from sqlalchemy import or_
+                    filter = Q(db.Site).filter(
+                        or_(
+                            db.Site.name.ilike('%' + fulltext + '%'),
+                            db.Site.comment.ilike('%' + fulltext + '%')
+                        )
+                    )
+                    sites &= set(filter)
+
+                return web.json_out(sorted(sites, key=lambda s: s.id))
+        except Exception as e:
+            raise web.AJAXError(500, str(e))
 
     @expose_for()
     @web.mime.kml

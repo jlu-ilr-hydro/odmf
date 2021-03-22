@@ -2,6 +2,9 @@
 function toggle(id) {
 	$('#'+id).slideToggle('fast');
 }
+function seterror(text) {
+	$('#error').html(text).removeClass('d-none')
+}
 function setpref(data) {
 	$.ajaxSetup({ scriptCharset:"utf-8",
 		contentType:"application/json; charset=utf-8" });
@@ -53,7 +56,7 @@ function selectsite(id) {
 				$("#infotext").html(msg + xhr.status + " " + xhr.statusText);
 			}
 		});
-	selectedmarker = id;
+	$('#map_canvas').data('site', id);
 	var selectionSymbol = getSelectionSymbol();
 	$.each(markers,function(index,item) {
 		if (item.get('id') == id) {
@@ -70,7 +73,7 @@ function zoomToSelected() {
 	var marker=null;
 	alert(markers[0]);
 	$.each(markers,function(index,item){
-		if (item.get('id') == selectedmarker) {
+		if (item.get('id') == $('#map_canvas').data('site')) {
 			marker = item;
 			alert('marker found!' + JSON.stringify(marker, null, 4));
 			return false;
@@ -89,10 +92,11 @@ function getSelectionSymbol() {
 		new google.maps.Point(0,0),
 		new google.maps.Point(6,30));
 }
-function setmarkers(source,filter) {
+function setmarkers(source, filter) {
 	clearmarker();
-	var selectionsymbol = getSelectionSymbol();
-	$.getJSON(source,filter,function(data) {
+	let selectionsymbol = getSelectionSymbol();
+	let selectedsite = $('#map_canvas').data('site')
+	$.getJSON(source, filter, function(data) {
 		$.each(data,function(index,item) {
 			if (!item.icon) {
 				icon='unknown.png';
@@ -112,7 +116,7 @@ function setmarkers(source,filter) {
 				}
 			);
 			marker.set('id',item.id);
-			if (item.id == selectedmarker) {
+			if (item.id == selectedsite) {
 				marker.setShadow(selectionsymbol);
 			}
 			(function(eventmarker,id){
@@ -132,10 +136,15 @@ function setmarkers(source,filter) {
 }
 
 function popSelect() {
-	let vt = $('#vtselect').val();
-	let user = $('#userselect').val();
-	let date = $('#dateselect').val();
-	let instrument = $('#instrumentselect').val();
+	let filter = {
+		valuetype: $('#vtselect').val(),
+		user: $('#userselect').val(),
+		max_data_age: $('#max_data_age').val(),
+		instrument: $('#instrumentselect').val(),
+		date: $('#dateselect').val(),
+		fulltext: $('#fulltext').val()
+	}
+
 
 	let options = (data, get_value, get_name) => {
 		let html = '<option class="firstoption" value="">Please select...</option>\n';
@@ -153,45 +162,35 @@ function popSelect() {
 		self: x => x
 	}
 
+	$('#datasetsonly').prop('checked',(filter.valuetype || filter.user || filter.date || filter.max_data_age));
 
-	if (vt || user || date) {
-		$('#datasetsonly').prop('checked',true);
-	}
 	$.getJSON(
 		odmf_ref('/dataset/attributes'),
 		{
-			valuetype:vt,
-			user:user,
-			date:date,
+			valuetype: filter.valuetype,
+			user:filter.user,
+			date:filter.date,
 		},
 		data => {
-			$('#vtselect').html(options(data.valuetype, fmt.id, fmt.name)).val(vt);
-			$('#userselect').html(options(data.measured_by, x=>x.username, fmt.user)).val(user)
+			$('#vtselect').html(options(data.valuetype, fmt.id, fmt.name)).val(filter.valuetype);
+			$('#userselect').html(options(data.measured_by, x=>x.username, fmt.user)).val(filter.user)
 		}
 	);
-	$.getJSON(odmf_ref('/site/getinstalledinstruments'),{},function(data){
-		let html=options(data, fmt.id, fmt.name)
-		$('#instrumentselect').html(html).val(instrument);
-	});
+	$.get(odmf_ref('/site/getinstalledinstruments'),{},function(data){
+		data.unshift({id: 'any', name: 'any'})
+		data.unshift({id: 'installed', name: 'any installed instrument'})
+		let html = options(data, fmt.id, fmt.name)
+		$('#instrumentselect').html(html).val(filter.instrument);
+	}).fail(jqhxr => seterror(jqhxr.responseText));
 
-	if ($('#datasetsonly').prop('checked')) {
-		setmarkers(odmf_ref('/dataset/attrjson'),
-			{attribute:'site',
-				valuetype:vt,
-				user:user,
-				date:date,
-				instrument:instrument,
-			});
-	} else if (instrument){
-		setmarkers(odmf_ref('/site/with_instrument'),{instrumentid:instrument});
-	} else {
-		setmarkers(odmf_ref('/site/json'),{});
-	}
+	setmarkers(odmf_ref('/site/json'),filter);
 }
 function clearFilter() {
 	$('.filter').val('');
 	$('#dateselect').val('');
+
 	$('#datasetsonly').prop('checked',false);
+
 	popSelect();
 }
 function zoomToMarkers() {

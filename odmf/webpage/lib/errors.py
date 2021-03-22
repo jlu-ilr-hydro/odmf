@@ -6,6 +6,7 @@ from logging import getLogger
 from ..markdown import MarkDown
 from .renderer import render
 from . import as_json
+from . import mime
 from ..auth import users, group
 
 markdown = MarkDown()
@@ -38,7 +39,7 @@ class AJAXError(_HTTPError):
         super().__init__(status, str(message))
 
     def get_error_page(self, *args, **kwargs):
-
+        mime.html.set()
         return markdown(self.message + format_traceback(self.traceback)).encode('utf-8')
 
 

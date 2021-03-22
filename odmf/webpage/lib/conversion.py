@@ -72,7 +72,7 @@ def formatfloat(v, style='%g'):
 
 def parsedate(s, raiseerror=True):
     res = None
-    formats = ('%d.%m.%Y %H:%M:%S', '%d.%m.%Y %H:%M', '%d.%m.%Y', '%Y-%m-%d',
+    formats = ('%d.%m.%Y %H:%M:%S', '%d.%m.%Y %H:%M', '%d.%m.%Y', '%Y-%m-%d', '%Y-%m-%d %H:%M:%S',
                '%Y/%m/%dT%H:%M:%S', '%Y-%m-%dT%H:%M', '%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S')
     for fmt in formats:
         try:

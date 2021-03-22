@@ -44,34 +44,44 @@
                 <span><i class="fas fa-filter mr-2"/>Filter</span><span><i class="fas fa-plus-circle"/></span>
             </a>
             <div id="filter" class="collapse card card-body" >
-                <div class="form-group small ">
+                <div class="form-group small mt-0 mb-0">
                     <label for="vtselect" class="col-form-label">value type:</label>
                     <select id="vtselect" onchange="popSelect();" class="form-control">
                         <option class="firstoption" value=""><i>value type...</i></option>
                     </select>
                 </div>
-                <div class="form-group small ">
+                <div class="form-group small  mt-0 mb-0">
                     <label for="userselect" class="col-form-label">user:</label>
-                    <select id="userselect" onchange="popSelect();" class="form-control">
+                    <select id="userselect" onchange="popSelect();" class="form-control filter">
                         <option value=""><i>Please select...</i></option>
                     </select>
                 </div>
-                <div class="form-group small ">
+                <div class="form-group small  mt-0 mb-0">
                     <label for="instrumentselect" class="col-form-label">instrument:</label>
                     <select id="instrumentselect" onchange="popSelect();" class="form-control">
                         <option value=""><i>Please select...</i></option>
                     </select>
                 </div>
                 <div class="form-group small mt-0 mb-0">
+                    <label for="ageselect" class="col-form-label">Measurements in the last years:</label>
+                    <input id="max_data_age" type="number" class="form-control filter" value="3"
+                           onchange="popSelect();" title="Show only sites, where measurements in the last x years have been performed"/>
+                </div>
+                <div class="form-group small mt-0 mb-0">
                     <label for="dateselect" class="col-form-label">date:</label>
-                    <input id="dateselect" type="date" class="form-control" value=""
+                    <input id="dateselect" type="date" class="form-control filter" value=""
+                           onchange="popSelect();" title="Show only sites with a dataset for this date"/>
+                </div>
+                <div class="form-group small mt-0 mb-0">
+                    <label for="fulltext" class="col-form-label">search term in name and comments of site:</label>
+                    <input id="fulltext" type="text" class="form-control filter" value="" placeholder="fulltext search"
                            onchange="popSelect();" title="Show only sites with a dataset for this date"/>
                 </div>
                 <div class="form-group small mt-0 mb-0">
                     <label class="col-form-label" for="filter-buttons">apply:</label>
                     <div id="filter-buttons" class="">
                         <button onclick="popSelect();" title="Apply the filter" data-toggle="tooltip" class="btn btn-outline-dark">
-                            <img src="${conf.root_url}/media/ui-icons/filter_16.png" alt="set filter"/>
+                            <i class="fas fa-filter"/>
                         </button>
                         <button onclick="clearFilter();" title="Clear filter and show all sites"
                                 data-toggle="tooltip" data-placement="bottom"
@@ -95,7 +105,9 @@
         </div>
 
         <hr />
+        <div id="error" class="d-none alert alert-danger">
 
+        </div>
         <div id="infotext">
             <div class="card card-body">
                 <h5 class="card-title">No site selected</h5>
@@ -103,7 +115,7 @@
         </div>
     </py:block>
     <py:block name="content">
-        <div id="map_canvas" class="mapCanvasShort row">Map</div>
+        <div id="map_canvas" class="mapCanvasShort row" data-site="${site}">Map</div>
 
     </py:block>
 
