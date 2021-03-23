@@ -529,8 +529,11 @@ class TransformedTimeseries(Dataset):
         for bi in dir(__builtins__):
             if bi not in np_dict:
                 expression = expression.replace(bi, '_' + bi)
-
-        return eval(self.expression, {'x': x}, np.__dict__)
+        result = eval(expression, {'x': x}, np.__dict__)
+        # TODO: Check if numexpr works
+        # import numexpr as ne
+        # result = ne.evaluate(expression, local_dict=x)
+        return pd.Series(result, index=x.index, name=str(self))
 
     def iterrecords(self, witherrors=False, start=None, end=None):
         session = self.session()

@@ -17,9 +17,9 @@ class MapPage(object):
 
     @web.expose
     @web.method.get
-    def index(self):
+    def index(self, site=None):
 
-        return web.render('map.html').render()
+        return web.render('map.html', site=site).render()
 
     @web.expose
     @web.mime.json

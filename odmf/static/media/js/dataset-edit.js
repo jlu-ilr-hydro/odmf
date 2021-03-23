@@ -148,6 +148,19 @@ function apply_calibration(targetid, sourceid, slope, offset) {
  * On load
  */
 $(function() {
+
+    // Javascript to enable link to tab (from: https://stackoverflow.com/a/9393768/3032680)
+    var hash = location.hash.replace(/^#/, '');  // ^ means starting, meaning only match the first hash
+    if (hash) {
+        let elem = $('.nav-pills a[href="#' + hash + '"]')
+        elem.tab('show');
+    }
+    // Change hash for page-reload
+    $('.nav-pills a').on('shown.bs.tab', function (e) {
+        window.location.hash = e.target.hash;
+    })
+
+
     const dsid = parseInt($("#dsid").html());
     $(".timepicker").attr('placeholder', '00:00');
 
