@@ -250,14 +250,6 @@ td.highlight
     font-weight: bold;
 }
 
-li.plus {
-	list-style-image: url(/media/ui-icons/plus-small.png);
-	font-style: italic;
-}
-li.minus {
-	list-style-image: url(/media/ui-icons/minus-small.png);
-	font-style: italic;
-}
 
 hr {
     background-color: #32739d;
@@ -274,16 +266,6 @@ textarea {
 .topimage img { width: 32%;
 		   padding: 0px 0px 0px 0px;
 		   margin: 0px 0px 0px 0px;
-}
-input[type=text][readonly] {
-	color: #888888;
-	border: none;
-}
-
-a.filelink {
-	background-image: url(/media/ui-icons/shimmer/document_16.png);
-	background-repeat: no-repeat;
-	padding-left: 16px;
 }
 
  .tooltip {outline:none; }
