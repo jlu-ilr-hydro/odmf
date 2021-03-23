@@ -23,8 +23,23 @@ def get_datafiles(from_dir):
     ]
 
 
+def get_version(rel_path):
+    import os
+
+    def read(rel_path):
+        here = os.path.abspath(os.path.dirname(__file__))
+        with open(os.path.join(here, rel_path)) as f:
+            return f.read()
+    for line in read(rel_path).splitlines():
+        if line.startswith('__version__'):
+            delim = '"' if '"' in line else "'"
+            return line.split(delim)[1]
+    else:
+        raise RuntimeError("Unable to find version string.")
+
+
 setup(name='odmf',
-      version='1.0',
+      version=get_version('odmf/__init__.py'),
       description='Observatory Data Management Framework',
       author='Philipp Kraft',
       author_email='philipp.kraft@umwelt.uni-giessen.de',

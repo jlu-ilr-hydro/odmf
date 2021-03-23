@@ -44,7 +44,7 @@
                         <img src="${conf.root_url}/media/images/jlu-logo-150.png" alt="University Giessen"/>
                     </a>
 
-                    <div class="space">
+                    <div class="mt-4">
                         This page is used as a database frontend for the measured data at the agro-environmental
                         research facilities of the Justus-Liebig University Giessen. <br/>
 
@@ -52,20 +52,28 @@
                     <h2>
                         Data usage
                     </h2>
-                    <div class="space">
+                    <div class="mt-4">
                         The database contains raw and unpublished data,
                         any usage beyond pure curiosity, especially the publication of data and derived products is not allowed without prior permission.
                     </div>
                     <h2>
-                        References
+                        ODMF <span class="badge badge-primary" py:content="conf.version"/>
                     </h2>
-                    <div class="space">
-                        Most graphical elements and the user interface are own work. Some icons,
-                        especially for downloads etc. are creative commons.
-                        The applying copyright notice can be found
-                        <a href="${conf.root_url}/media/ui-icons/shimmer/shimmer-icons-readme.html">here</a>.
+                    <div>
+                        This site is built using ODMF (Observatory data management framework) an
+                        open source data management system for field observatories to collect, manage
+                        and share quantitative measurements in the open environment
                     </div>
-                    <div py:if="is_member('admin')">
+                    <h3>
+                        Development
+                    </h3>
+                    <div>
+                        Bug reports, enhancement proposals, etc can be posted here: <br/>
+                        <a href="https://github.com/jlu-ilr-hydro/odmf">
+                            <i class="fas fa-github"/> ODMF on GitHub
+                        </a>
+                    </div>
+                    <div py:if="is_member('admin')" class="mt-4">
                         <h1 class="display-4">Configuration</h1>
                         <ul>
                             <li py:for="k, v in conf.to_dict().items()" py:if=" not ('key' in k or 'pass' in k)">
