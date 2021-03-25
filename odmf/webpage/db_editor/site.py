@@ -91,7 +91,7 @@ class SitePage:
                         raise web.redirect(f'../{siteid}', error='The site has no coordinates')
                     if site.lon > 180 or site.lat > 180:
                         site.lat, site.lon = proj.UTMtoLL(
-                            23, site.lat, site.lon, '32N')
+                            23, site.lat, site.lon, conf.utm_zone)
 
                     site.name = kwargs.get('name')
                     site.height = web.conv(float, kwargs.get('height'))

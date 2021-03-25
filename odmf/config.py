@@ -76,6 +76,7 @@ class Configuration:
     nav_left_logo = '/media/lfe-logo.png'
     manual_measurements_pattern = '(.+\\/)*datafiles\\/lab\\/([a-zA-Z0-9]+\\/)*.*\\.(xls|xlsx)$'
     map_default = {'lat': 50.5, 'lng': 8.55, 'type': 'hybrid', 'zoom': 15}
+    utm_zone = '32N'
     upload_max_size = 25000000
     server_port = 8080
     google_maps_api_key = ''

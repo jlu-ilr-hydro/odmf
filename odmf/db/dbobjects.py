@@ -8,11 +8,11 @@ import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from .base import Base, newid
 from datetime import datetime, timedelta
-from .projection import LLtoUTM, dd_to_dms
+from .projection import LLtoUTM, dd_to_dms, UTMtoLL
 from collections import deque
 from traceback import format_exc as traceback
 from base64 import b64encode
-
+from ..config import conf
 
 from ..tools.mail import EMail
 
@@ -29,7 +29,9 @@ def memoryview_to_b64str(mview):
 
 @total_ordering
 class Site(Base):
-    """All locations in the database. The coordiante system is always geographic with WGS84/ETRS"""
+    """
+    All locations in the database. The coordiante system is always geographic with WGS84/ETRS
+    """
     __tablename__ = 'site'
     id = sql.Column(sql.Integer, primary_key=True)
     lat = sql.Column(sql.Float)
@@ -38,6 +40,23 @@ class Site(Base):
     name = sql.Column(sql.String)
     comment = sql.Column(sql.String)
     icon = sql.Column(sql.String(30))
+
+    def __init__(self, id:int, lat:float=None, lon:float=None,
+                 height:float = None, name:str=None, comment:str=None, icon:str=None,
+                 x:float = None, y:float=None):
+        self.id = id
+        if lat and lon:
+            self.lat = lat
+            self.lon = lon
+        elif x and y:
+            self.lat, self.lon = UTMtoLL(23, y, x, conf.utm_zone)
+        else:
+            raise ValueError('Creating a site needs the position in geographical coordinates '
+                             '(lat/lon) or as UTM coordinates (x/y)')
+        self.height = height
+        self.name = name
+        self.comment = comment
+        self.icon = icon
 
     def __str__(self):
         return "#%i - %s" % (self.id, self.name)
