@@ -37,26 +37,27 @@
                      style="max-height:20rem; max-width: 48rem; width:auto; height:auto" /-->
                 <div class="card-body">
                     <h1 class="display-4">About</h1>
-                    <a href="https://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede" >
-                        <img src="${conf.root_url}/media/images/ilr-logo_4_klein_RGB.png" alt="ILR"/>
-                    </a>
-                    <a href="https://www.uni-giessen.de">
-                        <img src="${conf.root_url}/media/images/jlu-logo-150.png" alt="University Giessen"/>
-                    </a>
-
+                    <div class="mt-8">
+                        <a href="https://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede">
+                            <img src="${conf.root_url}/media/images/ilr-logo_4_klein_RGB.png" alt="ILR"/>
+                        </a>
+                        <a href="https://www.uni-giessen.de">
+                            <img src="${conf.root_url}/media/images/jlu-logo-150.png" alt="University Giessen"/>
+                        </a>
+                    </div>
                     <div class="mt-4">
                         This page is used as a database frontend for the measured data at the agro-environmental
                         research facilities of the Justus-Liebig University Giessen. <br/>
 
                     </div>
-                    <h2>
+                    <h2 class="my-4">
                         Data usage
                     </h2>
-                    <div class="mt-4">
+                    <div>
                         The database contains raw and unpublished data,
                         any usage beyond pure curiosity, especially the publication of data and derived products is not allowed without prior permission.
                     </div>
-                    <h2>
+                    <h2 class="my-4">
                         ODMF <span class="badge badge-primary" py:content="conf.version"/>
                     </h2>
                     <div>
@@ -64,22 +65,22 @@
                         open source data management system for field observatories to collect, manage
                         and share quantitative measurements in the open environment
                     </div>
-                    <h3>
-                        Development
+                    <h3 class="my-4">
+                        <i class="fab fa-github"/> Development
                     </h3>
                     <div>
                         Bug reports, enhancement proposals, etc can be posted here: <br/>
                         <a href="https://github.com/jlu-ilr-hydro/odmf">
-                            <i class="fas fa-github"/> ODMF on GitHub
+                            <i class="fab fa-github"/> ODMF on GitHub
                         </a>
                     </div>
                     <div py:if="is_member('admin')" class="mt-4">
-                        <h1 class="display-4">Configuration</h1>
-                        <ul>
-                            <li py:for="k, v in conf.to_dict().items()" py:if=" not ('key' in k or 'pass' in k)">
-                                ${k} = ${v}
-                            </li>
-                        </ul>
+                        <h2>Configuration</h2>
+                        <table class="table"><tbody>                
+                            <tr py:for="k, v in conf.to_dict().items()" py:if=" not ('key' in k or 'pass' in k)">
+                                <th py:content="k" scope="row"/><td py:content="v"/>
+                            </tr>
+                        </tbody></table>
                     </div>
                 </div>
 
