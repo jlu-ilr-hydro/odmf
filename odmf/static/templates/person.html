@@ -80,7 +80,7 @@
                     <label for="username" class="col-lg-2 col-form-label">username</label>
                     <div class="col-lg-4">
                         <input type="text" id="username" name="username"
-                               py:attrs="attrcheck('readonly', act_user!='new')"
+                               py:attrs="prop(readonly=act_user!='new')"
                                class="form-control"
                                value="${U.username}"
                         />
@@ -88,7 +88,7 @@
                     <label for="email" class="col-lg-2 col-form-label">email</label>
                     <div class="col-lg-4">
                         <input type="text" id="email" name="email"
-                               py:attrs="attrcheck('disabled', not (is_member('supervisor')  or is_self(U.username)))"
+                               py:attrs="prop(disabled=not (is_member('supervisor')  or is_self(U.username)))"
                                class="form-control"
                                value="${U.email}"
                         />
@@ -99,7 +99,7 @@
                     <label for="firstname" class="col-lg-2 col-form-label">firstname</label>
                     <div class="col-lg-4">
                         <input type="text" id="firstname" name="firstname"
-                               py:attrs="attrcheck('disabled', not (is_member('supervisor')  or is_self(U.username)))"
+                               py:attrs="prop(disabled=not (is_member('supervisor')  or is_self(U.username)))"
                                class="form-control"
                                value="${U.firstname}"
                         />
@@ -107,7 +107,7 @@
                     <label for="surname" class="col-lg-2 col-form-label">surname</label>
                     <div class="col-lg-4">
                         <input type="text" id="surname" name="surname"
-                               py:attrs="attrcheck('disabled', not (is_member('supervisor')  or is_self(U.username)))"
+                               py:attrs="prop(disabled=not (is_member('supervisor')  or is_self(U.username)))"
                                class="form-control"
                                value="${U.surname}"
                         />
@@ -117,7 +117,7 @@
                     <label for="password" class="col-lg-2 col-form-label">password</label>
                     <div class="col-lg-4">
                         <input type="password" id="password" name="password"
-                               py:attrs="attrcheck('disabled', not (is_member('supervisor')  or is_self(U.username)))"
+                               py:attrs="prop(disabled=not (is_member('supervisor')  or is_self(U.username)))"
                                class="form-control"
                                placeholder="password"
                         />
@@ -125,7 +125,7 @@
                     <label for="password_verify" class="col-lg-2 col-form-label">repeat</label>
                     <div class="col-lg-4">
                         <input type="password" id="password_verify" name="password_verify"
-                               py:attrs="attrcheck('disabled', not (is_member('supervisor')  or is_self(U.username)))"
+                               py:attrs="prop(disabled=not (is_member('supervisor')  or is_self(U.username)))"
                                class="form-control"
                                placeholder="password"
                         />
@@ -136,7 +136,7 @@
                     <label for="access_level" class="col-lg-2 col-form-label">access level</label>
                     <div class="col-lg-4">
                         <select id="access_level" name="access_level"
-                                py:attrs="attrcheck('disabled', not (is_member('supervisor') or is_self(U.username)))"
+                                py:attrs="prop(disabled=not (is_member('supervisor') or is_self(U.username)))"
                                 class="form-control"
                         >
                             <option py:for="value in levels(users.current.level)"
@@ -150,8 +150,7 @@
                     <div class="col-lg-4 custom-control custom-checkbox">
                         <input type="checkbox" id="active" name="status"
                                class="custom-control-input"
-                               py:attrs="attrcheck('disabled', not is_member('supervisor'))"
-                               checked="${bool2js(U.active)}"
+                               py:attrs="prop(disabled=not is_member('supervisor'), checked=U.active)"
                         />
                         <label for="active" class="custom-control-label">active user</label>
                     </div>
@@ -162,13 +161,13 @@
                               class="form-control"
                               rows="4"
                               py:content="U.comment"
-                              py:attrs="attrcheck('disabled', not (is_member('supervisor') or is_self(U.username)))"
+                              py:attrs="prop(disabled=not (is_member('supervisor') or is_self(U.username)))"
                     />
                 </div>
 
                 <div class="form-group row">
                     <button type="submit" class="col-lg-2 btn btn-primary w-100"
-                            py:attrs="attrcheck('disabled', not (is_member('supervisor') or is_self(U.username)))"
+                            py:attrs="prop(disabled=not (is_member('supervisor') or is_self(U.username)))"
                     >
                         save
                     </button>
@@ -183,125 +182,3 @@
 
 </py:extends>
 
-<!--body>
-
-
-			<form action="${conf.root_url}/user/saveitem" method="post">
-				<h2>Edit user</h2>
-				<table style="width: 100%" py:if="active_person">
-					<tr py:if="is_member('admin') or is_self(active_person.username) or act_user=='new'">
-						<td>Password:</td>
-						<td py:if="act_user=='new'"><input type="password" name="password" /></td>
-						<td py:if="act_user!='new'">
-							<p><a href="${conf.root_url}+ '/user/changepassword/' + active_person.username">Change password</a></p>
-						</td>
-					</tr>
-					<tr py:if="act_user=='new'">
-						<td>Repeat password:</td>
-						<td><input type="password" name="password_verify" /></td>
-					</tr>
-					<tr>
-						<td>Car:</td>
-						<py:choose>
-							<td py:when="act_user=='new' or is_self(active_person.username)">
-								<select name="car_available">
-								<option py:for="i,s in enumerate('No car,Car available,Car sometimes available'.split(','))"
-										py:attrs="markoption(i==active_person.car_available)"
-										py:content="s"
-										value="${i}" />
-								</select>
-							</td>
-							<td py:otherwise="">
-								${'No car,Car available,Car sometimes available'.split(',')[active_person.car_available]}
-								<input type="hidden" name="car_available" value="${active_person.car_available}" />
-							</td>
-						</py:choose>
-
-					</tr>
-					<tr>
-						<td>Phone:</td>
-						<py:choose>
-							<td py:when="act_user=='new' or is_self(active_person.username) or is_member('admin')">
-								<input type="text" name="telephone" value="${active_person.telephone}" /></td>
-							<td py:otherwise="">
-								<input readonly="true" type="text" name="telephone" value="${active_person.telephone}" />
-							</td>
-						</py:choose>
-						</tr>
-					<tr>
-						<td>Mobile:</td>
-						<py:choose>
-							<td py:when="act_user=='new' or is_self(active_person.username)">
-								<input type="text" name="mobile" value="${active_person.mobile}" /></td>
-							<td py:otherwise="">
-								<input readonly="true" type="text" name="mobile" value="${active_person.mobile}" /></td>
-						</py:choose>
-					</tr>
-					<tr>
-						<td>Supervised by:</td>
-						<py:choose>
-							<td py:when="is_member('supervisor')">
-								<select name="supervisor">
-									<option value="NULL">No supervisor chosen</option>
-									<option py:for="p in supervisors"
-											py:attrs="markoption(p is active_person.supervisor)"
-											py:content="p"
-											value="${p.username}" />
-								</select>
-							</td>
-
-							<td py:otherwise="">
-								${active_person.supervisor}
-								<input type="hidden" name="supervisor" value="${active_person.supervisor}"/>
-							</td>
-						</py:choose>
-
-					</tr>
-					<tr>
-						<td>Access Level:</td>
-						<td py:if="(act_user=='new' or is_member('supervisor') and not is_self(active_person.username)) and not active_person.access_level == '0'">
-							<select name="access_level">
-								<option py:for="value in levels(users.current.level)"
-										py:content="value[0]"
-										value="${value[1]}"
-										py:attrs="markoption(str(value[1]) == str(active_person.access_level))"/>
-							</select>
-						</td>
-						<td py:if="(act_user != 'new' and not is_member('supervisor') or is_self(active_person.username)) or active_person.access_level == '0'">
-							${levels('all')[int(active_person.access_level)][0]}
-							<input type="hidden" name="access_level" value="${active_person.access_level}"/>
-						</td>
-					</tr>
-					<py:choose>
-						<tr py:when="is_member('supervisor') and not is_self(active_person.username)">
-							<td>Active<a href="${conf.root_url}/wiki/help" class="tooltip"><img src="${conf.root_url}/media/ui-icons/help.png" /><span>Caution, if it is not ticked, the user is disabled to login</span></a></td>
-							<td><input style="width: 0%" name="status" type="checkbox" checked="${'on' if active_person.active else ''}"/></td>
-						</tr>
-						<tr py:otherwise="">
-							<td><input type="hidden" name="status" value="${'on' if active_person.active else ''}"/></td>
-						</tr>
-					</py:choose>
-					<tr>
-						<td>Comments<a href="${conf.root_url}/wiki/help" class="tooltip"><img src="${conf.root_url}/media/ui-icons/help.png" /><span>Get help for using links and formats</span></a></td>
-						<td py:if="is_member('supervisor')">
-							<textarea name="comment" 
-									  style="width: 100%;"
-									  rows="10" 
-									  py:content="active_person.comment"
-									/>
-						</td>
-						<td py:if="not is_member('supervisor')">
-							<textarea name="comment"
-									  style="width: 100%;"
-									  rows="10"
-									  py:content="active_person.comment"
-									readonly="true"/>
-						</td>
-					</tr>
-				</table>
-				<input py:if="is_member('supervisor') or is_self(active_person.username)" type="submit" name="save" value="Save" style="width: 7em;"/>
-			</form>
-		</div>
-	</div>
-</body>
-</html-->
