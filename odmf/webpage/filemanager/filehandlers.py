@@ -11,13 +11,13 @@ markdown = MarkDown()
 class BaseFileHandler:
 
     def __init__(self, pattern: str = ''):
-        self.pattern = re.compile(pattern)
+        self.pattern = re.compile(pattern, re.IGNORECASE)
 
     def matches(self, path: Path):
         """
         Checks if a path matches the file pattern
         """
-        return bool(self.pattern.match(path.absolute))
+        return bool(self.pattern.search(path.absolute))
 
     def to_html(self, path) -> str:
         """
@@ -75,10 +75,24 @@ class ExcelFileHandler(BaseFileHandler):
             return html
 
 
+class CsvFileHandler(BaseFileHandler):
+
+    def to_html(self, path: Path) -> str:
+        import pandas as pd
+        try:
+            df = pd.read_csv(path.absolute, sep=None)
+            return df.to_html(classes=['table'])
+        except:
+            with open(path.absolute, 'r') as f:
+                return '\n<pre>\n' + f.read() + '\n</pre>\n'
+
+
 class ImageFileHandler(BaseFileHandler):
 
     def to_html(self, path: Path) -> str:
-        return f'<img src="{path.raw_url}"/>'
+        return f'''
+        <img class="handler-generated" src="{path.raw_url}" style="max-width: 100%"/>
+        '''
 
 
 class PdfFileHandler(BaseFileHandler):
@@ -91,12 +105,13 @@ class PdfFileHandler(BaseFileHandler):
 
 class MultiHandler(BaseFileHandler):
     handlers = [
-        MarkDownFileHandler(r'.*\.(md|wiki)'),
-        PlotFileHandler(r'.*\.plot'),
-        ExcelFileHandler(r'.*\.xls?'),
-        PdfFileHandler(r'.*\.pdf'),
-        ImageFileHandler(r'.*\.(jpg|jpeg|png|svg|gif)'),
-        TextFileHandler('.*'),
+        MarkDownFileHandler(r'\.(md|wiki)'),
+        PlotFileHandler(r'\.plot'),
+        ExcelFileHandler(r'\.xls?'),
+        CsvFileHandler(r'\.csv'),
+        PdfFileHandler(r'\.pdf'),
+        ImageFileHandler(r'\.(jpg|jpeg|png|svg|gif)'),
+        TextFileHandler(''),
     ]
 
     def to_html(self, path: Path) -> str:
@@ -108,4 +123,4 @@ class MultiHandler(BaseFileHandler):
                     raise
                 except UnicodeDecodeError as e:
                     pass
-        return
+        return None
