@@ -155,6 +155,14 @@
                             <td class="bold">Name:</td>
                             <td>${ds_act.name}</td>
                         </tr>
+                        <tr py:if="ds_act.filename" >
+                            <td class="bold">File</td>
+                            <td>
+                                <a py:if="ds_act.path" href="${ds_act.path.href}" py:content="ds_act.path.basename"/>
+                                <div py:if="not ds_act.path" py:content="ds_act.filename"/>
+
+                            </td>
+                        </tr>
                         <tr py:if="ds_act.valuetype">
                             <td class="bold">Data:</td>
                             <td><a href="${conf.root_url}/valuetype/${ds_act.valuetype.id}" class="tooltip">
@@ -533,6 +541,10 @@
 
                                 </div>
 
+                            </div>
+                            <div class="form-row">
+                                <label for="filename">filename</label>
+                                <input id="filename" name="filename" class="form-control" type="text" value="${ds_act.filename}"/>
                             </div>
 
                             <div class="form-row">
