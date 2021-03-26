@@ -29,6 +29,10 @@ class Path(object):
     def href(self)->str:
         return f'{conf.root_url}/download/{self.name}'
 
+    @property
+    def raw_url(self)->str:
+        return f'{conf.root_url}/datafiles/{self.name}'
+
     def __bool__(self):
         return op.exists(self.absolute)
 
