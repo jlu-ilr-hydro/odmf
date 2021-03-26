@@ -34,6 +34,7 @@ function map_dblclick(loc) {
 		var url = odmf_ref('/site/new');
 		url += '?lat=' + loc.lat();
 		url += '&lon=' + loc.lng();
+		url += '#edit';
 		window.location.href = url;
 	} else {
 		map.setCenter(loc);
