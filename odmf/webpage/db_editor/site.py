@@ -6,11 +6,15 @@ Created on 13.07.2012
 @author: philkraf
 '''
 import datetime
-from .. import lib as web
-from ... import db
+import pandas as pd
+import io
+from cherrypy.lib.static import serve_fileobj
 from traceback import format_exc as traceback
 from glob import glob
 import os.path as op
+
+from .. import lib as web
+from ... import db
 from ..auth import expose_for, group
 from io import BytesIO
 from ...db import projection as proj
@@ -299,3 +303,22 @@ class SitePage:
                 st.write(('%s,%f,%f,%0.1f,%0.1f,%s,"%s","%s"\n' %
                           (s.id, s.lon, s.lat, x, y, h, s.name, c)).encode('utf-8'))
             return st.getvalue()
+
+    @expose_for(group.logger)
+    @web.method.get
+    def export(self, format='xlsx'):
+        from ...tools.exportdatasets import export_dataframe
+        with db.session_scope() as session:
+            q = session.query(db.Site)
+            dataframe = pd.read_sql(q.statement, session.bind)
+            buffer = io.BytesIO()
+            mime = web.mime.get(format, web.mime.binary)
+            buffer = export_dataframe(buffer, dataframe, format, index_label=None)
+            name = f'sites-{datetime.now():%Y-%m-%d}'
+            buffer.seek(0)
+            return serve_fileobj(
+                buffer,
+                str(mime),
+                'attachment',
+                name + '.' + format
+            )

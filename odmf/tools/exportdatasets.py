@@ -169,15 +169,16 @@ def merge_series(
         return _merge_interpolation(index, series, interpolation_method, interpolation_limit)
 
 
-def export_dataframe(stream, data: pd.DataFrame, fileformat: str):
+def export_dataframe(stream, data: pd.DataFrame, fileformat: str, index_label='time'):
     if fileformat == 'xlsx':
-        data.to_excel(stream, engine='openpyxl', index=True, index_label='time')
+        data.to_excel(stream, engine='openpyxl', index=bool(index_label), index_label=index_label)
     elif fileformat == 'csv':
-        stream.write(data.to_csv(index=True, index_label='time').encode('utf-8'))
+        stream.write(data.to_csv(index=bool(index_label), index_label=index_label).encode('utf-8'))
     elif fileformat == 'tsv':
-        stream.write(data.to_csv(sep='\t', index=True, index_label='time').encode('utf-8'))
+        stream.write(data.to_csv(sep='\t', index=bool(index_label), index_label=index_label).encode('utf-8'))
     elif fileformat == 'json':
-        stream.write(data.to_json(indent=2).encode('utf-8'))
+        orient = 'columns' if index_label else 'records'
+        stream.write(data.to_json(indent=2, orient=orient).encode('utf-8'))
     elif fileformat == 'msgpack':
         data.to_msgpack(stream)
     return stream

@@ -29,6 +29,13 @@ class Path(object):
     def href(self)->str:
         return f'{conf.root_url}/download/{self.name}'
 
+    @property
+    def markdown(self)->str:
+        if self.islegal():
+            return 'file:' + str(self)
+        else:
+            return ''
+
     def __bool__(self):
         return op.exists(self.absolute)
 
