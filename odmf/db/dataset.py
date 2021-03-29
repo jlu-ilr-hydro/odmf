@@ -234,6 +234,15 @@ class Dataset(Base):
             f'{self}(type={self.type}) - data set has no records to iterate. Is the type correct?'
         )
 
+    @property
+    def path(self):
+        from ..tools import Path as OPath
+        if self.filename:
+            p = OPath(self.filename)
+            if p.exists():
+                return p
+        return None
+
 
 def removedataset(*args):
     """Removes a dataset and its records entirely from the database

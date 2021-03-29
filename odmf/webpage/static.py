@@ -78,7 +78,7 @@ class StaticServer:
 
     @web.expose
     @web.method.get
-    def index(self, path='.'):
+    def index(self, path='.', _=None):
         """
         Serves the static content from the relative path
         """

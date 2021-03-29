@@ -43,7 +43,7 @@
                 $('#help-edit').on('show.bs.collapse', function () {
                     // Load current file in textarea
                     $.get({
-                        url:'${curdir.href}/index.html',
+                        url:'${curdir.raw_url}/index.html',
                         cache:false
                     }).then(function(text) {
                         $('#help-edit textarea').val(text);

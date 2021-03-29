@@ -36,6 +36,10 @@ class Path(object):
         else:
             return ''
 
+    @property
+    def raw_url(self)->str:
+        return f'{conf.root_url}/datafiles/{self.name}'
+
     def __bool__(self):
         return op.exists(self.absolute)
 

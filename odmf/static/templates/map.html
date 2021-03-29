@@ -86,7 +86,11 @@
                         <button onclick="clearFilter();" title="Clear filter and show all sites"
                                 data-toggle="tooltip" data-placement="bottom"
                                 class="btn btn-outline-dark">
-                            <img src="${conf.root_url}/media/ui-icons/clearfilter_16.png" alt="clear filter"/>
+                            <span class="fa-stack" style="font-size: 0.5em;" >
+                                <i class="fas fa-filter fa-stack-2x"/>
+                                <i class="fas fa-times fa-stack-2x" style="color:Tomato"/>
+                            </span>
+
                         </button>
                         <button onclick="zoomToMarkers();" title="Show all sites" data-toggle="tooltip" class="btn btn-outline-dark">
                             <i class="fas fa-globe" />

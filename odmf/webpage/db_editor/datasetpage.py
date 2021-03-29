@@ -82,14 +82,22 @@ class DatasetPage:
             try:
                 # load data for dataset-edit.html:
                 # similar datasets (same site and same type)
-                similar_datasets = self.subset(session, valuetype=active.valuetype.id,
-                                               site=active.site.id)
+                if active.valuetype and active.site:
+                    similar_datasets = self.subset(session, valuetype=active.valuetype.id,
+                                                   site=active.site.id).filter(db.Dataset.id != active.id)
+                else:
+                    similar_datasets = []
                 # parallel dataset (same site and same time, different type)
-                parallel_datasets = session.query(db.Dataset).filter_by(site=active.site).filter(
-                    db.Dataset.start <= active.end, db.Dataset.end >= active.start)
+                if active.site and active.start and active.end:
+                    parallel_datasets = session.query(db.Dataset).filter_by(site=active.site).filter(
+                        db.Dataset.start <= active.end, db.Dataset.end >= active.start).filter(db.Dataset.id != active.id)
+                else:
+                    parallel_datasets = []
 
-                datasets = {"same type": similar_datasets.filter(db.Dataset.id != active.id),
-                            "same time": parallel_datasets.filter(db.Dataset.id != active.id)}
+                datasets = {
+                    "same type": similar_datasets,
+                    "same time": parallel_datasets,
+                }
             except:
                 # If loading fails, don't show similar datasets
                 datasets = {}
@@ -116,11 +124,6 @@ class DatasetPage:
                 quality=session.query(db.Quality).order_by(db.Quality.id),
                 datasources=session.query(db.Datasource),
                 projects=session.query(db.Project),
-                potential_calibration_sources=session.query(db.Dataset).filter(
-                    db.Dataset._site == active._site,
-                    db.Dataset.start <= active.end,
-                    db.Dataset.end >= active.start
-                )
             ).render()
 
     @expose_for(group.editor)

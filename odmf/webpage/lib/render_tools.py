@@ -15,19 +15,19 @@ def markdown(s):
     from kajiki.template import literal
     return literal(__md(s))
 
-
+# The imports are needed implicitly during rendering
 from ..auth import users, is_member
 from datetime import datetime, timedelta
 
-def attrcheck(kw, condition):
-    if condition:
-        return {kw: kw}
-    else:
-        return {kw: None}
+
+def prop(**kwargs):
+    return {
+        kw: (kw if value else None) for kw, value in kwargs.items()
+    }
 
 
 def markoption(condition):
-    return attrcheck('selected', condition)
+    return prop(selected=condition)
 
 
 def abbrtext(s, maxlen=50):

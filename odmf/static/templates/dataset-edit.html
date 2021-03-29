@@ -122,11 +122,11 @@
 
                         </div>
                         <div class="lead col-sm my-auto">
-                            <a class="d-block text-white text-right" href="${f'{conf.root_url}/valuetype/{ds_act.valuetype.id}'}"
-                               py:content="f'{ds_act.valuetype.name} [{ds_act.valuetype.unit}]'"/>
-                            <a class="d-block text-white text-right" href="${f'{conf.root_url}/site/{ds_act.site.id}'}"
+                            <a class="d-block text-white text-right" href="${f'{conf.root_url}/valuetype/{ds_act.valuetype.id}' if ds_act.valuetype else '#edit'}"
+                               py:content="f'{ds_act.valuetype.name} [{ds_act.valuetype.unit}]' if ds_act.valuetype else '?'"/>
+                            <a class="d-block text-white text-right" href="${f'{conf.root_url}/site/{ds_act.site.id}' if ds_act.site else '#edit'}"
                                py:content="ds_act.site"/>
-                            <a class="d-block text-white text-right" href="${f'{conf.root_url}/person/{ds_act.measured_by.username}'}"
+                            <a class="d-block text-white text-right" href="${f'{conf.root_url}/person/{ds_act.measured_by.username}' if ds_act.measured_by else '#edit'}"
                                py:content="ds_act.measured_by"/>
                         </div>
                     </div>
@@ -154,6 +154,14 @@
                         <tr>
                             <td class="bold">Name:</td>
                             <td>${ds_act.name}</td>
+                        </tr>
+                        <tr py:if="ds_act.filename" >
+                            <td class="bold">File</td>
+                            <td>
+                                <a py:if="ds_act.path" href="${ds_act.path.href}" py:content="ds_act.path.basename"/>
+                                <div py:if="not ds_act.path" py:content="ds_act.filename"/>
+
+                            </td>
                         </tr>
                         <tr py:if="ds_act.valuetype">
                             <td class="bold">Data:</td>
@@ -279,7 +287,7 @@
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <a class="btn btn-outline-secondary"
-                                               href="${conf.root_url}/valuetype/${ds_act.valuetype.id}"
+                                               href="${conf.root_url}/valuetype/${ds_act.valuetype.id if ds_act.valuetype else ''}"
                                                title="Edit ${ds_act.valuetype}" data-toggle="tooltip"
                                             >
                                                 <i class="fas fa-ruler"/>
@@ -323,7 +331,7 @@
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <a class="btn btn-outline-secondary"
-                                               href="${conf.root_url}/site/${ds_act.site.id}"
+                                               href="${conf.root_url}/site/${ds_act.site.id if ds_act.site else ''}"
                                                title="Edit ${ds_act.site}" data-toggle="tooltip"
                                             >
                                                 <i class="fas fa-map-marker-alt"/>
@@ -368,7 +376,7 @@
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <a class="btn btn-outline-secondary"
-                                               href="${conf.root_url}/instrument/${ds_act.source.id}"
+                                               href="${conf.root_url}/instrument/${ds_act.source.id if ds_act.source else ''}"
                                                title="Edit ${ds_act.source}" data-toggle="tooltip"
                                             >
                                                 <i class="fas fa-thermometer-half"/>
@@ -533,6 +541,10 @@
 
                                 </div>
 
+                            </div>
+                            <div class="form-row">
+                                <label for="filename">filename</label>
+                                <input id="filename" name="filename" class="form-control" type="text" value="${ds_act.filename}"/>
                             </div>
 
                             <div class="form-row">
@@ -760,7 +772,7 @@
                                 </div>
                                 <select id="calibrate-select-source" class="form-control">
                                     <option value="" style="font-style: italic;">&lt;Please select...&gt;</option>
-                                    <option py:for="ds in potential_calibration_sources" value="${ds.id}"
+                                    <option py:for="ds in datasets['same time']" value="${ds.id}"
                                             py:content="ds"/>
                                 </select>
                             </div>

@@ -11,13 +11,13 @@ markdown = MarkDown()
 class BaseFileHandler:
 
     def __init__(self, pattern: str = ''):
-        self.pattern = re.compile(pattern)
+        self.pattern = re.compile(pattern, re.IGNORECASE)
 
     def matches(self, path: Path):
         """
         Checks if a path matches the file pattern
         """
-        return bool(self.pattern.match(path.absolute))
+        return bool(self.pattern.search(path.absolute))
 
     def to_html(self, path) -> str:
         """
@@ -46,9 +46,8 @@ class TextFileHandler(BaseFileHandler):
             source = f.read()
         return web.render('textfile_editor.html', html=self.render(source), source=source, path=path).render()
 
+
 class PlotFileHandler(BaseFileHandler):
-    def __init__(self, pattern: str = r'.*\.plot'):
-        super().__init__(pattern)
 
     def render(self, source) -> str:
         return '\n<pre>\n' + source + '\n</pre>\n'
@@ -62,33 +61,66 @@ class PlotFileHandler(BaseFileHandler):
 
 class MarkDownFileHandler(TextFileHandler):
 
-    def __init__(self, pattern: str=r'.*\.(md|wiki)'):
-        super().__init__(pattern)
-
     def render(self, source) -> str:
         return markdown(source)
 
+
 class ExcelFileHandler(BaseFileHandler):
 
-    def __init__(self, pattern: str=r'.*\.xls?'):
-        super().__init__(pattern)
-
-
-    def to_html(self, path) -> str:
+    def to_html(self, path: Path) -> str:
         import pandas as pd
         with open(path.absolute, 'rb') as f:
             df = pd.read_excel(f)
             html = df.to_html(classes=['table'])
             return html
 
-class PdfFileHandler(BaseFileHandler):
 
-    def __init__(self, pattern: str=r'.*\.pdf'):
-        super().__init__(pattern)
+class CsvFileHandler(BaseFileHandler):
 
-    def to_html(self, path) -> str:
+    def to_html(self, path: Path) -> str:
+        import pandas as pd
+        try:
+            df = pd.read_csv(path.absolute, sep=None)
+            return df.to_html(classes=['table'])
+        except:
+            with open(path.absolute, 'r') as f:
+                return '\n<pre>\n' + f.read() + '\n</pre>\n'
+
+
+class ImageFileHandler(BaseFileHandler):
+
+    def to_html(self, path: Path) -> str:
         return f'''
-        <object id="pdf-iframe" data="{path.href.replace('download', 'datafiles')}" type="application/pdf"></iframe>
+        <img class="handler-generated" src="{path.raw_url}" style="max-width: 100%"/>
         '''
 
 
+class PdfFileHandler(BaseFileHandler):
+
+    def to_html(self, path) -> str:
+        return f'''
+        <object id="pdf-iframe" data="{path.raw_url}" type="application/pdf"></iframe>
+        '''
+
+
+class MultiHandler(BaseFileHandler):
+    handlers = [
+        MarkDownFileHandler(r'\.(md|wiki)'),
+        PlotFileHandler(r'\.plot'),
+        ExcelFileHandler(r'\.xls?'),
+        CsvFileHandler(r'\.csv'),
+        PdfFileHandler(r'\.pdf'),
+        ImageFileHandler(r'\.(jpg|jpeg|png|svg|gif)'),
+        TextFileHandler(''),
+    ]
+
+    def to_html(self, path: Path) -> str:
+        for h in self.handlers:
+            if h.matches(path):
+                try:
+                    return h(path)
+                except web.HTTPRedirect:
+                    raise
+                except UnicodeDecodeError as e:
+                    pass
+        return None

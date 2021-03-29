@@ -85,24 +85,25 @@ class SitePage:
         if 'save' in kwargs:
             with db.session_scope() as session:
                 try:
-                    site = session.query(db.Site).get(int(siteid))
-                    if not site:
-                        site = db.Site(id=int(siteid))
-                        session.add(site)
-                    site.lon = web.conv(float, kwargs.get('lon'))
-                    site.lat = web.conv(float, kwargs.get('lat'))
-                    if None in (site.lon, site.lat):
+                    lon = web.conv(float, kwargs.get('lon'))
+                    lat = web.conv(float, kwargs.get('lat'))
+                    if lon > 180 or lat > 180:
+                        lat, lon = proj.UTMtoLL(23, lat, lon, conf.utm_zone)
+                    if None in (lon, lat):
                         raise web.redirect(f'../{siteid}', error='The site has no coordinates')
-                    if site.lon > 180 or site.lat > 180:
-                        site.lat, site.lon = proj.UTMtoLL(
-                            23, site.lat, site.lon, conf.utm_zone)
 
+                    site = session.query(db.Site).get(siteid)
+                    if not site:
+                        site = db.Site(id=siteid, lat=lat, lon=lon)
+                        session.add(site)
+                    site.lat, site.lon = lat, lon
                     site.name = kwargs.get('name')
                     site.height = web.conv(float, kwargs.get('height'))
                     site.icon = kwargs.get('icon')
                     site.comment = kwargs.get('comment')
-                except:
-                    raise web.redirect(f'{self.url}/{siteid}', error=traceback())
+                except Exception as e:
+                    tb = traceback()
+                    raise web.redirect(f'{self.url}/{siteid}', error=f'## {e}\n\n```{tb}```')
         raise web.redirect(f'{self.url}/{siteid}')
 
     @expose_for()

@@ -69,19 +69,14 @@ def goto(dir, error=None, msg=None):
 @web.show_in_nav_for(0, 'file')
 class DownloadPage(object):
     """The file management system. Used to upload, import and find files"""
-    handlers = [
-        fh.MarkDownFileHandler(r'.*\.(md|wiki)'),
-        fh.PlotFileHandler(r'.*\.plot'),
-        fh.ExcelFileHandler(r'.*\.xls?'),
-        fh.PdfFileHandler(),
-        fh.TextFileHandler('.*')
-    ]
+
     def _cp_dispatch(self, vpath: list):
         cherrypy.request.params['uri'] = '/'.join(vpath)
         vpath.clear()
         return self
 
     to_db = DbImportPage()
+    filehandler = fh.MultiHandler()
 
     @expose_for(group.logger)
     @web.method.get
@@ -90,26 +85,17 @@ class DownloadPage(object):
         directories, files = path.listdir()
 
         if path.isfile():
-            if not serve:
-                for h in self.handlers:
-                    if h.matches(path):
-                        try:
-                            content = h(path)
-                        except web.HTTPRedirect:
-                            raise
-                        except UnicodeDecodeError as e:
-                            pass
-                        else:
-                            return web.render(
-                                'download.html', error=error, message=msg,
-                                content=content,
-                                files=sorted(files),
-                                directories=sorted(directories),
-                                curdir=path,
-                                max_size=conf.upload_max_size
-                            ).render()
-            return serve_file(path.absolute, disposition='attachment', name=path.basename)
-
+            if (not serve) and (content := self.filehandler(path)):
+                return web.render(
+                    'download.html', error=error, message=msg,
+                    content=content,
+                    files=sorted(files),
+                    directories=sorted(directories),
+                    curdir=path,
+                    max_size=conf.upload_max_size
+                ).render()
+            else:
+                return serve_file(path.absolute, disposition='attachment', name=path.basename)
 
         elif not (path.islegal() and path.exists()):
             raise HTTPFileNotFoundError(path)
