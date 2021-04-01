@@ -5,7 +5,6 @@ from . import Path as OPath
 
 class RasterReader:
     def __init__(self, tiffile, band=1):
-        import rasterio as rio
         self.ds = rio.open(tiffile)
         self.band = self.ds.read(band)
 
@@ -28,8 +27,8 @@ def add_missing_heights(demfile='datafiles/geodata/dgm1/DGM1_gladbacherhof_.tif'
         op = OPath('/')
 
     with db.session_scope() as session:
-        for s in session.query(db.Site).filter(db.Site.height==None).order_by(db.Site.id):
+        for s in session.query(db.Site).filter(~(db.Site.height > -300)).order_by(db.Site.id):
             s: db.Site
             zone, x, y = s.as_UTM()
             s.height = float(rr[x, y])
-            s.comment += f'\nHeight information derived from digital elevation model {op.markdown}\n'
+            s.comment += f'\n\nHeight information derived from digital elevation model {op.markdown}\n'

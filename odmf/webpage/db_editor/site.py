@@ -315,7 +315,7 @@ class SitePage:
             buffer = io.BytesIO()
             mime = web.mime.get(format, web.mime.binary)
             buffer = export_dataframe(buffer, dataframe, format, index_label=None)
-            name = f'sites-{datetime.now():%Y-%m-%d}'
+            name = f'sites-{datetime.datetime.now():%Y-%m-%d}'
             buffer.seek(0)
             return serve_fileobj(
                 buffer,
