@@ -62,41 +62,10 @@ def configure(dbname, dbuser, dbpass, dbhost, port):
 @cli.command()
 def systemd_unit():
     """
-    Creates a systemd service file.
-
-    Usage:
-       $ odmf systemd-unit >odmf-NAME.service
-       $ sudo cp odmf-schwingbach.service /etc/systemd/system/odmf-schwingbach.service
-       $ sudo systemctl start odmf-schwingbach.service
-       $ sudo systemctl enable odmf-schwingbach.service
+    Creates a systemd service file and a /etc/sudoers.d file to allow non-sudoers to start / restart / stop the service
     """
-    from .config import conf
-    bin_path = os.path.abspath(os.path.dirname(sys.executable))
-    cwd = os.path.abspath(os.getcwd())
-    content = f"""
-[Unit]
-Description={conf.description}
-After=network.target
-
-[Service]
-User={conf.user}
-WorkingDirectory={conf.home}
-ExecStart={bin_path}/odmf start
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-    """
-    open(f'odmf-{conf.name}.service', 'w').write(content)
-    print(f'Created file: odmf-{conf.name}.service')
-    print()
-    print('For Debian-line systems do:')
-    print(f'    adduser --system  --gecos "ODMF/$NAME Service" --disabled-password --group --home {cwd} {conf.user}')
-    print("Add your own user to the group of this service to act as an admin with this command:")
-    print(f'    sudo adduser USER {conf.user}')
-    print(f'    sudo cp odmf-{conf.name}.service /etc/systemd/system')
-    print(f'    sudo systemctl enable odmf-{conf.name}.service')
-    print(f'    sudo systemctl start odmf-{conf.name}.service')
+    from .tools.systemctl import make_service
+    make_service()
 
 
 @cli.command()

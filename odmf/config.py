@@ -88,7 +88,7 @@ class Configuration:
     datafiles = './datafiles'
     preferences = './preferences'
     description = 'A server for data-management for quantitative field research'
-    user = os.environ.get('USER')
+    user = os.environ.get('USER') or os.environ.get('USERNAME')
 
     def __bool__(self):
         return ... not in vars(self).values()
