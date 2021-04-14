@@ -18,13 +18,16 @@ from odmf.tools import Path
 def plot_series(idescr: di.ImportDescription, data: pd.DataFrame) -> dict:
 
     def make_plot(col):
-        ser: pd.Series = data[col.name]
-        ser.index = data['time']
-        ax = ser.plot(figsize=(8, 2))
-        svg = io.StringIO()
-        ax.figure.savefig(svg, format='svg', dpi=100, transparent=True)
-        ax.figure.clear()
-        return svg.getvalue()
+        try:
+            ser: pd.Series = data[col.name]
+            ser.index = data['time']
+            ax = ser.plot(figsize=(8, 2))
+            svg = io.StringIO()
+            ax.figure.savefig(svg, format='svg', dpi=100, transparent=True)
+            ax.figure.clear()
+            return svg.getvalue()
+        except Exception as e:
+            return f'<div class="alert alert-danger">{e} - are No-Data-values handled correctly by the .conf?</div>'
 
     return {
         col.name: make_plot(col)
