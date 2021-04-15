@@ -105,12 +105,12 @@ class PdfFileHandler(BaseFileHandler):
 
 class MultiHandler(BaseFileHandler):
     handlers = [
-        MarkDownFileHandler(r'\.(md|wiki)'),
-        PlotFileHandler(r'\.plot'),
-        ExcelFileHandler(r'\.xls?'),
-        CsvFileHandler(r'\.csv'),
-        PdfFileHandler(r'\.pdf'),
-        ImageFileHandler(r'\.(jpg|jpeg|png|svg|gif)'),
+        MarkDownFileHandler(r'\.(md|wiki)$'),
+        PlotFileHandler(r'\.plot$'),
+        ExcelFileHandler(r'\.xls.?$'),
+        CsvFileHandler(r'\.csv$'),
+        PdfFileHandler(r'\.pdf$'),
+        ImageFileHandler(r'\.(jpg|jpeg|png|svg|gif)$'),
         TextFileHandler(''),
     ]
 
