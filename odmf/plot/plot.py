@@ -23,7 +23,7 @@ class Line:
     """
 
     def __init__(self, subplot, valuetype, site, instrument=None, level=None,
-                 color='', marker='', linestyle='',
+                 color='', marker='', linestyle='-', linewidth=1,
                  transformation=None, aggregatefunction='mean', name=None):
         """
         Create a Line:
@@ -39,6 +39,7 @@ class Line:
         self.subplot = subplot
         self.marker = marker
         self.color = color
+        self.linewidth = linewidth
         self.linestyle = linestyle
         self.valuetypeid = valuetype
         self.siteid = site
@@ -47,6 +48,8 @@ class Line:
         self.transformation = transformation
         self.aggregatefunction = aggregatefunction
         self.name = name or self.generate_name()
+        if not (linestyle or marker):
+            raise ValueError('Lines need either a linestyle or a marker for the creation')
 
     def generate_name(self):
         """
@@ -134,7 +137,7 @@ class Line:
                     site=self.siteid or None,
                     instrument=self.instrumentid or None,
                     level=self.level,
-                    color=self.color, linestyle=self.linestyle, marker=self.marker,
+                    color=self.color, linestyle=self.linestyle, marker=self.marker, linewidth=self.linewidth,
                     transformation=self.transformation,
                     aggregatefunction=self.aggregatefunction, name=self.name)
 

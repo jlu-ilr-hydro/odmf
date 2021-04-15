@@ -262,6 +262,7 @@ function line_from_dialog() {
 		color:$('#nl-color').val(),
 		linestyle:$('#nl-linestyle').val(),
 		marker:$('#nl-marker').val(),
+		linewidth:parseInt($('#nl-linewidth').val()),
 		aggregatefunction:$('#nl-aggregation').val()
 	}
 }
@@ -280,29 +281,8 @@ function line_to_dialog(line) {
 	$('#nl-color').val(line.color);
 	$('#nl-linestyle').val(line.linestyle);
 	$('#nl-marker').val(line.marker);
+	$('#nl-linewidth').val(line.linewidth || 1);
 	$('#nl-aggregation').val(line.aggregatefunction);
-}
-
-function showlinedatasets(subplot,line) {
-	var content = $('#datasetlist_'+subplot+'_'+line).html();
-	$('#datasetlist_'+subplot+'_'+line).slideUp('fast').html('');
-	if (content=='') {
-		$.getJSON(
-			odmf_ref('/plot/linedatasets.json'),
-			{ subplot: subplot,
-				line:line
-			},
-			function(data){
-				var html='';
-				$.each(data,function(index,item){
-					html+=`<li><a href="/dataset/${item.id}" title="${item.label}">ds${item.id}</a></li>`;
-				});
-				$('#datasetlist_'+subplot+'_'+line).html(html)
-				$('#datasetlist_'+subplot+'_'+line).slideDown('fast');
-			}
-		);
-	}
-
 }
 
 function make_option_html(data, get_value, get_name) {
@@ -384,7 +364,7 @@ function set_line_dialog_handlers() {
 		let site = parseInt($('#nl-site').val())
 		lineDialogPopSelect(valuetype, site, () => {line_to_dialog(line)})
 
-		if (site && valuetype) {
+		if (site && valuetype && (line.linestyle || line.marker)) {
 			$('#nl-OK').prop('disabled', false);
 		} else {
 			$('#nl-OK').prop('disabled', true);
@@ -392,10 +372,18 @@ function set_line_dialog_handlers() {
 
 	});
 
-    $('#nl-color').change(event => {
-    	$('#nl-color-text').html($(event.currentTarget).val())
-	})
+    $('#newline-dialog .nl-style').change(() => {
+		let	valuetype = parseInt($('#nl-value').val())
+		let site = parseInt($('#nl-site').val())
+		let linestyle = $('#nl-linestyle').val()
+		let marker = $('#nl-marker').val()
+		if (site && valuetype && (linestyle || marker)) {
+			$('#nl-OK').prop('disabled', false);
+		} else {
+			$('#nl-OK').prop('disabled', true);
+		}
 
+	})
 
     $('#nl-OK').click(() => {
     	let dlg =$('#newline-dialog')

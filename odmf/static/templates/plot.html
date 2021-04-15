@@ -331,13 +331,26 @@
                                 </select>
                             </div>
                         </div>
-                        <hr/>
                         <div class="form-group row">
+                            <label for="nl-aggregation" class="col-sm-3 col-form-label">aggregate:</label>
+                            <div class="col-sm-9">
+                                <select id="nl-aggregation" class="form-control">
+                                    <option value="mean">mean</option>
+                                    <option value="min">min</option>
+                                    <option value="max">max</option>
+                                    <option value="stdev">stdev</option>
+                                    <option value="sum">&Sigma;</option>
+                                </select>
+                            </div>
+                        </div>
 
+                        <hr/>
+
+                        <div class="form-group row">
                             <label for="nl-marker" class="col-sm-3 col-form-label">marker:</label>
                             <div class="col-sm-9">
-                                <select id="nl-marker" class="form-control">
-                                    <option value="">none</option>
+                                <select id="nl-marker" class="form-control nl-style">
+                                    <option value="">no marker</option>
                                     <option value="x">x</option>
                                     <option value="o">o</option>
                                     <option value=".">.</option>
@@ -351,9 +364,9 @@
 
                             <label for="nl-linestyle" class="col-sm-3 col-form-label">line:</label>
                             <div class="col-sm-9">
-                                <select id="nl-linestyle" class="form-control">
+                                <select id="nl-linestyle" class="form-control nl-style">
                                     <option value="-">-</option>
-                                    <option value="">none</option>
+                                    <option value="">no line</option>
                                     <option value=":">...</option>
                                     <option value="--">--</option>
                                     <option value="-.">-.</option>
@@ -361,22 +374,16 @@
                             </div>
                         </div>
                         <div class="form-group row">
-
-                            <label for="nl-color" class="col-sm-3 col-form-label">color:</label>
+                            <label for="nl-marker" class="col-sm-3 col-form-label">line width:</label>
                             <div class="col-sm-9">
-                                <input type="color" id="nl-color" class="form-control" value="" />
+                                <input id="nl-linewidth" class="form-control nl-style" type="number" min="1" max="15" />
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="nl-aggregation" class="col-sm-3 col-form-label">aggregate:</label>
+
+                            <label for="nl-color" class="col-sm-3 col-form-label">color:</label>
                             <div class="col-sm-9">
-                                <select id="nl-aggregation" class="form-control">
-                                    <option value="mean">mean</option>
-                                    <option value="min">min</option>
-                                    <option value="max">max</option>
-                                    <option value="stdev">stdev</option>
-                                    <option value="sum">&Sigma;</option>
-                                </select>
+                                <input type="color" id="nl-color" class="form-control nl-style" value="" />
                             </div>
                         </div>
                     </div>

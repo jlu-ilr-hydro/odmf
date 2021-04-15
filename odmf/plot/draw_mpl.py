@@ -20,7 +20,7 @@ def _draw_series(data, ax: Axes, line: Line):
     """
     # Do the plot
     style = dict(color=line.color or 'k',
-                 linestyle=line.linestyle, marker=line.marker)
+                 linestyle=line.linestyle, marker=line.marker, linewidth=line.linewidth)
     data.plot.line(**style, ax=ax, label=line.name)
 
 

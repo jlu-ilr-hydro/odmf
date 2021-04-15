@@ -20,7 +20,7 @@ def _draw_line(line: Line, start, end) -> go.Scatter:
     if line.linestyle:
         mode = 'lines'
         dash_dict = {'-': 'solid', ':': 'dot', '.': 'dot', '--': 'dash', '-.': 'dashdot'}
-        linestyle = {'color': line.color, 'dash': dash_dict[line.linestyle]}
+        linestyle = {'color': line.color, 'dash': dash_dict[line.linestyle], 'width': line.linewidth}
     if line.marker:
         mode = 'lines+markers' if mode else 'markers'
         symboldict = {'o': 'circle', 'x': 'x-thin', ',': 'line-ns', '+': 'cross-thin', '*': 'asterisk', '.':  'circle'}
