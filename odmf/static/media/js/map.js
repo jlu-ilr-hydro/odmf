@@ -225,8 +225,6 @@ function createmap(lat,lng,zoom,type) {
 function initMap(site) {
 	map=null;
 
-	$(".datepicker").datepicker({maxDate:"0", dateFormat: 'dd.mm.yy' });
-
 	$.getJSON(odmf_ref('/preferences'), {}, function( data ) {
 		if (site) {
 			data.site = site.id;
