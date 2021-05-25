@@ -7,7 +7,7 @@ from ... import db
 from traceback import format_exc as traceback
 
 
-@web.expose
+@web.show_in_nav_for(2, 'ruler')
 class VTPage:
 
     @expose_for(group.guest)

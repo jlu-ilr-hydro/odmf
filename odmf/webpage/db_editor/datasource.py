@@ -6,7 +6,7 @@ from ... import db
 
 from traceback import format_exc as traceback
 
-
+@web.show_in_nav_for(2, 'thermometer-half')
 class DatasourcePage:
 
     @expose_for(group.guest)
