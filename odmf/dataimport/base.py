@@ -203,6 +203,12 @@ class ImportColumn:
             config.set(section, '; Explicit dataset id for column to upload to')
             config.set(section, 'ds_column', self.ds_column)
 
+    def to_string(self):
+        """
+        Creates a string representation of the import column in cinfig format
+        """
+        return f'[{self.name}]\n' + '\n'.join(f'{k} = {v}' for k, v in vars(self).items())
+
     @classmethod
     def from_config(cls, config, section):
         "Get the column description from a config-file"
@@ -226,6 +232,22 @@ class ImportColumn:
                    # Added as lab import (mm.py) feature
                    ds_column=getvalue('ds_column', int)
                    )
+
+    @classmethod
+    def from_dataset(cls, dataset, column):
+        return cls(
+            column,
+            name=dataset.name,
+            valuetype=dataset.valuetype.id,
+            comment=dataset.comment,
+            minvalue=dataset.valuetype.minvalue,
+            maxvalue=dataset.valuetype.maxvalue,
+            append=dataset.id,
+            level=dataset.level,
+            access=dataset.access
+        )
+
+
 
 
 def config_getdict(config, section, option):
