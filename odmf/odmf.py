@@ -233,7 +233,8 @@ def version(verbose: bool):
     """
     Prints the actual odmf version
     """
-    print('odmf ', version)
+    from . import __version__
+    print('odmf ', __version__)
     if verbose:
         import sys
         print('Python executable:', sys.executable)
