@@ -207,25 +207,40 @@ def interactive():
     """
     Launches an IPython shell with odmf related symbols. Needs IPython
     """
+    from textwrap import dedent
     from IPython import embed
     from .config import conf
     from . import db
     import pandas as pd
     import numpy as np
     greeting = """
-Defined symbols
----------------
+        Imported modules
+        ----------------
+        
+        pd, np, conf, db
+        
+        Defined symbols
+        ---------------
+        session: a SQLAlchemy session to load Database objects
+        q: a shortcut for session.query
+        ds: An ObjectGetter for datasets
+        person: An ObjectGetter for persons
+        site: An ObjectGetter for sites
 
-db: the odmf.db module
-session: a SQLAlchemy session to load Database objects
-q: a shortcut for session.query
-
-eg load a dataset:
->>>ds = q(db.Dataset).get(1000)"""
+        Usage of a ObjectGetters: 
+        
+        Get dataset with id=1
+        >>>ds_one = ds[1]
+        Query sites:
+        >>>site.q.filter(db.Site.lat > 50.5).count()        
+        """
 
     with db.session_scope() as session:
         q = session.query
-        embed(colors='Neutral', header=greeting)
+        ds = db.base.ObjectGetter(db.Dataset, session)
+        person = db.base.ObjectGetter(db.Person, session)
+        site = db.base.ObjectGetter(db.Site, session)
+        embed(colors='Neutral', header=dedent(greeting))
 
 @cli.command()
 @click.option('--verbose', '-v', default=False)

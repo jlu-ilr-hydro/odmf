@@ -126,3 +126,28 @@ def primarykey():
 
 def stringcol():
     return sql.Column(sql.String)
+
+
+class ObjectGetter:
+    """
+    A helper class for interactive environments for simple access to orm-objects
+
+    Usage:
+
+    >>> ds = ObjectGetter(db.Dataset, session)
+    >>> print(ds[10])
+    >>> ds.q.filter_by(measured_by='philipp')
+    """
+    def __init__(self, cls, session: orm.Session):
+        self.cls = cls
+        self.session = session
+
+    @property
+    def q(self) -> orm.Query:
+        return self.session.query(self.cls)
+
+    def __getitem__(self, item):
+        return self.q.get(item)
+
+
+
