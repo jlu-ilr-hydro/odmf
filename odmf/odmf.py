@@ -227,6 +227,17 @@ eg load a dataset:
         q = session.query
         embed(colors='Neutral', header=greeting)
 
+@cli.command()
+@click.option('--verbose', '-v', default=False)
+def version(verbose: bool):
+    """
+    Prints the actual odmf version
+    """
+    print('odmf ', version)
+    if verbose:
+        import sys
+        print('Python executable:', sys.executable)
+        print('Python version:', sys.version)
 
 
 if __name__ == '__main__':
