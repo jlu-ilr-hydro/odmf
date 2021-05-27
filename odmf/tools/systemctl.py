@@ -74,4 +74,4 @@ def make_service():
 
     unit.file.write_text(unit.content)
     sudoers.file.write_text(sudoers.content)
-    print(unit.help)
+    return unit.help

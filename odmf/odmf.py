@@ -65,7 +65,8 @@ def systemd_unit():
     Creates a systemd service file and a /etc/sudoers.d file to allow non-sudoers to start / restart / stop the service
     """
     from .tools.systemctl import make_service
-    make_service()
+    # Writes the service files and returns a text explaining how to install the systemd service
+    print(make_service())
 
 
 @cli.command()
