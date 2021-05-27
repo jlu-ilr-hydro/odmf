@@ -36,6 +36,7 @@ class unit:
         User={conf.user}
         WorkingDirectory={conf.home}
         ExecStart={bin_path}/odmf start
+        UMask=0002
         Restart=always
         
         [Install]
