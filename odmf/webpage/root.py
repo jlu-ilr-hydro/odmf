@@ -78,7 +78,7 @@ class Root(object):
             error = users.login(username, password)
 
             if error:
-                return web.redirect('login.html', error=error, frompage=frompage)
+                raise web.redirect('login.html', error=error, frompage=frompage)
 
             elif frompage:
                 if 'login' in frompage:
@@ -174,8 +174,6 @@ class Root(object):
                 buf = io.StringIO()
                 df.to_csv(buf, sep='\t')
                 return buf.getvalue().encode('utf-8')
-
-
 
 
     def __init__(self):

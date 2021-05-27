@@ -173,9 +173,6 @@ class ImportColumn:
         """
         config.set(section, '; 0 based column number')
         config.set(section, 'column', self.column)
-        config.set(
-            section, '; name of the field, will become name of the dataset')
-        config.set(section, 'name', self.name)
         config.set(section, '; id of the valuetype in this field')
         config.set(section, 'valuetype', self.valuetype)
         config.set(section, '; factor for unit conversion')
@@ -218,7 +215,7 @@ class ImportColumn:
             else:
                 return None
         return cls(column=config.getint(section, 'column'),
-                   name=config.get(section, 'name'),
+                   name=section,
                    valuetype=config.getint(section, 'valuetype'),
                    factor=config.getfloat(section, 'factor'),
                    comment=getvalue('comment'),
@@ -609,4 +606,20 @@ def get_last_ds_for_site(session, idescr: ImportDescription, col: ImportColumn, 
         q = q.filter(db.Dataset.level == col.level)
 
     return q.order_by(db.Dataset.end.desc()).limit(1).scalar()
+
+def compare_section_and_name(fn):
+    """
+    Helper function to test if section captions for conf files ever differ from the name option
+    Parameters
+    ----------
+    fn: Filename
+    """
+    from configparser import RawConfigParser
+    config = RawConfigParser()
+    config.read_file(open(fn))
+    return [
+        (fn, sect, config.get(sect, 'name'))
+        for sect in config.sections()
+        if config.has_option(sect, 'name')
+    ]
 
