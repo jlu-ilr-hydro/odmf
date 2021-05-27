@@ -244,13 +244,13 @@ def interactive():
         embed(colors='Neutral', header=dedent(greeting))
 
 @cli.command()
-@click.option('--verbose', '-v', default=False)
+@click.option('--verbose/--terse', '-v', default=False)
 def version(verbose: bool):
     """
     Prints the actual odmf version
     """
     from . import __version__
-    print('odmf ', __version__)
+    print('odmf', __version__)
     if verbose:
         import sys
         print('Python executable:', sys.executable)
