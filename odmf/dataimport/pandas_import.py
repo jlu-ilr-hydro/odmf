@@ -369,7 +369,6 @@ def _get_recordframe(session: db.Session, idescr: ImportDescription,
     ])
 
 
-
 def submit(session: db.Session, idescr: ImportDescription, filepath: Path, user: str, siteid: int):
     """
     Loads tabular data from a file, creates or loads necessary datasets and imports the data as records
@@ -382,6 +381,7 @@ def submit(session: db.Session, idescr: ImportDescription, filepath: Path, user:
     if len(df) == 0:
         raise DataImportError(f'No records to import from {filepath} with {idescr.filename}.')
 
+    # Load all datasets for appending and create new datasets
     datasets = columndatasets_from_description(
         session, idescr, user=user,
         siteid=siteid, filepath=filepath,

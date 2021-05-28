@@ -147,7 +147,7 @@ class ImportColumn:
         append: For automatic import, append to this datasetid
         level: Level property of the dataset. Use this for Instruments measuring at one site in different depth
         access: Access property of the dataset
-        ds_column: explicit dataset for uploading column @see: mm.py
+        ds_column: explicit dataset for uploading column
 
         """
         self.column = int(column)
@@ -267,8 +267,7 @@ def config_getdict(config, section, option):
 
 class ImportDescription(object):
     """
-    Describes the file format and content of a delimited text file for
-    import to the database.
+    Describes how tabular data files should be imported into the database
     """
     columns: typing.List[ImportColumn]
     name: str
@@ -284,15 +283,14 @@ class ImportDescription(object):
         skiplines: The number of lines prepending the actual data
         delimiter: The delimiter sign of the columns. Use TAB for tab-delimited columns, otherwise ',' or ';'
         decimalpoint: Symbol used to separate decimal place
-        dateformat: ...
-        datecolumns: ...
+        dateformat: Format of date and time values, eg. %Y-%m-%d
+        datecolumns: Column numbers containing measurement time
         timezone: str in pytz format
         project: str project for the dataset to link to. Optional.
         nodata: list of values that don't represent valid data. E.g. ['NaN']. Is optional and default is empty list.
         worksheet: The position of the worksheet of an excel file. Optional and default is the first (1)
         sample_column: Column number containing the name of a sample
         sample_mapping: Mapping of labcodes to site ids. Is Optional and default is None
-        sitecolumn:
 
         """
         self.name = ''
