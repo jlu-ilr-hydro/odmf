@@ -193,6 +193,32 @@ class Project(Base):
                     person_responsible=self.person_responsible,
                     comment=self.comment)
 
+
+class ProjectMember(Base):
+    __tablename__ = 'project_member'
+    _project = sql.Column(
+        'project_id', sql.Integer,
+        sql.ForeignKey('project.id'),
+        primary_key=True
+    )
+    project = sql.orm.relationship(
+        "Project",
+        primaryjoin='ProjectMember._project==Project.id',
+        backref=orm.backref('members', lazy='dynamic')
+    )
+    _person = sql.Column(
+        'person', sql.String,
+        sql.ForeignKey('person.username'),
+        primary_key=True
+    )
+    person = sql.orm.relationship(
+        "Person",
+        primaryjoin='ProjectMember._person==Person.username',
+        backref=orm.backref('projects', lazy='dynamic')
+    )
+    level = sql.Column(sql.Integer)
+
 # Creating all tables those inherit Base
 # print "Create Tables"
 # Base.metadata.create_all(engine)
+

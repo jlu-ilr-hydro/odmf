@@ -6,9 +6,11 @@ import cherrypy
 from cherrypy.lib.static import serve_file
 
 from . import lib as web
+from .auth import users
 from ..config import conf
 from pathlib import Path
 from markdown import markdown
+from .filemanager.file_auth import AccessFile
 
 
 def filelist2html(files):
@@ -83,6 +85,9 @@ class StaticServer:
         Serves the static content from the relative path
         """
         p = self.get_path(path)
+        f_acc = AccessFile(p)
+        if not f_acc.check(users.current):
+            raise web.HTTPError(403, f'Forbidden access to resource {p} for {users.current.name}')
 
         if p.is_file():
             return serve_file(str(p), name=p.name)

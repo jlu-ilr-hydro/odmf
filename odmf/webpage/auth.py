@@ -105,11 +105,12 @@ class User(object):
         else:
             return "Unknown level %i" % level
 
-    def __init__(self, name, level, password):
+    def __init__(self, name, level, password, projects=None):
         self.name = name
         self.level = int(level)
         self.password = password
         self.person = None
+        self.projects = projects or []
 
     @property
     def group(self):
@@ -146,7 +147,6 @@ class Users(collections.Mapping):
         self.default = User('guest', 0, None)
         self.dict = {}
 
-
     def __getitem__(self, name):
         return self.dict[name]
 
@@ -169,7 +169,7 @@ class Users(collections.Mapping):
 
             for person in allpersons:
                 self.dict[person.username] = User(
-                    person.username, person.access_level, person.password)
+                    person.username, person.access_level, person.password, [pr._project for pr in person.projects])
 
     def check(self, username, password):
 

@@ -44,7 +44,7 @@ class AJAXError(_HTTPError):
 
 
 def to_html(error=None, success=None, text=None):
-    return render('empty.html', error=error, success=success, content=text).render()
+    return render('empty.html', error=error, success=success, content=text, title='Error').render()
 
 
 class HTTPError(_HTTPError):
@@ -55,7 +55,7 @@ class HTTPError(_HTTPError):
         super().__init__(status, str(message))
 
     def get_error_page(self, *args, **kwargs):
-        if users.current.level == group.admin:
+        if users.current.is_member(group.admin):
             text = '\n```\n' + self.traceback + '\n```\n'
         else:
             text = None
