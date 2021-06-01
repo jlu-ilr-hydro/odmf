@@ -4,6 +4,7 @@ from odmf import db
 import pandas as pd
 import os
 import numpy as np
+import time
 import contextlib
 import time
 import logging
@@ -19,18 +20,11 @@ def timeit(name='action'):
     d = time.time() - tstart
     print(f'------------ {name} took {d:0.3f} seconds')
 
-
 session: db.orm.Session = db.Session()
 q = session.query
 
-class DbItemGetter:
-    def __init__(self, cls):
-        self.cls = cls
-
-    def __getitem__(self, item):
-        return q(self.cls).get(item)
-person = DbItemGetter(db.Person)
-ds = DbItemGetter(db.Dataset)
+person = db.base.ObjectGetter(db.Person, session)
+ds = db.base.ObjectGetter(db.Dataset, session)
 
 # Set default user
 from odmf.webpage import auth

@@ -138,9 +138,12 @@ class ObjectGetter:
     >>> print(ds[10])
     >>> ds.q.filter_by(measured_by='philipp')
     """
-    def __init__(self, cls, session: orm.Session):
+    def __init__(self, cls: type, session: orm.Session):
         self.cls = cls
         self.session = session
+
+    def __repr__(self):
+        return f'db.{self.cls.__name__}[...]'
 
     @property
     def q(self) -> orm.Query:

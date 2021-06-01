@@ -11,7 +11,7 @@ import sqlalchemy.orm as orm
 from .base import Base, Session
 from sqlalchemy.schema import ForeignKey
 from datetime import datetime
-from .dbobjects import newid
+from . import newid
 import pytz
 import pandas as pd
 
