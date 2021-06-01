@@ -328,6 +328,10 @@ def get_dataframe_for_ds_column(session, column: ImportColumn, data: pd.DataFram
         return range(start, end)
 
     for dsid in ds_ids.unique():
+        # type(dsid) --> np.int64
+        dsid = int(dsid)
+        # int conversion is necessary to prevent
+        # (psycopg2.ProgrammingError) can't adapt type 'numpy.int64'
         ds = session.query(db.Dataset).get(dsid)
         if ds:
             # Filter data for the current ds
