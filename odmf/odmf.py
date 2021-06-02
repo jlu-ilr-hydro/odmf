@@ -57,6 +57,7 @@ def configure(dbname, dbuser, dbpass, dbhost, port):
         yaml.dump(new_config, stream=f)
     from .config import conf
     conf.to_yaml(conf_file.open('w'))
+    print('New config.yml written')
 
 
 @cli.command()
