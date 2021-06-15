@@ -14,12 +14,12 @@ install:
 
 script:
   - create-db odmf-test
-  - odmf configure --dbname odmf_test --dbuser xxx --dbpass xxx --dbhost localhost --port 8080
-  - odmf make-db
+  - odmf configure --dbname odmf-test --port 8080
+  - odmf make-db --p voxonacawiru
   - odmf test-db
+  - odmf start &
   # Timouts to let the server start up
   - sleep 7
   # Run acceptance tests
   - cd tests; ./run_tests
 
-# TODO: also include postgres-scripts
