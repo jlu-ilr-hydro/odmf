@@ -9,7 +9,7 @@ import click
 import humanize
 import sys
 import os
-
+from textwrap import dedent
 import logging
 logger = logging.getLogger(__name__)
 
@@ -39,15 +39,17 @@ def start(workdir, autoreload):
 
 @cli.command()
 @click.option('--dbname', help='Name of the database', prompt='database name')
-@click.option('--dbuser', help='Name of the database user', prompt='database user')
-@click.option('--dbpass', help='Password for the user', prompt='database password')
-@click.option('--dbhost', default='127.0.0.1',
+@click.option('--dbuser', help='Name of the database user', prompt='database user', default='')
+@click.option('--dbpass', help='Password for the user', prompt='database password', default='')
+@click.option('--dbhost', default='',
               help='IP-Adress or DNS-Hostname of the database host. Default: localhost', prompt='database hostname:')
 @click.option('--port', default=8080, help='Port to run the standalone server', type=int, prompt='server port')
 def configure(dbname, dbuser, dbpass, dbhost, port):
     """
     Creates a new configuraton file (./config.yml) using the given database credentials.
     """
+    if dbuser and not dbhost:
+        dbhost = '127.0.0.1'
     new_config = dict(database_name=dbname, database_username=dbuser, database_password=dbpass,
                       database_host=dbhost, server_port=port)
     import yaml
@@ -80,49 +82,29 @@ def make_db(new_admin_pass):
     """
     from .tools import create_db as cdb
     cdb.create_all_tables()
+    print('created tables')
     cdb.add_admin(new_admin_pass)
+    print('created admin user odmf.admin')
     cdb.add_quality_data(cdb.quality_data)
+    print('added quality levels')
 
 
 @cli.command()
-@click.argument('uri', default='')
-def make_apache_conf(uri: str):
+def apache2_conf():
     """
-    Creates a apache2 .conf file to run this odmf instance as a wsgi server.
+    Creates an apache2 .conf file to run this odmf instance as a wsgi server.
     Use as:
 
     """
-    from pathlib import Path
-    uri = uri or Path('.').resolve().name
-    if uri.startswith('/'):
-        uri = uri[1:]
-    name = uri.replace('/', '.')
-    path = Path('.').resolve().as_posix()
-    aconf = f"""
-    WSGIDaemonProcess {name} python-home={path}/venv
-    WSGIProcessGroup {name}
-    WSGIScriptAlias /{uri} /var/wsgi/{uri}/odmf.wsgi
-    <Directory {path}>
-        Require all granted
-    </Directory>
-"""
+    from config import conf
+    name = conf.root_url.replace('/', '')
+    txt = dedent(f'''
+    ProxyPass {conf.root_url} http://127.0.0.1:{conf.server_port}{conf.root_url}
+    ProxyPassReverse /{conf.root_url}/ http://127.0.0.1:{conf.server_port}{conf.root_url}
+    ''')
+    with open(f'odmf-{name}.conf') as f:
+        f.write(txt)
 
-    fn = f'/etc/apache2/conf-available/{name}.conf'
-    fn_enabled = fn.replace("available", "enabled")
-
-    sys.stderr.write(f'''
-Created .conf file for apache for usage as a conf-file for all hosts. 
-Copy content into a site .conf file to make it specific for a virtual host
-
-Optimal Usage:
-
-  odmf make-apache-conf {name} >{name}.conf
-  sudo cp {name}.conf {fn}
-  sudo ln -s {fn} {fn_enabled} 
-
-''')
-
-    sys.stdout.write(aconf)
 
 
 
