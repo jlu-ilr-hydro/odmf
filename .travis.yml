@@ -1,19 +1,22 @@
 language: python
 python:
-  - "3.6"
+  - "3.8"
 cache: pip
 
 os:
   - linux
 
+services:
+  postgresql
+
 install:
-  - pip install -r requirements.txt
+  - pip install -e .
 
 script:
-  - cp tests/conf-test-local.py odmf/conf.py
-  # make os environment ready
-  - (cd odmf; ./install.sh)
-  - (cd odmf; python start.py &)
+  - create-db odmf-test
+  - odmf configure --dbname odmf_test --dbuser xxx --dbpass xxx --dbhost localhost --port 8080
+  - odmf make-db
+  - odmf test-db
   # Timouts to let the server start up
   - sleep 7
   # Run acceptance tests
