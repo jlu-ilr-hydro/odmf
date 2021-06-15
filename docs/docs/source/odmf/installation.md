@@ -1,81 +1,31 @@
 # Installation
 
-## ODMF Server
+ODMF is known to run on Linux and Windows.  
 
-How to install the ODMF server software to maintain measurement data.
+We recommend to deploy ODMF on an actual Ubuntu or Debian system with postgreSQL as the 
+database backend. The ODMF server (cherrypy) can be run as a systemd service, 
+to let your OS manage restarts.
 
-1. Clone the github repository and install python dependencies
+## Prepare OS
+On Ubuntu, you can install all dependencies using 
 
-    ```
-    $ git clone https://github.com/jlu-ilr-hydro/odmf.git
-    $ cd odmf
-    $ pip install -r requirements.txt
-    $ cd odmf
-    $ cp conf-template.py conf.py
-    ```
+    sudo odmf-src/bin/ubuntu_setup.sh
 
-2. If you havn't already, install a postgres database.
-   We recommend the latest version but at least 9.5
+## Make your config.yml file
 
-    ```
-    $ sudo apt-get install postgresql-dev-9.5
-    ```
+    odmf configure --dbname instance --dbuser instance-user --port 8081
 
-3. Change the config with the instructions from [conf.py](https://jlu-ilr-hydro.github.io/odmf/source/conf.py) wiki page. When the configuration is changed to meet your requirements, start the server and browse to https://localhost:8080
+## Setup of a Apache-Proxy
 
-    ```
-    $ python3 start.py
-    ```
-### Configuration
+Create a local apache2 conf file:
 
-Describes more sophisticated server configurations via one file.
+    odmf apache2-conf
 
-* Configure database connections, timezones, admin accounts, host/wsdl urls
+creates odmf-instance.conf with the following content
 
-* whats with media, css, images, logos
+If you have your server files installed at /srv/odmf/instance and you plan to install
+other odmf instances at the same place, we recommend to alter your default-site.conf
+at `/etc/apache2/default-ssl.conf` with this line in the virtual host definition:
 
-#### The ```conf.py``` File
+    IncludeOptional /srv/odmf/*/odmf-*.conf
 
-In the root directory is the main configuration file located. It's called `.conf.py` and it configures the variable
-parts of the ODMF installation.
-
-**Keywords**:
-
-*Mandatory Keywords*
-* **CFG_SERVER_PORT**: Port number where the server instance is listening for requests.
-* **CFG_DATABASE_NAME**: Database name where schema is deployed and used.
-* **CFG_DATABASE_USERNAME**: Database user credentials name.
-* **CFG_DATABASE_PASSWORD**: Database user credentials password.
-* **CFG_DATABASE_HOST**: Database host url.
-
-*Optional Keywords*
-* **CFG_DATETIME_DEFAULT_TIMEZONE**: Timezone in pytz compatible format
-* **CFG_MEDIA_IMAGE_PATH**: Path relative to server script. See [usage](usage.html#media-folder)
-* **CFG_MANUAL_MEASUREMENTS_PATTERN**: Regular expression pattern, where in the relative path of datafiles
-  ([see usage](usage.html#datafiles-folder)) manual measurements files are stored. This folder and the subfolders
-  get a special treatment from dataimport/mm.py
-* **CFG_MAP_DEFAULT**: Default location where the map is pointing when hitting the landing page
-* **CFG_UPLOAD_MAX_SIZE**: Maximum file size for files uploaded into the [download view](views.html#download).
-
-Now your server is configured and you can start [using](usage.html) it.
-
-## WaterOneFlow
-
-Optional you can set up the HydroServerLite too, if you want to publish your data via the CUAHSI network using
-the WaterOneFlow interface.
-
-This covers the installation of the PHP server [HydroServerLite](https://github.com/CUAHSI/HydroServerLite)
-and the deployment of SQL Views. This views are used on the side of the ODMF schema to map it to the relations
-which are used with the HydroServer.
-
-### HydroServerLite
-
-If you set everything up correctly, this script should set up (1) you initial database contents and (2) the folder
-structure for your server-files.
-
-1. Migrate ODMF schema to ODM
-2. Create SQL views, materialized views and helper tables
-3. Register cron jobs for daily update of transformed timeseries
-
-Possible alternative to PHP based server is this python solution [WOFpy](https://github.com/ODM2/WOFpy).
-It relies on the ODM schema 2.0.
