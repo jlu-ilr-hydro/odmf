@@ -306,6 +306,10 @@ class Record(Base):
     # nc is not censored
     censorcode = 'nc'
 
+    __table_args__ = (
+        sql.Index('record-dataset-time-index', 'dataset', 'time')
+    )
+
     @property
     def calibrated(self):
         """Returns the calibrated value"""
