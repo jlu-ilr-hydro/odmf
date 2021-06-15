@@ -418,8 +418,14 @@ class Timeseries(Dataset):
 
     def maxrecordid(self):
         """Finds the highest record id for this dataset"""
-        session = self.session()
-        return session.query(sql.func.max(Record.id)).filter_by(_dataset=self.id).scalar() or 0
+
+        # Heavily optimized code for large record tables and an asc-Index of id for the record table
+        # See issue #99
+        #
+        size = self.size()
+        query = self.records.order_by(Record.id).offset(size - 1)
+        max_id, = next(query.values('id'))
+        return max_id
 
     def addrecord(self, Id=None, value=None, time=None, comment=None, sample=None):
         """Adds a record to the dataset

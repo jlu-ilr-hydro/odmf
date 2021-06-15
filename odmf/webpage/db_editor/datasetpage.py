@@ -537,7 +537,7 @@ class DatasetPage:
             return web.render('record.html', records=records, currentcount=currentcount,
                              totalrecords=totalcount, dataset=ds, actionname="split dataset",
                              action="/dataset/setsplit",
-                             action_help='/wiki/dataset/split').render()
+                             action_help=f'{conf.root_url}/download/wiki/dataset/split.wiki').render()
 
     @expose_for(group.editor)
     @web.method.get
