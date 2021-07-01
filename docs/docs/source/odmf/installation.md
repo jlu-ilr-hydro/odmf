@@ -102,27 +102,24 @@ Make the UNIX-user a postgresql role with the privilege to create a database. If
 over a network, the user needs to get a password. Create that with a `-P`-flag.
 The `-d` flag enables the user to create databases
 
-    $ sudo -u postgres createuser odmf-$NAME -d
+    sudo -u postgres createuser odmf-$NAME -d
 
 Create (as the new user) the database. 
 
-    $ sudo -u odmf-$NAME createdb
+    sudo -u odmf-$NAME createdb
+
+It is a good idea to make your own user a database super user, for administrative work
+with ODMF
+
+    sudo -u postgres createuser $USER -s
 
 ### Create a config.yml file
 
     odmf configure --dbname odmf-$NAME --port 8081
 
-### b) access postgresql over INET-Socket
+## Create a systemd daemon
 
-#### Who should use that way?
-
-This connection type can be used over a network connection - database and web server can run on different
-machines.
-
-
-
-
-## Setup of a Apache-Proxy
+## Setup of an Apache-Proxy
 
 Create a local apache2 conf file:
 

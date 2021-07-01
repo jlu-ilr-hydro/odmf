@@ -11,7 +11,7 @@ import collections
 
 import cherrypy
 
-import bcrypt
+from ..tools import hashpw, get_bcrypt_salt
 
 ACCESS_LEVELS = [["Guest", "0"],
                  ["Logger", "1"],
@@ -270,29 +270,3 @@ def expose_for(groupname=None):
 def is_self(name):
     return users.current.name == name
 
-
-def hashpw(password, salt=None):
-    """
-    This function is written as generic solution for using a hashing algorithm
-
-    :param password: unicode or string
-    :param salt: unicode or string, when it's not given salt is generated randomly
-    :return: hashed password
-    """
-    password = password.encode(encoding='utf-8', errors='xmlcharrefreplace')
-
-    if salt:
-        salt = salt.encode(encoding='utf-8', errors='xmlcharrefreplace')
-        hashed_password = bcrypt.hashpw(password, salt)
-    else:
-        hashed_password = bcrypt.hashpw(password, bcrypt.gensalt())
-
-    # important to decode again, is byte otherwise
-    return hashed_password.decode()
-
-
-def get_bcrypt_salt(hashed):
-    """
-    Get the salt from on bcrypt hashed string
-    """
-    return hashed[:29]
