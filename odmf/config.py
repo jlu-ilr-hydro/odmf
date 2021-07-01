@@ -37,8 +37,8 @@ def find_odmf_static_location():
 
     for p in candidates:
         if p.exists():
-            if all((p / d).exists() for d in ('templates', 'datafiles', 'media')):
-                logger.info(f'odmf.static at {p}/[templates|datafiles|media]')
+            if all((p / d).exists() for d in ('templates', 'media')):
+                logger.info(f'odmf.static at {p}/[templates|media]')
                 return p
             else:
                 logger.info(f'{p}, found but not all of templates|datafiles|media exist, searching further\n')
@@ -122,8 +122,12 @@ class Configuration:
         })
 
         self.update(kwargs)
-        self.home = str(Path(prefix).absolute())
+
         self.static = static_locations(self.home, *self.static)
+
+    @property
+    def home(self):
+        return str(Path(prefix).absolute())
 
     def abspath(self, relative_path: Path):
         """
