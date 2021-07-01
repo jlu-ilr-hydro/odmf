@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import os.path as op
 import typing
+import bcrypt
 from ..config import conf
 
 __all__ = ['mail', 'Path']
@@ -141,3 +142,29 @@ class Path(object):
     def delete(self):
         os.unlink(self.absolute)
 
+
+def hashpw(password, salt=None):
+    """
+    This function is written as generic solution for using a hashing algorithm
+
+    :param password: unicode or string
+    :param salt: unicode or string, when it's not given salt is generated randomly
+    :return: hashed password
+    """
+    password = password.encode(encoding='utf-8', errors='xmlcharrefreplace')
+
+    if salt:
+        salt = salt.encode(encoding='utf-8', errors='xmlcharrefreplace')
+        hashed_password = bcrypt.hashpw(password, salt)
+    else:
+        hashed_password = bcrypt.hashpw(password, bcrypt.gensalt())
+
+    # important to decode again, is byte otherwise
+    return hashed_password.decode()
+
+
+def get_bcrypt_salt(hashed):
+    """
+    Get the salt from on bcrypt hashed string
+    """
+    return hashed[:29]
