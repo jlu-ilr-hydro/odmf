@@ -6,7 +6,6 @@ from .. import db
 from ..config import conf
 import os
 from datetime import datetime, timedelta
-from . import collaboration as cll
 from . import db_editor as dbe
 from . import map
 from .filemanager import upload
