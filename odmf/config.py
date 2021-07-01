@@ -122,8 +122,12 @@ class Configuration:
         })
 
         self.update(kwargs)
-        self.home = str(Path(prefix).absolute())
+
         self.static = static_locations(self.home, *self.static)
+
+    @property
+    def home(self):
+        return str(Path(prefix).absolute())
 
     def abspath(self, relative_path: Path):
         """
