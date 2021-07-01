@@ -115,9 +115,47 @@ with ODMF
 
 ### Create a config.yml file
 
-    odmf configure --dbname odmf-$NAME --port 8081
+Create a configuration file with the database url. How to retreive the
+URL is explained here: https://docs.sqlalchemy.org/en/13/core/engines.html, however the version below works for postgresql databases at the local host, using UNIX sockets
 
-## Create a systemd daemon
+    odmf configure postgresql:///odmf-$NAME --port 8081
+
+Edit the config file. Special care is needed for the root_url and the Google Maps API-Key and the `user`
+
+    nano config.yml
+
+Check, if the config.yml is working with 
+
+    odmf test-config
+
+### Create database tables
+
+    odmf make-db
+
+you will be promepted for a password of the first user (odmf.admin).
+
+Check the database connection with
+
+    odmf test-db
+
+## First start
+
+For a first try, do `odmf start`. It starts the website server at the given port in your shell. If you close your shell, the server will be
+shut down, too.
+
+It is possible to run the server in a detached terminal (like screen),
+but it is recommended to run the server as a service (next step).
+
+## Create a systemd service
+
+If your OS should handle restart of the ODMF server after a reboot or a hang up,
+systemd can manage in most Linux-Systems ODMF as a service. You need a service file,
+that is copied to /etc/systemd/system. The service file is created with the command
+
+    odmf systemd-unit
+
+It creates 2 files, one to enable the service, the second to allow Co-Admins
+to start, restart and stop the service. You are prompted on how to use the files.
 
 ## Setup of an Apache-Proxy
 
