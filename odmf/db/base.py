@@ -26,28 +26,15 @@ def newid(cls, session):
         return 1
 
 
-def connect():
-    info(f"Connecting with database {conf.database_name} at {conf.database_host} ..." )
-    import psycopg2
-    return psycopg2.connect(user=conf.database_username,
-                            host=conf.database_host,
-                            password=conf.database_password,
-                            database=conf.database_name)
+def get_session_class():
+    engine = sql.create_engine(conf.database_url)
+    # Try to connect to engine
+    with engine.connect():
+        ...
+    return engine, orm.sessionmaker(bind=engine)
 
 
-# FIXME: allow test suite to load sqlite
-# TODO: allow test suite to load postgres and import all sql files (compliance test for sql)
-if conf.database_type == 'postgres':
-    engine = sql.create_engine('postgresql://', creator=connect)
-elif conf.database_type == 'postgres-local':
-    engine = sql.create_engine(f'postgresql:///{conf.database_name}')
-elif conf.database_type == 'sqlite':
-    if op.exists(conf.sqlite_path):
-        engine = sql.create_engine('sqlite:///%s' % conf.sqlite_path)
-    else:
-        raise RuntimeError('Couldn\'t find offline database at \'%s\'.' % conf.sqlite_path)
-
-Session = orm.sessionmaker(bind=engine)
+engine, Session = get_session_class()
 
 
 @contextmanager

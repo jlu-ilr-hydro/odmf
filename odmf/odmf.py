@@ -38,20 +38,25 @@ def start(workdir, autoreload):
 
 
 @cli.command()
-@click.option('--dbname', help='Name of the database', prompt='database name')
-@click.option('--dbuser', help='Name of the database user', prompt='database user', default='')
-@click.option('--dbpass', help='Password for the user', prompt='database password', default='')
-@click.option('--dbhost', default='',
-              help='IP-Adress or DNS-Hostname of the database host. Default: localhost', prompt='database hostname:')
-@click.option('--port', default=8080, help='Port to run the standalone server', type=int, prompt='server port')
-def configure(dbname, dbuser, dbpass, dbhost, port):
+@click.argument('db_url')
+@click.option('--port', default=8080, help='Port to run the standalone server', type=int)
+def configure(db_url, port):
     """
-    Creates a new configuraton file (./config.yml) using the given database credentials.
+    Creates a new configuraton file (./config.yml) using the given database url and a port to run the server on
+
+    Parameters
+    ----------
+        db_url:
+            A URL to a database. See: https://docs.sqlalchemy.org/en/13/core/engines.html
+
+            File access databases or unix-socket database are connected like this
+            - postgresql:///odmf-NAME
+            - sqlite:///srv/odmf/NAME/data.sqlite
+
+            Access to a database over a network works generally like this:
+            - postgresql://odmf-NAME:ThePassword@example.com:5432/odmf-NAME
     """
-    if dbuser and not dbhost:
-        dbhost = '127.0.0.1'
-    new_config = dict(database_name=dbname, database_username=dbuser, database_password=dbpass,
-                      database_host=dbhost, server_port=port)
+    new_config = dict(database_url=db_url, server_port=port)
     import yaml
     from pathlib import Path
     conf_file = Path('config.yml')
