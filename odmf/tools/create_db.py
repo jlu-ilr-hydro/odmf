@@ -19,7 +19,7 @@ def add_admin(password=None):
     :param password: The password of the admin. If missing you will be prompted
     :return:
     """
-    from odmf.webpage.auth import hashpw
+    from odmf.tools import hashpw
     password = password or getpass("Enter admin password:")
     with db.session_scope() as session:
         if session.query(db.Person).get('odmf.admin'):

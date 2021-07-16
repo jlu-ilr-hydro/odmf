@@ -37,8 +37,8 @@ def find_odmf_static_location():
 
     for p in candidates:
         if p.exists():
-            if all((p / d).exists() for d in ('templates', 'datafiles', 'media')):
-                logger.info(f'odmf.static at {p}/[templates|datafiles|media]')
+            if all((p / d).exists() for d in ('templates', 'media')):
+                logger.info(f'odmf.static at {p}/[templates|media]')
                 return p
             else:
                 logger.info(f'{p}, found but not all of templates|datafiles|media exist, searching further\n')
@@ -53,7 +53,7 @@ def static_locations(*from_config):
 
     paths = [find_odmf_static_location()] + [Path(p) for p in from_config]
     filtered = []
-    [filtered.append(str(p)) for p in paths if p.exists() and p not in filtered]
+    [filtered.append(str(p)) for p in paths if p and p.exists() and p not in filtered]
     return filtered
 
 
@@ -65,11 +65,7 @@ class Configuration:
     Mandatory fields are defined as (...), optional as None or with a default value
     """
     datetime_default_timezone = 'Europe/Berlin'
-    database_type = 'postgres'
-    database_name = ''
-    database_username = ''
-    database_password = ''
-    database_host = '127.0.0.1'
+    database_url = ''
     static = [prefix]
     media_image_path = 'webpage/media'
     nav_background = '/media/gladbacherhof.jpg'
@@ -126,8 +122,12 @@ class Configuration:
         })
 
         self.update(kwargs)
-        self.home = str(Path(prefix).absolute())
+
         self.static = static_locations(self.home, *self.static)
+
+    @property
+    def home(self):
+        return str(Path(prefix).absolute())
 
     def abspath(self, relative_path: Path):
         """
