@@ -196,6 +196,9 @@ class ImportColumn:
         if self.access is not None:
             config.set(section, '; Access property of the dataset. Default level is 1 (for loggers) but can set to 0 for public datasets or to a higher level for confidential datasets')
             config.set(section, 'access', self.access)
+        if self.append is not None:
+            config.set(section, '; Append imported data to existing dataset id')
+            config.set(section, 'append', self.append)
         if self.ds_column is not None:
             config.set(section, '; Explicit dataset id for column to upload to')
             config.set(section, 'ds_column', self.ds_column)

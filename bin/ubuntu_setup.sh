@@ -38,6 +38,8 @@ sudo sed -i 's|#NTP=|NTP=ntp2.uni-giessen.de|' /etc/systemd/timesyncd.conf
 # install apache2
 sudo apt -y install apache2
 sudo apt -y install libapache2-mod-wsgi-py3
+sudo a2enmod ssl proxy proxy_http
+
 sudo apt-get install software-properties-common
 sudo add-apt-repository universe
 sudo add-apt-repository ppa:certbot/certbot
@@ -90,9 +92,3 @@ echo '# Change the homes share in /etc/samba/smb.conf
 '
 sudo smbpasswd -a $USER
 
-echo 'Configure Apache'
-
-sudo addgroup webmasters
-sudo adduser $USER webmasters
-sudo chgrp -R /var/www
-sudo chmod -R g+rwx /var/www

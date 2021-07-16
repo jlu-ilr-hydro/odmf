@@ -126,9 +126,9 @@ class SitePage:
     @expose_for(group.editor)
     @web.method.post
     def addinstrument(self, siteid, instrumentid, date=None):
-        with db.session_scope() as session:
+        try:
+            with db.session_scope() as session:
 
-            try:
                 date = web.parsedate(date)
                 site = session.query(db.Site).get(int(siteid))
                 instrument = session.query(db.Datasource).get(int(instrumentid))
@@ -144,8 +144,8 @@ class SitePage:
                 inst = db.Installation(site, instrument, instid + 1, date)
                 session.add(inst)
 
-            except Exception as e:
-                raise web.AJAXError(500, str(e))
+        except Exception as e:
+            raise web.AJAXError(500, str(e))
 
 
     @expose_for(group.editor)

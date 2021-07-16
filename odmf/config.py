@@ -97,7 +97,11 @@ class Configuration:
         return {
             k: v
             for k, v in vars(self).items()
-            if not callable(v) and not k.startswith('_')
+            if (
+                    not callable(v)
+                    and not k.startswith('_')
+                    and type(v) is not property
+            )
         }
 
     def update(self, conf_dict: dict):
@@ -141,7 +145,8 @@ class Configuration:
         Exports the current configuration to a yaml file
         :param stream: A stream to write to
         """
-        yaml.safe_dump(self.to_dict(), stream)
+        d = self.to_dict()
+        yaml.safe_dump(d, stream)
 
     def google_maps_api(self, callback: str):
         return f'https://maps.googleapis.com/maps/api/js?key={self.google_maps_api_key}&callback={callback}'

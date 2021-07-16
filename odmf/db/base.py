@@ -39,6 +39,8 @@ def connect():
 # TODO: allow test suite to load postgres and import all sql files (compliance test for sql)
 if conf.database_type == 'postgres':
     engine = sql.create_engine('postgresql://', creator=connect)
+elif conf.database_type == 'postgres-local':
+    engine = sql.create_engine(f'postgresql:///{conf.database_name}')
 elif conf.database_type == 'sqlite':
     if op.exists(conf.sqlite_path):
         engine = sql.create_engine('sqlite:///%s' % conf.sqlite_path)
@@ -151,6 +153,9 @@ class ObjectGetter:
 
     def __getitem__(self, item):
         return self.q.get(item)
+
+    def __repr__(self):
+        return 'ObjectGetter(' + self.cls.__name__ + ')'
 
 
 
