@@ -29,7 +29,7 @@ For later use, create a dedicated user for your odmf instance, with a home direc
 
 Change the mode of the home directory, to allow group members to write and execute everything:
 
-    sudo chmod g+rwx 
+    sudo chmod g+rwxs /srv/odmf/$NAME 
     
 Add your user to the odmf-$NAME group (as well as any co-admin of odmf). Co-Admins do not need sudo rights.
 
@@ -47,7 +47,7 @@ we are using `venv`, since no additional installations are necessary.
 The Python interpreter used for the next command, will be used as the basis for the virtual 
 environment.
 
-    python -m venv /srv/odmf/$NAME/venv
+    python3.9 -m venv /srv/odmf/$NAME/venv
 
 Now you should set the path to use any Python related commands from that venv, by activating it. Install the
 wheel package and upgrade pip.
@@ -81,7 +81,9 @@ Check the installation with the following command
 
     odmf version
 
-### Enable code completion (bash in Debian / Ubuntu) [source](https://click.palletsprojects.com/en/8.0.x/shell-completion/)
+### Enable code completion (bash in Debian / Ubuntu) 
+
+[source](https://click.palletsprojects.com/en/8.0.x/shell-completion/)
 
 Creates a bash file to enable code completion and alters the venv/bin/activate script to start ODMF's code completion
 on activating the venv
