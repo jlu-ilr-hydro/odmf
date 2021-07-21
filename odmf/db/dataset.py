@@ -307,7 +307,7 @@ class Record(Base):
     censorcode = 'nc'
 
     __table_args__ = (
-        sql.Index('record-dataset-time-index', 'dataset', 'time')
+        sql.Index('record-dataset-time-index', 'dataset', 'time'),
     )
 
     @property
