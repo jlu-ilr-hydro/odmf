@@ -43,6 +43,7 @@ class Person(Base):
     password = sql.Column(sql.VARCHAR)
     access_level = sql.Column(sql.INTEGER)
     active = sql.Column(sql.Boolean, default=True, nullable=False)
+    __mapper_args__ = {'order_by': username}
 
     def __str__(self):
         return "%s %s" % (self.firstname, self.surname)
@@ -147,10 +148,6 @@ class Image(Base):
         self.site = site
 
 
-
-
-
-
 @total_ordering
 class Project(Base):
     """
@@ -170,6 +167,8 @@ class Project(Base):
     organization = sql.Column(sql.String)
     sourcelink = sql.Column(sql.String)
     comment = sql.Column(sql.String)
+
+    __mapper_args__ = {'order_by': id}
 
 
     def __str__(self):

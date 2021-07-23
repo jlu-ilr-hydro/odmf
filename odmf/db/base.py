@@ -144,5 +144,8 @@ class ObjectGetter:
     def __repr__(self):
         return 'ObjectGetter(' + self.cls.__name__ + ')'
 
+    def __iter__(self):
+        return iter(self.q)
+
 
 

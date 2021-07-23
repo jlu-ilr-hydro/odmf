@@ -169,7 +169,7 @@ class Users(collections.Mapping):
 
             for person in allpersons:
                 self.dict[person.username] = User(
-                    person.username, person.access_level, person.password, [pr._project for pr in person.projects])
+                    person.username, person.access_level, person.password, [pr.project.id for pr in person.projects])
 
     def check(self, username, password):
 

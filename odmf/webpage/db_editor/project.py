@@ -6,42 +6,31 @@ from ..auth import group, expose_for
 from ... import db
 from ...config import conf
 
-@web.show_in_nav_for(1)
+@web.show_in_nav_for(1, 'umbrella')
 class ProjectPage:
 
     @expose_for(group.logger)
     def default(self, project_id=None, error=None):
 
         with db.session_scope() as session:
+            projects = db.ObjectGetter(db.Project, session)
+            persons = db.ObjectGetter(db.Person, session)
+            supervisors = persons.q.filter(db.Person.access_level >= 3)
 
-            if project_id is not None and str(project_id).isdigit():
-                project_from_id = session.query(db.Project).get(project_id)
+            if project_id == 'new':
+                project_from_id = db.Project()
 
-                if project_from_id is None:
-
-                    error = 'Warning: There was an error with the id \'%s\'. ' \
-                            'Please choose a project out of the ' \
-                            'list!' % project_id
-                    res = self.render_projects(session, error)
-
-                else:
-                    persons = session.query(db.Person)
-                    persons = persons.filter(db.Person.access_level > 3)
-
-                    error = ''
-
-                    res = web.render('project_from_id.html',
-                                     project=project_from_id,
-                                     persons=persons, error=error) \
-                        .render()
             elif project_id is None:
-
-                res = self.render_projects(session, error)
-
+                project_from_id = None
             else:
-                res = self.render_projects(session)
+                project_from_id = projects[int(project_id)]
 
-            return res
+            return web.render('project.html',
+                              projects=projects.q.order_by(db.Project.id),
+                              actproject=project_from_id,
+                              supervisors=supervisors,
+                              persons=persons, error=error) \
+                .render()
 
     @expose_for(group.supervisor)
     def add(self, error=''):
@@ -178,5 +167,5 @@ class ProjectPage:
         projects = session.query(db.Project)
         projects = projects.order_by(db.sql.asc(db.Project.id))
 
-        return web.render('projects.html', error=error, projects=projects
+        return web.render('project.html', error=error, projects=projects
                           ).render()

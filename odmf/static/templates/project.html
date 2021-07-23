@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+
+<py:extends href="bootstrap_navigation.html" xmlns:py="">
+    <py:block name="scripts">
+        <!-- insert additional scripts -->
+        <script type="text/javascript">
+            $(() =>{
+
+            });
+        </script>
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <!-- insert sidebar content -->
+        <div class="container-fluid">
+            <a class="btn btn-secondary w-100 mb-4" href="${conf.root_url}/project/new" py:if="is_member('supervisor')">
+                <i class="fas fa-plus mr-2"/>
+                new project
+            </a>
+            <div class="nav flex-column nav-pills">
+                <a py:for="proj in projects"
+                   class="nav-link ${['', 'active'][bool(actproject and proj.id==actproject.id)]}"
+                   href="${f'{conf.root_url}/project/{proj.id}'}"
+                   py:content="f'{proj.id} - {proj.name}'"
+                />
+            </div>
+
+        </div>
+
+    </py:block>
+    <py:block name="content">
+        <div class="container m-0 p-0">
+            <div id="error-row" class="row mt-2 w-100 d-none">
+                <div class="container">
+                    <div class="row bg-danger text-white border rounded p-4">
+                        <h1 class="display-3 col-lg-2">Error</h1>
+                        <div class="lead col-lg-10" id="error" py:content="markdown(error)"/>
+                    </div>
+                </div>
+            </div>
+            <div class="container" py:if="actproject">
+                <div id="description" py:if="actproject">
+                    <div class="row mt-2 w-100">
+                        <div class="container">
+                            <div id="title-area"
+                                 class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4">
+                                <h2 class="display-4 mr-8" py:content="f'{actproject.name}'"/>
+                                <div class="display-4 col-sm my-auto text-right">
+                                    <i class="fas fa-umbrella mr-4"/>${actproject.id}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-10">
+                                    <div class="container border-bottom" py:if="actproject.sourcelink">
+                                        <a href="${f'{conf.root_url}/{actproject.sourcelink}'}">
+                                            <i class="fas fa-link mr-2"/>${actproject.name} homepage
+                                        </a>
+                                    </div>
+                                    <div class="container">
+                                       Spokes person: ${actproject.person_responsible}
+                                    </div>
+                                    <div class="container" py:content="markdown(actproject.comment)"/>
+                                </div>
+                                <div class="col-lg-2">
+                                    <a class="btn btn-secondary dropdown-toggle" href="#edit" data-toggle="collapse">
+                                        edit
+                                    </a>
+                                </div>
+
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                </div>
+                <div id="edit" class="container collapse border rounded px-4">
+                    <form action="${conf.root_url}/project/save"
+                          method="post" py:if="is_member('supervisor')"
+                    >
+                        <div class="form-row mt-2">
+                            <div class="form-group">
+                                <label for="">ID:</label>
+                                <input type="text" id="id" name="id" class="form-control" value="${actproject.id}"
+                                       readonly="readonly"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="">Name:</label>
+                                <input type="text" id="name" name="name" class="form-control" value="${actproject.name}"/>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="sourcelink">Link to project homepage</label>
+                                <input type="text" id="sourcelink" name="sourcelink" class="form-control"
+                                       value="${actproject.sourcelink}"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="organization">Organization</label>
+                                <input type="text" id="organization" name="organization" class="form-control"
+                                       value="${actproject.organization}"/>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="responsible">Spokes person</label>
+                                <select id="responsible" name="person_responsible" class="form-control">
+                                    <option value="p.username" py:content="p" py:for="p in supervisors" py:attrs="markoption(p.username == actproject.person_responsible.username)"/>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row mb-2">
+
+                            <label for="">Description:</label>
+                            <textarea id="comment" name="comment" class="form-control"
+                                      rows="4"
+                                      py:content="actproject.comment"/>
+                        </div>
+                        <button class="btn btn-success mb-2" type="submit" id="save" name="save">
+                            <i class="fas fa-save mr-2"/>
+                            save changes
+                        </button>
+                    </form>
+                </div>
+                <h2 class="border-bottom">Members</h2>
+                <div id="members" class="container">
+                    <h4>Add member</h4>
+                    <ul style="margin-top:0px;padding-top:0px;">
+                        <li py:for="member in actproject.members">
+                            <span py:content="member.person"/>
+                            (<span py:content="member.level"/>)
+                            <button data-member="${member.person}"
+                               py:if="is_member('admin')"
+                               class="btn btn-outline-primary btn-sm rounded-circle px-1 my-0 py-0"
+                               title="remove" data-toggle="tooltip"
+                            ><i class="fas fa-minus"/></button>
+                        </li>
+                        <li py:if="is_member('admin')" class="form-group">
+                            <button py:if="is_member('admin')" id="addmember"
+                                    class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-plus"/>
+                            </button>
+                            <select id="add_who" class="form-control">
+                                <option value="p.username" py:for="p in persons" py:content="p"/>
+                            </select>
+                            <input type="number" min="0" max="4" id="add_level"/>
+
+                        </li>
+                    </ul>
+
+                </div>
+                <!--h2 class="border-bottom">Datasets</h2>
+                <div id="datasets" class="container">
+                    <ul>
+                        <li py:for="ds in actproject.datasets">
+                            <a href="${conf.root_url}/dataset/${ds.id}"
+                               py:content="ds"/>
+                        </li>
+                    </ul>
+                </div-->
+
+            </div>
+
+        </div>
+    </py:block>
+</py:extends>
+
