@@ -19,39 +19,9 @@ class ConfigurationError(RuntimeError):
     pass
 
 
-
-
-def find_odmf_static_location():
-    """
-    Finds the path to the static files of the library
-
-    Looks at the following locations:
-     - {sys.prefix}/odmf.static, where {sys.prefix} is the python installation. This is the proper location
-     - {__file__}/../../odmf.static: Where {__file__} is the installation location of this config.py file.
-       This is for development
-     - ./odmf.static is the local installation directory - a fallback solution if the others do not work
-
-    """
-
-    candidates = Path(__file__).parent / 'static', Path(f'{prefix}/odmf/static'), Path(f'{prefix}/')
-
-    for p in candidates:
-        if p.exists():
-            if all((p / d).exists() for d in ('templates', 'media')):
-                logger.info(f'odmf.static at {p}/[templates|media]')
-                return p
-            else:
-                logger.info(f'{p}, found but not all of templates|datafiles|media exist, searching further\n')
-        else:
-            logger.info(f'{p} - does not exist\n')
-
-    logger.warning('Did not find the odmf.static directory in the installation or local')
-
-
-
 def static_locations(*from_config):
 
-    paths = [find_odmf_static_location()] + [Path(p) for p in from_config]
+    paths = [Path(__file__).parent / 'static'] + [Path(p) for p in from_config]
     filtered = []
     [filtered.append(str(p)) for p in paths if p and p.exists() and p not in filtered]
     return filtered
