@@ -20,7 +20,11 @@ function gettime(startOrEnd) {
 	if (res) {
 		res += ' ' + ($('#'+ startOrEnd + 'time').val() || '00:00');
 	} else {
-		res = '';
+		let today = new Date();
+		if (startOrEnd == 'end') {
+			today.setFullYear(today.getFullYear() - 1)
+		}
+		res = today.toISOString();
 	}
 	return res;
 }
@@ -346,7 +350,7 @@ function set_line_dialog_handlers() {
     	dlg.data('lineno', ln);
     	dlg.data('replace', button.data('replace'));
     	let plot = window.plot;
-    	let line = {}
+    	let line = {linestyle: '-'}
     	if (!(sp >= 0)) {
     		$('#error').html('#' + button.id + ' has no subplot').parent().parent().fadeIn()
 		}

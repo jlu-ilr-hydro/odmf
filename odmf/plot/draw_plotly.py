@@ -40,6 +40,12 @@ def _make_figure(plot: Plot) -> go.Figure:
     subplot_positions = sum(([i] * len(sp.lines) for i, sp in enumerate(plot.subplots)), [])
     rows = [1 + i // plot.columns for i in subplot_positions]
     cols = [1 + i % plot.columns for i in subplot_positions]
+    for i, sp in enumerate(plot.subplots):
+        row, col = 1 + i // plot.columns, 1 + i % plot.columns
+        if sp.ylim:
+            fig.update_yaxes(range=list(sp.ylim), row=row, col=col)
+
+    fig.update_yaxes()
     fig.add_traces(
         [
             _draw_line(l, plot.start, plot.end)
@@ -48,6 +54,8 @@ def _make_figure(plot: Plot) -> go.Figure:
         rows=rows,
         cols=cols
     )
+
+    fig.update_yaxes()
     fig.update_layout(width=plot.size[0], height=plot.size[1], template='none')
     return fig
 
