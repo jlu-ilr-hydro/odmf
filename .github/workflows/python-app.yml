@@ -52,6 +52,6 @@ jobs:
         cd odmf-test
     - name: Make Database
       run: |
-        odmf configure --dbname postgres --dbuser postgres --dbpass postgres --dbhost localhost --port 8080
+        odmf configure postgresql://postgres:postgress@localhost:5432/postgres 
         odmf make-db -p testpw
         odmf test-db

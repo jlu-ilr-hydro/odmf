@@ -550,10 +550,7 @@ class Project(Base):
         backref=orm.backref('leads_projects', lazy='dynamic')
     )
     name = sql.Column(sql.String)
-    organization = sql.Column(sql.String)
-    sourcelink = sql.Column(sql.String)
     comment = sql.Column(sql.String)
-
 
     def __str__(self):
         return " %s %s: %s %s" % (self.id, self.name, self.person_responsible,

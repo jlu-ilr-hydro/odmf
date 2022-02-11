@@ -139,36 +139,24 @@ class User(object):
         return "%s (%s)" % (self.name, self.group)
 
 
-class Users(collections.Mapping):
+class Users(collections.UserDict):
     filename = abspath('../users')
 
     def __init__(self):
         self.default = User('guest', 0, None)
-        self.dict = {}
+        super().__init__()
 
-
-    def __getitem__(self, name):
-        return self.dict[name]
-
-    def __len__(self):
-        return len(self.dict)
-
-    def __iter__(self):
-        return iter(self.dict)
-
-    def __contains__(self, user):
-        return user in self.dict
 
     def load(self):
         from .. import db
         with db.session_scope() as session:
             q = session.query(db.Person).filter(db.Person.active == True)
 
-            self.dict = {}
+            self.data = {}
             allpersons = q.all()
 
             for person in allpersons:
-                self.dict[person.username] = User(
+                self.data[person.username] = User(
                     person.username, person.access_level, person.password)
 
     def check(self, username, password):
@@ -188,7 +176,7 @@ class Users(collections.Mapping):
 
     def save(self):
         f = open(Users.filename, 'w')
-        for name in self.dict:
+        for name in self.data:
             f.write('%s %i %s\n' % self[name].as_tuple())
         f.close()
 
@@ -197,8 +185,7 @@ class Users(collections.Mapping):
         return self.get(cherrypy.request.login, self.default)
 
     def set_default(self, name):
-        self.default = self.dict.get(name, self.default)
-
+        self.default = self.data.get(name, self.default)
 
     def login(self, username, password):
         self.load()

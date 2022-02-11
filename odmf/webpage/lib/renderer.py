@@ -4,7 +4,7 @@ Tools to render html templates
 
 import inspect
 import kajiki
-import kajiki.entities
+
 from kajiki.template import literal
 from pathlib import Path
 
