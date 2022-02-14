@@ -13,11 +13,12 @@ from sqlalchemy.schema import ForeignKey
 from datetime import datetime
 from . import newid
 import pytz
+
+import numpy as np
 import pandas as pd
 
 import importlib
 
-import numpy as np
 from ..config import conf
 from logging import getLogger
 logger = getLogger(__name__)
@@ -482,7 +483,7 @@ class Timeseries(Dataset):
             # Do calibration
             return self.calibration_slope * df.value + self.calibration_offset
         else:
-            return pd.Series([], index=pd.to_datetime([]))
+            return pd.Series([], index=pd.to_datetime([]), dtype=float)
 
     def size(self):
         return self.records.count()

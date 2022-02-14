@@ -12,27 +12,25 @@ class VTPage:
 
     @expose_for(group.guest)
     def default(self, vt_id='new'):
-        session = db.Session()
-        valuetypes = session.query(
-            db.ValueType).order_by(db.ValueType.id).all()
-        error = ''
-        if vt_id == 'new':
-            id = db.newid(db.ValueType, session)
-            vt = db.ValueType(id=id,
-                              name='<Name>')
-        else:
-            try:
-                vt = session.query(db.ValueType).get(int(vt_id))
-                # image=b64encode(self.sitemap.draw([actualsite]))
-            except:
-                error = traceback()
-                # image=b64encode(self.sitemap.draw(sites.all()))
-                vt = None
+        with db.session_scope() as session:
+            valuetypes = session.query(
+                db.ValueType).order_by(db.ValueType.id).all()
+            error = ''
+            if vt_id == 'new':
+                id = db.newid(db.ValueType, session)
+                vt = db.ValueType(id=id,
+                                  name='<Name>')
+            else:
+                try:
+                    vt = session.query(db.ValueType).get(int(vt_id))
+                    # image=b64encode(self.sitemap.draw([actualsite]))
+                except:
+                    error = traceback()
+                    # image=b64encode(self.sitemap.draw(sites.all()))
+                    vt = None
 
-        result = web.render('valuetype.html', valuetypes=valuetypes,
-                            actualvaluetype=vt, error=error).render()
-        session.close()
-        return result
+            return web.render('valuetype.html', valuetypes=valuetypes,
+                                actualvaluetype=vt, error=error).render()
 
     @expose_for(group.supervisor)
     def saveitem(self, **kwargs):

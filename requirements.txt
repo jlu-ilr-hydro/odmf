@@ -7,30 +7,32 @@ Pillow>=5.3.0
 cherrypy>=18.0.0
 kajiki>=0.8.2
 markdown
-matplotlib==3.4.2
+matplotlib>=3.5.0,<3.6.0
 
-
-pandas==1.2.4
-scipy==1.6.3
+# scientific python
+pandas==1.4.0
+scipy==1.8.0
 xlrd==2.0.1
-openpyxl==3.0.7
+numba>=0.50.0
+openpyxl>=3.0.7
 
-
+# database
 psycopg2-binary>=2.8
-pytz==2019.03
+pytz>=2019.03
 sqlalchemy>=1.3.0,<1.4.0
 bcrypt
 bleach>=3.1.0
 
 click>=7.0
 humanize
+# using plotly backend
+plotly==5.6.0
+# Interactive
+ipython>=8.0.1
+
+
+# Tests
+pytest
 # woftester only
 lxml
 coloredlogs
-ipython==7.21.0
-# tests only
-requests
-
-# using plotly backend
-plotly==4.14.3
-psutil==5.8.0

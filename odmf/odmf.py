@@ -111,8 +111,6 @@ def apache2_conf():
         f.write(txt)
 
 
-
-
 @cli.command()
 def test_config():
     """
