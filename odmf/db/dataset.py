@@ -139,6 +139,7 @@ class Dataset(Base):
     comment = sql.Column(sql.String)
     type = sql.Column(sql.String)
     level = sql.Column(sql.Float)
+    # TODO: Remove uses_dst
     uses_dst = sql.Column(sql.Boolean, default=False, nullable=False)
     __mapper_args__ = dict(polymorphic_identity=None,
                            polymorphic_on=type)
@@ -181,7 +182,7 @@ class Dataset(Base):
 
     @property
     def tzinfo(self):
-        if False:  # TODO: Change uses_dst to char-field timezone
+        if False:
             if self.timezone in pytz.common_timezones:
                 return pytz.timezone(self.timezone)
             elif self.timezone.startswith('Fixed/'):
@@ -335,7 +336,7 @@ class Record(Base):
                     comment=self.comment)
 
 
-# TODO: Put foreign_key to timeseries
+
 transforms_table = sql.Table('transforms', Base.metadata,
                              sql.Column('target', sql.Integer, ForeignKey(
                                  'transformed_timeseries.id'), primary_key=True),
@@ -473,6 +474,7 @@ class Timeseries(Dataset):
         if end:
             records = records.filter(Record.time <= end)
         # Make a query iterator with only the fields needed
+        # TODO: Use pd.read_sql to get the dataframe
         q_it = records.values('time', 'value')
 
         # handle empty queries

@@ -60,6 +60,7 @@ def table(obj) -> sql.Table:
     except AttributeError:
         raise TypeError(f'{obj!r} is not a mapper class')
 
+
 @total_ordering
 class Base(object):
     """Hooks into SQLAlchemy's magic to make :meth:`__repr__`s."""
@@ -81,7 +82,7 @@ class Base(object):
         return f'{classy}({args})'
 
     def __lt__(self, other):
-        if isinstance(other, type(self)) and hasattr('id', self):
+        if isinstance(other, type(self)) and hasattr(self, 'id'):
             return self.id < other.id
         else:
             raise TypeError(
@@ -91,7 +92,7 @@ class Base(object):
         return hash(self) == hash(other)
 
     def __hash__(self):
-        return hash(repr(self.__class__.__name__))
+        return hash(repr(self))
 
     def session(self):
         return Session.object_session(self)

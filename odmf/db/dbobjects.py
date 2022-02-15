@@ -64,19 +64,6 @@ class Site(Base):
                     comment=self.comment,
                     icon=self.icon)
 
-    def __eq__(self, other):
-        if hasattr(other, 'id'):
-            return NotImplemented
-        return self.id == other.id
-
-    def __lt__(self, other):
-        if not hasattr(other, 'id'):
-            return NotImplemented
-        return self.id < other.id
-
-    def __hash__(self):
-        return hash(str(self))
-
     def as_UTM(self):
         """Returns a tuple (x,y) as UTM/WGS84 of the site position
         If withzone is True it returns the name of the UTM zone as a third argument
@@ -108,20 +95,12 @@ class Datasource(Base):
     def __str__(self):
         return '%s (%s)' % (self.name, self.sourcetype)
 
-    def __eq__(self, other):
-        if not hasattr(other, 'name'):
-            return NotImplemented
-        return self.name == other.name
-
     def __lt__(self, other):
         if not hasattr(other, 'name'):
             return NotImplemented
         elif other:
             return self.name < other.name
         return False
-
-    def __hash__(self):
-        return hash(str(self))
 
     def __jdict__(self):
         return dict(id=self.id,
@@ -157,7 +136,7 @@ class Installation(Base):
         self.installdate = installdate
 
     @property
-    def active(self):
+    def active(self) -> bool:
         today = datetime.today()
         return self.installdate <= today and (self.removedate is None or self.removedate > today)
 
@@ -212,23 +191,6 @@ class Person(Base):
                     label="%s %s" % (self.firstname, self.surname),
                     )
 
-    def __eq__(self, other):
-        if not hasattr(other, 'surname'):
-            if not hasattr(other, 'firstname'):
-                return NotImplemented
-            return self.surname == str(other)
-        return self.surname == other.surname
-
-        #
-        # Old cmp code, just for comparision purpose (ICO bug)
-        #
-        # if hasattr(other,'surname'):
-        #    return self.surname == other.surname
-        # elif other:
-        #    return self.surname == str(other)
-        # else:
-        #    return self.surname == other
-
     def __lt__(self, other):
         if not hasattr(other, 'surname'):
             if not hasattr(other, 'firstname'):
@@ -236,8 +198,6 @@ class Person(Base):
             return self.surname < str(other)
         return self.surname < other.surname
 
-    def __hash__(self):
-        return hash(str(self))
 
 
 class Image(Base):
