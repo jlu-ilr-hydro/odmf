@@ -37,8 +37,11 @@ def add_quality_data(data):
     :param data: A list of dicts (quality_data below)
     """
     with db.session_scope() as session:
+
         for q in data:
-            session.add(db.Quality(**q))
+            if not session.query(db.Quality).get(q['id']):
+                session.add(db.Quality(**q))
+        session.commit()
 
 
 quality_data = [

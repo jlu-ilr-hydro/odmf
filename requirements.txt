@@ -17,7 +17,7 @@ numba>=0.50.0
 openpyxl>=3.0.7
 
 # database
-psycopg2-binary>=2.8
+psycopg
 pytz>=2019.03
 sqlalchemy>=1.3.0,<1.4.0
 bcrypt
@@ -33,6 +33,8 @@ ipython>=8.0.1
 
 # Tests
 pytest
+pytest-postgresql
+
 # woftester only
 lxml
 coloredlogs

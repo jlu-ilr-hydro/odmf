@@ -21,12 +21,6 @@ from functools import total_ordering
 from io import BytesIO
 
 
-def memoryview_to_b64str(mview):
-    if type(mview) is not bytes:
-        mview = mview.tobytes()
-    return b64encode(mview).decode('ascii')
-
-
 @total_ordering
 class Site(Base):
     """
@@ -263,11 +257,17 @@ class Image(Base):
     imageheight = 1024
     thumbnailheight = 72
 
+    @staticmethod
+    def memoryview_to_b64str(mview):
+        if type(mview) is not bytes:
+            mview = mview.tobytes()
+        return b64encode(mview).decode('ascii')
+
     def thumbnail64(self):
-        return memoryview_to_b64str(self.thumbnail)
+        return self.memoryview_to_b64str(self.thumbnail)
 
     def image64(self):
-        return memoryview_to_b64str(self.image)
+        return self.memoryview_to_b64str(self.image)
 
     def __PIL_to_stream(self, img, height, format):
         from PIL import Image as pil
