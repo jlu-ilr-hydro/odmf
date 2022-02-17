@@ -24,8 +24,8 @@ import odmf
 
 print('odmf=', odmf.__version__)
 
-HOME = Path(__file__).parent
-config_file = HOME / 'config.yml'
+config_file = Path('config.yml')
+print(config_file.absolute())
 
 
 def get_config():
@@ -59,7 +59,7 @@ def wait_for_db(conf, wait_time=20):
         sys.stderr.write(f'Error: {exc}\n')
         exit(100)
 
-def make_db(conf):
+def make_db():
     """
     Creates in the database: all tables, a user odmf.admin
     and fills the data-quality table with some usable input
@@ -83,6 +83,6 @@ conf = get_config()
 print('Connect to:', conf.database_url)
 wait_for_db(conf, 10)
 print('Create DB schema')
-make_db(conf)
+make_db()
 print('Start Server')
 start()
