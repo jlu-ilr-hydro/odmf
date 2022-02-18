@@ -256,6 +256,7 @@ class TestJob:
         job_1 = session.query(db.Job).get(1)
         assert job_1 == job
         assert not job < job
+        assert repr(job).startswith("<Job")
 
     def test_due_time(self, job):
         assert job.due - datetime.timedelta(days=1) > datetime.datetime.today()
@@ -265,21 +266,26 @@ class TestJob:
 def project(db, session, person):
     with temp_in_database(
         db.Project(
-            id=1, person_responsible=person, name=person, comment='this is a comment'
+            id=1, person_responsible=person, name='this is a name', comment='this is a comment'
         ),
         session) as project:
         yield project
 
-##receiving error for the following class
-#class TestProject:
-#    def test_project(self, project):
-#        assert project
-#        assert project.id == 1
-#        d = job.__jdict__()
-#        assert isinstance(d, dict)
-#        assert 'id' in d
 
+class TestProject:
+    def test_project(self, project):
+        assert project
+        assert project.id == 1
+        d = project.__jdict__()
+        assert isinstance(d, dict)
+        assert 'id' in d
 
+    def test_project_load(self, project, session, db):
+        project_1 = session.query(db.Project).get(1)
+        assert project_1 == project
+        assert not project < project
+        assert str(project).startswith(" ")
+        assert repr(project).startswith("<Project")
 
 
 # TODO: Amir:
