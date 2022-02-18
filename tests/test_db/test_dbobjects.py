@@ -180,6 +180,108 @@ class TestInstallation:
             installation.session().commit()
         installation.session().rollback()
 
+
+@pytest.fixture()
+def person(db, session):
+    with temp_in_database(
+        db.Person(
+            username='person_1', email='This is an email', firstname='first',
+            surname='last', telephone='this is a phone number', comment='this is a comment',
+            can_supervise= False, mobile='this is a mobile number', car_available=0
+        ),
+        session) as person:
+        yield person
+
+class TestPerson:
+    def test_person(self, person):
+        assert person
+        assert person.username == 'person_1'
+        assert isinstance(person.firstname, str)
+        assert isinstance(person.surname, str)
+        d = person.__jdict__()
+        assert isinstance(d, dict)
+        assert 'username' in d
+
+
+@pytest.fixture()
+def log(db, session, person, site1_in_db):
+    with temp_in_database(
+        db.Log(
+            id=1, time=datetime.datetime(2022, 2, 17),
+            user=person, site=site1_in_db, message='this is a message'
+        ),
+        session) as log:
+        yield log
+
+class TestLog:
+    def test_log(self, log):
+        assert log
+        assert log.id == 1
+        assert log.site.id == 1
+        assert isinstance(log.time, datetime.datetime)
+        assert isinstance(log.message, str)
+        d = log.__jdict__()
+        assert isinstance(d, dict)
+        assert 'id' in d
+
+    def test_log_load(self, log, session, db):
+        log_1 = session.query(db.Log).get(1)
+        assert log_1 == log
+        assert not log < log
+
+
+@pytest.fixture()
+def job(db, session, person):
+    with temp_in_database(
+        db.Job(
+            id=1, name='this is a name', description='this is a description',
+            due=datetime.datetime(2023, 5, 20), author=person,
+            responsible=person, done=True, repeat=3,
+            link='/path/to/link', type='this is a type',
+            donedate=datetime.datetime(2023, 2,20)
+        ),
+        session) as job:
+        yield job
+
+class TestJob:
+    def test_job(self, job):
+        assert job
+        assert job.id == 1
+        assert isinstance(job.due, datetime.datetime)
+        d = job.__jdict__()
+        assert isinstance(d, dict)
+        assert 'id' in d
+
+    def test_job_load(self, job, session, db):
+        job_1 = session.query(db.Job).get(1)
+        assert job_1 == job
+        assert not job < job
+
+    def test_due_time(self, job):
+        assert job.due - datetime.timedelta(days=1) > datetime.datetime.today()
+
+
+@pytest.fixture()
+def project(db, session, person):
+    with temp_in_database(
+        db.Project(
+            id=1, person_responsible=person, name=person, comment='this is a comment'
+        ),
+        session) as project:
+        yield project
+
+##receiving error for the following class
+#class TestProject:
+#    def test_project(self, project):
+#        assert project
+#        assert project.id == 1
+#        d = job.__jdict__()
+#        assert isinstance(d, dict)
+#        assert 'id' in d
+
+
+
+
 # TODO: Amir:
 # - Person
 # - Log
