@@ -54,7 +54,7 @@ def temp_in_database(obj, session):
 def quality(db, session):
     with temp_in_database(
         db.Quality(
-            id=1, name='this is a name', comment='this is a comment'
+            id=4, name='this is a name', comment='this is a comment'
         ),
         session) as quality:
         yield quality
@@ -62,6 +62,37 @@ def quality(db, session):
 class TestQuality:
     def test_quality(self, quality):
         assert quality
+        assert quality.id == 4
+        assert str(quality).startswith(quality.name)
+        d = quality.__jdict__()
+        assert isinstance(d, dict)
+        assert 'id' in d
+
+
+@pytest.fixture()
+def value_type(db, session):
+    with temp_in_database(
+        db.ValueType(
+            id=1, name='this is a name', unit='this is a unit',
+            comment='this is a comment', minvalue=0.00, maxvalue=110.20
+        ),
+        session) as value_type:
+        yield value_type
+
+class TestValueType:
+    def test_valueType(self, value_type):
+        assert value_type
+        assert value_type.id == 1
+        d = value_type.__jdict__()
+        assert isinstance(d, dict)
+        assert 'id' in d
+
+
+
+
+
+
+
 
 
 
