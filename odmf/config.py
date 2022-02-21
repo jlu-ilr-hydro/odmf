@@ -23,7 +23,9 @@ def static_locations(*from_config):
 
     paths = [Path(__file__).parent / 'static'] + [Path(p) for p in from_config]
     filtered = []
-    [filtered.append(str(p)) for p in paths if p and p.exists() and p not in filtered]
+    [
+        filtered.append(str(p)) for p in paths if p and p.exists() and str(p) not in filtered
+    ]
     return filtered
 
 
@@ -35,7 +37,7 @@ class Configuration:
     Mandatory fields are defined as (...), optional as None or with a default value
     """
     datetime_default_timezone = 'Europe/Berlin'
-    database_url = ''
+    database_url = 'sqlite://'
     static = [prefix]
     media_image_path = 'webpage/media'
     nav_background = '/media/gladbacherhof.jpg'
@@ -126,8 +128,8 @@ class Configuration:
         return __version__
 
 
-def load_config():
-    conf_file = Path(prefix) / 'config.yml'
+def load_config(path=prefix):
+    conf_file = Path(path) / 'config.yml'
     logger.debug('Found config file:' + str(conf_file.absolute()))
     if not conf_file.exists():
         logger.warning(f'{conf_file.absolute().as_posix()} '
@@ -140,32 +142,6 @@ def load_config():
 
     if not conf:
        logger.warning(', '.join(k for k, v in conf.to_dict().items() if v is ...) + ' are undefined')
-    return conf
-
-
-def import_module_configuration(conf_module_filename):
-    """
-    Migration utitlity to create a conf.yaml from the old ODMF 0.x conf.py module configuration
-
-    :param conf_module_filename: The conf.py configuration file
-    """
-    code = compile(open(conf_module_filename).read(), 'conf.py', 'exec')
-    config = {}
-    exec(code, config)
-
-    def c(s: str):
-        return s.replace('CFG_', '').lower()
-
-    config = {
-        c(k): v
-        for k, v in config.items()
-        if k.upper() == k and k[0] != '_' and not callable(v)
-    }
-
-    config['database_type'] = config.pop('database', 'postgres')
-
-    conf = Configuration(**config)
-
     return conf
 
 
