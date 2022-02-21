@@ -1,16 +1,17 @@
-import sys
-sys.path.append('.')
 from odmf import db
 from getpass import getpass
 from logging import warning
+from typing import List
 
 
-def create_all_tables():
+def create_all_tables() -> List[str]:
     """
     Creates all database table necessary for the database from the codebase
-    :return:
+    :return: A list of
     """
     db.Base.metadata.create_all(db.engine)
+    return list(db.Base.metadata.tables)
+
 
 
 def add_admin(password=None):

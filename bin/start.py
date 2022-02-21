@@ -29,6 +29,9 @@ print(config_file.absolute())
 
 
 def get_config():
+    """
+    Get a new configuration, if needed from scratch
+    """
     from odmf.config import conf
     conf.database_url = '{DB_TYPE}://{DB_USER}:{DB_PASSWORD}@db:5432/{DB_NAME}'.format(**os.environ)
     conf.server_port = int(os.environ.get('ODMF_PORT', conf.server_port))
@@ -37,7 +40,11 @@ def get_config():
     conf.to_yaml(config_file.open('w', encoding='UTF-8'))
     return conf
 
-def wait_for_db(conf, wait_time=20):
+
+def wait_for_db(database_url, wait_time=20):
+    """
+    Tries repeatly to connect to the database until the wait_time is running up
+    """
     import time
     from sqlalchemy import create_engine
     start = time.time()
@@ -46,7 +53,7 @@ def wait_for_db(conf, wait_time=20):
     while time.time() - start < wait_time:
         try:
             time.sleep(0.25)
-            engine = create_engine(conf.database_url, encoding='utf-8')
+            engine = create_engine(database_url, encoding='utf-8')
             with engine.connect():
                 ...
         except Exception as e:
@@ -55,9 +62,10 @@ def wait_for_db(conf, wait_time=20):
         else:
             break
     else:
-        sys.stderr.write(f'No connection to {conf.database_url} after {wait_time}s and {i} tries\n')
+        sys.stderr.write(f'No connection to {database_url} after {wait_time}s and {i} tries\n')
         sys.stderr.write(f'Error: {exc}\n')
         exit(100)
+
 
 def make_db():
     """
@@ -65,7 +73,7 @@ def make_db():
     and fills the data-quality table with some usable input
     """
     from odmf.tools import create_db as cdb
-    cdb.create_all_tables()
+    tables = cdb.create_all_tables()
     print('  - created tables')
     cdb.add_admin(os.environ['ODMF_ADMIN_PW'])
     print('  - created admin user odmf.admin')
@@ -81,7 +89,7 @@ def start():
 
 conf = get_config()
 print('Connect to:', conf.database_url)
-wait_for_db(conf, 10)
+wait_for_db(conf.database_url, 10)
 print('Create DB schema')
 make_db()
 print('Start Server')

@@ -132,8 +132,10 @@ def db_tables():
     """
 
     from . import db
-    tables = [getattr(cl, '__table__') for n, cl in vars(db).items() if hasattr(cl, '__table__')]
+    tables = list(db.Base.metadata.tables)
     print(' '.join(t.name for t in tables))
+
+
 
 
 @cli.command()
@@ -152,17 +154,6 @@ def test_static():
                 logger.warning(f'Incomplete static file directory found at: {p}, searching further\n')
         else:
             logger.warning(f'{p} - does not exist\n')
-
-
-@cli.command()
-@click.argument('filename')
-def import_config(filename):
-    """
-    Imports a configuration from a conf.py file 
-    """
-    from .config import import_module_configuration
-    conf = import_module_configuration(filename)
-    conf.to_yaml(open('config.yml', 'w'))
 
 
 @cli.command()
