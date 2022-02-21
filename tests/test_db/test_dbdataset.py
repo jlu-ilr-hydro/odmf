@@ -1,0 +1,72 @@
+import datetime
+import pytest
+import sqlalchemy.orm
+from contextlib import contextmanager
+
+
+@pytest.fixture(scope='class')
+def conf():
+    """
+    Creates a configuration with a :memory: SQLite database
+    """
+    from odmf.config import Configuration
+    conf = Configuration()
+    conf.database_url = 'sqlite://'
+    conf.utm_zone = '32N'
+    return conf
+
+
+@pytest.fixture(scope='class')
+def db(conf):
+    """
+    Creates a database in memory with the schema from the ORM classes,
+    an admin user with Password 'test' and the basic quality levels
+    """
+    from odmf import config
+    config.conf = conf
+    from odmf import db
+    from odmf.tools import create_db as cdb
+    cdb.create_all_tables()
+    cdb.add_admin('test')
+    cdb.add_quality_data(cdb.quality_data)
+    return db
+
+
+@pytest.fixture()
+def session(db) -> sqlalchemy.orm.Session:
+    with db.session_scope() as session:
+        yield session
+
+
+@contextmanager
+def temp_in_database(obj, session):
+    """
+    Adds the ORM-object obj to the session and commits it to the database.
+    After usage the object is deleted from the session and is commited again
+    """
+    session.add(obj)
+    session.commit()
+    yield obj
+    session.delete(obj)
+    session.commit()
+
+@pytest.fixture()
+def quality(db, session):
+    with temp_in_database(
+        db.Quality(
+            id=1, name='this is a name', comment='this is a comment'
+        ),
+        session) as quality:
+        yield quality
+
+class TestQuality:
+    def test_quality(self, quality):
+        assert quality
+
+
+
+
+
+
+
+
