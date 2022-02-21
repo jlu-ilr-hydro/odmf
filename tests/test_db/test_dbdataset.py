@@ -80,13 +80,19 @@ def value_type(db, session):
         yield value_type
 
 class TestValueType:
-    def test_valueType(self, value_type):
+    def test_ValueType(self, value_type):
         assert value_type
         assert value_type.id == 1
+        assert str(value_type).startswith(value_type.name)
         d = value_type.__jdict__()
         assert isinstance(d, dict)
         assert 'id' in d
 
+    def test_ValueType_load(self, value_type, session, db):
+        value_type_1 = session.query(db.ValueType).get(1)
+        assert hash(value_type_1) == hash(value_type)
+        assert not value_type < value_type
+        assert not value_type_1 == value_type
 
 
 
