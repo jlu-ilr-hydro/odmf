@@ -9,8 +9,8 @@ import click
 import humanize
 import sys
 import os
-from textwrap import dedent
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -95,23 +95,6 @@ def make_db(new_admin_pass):
 
 
 @cli.command()
-def apache2_conf():
-    """
-    Creates an apache2 .conf file to run this odmf instance as a wsgi server.
-    Use as:
-
-    """
-    from config import conf
-    name = conf.root_url.replace('/', '')
-    txt = dedent(f'''
-    ProxyPass {conf.root_url} http://127.0.0.1:{conf.server_port}{conf.root_url}
-    ProxyPassReverse /{conf.root_url}/ http://127.0.0.1:{conf.server_port}{conf.root_url}
-    ''')
-    with open(f'odmf-{name}.conf') as f:
-        f.write(txt)
-
-
-@cli.command()
 def test_config():
     """
     Tests the configuration and prints it, if it works
@@ -141,6 +124,16 @@ def test_db():
             q: orm.Query = session.query(table)
             print(f'{humanize.intword(q.count())} {name} objects in database', end=' - ')
             print(repr(q.first()))
+
+@cli.command()
+def db_tables():
+    """
+    Returns the tables in the ORM system as a space seperated list
+    """
+
+    from . import db
+    tables = [getattr(cl, '__table__') for n, cl in vars(db).items() if hasattr(cl, '__table__')]
+    print(' '.join(t.name for t in tables))
 
 
 @cli.command()
