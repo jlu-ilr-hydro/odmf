@@ -2,6 +2,8 @@ import datetime
 import pytest
 import sqlalchemy.orm
 from contextlib import contextmanager
+from tests.test_db.test_dbobjects import person, site1_in_db, datasource1_in_db
+
 
 
 @pytest.fixture(scope='class')
@@ -95,15 +97,36 @@ class TestValueType:
         assert not value_type_1 == value_type
 
 
+@pytest.fixture()
+def dataset(db, session, value_type, quality, person, datasource1_in_db, site1_in_db):
+    with temp_in_database(
+        db.Dataset(
+            id=1, name='this is a name', filename='this is a filename',
+            start=datetime.datetime(2020, 2, 20), end=datetime.datetime(2030, 12, 20),
+            site=site1_in_db, valuetype=value_type, measured_by=person, quality=quality,
+            source=datasource1_in_db, calibration_offset=0, calibration_slope=1, comment='this is a comment',
+            type='this is a type', level=2
+        ),
+        session) as dataset:
+        yield dataset
 
 
+@pytest.fixture()
+def record(db, session, dataset):
+    with temp_in_database(
+        db.Record(
+            id=1, dataset=dataset, time=datetime.datetime(2021, 5, 10),
+            value=5, sample='this is a sample', comment='this is a comment',
+            is_error=False
+        ),
+        session) as record:
+        yield record
 
-
-
-
-
-
-
-
-
-
+class TestRecord:
+    def test_record(self, record):
+        assert record
+        assert record.id == 1
+        assert str(record).startswith(record.dataset.name)
+        d = value_type.__jdict__()
+        assert isinstance(d, dict)
+        assert 'id' in d

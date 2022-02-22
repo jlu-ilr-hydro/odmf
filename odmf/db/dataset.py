@@ -280,7 +280,7 @@ record_id_seq = sql.Sequence('record_id_seq', Base)
 
 class Record(Base):
     """
-    The record holds sinigle measured, quantitative values.
+    The record holds single measured, quantitative values.
 
     Database fields:
     id: numeric identifier, new counting for each dataset

@@ -289,15 +289,6 @@ class TestProject:
 
 
 # TODO: Amir:
-# - Person
-# - Log
-# - Job
-# - Project
-# In dataset.py:
-# - Quality
-# - ValueType
-# - Record
-
 # Advanced:
 # - Image (need to create a temp image with PIL and save to a temp folder)
 
