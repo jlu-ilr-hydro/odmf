@@ -130,8 +130,7 @@ def db_tables():
     """
 
     from . import db
-    tables = list(db.Base.metadata.tables)
-    print(' '.join(t.name for t in tables))
+    print(' '.join(db.Base.metadata.tables))
 
 
 @cli.command()
