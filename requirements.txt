@@ -17,7 +17,7 @@ numba>=0.50.0
 openpyxl>=3.0.7
 
 # database
-psycopg2-binary   # psycopg2 needed to fit to sqlalchemy>=1.3.0,<1.4.0
+psycopg2   # psycopg2 needed to fit to sqlalchemy>=1.3.0,<1.4.0
 pytz>=2019.03
 sqlalchemy>=1.3.0,<1.4.0
 bcrypt

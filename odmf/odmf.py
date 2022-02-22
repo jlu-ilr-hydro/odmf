@@ -15,8 +15,13 @@ logger = logging.getLogger(__name__)
 
 
 @click.group()
-def cli():
-    ...
+@click.option('-v', '--verbose', count=True)
+def cli(verbose):
+    levels = {0: logging.ERROR, 1: logging.WARNING, 2: logging.INFO, 3: logging.DEBUG}
+    logging.basicConfig(
+        format='%(levelname)-8s: %(asctime)s %(name)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S',
+        level=levels.get(verbose, logging.WARNING)
+    )
 
 
 @cli.command()
@@ -28,7 +33,6 @@ def start(workdir, autoreload):
     Starts a cherrypy server, with WORKDIR as the working directory (local ressources and configuration)
     """
     os.chdir(workdir)
-    # coloredlogs.install(level='DEBUG', stream=sys.stdout)
 
     logger.info(f"interpreter: {sys.executable}")
     logger.info(f"workdir: {os.getcwd()}")
@@ -39,8 +43,13 @@ def start(workdir, autoreload):
 
 @cli.command()
 @click.argument('db_url')
-@click.option('--port', default=8080, help='Port to run the standalone server', type=int)
-def configure(db_url, port):
+@click.option('--port', default=8080, type=int, envvar='ODMF_PORT',
+              help='Port to run the standalone server')
+@click.option('--root_url', default='/', envvar='ODMF_ROOT_URL',
+              help='URL of the root')
+@click.option('--default_timezone', default='Europe/Berlin', envvar='ODMF_DEFAULT_TIMEZONE',
+              help='Default timezone for all dates')
+def configure(db_url, port, root_url, default_timezone):
     """
     Creates a new configuraton file (./config.yml) using the given database url and a port to run the server on
 
@@ -56,15 +65,17 @@ def configure(db_url, port):
             Access to a database over a network works generally like this:
             - postgresql://odmf-NAME:ThePassword@example.com:5432/odmf-NAME
     """
-    new_config = dict(database_url=db_url, server_port=port)
-    import yaml
+
+    from odmf.config import conf
+    conf.database_url = db_url
+    conf.server_port = port
+    conf.root_url = root_url
+    conf.datetime_default_timezone = default_timezone
+
     from pathlib import Path
     conf_file = Path('config.yml')
-    with conf_file.open('w') as f:
-        yaml.dump(new_config, stream=f)
-    from .config import conf
     conf.to_yaml(conf_file.open('w'))
-    print('New config.yml written')
+    logger.info('config.yml written')
 
 
 @cli.command()
@@ -78,33 +89,20 @@ def systemd_unit():
 
 
 @cli.command()
-@click.option('--new_admin_pass', '-p', help='Password of the new admin',
-              prompt=True, hide_input=True, confirmation_prompt=True)
-def make_db(new_admin_pass):
+@click.option('--admin-pw', '-p', envvar='ODMF_ADMIN_PW', help='Password of the new odmf.admin')
+@click.option('--db_waittime', '-t', envvar='ODMF_DB_WAITTIME', type=float, default=20,
+              help='Seconds to wait for the database')
+def db_create(admin_pw, db_waittime):
     """
     Creates in the database: all tables, a user odmf.admin
     and fills the data-quality table with some usable input
     """
     from .tools import create_db as cdb
-    cdb.create_all_tables()
-    print('created tables')
-    cdb.add_admin(new_admin_pass)
-    print('created admin user odmf.admin')
-    cdb.add_quality_data(cdb.quality_data)
-    print('added quality levels')
+    cdb.init_db(admin_pw, db_waittime)
 
 
 @cli.command()
-def test_config():
-    """
-    Tests the configuration and prints it, if it works
-    """
-    from .config import conf
-    conf.to_yaml()
-
-
-@cli.command()
-def test_db():
+def db_test():
     """
     Tests if the system can be connected to the database
     """
@@ -122,8 +120,8 @@ def test_db():
         for name, table in tables:
             print(f'db.{name}: ', end='')
             q: orm.Query = session.query(table)
-            print(f'{humanize.intword(q.count())} {name} objects in database', end=' - ')
-            print(repr(q.first()))
+            print(f'{humanize.intword(q.count())} {name} objects in database')
+
 
 @cli.command()
 def db_tables():
@@ -135,6 +133,14 @@ def db_tables():
     tables = list(db.Base.metadata.tables)
     print(' '.join(t.name for t in tables))
 
+
+@cli.command()
+def test_config():
+    """
+    Tests the configuration and prints it, if it works
+    """
+    from .config import conf
+    conf.to_yaml()
 
 
 
@@ -228,4 +234,4 @@ def version(verbose: bool):
 
 
 if __name__ == '__main__':
-    cli()
+    cli(auto_envvar_prefix='ODMF')
