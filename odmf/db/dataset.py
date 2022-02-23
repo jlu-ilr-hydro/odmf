@@ -327,6 +327,7 @@ class Record(Base):
 
     __table_args__ = (
         sql.Index('record-dataset-time-index', 'dataset', 'time'),
+        sql.Index('record-dataset-index', 'dataset')
     )
 
     @property
@@ -496,6 +497,7 @@ class Timeseries(Dataset):
 
         # handle empty queries
         df = pd.DataFrame(q_it)
+        # df = pd.read_sql(records, self.session().bind)
         if len(df):
             df.index = df.time
             # Do calibration
