@@ -225,11 +225,28 @@ class Dataset(Base):
     def statistics(self):
         """Calculates mean, stddev and number of records for this data set
         """
-        s = self.asseries()
-        if len(s) == 0:
-            return 0.0, 0.0, 0
-        else:
-            return np.mean(s), np.std(s), len(s)
+        try:  # Try to use sql functions
+            f = sql.sql.func
+            rv = Record.value
+            q = self.session().query(
+                f.avg(rv), f.stddev_samp(rv), f.count(rv)
+            ).filter_by(_dataset=self.id)
+            avg, std, n = q.first()
+            avg = avg or 0.0
+            std = std or 0.0
+            return (
+                avg * self.calibration_slope + self.calibration_offset,
+                std * self.calibration_slope,
+                n
+            )
+
+        except sql.exc.ProgrammingError:
+            s = self.asseries()
+            if len(s) == 0:
+                return 0.0, 0.0, 0
+            else:
+                return np.mean(s), np.std(s), len(s)
+
 
     def iterrecords(self, witherrors=False):
         raise NotImplementedError(
