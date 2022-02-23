@@ -3,6 +3,8 @@ import datetime
 import pytest
 import sqlalchemy.orm
 from contextlib import contextmanager
+from PIL import Image
+import pathlib
 
 
 @pytest.fixture(scope='class')
@@ -286,6 +288,30 @@ class TestProject:
         assert not project < project
         assert str(project).startswith(" ")
         assert repr(project).startswith("<Project")
+
+
+@pytest.fixture()
+def image(db, session, site1_in_db, person):
+    p = pathlib.Path('tmp_path/')
+    p.mkdir(parents=True, exist_ok=True)
+
+    img = Image.new(mode='RGB', size=(400, 300), color=(30, 226, 76))
+    img.save(p / 'test_image.png')
+
+    with Image.open('tmp_path/test_image.png') as img, temp_in_database(
+        db.Image(
+            id=1, name='this is name', time=datetime.datetime(2021, 7, 10),
+            mime='this is mime', site=site1_in_db, by=person,
+            image=img
+        ),
+        session) as image:
+        yield image
+
+
+class TestImage:
+    def test_image(self, image):
+        assert image.id == 1
+
 
 
 # TODO: Amir:
