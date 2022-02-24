@@ -312,13 +312,3 @@ class TestImage:
         assert image.image64()
         assert len(image.image) > 0
         assert len(image.thumbnail) > 0
-
-
-
-
-# TODO: Amir:
-# Advanced:
-# - Image (need to create a temp image with PIL and save to a temp folder)
-
-
-
