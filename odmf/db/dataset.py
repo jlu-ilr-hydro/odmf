@@ -13,6 +13,7 @@ from sqlalchemy.schema import ForeignKey
 from datetime import datetime
 from .dbobjects import newid
 import pytz
+import typing
 
 import numpy as np
 import pandas as pd
@@ -21,6 +22,7 @@ import importlib
 
 from ..config import conf
 from logging import getLogger
+
 logger = getLogger(__name__)
 
 tzberlin = pytz.timezone('Europe/Berlin')
@@ -153,7 +155,7 @@ class Dataset(Base):
     def __str__(self):
         site = self.site.id if self.site else ''
         level = f'{self.level:g} m offset' if self.level is not None else ''
-        return (f'ds{self.id or -999:04d}: {self.valuetype} at #{site} {level} with {self.source} ' 
+        return (f'ds{self.id or -999:04d}: {self.valuetype} at #{site} {level} with {self.source} '
                 f'({self.start or "?"} - {self.end or "?"})').replace("'", r"\'")
 
     def __jdict__(self):
@@ -195,7 +197,7 @@ class Dataset(Base):
     def localizetime(self, time):
         return self.tzinfo.localize(time)
 
-    def copy(self, id):
+    def copy(self, id: int):
         """Creates a new dataset without records with the same meta data as this dataset.
         Give a new (unused) id
         """
@@ -247,7 +249,6 @@ class Dataset(Base):
             else:
                 return np.mean(s), np.std(s), len(s)
 
-
     def iterrecords(self, witherrors=False):
         raise NotImplementedError(
             f'{self}(type={self.type}) - data set has no records to iterate. Is the type correct?'
@@ -292,9 +293,6 @@ class MemRecord(object):
         self.rawvalue = rawvalue
 
 
-record_id_seq = sql.Sequence('record_id_seq', Base)
-
-
 class Record(Base):
     """
     The record holds sinigle measured, quantitative values.
@@ -309,7 +307,7 @@ class Record(Base):
     is_error: if True, the record is marked as error and is not used for analysis
     """
     __tablename__ = 'record'
-    id = sql.Column(sql.Integer, primary_key=True)
+    id = sql.Column(sql.Integer, primary_key=True, autoincrement=not conf.database_url.startswith('sqlite'))
     _dataset = sql.Column("dataset", sql.Integer,
                           sql.ForeignKey('dataset.id'), primary_key=True)
     dataset = orm.relationship("Timeseries", backref=orm.backref(
@@ -343,7 +341,7 @@ class Record(Base):
 
     @classmethod
     def query(cls, session):
-        return session.query(cls).select_from(Dataset).join(Dataset.records)
+        return session.query(cls).select_from(Timeseries).join(Timeseries.records)
 
     def __jdict__(self):
         return dict(id=self.id,
@@ -354,7 +352,6 @@ class Record(Base):
                     comment=self.comment)
 
 
-
 transforms_table = sql.Table('transforms', Base.metadata,
                              sql.Column('target', sql.Integer, ForeignKey(
                                  'transformed_timeseries.id'), primary_key=True),
@@ -362,7 +359,6 @@ transforms_table = sql.Table('transforms', Base.metadata,
 
 
 class Timeseries(Dataset):
-
     __mapper_args__ = dict(polymorphic_identity='timeseries')
 
     def split(self, time):
@@ -465,11 +461,11 @@ class Timeseries(Dataset):
                              f'range for {self.valuetype.name}')
         if not (self.start <= time <= self.end):
             raise ValueError(
-                f'RECORD does not fit DATASET: You tried to insert a record for date {time} ' 
+                f'RECORD does not fit DATASET: You tried to insert a record for date {time} '
                 f'to dataset {self}, which allows only records between {self.start} and {self.end}'
             )
 
-        result = Record(time=time, value=value, dataset=self,
+        result = Record(id=Id, time=time, value=value, dataset=self,
                         comment=comment, sample=sample)
         session.add(result)
         return result
@@ -481,29 +477,6 @@ class Timeseries(Dataset):
         Q = self.session().query
         self.start = min(Q(sql.func.min(Record.time)).filter_by(_dataset=self.id).scalar(), self.start)
         self.end = max(Q(sql.func.max(Record.time)).filter_by(_dataset=self.id).scalar(), self.end)
-
-    def asseries(self, start: datetime=None, end: datetime=None)->pd.Series:
-        """
-        Loads the values of the timeseries dataset as a pandas series
-        """
-        records = self.records.filter_by(_dataset=self.id).filter(~Record.is_error).order_by(Record.time)
-        if start:
-            records = records.filter(Record.time >= start)
-        if end:
-            records = records.filter(Record.time <= end)
-        # Make a query iterator with only the fields needed
-        # TODO: Use pd.read_sql to get the dataframe
-        q_it = records.values('time', 'value')
-
-        # handle empty queries
-        df = pd.DataFrame(q_it)
-        # df = pd.read_sql(records, self.session().bind)
-        if len(df):
-            df.index = df.time
-            # Do calibration
-            return self.calibration_slope * df.value + self.calibration_offset
-        else:
-            return pd.Series([], index=pd.to_datetime([]), dtype=float)
 
     def size(self):
         return self.records.count()
@@ -524,6 +497,35 @@ class Timeseries(Dataset):
                             time=r.time, value=r.calibrated,
                             sample=r.sample, comment=r.comment,
                             rawvalue=r.value, is_error=r.is_error)
+
+    def asseries(self, start: typing.Optional[datetime] = None, end: typing.Optional[datetime] = None, with_errors=False)->pd.Series:
+        """
+        Returns a pandas series of the calibrated non-error
+        :param start: A start time for the series
+        :param end: An end time for the series
+        """
+        query = self.session().query
+        records = query(Record.time, Record.value).filter_by(_dataset=self.id)
+        if not with_errors:
+            records = records.filter(~Record.is_error)
+        if start:
+            records = records.filter(Record.time >= start)
+        if end:
+            records = records.filter(Record.time <= end)
+
+        # Load data from database into dataframe and get the value-Series
+        values = pd.read_sql(records.statement, self.session().bind, index_col='time')['value']
+
+        # If no data is present, ensure the right dtype for the empty series
+        if values.empty:
+            return pd.Series([], index=pd.to_datetime([]), dtype=float)
+
+        # Sort by time ascending
+        values.sort_index(inplace=True)
+        # Do calibration
+        values *= self.calibration_slope
+        values += self.calibration_offset
+        return values
 
 
 class TransformedTimeseries(Dataset):
