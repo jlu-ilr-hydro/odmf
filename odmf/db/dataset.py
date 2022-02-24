@@ -92,7 +92,15 @@ class Dataset(Base):
     for set of records. The data set connects the single observations / measurements with
     the other objects of the databas, like place (site), value type, user etc.
 
-    Databse fields:
+    Dataset is the parent class for other types of datasets, namely Timeseries and TransformedTimeseries,
+    possibly more in the future.
+
+    It uses SQLAlchemy's single table inheritance mechanism
+    https://docs.sqlalchemy.org/en/14/orm/inheritance.html#single-table-inheritance
+    to extend the functionality or the joined table inheritance
+     https://docs.sqlalchemy.org/en/14/orm/inheritance.html#joined-table-inheritance
+
+    Datbase fields:
     id: numerical key to the dataset
     name: a short description of the content
     filename: a reference to an existing file in the download area

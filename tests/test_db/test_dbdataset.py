@@ -1,4 +1,7 @@
 import datetime
+
+import numpy as np
+import pandas as pd
 import pytest
 import sqlalchemy.orm
 from contextlib import contextmanager
@@ -105,28 +108,71 @@ def dataset(db, session, value_type, quality, person, datasource1_in_db, site1_i
             start=datetime.datetime(2020, 2, 20), end=datetime.datetime(2030, 12, 20),
             site=site1_in_db, valuetype=value_type, measured_by=person, quality=quality,
             source=datasource1_in_db, calibration_offset=0, calibration_slope=1, comment='this is a comment',
-            type='this is a type', level=2
+            level=2
         ),
         session) as dataset:
         yield dataset
 
 
+class TestDataset:
+    def test_dataset(self, site1_in_db, dataset):
+        assert dataset.id == 1
+        assert dataset.type is None
+        assert dataset.site == site1_in_db
+
+
 @pytest.fixture()
-def record(db, session, dataset):
+def timeseries(db, session, value_type, quality, person, datasource1_in_db, site1_in_db):
+    with temp_in_database(
+            db.Timeseries(
+                id=1, name='this is a name', filename='this is a filename',
+                start=datetime.datetime(2020, 2, 20), end=datetime.datetime(2030, 12, 20),
+                site=site1_in_db, valuetype=value_type, measured_by=person, quality=quality,
+                source=datasource1_in_db, calibration_offset=0, calibration_slope=1, comment='this is a comment',
+                level=2
+            ),
+            session) as dataset:
+        yield dataset
+
+
+
+@pytest.fixture()
+def record(db, session, timeseries):
     with temp_in_database(
         db.Record(
-            id=1, dataset=dataset, time=datetime.datetime(2021, 5, 10),
+            id=1, dataset=timeseries, time=datetime.datetime(2021, 5, 10),
             value=5, sample='this is a sample', comment='this is a comment',
             is_error=False
         ),
         session) as record:
         yield record
 
-class TestRecord:
-    def test_record(self, record):
+
+@pytest.fixture()
+def thousand_records(db, session, timeseries):
+    data = np.arange(-10, 190, 0.2)
+    index = pd.date_range('2022-01-01', periods=len(data), freq='h')
+    dataframe = pd.DataFrame(data, index=index)
+    ... # TODO: save to database
+
+
+class TestTimeseries:
+
+    def test_timeseries_empty(self, timeseries):
+        assert timeseries
+        assert timeseries.records.count() == 0
+        d = timeseries.__jdict__()
+        assert isinstance(d, dict)
+        assert 'id' in d
+
+
+    def test_record(self, timeseries, record):
         assert record
         assert record.id == 1
         assert str(record).startswith(record.dataset.name)
-        d = value_type.__jdict__()
+        d = record.__jdict__()
         assert isinstance(d, dict)
         assert 'id' in d
+        assert timeseries.records.count() == 1
+
+
