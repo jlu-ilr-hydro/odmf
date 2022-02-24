@@ -291,18 +291,16 @@ class TestProject:
 
 
 @pytest.fixture()
-def image(db, session, site1_in_db, person):
-    p = pathlib.Path('tmp_path/')
-    p.mkdir(parents=True, exist_ok=True)
+def image(tmp_path, db, session, site1_in_db, person):
 
     img = Image.new(mode='RGB', size=(400, 300), color=(30, 226, 76))
-    img.save(p / 'test_image.png')
+    img.save(tmp_path / 'test_image.png')
 
-    with Image.open('tmp_path/test_image.png') as img, temp_in_database(
+    with temp_in_database(
         db.Image(
-            id=1, name='this is name', time=datetime.datetime(2021, 7, 10),
-            mime='this is mime', site=site1_in_db, by=person,
-            image=img
+            time=datetime.datetime(2021, 7, 10), format='png',
+            site=site1_in_db, by=person,
+            imagefile=str(tmp_path / 'test_image.png')
         ),
         session) as image:
         yield image
@@ -310,7 +308,11 @@ def image(db, session, site1_in_db, person):
 
 class TestImage:
     def test_image(self, image):
-        assert image.id == 1
+        assert image
+        assert image.image64()
+        assert len(image.image) > 0
+        assert len(image.thumbnail) > 0
+
 
 
 

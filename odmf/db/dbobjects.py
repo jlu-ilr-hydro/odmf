@@ -231,7 +231,6 @@ class Image(Base):
 
     def __PIL_to_stream(self, img, height, format):
         from PIL import Image as pil
-        print('piltostream %s' % self.id)
         lores = img.resize(
             (height * img.size[0] // img.size[1], height), pil.ANTIALIAS)
         buffer = BytesIO()
@@ -246,12 +245,12 @@ class Image(Base):
 
     def __init__(self, site=None, time=None, by=None, format='jpeg', imagefile=""):
         from PIL import Image as pil
-        img = pil.open(imagefile)
         self.mime = 'image/' + format
-        self.image = self.__PIL_to_stream(
-            img, self.imageheight, format).getvalue()
-        self.thumbnail = self.__PIL_to_stream(
-            img, self.thumbnailheight, format).getvalue()
+        with pil.open(imagefile) as img:
+            self.image = self.__PIL_to_stream(
+                img, self.imageheight, format).getvalue()
+            self.thumbnail = self.__PIL_to_stream(
+                img, self.thumbnailheight, format).getvalue()
         self.by = by
         if not time:
             try:
