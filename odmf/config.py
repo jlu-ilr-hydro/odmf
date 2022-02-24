@@ -132,8 +132,7 @@ def load_config(path=prefix):
     conf_file = Path(path) / 'config.yml'
     logger.debug('Found config file:' + str(conf_file.absolute()))
     if not conf_file.exists():
-        logger.warning(f'{conf_file.absolute().as_posix()} '
-                   f'not found. Create a template with "odmf configure". Using incomplete configuration')
+        logger.info(f'{conf_file.absolute().as_posix()} not found, using empty config')
         conf_dict = {}
     else:
         conf_dict = yaml.safe_load(conf_file.open()) or {}

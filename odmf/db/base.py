@@ -17,6 +17,7 @@ from contextlib import contextmanager
 from logging import info
 from functools import total_ordering
 
+
 def newid(cls, session):
     """Creates a new id for all mapped classes with an field called id, which is of integer type"""
     max_id = session.query(sql.func.max(cls.id)).select_from(cls).scalar()
