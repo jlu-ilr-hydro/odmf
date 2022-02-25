@@ -101,7 +101,7 @@ def prepare_workdir():
     lock_path = prefix + '/sessions'
     
     logger.debug('Ensure subdirectories')
-    for d in ['media', 'sessions', 'preferences/plots', conf.datafiles]:
+    for d in ['media', 'sessions', 'preferences/plots']:
         os.makedirs(prefix + '/' + d, exist_ok=True)
 
     logger.debug(f"Kill session lock files in {lock_path}")

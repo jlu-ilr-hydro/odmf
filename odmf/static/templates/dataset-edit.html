@@ -559,7 +559,7 @@
                     </form>
                 </div>
                 <div id="transforms" class="tab-pane" role="tabpanel" py:if="ds_act.is_transformed()">
-                    <h3>This data set transforms the records of the following data sets:</h3>
+                    <h3>This data set transforms the records of the following <span py:content="len(ds_act.sources)"/> data sets:</h3>
                     <ul style="list-style:none;">
                         <li py:for="source in ds_act.sources" class="mb-1">
                             <button class="btn btn-danger btn-small mr-1"
