@@ -6,5 +6,5 @@ import sys
 
 if __name__ == '__main__':
     logger = logging.getLogger(__name__)
-    logging.basicConfig(level='INFO', stream=sys.stderr)
+    logging.basicConfig(level='WARNING', stream=sys.stderr)
     odmf.cli()

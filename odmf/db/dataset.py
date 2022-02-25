@@ -295,7 +295,7 @@ class Record(Base):
     is_error: if True, the record is marked as error and is not used for analysis
     """
     __tablename__ = 'record'
-    id = sql.Column(sql.Integer, primary_key=True, autoincrement=not conf.database_url.startswith('sqlite'))
+    id = sql.Column(sql.Integer, primary_key=True)
     _dataset = sql.Column("dataset", sql.Integer,
                           sql.ForeignKey('dataset.id'), primary_key=True)
     dataset = orm.relationship("Timeseries", backref=orm.backref(
@@ -467,6 +467,7 @@ class Timeseries(Dataset):
 
         if time is None:
             time = datetime.now()
+        Id = Id or self.maxrecordid() + 1
 
         if (not self.valuetype.inrange(value)):
             raise ValueError(f'RECORD does not fit VALUETYPE: {value:g} {self.valuetype.unit} is out of '
