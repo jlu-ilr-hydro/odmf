@@ -467,6 +467,7 @@ class Timeseries(Dataset):
 
         if time is None:
             time = datetime.now()
+        Id = Id or self.maxrecordid() + 1
 
         if (not self.valuetype.inrange(value)):
             raise ValueError(f'RECORD does not fit VALUETYPE: {value:g} {self.valuetype.unit} is out of '
