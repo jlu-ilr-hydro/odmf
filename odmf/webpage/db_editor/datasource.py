@@ -11,24 +11,22 @@ class DatasourcePage:
 
     @expose_for(group.guest)
     def default(self, id='new'):
-        session = db.Session()
-        instruments = session.query(db.Datasource).order_by(db.Datasource.id)
-        error = ''
-        if id == 'new':
-            newid = db.newid(db.Datasource, session)
-            inst = db.Datasource(id=newid,
-                                 name='<Name>')
-        else:
-            try:
-                inst = session.query(db.Datasource).get(int(id))
-            except:
-                error = traceback()
-                inst = None
+        with db.session_scope() as session:
+            instruments = session.query(db.Datasource).order_by(db.Datasource.id)
+            error = ''
+            if id == 'new':
+                newid = db.newid(db.Datasource, session)
+                inst = db.Datasource(id=newid,
+                                     name='<Name>')
+            else:
+                try:
+                    inst = session.query(db.Datasource).get(int(id))
+                except:
+                    error = traceback()
+                    inst = None
 
-        result = web.render('instrument.html', instruments=instruments,
+            return web.render('instrument.html', instruments=instruments,
                             actualinstrument=inst, error=error).render()
-        session.close()
-        return result
 
     @expose_for(group.editor)
     def saveitem(self, **kwargs):
@@ -38,17 +36,15 @@ class DatasourcePage:
             return web.render(error=traceback(), title='Datasource #%s' % kwargs.get('id'))
         if 'save' in kwargs:
             try:
-                session = db.Session()
-                inst = session.query(db.Datasource).get(int(id))
-                if not inst:
-                    inst = db.Datasource(id=id)
-                    session.add(inst)
-                inst.name = kwargs.get('name')
-                inst.sourcetype = kwargs.get('sourcetype')
-                inst.comment = kwargs.get('comment')
-                inst.manuallink = kwargs.get('manuallink')
-                session.commit()
-                session.close()
+                with db.session_scope() as session:
+                    inst = session.query(db.Datasource).get(int(id))
+                    if not inst:
+                        inst = db.Datasource(id=id)
+                        session.add(inst)
+                    inst.name = kwargs.get('name')
+                    inst.sourcetype = kwargs.get('sourcetype')
+                    inst.comment = kwargs.get('comment')
+                    inst.manuallink = kwargs.get('manuallink')
             except:
                 return web.render('empty.html', error=traceback(), title='valuetype #%s' % id
                                   ).render()

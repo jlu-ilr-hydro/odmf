@@ -53,11 +53,11 @@ class Root(object):
         Root home: Shows the map page if the current user has no urgent jobs.
         """
         if web.user():
-            session = db.Session()
-            user = session.query(db.Person).get(web.user())
-            if user and user.jobs.filter(db.Job.done == False, db.Job.due - datetime.now() < timedelta(days=7)).count():
-                raise web.redirect(conf.root_url + '/job')
-        return self.map.index()
+            with db.session_scope() as session:
+                user = session.query(db.Person).get(web.user())
+                if user and user.jobs.filter(~db.Job.done, db.Job.due - datetime.now() < timedelta(days=7)).count():
+                    raise web.redirect(conf.root_url + '/job')
+            return self.map.index()
 
     @expose_for()
     @web.show_in_nav_for(icon='key')
