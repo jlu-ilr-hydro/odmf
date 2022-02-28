@@ -18,7 +18,8 @@
             function addinstrument() {
                 data = {siteid:$('#siteselect').val(),
                     date:escape($('#installationdate').val()),
-                    instrumentid:${actualinstrument.id}
+                    instrumentid:${actualinstrument.id},
+                    comment:$('#installation-comment').val()
                 };
                 $.post(odmf_ref('/site/addinstrument'),data,function (data,textStatus,jqHXR){
                     if (data=='') {
@@ -167,20 +168,30 @@
                         >
                             <option disabled="disabled">select site...</option>
                         </select>
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-comment"/></span>
+                        </div>
+                        <input class="form-control" placeholder="installation comment"/>
+                    </div>
+                    <div class="input-group mb-2">
                     </div>
                     <h4>Current installation</h4>
                     <ul style="margin-top:0px;padding-top:0px;">
                         <li py:for="inst in actualinstrument.sites" >
-                            <a  href="${conf.root_url}/site/${inst.site.id}"
-                                py:if="inst.active"
-                                py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
-                            <span py:if="not inst.active" class="removed"
-                                  py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
-                            <a href="javascript:removeinstrument(${inst.id},${inst.site.id})"
-                               py:if="is_member('editor') and inst.active"
-                               class="btn btn-outline-primary btn-sm rounded-circle"
-                               title="remove installation" data-toggle="tooltip"
-                            ><i class="fas fa-minus"/></a>
+                            <div>
+                                <a  href="${conf.root_url}/site/${inst.site.id}#instrumentlist"
+                                    py:if="inst.active"
+                                    py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
+                                <span py:if="not inst.active" class="removed"
+                                      py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
+                                <a href="javascript:removeinstrument(${inst.id},${inst.site.id})"
+                                   py:if="is_member('editor') and inst.active"
+                                   class="btn btn-outline-danger btn-sm"
+                                   title="remove installation" data-toggle="tooltip"
+                                ><i class="fas fa-minus"/></a>
+
+                            </div>
+                            <div py:content="inst.comment"/>
                         </li>
                     </ul>
                 </div>

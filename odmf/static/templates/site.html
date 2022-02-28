@@ -267,24 +267,38 @@
                                     </select>
                                 </div>
                             </div>
+                            <div class="form-group row">
+                                <div class="col-lg-4">
+                                    <label for="instrument-comment">Comment</label>
+                                </div>
+                                <div class="col-lg-8">
+                                    <input id="instrument-comment" class="form-control"/>
+                                </div>
+                            </div>
                             <button id="add-instrument-button" class="btn btn-success">
                                 ok
                             </button>
                         </form>
                         <ul class="mt-4 border">
                             <li py:for="inst in actualsite.instruments" >
-                                <a  href="${conf.root_url}/instrument/${inst.instrument.id}"
-                                    py:if="inst.active"
-                                    py:content="f'since {formatdate(inst.installdate)}: {inst.instrument}'" />
-                                <span py:if="not inst.active" class="removed"
-                                      py:content="f'until {formatdate(inst.removedate)}: {inst.instrument}'" />
-                                <button data-installation="${inst.id}" data-instrument="${inst.instrument.id}" data-site="${inst.site.id}"
-                                        py:if="is_member('editor') and inst.active"
-                                        class="btn btn-outline-danger btn-sm rounded-circle installation-remove-button"
-                                        title="remove installation" data-toggle="tooltip"
-                                >
-                                    <i class="fas fa-times"/>
-                                </button>
+                                <div>
+                                    <a  href="${conf.root_url}/instrument/${inst.instrument.id}"
+                                        py:if="inst.active"
+                                        py:content="f'since {formatdate(inst.installdate)}: {inst.instrument}'" />
+                                    <span py:if="not inst.active" class="removed"
+                                          py:content="f'until {formatdate(inst.removedate)}: {inst.instrument}'" />
+                                    <button data-installation="${inst.id}" data-instrument="${inst.instrument.id}" data-site="${inst.site.id}"
+                                            py:if="is_member('editor') and inst.active"
+                                            class="btn btn-outline-danger btn-sm installation-remove-button"
+                                            title="remove installation" data-toggle="tooltip"
+                                    >
+                                        <i class="fas fa-minus"/>
+                                    </button>
+
+                                </div>
+                                <div py:content="inst.comment" />
+
+
                             </li>
                         </ul>
                     </div>
