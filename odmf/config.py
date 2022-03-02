@@ -52,7 +52,7 @@ class Configuration:
     woftester_sender_mail = 'woftester@umwelt.uni-giessen.de'
     cuahsi_wsdl_endpoint = 'http://fb09-pasig.umwelt.uni-giessen.de/wof/index.php/cuahsi_1_1.asmx?WSDL'
     smtp_serverurl = 'mailout.uni-giessen.de'
-    root_url = '/'
+    root_url = ''
     datafiles = './datafiles'
     preferences = './preferences'
     description = 'A server for data-management for quantitative field research'
@@ -135,7 +135,8 @@ def load_config(path=prefix):
         logger.info(f'{conf_file.absolute().as_posix()} not found, using empty config')
         conf_dict = {}
     else:
-        conf_dict = yaml.safe_load(conf_file.open()) or {}
+        with conf_file.open() as f:
+            conf_dict = yaml.safe_load(f) or {}
         logger.debug(f'loaded {conf_file.resolve()}')
     conf = Configuration(**conf_dict)
 
