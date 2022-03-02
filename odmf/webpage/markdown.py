@@ -64,7 +64,7 @@ class VideoPattern(Pattern):
         :param m:
         :return:
         """
-        el = markdown.util.etree.Element("video")
+        el = etree.Element("video")
         el.set('src', m.group(3))
         el.set('controls', "controls")
         el.set('type', "video/mp4")
@@ -92,13 +92,13 @@ class VideoAlphaPattern(Pattern):
         :param m:
         :return:
         """
-        el = markdown.util.etree.Element("video")
+        el = etree.Element("video")
         el.set('src', m.group(3))
         el.set('controls',"")
         el.set('type', "video/mp4")
         el.set('class', "html5AlphaVideo_video")
 
-        par_el = markdown.util.etree.Element("div")
+        par_el = etree.Element("div")
         par_el.set("class", "html5AlphaVideo_wrapperDiv")
         par_el.append(el)
         return par_el
@@ -152,7 +152,7 @@ class UrlizePattern(Pattern):
                 else:
                     url = 'https://' + url
 
-            el = markdown.util.etree.Element("a")
+            el = etree.Element("a")
             el.set('href', url)
             el.text = markdown.util.AtomicString(text)
             return el
