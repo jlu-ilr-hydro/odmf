@@ -57,8 +57,7 @@ class Root(object):
                 user = session.query(db.Person).get(web.user())
                 if user and user.jobs.filter(~db.Job.done, db.Job.due - datetime.now() < timedelta(days=7)).count():
                     raise web.redirect(conf.root_url + '/job')
-        else:
-            return self.map.index()
+        return self.map.index()
 
     @expose_for()
     @web.show_in_nav_for(icon='key')
@@ -68,25 +67,18 @@ class Root(object):
         """
         if logout:
             users.logout()
-            if frompage:
-                raise web.HTTPRedirect(frompage or conf.root_url)
-            else:
-                return web.render('login.html', error=error, frompage=frompage).render()
+            return web.render('login.html', error=error, frompage=frompage).render()
 
         elif username and password:
+            # Try the login
             error = users.login(username, password)
-
+            frompage = frompage or conf.root_url + '/login'
             if error:
-                raise web.redirect('login.html', error=error, frompage=frompage)
-
-            elif frompage:
-                if 'login' in frompage:
-                    return web.render('login.html', error=error, frompage=frompage).render()
-                else:
-                    raise web.HTTPRedirect(frompage)
+                raise web.redirect('login', error=error, frompage=frompage)
             else:
-                return web.render('login.html', error=error, frompage=frompage).render()
+                raise web.redirect(frompage)
         else:
+            # Username or password not given, let the use retry
             return web.render('login.html', error=error, frompage=frompage).render()
 
 
@@ -106,18 +98,14 @@ class Root(object):
         A simple markdown API access. Can be used for text files
         """
         fn = conf.abspath(fn)
-        if os.path.exists(fn):
-            return web.markdown(open(fn).read())
-        else:
-            return ''
+        return web.markdown(fn.read_text())
 
     def markdownpage(self, content, title=''):
         """
         Returns a fully rendered page with navigation including the rendered markdown content
         """
-        res = web.render('empty.html', title=title,
-                         error='').render()
-        return res.replace('<!--content goes here-->', web.markdown(content))
+        return web.render('empty.html', title=title,
+                         error='', success='', content=content).render()
 
     @expose_for()
     @web.mime.plain
@@ -133,7 +121,7 @@ class Root(object):
 
     @expose_for()
     @web.method.get
-    def resources(self, format='json'):
+    def resources(self, format='html'):
         """
         Returns a json object representing all resources of this cherrypy web-application
         """
@@ -173,6 +161,18 @@ class Root(object):
                 buf = io.StringIO()
                 df.to_csv(buf, sep='\t')
                 return buf.getvalue().encode('utf-8')
+        elif format == 'html':
+            def get_icon(icon: str):
+                if icon:
+                    return f'!fa-{icon}'
+                else:
+                    return ''
+            md_text = '\n\n'.join(
+                '#' * r.uri.count('/') + f' {get_icon(r.icon)} {r.uri}\n\n - level: {r.level}\n - methods: {r.methods}\n\n{r.doc}'
+                for r in root.walk()
+                if not r.level or is_member(r.level)
+            )
+            return self.markdownpage(md_text, 'Site map')
 
 
     def __init__(self):
@@ -180,4 +180,5 @@ class Root(object):
         Creates the root page and marks self as the root object
         """
         web.render.set_root(self)
+
 
