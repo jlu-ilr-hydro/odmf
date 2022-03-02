@@ -32,14 +32,11 @@ class StaticServer:
         listdir
             Indicates if this static page should list its content
         """
-        if home_dir.startswith('/'):
-            self.homes = [Path(home_dir)]
-        else:
-            self.homes = [
-                (Path(static_home) / home_dir).absolute()
-                for static_home in conf.static
-                if (Path(static_home) / home_dir).exists()
-            ]
+        self.homes = [
+            (Path(static_home) / home_dir).absolute()
+            for static_home in conf.static
+            if (Path(static_home) / home_dir).exists()
+        ]
         self.listdir = listdir
 
     def _cp_dispatch(self, vpath):
@@ -91,5 +88,5 @@ class StaticServer:
             web.mime.html.set()
             return filelist2html(p.iterdir())
         else:
-            raise web.HTTPError(404)
+            raise web.HTTPError(403, message='Directory forbidden')
 

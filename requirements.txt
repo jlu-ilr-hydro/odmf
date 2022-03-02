@@ -37,6 +37,7 @@ ipython>=8.0.1
 # Tests
 pytest
 pytest-postgresql
+coverage
 
 # woftester only
 lxml

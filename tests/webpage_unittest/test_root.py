@@ -171,3 +171,33 @@ def test_robots_txt(root):
     assert 'Disallow: /' in text
 
 
+class TestStatic:
+    def test_media_dir(self, root):
+        html = root.media.index()
+        assert html.startswith('<ul>')
+
+    def test_media_favicon(self, root):
+        html = root.media.index('ilr-favicon.png').input.read()
+        assert len(html) == 878
+
+    def test_media_missing(self, root):
+        with pytest.raises(cherrypy.HTTPError):
+            root.media.index('xxxxx.xyz')
+
+    def test_media_dir_forbidden(self, root):
+        root.media.listdir = False
+        with pytest.raises(cherrypy.HTTPError):
+            root.media.index()
+        root.media.listdir = True
+
+    def test_media_illegal_path(self, root):
+        with pytest.raises(cherrypy.HTTPError) as e:
+            root.media.index('../templates')
+        assert e.value.code == 403
+
+
+    def test_cp_dispatch(self, root):
+        path = 'media/js/plot.js'
+        root.media._cp_dispatch(path.split('/'))
+        out_path = cherrypy.request.params['path']
+        assert out_path == path
