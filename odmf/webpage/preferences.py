@@ -22,14 +22,11 @@ class Preferences(object):
                  site=int)
 
     def __init__(self):
-        #f = None
-        try:
-            with open(self.filename, 'r') as f:
+        if self.filename.exists():
+            with self.filename.open() as f:
                 self.data = json.load(f)
-        except Exception as e:
+        else:
             self.data = Preferences.default
-
-            traceback.print_tb(e.__traceback__)
 
     @property
     def filename(self):
