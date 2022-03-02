@@ -5,18 +5,20 @@ Created on 15.05.2013
 @author: kraft-p
 '''
 import markdown
-from kajiki.template import literal as literal
+from markdown.inlinepatterns import Pattern
+from xml.etree import ElementTree as etree
 import bleach
+import typing
+import re
 
 
 
-
-class PatternLink(markdown.inlinepatterns.Pattern):
+class PatternLink(Pattern):
     """
     Creates a link from a specific Regular Expression pattern
     """
 
-    def __init__(self, md, pattern: str, href: str, text: str):
+    def __init__(self, md, pattern: str, href: typing.Union[str, typing.Callable], text: typing.Union[str, typing.Callable]):
         """
         Creates the rule to substitute a pattern with a link
         md: The MarkDown object
@@ -41,13 +43,13 @@ class PatternLink(markdown.inlinepatterns.Pattern):
             text = self.text(m)
         except TypeError:
             text = m.expand(self.text)
-        el = markdown.util.etree.Element("a")
+        el = etree.Element("a")
         el.set('href', href)
         el.text = markdown.util.AtomicString(text)
         return el
 
 
-class VideoPattern(markdown.inlinepatterns.Pattern):
+class VideoPattern(Pattern):
     def __init__(self, md, pattern):
         super(VideoPattern, self).__init__(pattern, md)
 
@@ -70,7 +72,7 @@ class VideoPattern(markdown.inlinepatterns.Pattern):
         return el
 
 
-class VideoAlphaPattern(markdown.inlinepatterns.Pattern):
+class VideoAlphaPattern(Pattern):
     """
     This Creates a HTML-5-Element with an extra wrapper div, to handle alpha-formated Video.
     Later a javscript function will convert this alpha videos in videos with transparent background
@@ -97,18 +99,30 @@ class VideoAlphaPattern(markdown.inlinepatterns.Pattern):
         el.set('class', "html5AlphaVideo_video")
 
         par_el = markdown.util.etree.Element("div")
-        par_el.set("class","html5AlphaVideo_wrapperDiv")
+        par_el.set("class", "html5AlphaVideo_wrapperDiv")
         par_el.append(el)
         return par_el
 
 
-class SymbolPattern(markdown.inlinepatterns.Pattern):
+class SymbolPattern(Pattern):
     def __init__(self, md, pattern, out):
         super(SymbolPattern, self).__init__(pattern, md)
         self.out = out
 
     def handleMatch(self, m):
         return self.out
+
+class FontAwesomePattern(Pattern):
+    def __init__(self, md):
+        super().__init__(r'!(fa\-\S+)', md)
+
+    def handleMatch(self, m: re.Match[str]):
+        icon = m.expand(r'\2')
+
+        el = etree.Element("i")
+        el.set('class', 'fas ' + icon)
+        return el
+
 
 
 # The UrlizePattern class is taken from: https://github.com/r0wb0t/markdown-urlize/blob/master/urlize.py
@@ -121,7 +135,7 @@ URLIZE_RE = '(%s)' % '|'.join([
 ])
 
 
-class UrlizePattern(markdown.inlinepatterns.Pattern):
+class UrlizePattern(Pattern):
     """ Return a link Element given an autolink (`http://example/com`). """
 
     def handleMatch(self, m):
@@ -146,51 +160,40 @@ class UrlizePattern(markdown.inlinepatterns.Pattern):
             return None
 
 
-class SchwingbachExtension(markdown.Extension):
-    def extendMarkdown(self, md, md_globals):
+class ODMFExtension(markdown.Extension):
+    def extendMarkdown(self, md: markdown.Markdown) -> None:
         """ Replace autolink with UrlizePattern """
         from ..config import conf
         def user2name(s):
             return ' '.join(S.title() for S in s.group(3).split('.'))
+        url = conf.root_url
+        if url.endswith('/'):
+            url = url[:-1]
+        md.inlinePatterns.register(PatternLink(md, r'(ds)([0-9]+)', url + r'/dataset/\3/', '\u25B8' + r'\2\3'), 'link datasets', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(file:)(\S+)', url + r'/download/\3', '\u25B8' + r'\3'), 'link files', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(#)([0-9]+)', url + r'/site/\3', '\u25B8' + r'\2\3'), 'link sites', 1000)
+        md.inlinePatterns.register(PatternLink(md, r'(job:)([0-9]+)', url + r'/job/\3', '\u25B8' + r'\2\3'), 'link job', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(dir:)(\S+)', url + r'/download/\3', '\u25B8' + r'\3'), 'link dir', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(user:)([a-zA-Z\.]+)', url + r'/user/\3', user2name), 'link user', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(photo:)([0-9]+)', url + r'/picture/?id=\3', '\u25B8' + r'\2\3'), 'link photo', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(log:)([0-9]+)', url + r'/log/\3', '\u25B8' + r'\2\3'), 'link log', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(wiki:)([\w/]+)', url + r'/download/\3', '[\\3]'), 'link wiki', 100)
 
-        md.inlinePatterns['link datasets'] = PatternLink(
-            md, '(ds)([0-9]+)', conf.root_url + r'/dataset/\3/', '\u25B8' + r'\2\3')
-        md.inlinePatterns['link files'] = PatternLink(
-            md, r'(file:)(\S+)', conf.root_url + r'/download/\3', '\u25B8' + r'\3')
-        md.inlinePatterns['link sites'] = PatternLink(
-            md, '(#)([0-9]+)', r'/site/\3', '\u25B8' + r'\2\3')
-        md.inlinePatterns['link job'] = PatternLink(
-            md, '(job:)([0-9]+)', conf.root_url + r'/job/\3', '\u25B8' + r'\2\3')
-        md.inlinePatterns['link dir'] = PatternLink(
-            md, '(dir:)(\S+)', conf.root_url + r'/download/\3', '\u25B8' + r'\3')
-        md.inlinePatterns['link user'] = PatternLink(
-            md, r'(user:)([a-zA-Z\.]+)', conf.root_url + r'/user/\3', user2name)
-        md.inlinePatterns['link photo'] = PatternLink(
-            md, '(photo:)([0-9]+)', conf.root_url + r'/picture/?id=\3', '\u25B8' + r'\2\3')
-        md.inlinePatterns['link log'] = PatternLink(
-            md, '(log:)([0-9]+)', conf.root_url + r'/log/\3', '\u25B8' + r'\2\3')
-        md.inlinePatterns['link wiki'] = PatternLink(
-            md, '(wiki:)([\w/]+)', conf.root_url + r'/download/\3', '[\\3]')
-        md.inlinePatterns['replace rarrow'] = SymbolPattern(
-            md, r'(-->)', '\u2192')
-        md.inlinePatterns['replace larrow'] = SymbolPattern(
-            md, r'(<--)', '\u2190')
-        md.inlinePatterns['replace rarrow big'] = SymbolPattern(
-            md, r'(==>)', '\u21D2')
-        md.inlinePatterns['replace larrow big'] = SymbolPattern(
-            md, r'(<==)', '\u21D0')
-        md.inlinePatterns['alphavideo'] = VideoAlphaPattern(
-            md, r'(alpha-video:)([\w\.\:\-\/]*)(\[\d+\])?(\[\d+\])?')
-        md.inlinePatterns['video'] = VideoPattern(
-            md, r'(video:)([\w\.\:\-\/]*)')
+        md.inlinePatterns.register(SymbolPattern(md, r'(-->)', '\u2192'), 'replace rarrow', 100)
+        md.inlinePatterns.register(SymbolPattern(md, r'(<--)', '\u2190'), 'replace larrow', 100)
+        md.inlinePatterns.register(SymbolPattern(md, r'(==>)', '\u21D2'), 'replace rarrow big', 100)
+        md.inlinePatterns.register(SymbolPattern(md, r'(<==)', '\u21D0'), 'replace larrow big', 100)
+        md.inlinePatterns.register(VideoAlphaPattern(md, r'(alpha-video:)([\w\.\:\-\/]*)(\[\d+\])?(\[\d+\])?'), 'alphavideo', 100)
+        md.inlinePatterns.register(VideoPattern(md, r'(video:)([\w\.\:\-\/]*)'), 'video', 100)
+        md.inlinePatterns.register(FontAwesomePattern(md), 'fa-icon', 100)
 
 
 class UrlizeExtension(markdown.Extension):
     """ Urlize Extension for Python-Markdown. """
 
-    def extendMarkdown(self, md, md_globals):
+    def extendMarkdown(self, md: markdown.Markdown):
         """ Replace autolink with UrlizePattern """
-        md.inlinePatterns['autolink'] = UrlizePattern(URLIZE_RE, md)
+        md.inlinePatterns.register(UrlizePattern(URLIZE_RE, md), 'autolink', 100)
 
 
 class bleach_allow:
@@ -214,7 +217,7 @@ class bleach_allow:
 
 class MarkDown:
     def __init__(self):
-        se = SchwingbachExtension()
+        se = ODMFExtension()
         al = UrlizeExtension()
 
         self.md = markdown.Markdown(extensions=['admonition', 'extra', se, al])
