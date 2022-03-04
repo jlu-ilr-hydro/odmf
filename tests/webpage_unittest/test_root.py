@@ -3,22 +3,9 @@ import json
 import pytest
 import cherrypy
 import datetime
-from contextlib import contextmanager
 from pathlib import Path
 import re
-from . import conf, db, db_session
-
-@contextmanager
-def temp_in_database(obj, session):
-    """
-    Adds the ORM-object obj to the session and commits it to the database.
-    After usage the object is deleted from the session and is commited again
-    """
-    session.add(obj)
-    session.commit()
-    yield obj
-    session.delete(obj)
-    session.commit()
+from . import conf, db, db_session, temp_in_database
 
 
 def test_config():
@@ -112,12 +99,13 @@ def markdown_file(conf):
     p.write_text('\n'.join([
         'ds1000',
         'file:x/y/z',
+        'file:/x/y/z',
         'site #1',
         'user:odmf.admin',
         'https://127.0.0.1:8081',
         '--> ==> <-- <==',
         '!fa-map',
-        'video:https://127.0.0.1:8081/video'
+        'video:https://127.0.0.1/video',
         ]))
     yield p
     p.unlink(missing_ok=True)
@@ -125,25 +113,40 @@ def markdown_file(conf):
 
 class TestMarkDown:
 
-    def test_markdown_simple(self, markdown_file, root):
+    def test_markdown_simple(self, conf, markdown_file, root):
+        md_text = markdown_file.read_text()
+        html_text = root.markdown('test.md').accumulate_str()
+        assert f'href="{conf.root_url}/dataset/1000/"' in html_text
+        assert f'href="{conf.root_url}/site/1"' in html_text
+        assert f'href="{conf.root_url}/download/x/y/z"' in html_text
+        assert f'href="{conf.root_url}/user/odmf.admin"' in html_text
+        assert '<a href="https://127.0.0.1:8081">127.0.0.1:8081</a>' in html_text
+        assert 'class="fas fa-map"' in html_text
+        assert '<video' in html_text
 
-        md_text = root.markdown('test.md').accumulate_str()
-        assert 'href="/dataset/1000/"' in md_text
-        assert 'href="/site/1"' in md_text
-        assert 'href="/download/x/y/z"' in md_text
-        assert 'href="/user/odmf.admin"' in md_text
+    def test_markdown_bytes(self, conf, markdown_file):
+        md_text = markdown_file.read_bytes()
+        from odmf.webpage.lib import markdown
+        html_text = markdown(md_text).accumulate_str()
+        assert f'href="{conf.root_url}/dataset/1000/"' in html_text
+        assert f'href="{conf.root_url}/site/1"' in html_text
+        assert f'href="{conf.root_url}/download/x/y/z"' in html_text
+        assert f'href="{conf.root_url}/user/odmf.admin"' in html_text
+        assert '<a href="https://127.0.0.1:8081">127.0.0.1:8081</a>' in html_text
+        assert 'class="fas fa-map"' in html_text
+        assert '<video' in html_text
 
     def test_markdown_missing_file(self, root):
         with pytest.raises(FileNotFoundError):
             _ = root.markdown('bla.md')
 
-    def test_markdown_page(self, markdown_file, root):
+    def test_markdown_page(self, conf, markdown_file, root):
         t = markdown_file.read_text()
         md_text = root.markdownpage(t, 'test')
-        assert 'href="/dataset/1000/"' in md_text
-        assert 'href="/site/1"' in md_text
-        assert 'href="/download/x/y/z"' in md_text
-        assert 'href="/user/odmf.admin"' in md_text
+        assert f'href="{conf.root_url}/dataset/1000/"' in md_text
+        assert f'href="{conf.root_url}/site/1"' in md_text
+        assert f'href="{conf.root_url}/download/x/y/z"' in md_text
+        assert f'href="{conf.root_url}/user/odmf.admin"' in md_text
 
 
 class TestRessources:
