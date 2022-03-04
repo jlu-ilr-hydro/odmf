@@ -47,9 +47,9 @@ def test_abspath_fail(conf):
 
 def test_update(conf):
     conf.update(conf.to_dict())
-    from odmf import config
-    with pytest.raises(config.ConfigurationError):
-        conf.update({'xyz': 17})
+    conf.update({'xyz': 17})
+    assert 'xyz' not in conf.to_dict()
+
 
 
 def test_home(conf):
