@@ -34,8 +34,7 @@ def add_admin(password=None):
         if session.query(db.Person).get('odmf.admin'):
             logger.info('odmf.admin exists already')
         else:
-            user = db.Person(username='odmf.admin', firstname='odmf', surname='admin',
-                             access_level=4)
+            user = db.Person(username='odmf.admin', firstname='odmf', surname='admin', access_level=4)
             user.password = hashpw(password)
             session.add(user)
             logger.info('odmf.admin user created')
