@@ -23,14 +23,10 @@ server_config = {
 def configure_app(autoreload=False):
 
     static_files = {
-        conf.root_url + '/favicon.ico': {
+        '/favicon.ico': {
             "tools.staticfile.on": True,
             "tools.staticfile.filename": str(conf.abspath("media/ilr-favicon.png"))
         },
-        conf.root_url + '/media': {
-            'tools.caching.on': True,
-            'tools.caching.delay': 3600
-        }
     }
 
     logger.info(f"autoreload = {autoreload}")
@@ -40,24 +36,6 @@ def configure_app(autoreload=False):
         'server.socket_port': conf.server_port,
     })
     return static_files
-
-
-class ProxyRoot:
-
-    exposed=True
-
-    def __init__(self, head_base):
-        from ..webpage.root import Root
-        self.head_base = head_base
-        setattr(self, head_base, Root())
-
-    @expose_for()
-    def index(self):
-        raise cherrypy.HTTPRedirect('/' + self.head_base)
-
-    def __call__(self, *args, **kwargs):
-        r = cherrypy.request
-        raise cherrypy.InternalRedirect(conf.root_url)
 
 
 def start(autoreload=False):
@@ -71,12 +49,9 @@ def start(autoreload=False):
 
     """
     from ..webpage.root import Root
-    if conf.root_url:
-        root = ProxyRoot(conf.root_url.replace('/', ''))
-    else:
-        root = Root()
+    root = Root()
     logger.info(f'Starting server on http://127.0.0.1:{conf.server_port}{conf.root_url}')
-    cherrypy.quickstart(root=root, config=configure_app(autoreload))
+    cherrypy.quickstart(root=root, script_name=conf.root_url, config=configure_app(autoreload))
 
 
 def prepare_workdir():
