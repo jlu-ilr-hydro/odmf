@@ -59,4 +59,3 @@ def test_home(conf):
 def test_google_maps_api(conf):
     assert conf.google_maps_api('js-function')
 
-
