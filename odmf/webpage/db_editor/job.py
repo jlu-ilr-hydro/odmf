@@ -53,15 +53,12 @@ class JobPage:
             ).render()
     @expose_for(group.logger)
     def done(self, jobid, time=None):
-        session = db.Session()
-        job = session.query(db.Job).get(int(jobid))
-        if time:
-            time = web.parsedate(time)
-        msg = job.make_done(users.current.name, time)
+        with db.session_scope() as session:
+            job = session.query(db.Job).get(int(jobid))
+            if time:
+                time = web.parsedate(time)
+            return job.make_done(users.current.name, time)
 
-        session.commit()
-        session.close()
-        return msg
 
     @expose_for(group.editor)
     def saveitem(self, **kwargs):

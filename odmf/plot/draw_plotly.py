@@ -74,7 +74,7 @@ def to_html(plot: Plot)->bytes:
     Alternative could be as an <img> element with base64 data
     """
     fig = _make_figure(plot)
-    return fig.to_html(include_plotlyjs=conf.root_url + '/media/lib/plotly.min.js').encode('utf-8')
+    return fig.to_html(include_plotlyjs='cdn').encode('utf-8')
 
 
 symbols = [

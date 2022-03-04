@@ -17,6 +17,8 @@ import typing
 
 import numpy as np
 import pandas as pd
+from asteval import Interpreter
+
 
 import importlib
 
@@ -295,7 +297,7 @@ class Record(Base):
     is_error: if True, the record is marked as error and is not used for analysis
     """
     __tablename__ = 'record'
-    id = sql.Column(sql.Integer, primary_key=True, autoincrement=not conf.database_url.startswith('sqlite'))
+    id = sql.Column(sql.Integer, primary_key=True)
     _dataset = sql.Column("dataset", sql.Integer,
                           sql.ForeignKey('dataset.id'), primary_key=True)
     dataset = orm.relationship("Timeseries", backref=orm.backref(
@@ -340,10 +342,12 @@ class Record(Base):
                     comment=self.comment)
 
 
-transforms_table = sql.Table('transforms', Base.metadata,
-                             sql.Column('target', sql.Integer, ForeignKey(
-                                 'transformed_timeseries.id'), primary_key=True),
-                             sql.Column('source', sql.Integer, ForeignKey('dataset.id'), primary_key=True))
+transforms_table = sql.Table(
+    'transforms', Base.metadata,
+    sql.Column('target', sql.Integer, ForeignKey(
+        'transformed_timeseries.id'), primary_key=True),
+    sql.Column('source', sql.Integer, ForeignKey('dataset.id'), primary_key=True)
+)
 
 
 class Timeseries(Dataset):
@@ -467,6 +471,7 @@ class Timeseries(Dataset):
 
         if time is None:
             time = datetime.now()
+        Id = Id or self.maxrecordid() + 1
 
         if (not self.valuetype.inrange(value)):
             raise ValueError(f'RECORD does not fit VALUETYPE: {value:g} {self.valuetype.unit} is out of '
@@ -550,6 +555,9 @@ class TransformedTimeseries(Dataset):
     sources = orm.relationship(
         "Timeseries", secondary=transforms_table, order_by="Timeseries.start")
 
+    # An asteval interpreter with minimal functionality
+    interpreter = Interpreter(minimal=True, max_statement_length=300)
+
     def sourceids(self):
         return [s.id for s in self.sources]
 
@@ -578,16 +586,9 @@ class TransformedTimeseries(Dataset):
         self.start = min(ds.start for ds in self.sources)
         self.end = max(ds.end for ds in self.sources)
 
-    def transform(self, x):
-        np_dict = vars(np)
-        expression = self.expression
-        for bi in dir(__builtins__):
-            if bi not in np_dict:
-                expression = expression.replace(bi, '_' + bi)
-        result = eval(expression, {'x': x}, np.__dict__)
-        # TODO: Check if numexpr works
-        # import numexpr as ne
-        # result = ne.evaluate(expression, local_dict=x)
+    def transform(self, x: pd.Series):
+        self.interpreter.symtable['x'] = x.to_numpy()
+        result = self.interpreter(self.expression)
         return pd.Series(result, index=x.index, name=str(self))
 
     def iterrecords(self, witherrors=False, start=None, end=None):

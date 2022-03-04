@@ -28,14 +28,14 @@ logger = getLogger(__name__)
 
 
 def findStartDate(siteid, instrumentid):
-    session = db.Session()
-    ds = session.query(db.Dataset).filter(db.Dataset._site == siteid,
-                                          db.Dataset._source == instrumentid)\
-        .order_by(db.Dataset.end.desc()).first()
-    if ds:
-        return ds.end
-    else:
-        return None
+    with db.session_scope() as session:
+        ds = session.query(db.Dataset).filter(db.Dataset._site == siteid,
+                                              db.Dataset._source == instrumentid)\
+            .order_by(db.Dataset.end.desc()).first()
+        if ds:
+            return ds.end
+        else:
+            return None
 
 
 def finddateGaps(siteid, instrumentid, valuetype, startdate=None, enddate=None):

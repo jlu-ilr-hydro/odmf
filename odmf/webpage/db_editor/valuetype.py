@@ -40,18 +40,16 @@ class VTPage:
             return web.render(error=traceback(), title='valuetype #%s' % kwargs.get('id'))
         if 'save' in kwargs:
             try:
-                session = db.Session()
-                vt = session.query(db.ValueType).get(int(id))
-                if not vt:
-                    vt = db.ValueType(id=id)
-                    session.add(vt)
-                vt.name = kwargs.get('name')
-                vt.unit = kwargs.get('unit')
-                vt.minvalue = web.conv(float, kwargs.get('minvalue'))
-                vt.maxvalue = web.conv(float, kwargs.get('maxvalue'))
-                vt.comment = kwargs.get('comment')
-                session.commit()
-                session.close()
+                with db.session_scope() as session:
+                    vt = session.query(db.ValueType).get(int(id))
+                    if not vt:
+                        vt = db.ValueType(id=id)
+                        session.add(vt)
+                    vt.name = kwargs.get('name')
+                    vt.unit = kwargs.get('unit')
+                    vt.minvalue = web.conv(float, kwargs.get('minvalue'))
+                    vt.maxvalue = web.conv(float, kwargs.get('maxvalue'))
+                    vt.comment = kwargs.get('comment')
             except:
                 return web.render('empty.html', error=traceback(), title='valuetype #%s' % id
                                   ).render()

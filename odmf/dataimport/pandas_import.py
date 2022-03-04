@@ -81,6 +81,7 @@ class ColumnDataset:
         col_df['dataset'] = self.id
         col_df['id'] = df[values_ok].index + self.record_count + 1
         col_df['value'] = df[self.column.name]
+        col_df['is_error'] = False
         if 'sample' in df.columns:
             col_df['sample'] = df['sample']
 
@@ -354,7 +355,7 @@ def get_dataframe_for_ds_column(session, column: ImportColumn, data: pd.DataFram
 
     if 'sample' in data.columns:
         col_df['sample'] = data['sample']
-
+    col_df['is_error'] = False
     return col_df[~pd.isna(col_df['value'])]
 
 

@@ -15,6 +15,7 @@ scipy==1.8.0
 xlrd==2.0.1
 numba>=0.50.0
 openpyxl>=3.0.7
+asteval>=0.9.25
 
 # database
 psycopg2   # psycopg2 needed to fit to sqlalchemy>=1.3.0,<1.4.0
@@ -28,6 +29,7 @@ click>=7.0
 humanize
 # using plotly backend
 plotly==5.6.0
+kaleido
 # Interactive
 ipython>=8.0.1
 
@@ -35,6 +37,7 @@ ipython>=8.0.1
 # Tests
 pytest
 pytest-postgresql
+coverage
 
 # woftester only
 lxml

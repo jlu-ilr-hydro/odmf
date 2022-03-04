@@ -199,10 +199,8 @@ class Users(collections.UserDict):
 
     def logout(self):
         sess = cherrypy.session
-        username = sess.get(SESSION_KEY, None)
         sess[SESSION_KEY] = None
-        if username:
-            cherrypy.request.login = None
+        cherrypy.request.login = None
 
 
 users = Users()

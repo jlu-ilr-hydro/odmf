@@ -27,7 +27,7 @@ function createMap() {
             map:map,
             icon:image,
         });
-};
+}
 
 
 $(function() {
@@ -74,6 +74,7 @@ $(function() {
                 instrumentid:$('#instrumentselect').val(),
                 date:escape($('#installationdate').val()),
                 siteid:$('#actualsite-input').val(),
+                comment:$('#instrument-comment').val(),
                 installationid:$(e.currentTarget).data('installation')
             }
         ).done(response => {
