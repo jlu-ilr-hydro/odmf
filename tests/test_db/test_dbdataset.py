@@ -6,6 +6,7 @@ import pytest
 import sqlalchemy.orm
 from contextlib import contextmanager
 from tests.test_db.test_dbobjects import person, site1_in_db, datasource1_in_db
+import pathlib
 
 
 
@@ -149,12 +150,61 @@ def record(db, session, timeseries):
 
 
 @pytest.fixture()
-def thousand_records(db, session, timeseries):
+def thousand_records(tmp_path):
+    id = np.arange(1, 1001, 1)
     data = np.arange(-10, 190, 0.2)
-    index = pd.date_range('2022-01-01', periods=len(data), freq='h')
-    dataframe = pd.DataFrame(data, index=index)
+    date = pd.date_range('2022-01-01', periods=len(data), freq='h')
+    d = {'Id': id, 'Date': date, 'Values': data}
+    df = pd.DataFrame(d)
+    df.to_csv(tmp_path / 'df_to_csv.csv')
     ... # TODO: save to database
 
+# save csv to db
+import csv
+from sqlalchemy import Column, Date, Float, Integer, String, create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from dateutil.parser import parse
+
+engine = create_engine('sqlite:///thousand_records.sqlite3')
+Base = declarative_base()
+
+class thousand_records_table(Base):
+    __tablename__ ='thousand_records'
+
+    id = Column(Integer, primary_key=True)
+    Date = Column(Date, nullable=True)
+    Values = Column(Float)
+
+Base.metadata.create_all(engine)
+
+Session = sessionmaker(bind=engine)
+
+def parse_none(dt):
+    try:
+        return parse(dt)
+    except:
+        return None
+
+def prepare_thousands_records(row):
+    row['Date'] = parse_none(row['Date'])
+    return thousand_records_table(**row)
+
+with open(str(tmp_path / 'df_to_csv')) as csv_file:
+    csvreader = csv.DictReader(csv_file)
+
+    thousand_records_listing = [prepare_thousands_records(row) for row in csvreader]
+
+    session = Session()
+    session.add_all(thousand_records_listing)
+    session.commit()
+
+class TestTimeseriesThousandRecords:
+
+    def test_timeseries_thousand_records(self, thousand_records):
+        assert thousand_records
+
+    def test_record_thousand(self, thousand_records, record):
 
 class TestTimeseries:
 
