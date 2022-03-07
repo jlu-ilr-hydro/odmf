@@ -151,10 +151,10 @@ def record(db, session, timeseries):
 
 @pytest.fixture()
 def thousand_records(tmp_path):
-    id = np.arange(1, 1001, 1)
+    id = [1] * 1000
     data = np.arange(-10, 190, 0.2)
     date = pd.date_range('2022-01-01', periods=len(data), freq='h')
-    d = {'Id': id, 'Date': date, 'Values': data}
+    d = {'id': id, 'date': date, 'values': data}
     df = pd.DataFrame(d)
     df.to_csv(tmp_path / 'df_to_csv.csv')
     ... # TODO: save to database
