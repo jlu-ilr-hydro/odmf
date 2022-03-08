@@ -132,8 +132,8 @@ def timeseries(db, session, value_type, quality, person, datasource1_in_db, site
                 source=datasource1_in_db, calibration_offset=0, calibration_slope=1, comment='this is a comment',
                 level=2
             ),
-            session) as dataset:
-        yield dataset
+            session) as timeseries:
+        yield timeseries
 
 
 
