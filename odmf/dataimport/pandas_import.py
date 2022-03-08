@@ -76,14 +76,13 @@ class ColumnDataset:
 
         # Remove all values, where one of the columns is outside its minvalue / maxvalue range
         values_ok = check_column_values(self.column, df)
-        col_df = pd.DataFrame(df.time)
-        col_df = col_df[values_ok]
+        col_df = pd.DataFrame(df.time[values_ok])
         col_df['dataset'] = self.id
         col_df['id'] = df[values_ok].index + self.record_count + 1
-        col_df['value'] = df[self.column.name]
+        col_df['value'] = df[self.column.name][values_ok]
         col_df['is_error'] = False
         if 'sample' in df.columns:
-            col_df['sample'] = df['sample']
+            col_df['sample'] = df['sample'][values_ok]
 
         return col_df
 
