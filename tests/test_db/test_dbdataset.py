@@ -9,7 +9,6 @@ from tests.test_db.test_dbobjects import person, site1_in_db, datasource1_in_db
 import pathlib
 
 
-
 @pytest.fixture(scope='class')
 def conf():
     """
@@ -82,8 +81,9 @@ def value_type(db, session):
             id=1, name='this is a name', unit='this is a unit',
             comment='this is a comment', minvalue=0.00, maxvalue=110.20
         ),
-        session) as value_type:
+            session) as value_type:
         yield value_type
+
 
 class TestValueType:
     def test_ValueType(self, value_type):
@@ -136,7 +136,6 @@ def timeseries(db, session, value_type, quality, person, datasource1_in_db, site
         yield timeseries
 
 
-
 @pytest.fixture()
 def record(db, session, timeseries):
     with temp_in_database(
@@ -150,59 +149,43 @@ def record(db, session, timeseries):
 
 
 @pytest.fixture()
-def thousand_records(tmp_path):
-    id = [1] * 1000
-    data = np.arange(-10, 190, 0.2)
-    date = pd.date_range('2022-01-01', periods=len(data), freq='h')
-    d = {'id': id, 'date': date, 'values': data}
-    df = pd.DataFrame(d)
-    df.to_csv(tmp_path / 'df_to_csv.csv')
-    ... # TODO: save to database
-
-# save csv to db
-import csv
-from sqlalchemy import Column, Date, Float, Integer, String, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from dateutil.parser import parse
-
-engine = create_engine('sqlite:///thousand_records.sqlite3')
-Base = declarative_base()
-
-class thousand_records_table(Base):
-    __tablename__ ='thousand_records'
-
-    id = Column(Integer, primary_key=True)
-    Date = Column(Date, nullable=True)
-    Values = Column(Float)
-
-Base.metadata.create_all(engine)
-
-Session = sessionmaker(bind=engine)
-
-def parse_none(dt):
-    try:
-        return parse(dt)
-    except:
-        return None
-
-def prepare_thousands_records(row):
-    row['Date'] = parse_none(row['Date'])
-    return thousand_records_table(**row)
-
-with open(str(tmp_path / 'df_to_csv')) as csv_file:
-    csvreader = csv.DictReader(csv_file)
-
-    thousand_records_listing = [prepare_thousands_records(row) for row in csvreader]
-
-    session = Session()
-    session.add_all(thousand_records_listing)
+def thousand_records(tmp_path, db, session, timeseries):
+    # Make a dataframe in the structure of the record table
+    n = 1000
+    value_step = 0.2
+    value_start = -10
+    df = pd.DataFrame(dict(
+        id=range(1, n + 1),
+        dataset=timeseries.id,
+        time=pd.date_range('2022-01-01', periods=n, freq='h'),
+        value=np.arange(value_start, value_step * n + value_start, value_step),
+        is_error=False,
+    ))
+    # Write dataframe to pandas
+    # cf. odmf.dataimport.pandas_import.submit l.410
+    df.to_sql('record', session.connection(), if_exists='append', index=False, method='multi', chunksize=1000)
     session.commit()
+    yield df
+    session.query(db.Record).filter_by(_dataset=timeseries.id).delete()
+
 
 class TestTimeseriesThousandRecords:
 
-    def test_timeseries_thousand_records(self, thousand_records_listing):
-        assert thousand_records_listing
+    def test_timeseries_thousand_records(self, timeseries, thousand_records):
+        assert timeseries.size() == 1000
+        assert timeseries.records.count() == 1000
+        assert timeseries.maxrecordid() == 1000
+
+    def test_timeseries_asseries(self, timeseries, thousand_records):
+        ts_df = timeseries.asseries()
+        assert ts_df.mean() == thousand_records.value.mean()
+        assert len(ts_df) == 1000
+
+    def test_timeseries_statistics(self, timeseries, thousand_records):
+        mean, std, n = timeseries.statistics()
+        assert mean == np.mean(thousand_records.value)
+        assert std == np.std(thousand_records.value)
+        assert n == len(thousand_records)
 
 
 class TestTimeseries:
@@ -213,7 +196,6 @@ class TestTimeseries:
         d = timeseries.__jdict__()
         assert isinstance(d, dict)
         assert 'id' in d
-
 
     def test_record(self, timeseries, record):
         assert record

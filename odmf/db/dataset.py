@@ -352,6 +352,7 @@ transforms_table = sql.Table(
 
 class Timeseries(Dataset):
     __mapper_args__ = dict(polymorphic_identity='timeseries')
+    records: orm.Query
 
     def split(self, time):
         """Creates a new dataset using copy and assignes all records after
@@ -381,6 +382,10 @@ class Timeseries(Dataset):
 
 
     def statistics(self):
+        """
+        Return simple statistical description of the timeseries
+        :return: mean, stddev, n
+        """
         try:  # Try to use sql functions
             f = sql.sql.func
             rv = Record.value
@@ -396,7 +401,7 @@ class Timeseries(Dataset):
                 n
             )
 
-        except sql.exc.ProgrammingError:
+        except (sql.exc.ProgrammingError, sql.exc.OperationalError):
             s = self.asseries()
             if len(s) == 0:
                 return 0.0, 0.0, 0
@@ -455,8 +460,11 @@ class Timeseries(Dataset):
         # See issue #99
         #
         size = self.size()
-        query = self.records.order_by(Record.id).offset(size - 1)
-        max_id, = next(query.values('id'))
+        sess = self.session()
+
+        # query = self.records.order_by(Record.id).offset(size - 1)
+        query = sess.query(Record.id).filter_by(_dataset=self.id).order_by(Record.id).offset(size - 1)
+        max_id = query.scalar()
         return max_id
 
     def addrecord(self, Id=None, value=None, time=None, comment=None, sample=None):
