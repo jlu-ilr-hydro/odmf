@@ -204,7 +204,6 @@ class TestTimeseriesThousandRecords:
     def test_timeseries_thousand_records(self, thousand_records):
         assert thousand_records
 
-    def test_record_thousand(self, thousand_records, record):
 
 class TestTimeseries:
 
