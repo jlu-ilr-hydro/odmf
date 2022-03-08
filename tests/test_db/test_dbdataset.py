@@ -201,8 +201,8 @@ with open(str(tmp_path / 'df_to_csv')) as csv_file:
 
 class TestTimeseriesThousandRecords:
 
-    def test_timeseries_thousand_records(self, thousand_records):
-        assert thousand_records
+    def test_timeseries_thousand_records(self, thousand_records_listing):
+        assert thousand_records_listing
 
 
 class TestTimeseries:
