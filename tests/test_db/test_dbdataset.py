@@ -94,11 +94,14 @@ class TestValueType:
         assert isinstance(d, dict)
         assert 'id' in d
 
-    def test_ValueType_load(self, value_type, session, db):
+    def test_ValueType_load(self, value_type, session, db, record):
         value_type_1 = session.query(db.ValueType).get(1)
         assert hash(value_type_1) == hash(value_type)
         assert not value_type < value_type
         assert not value_type_1 == value_type
+        assert value_type.minvalue < value_type.maxvalue
+        assert ((value_type.minvalue is None or value_type.minvalue <= record.value)
+                and (value_type.maxvalue is None or value_type.maxvalue >= record.value))
 
 
 @pytest.fixture()
