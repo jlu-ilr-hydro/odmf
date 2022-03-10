@@ -200,6 +200,10 @@ class TestTimeseries:
         assert isinstance(d, dict)
         assert 'id' in d
 
+    def test_timeseries_empty_statistics(self, timeseries):
+        mean, std, n = timeseries.statistics()
+        assert (mean, std, n) == (0.0, 0.0, 0.0)
+
     def test_record(self, timeseries, record):
         assert record
         assert record.id == 1
