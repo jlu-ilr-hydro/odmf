@@ -61,7 +61,7 @@ class HTTPFileNotFoundError(cherrypy.HTTPError):
 
 
 def goto(dir, error=None, msg=None):
-    return web.redirect(f'{conf.root_url}/download/{dir}'.strip('.'), error=error, msg=msg)
+    return web.redirect(f'{conf.root_url}/download/{dir}'.strip('.'), error=error or '', msg=msg or '')
 
 
 
@@ -219,6 +219,28 @@ class DownloadPage(object):
             raise goto(dir + '/' + newfolder, error, msg)
         else:
             raise goto(dir, error, msg)
+
+    @expose_for(group.editor)
+    @web.method.post_or_put
+    def newtextfile(self, dir, newfilename):
+        if newfilename:
+            try:
+                path = Path(dir, newfilename)
+                if not path.basename.endswith('.wiki') or path.basename.endswith('.md'):
+                    path = Path(str(path) + '.wiki')
+                if not path.exists() and path.islegal():
+                    with open(path.absolute, 'w') as f:
+                        f.write(newfilename + '\n' + '=' * len(newfilename) + '\n\n')
+                    raise goto(path.name, msg=f"{path.href} created")
+                else:
+                    raise goto(dir, error=f"File {newfilename} exists already")
+            except Exception as e:
+                if isinstance(e, cherrypy.HTTPRedirect):
+                    raise
+                else:
+                    raise goto(dir, error=traceback())
+        else:
+            raise goto(dir, error='Forgotten to give your new file a name?')
 
     @expose_for(group.admin)
     @web.method.post_or_delete
