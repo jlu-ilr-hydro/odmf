@@ -4,6 +4,7 @@ import os.path as op
 import os
 from glob import glob
 from odmf.dataimport import base
+from odmf.config import conf
 
 
 # Create a config file for the Odyssey Logger
@@ -45,3 +46,12 @@ def test_from_file():
     assert type(config.sections()) == list
     assert len(list(config['Tipping Bucket (rain intensity)'])) == 6
     assert float(config.get('Tipping Bucket (rain intensity)', 'skiplines')) == 9
+
+
+def test_from_file_validation():
+    path="datafiles/not_exist"
+    pattern="*.conf"
+    with pytest.raises(Exception) as e_info:
+        base.ImportDescription.from_file(path=path, pattern=pattern)
+        raise Exception(e_info.value)
+    assert str(e_info.value) == 'Could not find .conf file for file description'
