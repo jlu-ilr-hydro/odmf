@@ -530,7 +530,7 @@ class ImportDescription(object):
         # Return the descriptor
         descr = cls.from_config(config)
         descr.filename = path
-        return descr
+        return descr, config
 
 
 class ImportStat(object):
