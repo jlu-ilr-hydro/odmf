@@ -184,7 +184,7 @@ def interactive():
     Launches an IPython shell with odmf related symbols. Needs IPython
     """
     from textwrap import dedent
-    from IPython import embed
+    from IPython import start_ipython
     from .config import conf
     from . import db
     import pandas as pd
@@ -212,11 +212,15 @@ def interactive():
         """
 
     with db.session_scope() as session:
-        q = session.query
-        ds = db.base.ObjectGetter(db.Dataset, session)
-        person = db.base.ObjectGetter(db.Person, session)
-        site = db.base.ObjectGetter(db.Site, session)
-        embed(colors='Neutral', header=dedent(greeting))
+        user_ns= dict(
+            session=session,
+            q=session.query,
+            ds=db.base.ObjectGetter(db.Dataset, session),
+            person=db.base.ObjectGetter(db.Person, session),
+            site=db.base.ObjectGetter(db.Site, session),
+            pd=pd, np=np, conf=conf, db=db
+        )
+        start_ipython(argv=[], user_ns=user_ns)
 
 @cli.command()
 @click.option('--verbose/--terse', '-v', default=False)
