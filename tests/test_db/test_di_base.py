@@ -8,7 +8,8 @@ from odmf.config import conf
 
 
 # Create a config file for the Odyssey Logger
-def create_conf_file():
+@pytest.fixture()
+def di_conf_file(tmp_path):
 
     config = configparser.ConfigParser(interpolation=None)
     config['Tipping Bucket (rain intensity)'] = {'instrument': '5',
@@ -25,33 +26,25 @@ def create_conf_file():
                            'difference': True,
                            'minvalue': '0.001',
                            'maxvalue': '10000'}
-
-    with open(r"sample_logger_Odyssey.conf", 'w') as config_file:
+    config_path = tmp_path / "sample_logger_Odyssey.conf"
+    with config_path.open('w') as config_file:
         config.write(config_file)
-        config_file.flush()
-        config_file.close()
 
-    return config_file
+    return config_path
 
 
-# Create the sample config file
-create_conf_file()
-
-def test_from_file():
-    path = os.getcwd()
+def test_from_file(di_conf_file):
     pattern = '*.conf'
-    descr, config = base.ImportDescription.from_file(path=path, pattern=pattern)
+    descr = base.ImportDescription.from_file(path=di_conf_file, pattern=pattern)
     assert descr
-    assert descr.filename == glob(op.join(path, pattern))[0]
-    assert type(config.sections()) == list
-    assert len(list(config['Tipping Bucket (rain intensity)'])) == 6
-    assert float(config.get('Tipping Bucket (rain intensity)', 'skiplines')) == 9
+    assert descr.filename == str(di_conf_file)
+    assert descr.datecolumns == (1, 2)
+    assert descr.columns[0].name == 'rain tips'
 
 
 def test_from_file_validation():
-    path="datafiles/not_exist"
-    pattern="*.conf"
-    with pytest.raises(Exception) as e_info:
+    path = "datafiles/not_exist"
+    pattern = "*.conf"
+    with pytest.raises(IOError) as e_info:
         base.ImportDescription.from_file(path=path, pattern=pattern)
-        raise Exception(e_info.value)
-    assert str(e_info.value) == 'Could not find .conf file for file description'
+        assert str(e_info.value) == 'Could not find .conf file for file description'

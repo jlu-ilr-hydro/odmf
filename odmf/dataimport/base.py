@@ -505,7 +505,7 @@ class ImportDescription(object):
         while not glob(op.join(path, pattern)):
             path = op.dirname(path)
             # if stoppath is found raise an error
-            if op.basename(path) == op.basename(conf.datafiles):
+            if op.basename(path) == op.basename(conf.datafiles) or path == op.dirname(path):
                 raise IOError('Could not find .conf file for file description')
         # Use the first .conf file in the directory
         path = glob(op.join(path, pattern))[0]
@@ -530,7 +530,7 @@ class ImportDescription(object):
         # Return the descriptor
         descr = cls.from_config(config)
         descr.filename = path
-        return descr, config
+        return descr
 
 
 class ImportStat(object):
