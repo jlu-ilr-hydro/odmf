@@ -39,6 +39,7 @@ def redirect(url, **kwargs):
 
     redirects to /xyz?a=2&b=Hallo
     """
+    kwargs = {k: v for k, v in kwargs.items() if v is not None}
     qs = urlencode(kwargs)
     return cherrypy.HTTPRedirect(url + '?' + qs)
 

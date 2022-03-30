@@ -243,6 +243,7 @@ class LogbookImport:
 
         if result and commit:
             session.add(result)
+            session.flush()
 
         return msg
 
