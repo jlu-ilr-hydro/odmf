@@ -54,6 +54,19 @@ class Site(Base):
                     comment=self.comment,
                     icon=self.icon)
 
+    def __eq__(self, other):
+        if hasattr(other, 'id'):
+            return NotImplemented
+        return self.id == other.id
+
+    def __lt__(self, other):
+        if not hasattr(other, 'id'):
+            return NotImplemented
+        return self.id < other.id
+
+    def __hash__(self):
+        return hash(str(self))
+
     def as_UTM(self):
         """Returns a tuple (x,y) as UTM/WGS84 of the site position
         If withzone is True it returns the name of the UTM zone as a third argument
@@ -64,6 +77,33 @@ class Site(Base):
         lat = dd_to_dms(self.lat)
         lon = dd_to_dms(self.lon)
         return ("%i° %i' %0.2f''N - " % lat) + ("%i° %i' %0.2f''E" % lon)
+
+
+@total_ordering
+class SiteGeometry(Base):
+    """
+    Enhance a site with Geometry features, like line or polygon
+    TODO: sqlalchemy: Do we need polymorphic_identity
+    TODO: Implement __geo_interface__ for Site and GeometrySite
+
+    Uses GeoJSON definition to save the geometry of a site
+    https://de.wikipedia.org/wiki/GeoJSON
+    """
+    __tablename__ = 'site_geometry'
+
+    id = sql.Column(sql.Integer, primary_key=True, constraint=sql.ForeignKey('site.id'))
+    site = orm.relationship('Site', backref=orm.backref('geometry'),
+                            primaryjoin="Site.id==SiteGeometry.id")
+    type = sql.Column(sql.Text)  # Contains the GeoJSON geometry type: POINT, POLYGON, MULTILINESTRING etc.
+    coordinates = sql.Column(sql.Text)  # Contains coordinates in GeoJSON notation
+
+    strokewidth = sql.Column(sql.Float)
+    strokeopacity = sql.Column(sql.Float)
+    strokecolor = sql.Column(sql.Text)
+    fillcolor = sql.Column(sql.Text)
+    fillopacity = sql.Column(sql.Float)
+
+
 
 
 @total_ordering
@@ -85,12 +125,20 @@ class Datasource(Base):
     def __str__(self):
         return '%s (%s)' % (self.name, self.sourcetype)
 
+    def __eq__(self, other):
+        if not hasattr(other, 'name'):
+            return NotImplemented
+        return self.name == other.name
+
     def __lt__(self, other):
         if not hasattr(other, 'name'):
             return NotImplemented
         elif other:
             return self.name < other.name
         return False
+
+    def __hash__(self):
+        return hash(str(self))
 
     def __jdict__(self):
         return dict(id=self.id,
@@ -182,4 +230,3 @@ class Log(Base):
                     user=self.user,
                     site=self.site,
                     message=self.message)
-
