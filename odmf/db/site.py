@@ -79,6 +79,33 @@ class Site(Base):
 
 
 @total_ordering
+class SiteGeometry(Base):
+    """
+    Enhance a site with Geometry features, like line or polygon
+    TODO: sqlalchemy: Do we need polymorphic_identity
+    TODO: Implement __geo_interface__ for Site and GeometrySite
+
+    Uses GeoJSON definition to save the geometry of a site
+    https://de.wikipedia.org/wiki/GeoJSON
+    """
+    __tablename__ = 'site_geometry'
+
+    id = sql.Column(sql.Integer, primary_key=True, constraint=sql.ForeignKey('site.id'))
+    site = orm.relationship('Site', backref=orm.backref('geometry'),
+                            primaryjoin="Site.id==SiteGeometry.id")
+    type = sql.Column(sql.Text)  # Contains the GeoJSON geometry type: POINT, POLYGON, MULTILINESTRING etc.
+    coordinates = sql.Column(sql.Text)  # Contains coordinates in GeoJSON notation
+
+    strokewidth = sql.Column(sql.Float)
+    strokeopacity = sql.Column(sql.Float)
+    strokecolor = sql.Column(sql.Text)
+    fillcolor = sql.Column(sql.Text)
+    fillopacity = sql.Column(sql.Float)
+
+
+
+
+@total_ordering
 class Datasource(Base):
     __tablename__ = 'datasource'
     id = sql.Column(sql.Integer,
@@ -202,3 +229,6 @@ class Log(Base):
                     user=self.user,
                     site=self.site,
                     message=self.message)
+
+
+
