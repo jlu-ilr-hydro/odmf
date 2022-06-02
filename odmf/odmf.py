@@ -185,11 +185,14 @@ def interactive():
     """
     from textwrap import dedent
     from IPython import start_ipython
+    # https://stackoverflow.com/a/36699427/3032680
+    from traitlets.config.loader import Config as IPythonConfig
     from .config import conf
     from . import db
     import pandas as pd
     import numpy as np
-    greeting = """
+    greetings = dedent("""
+        
         Imported modules
         ----------------
         
@@ -209,8 +212,7 @@ def interactive():
         >>>ds_one = ds[1]
         Query sites:
         >>>site.q.filter(db.Site.lat > 50.5).count()        
-        """
-
+        """)
     with db.session_scope() as session:
         user_ns= dict(
             session=session,
@@ -220,7 +222,11 @@ def interactive():
             site=db.base.ObjectGetter(db.Site, session),
             pd=pd, np=np, conf=conf, db=db
         )
-        start_ipython(argv=[], user_ns=user_ns)
+        print('\n\n================================================')
+        print(f'  ODMF:{conf.root_url} {conf.version} interactive IPython shell')
+        print('================================================')
+        print(greetings)
+        start_ipython(argv=[], user_ns=user_ns, display_banner=False)
 
 @cli.command()
 @click.option('--verbose/--terse', '-v', default=False)
