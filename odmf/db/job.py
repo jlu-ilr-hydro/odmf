@@ -8,8 +8,10 @@ from functools import total_ordering
 from ..tools.mail import EMail
 from .base import Base, newid
 from .site import Log
-from .dbobjects import Person
+from .person import Person
 
+from logging import getLogger
+logger = getLogger(__name__)
 
 @total_ordering
 class Job(Base):

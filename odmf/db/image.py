@@ -1,10 +1,13 @@
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
-from .base import Base, newid
-from datetime import datetime, timedelta
+from datetime import datetime
 from base64 import b64encode
-
 from io import BytesIO
+
+from .base import Base
+
+from logging import getLogger
+logger = getLogger(__name__)
 
 
 class Image(Base):

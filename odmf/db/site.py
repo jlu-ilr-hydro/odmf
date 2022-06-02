@@ -1,12 +1,14 @@
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
-from .base import Base
 from datetime import datetime
-from .projection import LLtoUTM, dd_to_dms, UTMtoLL
+from functools import total_ordering
 
+from .projection import LLtoUTM, dd_to_dms, UTMtoLL
+from .base import Base
 from ..config import conf
 
-from functools import total_ordering
+from logging import getLogger
+logger = getLogger(__name__)
 
 
 @total_ordering

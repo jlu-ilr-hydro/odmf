@@ -9,13 +9,13 @@ Created on 13.02.2012
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
+from contextlib import contextmanager
+from functools import total_ordering
 
-import os.path as op
 from ..config import conf
 
-from contextlib import contextmanager
-from logging import info
-from functools import total_ordering
+from logging import getLogger
+logger = getLogger(__name__)
 
 
 def newid(cls, session):

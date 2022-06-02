@@ -1,8 +1,11 @@
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
+from functools import total_ordering
+
 from .base import Base
 
-from functools import total_ordering
+from logging import getLogger
+logger = getLogger(__name__)
 
 
 @total_ordering
