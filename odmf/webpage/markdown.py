@@ -163,8 +163,7 @@ class MarkDown:
             cleaned_html = bleach.clean(
                 html,
                 tags=bleach_allow.tags,
-                attributes=bleach_allow.attributes,
-                styles=bleach_allow.styles
+                attributes=bleach_allow.attributes
             )
             return cleaned_html
         else:
