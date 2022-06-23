@@ -1,6 +1,6 @@
 import pytest
 from contextlib import contextmanager
-
+import cherrypy
 
 @pytest.fixture(scope='package', autouse=True)
 @pytest.mark.parametrize
@@ -55,3 +55,11 @@ def temp_in_database(obj, db_session):
     db_session.delete(obj)
     db_session.commit()
 
+
+@pytest.fixture()
+def root(db):
+    from cherrypy.lib.sessions import RamSession
+    cherrypy.session = RamSession()
+    cherrypy.request.login = None
+    from odmf.webpage.root import Root
+    return Root()

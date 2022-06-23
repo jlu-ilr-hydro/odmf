@@ -1,54 +1,17 @@
+import io
+
 import cherrypy
-from io import BytesIO
-import os
-import chardet
 import datetime
-import inspect
 from traceback import format_exc as traceback
 from contextlib import contextmanager
 
-from . import lib as web
-from .auth import users, expose_for, group, has_level, HTTPAuthError
-from .. import db
-from ..config import conf
+import pandas as pd
 
-
-def get_help(obj, url, append_to: dict = None):
-    append_to = append_to or {}
-
-    def is_api_or_method(obj):
-        return inspect.ismethod(obj) or isinstance(obj, BaseAPI) and hasattr(obj, 'exposed')
-
-    if inspect.ismethod(obj):
-        append_to[url] = url.split('/')[-1] + str(inspect.signature(obj)) + ': ' + str(inspect.getdoc(obj))
-    else:
-        append_to[url] = inspect.getdoc(obj)
-    for name, member in inspect.getmembers(obj, is_api_or_method):
-        if not name.startswith('_'):
-            append_to = get_help(member, '/'.join([url, name]), append_to)
-    return append_to
-
-
-def write_to_file(dest, src):
-    """
-    Write data of src (file in) into location of dest (filename)
-
-    :param dest:  filename on the server system
-    :param src: file contents input buffer
-    :return:
-    """
-
-    with open(os.open(dest, os.O_CREAT | os.O_WRONLY, 0o770), 'w') as fout:
-        while True:
-            data = src.read(8192)
-            if not data:
-                break
-            fout.write(data)
-
-
-class BaseAPI:
-    ...
-
+from .. import lib as web
+from ..auth import users, expose_for, group, has_level
+from ... import db
+from ...config import conf
+from . import BaseAPI, get_help
 
 @cherrypy.popargs('dsid')
 class DatasetAPI(BaseAPI):
@@ -109,15 +72,50 @@ class DatasetAPI(BaseAPI):
 
     @expose_for(group.guest)
     @web.mime.json
-    def records(self, dsid, start=None, end=None):
+    def records(self, dsid):
         """
-        :param dsid:
-        :param start:
-        :param end:
-        :return:
+        Returns all records (uncalibrated) for a dataset as json
         """
-        with self.get_dataset(dsid, False) as ds:
+        with self.get_dataset(dsid) as ds:
             return web.json_out(ds.records.all())
+
+    @expose_for(group.guest)
+    @web.mime.json
+    def values(self, dsid, start=None, end=None):
+        """
+        NOT TESTED! Returns the calibrated values for a dataset
+        :param dsid: The dataset id
+        :param start: A start time
+        :param end: an end time
+        :return: JSON list of time/value pairs
+        """
+        start = web.parsedate(start, False)
+        end = web.parsedate(end, False)
+        with self.get_dataset(dsid) as ds:
+            series = ds.asseries(start, end)
+            return series.to_json().encode('utf-8')
+
+    @expose_for(group.guest)
+    @web.method.get
+    @web.mime.featherstream
+    def values_feather(self, dsid, start=None, end=None):
+        """
+        Returns the calibrated values for a dataset
+        :param dsid: The dataset id
+        :param start: A start time to crop the data
+        :param end: an end time to crop the data
+        :return: Feather data stream, to be used by Python or R
+        """
+        start = web.parsedate(start, False)
+        end = web.parsedate(end, False)
+        with self.get_dataset(dsid) as ds:
+            series: pd.Series = ds.asseries(start, end)
+            df = pd.DataFrame({'value': series})
+            df.reset_index(inplace=True)
+            buf = io.BytesIO()
+            df.to_feather(buf)
+            return buf.getvalue()
+
 
     @expose_for()
     @web.method.get
@@ -193,11 +191,12 @@ class DatasetAPI(BaseAPI):
                     ds.latex = kwargs.get('latex')
                 # Save changes
                 session.commit()
-                return f'ds{ds.id}'
+                cherrypy.response.status = 200
+                return f'ds{ds.id}'.encode()
 
-            except:
+            except Exception as e:
                 # On error render the error message
-                raise web.APIError(400, traceback())
+                raise web.APIError(400, 'Creating new timeseries failed') from e
 
     @expose_for(group.editor)
     @web.method.post_or_put
@@ -224,9 +223,69 @@ class DatasetAPI(BaseAPI):
                 if not ds:
                     return 'Timeseries ds:{} does not exist'.format(dsid)
                 new_rec = ds.addrecord(Id=recid, time=time, value=value, comment=comment, sample=sample)
-                return str(new_rec.id)
-            except:
-                raise web.APIError(400, 'Could not add record, error:\n' + traceback())
+                return str(new_rec.id).encode('utf-8')
+            except Exception as e:
+                raise web.APIError(400, 'Could not add record') from e
+
+
+    @expose_for(group.editor)
+    @web.method.post_or_put
+    @web.mime.json
+    def addrecords_feather(self):
+        """
+        Expects a table in the apache arrow format to import records to existing datasets. Expected column names:
+        dataset, id, time, value [,sample, comment, is_error]
+        """
+        import pandas as pd
+        instream = cherrypy.request.body
+
+        # Load dataframe
+        try:
+            df = pd.read_feather(instream)
+            df = df[~df.value.isna()]
+        except Exception as e:
+            raise web.APIError(400, 'Incoming data is not in the Apache Arrow format') from e
+
+        # Check columns
+        if 'id' not in df.columns:
+            df['id'] = df['index']
+        if 'is_error' not in df.columns:
+            df['is_error'] = False
+        if not all(cname in df.columns for cname in ['dataset', 'id', 'time', 'value']):
+            raise web.APIError(400, 'Your table misses one or more of the columns dataset, id, time, value [,sample, comment]')
+
+        # remove unused columns
+        for c in list(df.columns):
+            if c not in ['dataset', 'id', 'time', 'value', 'sample', 'comment', 'is_error']:
+                del df[c]
+
+        with db.session_scope() as session:
+
+            # Check datasets
+            datasets = set(int(id) for id in df.dataset.unique())
+            all_db = set(v[0] for v in session.query(db.Dataset.id))
+            missing = datasets - all_db
+            if missing:
+                raise web.APIError(400, 'Your table contains records for not existing dataset-ids: ' + ', '.join(str(ds) for ds in missing))
+
+            # Alter id and timeranges
+            for dsid in datasets:
+                ds: db.Timeseries = session.query(db.Dataset).get(dsid)
+                maxrecordid = ds.maxrecordid()
+                df_ds = df[df.dataset == dsid]
+                if df_ds.index.min() < maxrecordid:
+                    df_ds.index += maxrecordid - df[df.dataset == ds].index.min() + 1
+                ds.start = min(ds.start, df_ds['time'].min().to_pydatetime())
+                ds.end = max(ds.end, df_ds['time'].max().to_pydatetime())
+
+            # commit to db
+            conn = session.connection()
+            try:
+                df.to_sql('record', conn, if_exists='append', index=False, method='multi', chunksize=1000)
+            except Exception as e:
+                raise web.APIError(500, 'Could not append dataframe') from e
+            return web.json_out(dict(status='success', records=len(df), datasets=list(datasets)))
+
 
     @web.json_in()
     @expose_for(group.editor)
@@ -278,96 +337,4 @@ class DatasetAPI(BaseAPI):
                 std = 0.0
             # Convert to json
             return web.json_out(dict(mean=mean, std=std, n=n))
-
-
-class API(BaseAPI):
-    """
-    A RESTful API for machine to machine communication using json
-    """
-
-    exposed = True
-    dataset = DatasetAPI()
-
-    @expose_for()
-    @web.method.post
-    @web.mime.plain
-    def login(self, **data):
-        """
-        Login for the web app (including API)
-
-        Usage with JQuery: $.post('/api/login',{username:'user', password:'secret'}, ...)
-        Usage with python / requests: See tools/post_new_record.py
-
-        returns Status 200 on success
-        """
-        if not data:
-            req = cherrypy.request
-            cl = req.headers['Content-Length']
-            body = req.body.read(int(cl))
-            data = dict(item.split('=') for item in body.decode('utf-8').split('&'))
-
-        error = users.login(data['username'], data['password'])
-        if error:
-            cherrypy.response.status = 401
-            return 'Username or password wrong'.encode('utf-8')
-        else:
-            cherrypy.response.status = 200
-            return 'OK'.encode('utf-8')
-
-    @expose_for(group.editor)
-    @web.method.put
-    def upload(self, path, datafile, overwrite=False):
-        """
-        Uploads a file to the file server
-        :param path: The path of the directory, where this file should be stored
-        :param datafile: the file to upload
-        :param overwrite: If True, an existing file will be overwritten. Else an error is raised
-        :return: 200 OK / 400 Traceback
-        """
-        errors = []
-        fn = ''
-        if datafile:
-            path = conf.abspath('datafiles') / path
-            if not path:
-                path.make()
-            fn = path + datafile.filename
-            if not fn.islegal:
-                raise web.APIError(400, f"'{fn}' is not legal")
-            if fn and not overwrite:
-                raise web.APIError(400, f"'{fn}' exists already and overwrite is not allowed, set overwrite")
-
-            # Buffer file for first check encoding and secondly upload file
-            with BytesIO(datafile.file.read()) as filebuffer:
-                # determine file encodings
-                result = chardet.detect(filebuffer.read())
-
-                # Reset file buffer
-                filebuffer.seek(0)
-
-                # if chardet can determine file encoding, check it and warn respectively
-                # otherwise state not detecting
-                # TODO: chardet cannot determine sufficent amount of encodings, such as utf-16-le
-                if result['encoding']:
-                    file_encoding = result['encoding'].lower()
-                    # TODO: outsource valid encodings
-                    if not (file_encoding in ['utf-8', 'ascii'] or 'utf-8' in file_encoding):
-                        errors.append("WARNING: encoding of file {} is {}".format(datafile.filename, file_encoding))
-                else:
-                    errors.append(f"WARNING: encoding of file {datafile.filename} is not detectable")
-                try:
-                    write_to_file(fn.absolute, filebuffer)
-                    return ('\n'.join(errors)).encode('utf-8')
-                except:
-                    return web.APIError(400, traceback())
-
-    @expose_for()
-    @web.method.get
-    @web.mime.json
-    def index(self):
-        """
-        Returns a JSON object containing the description of the API
-        """
-        return web.json_out(get_help(self, '/api'))
-
-
 

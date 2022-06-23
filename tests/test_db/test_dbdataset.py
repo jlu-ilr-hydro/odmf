@@ -108,7 +108,7 @@ class TestValueType:
 def dataset(db, session, value_type, quality, person, datasource1_in_db, site1_in_db):
     with temp_in_database(
         db.Dataset(
-            id=1, name='this is a name', filename='this is a filename',
+            id=1, name='this is a name', filename='this is a filename', type=None,
             start=datetime.datetime(2020, 2, 20), end=datetime.datetime(2030, 12, 20),
             site=site1_in_db, valuetype=value_type, measured_by=person, quality=quality,
             source=datasource1_in_db, calibration_offset=0, calibration_slope=1, comment='this is a comment',
@@ -130,13 +130,14 @@ def timeseries(db, session, value_type, quality, person, datasource1_in_db, site
     with temp_in_database(
             db.Timeseries(
                 id=1, name='this is a name', filename='this is a filename',
-                start=datetime.datetime(2020, 2, 20), end=datetime.datetime(2030, 12, 20),
+                start=datetime.datetime(2020, 2, 20), end=datetime.datetime(2020, 2, 21),
                 site=site1_in_db, valuetype=value_type, measured_by=person, quality=quality,
                 source=datasource1_in_db, calibration_offset=0, calibration_slope=1, comment='this is a comment',
                 level=2
             ),
             session) as timeseries:
         yield timeseries
+        timeseries.records.delete()
 
 
 @pytest.fixture()
@@ -167,6 +168,8 @@ def thousand_records(tmp_path, db, session, timeseries):
     # Write dataframe to pandas
     # cf. odmf.dataimport.pandas_import.submit l.410
     df.to_sql('record', session.connection(), if_exists='append', index=False, method='multi', chunksize=1000)
+    timeseries.start = df.time.iloc[1].to_pydatetime()
+    timeseries.end = df.time.iloc[-1].to_pydatetime()
     session.commit()
     yield df
     session.query(db.Record).filter_by(_dataset=timeseries.id).delete()

@@ -5,21 +5,13 @@ import cherrypy
 import datetime
 from pathlib import Path
 import re
-from . import conf, db, db_session, temp_in_database
-
+from ..test_db import db, session, temp_in_database
+from . import root, conf
 
 def test_config():
     from odmf.config import conf
     assert conf.description == '******** TEST *********'
 
-
-@pytest.fixture()
-def root(db):
-    from cherrypy.lib.sessions import RamSession
-    cherrypy.session = RamSession()
-    cherrypy.request.login = None
-    from odmf.webpage.root import Root
-    return Root()
 
 
 class TestIndex:
@@ -35,13 +27,13 @@ class TestIndex:
         assert map_html.startswith('<!DOCTYPE html>')
         assert 'id="map_canvas"' in map_html
 
-    def test_index_login_new_job(self, root, db, db_session):
+    def test_index_login_new_job(self, root, db, session):
         cherrypy.request.login = 'odmf.admin'
         with temp_in_database(
                 db.Job(
                     _author='odmf.admin', _responsible='odmf.admin', id=1, name='test-job',
                     due=datetime.datetime.today()
-                ), db_session
+                ), session
         ):
             with pytest.raises(cherrypy.HTTPRedirect):
                 _ = root.index()
