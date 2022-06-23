@@ -1,3 +1,5 @@
+import pandas as pd
+
 from ...tools import Path
 from .. import lib as web
 import re
@@ -68,7 +70,7 @@ class MarkDownFileHandler(TextFileHandler):
 class ExcelFileHandler(BaseFileHandler):
 
     def to_html(self, path: Path) -> str:
-        import pandas as pd
+
         with open(path.absolute, 'rb') as f:
             df = pd.read_excel(f)
             html = df.to_html(classes=['table'])
@@ -78,13 +80,23 @@ class ExcelFileHandler(BaseFileHandler):
 class CsvFileHandler(BaseFileHandler):
 
     def to_html(self, path: Path) -> str:
-        import pandas as pd
+
         try:
             df = pd.read_csv(path.absolute, sep=None)
             return df.to_html(classes=['table'])
         except:
             with open(path.absolute, 'r') as f:
                 return '\n<pre>\n' + f.read() + '\n</pre>\n'
+
+class ParquetFileHandler(BaseFileHandler):
+
+    def to_html(self, path) -> str:
+
+        with open(path.absolute, 'rb') as f:
+            df = pd.read_parquet(f)
+            html = df.to_html(classes=['table'])
+            return html
+
 
 
 class ImageFileHandler(BaseFileHandler):
@@ -109,6 +121,7 @@ class MultiHandler(BaseFileHandler):
         PlotFileHandler(r'\.plot$'),
         ExcelFileHandler(r'\.xls.?$'),
         CsvFileHandler(r'\.csv$'),
+        ParquetFileHandler(r'\.parquet$'),
         PdfFileHandler(r'\.pdf$'),
         ImageFileHandler(r'\.(jpg|jpeg|png|svg|gif)$'),
         TextFileHandler(''),

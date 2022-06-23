@@ -62,7 +62,6 @@ class Mime:
     tif = MimeType('image/tiff')
     kml = MimeType('application/vnd.google-earth.kml+xml')
     binary = MimeType('application/octet-stream')
-    featherstream = MimeType('application/vnd.apache.arrow.stream')
 
     def __getitem__(self, item):
         if item[0] == '.':

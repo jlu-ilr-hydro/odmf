@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-from .base import Base, Session, engine, session_scope, orm, conf
+from .base import Base, Session, engine, session_scope, orm, conf, sql
 from .person import Person
 from .image import Image
 from .project import Project

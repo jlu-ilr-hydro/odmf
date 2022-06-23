@@ -79,6 +79,11 @@ class DatasetPage:
             else:
                 project = None
 
+            datasets = {
+                "same type": [],
+                "same time": [],
+            }
+
             try:
                 # load data for dataset-edit.html:
                 # similar datasets (same site and same type)
@@ -98,9 +103,9 @@ class DatasetPage:
                     "same type": similar_datasets,
                     "same time": parallel_datasets,
                 }
-            except:
+            except Exception as e:
                 # If loading fails, don't show similar datasets
-                datasets = {}
+                error += str(e)
 
             # Render the resulting page
             return web.render(

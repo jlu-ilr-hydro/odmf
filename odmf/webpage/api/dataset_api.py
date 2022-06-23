@@ -97,14 +97,14 @@ class DatasetAPI(BaseAPI):
 
     @expose_for(group.guest)
     @web.method.get
-    @web.mime.featherstream
-    def values_feather(self, dsid, start=None, end=None):
+    @web.mime.binary
+    def values_parquet(self, dsid, start=None, end=None):
         """
         Returns the calibrated values for a dataset
         :param dsid: The dataset id
         :param start: A start time to crop the data
         :param end: an end time to crop the data
-        :return: Feather data stream, to be used by Python or R
+        :return: parquet data stream, to be used by Python or R
         """
         start = web.parsedate(start, False)
         end = web.parsedate(end, False)
@@ -113,7 +113,7 @@ class DatasetAPI(BaseAPI):
             df = pd.DataFrame({'value': series})
             df.reset_index(inplace=True)
             buf = io.BytesIO()
-            df.to_feather(buf)
+            df.to_parquet(buf)
             return buf.getvalue()
 
 
@@ -231,7 +231,7 @@ class DatasetAPI(BaseAPI):
     @expose_for(group.editor)
     @web.method.post_or_put
     @web.mime.json
-    def addrecords_feather(self):
+    def addrecords_parquet(self):
         """
         Expects a table in the apache arrow format to import records to existing datasets. Expected column names:
         dataset, id, time, value [,sample, comment, is_error]
@@ -241,7 +241,7 @@ class DatasetAPI(BaseAPI):
 
         # Load dataframe
         try:
-            df = pd.read_feather(instream)
+            df = pd.read_parquet(instream)
             df = df[~df.value.isna()]
         except Exception as e:
             raise web.APIError(400, 'Incoming data is not in the Apache Arrow format') from e

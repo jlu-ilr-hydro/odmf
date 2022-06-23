@@ -32,13 +32,13 @@ class TestDatasetAPI:
         # ser = pd.Series(res)
         # assert all(ser > 0)
 
-    def test_values_feather(self, root, timeseries, thousand_records):
+    def test_values_parquet(self, root, timeseries, thousand_records):
         timeseries.calibration_offset = 100
         timeseries.session().commit()
         buf = io.BytesIO()
-        buf.write(root.api.dataset.values_feather('ds1'))
+        buf.write(root.api.dataset.values_parquet('ds1'))
         buf.seek(0)
-        df = pd.read_feather(buf)
+        df = pd.read_parquet(buf)
         assert len(df) == 1000
         assert sum(df.value < 0) == 0
 
@@ -80,7 +80,7 @@ class TestDatasetAPI:
         assert res['n'] == 1000
 
     @pytest.mark.parametrize('with_id', [True, False])
-    def test_addrecords_feather(self, with_id, root, timeseries):
+    def test_addrecords_parquet(self, with_id, root, timeseries):
         import pandas as pd
         df = pd.DataFrame(index=pd.RangeIndex(1, 1001, 1))
         df['dataset'] = 1
@@ -90,11 +90,11 @@ class TestDatasetAPI:
         df['time'] = pd.date_range('2022-01-01 12:00:00', '2023-01-03 23:00', freq='h')[:1000]
         df.reset_index(inplace=True)
         stream = io.BytesIO()
-        df.to_feather(stream)
+        df.to_parquet(stream)
         cherrypy.request.body = stream
 
         res = response_to_json(
-            root.api.dataset.addrecords_feather()
+            root.api.dataset.addrecords_parquet()
         )
         # Check response
         assert res['status'] == 'success'
