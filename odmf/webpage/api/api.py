@@ -1,8 +1,6 @@
 import cherrypy
 from io import BytesIO
-import os
 import chardet
-import inspect
 from traceback import format_exc as traceback
 
 from .. import lib as web

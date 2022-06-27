@@ -236,55 +236,15 @@ class DatasetAPI(BaseAPI):
         Expects a table in the apache arrow format to import records to existing datasets. Expected column names:
         dataset, id, time, value [,sample, comment, is_error]
         """
-        import pandas as pd
         instream = cherrypy.request.body
-
         # Load dataframe
         try:
-            df = pd.read_parquet(instream)
-            df = df[~df.value.isna()]
+            from ...tools.parquet_import import addrecords_parquet
+            datasets, records = addrecords_parquet(instream)
         except Exception as e:
             raise web.APIError(400, 'Incoming data is not in the Apache Arrow format') from e
 
-        # Check columns
-        if 'id' not in df.columns:
-            df['id'] = df['index']
-        if 'is_error' not in df.columns:
-            df['is_error'] = False
-        if not all(cname in df.columns for cname in ['dataset', 'id', 'time', 'value']):
-            raise web.APIError(400, 'Your table misses one or more of the columns dataset, id, time, value [,sample, comment]')
-
-        # remove unused columns
-        for c in list(df.columns):
-            if c not in ['dataset', 'id', 'time', 'value', 'sample', 'comment', 'is_error']:
-                del df[c]
-
-        with db.session_scope() as session:
-
-            # Check datasets
-            datasets = set(int(id) for id in df.dataset.unique())
-            all_db = set(v[0] for v in session.query(db.Dataset.id))
-            missing = datasets - all_db
-            if missing:
-                raise web.APIError(400, 'Your table contains records for not existing dataset-ids: ' + ', '.join(str(ds) for ds in missing))
-
-            # Alter id and timeranges
-            for dsid in datasets:
-                ds: db.Timeseries = session.query(db.Dataset).get(dsid)
-                maxrecordid = ds.maxrecordid()
-                df_ds = df[df.dataset == dsid]
-                if df_ds.index.min() < maxrecordid:
-                    df_ds.index += maxrecordid - df[df.dataset == ds].index.min() + 1
-                ds.start = min(ds.start, df_ds['time'].min().to_pydatetime())
-                ds.end = max(ds.end, df_ds['time'].max().to_pydatetime())
-
-            # commit to db
-            conn = session.connection()
-            try:
-                df.to_sql('record', conn, if_exists='append', index=False, method='multi', chunksize=1000)
-            except Exception as e:
-                raise web.APIError(500, 'Could not append dataframe') from e
-            return web.json_out(dict(status='success', records=len(df), datasets=list(datasets)))
+        return web.json_out(dict(status='success', datasets=list(datasets), records=records))
 
 
     @web.json_in()
