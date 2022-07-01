@@ -133,13 +133,12 @@ class bleach_allow:
         'table', 'thead', 'tbody', 'tr', 'th', 'td', 'tfoot'
     ]
     attributes = {
-        '*': ['class', 'title'],
+        '*': ['class', 'title', 'float'],
         'video': ['controls', 'src', 'type'],
         'img': ['alt', 'src'],
         'a': ['href', 'alt']
     }
 
-    styles = ['admonition', 'warning']
 
 
 class MarkDown:
@@ -163,8 +162,7 @@ class MarkDown:
             cleaned_html = bleach.clean(
                 html,
                 tags=bleach_allow.tags,
-                attributes=bleach_allow.attributes,
-                styles=bleach_allow.styles
+                attributes=bleach_allow.attributes
             )
             return cleaned_html
         else:
