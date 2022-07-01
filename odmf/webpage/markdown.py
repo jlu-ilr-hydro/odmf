@@ -133,13 +133,12 @@ class bleach_allow:
         'table', 'thead', 'tbody', 'tr', 'th', 'td', 'tfoot'
     ]
     attributes = {
-        '*': ['class', 'title'],
+        '*': ['class', 'title', 'float'],
         'video': ['controls', 'src', 'type'],
         'img': ['alt', 'src'],
         'a': ['href', 'alt']
     }
 
-    styles = ['admonition', 'warning']
 
 
 class MarkDown:
