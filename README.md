@@ -3,7 +3,6 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/jlu-ilr-hydro/odmf)
 
 ### This project provides a webinterface for managing scientific data measurement based on
-
 [cherrypy](https://github.com/cherrypy/cherrypy) and [postgres](https://www.postgresql.org/).
 
 [![License][license-image]][license-link]
@@ -12,7 +11,8 @@
 [license-link]: http://opensource.org/licenses/MIT
 
 
-For further information please visit the [documenation](https://jlu-ilr-hydro.github.io/odmf).
+The concept was presented as a poster at the EGU GA 2017 (Vienna) by Kraft et al 
+[![DOI](https://img.shields.io/badge/doi-10.13140%2FRG.2.2.32891.54563-blue)](https://doi.org/10.13140/RG.2.2.32891.54563)
 
 # Installation
 
