@@ -4,6 +4,7 @@ Created on 13.07.2012
 
 @author: philkraf
 '''
+import numpy as np
 
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
@@ -272,10 +273,11 @@ class DatasetGroup(object):
 
     def asseries(self, session, name=None):
         datasets = self.datasets(session)
-        data = pd.Series(name=name)
-        for src in datasets:
-            s = src.asseries(self.start, self.end)
-            data = data.append(s)
+        data = pd.concat([
+            src.asseries(self.start, self.end)
+            for src in datasets
+        ])
+        data.name = name
         return data.sort_index()
 
     def iterrecords(self, session, witherrors):
