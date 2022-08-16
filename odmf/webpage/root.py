@@ -1,10 +1,12 @@
+import cherrypy.lib.sessions
+
 from .. import prefix
 from . import lib as web
+from .lib.errors import errorhandler
 from .auth import users, group, expose_for
 
 from .. import db
 from ..config import conf
-import os
 from datetime import datetime, timedelta
 from . import db_editor as dbe
 from . import map
@@ -19,12 +21,14 @@ class Root(object):
     """
     The root of the odmf webpage
     """
-    _cp_config = {'tools.sessions.on': True,
-                  'tools.sessions.timeout': 24 * 60,  # One day
-                  'tools.sessions.storage_type': 'file',
-                  'tools.sessions.storage_path': prefix + '/sessions',
-                  'tools.auth.on': True,
-                  'tools.sessions.locking': 'early'}
+    _cp_config = {
+        'tools.sessions.on': True,
+        'tools.sessions.timeout': 24 * 60 * 7,  # One week
+        'tools.sessions.storage_class': cherrypy.lib.sessions.FileSession,
+        'tools.sessions.storage_path': prefix + '/sessions',
+        'tools.auth.on': True,
+        'tools.sessions.locking': 'early',
+    } | errorhandler.html
 
     map = map.MapPage()
     site = dbe.SitePage()

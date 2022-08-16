@@ -4,6 +4,7 @@ from io import BytesIO
 from .. import lib as web
 from ..auth import users, expose_for, group
 from ...tools import Path as OPath
+from ..lib.errors import errorhandler
 from ...config import conf
 from . import BaseAPI, get_help, write_to_file
 from .dataset_api import DatasetAPI
@@ -13,7 +14,7 @@ class API(BaseAPI):
     """
     A RESTful API for machine to machine communication using json
     """
-
+    _cp_config = {} | errorhandler.json
     exposed = True
     dataset = DatasetAPI()
 

@@ -1,6 +1,8 @@
+import datetime
 
 from traceback import format_exc as traceback
 
+import textwrap as tw
 import cherrypy
 from cherrypy import HTTPError as _HTTPError
 
@@ -9,7 +11,7 @@ from ..markdown import MarkDown
 from .renderer import render
 from . import as_json
 from . import mime
-from ..auth import users, group
+from ..auth import users, group, is_member
 
 markdown = MarkDown()
 logger = getLogger(__name__)
@@ -48,38 +50,115 @@ class AJAXError(_HTTPError):
         return markdown(self.message + format_traceback(self.traceback)).encode('utf-8')
 
 
-def to_html(error=None, success=None, text=None):
-    return render('empty.html', error=error, success=success, content=text).render()
+def to_html(error=None, success=None, info=None, text=None):
+    cherrypy.response.headers['Content-Type'] = 'text/html'
+    return render('empty.html', title='Error', error=error, success=success, info=info, content=text).render()
 
 
 class HTTPError(_HTTPError):
     def __init__(self, status: int, message: str):
         self.message = message
-        self.traceback = traceback()
         logger.warning(self.traceback)
         super().__init__(status, str(message))
-
-    def get_error_page(self, *args, **kwargs):
-        cherrypy.response.headers['Content-Type'] = 'text/html'
-        if users.current.level == group.admin:
-            text = '\n```\n' + self.traceback + '\n```\n'
-        else:
-            text = None
-        return to_html(error=self.message, text=text).encode('utf-8')
 
 
 class APIError(_HTTPError):
 
     def __init__(self, status: int, message: str):
         self.message = message
-        self.traceback = traceback()
         logger.warning(self.traceback)
         super().__init__(status, str(message))
 
-    def get_error_page(self, *args, **kwargs):
-        cherrypy.response.headers['Content-Type'] = 'application/json'
-        if users.current.level == group.admin:
-            data = dict(status=self.status, text=self.message, traceback=self.traceback)
+
+class ErrorHandler:
+    def __ror__(self, other: dict):
+        return other | {
+            'error_page.default': self
+        }
+
+    def __call__(self, status=None, message=None, version=None, traceback=None):
+        short_status = status[:3]
+        f = getattr(self, 'status_' + short_status, self.status_default)
+        return f(status, message, version, traceback)
+
+    def status_default(self, status=None, message=None, version=None, traceback=None):
+        cherrypy.response.headers['Content-Type'] = 'text/plain'
+        return (str(status) + '(' + str(message) + ')').encode('utf-8')
+
+
+class HTMLErrorHandler(ErrorHandler):
+
+    def status_default(self, status=None, message=None, version=None, traceback=None):
+        req = cherrypy.request
+        error = tw.dedent(f"""
+        # Sorry {(req.login or 'guest').title()}, something went wrong 
+
+        {datetime.datetime.now().isoformat()} 
+        
+        - url: {cherrypy.url()}
+        - status: {status} 
+        - message: {message}
+        - request: `{req.request_line}`
+
+        """).strip()
+        if is_member(group.admin):
+            text = '\n```\n' + traceback + '\n```\n'
         else:
-            data = dict(status=self.status, text=self.message)
-        return as_json(data).encode('utf-8')
+            text = ''
+        return to_html(error=error, text=text)
+
+    def status_500(self, status=None, message=None, version=None, traceback=None):
+        req = cherrypy.request
+        error = tw.dedent(f"""
+        # Sorry {(req.login or 'guest').title()}, something went wrong 
+
+        {datetime.datetime.now().isoformat()} 
+
+        - url: {cherrypy.url()}
+        - status: {status} 
+        - message: {message}
+        - request: `{req.request_line}`
+
+        """).strip()
+        if is_member(group.admin):
+            text = '\n```\n' + traceback + '\n```\n'
+        else:
+            text = '####' +  traceback.strip().split('\n')[-1]
+        return to_html(error=error, text=text)
+
+    def status_404(self, status=None, message=None, version=None, traceback=None):
+
+        req = cherrypy.request
+
+        error = tw.dedent(f"""
+        # {message}
+        
+        {cherrypy.url()} 
+
+        {datetime.datetime.now().isoformat()} 
+        
+        Status: {status} 
+        
+        {req.request_line}
+
+        """).strip()
+        return to_html(info=error)
+
+
+class JSONErrorHandler(ErrorHandler):
+    def status_default(self, status=None, message=None, version=None, traceback=None):
+        req = cherrypy.request
+        if is_member(group.admin):
+            return as_json(dict(
+                status=status, message=message, version=version, request=req.request_line, traceback=traceback
+            )).encode('utf-8')
+        else:
+            return as_json(dict(
+                status=status, message=message, version=version, request=req.request_line
+            )).encode('utf-8')
+
+
+class errorhandler:
+    json = JSONErrorHandler()
+    html = HTMLErrorHandler()
+

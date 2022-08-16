@@ -169,30 +169,25 @@ def get_nav_entries():
     return root
 
 
-def navigation(title=''):
-
-    return literal(
-        render(
-            'navigation.html',
-             title=str(title),
-             background_image=conf.nav_background,
-             left_logo=conf.nav_left_logo,
-             resources=[(r.name, r.doc) for r in get_nav_entries()],
-         ).render())
-
-
 def context(**kwargs):
     def context_from_module(module):
         return {
             name: func
             for name, func in vars(module).items()
             if name[0] != '_'
-    }
-    context = context_from_module(render_tools)
-    context.update(context_from_module(conversion))
-    context['nav_items'] = get_nav_entries()
-    context.update(kwargs)
-    context.update({'conf': conf, 'navigation': navigation})
+        }
+
+    return (
+            context_from_module(render_tools) |
+            context_from_module(conversion) |
+            dict(
+                error=None, info=None, success=None,
+                conf=conf,
+                nav_items=get_nav_entries()
+            ) |
+            kwargs
+    )
+
     return context
 
 
