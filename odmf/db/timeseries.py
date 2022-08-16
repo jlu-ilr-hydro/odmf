@@ -196,9 +196,12 @@ class Timeseries(Dataset):
         sess = self.session()
 
         # query = self.records.order_by(Record.id).offset(size - 1)
-        query = sess.query(Record.id).filter_by(_dataset=self.id).order_by(Record.id).offset(size - 1)
-        max_id = query.scalar()
-        return max_id or 0
+        if size:
+            query = sess.query(Record.id).filter_by(_dataset=self.id).order_by(Record.id).offset(size - 1)
+            max_id = query.scalar()
+            return max_id or 0
+        else:
+            return 0
 
     def addrecord(self, Id=None, value=None, time=None, comment=None, sample=None):
         """Adds a record to the dataset

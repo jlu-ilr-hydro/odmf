@@ -1,5 +1,7 @@
 
 from traceback import format_exc as traceback
+
+import cherrypy
 from cherrypy import HTTPError as _HTTPError
 
 from logging import getLogger
@@ -19,6 +21,9 @@ def format_traceback(tb: str) -> str:
     else:
         return ''
 
+# Add Errorhandling to the Cherrypy configuration - possibly different for the API
+# than for the browser part:
+# https://stackoverflow.com/questions/20395565/how-to-catch-all-exceptions-with-cherrypy
 
 class AJAXError(_HTTPError):
     """
@@ -55,6 +60,7 @@ class HTTPError(_HTTPError):
         super().__init__(status, str(message))
 
     def get_error_page(self, *args, **kwargs):
+        cherrypy.response.headers['Content-Type'] = 'text/html'
         if users.current.level == group.admin:
             text = '\n```\n' + self.traceback + '\n```\n'
         else:
@@ -71,6 +77,7 @@ class APIError(_HTTPError):
         super().__init__(status, str(message))
 
     def get_error_page(self, *args, **kwargs):
+        cherrypy.response.headers['Content-Type'] = 'application/json'
         if users.current.level == group.admin:
             data = dict(status=self.status, text=self.message, traceback=self.traceback)
         else:

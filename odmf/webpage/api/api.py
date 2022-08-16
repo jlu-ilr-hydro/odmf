@@ -1,10 +1,9 @@
 import cherrypy
 from io import BytesIO
-import chardet
-from traceback import format_exc as traceback
 
 from .. import lib as web
-from ..auth import users, expose_for, group, has_level, HTTPAuthError
+from ..auth import users, expose_for, group
+from ...tools import Path as OPath
 from ...config import conf
 from . import BaseAPI, get_help, write_to_file
 from .dataset_api import DatasetAPI
@@ -26,7 +25,7 @@ class API(BaseAPI):
         Login for the web app (including API)
 
         Usage with JQuery: $.post('/api/login',{username:'user', password:'secret'}, ...)
-        Usage with python / requests: See tools/post_new_record.py
+        Usage with python / requests: See tools/apiclient.py
 
         returns Status 200 on success
         """
@@ -46,49 +45,26 @@ class API(BaseAPI):
 
     @expose_for(group.editor)
     @web.method.put
-    def upload(self, path, datafile, overwrite=False):
+    def upload(self, targetpath: str, overwrite: bool = False):
         """
         !WARNING NOT TESTED, DO NOT USE! Uploads a file to the file server
 
-        :param path: The path of the directory, where this file should be stored
+        :param targetpath: The path of the directory, where this file should be stored
         :param datafile: the file to upload
         :param overwrite: If True, an existing file will be overwritten. Else an error is raised
         :return: 200 OK / 400 Traceback
         """
-        errors = []
-        if datafile:
-            path = conf.abspath('datafiles') / path
-            if not path:
-                path.make()
-            fn = path + datafile.filename
-            if not fn.islegal:
-                raise web.APIError(400, f"'{fn}' is not legal")
-            if fn and not overwrite:
-                raise web.APIError(400, f"'{fn}' exists already and overwrite is not allowed, set overwrite")
 
-            # Buffer file for first check encoding and secondly upload file
-            with BytesIO(datafile.file.read()) as filebuffer:
-                # determine file encodings
-                result = chardet.detect(filebuffer.read())
+        r = cherrypy.request
+        fn = OPath(targetpath)
+        if not fn.islegal:
+            raise web.APIError(400, f"'{fn}' is not legal")
+        if fn.exists() and not overwrite:
+            raise web.APIError(400, f"'{fn}' exists already and overwrite is not allowed, set overwrite")
+        from pathlib import Path as PyPath
+        data = cherrypy.request.body.read()
+        PyPath(fn.absolute).write_bytes(data)
 
-                # Reset file buffer
-                filebuffer.seek(0)
-
-                # if chardet can determine file encoding, check it and warn respectively
-                # otherwise state not detecting
-                # TODO: chardet cannot determine sufficent amount of encodings, such as utf-16-le
-                if result['encoding']:
-                    file_encoding = result['encoding'].lower()
-                    # TODO: outsource valid encodings
-                    if not (file_encoding in ['utf-8', 'ascii'] or 'utf-8' in file_encoding):
-                        errors.append("WARNING: encoding of file {} is {}".format(datafile.filename, file_encoding))
-                else:
-                    errors.append(f"WARNING: encoding of file {datafile.filename} is not detectable")
-                try:
-                    write_to_file(fn.absolute, filebuffer)
-                    return ('\n'.join(errors)).encode('utf-8')
-                except:
-                    return web.APIError(400, traceback())
 
     @expose_for()
     @web.method.get
@@ -97,7 +73,5 @@ class API(BaseAPI):
         """
         Returns a JSON object containing the description of the API
         """
-        return web.json_out(get_help(self, '/api'))
-
-
+        return web.json_out(dict([get_help(self, '/api')]))
 

@@ -1,9 +1,21 @@
+"""
+Read from a geo raster the heights for sites using UTM coordinates
+"""
+import sys
+
 import rasterio as rio
 from .. import db
 from . import Path as OPath
 
 
 class RasterReader:
+    """
+    A simple wrapper for raster data for easy access of data
+
+    Usage:
+    >>>dem = RasterReader('test.tif')
+    >>>print(dem[4,10])   # --> value at column 4, row 10
+    """
     def __init__(self, tiffile, band=1):
         self.ds = rio.open(tiffile)
         self.band = self.ds.read(band)
@@ -32,3 +44,9 @@ def add_missing_heights(demfile='datafiles/geodata/dgm1/DGM1_gladbacherhof_.tif'
             zone, x, y = s.as_UTM()
             s.height = float(rr[x, y])
             s.comment += f'\n\nHeight information derived from digital elevation model {op.markdown}\n'
+
+if __name__ == '__main__':
+    import sys
+    if len(sys.argv) < 1:
+        sys.stderr.write('Usage: demreader.py elevation.tif')
+    add_missing_heights(sys.argv[1])

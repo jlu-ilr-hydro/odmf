@@ -88,7 +88,7 @@ class DownloadPage(object):
             if (not serve) and (content := self.filehandler(path)):
                 return web.render(
                     'download.html', error=error, message=msg,
-                    content=content,
+                    content=content, handler=self.filehandler,
                     files=sorted(files),
                     directories=sorted(directories),
                     curdir=path,
@@ -104,6 +104,7 @@ class DownloadPage(object):
                 'download.html', error=error, message=msg,
                 files=sorted(files),
                 directories=sorted(directories),
+                handler = self.filehandler,
                 curdir=path,
                 max_size=conf.upload_max_size
             ).render()

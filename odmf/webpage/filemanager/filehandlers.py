@@ -1,3 +1,5 @@
+import typing
+
 import pandas as pd
 
 from ...tools import Path
@@ -11,7 +13,12 @@ markdown = MarkDown()
 
 
 class BaseFileHandler:
+    """
+    The base class for file handling. Filehandlers are used by the file manager to display files
 
+    icon: Font-Awesome icon to describe the file type
+    """
+    icon = 'file'
     def __init__(self, pattern: str = ''):
         self.pattern = re.compile(pattern, re.IGNORECASE)
 
@@ -33,6 +40,7 @@ class BaseFileHandler:
 
 
 class TextFileHandler(BaseFileHandler):
+    icon = 'file-alt'
     def __init__(self, pattern: str):
         super().__init__(pattern)
 
@@ -50,7 +58,7 @@ class TextFileHandler(BaseFileHandler):
 
 
 class PlotFileHandler(BaseFileHandler):
-
+    icon = 'chart-line'
     def render(self, source) -> str:
         return '\n<pre>\n' + source + '\n</pre>\n'
 
@@ -62,44 +70,57 @@ class PlotFileHandler(BaseFileHandler):
 
 
 class MarkDownFileHandler(TextFileHandler):
-
     def render(self, source) -> str:
         return markdown(source)
 
 
+def table_to_html(df: pd.DataFrame):
+    header = f'<div class="alert alert-secondary">{len(df)} lines</div>'
+    classes = ['table table-hover']
+    if len(df) > 1000:
+        table = df.iloc[:1000].to_html(classes=classes, border=0)
+        return header + table + f'<div>... skipping lines 1000 - {len(df)}</div>'
+    else:
+        return header + df.to_html(classes=classes, border=0)
+
+
 class ExcelFileHandler(BaseFileHandler):
+
+    icon = 'file-excel'
 
     def to_html(self, path: Path) -> str:
 
         with open(path.absolute, 'rb') as f:
             df = pd.read_excel(f)
-            html = df.to_html(classes=['table'])
-            return html
+            return table_to_html(df)
 
 
 class CsvFileHandler(BaseFileHandler):
+
+    icon = 'file-csv'
 
     def to_html(self, path: Path) -> str:
 
         try:
             df = pd.read_csv(path.absolute, sep=None)
-            return df.to_html(classes=['table'])
+            return table_to_html(df)
         except:
             with open(path.absolute, 'r') as f:
                 return '\n<pre>\n' + f.read() + '\n</pre>\n'
 
 class ParquetFileHandler(BaseFileHandler):
 
+    icon = 'table'
     def to_html(self, path) -> str:
 
         with open(path.absolute, 'rb') as f:
             df = pd.read_parquet(f)
-            html = df.to_html(classes=['table'])
-            return html
-
+            return table_to_html(df)
 
 
 class ImageFileHandler(BaseFileHandler):
+
+    icon = 'file-image'
 
     def to_html(self, path: Path) -> str:
         return f'''
@@ -109,10 +130,27 @@ class ImageFileHandler(BaseFileHandler):
 
 class PdfFileHandler(BaseFileHandler):
 
-    def to_html(self, path) -> str:
+    icon = 'file-pdf'
+    def to_html(self, path: Path) -> str:
         return f'''
-        <object id="pdf-iframe" data="{path.raw_url}" type="application/pdf"></iframe>
+        <object id="pdf-iframe" data="{path.raw_url}" type="application/pdf" >
+            <a href="{path.raw_url}" class="btn btn-primary">Download</a>
+        </object>
         '''
+
+class ZipFileHandler(BaseFileHandler):
+
+    icon = 'file-archive'
+
+    def to_html(self, path: Path) -> str:
+        try:
+            import zipfile
+            z = zipfile.ZipFile(path.absolute)
+            li = ' '.join(f'<li class="list-group-item"><i class="fas fa-file mr-2"></i>{zi.filename}</li>' for zi in z.infolist())
+            header = '<h5>Content:</h5>'
+            return header + '<ul class="list-group"> ' + li + '</ul>'
+        except Exception as e:
+            raise web.HTTPError(500, f'Cannot open zipfile: {path}')
 
 
 class MultiHandler(BaseFileHandler):
@@ -124,16 +162,21 @@ class MultiHandler(BaseFileHandler):
         ParquetFileHandler(r'\.parquet$'),
         PdfFileHandler(r'\.pdf$'),
         ImageFileHandler(r'\.(jpg|jpeg|png|svg|gif)$'),
+        ZipFileHandler(r'\.zip$'),
         TextFileHandler(''),
     ]
 
-    def to_html(self, path: Path) -> str:
+    def __getitem__(self, path: Path) -> typing.Optional[BaseFileHandler]:
         for h in self.handlers:
             if h.matches(path):
                 try:
-                    return h(path)
+                    return h
                 except web.HTTPRedirect:
                     raise
                 except UnicodeDecodeError as e:
                     pass
         return None
+
+    def to_html(self, path: Path) -> str:
+        if handler := self[path]:
+            return handler.to_html(path)

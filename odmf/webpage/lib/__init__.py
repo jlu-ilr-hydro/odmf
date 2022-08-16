@@ -43,10 +43,13 @@ def redirect(url, **kwargs):
     qs = urlencode(kwargs)
     return cherrypy.HTTPRedirect(url + '?' + qs)
 
-def json_out(obj):
+
+def json_out(obj=None, **kwargs):
     """
     Decorator for exposed functions to convert the output into utf-8 encoded json
     """
+    if obj is None:
+        obj = kwargs
     return json.dumps(
         obj,
         sort_keys=True,

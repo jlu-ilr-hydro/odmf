@@ -50,14 +50,14 @@ class TestDatasetAPI:
         assert all(url.split('/')[-1][:2] == 'ds' for url in res)
 
     def test_new(self, root, db, timeseries):
-        cherrypy.request.json = dict(
+        data = dict(
             measured_by='odmf.admin',
             valuetype=1,
             quality=1,
             site=1,
             source=1
         )
-        res = root.api.dataset.new().decode()
+        res = root.api.dataset.new(**data).decode()
         assert res == 'ds2'
         with db.session_scope() as session:
             assert db.Dataset.get(session, 2).id == 2
@@ -91,6 +91,7 @@ class TestDatasetAPI:
         df.reset_index(inplace=True)
         stream = io.BytesIO()
         df.to_parquet(stream)
+        stream.seek(0)
         cherrypy.request.body = stream
 
         res = response_to_json(
@@ -105,7 +106,30 @@ class TestDatasetAPI:
         assert timeseries.records.count() == 1000
 
 
+    def test_addrecords_json_withid(self, root, timeseries):
+        import datetime
+        start = datetime.datetime(2022,1,1,12)
+        records = [
+            dict(
+                recid=n,
+                value=(n-500) * 0.01,
+                time=(start + datetime.timedelta(days=n)).isoformat(),
+                dataset=1
+            )
+            for n in range(1000)
+        ]
+        json_str = json.dumps(records)
+        cherrypy.request.json = json.loads(json_str)
 
+        res = response_to_json(
+            root.api.dataset.addrecords_json()
+        )
+        # Check response
+        assert res['status'] == 'success'
+        assert res['records'] == 1000
+        assert res['datasets'] == [1]
+        # Check database
+        assert timeseries.records.count() == 1000
 
 
 

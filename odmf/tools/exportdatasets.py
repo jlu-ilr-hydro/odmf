@@ -181,6 +181,10 @@ def export_dataframe(stream, data: pd.DataFrame, fileformat: str, index_label='t
         stream.write(data.to_json(indent=2, orient=orient).encode('utf-8'))
     elif fileformat == 'msgpack':
         data.to_msgpack(stream)
+    elif fileformat == 'parquet':
+        data[index_label] = data.index
+        data.reset_index(inplace=True)
+        data.to_parquet(stream)
     return stream
 
 

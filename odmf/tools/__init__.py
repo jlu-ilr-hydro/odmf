@@ -74,7 +74,7 @@ class Path(object):
     def make(self):
         os.makedirs(self.absolute, mode=0o770)
 
-    def breadcrumbs(self) -> str:
+    def breadcrumbs(self) -> list[str]:
         res = [self]
         p = op.dirname(self.absolute)
         while self.datapath in p:

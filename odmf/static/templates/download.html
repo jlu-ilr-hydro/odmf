@@ -163,7 +163,7 @@
                             <li py:for="d in directories" class="nav-item flexbox mt-1 pt-1 border-top">
                                 <span >
                                     <a href="${d.href}" class="nav-link">
-                                        <i class="fas fa-folder" />
+                                        <i class="fas fa-folder fa-lg" />
                                         <span py:content="d.basename" />
                                         </a>
                                 </span>
@@ -178,7 +178,7 @@
                             <li py:for="f in files" class="nav-item flexbox mt-1 pt-1 border-top" py:if="not f.ishidden()">
                                 <span >
                                     <a href="${f.href}" class="nav-link">
-                                        <i class="fas fa-file" />
+                                        <i class="fas fa-${handler[f].icon} fa-lg" />
                                         <span py:content="f.basename" class="mr-auto"/>
                                         <span class="ml-4 badge badge-secondary" py:content="f.formatsize()" />
                                     </a>
@@ -304,10 +304,15 @@
                 </div>
             </div>
             <div class="row" py:if="defined('content')">
-                <div class="container" py:if="content">
+                <h5 class="col-lg-9">
+                    <i class="fas fa-${handler[curdir].icon} fa-lg mr-2"/><span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
+                </h5>
+                <div class="col-lg-3">
                     <a class="btn btn-primary" href="./?serve=True"><i class="fas fa-file-download mr-4"/>download</a>
                     <a class="btn btn-outline-primary" href="${curdir.parent().href}"><i class="fas fa-folder-open mr-4"/>..</a>
                 </div>
+            </div>
+            <div class="row" py:if="defined('content')">
                 <div class="container mt-4 h100" py:content="literal(content)"/>
             </div>
         </div>

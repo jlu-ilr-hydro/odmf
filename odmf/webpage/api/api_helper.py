@@ -1,20 +1,65 @@
 import os
 import inspect
 
-def get_help(obj, url, append_to: dict = None):
-    append_to = append_to or {}
+
+class BaseAPI:
+    ...
+
+
+def get_help(obj, url):
+    """
+    Describes the API with a dictionary of available methods at the url.
+
+    Structure
+
+    api/url:
+        doc: Some documentation
+        parameters:  # Allowed parameters
+          x: int
+          y: str
+        http_methods: # Allowed http methods (
+          - GET
+          - POST
+
+    :param obj: Object to map
+    :param url: API-Url
+    """
 
     def is_api_or_method(obj):
         return inspect.ismethod(obj) or isinstance(obj, BaseAPI) and hasattr(obj, 'exposed')
 
+    def method_params(callable):
+        if inspect.ismethod(callable):
+            return {
+                p.name: p.annotation.__name__
+                for p in inspect.signature(callable).parameters.values()
+                if p.name not in ['args', 'kwargs']
+            }
+        else:
+            return None
+
     if inspect.ismethod(obj):
-        append_to[url] = url.split('/')[-1] + str(inspect.signature(obj)) + ': ' + str(inspect.getdoc(obj))
+        callable = obj
+    elif inspect.ismethod(getattr(obj, 'index', None)):
+        callable = obj.index
     else:
-        append_to[url] = inspect.getdoc(obj)
-    for name, member in inspect.getmembers(obj, is_api_or_method):
-        if not name.startswith('_'):
-            append_to = get_help(member, '/'.join([url, name]), append_to)
-    return append_to
+        callable = None
+
+    doc = inspect.getdoc(obj)
+
+    try:
+        http_methods = callable._cp_config['tools.allow.methods']
+    except (AttributeError, KeyError):
+        http_methods = []
+
+    parameters = method_params(callable)
+    children = dict(
+        get_help(member, '/'.join([url, name]))
+        for name, member in inspect.getmembers(obj, is_api_or_method)
+        if not name.startswith('_') and not name.endswith('index')
+    )
+
+    return url.split('/')[-1], dict(doc=doc, http_methods=http_methods, parameters=parameters, children=children, url=url)
 
 
 def write_to_file(dest, src):

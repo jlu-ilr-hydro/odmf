@@ -1,4 +1,5 @@
 import io
+import typing
 
 import cherrypy
 import datetime
@@ -12,6 +13,14 @@ from ..auth import users, expose_for, group, has_level
 from ... import db
 from ...config import conf
 from . import BaseAPI, get_help
+
+
+"""
+!!!!NOTE!!!!
+
+Do not use mime decorators in the API, use web.mime.json.set() instead
+"""
+
 
 @cherrypy.popargs('dsid')
 class DatasetAPI(BaseAPI):
@@ -32,12 +41,15 @@ class DatasetAPI(BaseAPI):
 
     @staticmethod
     def parse_id(dsid: str) -> int:
-        if dsid[:2] != 'ds':
-            raise web.APIError(404, f'Dataset id does not start with ds. Got {dsid}')
         try:
-            return int(dsid[2:])
-        except (TypeError, ValueError):
-            raise web.APIError(404, f'Last part of dataset id is not a number. Got {dsid}')
+            return int(dsid)
+        except ValueError:
+            if dsid[:2] != 'ds':
+                raise web.APIError(404, f'Dataset id does not start with ds. Got {dsid}')
+            try:
+                return int(dsid[2:])
+            except (TypeError, ValueError):
+                raise web.APIError(404, f'Last part of dataset id is not a number. Got {dsid}')
 
     @staticmethod
     @contextmanager
@@ -55,14 +67,13 @@ class DatasetAPI(BaseAPI):
 
     @expose_for(group.guest)
     @web.method.get
-    @web.mime.json
     def index(self, dsid=None):
         """
         Returns a json representation of a datasetid
         :param dsid: The Dataset id
         :return: json representation of the dataset metadata
         """
-
+        web.mime.json.set()
         if dsid is None:
             res = get_help(self, self.url)
             res[f'{self.url}/[n]'] = f"A dataset with the id [n]. See {self.url}/list method"
@@ -80,7 +91,6 @@ class DatasetAPI(BaseAPI):
             return web.json_out(ds.records.all())
 
     @expose_for(group.guest)
-    @web.mime.json
     def values(self, dsid, start=None, end=None):
         """
         NOT TESTED! Returns the calibrated values for a dataset
@@ -89,6 +99,7 @@ class DatasetAPI(BaseAPI):
         :param end: an end time
         :return: JSON list of time/value pairs
         """
+        web.mime.json.set()
         start = web.parsedate(start, False)
         end = web.parsedate(end, False)
         with self.get_dataset(dsid) as ds:
@@ -97,7 +108,6 @@ class DatasetAPI(BaseAPI):
 
     @expose_for(group.guest)
     @web.method.get
-    @web.mime.binary
     def values_parquet(self, dsid, start=None, end=None):
         """
         Returns the calibrated values for a dataset
@@ -106,6 +116,7 @@ class DatasetAPI(BaseAPI):
         :param end: an end time to crop the data
         :return: parquet data stream, to be used by Python or R
         """
+        web.mime.binary.set()
         start = web.parsedate(start, False)
         end = web.parsedate(end, False)
         with self.get_dataset(dsid) as ds:
@@ -119,12 +130,11 @@ class DatasetAPI(BaseAPI):
 
     @expose_for()
     @web.method.get
-    @web.mime.json
     def list(self):
         """
         Returns a JSON list of all available dataset url's
         """
-        res = []
+        web.mime.json.set()
         with db.session_scope() as session:
             return web.json_out([
                 f'{self.url}/ds{ds}'
@@ -132,18 +142,16 @@ class DatasetAPI(BaseAPI):
             ])
 
 
+
     @expose_for(group.editor)
     @web.method.post_or_put
-    @web.json_in()
-    def new(self):
+    def new(self, **kwargs):
         """
         Creates a new dataset. Possible data fields:
         measured_by, valuetype, quality, site, source, filename,
         name, comment, project, timezone, level, etc.
 
         """
-
-        kwargs = cherrypy.request.json
         with db.session_scope() as session:
             try:
                 pers = session.query(db.Person).get(kwargs.get('measured_by'))
@@ -176,10 +184,10 @@ class DatasetAPI(BaseAPI):
                 # Timeseries only arguments
                 if ds.is_timeseries():
                     if kwargs.get('start'):
-                        ds.start = datetime.datetime.strptime(
-                            kwargs['start'], '%d.%m.%Y')
+                        ds.start = web.parsedate(
+                            kwargs['start'])
                     if kwargs.get('end'):
-                        ds.end = datetime.datetime.strptime(kwargs['end'], '%d.%m.%Y')
+                        ds.end =web.parsedate(kwargs['end'])
                     ds.calibration_offset = web.conv(
                         float, kwargs.get('calibration_offset'), 0.0)
                     ds.calibration_slope = web.conv(
@@ -200,8 +208,8 @@ class DatasetAPI(BaseAPI):
 
     @expose_for(group.editor)
     @web.method.post_or_put
-    def addrecord(self, dsid, value, time,
-                       sample=None, comment=None, recid=None):
+    def addrecord(self, dsid: int, value: float, time: str,
+                       sample: str=None, comment: str=None, recid: int=None):
         """
         Adds a single record to a dataset
 
@@ -230,13 +238,14 @@ class DatasetAPI(BaseAPI):
 
     @expose_for(group.editor)
     @web.method.post_or_put
-    @web.mime.json
     def addrecords_parquet(self):
         """
         Expects a table in the apache arrow format to import records to existing datasets. Expected column names:
         dataset, id, time, value [,sample, comment, is_error]
         """
-        instream = cherrypy.request.body
+        web.mime.json.set()
+        data = cherrypy.request.body.read()
+        instream = io.BytesIO(data)
         # Load dataframe
         try:
             from ...tools.parquet_import import addrecords_parquet
@@ -250,9 +259,8 @@ class DatasetAPI(BaseAPI):
     @web.json_in()
     @expose_for(group.editor)
     @web.method.post_or_put
-    def addrecords(self):
+    def addrecords_json(self):
         """
-        TODO: finish function
         Adds a couple of records from a larger JSON list
         JQuery usage:
             $.put('/api/dataset/addrecord',
@@ -261,12 +269,15 @@ class DatasetAPI(BaseAPI):
                    ...
                   ], ...);
         """
+        web.mime.json.set()
         data = cherrypy.request.json
         if not type(data) is list:
             data = [data]
         warnings = []
+        datasets = set()
+        records = 0
         with db.session_scope() as session:
-            dataset = None
+            dataset: typing.Optional[db.Timeseries] = None
             for rec in data:
                 dsid = rec.get('dsid') or rec.get('dataset') or rec.get('dataset_id')
                 if not dsid:
@@ -280,15 +291,38 @@ class DatasetAPI(BaseAPI):
                 if not dataset:
                     warnings.append(f'ds{dsid} does not exist')
                 # get value, time, sample, comment and recid
+                value = web.conv(float, rec.get('value'))
+                time = web.parsedate(rec.get('time'), False)
+                if value is None:
+                    warnings.append(f'{rec} has no valid value')
+                if time is None:
+                    warnings.append(f'{rec} has not a valid time')
+                sample = rec.get('sample')
+                comment = rec.get('comment')
+                recid = rec.get('recid')
+                if recid is None:
+                    recid = dataset.maxrecordid() + 1
+                record = db.Record(dataset=dataset, id=recid, value=value, time=time, sample=sample, comment=comment)
+                session.add(record)
+                records += 1
+                datasets.add(dsid)
+            if not warnings:
+                session.commit()
+                return web.json_out(dict(status='success', datasets=list(datasets), records=records))
+            else:
+                session.rollback()
+                raise web.APIError(400, f'Cannot add records, got {len(warnings)} errors:\n\n' + '\n'.join(f'- {w}' for w in warnings))
+
+
 
     @expose_for()
     @web.method.get
-    @web.mime.json
     def statistics(self, dsid):
         """
         Returns a json object holding the statistics for the dataset
         (is loaded by page using ajax)
         """
+        web.mime.json.set()
         with self.get_dataset(dsid, False) as ds:
             # Get statistics
             mean, std, n = ds.statistics()
