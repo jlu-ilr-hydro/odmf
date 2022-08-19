@@ -4,6 +4,8 @@ Created on 13.07.2012
 
 @author: philkraf
 '''
+import datetime
+
 import numpy as np
 
 import sqlalchemy as sql
@@ -13,7 +15,7 @@ import pandas as pd
 
 from .base import Base, Session
 from ..config import conf
-
+from typing import Optional
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -243,6 +245,40 @@ class Dataset(Base):
             if p.exists():
                 return p
         return None
+
+    @classmethod
+    def filter(
+            cls, session, 
+            valuetype: Optional[int]=None, 
+            user: Optional[str]=None,
+            site: Optional[int]=None, 
+            date: Optional[datetime.datetime]=None, 
+            instrument: Optional[int]=None,
+            type: Optional[str]=None, 
+            level: Optional[float]=None
+    ) -> orm.Query:
+        """
+        Filters datasets for fitting properties 
+        """
+        datasets: orm.Query = session.query(cls)
+        if user:
+            datasets = datasets.filter_by(_measured_by=user)
+        if site and site != 'NaN':
+            datasets = datasets.filter_by(_site=site)
+        if date:
+            datasets = datasets.filter(
+                Dataset.start <= date,
+                Dataset.end >= date
+            )
+        if valuetype:
+            datasets = datasets.filter_by(_valuetype=valuetype)
+        if instrument:
+            datasets = datasets.filter_by(_source=instrument)
+        if type:
+            datasets = datasets.filter_by(type=type)
+        if level is not None:
+            datasets = datasets.filter_by(level=level)
+        return datasets
 
 
 def removedataset(*args):

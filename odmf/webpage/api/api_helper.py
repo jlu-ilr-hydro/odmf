@@ -31,7 +31,7 @@ def get_help(obj, url):
     def method_params(callable):
         if inspect.ismethod(callable):
             return {
-                p.name: p.annotation.__name__
+                p.name: str(p.annotation)
                 for p in inspect.signature(callable).parameters.values()
                 if p.name not in ['args', 'kwargs']
             }

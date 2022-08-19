@@ -130,15 +130,25 @@ class DatasetAPI(BaseAPI):
 
     @expose_for()
     @web.method.get
-    def list(self):
+    def list(
+            self,
+            valuetype: typing.Optional[int]=None,
+            user: typing.Optional[str]=None,
+            site: typing.Optional[int]=None,
+            date: typing.Optional[datetime.datetime]=None,
+            instrument: typing.Optional[int]=None,
+            type: typing.Optional[str]=None,
+            level: typing.Optional[float]=None
+    ):
         """
         Returns a JSON list of all available dataset url's
         """
         web.mime.json.set()
         with db.session_scope() as session:
+            datasets = db.Dataset.filter(session, valuetype, user, site, date, instrument, type, level)
             return web.json_out([
-                f'{self.url}/ds{ds}'
-                for ds, in sorted(session.query(db.Dataset.id))
+                ds.id
+                for ds in datasets
             ])
 
 

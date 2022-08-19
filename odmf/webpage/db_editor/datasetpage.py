@@ -252,7 +252,9 @@ class DatasetPage:
         if date:
             date = web.parsedate(date)
             datasets = datasets.filter(
-                db.Dataset.start <= date, db.Dataset.end >= date)
+                db.Dataset.start <= date,
+                db.Dataset.end >= date
+            )
         if valuetype and valuetype!='NaN':
             vt = session.query(db.ValueType).get(web.conv(int, valuetype))
             datasets = datasets.filter_by(valuetype=vt)
