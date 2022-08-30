@@ -8,6 +8,7 @@ from ..lib.errors import errorhandler
 from ...config import conf
 from . import BaseAPI, get_help, write_to_file
 from .dataset_api import DatasetAPI
+from .site_api import SiteAPI
 
 
 class API(BaseAPI):
@@ -17,6 +18,7 @@ class API(BaseAPI):
     _cp_config = {} | errorhandler.json
     exposed = True
     dataset = DatasetAPI()
+    site = SiteAPI()
 
     @expose_for()
     @web.method.post

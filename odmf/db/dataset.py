@@ -6,8 +6,6 @@ Created on 13.07.2012
 '''
 import datetime
 
-import numpy as np
-
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
 import pytz

@@ -3,7 +3,6 @@ import typing
 
 import cherrypy
 import datetime
-from traceback import format_exc as traceback
 from contextlib import contextmanager
 
 import pandas as pd
@@ -13,7 +12,6 @@ from ..auth import users, expose_for, group, has_level
 from ... import db
 from ...config import conf
 from . import BaseAPI, get_help
-
 
 """
 !!!!NOTE!!!!
@@ -64,7 +62,6 @@ class DatasetAPI(BaseAPI):
             else:
                 yield ds
 
-
     @expose_for(group.guest)
     @web.method.get
     def index(self, dsid=None):
@@ -75,7 +72,7 @@ class DatasetAPI(BaseAPI):
         """
         web.mime.json.set()
         if dsid is None:
-            res = get_help(self, self.url)
+            url, res = get_help(self, self.url)
             res[f'{self.url}/[n]'] = f"A dataset with the id [n]. See {self.url}/list method"
             return web.json_out(res)
         with self.get_dataset(dsid, False) as ds:
@@ -127,18 +124,17 @@ class DatasetAPI(BaseAPI):
             df.to_parquet(buf)
             return buf.getvalue()
 
-
     @expose_for()
     @web.method.get
     def list(
             self,
-            valuetype: typing.Optional[int]=None,
-            user: typing.Optional[str]=None,
-            site: typing.Optional[int]=None,
-            date: typing.Optional[datetime.datetime]=None,
-            instrument: typing.Optional[int]=None,
-            type: typing.Optional[str]=None,
-            level: typing.Optional[float]=None
+            valuetype: typing.Optional[int] = None,
+            user: typing.Optional[str] = None,
+            site: typing.Optional[int] = None,
+            date: typing.Optional[datetime.datetime] = None,
+            instrument: typing.Optional[int] = None,
+            type: typing.Optional[str] = None,
+            level: typing.Optional[float] = None
     ):
         """
         Returns a JSON list of all available dataset url's
@@ -150,8 +146,6 @@ class DatasetAPI(BaseAPI):
                 ds.id
                 for ds in datasets
             ])
-
-
 
     @expose_for(group.editor)
     @web.method.post_or_put
@@ -197,7 +191,7 @@ class DatasetAPI(BaseAPI):
                         ds.start = web.parsedate(
                             kwargs['start'])
                     if kwargs.get('end'):
-                        ds.end =web.parsedate(kwargs['end'])
+                        ds.end = web.parsedate(kwargs['end'])
                     ds.calibration_offset = web.conv(
                         float, kwargs.get('calibration_offset'), 0.0)
                     ds.calibration_slope = web.conv(
@@ -216,10 +210,54 @@ class DatasetAPI(BaseAPI):
                 # On error render the error message
                 raise web.APIError(400, 'Creating new timeseries failed') from e
 
+    @expose_for(group.admin)
+    @web.method.post_or_delete
+    def delete(self, dsid: int):
+        web.mime.plain.set()
+        with db.session_scope() as session:
+            if not (ds := session.query(db.Dataset).get(dsid)):
+                raise web.APIError(404, f'Dataset {dsid} not found')
+            if isinstance(ds, db.Timeseries) and ds.size():
+                raise web.APIError(500, f'Dataset ds{dsid} has {ds.size()} records. Call api.dataset.delete_records({dsid}) first, to delete all records')
+            session.remove(ds)
+            return f'Dataset {dsid} deleted'.encode('utf-8')
+
+    @expose_for(group.guest)
+    @web.method.get
+    def count_records(self, dsid: int):
+        web.mime.plain.set()
+        with db.session_scope() as session:
+            if not (ds := session.query(db.Dataset).get(dsid)):
+                raise web.APIError(404, f'Dataset {dsid} not found')
+            return f'{ds.size()}'.encode('utf-8')
+
+
+    @expose_for(group.admin)
+    @web.method.post_or_delete
+    def delete_records(self, dsid: int, start=None, end=None):
+        """
+        Deletes records of a dataset
+        """
+        web.mime.plain.set()
+        with db.session_scope() as session:
+            if not (ds := session.query(db.Timeseries).get(dsid)):
+                raise web.APIError(404, f'Dataset {dsid} not found')
+            records = ds.records
+            if start:
+               start = web.parsedate(start)
+               records = records.filter(db.Record.time >= start)
+            if end:
+               end = web.parsedate(end)
+               records = records.filter(db.Record.time < end)
+            count = records.count()
+            records.delete()
+            return f'{count} records deleted'.encode('utf-8')
+
+
     @expose_for(group.editor)
     @web.method.post_or_put
     def addrecord(self, dsid: int, value: float, time: str,
-                       sample: str=None, comment: str=None, recid: int=None):
+                  sample: str = None, comment: str = None, recid: int = None):
         """
         Adds a single record to a dataset
 
@@ -245,26 +283,21 @@ class DatasetAPI(BaseAPI):
             except Exception as e:
                 raise web.APIError(400, 'Could not add record') from e
 
-
     @expose_for(group.editor)
     @web.method.post_or_put
     def addrecords_parquet(self):
         """
-        Expects a table in the apache arrow format to import records to existing datasets. Expected column names:
+        Expects a table in the apache parquet format to import records to existing datasets. Expected column names:
         dataset, id, time, value [,sample, comment, is_error]
         """
         web.mime.json.set()
         data = cherrypy.request.body.read()
         instream = io.BytesIO(data)
         # Load dataframe
-        try:
-            from ...tools.parquet_import import addrecords_parquet
-            datasets, records = addrecords_parquet(instream)
-        except Exception as e:
-            raise web.APIError(400, 'Incoming data is not in the Apache Arrow format') from e
+        from ...tools.parquet_import import addrecords_parquet
+        datasets, records = addrecords_parquet(instream)
 
         return web.json_out(dict(status='success', datasets=list(datasets), records=records))
-
 
     @web.json_in()
     @expose_for(group.editor)
@@ -321,9 +354,8 @@ class DatasetAPI(BaseAPI):
                 return web.json_out(dict(status='success', datasets=list(datasets), records=records))
             else:
                 session.rollback()
-                raise web.APIError(400, f'Cannot add records, got {len(warnings)} errors:\n\n' + '\n'.join(f'- {w}' for w in warnings))
-
-
+                raise web.APIError(400, f'Cannot add records, got {len(warnings)} errors:\n\n' + '\n'.join(
+                    f'- {w}' for w in warnings))
 
     @expose_for()
     @web.method.get
@@ -341,4 +373,3 @@ class DatasetAPI(BaseAPI):
                 std = 0.0
             # Convert to json
             return web.json_out(dict(mean=mean, std=std, n=n))
-
