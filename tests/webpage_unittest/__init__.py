@@ -1,29 +1,10 @@
 import pytest
 from contextlib import contextmanager
 import cherrypy
-
-@pytest.fixture(scope='package', autouse=True)
-@pytest.mark.parametrize
-def conf(tmp_path_factory):
-    """
-    Creates a configuration with a :memory: SQLite database
-    """
-    import odmf
-    prefix = tmp_path_factory.mktemp('home')
-    odmf.prefix = str(prefix)
-    from odmf import config
-    conf = config.Configuration()
-    conf.description = '******** TEST *********'
-    conf.database_url = 'sqlite://'
-    conf.utm_zone = '32N'
-    conf.root_url = '/test'
-    with (prefix / 'config.yml').open('w') as f:
-        conf.to_yaml(f)
-    config.conf = conf
-    return conf
+from .. import conf
 
 
-@pytest.fixture(scope='package')
+@pytest.fixture(scope='class')
 def db(conf):
     """
     Creates a database in memory with the schema from the ORM classes,

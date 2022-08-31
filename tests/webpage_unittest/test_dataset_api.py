@@ -47,7 +47,12 @@ class TestDatasetAPI:
             root.api.dataset.list()
         )
         assert len(res) == 1
-        assert all(url.split('/')[-1][:2] == 'ds' for url in res)
+        assert res == [1]
+
+    def test_delete(self, root, timeseries):
+        res = root.api.dataset.delete(dsid=1)
+        assert res.decode() == 'OK'
+
 
     def test_new(self, root, db, timeseries):
         data = dict(
@@ -104,7 +109,6 @@ class TestDatasetAPI:
 
         # Check database
         assert timeseries.records.count() == 1000
-
 
     def test_addrecords_json_withid(self, root, timeseries):
         import datetime

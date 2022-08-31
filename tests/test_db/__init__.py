@@ -2,17 +2,7 @@ import pytest
 import sqlalchemy.orm
 import cherrypy
 from contextlib import contextmanager
-
-@pytest.fixture(scope='class')
-def conf():
-    """
-    Creates a configuration with a :memory: SQLite database
-    """
-    from odmf.config import Configuration
-    conf = Configuration()
-    conf.database_url = 'sqlite://'
-    conf.utm_zone = '32N'
-    return conf
+from .. import conf
 
 
 @pytest.fixture(scope='class')

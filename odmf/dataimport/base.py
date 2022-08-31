@@ -5,21 +5,18 @@ Created on 07.02.2013
 '''
 import sys
 from datetime import datetime, timedelta
-from .. import db
 from glob import glob
 from odmf.tools import Path
 import os.path as op
 import os
 from configparser import RawConfigParser
 from io import StringIO
-from math import isnan
 import typing
 import chardet
 
 import ast
 
 from ..config import conf
-from traceback import format_exc as traceback
 from pytz import common_timezones_set
 
 from logging import getLogger
@@ -28,6 +25,12 @@ logger = getLogger(__name__)
 
 
 def findStartDate(siteid, instrumentid):
+    """
+    Looks for a site / instrument combination the end of the last existing timeseries
+    :return:
+    """
+    from .. import db
+
     with db.session_scope() as session:
         ds = session.query(db.Dataset).filter(db.Dataset._site == siteid,
                                               db.Dataset._source == instrumentid)\
@@ -50,6 +53,8 @@ def finddateGaps(siteid, instrumentid, valuetype, startdate=None, enddate=None):
     :param enddate:
     :return:
     """
+    from .. import db
+
     logger.info("finddateGaps - START")
     logger.info("finddateGaps - valutype(s) list=%s" % valuetype)
 
@@ -383,6 +388,7 @@ class ImportDescription(object):
         """
         Returns a ConfigParser.RawConfigParser with the data of this description
         """
+        from .. import db
         config = RawConfigParser(allow_no_value=True)
         with db.session_scope() as session:
             inst = session.query(db.Datasource).get(self.instrument)
@@ -436,6 +442,9 @@ class ImportDescription(object):
         Creates a TextImportDescriptor from a ConfigParser.RawConfigParser
         by parsing its content
         """
+
+        from .. import db
+
         def getvalue(section, option, type=str):
             if config.has_option(section, option):
                 return type(config.get(section, option))
@@ -598,6 +607,7 @@ def get_last_ds_for_site(session, idescr: ImportDescription, col: ImportColumn, 
     To be used by lab imports where a site is encoded into the sample name.
 
     """
+    from .. import db
     q = session.query(db.Dataset).filter(
         db.Dataset._site == siteid,
         db.Dataset._valuetype == col.valuetype,

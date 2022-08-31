@@ -1,11 +1,8 @@
 import pytest
 import configparser
-import os.path as op
-import os
-from glob import glob
-from odmf.dataimport import base
-from odmf.config import conf
 
+from .. import conf
+from ..test_db import db
 
 # Create a config file for the Odyssey Logger
 @pytest.fixture()
@@ -33,7 +30,8 @@ def di_conf_file(tmp_path):
     return config_path
 
 
-def test_from_file(di_conf_file):
+def test_from_file(di_conf_file, db):
+    from odmf.dataimport import base
     pattern = '*.conf'
     descr = base.ImportDescription.from_file(path=di_conf_file, pattern=pattern)
     assert descr
@@ -42,7 +40,8 @@ def test_from_file(di_conf_file):
     assert descr.columns[0].name == 'rain tips'
 
 
-def test_from_file_validation():
+def test_from_file_validation(db):
+    from odmf.dataimport import base
     path = "datafiles/not_exist"
     pattern = "*.conf"
     with pytest.raises(IOError) as e_info:

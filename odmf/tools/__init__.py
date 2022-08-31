@@ -59,6 +59,10 @@ class Path(object):
     def islegal(self) -> bool:
         return self.absolute.startswith(self.datapath)
 
+    def as_path(self):
+        import pathlib
+        return pathlib.Path(self.absolute)
+
     def __lt__(self, other):
         return ('%s' % self) < ('%s' % other)
 

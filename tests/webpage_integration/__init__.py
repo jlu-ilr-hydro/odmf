@@ -13,7 +13,7 @@ import pytest
 import cherrypy
 from ..webpage_unittest import root, db_session, conf
 
-@pytest.fixture(scope='package')
+@pytest.fixture(scope='class')
 def webserver(root):
     cherrypy.tree.mount(root, conf.root_url)
     cherrypy.engine.start()

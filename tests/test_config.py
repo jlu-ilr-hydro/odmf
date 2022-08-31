@@ -1,12 +1,7 @@
 import pytest
 from pathlib import Path
 
-@pytest.fixture()
-def conf(tmp_path):
-    from odmf.config import Configuration
-    conf = Configuration(static=[str(tmp_path)])
-    return conf
-
+from . import conf
 
 def test_conf_create(conf):
     assert conf.database_url == 'sqlite://'
@@ -34,7 +29,9 @@ def test_static_double_entry(conf, tmp_path):
 
 
 def test_abspath(conf, tmp_path):
-    save_path = (tmp_path / 'ressource.txt')
+    import odmf
+    import pathlib
+    save_path = pathlib.Path(odmf.prefix + '/ressource.txt')
     save_path.write_text('some content')
     abspath = conf.abspath('ressource.txt')
     assert abspath == save_path
@@ -50,11 +47,6 @@ def test_update(conf):
     conf.update({'xyz': 17})
     assert 'xyz' not in conf.to_dict()
 
-
-
-def test_home(conf):
-    from odmf import prefix
-    assert conf.home == str(Path(prefix).absolute())
 
 def test_google_maps_api(conf):
     assert conf.google_maps_api('js-function')

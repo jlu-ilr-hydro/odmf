@@ -7,18 +7,8 @@ import sqlalchemy.orm
 from contextlib import contextmanager
 from tests.test_db.test_dbobjects import person, site1_in_db, datasource1_in_db
 import pathlib
+from .. import conf
 
-
-@pytest.fixture(scope='class')
-def conf():
-    """
-    Creates a configuration with a :memory: SQLite database
-    """
-    from odmf.config import Configuration
-    conf = Configuration()
-    conf.database_url = 'sqlite://'
-    conf.utm_zone = '32N'
-    return conf
 
 
 @pytest.fixture(scope='class')

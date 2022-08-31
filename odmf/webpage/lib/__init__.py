@@ -48,6 +48,7 @@ def json_out(obj=None, **kwargs):
     """
     Decorator for exposed functions to convert the output into utf-8 encoded json
     """
+    mime.json.set()
     if obj is None:
         obj = kwargs
     return json.dumps(

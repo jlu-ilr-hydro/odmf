@@ -31,6 +31,24 @@ class TestAPI:
         assert 'children' in data['api']
         assert 'dataset' in data['api']['children']
 
+    def test_api_upload(self, root):
+        from odmf import config
+        print(config.conf.datafiles)
+        test_txt = ('blä blübb' * 10 + '\n') * 20
+        cherrypy.request.body = io.BytesIO(test_txt.encode('utf-8'))
+
+        res = root.api.upload('text.txt')
+
+        assert res.decode('utf-8') == 'OK'
+
+        from odmf.tools import Path as OPath
+        p = OPath('text.txt')
+        assert p.exists()
+        res_txt = p.as_path().read_text('utf-8')
+        assert res_txt == test_txt
+
+
+
 
 
 

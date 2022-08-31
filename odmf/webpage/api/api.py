@@ -40,25 +40,24 @@ class API(BaseAPI):
 
         error = users.login(data['username'], data['password'])
         if error:
+            web.mime.plain.set()
             cherrypy.response.status = 401
             return 'Username or password wrong'.encode('utf-8')
         else:
             cherrypy.response.status = 200
+            web.mime.plain.set()
             return 'OK'.encode('utf-8')
 
     @expose_for(group.editor)
     @web.method.put
     def upload(self, targetpath: str, overwrite: bool = False):
         """
-        !WARNING NOT TESTED, DO NOT USE! Uploads a file to the file server
-
         :param targetpath: The path of the directory, where this file should be stored
         :param datafile: the file to upload
         :param overwrite: If True, an existing file will be overwritten. Else an error is raised
         :return: 200 OK / 400 Traceback
         """
-
-        r = cherrypy.request
+        web.mime.plain.set()
         fn = OPath(targetpath)
         if not fn.islegal:
             raise web.APIError(400, f"'{fn}' is not legal")
@@ -67,6 +66,7 @@ class API(BaseAPI):
         from pathlib import Path as PyPath
         data = cherrypy.request.body.read()
         PyPath(fn.absolute).write_bytes(data)
+        return 'OK'.encode('utf-8')
 
 
     @expose_for()

@@ -1,13 +1,7 @@
 
 import pytest
 
-
-@pytest.fixture()
-def conf():
-    from odmf.config import Configuration
-    conf = Configuration()
-    conf.database_url = 'sqlite://'
-    return conf
+from .. import conf
 
 
 def test_config_dburl(conf):

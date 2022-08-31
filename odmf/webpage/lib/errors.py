@@ -9,7 +9,6 @@ from cherrypy import HTTPError as _HTTPError
 from logging import getLogger
 from ..markdown import MarkDown
 from .renderer import render
-from . import as_json
 from . import mime
 from ..auth import users, group, is_member
 
@@ -58,7 +57,6 @@ def to_html(error=None, success=None, info=None, text=None):
 class HTTPError(_HTTPError):
     def __init__(self, status: int, message: str):
         self.message = message
-        logger.warning(self.traceback)
         super().__init__(status, str(message))
 
 
@@ -129,7 +127,6 @@ class HTMLErrorHandler(ErrorHandler):
     def status_404(self, status=None, message=None, version=None, traceback=None):
 
         req = cherrypy.request
-
         error = tw.dedent(f"""
         # {message}
         
@@ -147,15 +144,23 @@ class HTMLErrorHandler(ErrorHandler):
 
 class JSONErrorHandler(ErrorHandler):
     def status_default(self, status=None, message=None, version=None, traceback=None):
+        from . import json_out
         req = cherrypy.request
         if is_member(group.admin):
-            return as_json(dict(
-                status=status, message=message, version=version, request=req.request_line, traceback=traceback
-            )).encode('utf-8')
+            return json_out(
+                status=status,
+                message=message,
+                version=version,
+                request=req.request_line,
+                traceback=traceback
+            )
         else:
-            return as_json(dict(
-                status=status, message=message, version=version, request=req.request_line
-            )).encode('utf-8')
+            return json_out(
+                status=status,
+                message=message,
+                version=version,
+                request=req.request_line
+            )
 
 
 class errorhandler:
