@@ -49,9 +49,11 @@ class TestDatasetAPI:
         assert len(res) == 1
         assert res == [1]
 
+    @pytest.mark.skip('tot test deletion, existing timeseries may not be temporary')
     def test_delete(self, root, timeseries):
-        res = root.api.dataset.delete(dsid=1)
-        assert res.decode() == 'OK'
+        res = response_to_json(root.api.dataset.delete(dsid=1))
+        assert res['status'] == 'success'
+        assert root.api.dataset.list() == '0'
 
 
     def test_new(self, root, db, timeseries):

@@ -271,7 +271,7 @@ class DatasetPage:
         if onlyaccess:
             lvl = users.current.level  # @UndefinedVariable
             datasets = datasets.filter(lvl >= db.Dataset.access)
-        return datasets.join(db.ValueType).order_by(db.ValueType.name, db.sql.desc(db.Dataset.end))
+        return datasets
 
     @expose_for()
     @web.method.get
@@ -309,32 +309,72 @@ class DatasetPage:
     @web.method.get
     @web.mime.json
     def attributes(self, valuetype=None, user=None, site=None, date=None, instrument=None,
-                   type=None, level=None, onlyaccess=False):
+                   type=None, level=None, project=None, onlyaccess=False):
         """
         Gets for each dataset attribute a unique list of values fitting to the filter
 
         Should replace multiple calls to attrjson
         """
         ds_attributes = ['valuetype', 'measured_by', 'site', 'source', 'type', 'level',
-                          'uses_dst', 'timezone', 'project', 'quality']
+                         'uses_dst', 'timezone', 'project', 'quality']
+        entities = {
+            'level': db.Dataset.level,
+            'valuetype' : db.Dataset.valuetype,
+            'measured_by': db.Person,
+            'site': db.Site,
+            'source': db.Installation,
+            'type': db.Dataset.type,
+            'uses_dst': db.Dataset.uses_dst,
+            'timezone': db.Dataset.timezone,
+            'project': db.Dataset.project,
+            'quality': db.Quality
+        }
+        import time
+        t = time.time()
+        slow_but_working = True
+        def untuple(obj):
+            try:
+                return obj[0]
+            except TypeError:
+                return obj
+
+        def get_entity(q, entity):
+            qq = q.with_entities(entity).distinct()
+            print(qq)
+            return qq
 
         with db.session_scope() as session:
             # Get dataset for filter
             datasets = self.subset(session, valuetype, user,
                                    site, date, instrument,
-                                   type, level, onlyaccess).all()
-
+                                   type, level, onlyaccess)
+            if not slow_but_working:
+                # This is not really working by now, don't understand with_entities completely
+                result = {
+                    attr : {
+                        i : untuple(o) for i, o in enumerate(get_entity(datasets, entity)
+                        )
+                    }
+                    for attr, entity in entities.items()
+                }
+                result['count'] = datasets.count()
+            else:
             # For each attribute iterate all datasets and find the unique values of the dataset
-            result = {
-                attr.strip('_'): sorted(
-                    set(
-                        getattr(ds, attr)
-                        for ds in datasets
-                    ),
-                    key=lambda x: (x is not None, x)
-                )
-                for attr in ds_attributes
-            }
+                datasets = datasets.all()
+                result = {
+                    attr.strip('_'): sorted(
+                        set(
+                            getattr(ds, attr)
+                            for ds in datasets
+                        ),
+                        key=lambda x: (x is not None, x)
+                    )
+                    for attr in ds_attributes
+                }
+                result['count'] = len(datasets)
+
+            result['time'] = time.time() - t
+            # print('Attributes in {:0.3f}s'.format(time.time() - t))
             return web.json_out(result)
 
 
@@ -343,15 +383,28 @@ class DatasetPage:
     @web.mime.json
     def json(self, valuetype=None, user=None, site=None,
              date=None, instrument=None, type=None,
-             level=None, onlyaccess=False):
+             level=None, onlyaccess=False, limit=None, page=None):
         """
         Gets a json file of available datasets with filter
         """
         with db.session_scope() as session:
-            return web.json_out(self.subset(
+            dataset_q = self.subset(
                 session, valuetype, user, site,
                 date, instrument, type, level, onlyaccess
-            ).all())
+            ).order_by(db.Dataset.id)
+            count = dataset_q.count()
+            if limit:
+                dataset_q = dataset_q.limit(int(limit))
+
+            if page:
+                dataset_q = dataset_q.offset((int(page) - 1) * int(limit))
+
+            return web.json_out({
+                'datasets': dataset_q.all(),
+                'count': count,
+                'limit': limit,
+                'page' : page
+            })
 
     @expose_for(group.editor)
     @web.method.post

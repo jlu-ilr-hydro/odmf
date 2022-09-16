@@ -213,14 +213,13 @@ class DatasetAPI(BaseAPI):
     @expose_for(group.admin)
     @web.method.post_or_delete
     def delete(self, dsid: int):
-        web.mime.plain.set()
         with db.session_scope() as session:
             if not (ds := session.query(db.Dataset).get(dsid)):
                 raise web.APIError(404, f'Dataset {dsid} not found')
             if isinstance(ds, db.Timeseries) and ds.size():
                 raise web.APIError(500, f'Dataset ds{dsid} has {ds.size()} records. Call api.dataset.delete_records({dsid}) first, to delete all records')
-            session.remove(ds)
-            return f'Dataset {dsid} deleted'.encode('utf-8')
+            session.delete(ds)
+            return web.json_out(dict(status='success', datasets=[dsid]))
 
     @expose_for(group.guest)
     @web.method.get
