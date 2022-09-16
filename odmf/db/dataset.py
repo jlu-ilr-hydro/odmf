@@ -120,16 +120,15 @@ class Dataset(Base):
     start = sql.Column(sql.DateTime, nullable=True)
     end = sql.Column(sql.DateTime, nullable=True)
     _site = sql.Column("site", sql.Integer, sql.ForeignKey('site.id'))
-    site = orm.relationship("Site", primaryjoin='Site.id==Dataset._site',
-                            backref=orm.backref('datasets', lazy='dynamic',
-                                                # order_by="[Dataset.valuetype.name,sql.desc(Dataset.end)]"
-                                                ))
-    _valuetype = sql.Column("valuetype", sql.Integer,
-                            sql.ForeignKey('valuetype.id'))
+    site = orm.relationship(
+        "Site", primaryjoin='Site.id==Dataset._site', order_by='Site.id',
+        backref=orm.backref('datasets', lazy='dynamic')
+    )
+    _valuetype = sql.Column("valuetype", sql.Integer, sql.ForeignKey('valuetype.id'))
     valuetype = orm.relationship("ValueType", backref='datasets')
     _measured_by = sql.Column(
         "measured_by", sql.String, sql.ForeignKey('person.username'))
-    measured_by = orm.relationship("Person", backref='datasets',
+    measured_by = orm.relationship("Person", backref='datasets', order_by='Person.username',
                                    primaryjoin="Person.username==Dataset._measured_by")
     _quality = sql.Column("quality", sql.Integer,
                           sql.ForeignKey('quality.id'), default=0)

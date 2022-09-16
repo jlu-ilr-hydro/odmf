@@ -36,7 +36,7 @@
                             user:user,
                             site:site,
                             date:date,
-                            type:type,
+                            dstype:type,
                             instrument:instrument,
                         },
                         data => {
@@ -67,7 +67,7 @@
                             user:user,
                             site:site,
                             date:date,
-                            type:type,
+                            dstype:type,
                             instrument:instrument,
                             limit: limit,
                             page: page
@@ -99,10 +99,13 @@
 
             function pageChange(e) {
                 let dir = $(e.target).data('dir');
-                let select = $('#page option:selected')
-                select.attr('selected', false)
-                if (dir === '-') select.prev().attr('selected', true)
-                else if (dir === '+') select.next().attr('selected', true)
+                let page = $('#page').val()
+                if (dir === '-' && page > 1) {
+                    page--;
+                } else if (dir === '+' && page < $('#page option:last').val()) {
+                    page++;
+                }
+                $('#page').val(page).change()
                 setFilter();
             }
 
@@ -205,11 +208,11 @@
                         <span class="input-group-text">ds per page:</span>
                         <input class="form-control" type="number" id="limit" value="50" title="Datasets per page" />
                         <span class="input-group-text">page:</span>
-                        <button class="btn btn-secondary page" data-dir="-">&lt;</button>
+                        <button class="btn btn-secondary page" data-dir="-" title="last page">&lt;</button>
                         <select class="form-control form-select page" type="number" id="page" title="Datasets per page" >
                             <option value="1">1 / 1</option>
                         </select>
-                        <button class="btn btn-secondary page" data-dir="+">&gt;</button>
+                        <button class="btn btn-secondary page" data-dir="+" title="next page">&gt;</button>
 
                     </div>
                 </li>
