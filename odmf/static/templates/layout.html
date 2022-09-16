@@ -23,6 +23,13 @@
     <style py:block="style"/>
 
     <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
+    <!-- # Mathjax 2 - plotly does not support mathjax 3 -->
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {inlineMath: [['$~','~$'], ['\\(','\\)']]}
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-MML-AM_CHTML"></script>
     <!-- JQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
             integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
@@ -39,11 +46,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.1/js/bootstrap.min.js"
             integrity="sha512-UR25UO94eTnCVwjbXozyeVd6ZqpaAE9naiEUBK/A+QDbfSTQFhPGj5lOR6d8tsgbBk84Ggb5A3EkjsOgPRPcKA=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <!-- # Mathjax 2 - plotly does not support mathjax 3 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js"
-            integrity="sha512-GQ3aaCTQty4Iq5QrAtKpzomUSNz3sJpWOUxxJoZW4PYAKsckw49SMVaAykMh4SopX87eVGrxf9yOat27echN1Q=="
-            crossorigin="anonymous"
-            referrerpolicy="no-referrer"></script>
 
     <script>
         //<![CDATA[
@@ -93,7 +95,7 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
             <a class="nav-link dropdown-toggle h4"
                href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown"
                aria-haspopup="true" aria-expanded="false">
-                    ${title}
+                   ${title}
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                     <a class="dropdown-item flexbox"
