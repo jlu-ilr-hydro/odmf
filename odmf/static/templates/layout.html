@@ -51,11 +51,12 @@
         //<![CDATA[
         $(function () {
             $('[data-toggle="tooltip"]').tooltip();
+            $('#login-logout').click(() => {
+                $.post('${conf.root_url}/api/logout').done(() => {
+                    window.location.reload()
+                })
+            })
             $('#login-btn').click( function(){
-                var data = {
-                    username: $('#login-username').val(),
-                    password: $('#login-password').val()
-                };
                 $.post('${conf.root_url}/api/login', $('#login-form').serialize())
                     .done(function() {
                         var curLoc =window.location.href;
@@ -138,19 +139,20 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
                    py:content="users.current or 'login'" title="login">
                 </a>
                 <div class="dropdown-menu bg-dark dropdown-menu-right" aria-labelledby="login-link" style="min-width: 15rem;">
-                    <form id="login-form" class="m-2 bg-light border-rounded" >
-                        <div class="form-group pt-2 px-2">
+                    <form id="login-form" class="m-2 p-2 bg-light border-rounded" >
                             <label for="login-username">Username</label>
                             <input type="text" class="form-control" id="login-username" name="username" />
                             <label for="login-password">Password:</label>
                             <input type="password" name="password" id="login-password" class="form-control"/>
-                        </div>
-                        <div id="login-error" />
-                        <div class="form-group px-2 pb-2 row mx-0">
+                    </form>
+                    <div id="login-error" />
+                    <div class="row p-2">
+                        <div class="container">
                             <button id="login-btn"  class="btn btn-primary col mr-1">log in</button>
                             <button id="login-logout" class="btn btn-secondary col ml-1">log out</button>
                         </div>
-                    </form>
+
+                    </div>
 
                 </div>
             </li>
