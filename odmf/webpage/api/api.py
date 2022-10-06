@@ -48,6 +48,13 @@ class API(BaseAPI):
             web.mime.plain.set()
             return 'OK'.encode('utf-8')
 
+    @expose_for()
+    @web.method.post
+    @web.mime.plain
+    def logout(self):
+        users.logout()
+        return 'OK'.encode('utf-8')
+
     @expose_for(group.editor)
     @web.method.put
     def upload(self, targetpath: str, overwrite: bool = False):

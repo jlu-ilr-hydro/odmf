@@ -41,7 +41,7 @@
                 if (site) {
                     $.getJSON(odmf_ref('/dataset/json'),{site:site,instrument:instrument},function(data){
                         var html='';
-                        $.each(data, function(index,item){
+                        $.each(data.datasets, function(index,item){
                             html+='<li class="list-group-item"><a href="${conf.root_url}/dataset/'+item.id+'">'+item.label+'</a></li>';
                         });
                         $('#datasets').html(html);

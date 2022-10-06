@@ -215,7 +215,7 @@
                         </tr>
                         <tr py:if="ds_act.is_transformed()" id="transformation">
                             <td class="bold">Transformation:</td>
-                            <td class="big">\(f(x)=${ds_act.latex}\)</td>
+                            <td class="big">$~f(x)=${ds_act.latex}~$</td>
                         </tr>
                         <tr>
                             <td class="bold">Comment:</td>
@@ -227,7 +227,7 @@
                     <button py:if="ds_act.is_timeseries() and is_member('editor')" id="create-transformation"
                             class="btn btn-outline-primary mr-2" data-toggle="tooltip"
                             title="Create a transformed dataset for this">
-                        \(f(x)\) transform
+                        $~f(x)~$ transform
                     </button>
                     <button py:if="is_member('admin')" class="btn btn-outline-danger mr-2"
                             title="remove dataset permanently" data-toggle="tooltip"
@@ -451,13 +451,13 @@
                                     </label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
-                                            <span class="input-group-text">\(x\prime = \)</span>
+                                            <span class="input-group-text">$~x\prime = ~$</span>
                                         </div>
                                         <input class="form-control" type="text"
                                                value="${formatfloat(ds_act.calibration_slope)}" id="calibration_slope"
                                                name="calibration_slope" size="5" style="text-align: right;"/>
                                         <div class="input-group-prepend">
-                                            <span class="input-group-text">\(\cdot\ x\ +\ \)</span>
+                                            <span class="input-group-text">$~\cdot\ x\ +\ ~$</span>
                                         </div>
 
                                         <input type="text" value="${formatfloat(ds_act.calibration_offset)}"
@@ -474,7 +474,7 @@
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">
-                                                \(f(x)=\)
+                                                $~f(x)=~$
                                             </span>
                                         </div>
                                         <input type="text" value="${ds_act.expression}" id="expression" name="expression" size="50" class="transhelpparent form-control"/>
@@ -486,7 +486,7 @@
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">
-                                                \(f(x)=\)
+                                                $~f(x)=~$
                                             </span>
                                         </div>
                                         <input type="text" value="${ds_act.latex}" id="latex" name="latex" size="50" class="form-control transhelpparent"/>
@@ -508,25 +508,25 @@
                                             </tr>
                                             <tr>
                                                 <td>Polynom</td>
-                                                <td>\(-0.5\cdot10^{-5}x^3+2.35x^2-124.5x+15.3\)</td>
+                                                <td>$~-0.5\cdot10^{-5}x^3+2.35x^2-124.5x+15.3~$</td>
                                                 <td>-0.5e-5*x**3 + 2.35*x**2 - 124.5*x + 15.3</td>
                                                 <td>-0.5\dot10^{-5}x^3+2.35x^2-124.5x+15.3</td>
                                             </tr>
                                             <tr>
                                                 <td>Exponential</td>
-                                                <td>\(3.2 e^{0.5x}\)</td>
+                                                <td>$~3.2 e^{0.5x}~$</td>
                                                 <td>3.2 * exp(0.5*x)</td>
                                                 <td>3.2 e^{0.5x}</td>
                                             </tr>
                                             <tr>
                                                 <td>nat. log.</td>
-                                                <td>\(\ln{x}\)</td>
+                                                <td>$~\ln{x}~$</td>
                                                 <td>log(x)</td>
                                                 <td>\ln{x})</td>
                                             </tr>
                                             <tr>
                                                 <td>dec. log.</td>
-                                                <td>\(\log_{10}{x}\)</td>
+                                                <td>$~\log_{10}{x}~$</td>
                                                 <td>log10(x)</td>
                                                 <td>\log_{10}{x}</td>
                                             </tr>
@@ -817,7 +817,7 @@
                                     <div class="col"></div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-6 text-right font-weight-bold">mean\((x_{target})\)</div>
+                                    <div class="col-6 text-right font-weight-bold">mean$~(x_{target})~$</div>
                                     <div id="calibration-result-target_mean" class="col value">0.0</div>
                                     <div id="calibration-result-target_std" class="col std">0.0</div>
                                     <div class="col unit">?</div>
@@ -837,19 +837,19 @@
                             </div>
                             <div class="border">
                                 <div class="row mt-2">
-                                    <h4 class="col ml-2">Linear regression \(y=a \cdot x + b\)</h4>
+                                    <h4 class="col ml-2">Linear regression $~y=a \cdot x + b~$</h4>
                                     <div class="col text-right mr-2">
                                         <button id="calibrate-apply-regression" class="btn btn-primary do-calibration"><i class="fas fa-check-circle mr-2"/>apply</button>
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-6 text-right font-weight-bold">slope \(a\)</div>
+                                    <div class="col-6 text-right font-weight-bold">slope $~a~$</div>
                                     <div id="calibration-result-slope" class="col value" >0.0</div>
                                     <div class="col unit">?</div>
                                     <div class="col"></div>
                                 </div>
                                 <div  class="row">
-                                    <div class="col-6 text-right font-weight-bold">offset \(b\)</div>
+                                    <div class="col-6 text-right font-weight-bold">offset $~b~$</div>
                                     <div id="calibration-result-offset" class="col value" >0.0</div>
                                     <div class="col unit">?</div>
                                     <div class="col"></div>
@@ -864,13 +864,13 @@
                             </div>
                             <div class="border">
                                 <div class="row mt-2">
-                                    <h4 class="col ml-2">Bias correction \(y = x + c\)</h4>
+                                    <h4 class="col ml-2">Bias correction $~y = x + c~$</h4>
                                     <div class="col text-right mr-2">
                                         <button id="calibrate-apply-offset" class="btn btn-primary do-calibration"><i class="fas fa-check-circle mr-2"/>apply</button>
                                     </div>
                                 </div>
                                 <div  class="row">
-                                    <div class="col-6 text-right font-weight-bold">offset \(c\)</div>
+                                    <div class="col-6 text-right font-weight-bold">offset $~c~$</div>
                                     <div id="calibration-result-meanoffset" class="col value" >0.0</div>
                                     <div class="col unit">?</div>
                                     <div class="col"></div>

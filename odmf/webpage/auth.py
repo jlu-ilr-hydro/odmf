@@ -198,9 +198,9 @@ class Users(collections.UserDict):
             return
 
     def logout(self):
-        sess = cherrypy.session
-        sess[SESSION_KEY] = None
         cherrypy.request.login = None
+        cherrypy.session[SESSION_KEY] = None
+        cherrypy.lib.sessions.expire()
 
 
 users = Users()

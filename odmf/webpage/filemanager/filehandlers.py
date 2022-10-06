@@ -1,6 +1,9 @@
+import io
 import typing
 
+import chardet
 import pandas as pd
+
 
 from ...tools import Path
 from .. import lib as web
@@ -10,6 +13,20 @@ from ...config import conf
 from ..markdown import MarkDown
 
 markdown = MarkDown()
+
+
+def load_text_file(path: Path) -> str:
+    with open(path.absolute, 'rb') as f:
+        data = f.read()
+        try:
+            return data.decode('utf-8')
+        except UnicodeDecodeError:
+            detection = chardet.detect(data)
+            return data.decode(detection['encoding'])
+
+
+def load_text_stream(path: Path) -> io.StringIO:
+    return io.StringIO(load_text_file(path))
 
 
 class BaseFileHandler:
@@ -52,8 +69,7 @@ class TextFileHandler(BaseFileHandler):
         Converts a string to a html text by creating surrounding pre tags.
         Overwrite for different handles
         """
-        with open(path.absolute) as f:
-            source = f.read()
+        source = load_text_file(path)
         return web.render('textfile_editor.html', html=self.render(source), source=source, path=path).render()
 
 
@@ -102,11 +118,14 @@ class CsvFileHandler(BaseFileHandler):
     def to_html(self, path: Path) -> str:
 
         try:
-            df = pd.read_csv(path.absolute, sep=None)
+            text_io = load_text_stream(path)
+            df = pd.read_csv(text_io, sep=None, engine='python')
             return table_to_html(df)
-        except:
-            with open(path.absolute, 'r') as f:
-                return '\n<pre>\n' + f.read() + '\n</pre>\n'
+        except Exception as e:
+            text = load_text_file(path)
+
+            return '\n<pre>\n' + text + '\n</pre>\n'
+
 
 class ParquetFileHandler(BaseFileHandler):
 
@@ -137,6 +156,7 @@ class PdfFileHandler(BaseFileHandler):
             <a href="{path.raw_url}" class="btn btn-primary">Download</a>
         </object>
         '''
+
 
 class ZipFileHandler(BaseFileHandler):
 

@@ -23,6 +23,13 @@
     <style py:block="style"/>
 
     <script>function odmf_ref(s) {return '${conf.root_url}' + s;}</script>
+    <!-- # Mathjax 2 - plotly does not support mathjax 3 -->
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {inlineMath: [['$~','~$'], ['\\(','\\)']]}
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-MML-AM_CHTML"></script>
     <!-- JQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
             integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
@@ -39,21 +46,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.1/js/bootstrap.min.js"
             integrity="sha512-UR25UO94eTnCVwjbXozyeVd6ZqpaAE9naiEUBK/A+QDbfSTQFhPGj5lOR6d8tsgbBk84Ggb5A3EkjsOgPRPcKA=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <!-- # Mathjax 2 - plotly does not support mathjax 3 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js"
-            integrity="sha512-GQ3aaCTQty4Iq5QrAtKpzomUSNz3sJpWOUxxJoZW4PYAKsckw49SMVaAykMh4SopX87eVGrxf9yOat27echN1Q=="
-            crossorigin="anonymous"
-            referrerpolicy="no-referrer"></script>
 
     <script>
         //<![CDATA[
         $(function () {
             $('[data-toggle="tooltip"]').tooltip();
+            $('#login-logout').click(() => {
+                $.post('${conf.root_url}/api/logout').done(() => {
+                    window.location.reload()
+                })
+            })
             $('#login-btn').click( function(){
-                var data = {
-                    username: $('#login-username').val(),
-                    password: $('#login-password').val()
-                };
                 $.post('${conf.root_url}/api/login', $('#login-form').serialize())
                     .done(function() {
                         var curLoc =window.location.href;
@@ -93,7 +96,7 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
             <a class="nav-link dropdown-toggle h4"
                href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown"
                aria-haspopup="true" aria-expanded="false">
-                    ${title}
+                   ${title}
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                     <a class="dropdown-item flexbox"
@@ -136,19 +139,20 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
                    py:content="users.current or 'login'" title="login">
                 </a>
                 <div class="dropdown-menu bg-dark dropdown-menu-right" aria-labelledby="login-link" style="min-width: 15rem;">
-                    <form id="login-form" class="m-2 bg-light border-rounded" >
-                        <div class="form-group pt-2 px-2">
+                    <form id="login-form" class="m-2 p-2 bg-light border-rounded" >
                             <label for="login-username">Username</label>
                             <input type="text" class="form-control" id="login-username" name="username" />
                             <label for="login-password">Password:</label>
                             <input type="password" name="password" id="login-password" class="form-control"/>
-                        </div>
-                        <div id="login-error" />
-                        <div class="form-group px-2 pb-2 row mx-0">
+                    </form>
+                    <div id="login-error" />
+                    <div class="row p-2">
+                        <div class="container">
                             <button id="login-btn"  class="btn btn-primary col mr-1">log in</button>
                             <button id="login-logout" class="btn btn-secondary col ml-1">log out</button>
                         </div>
-                    </form>
+
+                    </div>
 
                 </div>
             </li>
