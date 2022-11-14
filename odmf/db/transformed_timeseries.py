@@ -12,13 +12,6 @@ from asteval import Interpreter
 from logging import getLogger
 logger = getLogger(__name__)
 
-transforms_table = sql.Table(
-    'transforms', Base.metadata,
-    sql.Column('target', sql.Integer, ForeignKey(
-        'transformed_timeseries.id'), primary_key=True),
-    sql.Column('source', sql.Integer, ForeignKey('dataset.id'), primary_key=True)
-)
-
 
 class TransformedTimeseries(Dataset):
     __tablename__ = 'transformed_timeseries'
@@ -99,3 +92,10 @@ class TransformedTimeseries(Dataset):
         else:
             return np.mean(s), np.std(s), len(s)
 
+
+transforms_table = sql.Table(
+    'transforms', Base.metadata,
+    sql.Column('target', sql.Integer, ForeignKey(
+        'transformed_timeseries.id'), primary_key=True),
+    sql.Column('source', sql.Integer, ForeignKey('dataset.id'), primary_key=True)
+)

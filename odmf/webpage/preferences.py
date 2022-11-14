@@ -53,11 +53,7 @@ class Preferences(object):
     @expose_for()
     @web.mime.json
     def index(self, item=''):
-        data = self.data
-        print("index for preferences")
-        #
-        # Seems pythons needs still explicit encoding
-        if item in data:
+        if item in self.data:
             return web.json_out(self.data[item])
         else:
             return web.json_out(self.data)
