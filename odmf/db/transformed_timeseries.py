@@ -53,7 +53,7 @@ class TransformedTimeseries(Dataset):
 
     def transform(self, x: pd.Series):
         self.interpreter.symtable['x'] = x.to_numpy()
-        result = self.interpreter(self.expression)
+        result = self.interpreter(self.expression.strip())
         return pd.Series(result, index=x.index, name=str(self))
 
     def iterrecords(self, witherrors=False, start=None, end=None):
