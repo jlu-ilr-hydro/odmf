@@ -85,7 +85,18 @@ class DownloadPage(object):
         directories, files = path.listdir()
 
         if path.isfile():
-            if (not serve) and (content := self.filehandler(path)):
+            if (not serve):
+                try:
+                    content = self.filehandler(path)
+                except ValueError as e:
+                    content = f'<div class="alert bg-warning"><h3>{e}</h3></div>'
+
+                except Exception as e:
+                    if error : error += '\n\n'
+                    error += str(e)
+                    if web.is_member(group.admin):
+                        error += '\n```\n' + traceback() + '\n```\n'
+
                 return web.render(
                     'download.html', error=error, message=msg,
                     content=content, handler=self.filehandler,

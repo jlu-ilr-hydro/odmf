@@ -22,6 +22,8 @@ def load_text_file(path: Path) -> str:
             return data.decode('utf-8')
         except UnicodeDecodeError:
             detection = chardet.detect(data)
+            if not detection['encoding']:
+                raise ValueError(f'{path} is a binary file')
             return data.decode(detection['encoding'])
 
 
@@ -71,6 +73,23 @@ class TextFileHandler(BaseFileHandler):
         """
         source = load_text_file(path)
         return web.render('textfile_editor.html', html=self.render(source), source=source, path=path).render()
+
+
+class ConfFileHandler(TextFileHandler):
+    icon = 'file-import'
+    def render(self, source):
+        def div(content, *classes):
+            classes = ' '.join(classes)
+            return f'\n<div class="{classes}">{content}</div>'
+        try:
+            source = source.replace('\r', '')
+            value_sub = div(div('\\1', 'col') + div('= ', 'col') + div('\\2', 'col'), 'row')
+            source = re.sub(r'(.*)\=(.*)', value_sub, source)
+            source = re.sub(r'^[#;](.*)', div('\\1', 'text-light bg-secondary small pl-2 font-italic'), source, flags=re.M)
+            source = re.sub(r'^\s*\[(.*)\]\s*$', r'<h3>[\1]</h3>', source, flags=re.M)
+            return source
+        except Exception:
+            return '\n<pre>\n' + source + '\n</pre>\n'
 
 
 class PlotFileHandler(BaseFileHandler):
@@ -158,6 +177,19 @@ class PdfFileHandler(BaseFileHandler):
         '''
 
 
+class DocxFileHandler(BaseFileHandler):
+
+    icon = 'file-word'
+
+    def to_html(self, path: Path):
+        try:
+            import mammoth as m
+            with path.as_path().open('rb') as f:
+                conversion = m.convert_to_html(f)
+                return conversion.value
+        except Exception as e:
+            raise web.HTTPError(500, f'Cannot open Word document: {path}')
+
 class ZipFileHandler(BaseFileHandler):
 
     icon = 'file-archive'
@@ -176,8 +208,10 @@ class ZipFileHandler(BaseFileHandler):
 class MultiHandler(BaseFileHandler):
     handlers = [
         MarkDownFileHandler(r'\.(md|wiki)$'),
+        ConfFileHandler(r'\.conf$'),
         PlotFileHandler(r'\.plot$'),
         ExcelFileHandler(r'\.xls.?$'),
+        DocxFileHandler(r'\.docx$'),
         CsvFileHandler(r'\.csv$'),
         ParquetFileHandler(r'\.parquet$'),
         PdfFileHandler(r'\.pdf$'),

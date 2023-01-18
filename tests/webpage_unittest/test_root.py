@@ -78,6 +78,7 @@ class TestLogin:
         assert redirect_info.value.urls[0].endswith('/login')
         assert cherrypy.request.login == 'odmf.admin'
 
+    @pytest.mark.skip('do not unit test logout, cannot expire session out of a running server')
     def test_logout(self, root):
         cherrypy.request.login = 'odmf.admin'
         res = root.login(logout=True)

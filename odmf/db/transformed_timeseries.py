@@ -20,8 +20,6 @@ class TransformedTimeseries(Dataset):
         'dataset.id'), primary_key=True)
     expression = sql.Column(sql.String)
     latex = sql.Column(sql.String)
-    sources = orm.relationship(
-        "Timeseries", secondary=transforms_table, order_by="Timeseries.start")
 
     # An asteval interpreter with minimal functionality
     interpreter = Interpreter(minimal=True, max_statement_length=300)
@@ -99,3 +97,8 @@ transforms_table = sql.Table(
         'transformed_timeseries.id'), primary_key=True),
     sql.Column('source', sql.Integer, ForeignKey('dataset.id'), primary_key=True)
 )
+
+# Moved relationship out of class definition to ensure, that the transforms_table table after
+# transformed_timeseries to allow the foreign key constrains to work
+TransformedTimeseries.sources = orm.relationship(
+        "Timeseries", secondary=transforms_table, order_by="Timeseries.start")

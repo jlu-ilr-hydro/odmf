@@ -31,6 +31,10 @@ humanize
 # using plotly backend
 plotly==5.6.0
 kaleido
+
+# file handlers
+mammoth   # converts docx files to html
+
 # Interactive
 ipython>=8.0.1
 
