@@ -1,0 +1,2866 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="1329"
+   height="897.70312"
+   viewBox="0 0 351.63125 237.51729"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   sodipodi:docname="database.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     showgrid="false"
+     inkscape:zoom="1.2938725"
+     inkscape:cx="525.94055"
+     inkscape:cy="475.31732"
+     inkscape:window-width="3747"
+     inkscape:window-height="1577"
+     inkscape:window-x="85"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     inkscape:lockguides="false"
+     showguides="true" />
+  <defs
+     id="defs2">
+    <clipPath
+       id="clip0">
+      <rect
+         x="14"
+         y="31"
+         width="1343"
+         height="916"
+         id="rect132" />
+    </clipPath>
+  </defs>
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(82.117473,-56.780794)">
+    <g
+       clip-path="url(#clip0)"
+       transform="matrix(0.26458333,0,0,0.26458333,-89.525806,43.737663)"
+       id="g959">
+      <rect
+         x="1218"
+         y="524"
+         width="139"
+         height="423"
+         fill="#bf9000"
+         id="rect137" />
+      <rect
+         x="208"
+         y="89"
+         width="219"
+         height="516"
+         fill="#ff9900"
+         id="rect139" />
+      <rect
+         x="28"
+         y="89"
+         width="180"
+         height="298"
+         fill="#ffd966"
+         id="rect141" />
+      <rect
+         x="28"
+         y="382"
+         width="179"
+         height="224"
+         fill="#ffe699"
+         id="rect143" />
+      <rect
+         x="425"
+         y="184"
+         width="269"
+         height="420"
+         fill="#ffe699"
+         id="rect145" />
+      <rect
+         x="694"
+         y="185"
+         width="662"
+         height="339"
+         fill="#ffd966"
+         id="rect147" />
+      <rect
+         x="694"
+         y="524"
+         width="357"
+         height="176"
+         fill="#fff2cc"
+         id="rect149" />
+      <rect
+         x="427"
+         y="88"
+         width="269"
+         height="96"
+         fill="#fff2cc"
+         id="rect151" />
+      <rect
+         x="805"
+         y="696"
+         width="247"
+         height="249"
+         fill="#ffd966"
+         id="rect153" />
+      <rect
+         x="1051"
+         y="524"
+         width="168"
+         height="422"
+         fill="#ffc000"
+         id="rect155" />
+      <rect
+         x="208"
+         y="604"
+         width="219"
+         height="244"
+         fill="#7f6000"
+         id="rect157" />
+      <rect
+         x="225"
+         y="198"
+         width="171"
+         height="23"
+         fill="#cdcdcd"
+         id="rect159" />
+      <rect
+         x="225.5"
+         y="198.5"
+         width="171"
+         height="23"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect161" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(291.908,212)"
+         id="text163">dataset</text>
+      <rect
+         x="225"
+         y="221"
+         width="171"
+         height="331"
+         fill="#ffffff"
+         id="rect165" />
+      <rect
+         x="225.5"
+         y="221.5"
+         width="171"
+         height="331"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect167" />
+      <path
+         d="m 269.712,552.5 v -331 M 225.5,243.186 h 171"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path169" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(229.684,236)"
+         id="text171">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(273.743,236)"
+         id="text173">id</text>
+      <path
+         d="m 274.5,237.5 h 10"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path175" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(273.743,264)"
+         id="text177">name</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(273.743,278)"
+         id="text179">filename</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(273.743,292)"
+         id="text181">start</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(273.743,306)"
+         id="text183">end</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(229.684,320)"
+         id="text185">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(243.783,320)"
+         id="text187">6</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(273.743,320)"
+         id="text189">source</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(229.684,334)"
+         id="text191">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(243.783,334)"
+         id="text193">4</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(273.743,334)"
+         id="text195">site</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(229.684,348)"
+         id="text197">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(243.783,348)"
+         id="text199">5</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(273.743,348)"
+         id="text201">valuetype</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(229.684,362)"
+         id="text203">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(243.783,362)"
+         id="text205">1</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(273.743,362)"
+         id="text207">measured</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(322.681,362)"
+         id="text209">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(329.324,362)"
+         id="text211">by</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(229.684,376)"
+         id="text213">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(243.783,376)"
+         id="text215">3</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(273.743,376)"
+         id="text217">quality</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(273.743,390)"
+         id="text219">comment</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(273.743,404)"
+         id="text221">calibration</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(329.324,404)"
+         id="text223">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(335.967,404)"
+         id="text225">offset</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(273.743,418)"
+         id="text227">calibration</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(329.324,418)"
+         id="text229">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(335.967,418)"
+         id="text231">slope</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(273.743,432)"
+         id="text233">type</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(273.743,446)"
+         id="text235">uses</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(298.551,446)"
+         id="text237">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(305.194,446)"
+         id="text239">dst</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(273.743,460)"
+         id="text241">level</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(273.743,474)"
+         id="text243">access</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(229.684,488)"
+         id="text245">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(243.783,488)"
+         id="text247">2</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(249.612,488)"
+         id="text249">,</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(253.001,488)"
+         id="text251">I</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(256.255,488)"
+         id="text253">1</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(273.743,488)"
+         id="text255">project</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(273.743,502)"
+         id="text257">timezone</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(273.743,516)"
+         id="text259">cv</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(284.452,516)"
+         id="text261">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(291.095,516)"
+         id="text263">valuetype</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(273.743,530)"
+         id="text265">cv</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(284.452,530)"
+         id="text267">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(291.095,530)"
+         id="text269">datatype</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(273.743,544)"
+         id="text271">datacollectionmethod</text>
+      <rect
+         x="252"
+         y="687"
+         width="121"
+         height="23"
+         fill="#cdcdcd"
+         id="rect273" />
+      <rect
+         x="252.5"
+         y="687.5"
+         width="121"
+         height="23"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect275" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(296.924,701)"
+         id="text277">record</text>
+      <rect
+         x="252"
+         y="710"
+         width="121"
+         height="121"
+         fill="#ffffff"
+         id="rect279" />
+      <rect
+         x="252.5"
+         y="710.5"
+         width="121"
+         height="121"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect281" />
+      <path
+         d="m 315.926,831.5 v -121 M 252.5,748.268 h 121"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path283" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(256.255,725)"
+         id="text285">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(320.106,725)"
+         id="text287">id</text>
+      <path
+         d="m 320.5,727.5 h 10"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path289" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(256.255,739)"
+         id="text291">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(271.98,739)"
+         id="text293">,</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(275.369,739)"
+         id="text295">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(289.468,739)"
+         id="text297">1</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(296.111,739)"
+         id="text299">,</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(299.364,739)"
+         id="text301">I</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(301.94,739)"
+         id="text303">1</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(320.106,739)"
+         id="text305">dataset</text>
+      <path
+         d="m 320.5,741.5 h 39"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path307" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(256.255,767)"
+         id="text309">I</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(259.644,767)"
+         id="text311">1</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(320.106,767)"
+         id="text313">time</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(320.106,781)"
+         id="text315">value</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(320.106,795)"
+         id="text317">sample</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(320.106,809)"
+         id="text319">comment</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(320.106,823)"
+         id="text321">is</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(329.324,823)"
+         id="text323">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(335.154,823)"
+         id="text325">error</text>
+      <path
+         d="M 313,563 V 687"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path327" />
+      <path
+         d="m 307,564 5.565,-12 5.435,12 z"
+         fill-rule="evenodd"
+         id="path329" />
+      <rect
+         x="895"
+         y="716"
+         width="116"
+         height="23"
+         fill="#cdcdcd"
+         id="rect331" />
+      <rect
+         x="895.5"
+         y="716.5"
+         width="116"
+         height="23"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect333" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(935.978,730)"
+         id="text335">person</text>
+      <rect
+         x="895"
+         y="739"
+         width="116"
+         height="205"
+         fill="#ffffff"
+         id="rect337" />
+      <rect
+         x="895.5"
+         y="739.5"
+         width="116"
+         height="205"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect339" />
+      <path
+         d="m 928.002,944.5 v -205 M 895.5,761.454 h 116"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path341" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(899.375,754)"
+         id="text343">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(931.775,754)"
+         id="text345">username</text>
+      <path
+         d="m 932.5,755.5 h 52"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path347" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(931.775,782)"
+         id="text349">email</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(931.775,796)"
+         id="text351">firstname</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(931.775,810)"
+         id="text353">surname</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(899.375,824)"
+         id="text355">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(913.474,824)"
+         id="text357">1</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(931.775,824)"
+         id="text359">supervisor</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(931.775,838)"
+         id="text361">telephone</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(931.775,852)"
+         id="text363">comment</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(931.775,866)"
+         id="text365">can</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(950.077,866)"
+         id="text367">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(955.906,866)"
+         id="text369">supervise</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(931.775,880)"
+         id="text371">mobile</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(931.775,893)"
+         id="text373">car</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(947.501,893)"
+         id="text375">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(953.33,893)"
+         id="text377">available</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(931.775,907)"
+         id="text379">password</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(931.775,921)"
+         id="text381">active</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(931.775,935)"
+         id="text383">access</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(966.616,935)"
+         id="text385">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(972.445,935)"
+         id="text387">level</text>
+      <path
+         d="m 936,716 v -8 h 35 v 8"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path389" />
+      <path
+         d="m 942,704 -5.5,12 -5.5,-12 z"
+         fill-rule="evenodd"
+         id="path391" />
+      <path
+         d="M 996,705 V 537 H 396"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path393" />
+      <path
+         d="M 1002,704 996.435,716 991,704 Z"
+         fill-rule="evenodd"
+         id="path395" />
+      <rect
+         x="716"
+         y="363"
+         width="85"
+         height="23"
+         fill="#cdcdcd"
+         id="rect397" />
+      <rect
+         x="716.5"
+         y="363.5"
+         width="85"
+         height="23"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect399" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(749.983,377)"
+         id="text401">site</text>
+      <rect
+         x="716"
+         y="386"
+         width="85"
+         height="121"
+         fill="#ffffff"
+         id="rect403" />
+      <rect
+         x="716.5"
+         y="386.5"
+         width="85"
+         height="121"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect405" />
+      <path
+         d="m 744.02,507.5 v -121 m -27.52,22.661 h 85"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path407" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(720.972,400)"
+         id="text409">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(748.356,400)"
+         id="text411">id</text>
+      <path
+         d="m 748.5,402.5 h 10"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path413" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(748.356,428)"
+         id="text415">lat</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(748.356,442)"
+         id="text417">lon</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(748.356,456)"
+         id="text419">height</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(748.356,470)"
+         id="text421">name</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(748.356,484)"
+         id="text423">comment</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(748.356,498)"
+         id="text425">icon</text>
+      <path
+         d="M 759,352 V 315 H 396"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path427" />
+      <path
+         d="m 764,351 -5.5,12 -5.5,-12 z"
+         fill-rule="evenodd"
+         id="path429" />
+      <rect
+         x="46"
+         y="440"
+         width="128"
+         height="23"
+         fill="#cdcdcd"
+         id="rect431" />
+      <rect
+         x="46.500099"
+         y="440.5"
+         width="128"
+         height="23"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect433" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(52.0936,455)"
+         id="text435">transformed</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(111.064,455)"
+         id="text437">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(117.707,455)"
+         id="text439">timeseries</text>
+      <rect
+         x="46"
+         y="463"
+         width="128"
+         height="66"
+         fill="#ffffff"
+         id="rect441" />
+      <rect
+         x="46.500099"
+         y="463.5"
+         width="128"
+         height="66"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect443" />
+      <path
+         d="m 97.3736,529.5 v -66 M 46.5001,488.286 H 174.5"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path445" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(50.4669,478)"
+         id="text447">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(66.1924,478)"
+         id="text449">,</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(69.5815,478)"
+         id="text451">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(83.6803,478)"
+         id="text453">1</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(101.033,478)"
+         id="text455">id</text>
+      <path
+         d="m 101.5,480.5 h 10"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path457" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(101.033,506)"
+         id="text459">expression</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(101.033,520)"
+         id="text461">latex</text>
+      <path
+         d="M 0,0 41,1.04987e-4"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         transform="matrix(-1,0,0,1,215,484)"
+         id="path463" />
+      <path
+         d="m 208.5,476.5 17,8.5 -17,8.5 z"
+         stroke="#000000"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="#ffffff"
+         fill-rule="evenodd"
+         id="path465" />
+      <rect
+         x="63"
+         y="270"
+         width="111"
+         height="23"
+         fill="#cdcdcd"
+         id="rect467" />
+      <rect
+         x="63.500099"
+         y="270.5"
+         width="111"
+         height="23"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect469" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(91.9498,284)"
+         id="text471">transforms</text>
+      <rect
+         x="63"
+         y="293"
+         width="111"
+         height="65"
+         fill="#ffffff"
+         id="rect473" />
+      <rect
+         x="63.500099"
+         y="293.5"
+         width="111"
+         height="65"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect475" />
+      <path
+         d="m 126.504,358.5 v -65 M 63.5001,334.09 H 174.5"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path477" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(67.0058,308)"
+         id="text479">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(81.918,308)"
+         id="text481">,</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(85.3071,308)"
+         id="text483">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(100.219,308)"
+         id="text485">2</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(130.179,308)"
+         id="text487">id</text>
+      <path
+         d="m 130.5,309.5 h 10"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path489" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(67.0058,322)"
+         id="text491">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(81.918,322)"
+         id="text493">,</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(85.3071,322)"
+         id="text495">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(100.219,322)"
+         id="text497">1</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(106.049,322)"
+         id="text499">,</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(109.302,322)"
+         id="text501">I</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(112.691,322)"
+         id="text503">1</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(130.179,322)"
+         id="text505">source</text>
+      <path
+         d="m 130.5,323.5 h 36"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path507" />
+      <path
+         d="M 0,0 41,1.04987e-4"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         transform="matrix(-1,0,0,1,215,314)"
+         id="path509" />
+      <path
+         d="m 214,308 11,5.929 -11,6.071 z"
+         fill-rule="evenodd"
+         id="path511" />
+      <path
+         d="M 0,0 1.04987e-4,72"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         transform="matrix(1,0,0,-1,118,430)"
+         id="path513" />
+      <path
+         d="m 124,428 -6,12 -6,-12 z"
+         fill-rule="evenodd"
+         id="path515" />
+      <rect
+         x="526"
+         y="319"
+         width="142"
+         height="24"
+         fill="#cdcdcd"
+         id="rect517" />
+      <rect
+         x="526.5"
+         y="319.5"
+         width="142"
+         height="24"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect519" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(573.341,334)"
+         id="text521">valuetype</text>
+      <rect
+         x="526"
+         y="343"
+         width="142"
+         height="177"
+         fill="#ffffff"
+         id="rect523" />
+      <rect
+         x="526.5"
+         y="343.5"
+         width="142"
+         height="177"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect525" />
+      <path
+         d="m 553.98,520.5 v -177 m -27.48,22.107 h 142"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path527" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(530.909,358)"
+         id="text529">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(558.294,358)"
+         id="text531">id</text>
+      <path
+         d="m 558.5,359.5 h 10"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path533" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(558.294,386)"
+         id="text535">name</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(558.294,400)"
+         id="text537">unit</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(558.294,414)"
+         id="text539">comment</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(558.294,428)"
+         id="text541">minvalue</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(558.294,442)"
+         id="text543">maxvalue</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(558.294,456)"
+         id="text545">cv</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(569.139,456)"
+         id="text547">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(574.968,456)"
+         id="text549">variable</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(613.875,456)"
+         id="text551">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(620.518,456)"
+         id="text553">name</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(558.294,470)"
+         id="text555">cv</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(569.139,470)"
+         id="text557">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(574.968,470)"
+         id="text559">speciation</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(558.294,483)"
+         id="text561">cv</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(569.139,483)"
+         id="text563">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(574.968,483)"
+         id="text565">sample</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(610.622,483)"
+         id="text567">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(617.264,483)"
+         id="text569">medium</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(558.294,497)"
+         id="text571">cv</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(569.139,497)"
+         id="text573">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(574.968,497)"
+         id="text575">general</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(612.248,497)"
+         id="text577">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(618.078,497)"
+         id="text579">category</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(558.294,511)"
+         id="text581">cv</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(569.139,511)"
+         id="text583">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(574.968,511)"
+         id="text585">unit</text>
+      <path
+         d="M 0,0 120,1.04987e-4"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         transform="matrix(-1,0,0,1,516,420)"
+         id="path587" />
+      <path
+         d="m 515,414 11,6 -11,6 z"
+         fill-rule="evenodd"
+         id="path589" />
+      <rect
+         x="528"
+         y="98"
+         width="85"
+         height="24"
+         fill="#cdcdcd"
+         id="rect591" />
+      <rect
+         x="528.5"
+         y="98.500099"
+         width="85"
+         height="24"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect593" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(554.227,113)"
+         id="text595">quality</text>
+      <rect
+         x="528"
+         y="122"
+         width="85"
+         height="65"
+         fill="#ffffff"
+         id="rect597" />
+      <rect
+         x="528.5"
+         y="122.5"
+         width="85"
+         height="65"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect599" />
+      <path
+         d="m 556.064,187.5 v -65 M 528.5,146.822 h 85"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path601" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(532.672,136)"
+         id="text603">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(560.056,136)"
+         id="text605">id</text>
+      <path
+         d="m 560.5,138.5 h 10"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path607" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(560.056,164)"
+         id="text609">name</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(560.056,178)"
+         id="text611">comment</text>
+      <path
+         d="M 518,143 H 310 v 55"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path613" />
+      <path
+         d="m 517,137 11,6 -11,6 z"
+         fill-rule="evenodd"
+         id="path615" />
+      <rect
+         x="1101"
+         y="342"
+         width="92"
+         height="24"
+         fill="#cdcdcd"
+         id="rect617" />
+      <rect
+         x="1101.5"
+         y="342.5"
+         width="92"
+         height="24"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect619" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1131.73,357)"
+         id="text621">image</text>
+      <rect
+         x="1101"
+         y="366"
+         width="92"
+         height="135"
+         fill="#ffffff"
+         id="rect623" />
+      <rect
+         x="1101.5"
+         y="366.5"
+         width="92"
+         height="135"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect625" />
+      <path
+         d="m 1133.88,501.5 v -135 M 1101.5,389 h 92"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path627" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(1105.3,380)"
+         id="text629">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(1137.56,380)"
+         id="text631">id</text>
+      <path
+         d="m 1138.5,382.5 h 10"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path633" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1137.56,408)"
+         id="text635">name</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1137.56,422)"
+         id="text637">time</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1137.56,436)"
+         id="text639">mime</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1105.3,450)"
+         id="text641">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1119.4,450)"
+         id="text643">1</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1137.56,450)"
+         id="text645">site</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1105.3,464)"
+         id="text647">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1119.4,464)"
+         id="text649">2</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1137.56,464)"
+         id="text651">by</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1137.56,478)"
+         id="text653">image</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1137.56,492)"
+         id="text655">thumbnail</text>
+      <path
+         d="m 811,432 h 290"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path657" />
+      <path
+         d="m 813,438 -12,-6 12,-6 z"
+         fill-rule="evenodd"
+         id="path659" />
+      <path
+         d="M 1005,705 V 391 h 96"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path661" />
+      <path
+         d="m 1010,704 -5.5,12 -5.5,-12 z"
+         fill-rule="evenodd"
+         id="path663" />
+      <rect
+         x="1068"
+         y="708"
+         width="109"
+         height="23"
+         fill="#cdcdcd"
+         id="rect665" />
+      <rect
+         x="1068.5"
+         y="708.5"
+         width="109"
+         height="23"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect667" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1115.19,722)"
+         id="text669">job</text>
+      <rect
+         x="1068"
+         y="731"
+         width="109"
+         height="191"
+         fill="#ffffff"
+         id="rect671" />
+      <rect
+         x="1068.5"
+         y="731.5"
+         width="109"
+         height="191"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect673" />
+      <path
+         d="m 1101.04,922.5 v -191 m -32.54,22.093 h 109"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path675" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(1072.09,746)"
+         id="text677">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(1104.35,746)"
+         id="text679">id</text>
+      <path
+         d="m 1105.5,747.5 h 10"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path681" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1104.35,774)"
+         id="text683">name</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1104.35,788)"
+         id="text685">description</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1104.35,802)"
+         id="text687">due</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1072.09,816)"
+         id="text689">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1086.18,816)"
+         id="text691">1</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1104.35,816)"
+         id="text693">author</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1072.09,830)"
+         id="text695">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1086.18,830)"
+         id="text697">2</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1104.35,830)"
+         id="text699">responsible</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1104.35,844)"
+         id="text701">done</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1104.35,858)"
+         id="text703">nextreminder</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1104.35,872)"
+         id="text705">repeat</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1104.35,886)"
+         id="text707">link</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1104.35,900)"
+         id="text709">type</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1104.35,914)"
+         id="text711">donedate</text>
+      <path
+         d="m 1021,819 h 47"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path713" />
+      <path
+         d="m 1022,825 -11,-6 11,-6 z"
+         fill-rule="evenodd"
+         id="path715" />
+      <path
+         d="m 1021,873 h 47"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path717" />
+      <path
+         d="m 1022,879 -11,-6 11,-6 z"
+         fill-rule="evenodd"
+         id="path719" />
+      <rect
+         x="842"
+         y="220"
+         width="138"
+         height="23"
+         fill="#cdcdcd"
+         id="rect721" />
+      <rect
+         x="842.5"
+         y="220.5"
+         width="138"
+         height="23"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect723" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(884.463,234)"
+         id="text725">installation</text>
+      <rect
+         x="842"
+         y="243"
+         width="138"
+         height="108"
+         fill="#ffffff"
+         id="rect727" />
+      <rect
+         x="842.5"
+         y="243.5"
+         width="138"
+         height="108"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect729" />
+      <path
+         d="m 893.349,351.5 v -108 m -50.849,54 h 138"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path731" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(846.369,258)"
+         id="text733">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(862.095,258)"
+         id="text735">,</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(864.535,258)"
+         id="text737">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(879.447,258)"
+         id="text739">2</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(896.935,258)"
+         id="text741">datasource</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(955.906,258)"
+         id="text743">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(962.549,258)"
+         id="text745">id</text>
+      <path
+         d="m 897.5,260.5 h 75"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path747" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(846.369,272)"
+         id="text749">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(862.095,272)"
+         id="text751">,</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(864.535,272)"
+         id="text753">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(879.447,272)"
+         id="text755">1</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(896.935,272)"
+         id="text757">site</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(916.05,272)"
+         id="text759">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(922.693,272)"
+         id="text761">id</text>
+      <path
+         d="m 897.5,274.5 h 35"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path763" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(846.369,286)"
+         id="text765">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(896.935,286)"
+         id="text767">installation</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(955.906,286)"
+         id="text769">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(961.6,286)"
+         id="text771">id</text>
+      <path
+         d="m 897.5,288.5 h 75"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path773" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(896.935,314)"
+         id="text775">installdate</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(896.935,328)"
+         id="text777">removedate</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(896.935,342)"
+         id="text779">comment</text>
+      <path
+         d="M 811,470 H 911 V 351"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path781" />
+      <path
+         d="M 813,477 801,470.424 813,464 Z"
+         fill-rule="evenodd"
+         id="path783" />
+      <rect
+         x="530"
+         y="195"
+         width="99"
+         height="23"
+         fill="#cdcdcd"
+         id="rect785" />
+      <rect
+         x="530.5"
+         y="195.5"
+         width="99"
+         height="23"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect787" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(551.651,210)"
+         id="text789">datasource</text>
+      <rect
+         x="530"
+         y="218"
+         width="99"
+         height="94"
+         fill="#ffffff"
+         id="rect791" />
+      <rect
+         x="530.5"
+         y="218.5"
+         width="99"
+         height="94"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect793" />
+      <path
+         d="m 558.046,312.5 v -94 M 530.5,242.072 h 99"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path795" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(534.299,233)"
+         id="text797">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(562.496,233)"
+         id="text799">id</text>
+      <path
+         d="m 562.5,235.5 h 10"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path801" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(562.496,261)"
+         id="text803">name</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(562.496,275)"
+         id="text805">sourcetype</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(562.496,289)"
+         id="text807">comment</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(562.496,303)"
+         id="text809">manuallink</text>
+      <path
+         d="M 639,266 H 842"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path811" />
+      <path
+         d="m 640,272 -11,-6 11,-6 z"
+         fill-rule="evenodd"
+         id="path813" />
+      <path
+         d="M 0,0 124,1.04987e-4"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         transform="matrix(-1,0,0,1,520,255)"
+         id="path815" />
+      <path
+         d="m 519,249 11,6 -11,6 z"
+         fill-rule="evenodd"
+         id="path817" />
+      <rect
+         x="1256"
+         y="602"
+         width="89"
+         height="23"
+         fill="#cdcdcd"
+         id="rect819" />
+      <rect
+         x="1256.5"
+         y="602.5"
+         width="89"
+         height="23"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect821" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1293.6,616)"
+         id="text823">log</text>
+      <rect
+         x="1256"
+         y="625"
+         width="89"
+         height="107"
+         fill="#ffffff"
+         id="rect825" />
+      <rect
+         x="1256.5"
+         y="625.5"
+         width="89"
+         height="107"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect827" />
+      <path
+         d="m 1288.91,732.5 v -107 m -32.41,22.908 h 89"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path829" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(1260.39,640)"
+         id="text831">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(1292.79,640)"
+         id="text833">id</text>
+      <path
+         d="m 1293.5,641.5 h 10"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path835" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1260.39,668)"
+         id="text837">I</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1263.77,668)"
+         id="text839">1</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1292.79,668)"
+         id="text841">time</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1260.39,682)"
+         id="text843">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1274.48,682)"
+         id="text845">1</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1292.79,682)"
+         id="text847">user</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1292.79,696)"
+         id="text849">message</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1260.39,710)"
+         id="text851">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1274.48,710)"
+         id="text853">2</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1292.79,710)"
+         id="text855">site</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(1292.79,724)"
+         id="text857">type</text>
+      <path
+         d="m 1021,934 h 280 V 732"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path859" />
+      <path
+         d="m 1022,940 -11,-6 11,-6 z"
+         fill-rule="evenodd"
+         id="path861" />
+      <path
+         d="m 738,518 v 177 h 518"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path863" />
+      <path
+         d="m 732,519 6.071,-12 5.929,12 z"
+         fill-rule="evenodd"
+         id="path865" />
+      <rect
+         x="761"
+         y="580"
+         width="150"
+         height="23"
+         fill="#cdcdcd"
+         id="rect867" />
+      <rect
+         x="761.5"
+         y="580.5"
+         width="150"
+         height="23"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect869" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(819.799,595)"
+         id="text871">project</text>
+      <rect
+         x="761"
+         y="603"
+         width="150"
+         height="80"
+         fill="#ffffff"
+         id="rect873" />
+      <rect
+         x="761.5"
+         y="603.5"
+         width="150"
+         height="80"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         id="rect875" />
+      <path
+         d="m 794.138,683.5 v -80 M 761.5,627.529 h 150"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path877" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(765.844,618)"
+         id="text879">PK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(798.108,618)"
+         id="text881">id</text>
+      <path
+         d="m 798.5,620.5 h 10"
+         stroke="#000000"
+         stroke-width="1.33333"
+         stroke-miterlimit="8"
+         fill="none"
+         fill-rule="evenodd"
+         id="path883" />
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(798.108,646)"
+         id="text885">name</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(765.844,660)"
+         id="text887">FK</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(780.756,660)"
+         id="text889">1</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(798.108,660)"
+         id="text891">person</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(835.524,660)"
+         id="text893">_</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="700"
+         font-size="10px"
+         transform="translate(841.354,660)"
+         id="text895">responsible</text>
+      <text
+         font-family="Arial, Arial_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="10px"
+         transform="translate(798.108,674)"
+         id="text897">comment</text>
+      <path
+         d="M 953,705 V 631 H 911"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path899" />
+      <path
+         d="m 959,704 -5.5,12 -5.5,-12 z"
+         fill-rule="evenodd"
+         id="path901" />
+      <path
+         d="M 822,570 V 546 H 396"
+         stroke="#000000"
+         stroke-width="1.66667"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         fill="none"
+         fill-rule="evenodd"
+         id="path903" />
+      <path
+         d="M 827,568 821.435,580 816,568 Z"
+         fill-rule="evenodd"
+         id="path905" />
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="32px"
+         transform="translate(33.6723,72)"
+         id="text907">derived</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="32px"
+         transform="translate(207.835,71)"
+         id="text909">measurements</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="32px"
+         transform="translate(586.687,71)"
+         id="text911">metadata</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="32px"
+         transform="translate(918.64,71)"
+         id="text913">management</text>
+      <rect
+         x="548"
+         y="726"
+         width="42"
+         height="21"
+         fill="#fff2cc"
+         id="rect915" />
+      <rect
+         x="548"
+         y="759"
+         width="42"
+         height="21"
+         fill="#ffe699"
+         id="rect917" />
+      <rect
+         x="548"
+         y="793"
+         width="42"
+         height="20"
+         fill="#ffd966"
+         id="rect919" />
+      <rect
+         x="548"
+         y="826"
+         width="42"
+         height="21"
+         fill="#ff9900"
+         id="rect921" />
+      <rect
+         x="548"
+         y="860"
+         width="42"
+         height="20"
+         fill="#bf9000"
+         id="rect923" />
+      <rect
+         x="548"
+         y="893"
+         width="42"
+         height="21"
+         fill="#7f6000"
+         id="rect925" />
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="24px"
+         transform="translate(487.318,711)"
+         id="text927">record</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="24px"
+         transform="translate(555.311,711)"
+         id="text929">count</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="24px"
+         transform="translate(487.318,740)"
+         id="text931">&lt; 10</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="16px"
+         transform="translate(528.485,733)"
+         id="text933">0</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="24px"
+         transform="translate(487.318,768)"
+         id="text935">&lt; 10</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="16px"
+         transform="translate(528.485,761)"
+         id="text937">1</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="24px"
+         transform="translate(487.318,797)"
+         id="text939">&lt; 10</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="16px"
+         transform="translate(528.485,790)"
+         id="text941">2</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="24px"
+         transform="translate(487.318,826)"
+         id="text943">&lt; 10</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="16px"
+         transform="translate(528.485,819)"
+         id="text945">3</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="24px"
+         transform="translate(487.318,854)"
+         id="text947">&lt; 10</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="16px"
+         transform="translate(528.485,847)"
+         id="text949">4</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="24px"
+         transform="translate(487.318,883)"
+         id="text951">&lt; 10</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="16px"
+         transform="translate(528.485,876)"
+         id="text953">5</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="24px"
+         transform="translate(487.318,911)"
+         id="text955">&lt; 10</text>
+      <text
+         font-family="Calibri, Calibri_MSFontService, sans-serif"
+         font-weight="400"
+         font-size="16px"
+         transform="translate(528.485,904)"
+         id="text957">8</text>
+    </g>
+  </g>
+  <metadata
+     id="metadata2319">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/4.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+</svg>
