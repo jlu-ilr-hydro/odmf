@@ -124,14 +124,14 @@ class ODMFExtension(markdown.Extension):
 
 
 class bleach_allow:
-
-    tags = bleach.ALLOWED_TAGS + [
+    #
+    tags = frozenset(bleach.ALLOWED_TAGS) | frozenset((
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'p', 'a', 'pre', 'div', 'hr', 'br',
         'sub', 'sup',
         'video', 'img', 'code',
         'table', 'thead', 'tbody', 'tr', 'th', 'td', 'tfoot'
-    ]
+    ))
     attributes = {
         '*': ['class', 'title', 'float'],
         'video': ['controls', 'src', 'type'],
