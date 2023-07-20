@@ -21,7 +21,7 @@ function gettime(startOrEnd) {
 		res += ' ' + ($('#'+ startOrEnd + 'time').val() || '00:00');
 	} else {
 		let today = new Date();
-		if (startOrEnd == 'end') {
+		if (startOrEnd == 'start') {
 			today.setFullYear(today.getFullYear() - 1)
 		}
 		res = today.toISOString();
