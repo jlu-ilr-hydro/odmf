@@ -3,8 +3,9 @@ Calculates a summary table for a specific timespan, starting from the latest dat
 """
 import typing
 import datetime
+
+import numpy as np
 import pandas as pd
-import yaml
 from .. import db
 def summarize_item(
         session, timespan: typing.Optional[pd.Timedelta]=None,
@@ -34,22 +35,24 @@ def summarize_item(
     :param type: timeseries or transformed_timeseries
     :return: A dict with name, value, unit, aggregation and n (number of measurements)
     """
-    ds_filter = db.Dataset.filter(session,valuetype, user, site, date, instrument, type, level)
-    end = max(ds.end for ds in ds_filter)
-    if timespan:
-        start = end - timespan
+    ds_filter = db.Dataset.filter(session, valuetype, user, site, date, instrument, type, level)
+    if not ds_filter.count():
+        return dict(name='No data', value = np.NaN, unit='', aggregation=aggregate, n=0, start = pd.NaT, end=pd.NaT)
     else:
+        end = max(ds.end for ds in ds_filter)
         start = min(ds.start for ds in ds_filter)
-    vt: db.ValueType = db.ValueType.get(session, valuetype)
-    if not name:
-        name = f'{vt.name} at site #{site}'
-        if level is not None:
-            name += f' in {level} m'
-    group = db.DatasetGroup([ds.id for ds in ds_filter],start, end)
-    series = group.asseries(session)
+        if timespan:
+            start = max(start, end - timespan)
+        vt: db.ValueType = db.ValueType.get(session, valuetype)
+        if not name:
+            name = f'{vt.name} at site #{site}'
+            if level is not None:
+                name += f' in {level} m'
+        group = db.DatasetGroup([ds.id for ds in ds_filter],start, end)
+        series = group.asseries(session)
     return dict(name=name, value=series.agg(aggregate), unit=vt.unit, aggregation=aggregate, n=len(series), start=start, end=end)
 
-def summary(session, time: str, items: typing.List[typing.Dict]) -> pd.DataFrame:
+def summary(time: str, items: typing.List[typing.Dict]) -> pd.DataFrame:
     """
     Returns a DataFrame containing the summary for a number of summary items
 

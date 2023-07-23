@@ -31,14 +31,17 @@ def load_text_stream(path: Path) -> io.StringIO:
     return io.StringIO(load_text_file(path))
 
 
-def table_to_html(df: pd.DataFrame):
-    header = f'<div class="alert alert-secondary">{len(df)} lines</div>'
+def table_to_html(df: pd.DataFrame, index: bool=True, header=True):
+    if header == True:
+        header = f'<div class="alert alert-secondary">{len(df)} lines</div>'
+    elif header == False:
+        header = ''
     classes = ['table table-hover']
     if len(df) > 1000:
         table = df.iloc[:1000].to_html(classes=classes, border=0)
         return header + table + f'<div>... skipping lines 1000 - {len(df)}</div>'
     else:
-        return header + df.to_html(classes=classes, border=0)
+        return header + df.to_html(classes=classes, border=0, index=index)
 
 def error_msg(msg: str):
     return '<div class="alert alert-danger">' + msg + '</div>'
@@ -105,18 +108,19 @@ class ConfFileHandler(TextFileHandler):
             return '\n<pre>\n' + source + '\n</pre>\n'
 
 class SummaryFileHandler(TextFileHandler):
-    icon = 'clock-rotate-left'
+    icon = 'history'
     def render(self, source):
         from ...plot.summary_table import summary
         import yaml
         try:
-            summary_content = yaml.safe_load(source).values()
+            summary_content = yaml.safe_load(source)
             time = summary_content['time']
             items = summary_content['items']
             df = summary(time, items)
-            return table_to_html(df)
+
+            return table_to_html(df, index=False, header=f'<h3>Summary over {time}</h3>')
         except Exception as e:
-            return error_msg('Cannot process summary, check file syntax') + '\n<pre>\n' + source + '\n</pre>\n'
+            return error_msg(f'<p>Cannot process summary, check file syntax</p><pre>{e}</pre>') + '\n<pre>\n' + source + '\n</pre>\n'
 
 
 
