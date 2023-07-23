@@ -31,6 +31,19 @@ def load_text_stream(path: Path) -> io.StringIO:
     return io.StringIO(load_text_file(path))
 
 
+def table_to_html(df: pd.DataFrame):
+    header = f'<div class="alert alert-secondary">{len(df)} lines</div>'
+    classes = ['table table-hover']
+    if len(df) > 1000:
+        table = df.iloc[:1000].to_html(classes=classes, border=0)
+        return header + table + f'<div>... skipping lines 1000 - {len(df)}</div>'
+    else:
+        return header + df.to_html(classes=classes, border=0)
+
+def error_msg(msg: str):
+    return '<div class="alert alert-danger">' + msg + '</div>'
+
+
 class BaseFileHandler:
     """
     The base class for file handling. Filehandlers are used by the file manager to display files
@@ -91,6 +104,21 @@ class ConfFileHandler(TextFileHandler):
         except Exception:
             return '\n<pre>\n' + source + '\n</pre>\n'
 
+class SummaryFileHandler(TextFileHandler):
+    icon = 'clock-rotate-left'
+    def render(self, source):
+        from ...plot.summary_table import summary
+        import yaml
+        try:
+            summary_content = yaml.safe_load(source).values()
+            time = summary_content['time']
+            items = summary_content['items']
+            df = summary(time, items)
+            return table_to_html(df)
+        except Exception as e:
+            return error_msg('Cannot process summary, check file syntax') + '\n<pre>\n' + source + '\n</pre>\n'
+
+
 
 class PlotFileHandler(BaseFileHandler):
     icon = 'chart-line'
@@ -107,16 +135,6 @@ class PlotFileHandler(BaseFileHandler):
 class MarkDownFileHandler(TextFileHandler):
     def render(self, source) -> str:
         return markdown(source)
-
-
-def table_to_html(df: pd.DataFrame):
-    header = f'<div class="alert alert-secondary">{len(df)} lines</div>'
-    classes = ['table table-hover']
-    if len(df) > 1000:
-        table = df.iloc[:1000].to_html(classes=classes, border=0)
-        return header + table + f'<div>... skipping lines 1000 - {len(df)}</div>'
-    else:
-        return header + df.to_html(classes=classes, border=0)
 
 
 class ExcelFileHandler(BaseFileHandler):
@@ -217,6 +235,7 @@ class MultiHandler(BaseFileHandler):
         PdfFileHandler(r'\.pdf$'),
         ImageFileHandler(r'\.(jpg|jpeg|png|svg|gif)$'),
         ZipFileHandler(r'\.zip$'),
+        SummaryFileHandler(r'\.summary$'),
         TextFileHandler(''),
     ]
 
