@@ -14,7 +14,7 @@ from io import StringIO, BytesIO
 import cherrypy
 from cherrypy.lib.static import serve_file
 from urllib.parse import urlencode
-from ..auth import group, expose_for
+from ..auth import group, expose_for, is_member
 from ...tools import Path
 
 from ...config import conf
@@ -83,7 +83,7 @@ class DownloadPage(object):
     def index(self, uri='.', error='', msg='', serve=False, _=None):
         path = Path(uri)
         directories, files = path.listdir()
-
+        content = ''
         if path.isfile():
             if (not serve):
                 try:
@@ -94,7 +94,7 @@ class DownloadPage(object):
                 except Exception as e:
                     if error : error += '\n\n'
                     error += str(e)
-                    if web.is_member(group.admin):
+                    if is_member(group.admin):
                         error += '\n```\n' + traceback() + '\n```\n'
 
                 return web.render(
