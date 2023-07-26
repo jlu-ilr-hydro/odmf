@@ -91,6 +91,9 @@ class DownloadPage(object):
                 except ValueError as e:
                     content = f'<div class="alert bg-warning"><h3>{e}</h3></div>'
 
+                except cherrypy.CherryPyException:
+                    raise
+
                 except Exception as e:
                     if error : error += '\n\n'
                     error += str(e)

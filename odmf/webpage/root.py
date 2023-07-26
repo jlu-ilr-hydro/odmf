@@ -26,6 +26,7 @@ class Root(object):
         'tools.sessions.timeout': 24 * 60 * 7,  # One week
         'tools.sessions.storage_class': cherrypy.lib.sessions.FileSession,
         'tools.sessions.storage_path': prefix + '/sessions',
+        'tools.proxy.on': True,
         'tools.auth.on': True,
         'tools.sessions.locking': 'early',
     } | errorhandler.html
