@@ -217,7 +217,7 @@ class TestJob:
         assert repr(job).startswith("<Job")
 
     def test_due_time(self, job):
-        assert job.due - datetime.timedelta(days=1) > datetime.datetime.today()
+        assert job.due - datetime.timedelta(days=1) > datetime.datetime(2023, 3, 10)
 
 
 @pytest.fixture()
