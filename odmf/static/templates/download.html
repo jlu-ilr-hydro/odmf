@@ -23,6 +23,18 @@
                         );
                     }
                 });
+                $('.copy-button').click(function() {
+                    var name = $(this).data('name');
+                    let newfilename = window.prompt("New filename")
+                    if (newfilename) {
+                        $.post(odmf_ref('/download/copyfile/'), {dir: '${curdir}',filename: name, newfilename: newfilename},
+                            function(success_url) {
+                                window.location = success_url;
+                            }
+                        );
+                    }
+                });
+
                 $('#datafile').change( function(evt) {
                     var path = evt.target.files[0];
                     if(isFileSizeToBig(path.size)) {
@@ -193,6 +205,10 @@
                                     <button class="btn btn-danger remove-button" data-name="${f.basename}" py:if="is_member('admin')"
                                             title="remove file" data-toggle="tooltip">
                                         <i class="fas fa-times-circle" />
+                                    </button>
+                                    <button class="btn btn-secondary copy-button" data-name="${f.basename}" py:if="is_member('editor')"
+                                            title="copy file" data-toggle="tooltip">
+                                        <i class="fas fa-copy" />
                                     </button>
                                 </span>
 

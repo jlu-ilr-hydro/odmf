@@ -9,6 +9,7 @@ Created on 15.02.2012
 from .. import lib as web
 import datetime
 import os
+import shutil
 from traceback import format_exc as traceback
 from io import StringIO, BytesIO
 import cherrypy
@@ -260,6 +261,9 @@ class DownloadPage(object):
     @expose_for(group.admin)
     @web.method.post_or_delete
     def removefile(self, dir, filename):
+        """
+        Removes a file from a directory (only for admins)
+        """
         path = Path(dir, filename)
         error = msg = ''
 
@@ -289,6 +293,36 @@ class DownloadPage(object):
         qs = urlencode({'error': error, 'msg': msg})
         url = f'{conf.root_url}/download/{dir}'.strip('.')
         return url + '?' + qs
+
+    @expose_for(group.editor)
+    @web.method.post
+    def copyfile(self, dir, filename, newfilename):
+        """
+        Copies filename in directory to newfilename
+        """
+        path = Path(dir, filename)
+        targetpath = Path(dir, newfilename)
+        error = msg = ''
+        if not path.islegal():
+            error = '{path} is not a legal position'
+        elif not targetpath.islegal():
+            error = f'{targetpath} not a valid copy destination'
+        elif not path.isfile():
+            error = f'{path} is not a file'
+        elif targetpath.exists():
+            error = f'{targetpath} exists already, choose another name'
+        else:
+            try:
+                shutil.copyfile(path.absolute, targetpath.absolute)
+                msg = f'{path} copied to {targetpath}'
+            except:
+                error = "Could not delete the file. A good reason would be a mismatch of user rights on the server " \
+                        "file system"
+        qs = urlencode({'error': error, 'msg': msg})
+        url = f'{conf.root_url}/download/{dir}'.strip('.')
+        return url + '?' + qs
+
+
 
     @expose_for(group.editor)
     @web.method.post
