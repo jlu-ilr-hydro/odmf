@@ -38,7 +38,7 @@ def configure_app(autoreload=False):
     return static_files
 
 
-def start(autoreload=False):
+def start(autoreload=False, browser=False):
     """
     Creates the root object, compiles the server configuration and starts the server
 
@@ -51,6 +51,9 @@ def start(autoreload=False):
     from ..webpage.root import Root
     root = Root()
     logger.info(f'Starting server on http://127.0.0.1:{conf.server_port}{conf.root_url}')
+    if browser:
+        import webbrowser
+        webbrowser.open(f'http://localhost:{conf.server_port}{conf.root_url}')
     cherrypy.quickstart(root=root, script_name=conf.root_url, config=configure_app(autoreload))
 
 

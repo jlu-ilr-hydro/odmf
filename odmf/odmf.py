@@ -28,7 +28,8 @@ def cli(verbose):
 @click.argument('workdir', default='.')
 @click.option('--autoreload/--no-autoreload', '-a', default=False, show_default=True,
               help='Switch autoreload on for an automatic restart of the server if the code changes')
-def start(workdir, autoreload):
+@click.option('--browser/--no-browser', '-b', default=False, help='open webbrowser on start')
+def start(workdir, autoreload: bool, browser: bool):
     """
     Starts a cherrypy server, with WORKDIR as the working directory (local ressources and configuration)
     """
@@ -38,7 +39,7 @@ def start(workdir, autoreload):
     logger.info(f"workdir: {os.getcwd()}")
     from .tools import server
     server.prepare_workdir()
-    server.start(autoreload)
+    server.start(autoreload, browser=browser)
 
 
 @cli.command()
