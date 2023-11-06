@@ -1,22 +1,17 @@
-
-# -*- coding:utf-8 -*-
-'''
-Created on 31.01.2012
-
-@author: philkraf
-'''
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
-from .base import Base, newid
 from datetime import datetime, timedelta
 from collections import deque
 from traceback import format_exc as traceback
-
-from ..tools.mail import EMail
-
 from functools import total_ordering
 
-from io import BytesIO
+from ..tools.mail import EMail
+from .base import Base, newid
+from .site import Log
+from .person import Person
+
+from logging import getLogger
+logger = getLogger(__name__)
 
 @total_ordering
 class Job(Base):

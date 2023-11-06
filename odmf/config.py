@@ -23,7 +23,9 @@ def static_locations(*from_config):
 
     paths = [Path(__file__).parent / 'static'] + [Path(p) for p in from_config]
     filtered = []
-    [filtered.append(str(p)) for p in paths if p and p.exists() and p not in filtered]
+    [
+        filtered.append(str(p)) for p in paths if p and p.exists() and str(p) not in filtered
+    ]
     return filtered
 
 
@@ -35,7 +37,7 @@ class Configuration:
     Mandatory fields are defined as (...), optional as None or with a default value
     """
     datetime_default_timezone = 'Europe/Berlin'
-    database_url = ''
+    database_url = 'sqlite://'
     static = [prefix]
     media_image_path = 'webpage/media'
     nav_background = '/media/gladbacherhof.jpg'
@@ -46,18 +48,16 @@ class Configuration:
     upload_max_size = 25000000
     server_port = 8080
     google_maps_api_key = ''
-    woftester_receiver_mail = ['philipp.kraft@umwelt.uni-giessen.de']
-    woftester_sender_mail = 'woftester@umwelt.uni-giessen.de'
-    cuahsi_wsdl_endpoint = 'http://fb09-pasig.umwelt.uni-giessen.de/wof/index.php/cuahsi_1_1.asmx?WSDL'
-    smtp_serverurl = 'mailout.uni-giessen.de'
-    root_url = '/'
+    # woftester_receiver_mail = ['philipp.kraft@umwelt.uni-giessen.de']
+    # woftester_sender_mail = 'woftester@umwelt.uni-giessen.de'
+    # cuahsi_wsdl_endpoint = 'http://fb09-pasig.umwelt.uni-giessen.de/wof/index.php/cuahsi_1_1.asmx?WSDL'
+    # smtp_serverurl = 'mailout.uni-giessen.de'
+    root_url = ''
     datafiles = './datafiles'
     preferences = './preferences'
     description = 'A server for data-management for quantitative field research'
     user = os.environ.get('USER') or os.environ.get('USERNAME')
 
-    def __bool__(self):
-        return ... not in vars(self).values()
 
     def to_dict(self):
         return {
@@ -79,8 +79,8 @@ class Configuration:
             else:
                 unknown_keys.append(k)
         if unknown_keys:
-            raise ConfigurationError(f'Your configuration contains unknown keys: {",".join(unknown_keys)}')
-
+            logger.warning(f'Your configuration contains unknown keys: {",".join(unknown_keys)}')
+        self.root_url = self.root_url.strip().rstrip('/')
         return self
 
     def __init__(self, **kwargs):
@@ -92,7 +92,6 @@ class Configuration:
         })
 
         self.update(kwargs)
-
         self.static = static_locations(self.home, *self.static)
 
     @property
@@ -108,7 +107,7 @@ class Configuration:
             p = Path(static_home) / relative_path
             if p.exists():
                 return p.absolute()
-        raise FileNotFoundError(f'{relative_path} not found in the static ressources')
+        raise FileNotFoundError(f'{relative_path} not found in the static resources')
 
     def to_yaml(self, stream=sys.stdout):
         """
@@ -126,47 +125,17 @@ class Configuration:
         return __version__
 
 
-def load_config():
-    conf_file = Path(prefix) / 'config.yml'
+def load_config(path=prefix):
+    conf_file = Path(path) / 'config.yml'
     logger.debug('Found config file:' + str(conf_file.absolute()))
     if not conf_file.exists():
-        logger.warning(f'{conf_file.absolute().as_posix()} '
-                   f'not found. Create a template with "odmf configure". Using incomplete configuration')
+        logger.info(f'{conf_file.absolute().as_posix()} not found, using empty config')
         conf_dict = {}
     else:
-        conf_dict = yaml.safe_load(conf_file.open()) or {}
+        with conf_file.open() as f:
+            conf_dict = yaml.safe_load(f) or {}
         logger.debug(f'loaded {conf_file.resolve()}')
-    conf = Configuration(**conf_dict)
-
-    if not conf:
-       logger.warning(', '.join(k for k, v in conf.to_dict().items() if v is ...) + ' are undefined')
-    return conf
-
-
-def import_module_configuration(conf_module_filename):
-    """
-    Migration utitlity to create a conf.yaml from the old ODMF 0.x conf.py module configuration
-
-    :param conf_module_filename: The conf.py configuration file
-    """
-    code = compile(open(conf_module_filename).read(), 'conf.py', 'exec')
-    config = {}
-    exec(code, config)
-
-    def c(s: str):
-        return s.replace('CFG_', '').lower()
-
-    config = {
-        c(k): v
-        for k, v in config.items()
-        if k.upper() == k and k[0] != '_' and not callable(v)
-    }
-
-    config['database_type'] = config.pop('database', 'postgres')
-
-    conf = Configuration(**config)
-
-    return conf
+    return Configuration(**conf_dict)
 
 
 conf = load_config()

@@ -60,6 +60,10 @@ class Path(object):
     def islegal(self) -> bool:
         return self.absolute.startswith(self.datapath)
 
+    def as_path(self):
+        import pathlib
+        return pathlib.Path(self.absolute)
+
     def __lt__(self, other):
         return ('%s' % self) < ('%s' % other)
 
@@ -75,7 +79,7 @@ class Path(object):
     def make(self):
         os.makedirs(self.absolute, mode=0o770)
 
-    def breadcrumbs(self) -> str:
+    def breadcrumbs(self) -> list[str]:
         res = [self]
         p = op.dirname(self.absolute)
         while self.datapath in p:

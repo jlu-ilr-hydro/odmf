@@ -120,45 +120,21 @@ class ProjectPage:
     @expose_for(group.supervisor)
     def delete(self, project_id=None, force=None):
 
-        session = db.Session()
+        with db.session_scope() as session:
 
-        if str(force) == 'True':
+            if str(force) == 'True':
 
-            project = session.query(db.Project).get(project_id)
+                project = session.query(db.Project).get(project_id)
+                session.delete(project)
+                # Returning to project
+                raise web.redirect(conf.root_url + '/project')
 
-            session.delete(project)
+            else:
+                project = session.query(db.Project).get(project_id)
+                error = ''
+                return web.render('project_delete.html', project=project,
+                                 error=error).render()
 
-            session.commit()
-            session.close()
-
-            # Returning to project
-            raise web.redirect(conf.root_url + '/project')
-
-        else:
-            project = session.query(db.Project).get(project_id)
-
-            error = ''
-
-            res = web.render('project_delete.html', project=project,
-                             error=error).render()
-            session.close()
-
-        return res
-
-    def get_stats(self, project, session=None):
-
-        if session:
-            session = db.Session()
-
-        datasets = session.query(db.Dataset.id).filter(
-            db.Dataset.project == project.id)
-
-        print(datasets.all())
-
-        return dict(
-            dataset=datasets.count(),
-            record=session.query(db.Record)
-                .filter(db.Record.dataset.in_(datasets.all())).count())
 
     def render_projects(self, session, error=''):
 

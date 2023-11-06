@@ -125,7 +125,7 @@ class SitePage:
 
     @expose_for(group.editor)
     @web.method.post
-    def addinstrument(self, siteid, instrumentid, date=None):
+    def addinstrument(self, siteid, instrumentid, date=None, comment=None):
         try:
             with db.session_scope() as session:
 
@@ -141,7 +141,7 @@ class SitePage:
                     instid = pot_installations.first().id
                 else:
                     instid = 0
-                inst = db.Installation(site, instrument, instid + 1, date)
+                inst = db.Installation(site, instrument, instid + 1, date, comment=comment)
                 session.add(inst)
 
         except Exception as e:

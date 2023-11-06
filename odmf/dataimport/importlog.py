@@ -170,6 +170,7 @@ class LogbookImport:
         """
         # load and check dataset
         ds = self.get_dataset(session, row, data)
+        id = ds.maxrecordid() + 1
         time = data.time.to_pydatetime()
         value = data.value
         # Check for duplicate
@@ -181,7 +182,7 @@ class LogbookImport:
         # Create Record
         comment = data.message if pd.notna(data.message) else None
         sample = data.get('sample')
-        record = db.Record(value=value, time=time, dataset=ds, comment=comment, sample=sample)
+        record = db.Record(id=id, value=value, time=time, dataset=ds, comment=comment, sample=sample)
         # Extend dataset timeframe if necessary
         ds.start, ds.end = min(ds.start, time), max(ds.end, time)
 
@@ -242,6 +243,7 @@ class LogbookImport:
 
         if result and commit:
             session.add(result)
+            session.flush()
 
         return msg
 

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<py:extends href="bootstrap_navigation.html" xmlns:py="">
+<py:extends href="layout.html" xmlns:py="">
     <py:block name="scripts">
         <script>
             //<![CDATA[
@@ -36,7 +36,7 @@
                             user:user,
                             site:site,
                             date:date,
-                            type:type,
+                            dstype:type,
                             instrument:instrument,
                         },
                         data => {
@@ -49,9 +49,7 @@
                         }
                 );
                 $('#exportrecords').prop('disabled',!(vt && site));
-                if (vt!='' || user!='' || site!='' || date!='' || type!='' || instrument!='') {
-                    setFilter();
-                }
+                setFilter();
             }
             function setFilter() {
                 // Linklist to datasets
@@ -60,24 +58,35 @@
                 var site = $('#siteselect').val();
                 var date = $('#dateselect').val();
                 var type = $('#typeselect').val();
-                var instrument = $('#instrumentselect').val()
+                var instrument = $('#instrumentselect').val();
+                let limit = $('#limit').val();
+                let page = $('#page').val();
                 $.getJSON(odmf_ref('/dataset/json'),
                         {
                             valuetype: vt,
                             user:user,
                             site:site,
                             date:date,
-                            type:type,
-                            instrument:instrument
+                            dstype:type,
+                            instrument:instrument,
+                            limit: limit,
+                            page: page
                         },
                         function(data){
                             var items = [];
                             var templ = '<a href="${conf.root_url}/dataset/ID" class="list-group-item list-group-item-action">LABEL</a>';
-                            $.each( data, function( index, item ) {
+                            $.each( data.datasets, function( index, item ) {
                                 items.push(templ.replace(/ID/, item.id).replace(/LABEL/, item.label));
                             });
-                            $('#dscount').html(items.length + ' datasets');
+                            $('#dscount').html(((data.page - 1) * data.limit) + ' - ' + (data.page * data.limit) + ' of ' + data.count + ' datasets');
                             $('#dslist').html(items.join('\n'));
+                            let pages = Math.ceil(data.count / data.limit)
+                            let options = ''
+                            for (let i = 1; i <= pages; i++) {
+                                options += '<option value="' + i + '">' + i + ' / ' + pages + '</option>'
+                            }
+                            $('#page').html(options)
+                            $('#page').val(data.page)
                         }
                 );
             }
@@ -87,34 +96,28 @@
                 popSelect();
                 $('#dslist').html('')
             }
-            $(function() {
-                $('#exportrecords').click(function() {
-                    var props = {
-                        valuetype:$('#vtselect').val(),
-                        user:$('#userselect').val(),
-                        site:$('#siteselect').val(),
-                        date:$('#dateselect').val(),
-                        type:$('#typeselect').val(),
-                        instrument:$('#instrumentselect').val(),
-                        witherrors:$('#exportrecordswitherror').prop('checked')
-                    };
 
-                    // Check if vt,site and instrument are selected, otherwise set error
-                    if (!(props.valuetype && props.site)) {
-                        $('.error').html('Cannot export values when valuetype, site or instrument are not selected');
-                    } else {
-                        // Call a function with the filter that generates a csv with all
-                        // records.
-                        //alert($.param(props));
-                        window.location = odmf_ref('/dataset/multirecords.csv?') +$.param(props)
-                    }
-                });
-                $('#goto').change(function(event) {
+            function pageChange(e) {
+                let dir = $(e.target).data('dir');
+                let page = $('#page').val()
+                if (dir === '-' && page > 1) {
+                    page--;
+                } else if (dir === '+' && page < $('#page option:last').val()) {
+                    page++;
+                }
+                $('#page').val(page).change()
+                setFilter();
+            }
+
+            $(function() {
+                $('#goto').change(() => {
                     window.location.href=odmf_ref('/dataset/') + $('#goto').val();
                 });
-                $('#gotods-btn').click(function() {
+                $('#gotods-btn').click(() =>  {
                     window.location.href=odmf_ref('/dataset/') + $('#goto').val();
                 });
+                $('.filter').change(popSelect)
+                $('.page').click(pageChange)
 
                 popSelect();
 
@@ -128,8 +131,18 @@
     <py:block name="sidebar">
 
         <div class="container-fluid" id="filter-collapse">
+            <div class="input-group mb-2">
+                <div class="input-group-prepend" >
+                    <button class="btn btn-secondary" id="gotods-btn"
+                    >
+                        <i class="fas fa-rocket" />
+                    </button>
+                </div>
+                <input class="form-control" type="number" id="goto" tabindex="1" placeholder="dataset-id"
+                       title="Go directly to a dataset by entering the id" data-toggle="tooltip"/>
+            </div>
             <div class="">
-                <a href="${conf.root_url}/dataset/new" class="btn btn-secondary w-100">
+                <a href="${conf.root_url}/dataset/new#edit" class="btn btn-secondary w-100">
                     <i class="fas fa-plus mr-1" />
                     new dataset
                 </a>
@@ -143,26 +156,32 @@
                     </a>
                 </div>
                 <div class="form-group mb-1 row">
-                    <select id="vtselect" onchange="popSelect();" class="form-control filter" tabindex="2"/>
+                    <label for="vtselect" class="small m-0">Value type</label>
+                    <select id="vtselect" class="form-control form-select filter" tabindex="2"/>
                 </div>
                 <div class="form-group mb-1 row">
-                    <select id="siteselect"  onchange="popSelect();" class="form-control filter" tabindex="3"/>
-                </div>
-
-                <div class="form-group mb-1 row">
-                    <select id="userselect" onchange="popSelect();" class="form-control filter" tabindex="4"/>
-                </div>
-                <div class="form-group mb-1 row">
-                    <select id="typeselect" onchange="popSelect();" class="form-control filter" tabindex="5"/>
+                    <label for="siteselect" class="small m-0">Site</label>
+                    <select id="siteselect" class="form-control form-select filter" tabindex="3"/>
                 </div>
 
                 <div class="form-group mb-1 row">
-                    <select id="instrumentselect" onchange="popSelect();" class="form-control filter" tabindex="6"
+                    <label for="userselect" class="small m-0">Creator</label>
+                    <select id="userselect" class="form-control form-select filter" tabindex="4"/>
+                </div>
+                <div class="form-group mb-1 row">
+                    <label for="typeselect" class="small m-0">Type</label>
+                    <select id="typeselect" class="form-control form-select filter" tabindex="5"/>
+                </div>
+
+                <div class="form-group mb-1 row">
+                    <label for="vtselect" class="small m-0">Instrument / source</label>
+                    <select id="instrumentselect" class="form-control form-select filter" tabindex="6"
                             title="Instument" data-toggle="tooltip"/>
                 </div>
                 <div class="form-group mb-1 row">
-                    <input id="dateselect" type="date" class="form-control" value="" tabindex="7" placeholder="date..."
-                           onchange="popSelect();" title="Show only sites with a dataset for this date" data-toggle="tooltip"/>
+                    <label for="dateselect" class="small m-0">date</label>
+                    <input id="dateselect" type="date" class="form-control form-select filter" value="" tabindex="7" placeholder="date..."
+                           title="Show only sites with a dataset for this date" data-toggle="tooltip"/>
                 </div>
             </div>
         </div>
@@ -184,6 +203,19 @@
 
             <ul class="nav bg-light p-1 border mb-1">
                 <li id="dscount" class="nav-item my-auto mx-3 h4">0 datasets</li>
+                <li class="nav-item my-auto mx-3">
+                    <div class="input-group">
+                        <span class="input-group-text">ds per page:</span>
+                        <input class="form-control" type="number" id="limit" value="50" title="Datasets per page" />
+                        <span class="input-group-text">page:</span>
+                        <button class="btn btn-secondary page" data-dir="-" title="last page">&lt;</button>
+                        <select class="form-control form-select page" type="number" id="page" title="Datasets per page" >
+                            <option value="1">1 / 1</option>
+                        </select>
+                        <button class="btn btn-secondary page" data-dir="+" title="next page">&gt;</button>
+
+                    </div>
+                </li>
                 <li class="nav-item dropdown mr-auto">
                     <button id="toggleexport"  data-toggle="dropdown"
                             class="btn btn-secondary dropdown-toggle"
@@ -209,18 +241,6 @@
                         </span>
 
                         </div>
-                    </div>
-                </li>
-                <li class="nav-item ">
-                    <div class="input-group ">
-                        <div class="input-group-prepend" >
-                            <button class="btn btn-secondary" id="gotods-btn"
-                            >
-                                <i class="fas fa-rocket" />
-                            </button>
-                        </div>
-                        <input class="form-control" type="number" id="goto" tabindex="1" placeholder="dataset-id"
-                               title="Go directly to a dataset by entering the id" data-toggle="tooltip"/>
                     </div>
                 </li>
             </ul>

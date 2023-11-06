@@ -22,14 +22,11 @@ class Preferences(object):
                  site=int)
 
     def __init__(self):
-        #f = None
-        try:
-            with open(self.filename, 'r') as f:
+        if self.filename.exists():
+            with self.filename.open() as f:
                 self.data = json.load(f)
-        except Exception as e:
+        else:
             self.data = Preferences.default
-
-            traceback.print_tb(e.__traceback__)
 
     @property
     def filename(self):
@@ -56,11 +53,7 @@ class Preferences(object):
     @expose_for()
     @web.mime.json
     def index(self, item=''):
-        data = self.data
-        print("index for preferences")
-        #
-        # Seems pythons needs still explicit encoding
-        if item in data:
+        if item in self.data:
             return web.json_out(self.data[item])
         else:
             return web.json_out(self.data)

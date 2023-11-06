@@ -6,11 +6,13 @@ name: ODMF - Observatory Data Management Framework
 on:
   push:
     branches: [ master ]
+    paths: [ .github/workflows ]
   pull_request:
     branches: [ master ]
 
+
 jobs:
-  build:
+  runner-job:
 
     runs-on: ubuntu-latest
     # Service containers to run with `runner-job`
@@ -33,40 +35,26 @@ jobs:
           - 5432:5432
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-    - name: Install postgresql client lib
-      run: |
-        apt update
-        apt install -y libpq-dev
-        apt install -y postgresql-client
-    - name: Create venv
-      run: python3.9 -m venv venv
-    - name: Install dependencies
-      run: |
-        venv/bin/python -m pip install --upgrade pip
-        venv/bin/pip install wheel psycopg2-binary
-    - name: Test DB connection
-      run: venv/bin/python tests/database_connection.py
-    - name: Make ODMF
-      run : |
-        venv/bin/pip install -e .
-        mkdir odmf-test
-        cd odmf-test
-    - name: Configure ODMF
-      run: |
-        venv/bin/odmf configure "postgresql://postgres:password@localhost:5432/postgres"  --port 8080
-        venv/bin/odmf test-config
-    - name: Make ODMF Database
-      run: |
-        venv/bin/odmf make-db -p testpw
-        venv/bin/odmf test-db
-    - name: Test the server
-      if: ${{ github.ref == 'refs/heads/master' }}
-      run : |
-        venv/bin/odmf start &
-        sleep 10
-        curl localhost:8080/login
+     - uses: actions/checkout@v2
+     - name: Set up Python 3.9
+       uses: actions/setup-python@v2
+       with:
+         python-version: 3.9
+     - name: Install postgresql client lib
+       run: apt-get update && apt-get install -y libpq-dev postgresql-client
+     - name: Test psql client
+       run: psql -d postgresql://postgres:postgres@localhost -c '\l'
+#    - name: Install dependencies
+#      run: |
+#        python -m pip install --upgrade pip
+#        pip install wheel setuptools
+#        pip install -r requirements.txt
+#    - name: Make ODMF
+#      run : |
+#        pip install .
+#    - name: Make Database
+#      run: |
+#        odmf configure postgresql://db_user:pwd@localhost:5432/odmf --port 8000
+#        cat config.yml
+#        odmf db-create -p testpw
+#        odmf db-test

@@ -1,13 +1,14 @@
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
-from .base import Base
 from datetime import datetime
-from .projection import LLtoUTM, dd_to_dms, UTMtoLL
-
-from ..config import conf
-
 from functools import total_ordering
 
+from .projection import LLtoUTM, dd_to_dms, UTMtoLL
+from .base import Base
+from ..config import conf
+
+from logging import getLogger
+logger = getLogger(__name__)
 
 
 @total_ordering
@@ -173,7 +174,7 @@ class Installation(Base):
         self.installdate = installdate
 
     @property
-    def active(self):
+    def active(self) -> bool:
         today = datetime.today()
         return self.installdate <= today and (self.removedate is None or self.removedate > today)
 
@@ -229,6 +230,4 @@ class Log(Base):
                     user=self.user,
                     site=self.site,
                     message=self.message)
-
-
 

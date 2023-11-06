@@ -1,10 +1,12 @@
+import cherrypy.lib.sessions
+
 from .. import prefix
 from . import lib as web
+from .lib.errors import errorhandler
 from .auth import users, group, expose_for
 
 from .. import db
 from ..config import conf
-import os
 from datetime import datetime, timedelta
 from . import db_editor as dbe
 from . import map
@@ -19,12 +21,15 @@ class Root(object):
     """
     The root of the odmf webpage
     """
-    _cp_config = {'tools.sessions.on': True,
-                  'tools.sessions.timeout': 24 * 60,  # One day
-                  'tools.sessions.storage_type': 'file',
-                  'tools.sessions.storage_path': prefix + '/sessions',
-                  'tools.auth.on': True,
-                  'tools.sessions.locking': 'early'}
+    _cp_config = {
+        'tools.sessions.on': True,
+        'tools.sessions.timeout': 24 * 60 * 7,  # One week
+        'tools.sessions.storage_class': cherrypy.lib.sessions.FileSession,
+        'tools.sessions.storage_path': prefix + '/sessions',
+        'tools.proxy.on': True,
+        'tools.auth.on': True,
+        'tools.sessions.locking': 'early',
+    } | errorhandler.html
 
     map = map.MapPage()
     site = dbe.SitePage()
@@ -53,10 +58,10 @@ class Root(object):
         Root home: Shows the map page if the current user has no urgent jobs.
         """
         if web.user():
-            session = db.Session()
-            user = session.query(db.Person).get(web.user())
-            if user and user.jobs.filter(db.Job.done == False, db.Job.due - datetime.now() < timedelta(days=7)).count():
-                raise web.redirect(conf.root_url + '/job')
+            with db.session_scope() as session:
+                user = session.query(db.Person).get(web.user())
+                if user and user.jobs.filter(~db.Job.done, db.Job.due - datetime.now() < timedelta(days=7)).count():
+                    raise web.redirect(conf.root_url + '/job')
         return self.map.index()
 
     @expose_for()
@@ -67,25 +72,18 @@ class Root(object):
         """
         if logout:
             users.logout()
-            if frompage:
-                raise web.HTTPRedirect(frompage or conf.root_url)
-            else:
-                return web.render('login.html', error=error, frompage=frompage).render()
+            return web.render('login.html', error=error, frompage=frompage).render()
 
         elif username and password:
+            # Try the login
             error = users.login(username, password)
-
+            frompage = frompage or conf.root_url + '/login'
             if error:
-                raise web.redirect('login.html', error=error, frompage=frompage)
-
-            elif frompage:
-                if 'login' in frompage:
-                    return web.render('login.html', error=error, frompage=frompage).render()
-                else:
-                    raise web.HTTPRedirect(frompage)
+                raise web.redirect('login', error=error, frompage=frompage)
             else:
-                return web.render('login.html', error=error, frompage=frompage).render()
+                raise web.redirect(frompage)
         else:
+            # Username or password not given, let the use retry
             return web.render('login.html', error=error, frompage=frompage).render()
 
 
@@ -105,18 +103,14 @@ class Root(object):
         A simple markdown API access. Can be used for text files
         """
         fn = conf.abspath(fn)
-        if os.path.exists(fn):
-            return web.markdown(open(fn).read())
-        else:
-            return ''
+        return web.markdown(fn.read_text())
 
     def markdownpage(self, content, title=''):
         """
         Returns a fully rendered page with navigation including the rendered markdown content
         """
-        res = web.render('empty.html', title=title,
-                         error='').render()
-        return res.replace('<!--content goes here-->', web.markdown(content))
+        return web.render('empty.html', title=title,
+                         error='', success='', content=content).render()
 
     @expose_for()
     @web.mime.plain
@@ -132,7 +126,7 @@ class Root(object):
 
     @expose_for()
     @web.method.get
-    def resources(self, format='json'):
+    def resources(self, format='html'):
         """
         Returns a json object representing all resources of this cherrypy web-application
         """
@@ -172,6 +166,18 @@ class Root(object):
                 buf = io.StringIO()
                 df.to_csv(buf, sep='\t')
                 return buf.getvalue().encode('utf-8')
+        elif format == 'html':
+            def get_icon(icon: str):
+                if icon:
+                    return f'!fa-{icon}'
+                else:
+                    return ''
+            md_text = '\n\n'.join(
+                '#' * r.uri.count('/') + f' {get_icon(r.icon)} {r.uri}\n\n - level: {r.level}\n - methods: {r.methods}\n\n{r.doc}'
+                for r in root.walk()
+                if not r.level or is_member(r.level)
+            )
+            return self.markdownpage(md_text, 'Site map')
 
 
     def __init__(self):
@@ -179,4 +185,5 @@ class Root(object):
         Creates the root page and marks self as the root object
         """
         web.render.set_root(self)
+
 

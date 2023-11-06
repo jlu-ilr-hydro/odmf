@@ -1,3 +1,10 @@
+import io
+import typing
+
+import chardet
+import pandas as pd
+
+
 from ...tools import Path
 from .. import lib as web
 import re
@@ -8,8 +15,45 @@ from ..markdown import MarkDown
 markdown = MarkDown()
 
 
-class BaseFileHandler:
+def load_text_file(path: Path) -> str:
+    with open(path.absolute, 'rb') as f:
+        data = f.read()
+        try:
+            return data.decode('utf-8')
+        except UnicodeDecodeError:
+            detection = chardet.detect(data)
+            if not detection['encoding']:
+                raise ValueError(f'{path} is a binary file')
+            return data.decode(detection['encoding'])
 
+
+def load_text_stream(path: Path) -> io.StringIO:
+    return io.StringIO(load_text_file(path))
+
+
+def table_to_html(df: pd.DataFrame, index: bool=True, header=True):
+    if header == True:
+        header = f'<div class="alert alert-secondary">{len(df)} lines</div>'
+    elif header == False:
+        header = ''
+    classes = ['table table-hover']
+    if len(df) > 1000:
+        table = df.iloc[:1000].to_html(classes=classes, border=0)
+        return header + table + f'<div>... skipping lines 1000 - {len(df)}</div>'
+    else:
+        return header + df.to_html(classes=classes, border=0, index=index)
+
+def error_msg(msg: str):
+    return '<div class="alert alert-danger">' + msg + '</div>'
+
+
+class BaseFileHandler:
+    """
+    The base class for file handling. Filehandlers are used by the file manager to display files
+
+    icon: Font-Awesome icon to describe the file type
+    """
+    icon = 'file'
     def __init__(self, pattern: str = ''):
         self.pattern = re.compile(pattern, re.IGNORECASE)
 
@@ -31,6 +75,7 @@ class BaseFileHandler:
 
 
 class TextFileHandler(BaseFileHandler):
+    icon = 'file-alt'
     def __init__(self, pattern: str):
         super().__init__(pattern)
 
@@ -42,13 +87,45 @@ class TextFileHandler(BaseFileHandler):
         Converts a string to a html text by creating surrounding pre tags.
         Overwrite for different handles
         """
-        with open(path.absolute) as f:
-            source = f.read()
+        source = load_text_file(path)
         return web.render('textfile_editor.html', html=self.render(source), source=source, path=path).render()
 
 
-class PlotFileHandler(BaseFileHandler):
+class ConfFileHandler(TextFileHandler):
+    icon = 'file-import'
+    def render(self, source):
+        def div(content, *classes):
+            classes = ' '.join(classes)
+            return f'\n<div class="{classes}">{content}</div>'
+        try:
+            source = source.replace('\r', '')
+            value_sub = div(div('\\1', 'col') + div('= ', 'col') + div('\\2', 'col'), 'row')
+            source = re.sub(r'(.*)\=(.*)', value_sub, source)
+            source = re.sub(r'^[#;](.*)', div('\\1', 'text-light bg-secondary small pl-2 font-italic'), source, flags=re.M)
+            source = re.sub(r'^\s*\[(.*)\]\s*$', r'<h3>[\1]</h3>', source, flags=re.M)
+            return source
+        except Exception:
+            return '\n<pre>\n' + source + '\n</pre>\n'
 
+class SummaryFileHandler(TextFileHandler):
+    icon = 'history'
+    def render(self, source):
+        from ...plot.summary_table import summary
+        import yaml
+        try:
+            summary_content = yaml.safe_load(source)
+            time = summary_content['time']
+            items = summary_content['items']
+            df = summary(time, items)
+
+            return table_to_html(df, index=False, header=f'<h3>Summary over {time}</h3>')
+        except Exception as e:
+            return error_msg(f'<p>Cannot process summary, check file syntax</p><pre>{e}</pre>') + '\n<pre>\n' + source + '\n</pre>\n'
+
+
+
+class PlotFileHandler(BaseFileHandler):
+    icon = 'chart-line'
     def render(self, source) -> str:
         return '\n<pre>\n' + source + '\n</pre>\n'
 
@@ -60,34 +137,50 @@ class PlotFileHandler(BaseFileHandler):
 
 
 class MarkDownFileHandler(TextFileHandler):
-
     def render(self, source) -> str:
         return markdown(source)
 
 
 class ExcelFileHandler(BaseFileHandler):
 
+    icon = 'file-excel'
+
     def to_html(self, path: Path) -> str:
-        import pandas as pd
+
         with open(path.absolute, 'rb') as f:
             df = pd.read_excel(f)
-            html = df.to_html(classes=['table'])
-            return html
+            return table_to_html(df)
 
 
 class CsvFileHandler(BaseFileHandler):
 
+    icon = 'file-csv'
+
     def to_html(self, path: Path) -> str:
-        import pandas as pd
+
         try:
-            df = pd.read_csv(path.absolute, sep=None)
-            return df.to_html(classes=['table'])
-        except:
-            with open(path.absolute, 'r') as f:
-                return '\n<pre>\n' + f.read() + '\n</pre>\n'
+            text_io = load_text_stream(path)
+            df = pd.read_csv(text_io, sep=None, engine='python')
+            return table_to_html(df)
+        except Exception as e:
+            text = load_text_file(path)
+
+            return '\n<pre>\n' + text + '\n</pre>\n'
+
+
+class ParquetFileHandler(BaseFileHandler):
+
+    icon = 'table'
+    def to_html(self, path) -> str:
+
+        with open(path.absolute, 'rb') as f:
+            df = pd.read_parquet(f)
+            return table_to_html(df)
 
 
 class ImageFileHandler(BaseFileHandler):
+
+    icon = 'file-image'
 
     def to_html(self, path: Path) -> str:
         return f'''
@@ -97,30 +190,70 @@ class ImageFileHandler(BaseFileHandler):
 
 class PdfFileHandler(BaseFileHandler):
 
-    def to_html(self, path) -> str:
+    icon = 'file-pdf'
+    def to_html(self, path: Path) -> str:
         return f'''
-        <object id="pdf-iframe" data="{path.raw_url}" type="application/pdf"></iframe>
+        <object id="pdf-iframe" data="{path.raw_url}" type="application/pdf" >
+            <a href="{path.raw_url}" class="btn btn-primary">Download</a>
+        </object>
         '''
+
+
+class DocxFileHandler(BaseFileHandler):
+
+    icon = 'file-word'
+
+    def to_html(self, path: Path):
+        try:
+            import mammoth as m
+            with path.as_path().open('rb') as f:
+                conversion = m.convert_to_html(f)
+                return conversion.value
+        except Exception as e:
+            raise web.HTTPError(500, f'Cannot open Word document: {path}')
+
+class ZipFileHandler(BaseFileHandler):
+
+    icon = 'file-archive'
+
+    def to_html(self, path: Path) -> str:
+        try:
+            import zipfile
+            z = zipfile.ZipFile(path.absolute)
+            li = ' '.join(f'<li class="list-group-item"><i class="fas fa-file mr-2"></i>{zi.filename}</li>' for zi in z.infolist())
+            header = '<h5>Content:</h5>'
+            return header + '<ul class="list-group"> ' + li + '</ul>'
+        except Exception as e:
+            raise web.HTTPError(500, f'Cannot open zipfile: {path}')
 
 
 class MultiHandler(BaseFileHandler):
     handlers = [
         MarkDownFileHandler(r'\.(md|wiki)$'),
+        ConfFileHandler(r'\.conf$'),
         PlotFileHandler(r'\.plot$'),
         ExcelFileHandler(r'\.xls.?$'),
+        DocxFileHandler(r'\.docx$'),
         CsvFileHandler(r'\.csv$'),
+        ParquetFileHandler(r'\.parquet$'),
         PdfFileHandler(r'\.pdf$'),
         ImageFileHandler(r'\.(jpg|jpeg|png|svg|gif)$'),
+        ZipFileHandler(r'\.zip$'),
+        SummaryFileHandler(r'\.summary$'),
         TextFileHandler(''),
     ]
 
-    def to_html(self, path: Path) -> str:
+    def __getitem__(self, path: Path) -> typing.Optional[BaseFileHandler]:
         for h in self.handlers:
             if h.matches(path):
                 try:
-                    return h(path)
+                    return h
                 except web.HTTPRedirect:
                     raise
                 except UnicodeDecodeError as e:
                     pass
         return None
+
+    def to_html(self, path: Path) -> str:
+        if handler := self[path]:
+            return handler.to_html(path)

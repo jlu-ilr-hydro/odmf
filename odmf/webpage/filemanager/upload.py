@@ -9,13 +9,13 @@ Created on 15.02.2012
 from .. import lib as web
 import datetime
 import os
+import shutil
 from traceback import format_exc as traceback
 from io import StringIO, BytesIO
 import cherrypy
 from cherrypy.lib.static import serve_file
 from urllib.parse import urlencode
-from ..auth import group, expose_for, users
-from .file_auth import AccessFile
+from ..auth import group, expose_for, is_member
 from ...tools import Path
 
 from ...config import conf
@@ -62,7 +62,9 @@ class HTTPFileNotFoundError(cherrypy.HTTPError):
 
 
 def goto(dir, error=None, msg=None):
-    return web.redirect(f'{conf.root_url}/download/{dir}'.strip('.'), error=error, msg=msg)
+    return web.redirect(f'{conf.root_url}/download/{dir}'.strip('.'), error=error or '', msg=msg or '')
+
+
 
 
 @web.show_in_nav_for(0, 'file')
@@ -85,12 +87,26 @@ class DownloadPage(object):
         if not f_acc.check(users.current):
             raise web.HTTPError(403, f'Forbidden access to resource {path} for {users.current.name}')
         directories, files = path.listdir()
-
+        content = ''
         if path.isfile():
-            if (not serve) and (content := self.filehandler(path)):
+            if (not serve):
+                try:
+                    content = self.filehandler(path)
+                except ValueError as e:
+                    content = f'<div class="alert bg-warning"><h3>{e}</h3></div>'
+
+                except cherrypy.CherryPyException:
+                    raise
+
+                except Exception as e:
+                    if error : error += '\n\n'
+                    error += str(e)
+                    if is_member(group.admin):
+                        error += '\n```\n' + traceback() + '\n```\n'
+
                 return web.render(
                     'download.html', error=error, message=msg,
-                    content=content,
+                    content=content, handler=self.filehandler,
                     files=sorted(files),
                     directories=sorted(directories),
                     curdir=path,
@@ -106,6 +122,7 @@ class DownloadPage(object):
                 'download.html', error=error, message=msg,
                 files=sorted(files),
                 directories=sorted(directories),
+                handler = self.filehandler,
                 curdir=path,
                 max_size=conf.upload_max_size
             ).render()
@@ -222,9 +239,34 @@ class DownloadPage(object):
         else:
             raise goto(dir, error, msg)
 
+    @expose_for(group.editor)
+    @web.method.post_or_put
+    def newtextfile(self, dir, newfilename):
+        if newfilename:
+            try:
+                path = Path(dir, newfilename)
+                if not path.basename.endswith('.wiki') or path.basename.endswith('.md'):
+                    path = Path(str(path) + '.wiki')
+                if not path.exists() and path.islegal():
+                    with open(path.absolute, 'w') as f:
+                        f.write(newfilename + '\n' + '=' * len(newfilename) + '\n\n')
+                    raise goto(path.name, msg=f"{path.href} created")
+                else:
+                    raise goto(dir, error=f"File {newfilename} exists already")
+            except Exception as e:
+                if isinstance(e, cherrypy.HTTPRedirect):
+                    raise
+                else:
+                    raise goto(dir, error=traceback())
+        else:
+            raise goto(dir, error='Forgotten to give your new file a name?')
+
     @expose_for(group.admin)
     @web.method.post_or_delete
     def removefile(self, dir, filename):
+        """
+        Removes a file from a directory (only for admins)
+        """
         path = Path(dir, filename)
         error = msg = ''
 
@@ -254,6 +296,36 @@ class DownloadPage(object):
         qs = urlencode({'error': error, 'msg': msg})
         url = f'{conf.root_url}/download/{dir}'.strip('.')
         return url + '?' + qs
+
+    @expose_for(group.editor)
+    @web.method.post
+    def copyfile(self, dir, filename, newfilename):
+        """
+        Copies filename in directory to newfilename
+        """
+        path = Path(dir, filename)
+        targetpath = Path(dir, newfilename)
+        error = msg = ''
+        if not path.islegal():
+            error = '{path} is not a legal position'
+        elif not targetpath.islegal():
+            error = f'{targetpath} not a valid copy destination'
+        elif not path.isfile():
+            error = f'{path} is not a file'
+        elif targetpath.exists():
+            error = f'{targetpath} exists already, choose another name'
+        else:
+            try:
+                shutil.copyfile(path.absolute, targetpath.absolute)
+                msg = f'{path} copied to {targetpath}'
+            except:
+                error = "Could not delete the file. A good reason would be a mismatch of user rights on the server " \
+                        "file system"
+        qs = urlencode({'error': error, 'msg': msg})
+        url = f'{conf.root_url}/download/{dir}'.strip('.')
+        return url + '?' + qs
+
+
 
     @expose_for(group.editor)
     @web.method.post

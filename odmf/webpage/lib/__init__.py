@@ -39,13 +39,18 @@ def redirect(url, **kwargs):
 
     redirects to /xyz?a=2&b=Hallo
     """
+    kwargs = {k: v for k, v in kwargs.items() if v is not None}
     qs = urlencode(kwargs)
     return cherrypy.HTTPRedirect(url + '?' + qs)
 
-def json_out(obj):
+
+def json_out(obj=None, **kwargs):
     """
     Decorator for exposed functions to convert the output into utf-8 encoded json
     """
+    mime.json.set()
+    if obj is None:
+        obj = kwargs
     return json.dumps(
         obj,
         sort_keys=True,

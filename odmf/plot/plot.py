@@ -93,8 +93,8 @@ class Line:
         Loads the records into an array
         """
         with db.session_scope() as session:
-            start = start or self.subplot.plot.start
             end = end or self.subplot.plot.end
+            start = start or self.subplot.plot.start
             datasets = self.getdatasets(session)
             if not datasets:
                 raise ValueError("No data to compute")
@@ -217,7 +217,7 @@ class Plot:
         @param start: Date for the beginning x axis
         @param end: Date of the end of the x axis
         """
-        self.start = start or datetime.today() - timedelta(days=365)
+        self.start = start  or datetime.today() - timedelta(days=90)
         self.end = end or datetime.today()
         self.size = (width or 640, height or 480)
         self.columns = columns or 1

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<py:extends href="bootstrap_navigation.html" xmlns:py="">
+<py:extends href="layout.html" xmlns:py="">
     <py:block name="scripts">
         <!-- insert additional scripts -->
     </py:block>
@@ -9,27 +9,50 @@
     </py:block>
     <py:block name="sidebar">
         <!-- insert sidebar content -->
+        <a class="dropdown-item flexbox"
+           py:for="resource in nav_items"
+           href="${resource.uri}"
+           title="${resource.doc}"
+           data-toggle="tooltip"
+           data-placement="right"
+        >
+            <span py:content="resource.name" />
+            <i class="fas fa-${resource.icon or 'question_circle'} fa-lg"/>
+        </a>
+
     </py:block>
     <py:block name="content">
+        <div id="error-row" class="alert alert-danger" role="alert" py:if="error">
+            <div class="row">
+                <div class="col-lg-1">
+                    <i class="fas fa-exclamation-circle fa-3x"/>
+                </div>
+                <div class="col-lg-11">
+                    <p class="" py:content="markdown(error)"/>
+                </div>
+            </div>
+        </div>
+        <div class="alert alert-success" role="alert" py:if="success">
+            <div class="row">
+                <div class="col-lg-1">
+                    <i class="fas fa-info-circle fa-3x"/>
+                </div>
+                <div class="col-lg-11">
+                    <p class="" py:content="markdown(success)"/>
+                </div>
+            </div>
+        </div>
+        <div class="alert alert-info" role="alert" py:if="info">
+            <div class="row">
+                <div class="col-lg-1">
+                    <i class="fas fa-info-circle fa-3x"/>
+                </div>
+                <div class="col-lg-11">
+                    <p class="" py:content="markdown(info)"/>
+                </div>
+            </div>
+        </div>
         <div class="container m-0 p-0">
-            <div id="error-row" class="row mt-2 w-100" py:if="error">
-                <div class="container">
-                    <div class="row bg-danger text-white border rounded p-4">
-                        <h1 class="display-3 col-lg-2">Error</h1>
-                        <div class="lead col-lg-10" id="error" py:content="markdown(error)"/>
-                    </div>
-                </div>
-            </div>
-            <div class="alert alert-success" role="alert" py:if="success">
-                <div class="row">
-                    <div class="col-lg-1">
-                        <i class="fas fa-info-circle fa-3x"/>
-                    </div>
-                    <div class="col-lg-11">
-                        <p class="" py:content="markdown(success)"/>
-                    </div>
-                </div>
-            </div>
             <div>
                 <div class="container" py:content="markdown(content)">
 

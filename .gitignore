@@ -4,7 +4,7 @@ odmf/conf.py
 **/webpage/sessions/**
 **/webpage/preferences/**
 *.pyc
-**/venv/**
+venv*
 **/.pytest_cache/**
 .idea
 *.log

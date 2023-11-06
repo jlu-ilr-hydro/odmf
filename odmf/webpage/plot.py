@@ -182,7 +182,7 @@ class PlotPage(object):
         Parameters
         ----------
         plot: The plot as JSON
-        fileformat: csv, xlsx, pickle, tsv, json
+        fileformat: csv, xlsx, pickle, tsv, json, parquet
         tolerance: in seconds
         timeindex: as_first, all_timesteps, regular
 
@@ -191,7 +191,7 @@ class PlotPage(object):
 
         """
         from ..tools.exportdatasets import merge_series, export_dataframe
-        if fileformat not in ('xlsx', 'csv', 'tsv', 'pickle', 'json', 'msgpack'):
+        if fileformat not in ('xlsx', 'csv', 'tsv', 'pickle', 'json', 'msgpack', 'parquet'):
             raise web.HTTPError(500, 'Unknown fileformat: ' + fileformat)
         plot_dict = web.json.loads(plot)
         plot: Plot = Plot(**plot_dict)

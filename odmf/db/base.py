@@ -9,13 +9,14 @@ Created on 13.02.2012
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
+from contextlib import contextmanager
+from functools import total_ordering
 
-import os.path as op
 from ..config import conf
 
-from contextlib import contextmanager
-from logging import info
-from functools import total_ordering
+from logging import getLogger
+logger = getLogger(__name__)
+
 
 def newid(cls, session):
     """Creates a new id for all mapped classes with an field called id, which is of integer type"""
@@ -60,6 +61,7 @@ def table(obj) -> sql.Table:
     except AttributeError:
         raise TypeError(f'{obj!r} is not a mapper class')
 
+
 @total_ordering
 class Base(object):
     """Hooks into SQLAlchemy's magic to make :meth:`__repr__`s."""
@@ -81,7 +83,7 @@ class Base(object):
         return f'{classy}({args})'
 
     def __lt__(self, other):
-        if isinstance(other, type(self)) and hasattr('id', self):
+        if isinstance(other, type(self)) and hasattr(self, 'id'):
             return self.id < other.id
         else:
             raise TypeError(
@@ -91,7 +93,7 @@ class Base(object):
         return hash(self) == hash(other)
 
     def __hash__(self):
-        return hash(repr(self.__class__.__name__))
+        return hash(repr(self))
 
     def session(self):
         return Session.object_session(self)

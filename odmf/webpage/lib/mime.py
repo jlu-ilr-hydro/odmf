@@ -32,9 +32,11 @@ class MimeType:
         self.mimetype = mimetype
 
     def __call__(self, func):
+
         def wrapper(*args, **kwargs):
             cherrypy.response.headers['Content-Type'] = self.mimetype
             return func(*args, **kwargs)
+        wrapper.__doc__ = func.__doc__
         return wrapper
 
     def set(self):

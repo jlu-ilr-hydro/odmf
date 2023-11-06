@@ -153,12 +153,10 @@ class Users(collections.UserDict):
         with db.session_scope() as session:
             q = session.query(db.Person).filter(db.Person.active == True)
 
-            self.data = {}
-            allpersons = q.all()
-
-            for person in allpersons:
-                self.data[person.username] = User(
-                    person.username, person.access_level, person.password, [pr.project.id for pr in person.projects])
+            self.data = {
+                person.username: User(person.username, person.access_level, person.password)
+                for person in q
+            }
 
     def check(self, username, password):
 
@@ -183,6 +181,8 @@ class Users(collections.UserDict):
 
     @property
     def current(self) -> User:
+        if not self:
+            self.load()
         return self.get(cherrypy.request.login, self.default)
 
     def set_default(self, name):
@@ -199,11 +199,9 @@ class Users(collections.UserDict):
             return
 
     def logout(self):
-        sess = cherrypy.session
-        username = sess.get(SESSION_KEY, None)
-        sess[SESSION_KEY] = None
-        if username:
-            cherrypy.request.login = None
+        cherrypy.request.login = None
+        cherrypy.session[SESSION_KEY] = None
+        cherrypy.lib.sessions.expire()
 
 
 users = Users()
