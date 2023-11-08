@@ -91,7 +91,7 @@ class SiteGeometry(Base):
     """
     __tablename__ = 'site_geometry'
 
-    id = sql.Column(sql.Integer, primary_key=True, constraint=sql.ForeignKey('site.id'))
+    id = sql.Column(sql.Integer, sql.ForeignKey('site.id'), primary_key=True)
     site = orm.relationship('Site', backref=orm.backref('geometry'),
                             primaryjoin="Site.id==SiteGeometry.id")
     type = sql.Column(sql.Text)  # Contains the GeoJSON geometry type: POINT, POLYGON, MULTILINESTRING etc.

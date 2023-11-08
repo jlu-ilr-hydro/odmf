@@ -49,3 +49,18 @@ class Person(Base):
                 return NotImplemented
             return self.surname < str(other)
         return self.surname < other.surname
+
+    def projects(self):
+        from .project import ProjectMember
+        pm: ProjectMember
+        for pm in (
+                self.session().query(ProjectMember)
+                    .filter(ProjectMember._project==self.username)
+                    .order_by(ProjectMember.access_level.desc(), ProjectMember._person)
+        ):
+            yield pm.project, pm.access_level
+
+    def add_project(self, project, access_level: int=0):
+        from .project import ProjectMember
+        pm = ProjectMember(member=self, project=project, access_level=access_level)
+        self.session().add(pm)

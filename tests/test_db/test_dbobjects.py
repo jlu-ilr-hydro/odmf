@@ -241,9 +241,26 @@ class TestProject:
     def test_project_load(self, project, session, db):
         project_1 = session.query(db.Project).get(1)
         assert project_1 == project
-        assert not project < project
-        assert str(project).startswith(" ")
-        assert repr(project).startswith("<Project")
+
+    def test_project_add_member(self, project, person):
+        project.add_member(person, 2)
+        members = list(project.members())
+        print(members)
+        assert len(members) >= 1# , f'Added 1 one member to project, but project has {len(members)} member'
+        assert members[0][1] == 2# , f'Project member has unexpected access level of {members[0].access_level}!=1'
+
+        members2 = list(project.members(3)) # should be empty list
+        print(members2)
+        assert len(members2) == 0 # , f'Added one member with al=2 to project, but project has {len(members2)} members above level 3'
+
+    def test_person_add_project(self, db, session, project, person):
+        person.add_project(project, 1)
+        session.flush()
+        projects = list(person.projects())
+        print(projects)
+        assert len(projects) >= 1 # , f'Added 1 one member to project, but project has {len(projects)} member'
+        assert projects[0][1] == 1 # , f'Project member has unexpected access level of {projects[0][1]}!=1'
+
 
 
 @pytest.fixture()

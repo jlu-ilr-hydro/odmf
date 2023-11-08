@@ -53,7 +53,6 @@ class ValueType(Base):
     comment = sql.Column(sql.String)
     minvalue = sql.Column(sql.Float)
     maxvalue = sql.Column(sql.Float)
-    __mapper_args__ = {'order_by': name}
 
     def __str__(self):
         return f'{self.name} [{self.unit}] ({self.id})'
