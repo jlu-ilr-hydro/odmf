@@ -11,7 +11,7 @@ import sqlalchemy.orm as orm
 import pytz
 import pandas as pd
 
-from .base import Base, Session
+from .base import Base, session_scope
 from ..config import conf
 from typing import Optional
 from logging import getLogger
@@ -65,11 +65,6 @@ class ValueType(Base):
 
     def __hash__(self):
         return hash(str(self))
-
-    def records(self):
-        from .timeseries import Record
-        session = Session.object_session(self)
-        return Record.query(session).filter(Dataset.valuetype == self)
 
     def __jdict__(self):
         return dict(id=self.id,
@@ -281,18 +276,17 @@ class Dataset(Base):
 def removedataset(*args):
     """Removes a dataset and its records entirely from the database
     !!Handle with care, there will be no more checking!!"""
-    session = Session()
-    datasets = [session.query(Dataset).get(int(a)) for a in args]
-    for ds in datasets:
-        dsid = ds.id
-        if ds.is_timeseries():
-            reccount = ds.records.delete()
-            session.commit()
-        else:
-            reccount = 0
-        session.delete(ds)
-        session.commit()
-        logger.info(f"Deleted ds{dsid:04i} and {reccount} records")
+    with session_scope() as session:
+        datasets = [session.query(Dataset).get(int(a)) for a in args]
+        for ds in datasets:
+            dsid = ds.id
+            if ds.is_timeseries():
+                reccount = ds.records.delete()
+                session.commit()
+            else:
+                reccount = 0
+            session.delete(ds)
+            logger.info(f"Deleted ds{dsid:04d} and {reccount} records")
 
 
 class DatasetGroup(object):

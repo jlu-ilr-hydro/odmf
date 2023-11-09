@@ -26,11 +26,11 @@ class DatasetPage:
 
     @expose_for(group.logger)
     @web.method.get
-    def index(self, error=''):
+    def index(self, error='', message=None):
         """
         Returns the query page (datasetlist.html). Site logic is handled with ajax
         """
-        return web.render('datasetlist.html', error=error).render()
+        return web.render('datasetlist.html', error=error, message=message).render()
 
     @expose_for(group.guest)
     @web.method.get

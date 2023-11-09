@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 import pytest
 import sqlalchemy.orm
+import sqlalchemy.exc
 from contextlib import contextmanager
 from tests.test_db.test_dbobjects import person, site1_in_db, datasource1_in_db
-import pathlib
 from .. import conf
 
 
@@ -42,8 +42,11 @@ def temp_in_database(obj, session):
     session.add(obj)
     session.commit()
     yield obj
-    session.delete(obj)
-    session.commit()
+    try:
+        session.delete(obj)
+        session.commit()
+    except sqlalchemy.orm.exc.ObjectDeletedError:
+        session.rollback()
 
 @pytest.fixture()
 def quality(db, session):
@@ -98,7 +101,7 @@ class TestValueType:
 def dataset(db, session, value_type, quality, person, datasource1_in_db, site1_in_db):
     with temp_in_database(
         db.Dataset(
-            id=1, name='this is a name', filename='this is a filename', type=None,
+            id=1, name='this is a name', filename='this is a filename',
             start=datetime.datetime(2020, 2, 20), end=datetime.datetime(2030, 12, 20),
             site=site1_in_db, valuetype=value_type, measured_by=person, quality=quality,
             source=datasource1_in_db, calibration_offset=0, calibration_slope=1, comment='this is a comment',
@@ -109,10 +112,23 @@ def dataset(db, session, value_type, quality, person, datasource1_in_db, site1_i
 
 
 class TestDataset:
-    def test_dataset(self, site1_in_db, dataset):
+    def test_dataset(self, conf, site1_in_db, dataset):
         assert dataset.id == 1
         assert dataset.type is None
         assert dataset.site == site1_in_db
+
+        import pytz
+        assert dataset.tzinfo
+
+    def test_copy_dataset(self, conf, db, session, dataset):
+        newid = db.newid(db.Dataset, session)
+        with temp_in_database(dataset.copy(newid), session) as ds2:
+            assert ds2.id == newid
+            assert ds2.id != dataset.id
+            assert ds2.name == dataset.name
+            assert ds2.valuetype is dataset.valuetype
+            assert ds2.measured_by is dataset.measured_by
+            assert ds2.size() == 0
 
 
 @pytest.fixture()
@@ -127,7 +143,10 @@ def timeseries(db, session, value_type, quality, person, datasource1_in_db, site
             ),
             session) as timeseries:
         yield timeseries
-        timeseries.records.delete()
+        try:
+            timeseries.records.delete()
+        except sqlalchemy.exc.InvalidRequestError:
+            pass
 
 
 @pytest.fixture()
@@ -205,5 +224,22 @@ class TestTimeseries:
         assert isinstance(d, dict)
         assert 'id' in d
         assert timeseries.records.count() == 1
+
+
+class TestRemovedataset:
+
+    def test_removedataset_int(self, db, timeseries):
+        session = timeseries.session()
+        id = timeseries.id
+        db.removedataset(timeseries.id)
+        session.commit()
+        assert session.query(db.Dataset).get(id) is None
+
+    def test_removedataset_str(self, db, timeseries):
+        session = timeseries.session()
+        id = timeseries.id
+        db.removedataset(str(timeseries.id))
+        session.commit()
+        assert session.query(db.Dataset).get(id) is None
 
 

@@ -98,9 +98,9 @@
     </py:block>
     <py:block name="content">
         <div class="container">
-            <div id="error-row" class="row mt-2 w-100">
+            <div id="error-row" class="row mt-2 w-100 ${'' if error else 'd-none'} ">
                 <div class="container">
-                    <div class="container bg-danger text-white row w-100 border rounded ${'' if error else 'd-none'} " >
+                    <div class="container bg-danger text-white row w-100 border rounded " >
                         <h1 class="display-3 col-lg-2">Error</h1>
                         <div id="error" class="lead col-lg-10" py:content="markdown(error)"/>
                     </div>
@@ -230,8 +230,8 @@
                         $~f(x)~$ transform
                     </button>
                     <button py:if="is_member('admin')" class="btn btn-outline-danger mr-2"
-                            title="remove dataset permanently" data-toggle="tooltip"
-                            onclick="removeds(${ds_act.id},'${str(ds_act)}',${ds_act.size()});">
+                            title="remove dataset permanently" data-toggle="tooltip" id="removeds"
+                            data-dsid="${ds_act.id}" data-dsname="${str(ds_act)}" data-dssize="${ds_act.size()}">
                         <i class="fas fa-trash mr-2"/> delete dataset
                     </button>
 

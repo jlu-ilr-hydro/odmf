@@ -28,7 +28,15 @@ def newid(cls, session):
 
 
 def get_session_class():
-    engine = sql.create_engine(conf.database_url)
+
+    # check for sqlite in engine
+    if conf.database_url.startswith('sqlite://'):
+        from sqlalchemy.pool import StaticPool
+        engine = sql.create_engine(conf.database_url,
+                               connect_args={'check_same_thread': False},
+                               poolclass=StaticPool)
+    else:
+        engine = sql.create_engine(conf.database_url)
     # Try to connect to engine
     with engine.connect():
         ...
@@ -95,7 +103,7 @@ class Base(object):
     def __hash__(self):
         return hash(repr(self))
 
-    def session(self):
+    def session(self) -> Session:
         return Session.object_session(self)
 
     @classmethod
