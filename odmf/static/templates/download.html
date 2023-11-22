@@ -24,8 +24,8 @@
                     }
                 });
                 $('.copy-button').click(function() {
-                    var name = $(this).data('name');
-                    let newfilename = window.prompt("New filename")
+                    let name = $(this).data('name');
+                    let newfilename = window.prompt("New filename", 'copy_of_' + name)
                     if (newfilename) {
                         $.post(odmf_ref('/download/copyfile/'), {dir: '${curdir}',filename: name, newfilename: newfilename},
                             function(success_url) {
@@ -34,6 +34,12 @@
                         );
                     }
                 });
+                $('.action-button').click(function() {
+                    let actionid = $(this).data('actionid')
+                    $.post(odmf_ref('/download/action/'), {path: '${curdir}', actionid: actionid}, function(success_url) {
+                        window.location = success_url
+                    })
+                })
 
                 $('#datafile').change( function(evt) {
                     var path = evt.target.files[0];
@@ -324,6 +330,13 @@
                     <i class="fas fa-${handler[curdir].icon} fa-lg mr-2"/><span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
                 </h5>
                 <div class="col-lg-3">
+                    <a py:for="action_id, action in enumerate(handler[curdir].actions)"
+                       py:if="has_level(action.access_level)"
+                       class="btn btn-secondary action-button"
+                       data-toggle="tooltip" title="${action.tooltip}"
+                       data-actionid="${action_id}" data-path="${curdir}">
+                        <i class="fas fa-${action.icon}" />${action.title}
+                    </a>
                     <a class="btn btn-primary" href="./?serve=True"><i class="fas fa-file-download mr-4"/>download</a>
                     <a class="btn btn-outline-primary" href="${curdir.parent().href}"><i class="fas fa-folder-open mr-4"/>..</a>
                 </div>
