@@ -62,3 +62,10 @@ def test_base_db(db, session):
     assert admin.username == 'odmf.admin'
     qualities = session.query(db.Quality).all()
     assert len(qualities) >= 4
+
+def test_objectgetter(db, session):
+    og = db.ObjectGetter(db.Person, session)
+    assert repr(og)
+    admin = og['odmf.admin']
+    assert admin.username == 'odmf.admin'
+    assert og.q.first() is admin

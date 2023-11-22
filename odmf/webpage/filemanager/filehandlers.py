@@ -46,14 +46,66 @@ def table_to_html(df: pd.DataFrame, index: bool=True, header=True):
 def error_msg(msg: str):
     return '<div class="alert alert-danger">' + msg + '</div>'
 
+class FileAction:
+    """
+    A file action is an action that can be used with a file. It creates a button in the view of the file
+
+    You can use this class directly with an `action(path: odmf.tools.Path)` function or subclass this class
+    and overwrite the `action` function
+    """
+    title = 'A generic file action'
+    name = 'file-action'
+    icon = 'file'
+    tooltip = 'A generic action on the file'
+    access_level = 4
+
+    def __init__(self, title: str='', icon: str='', tooltip: str='', access_level=0, action: typing.Optional[typing.Callable] =None):
+        self.title = title or self.title
+        self.icon = icon or self.icon
+        self.tooltip = tooltip or self.tooltip
+        self.access_level = access_level or self.access_level
+        if not any((self.title, self.icon)):
+            raise ValueError('A FileAction needs either a title or an icon')
+        if callable(action):
+            self.action = action
+
+    def action(self, path: Path):
+        raise NotImplementedError(f'Action "{self}" is not defined for {path.name}')
+    def __call__(self, path: str):
+        if type(path) is not Path:
+            path = Path(path)
+        return self.action(path)
+
+    def __str__(self):
+        return self.name
+
+class UnzipAction(FileAction):
+    """
+    A file action for ZIP-Files to unpack them
+    """
+    name = 'unzip'
+    icon = 'box-open'
+    title = ''
+    tooltip = 'Unzip file content here'
+    access_level = 2
+
+    def action(self, path: Path):
+        import zipfile
+        target_dir = path.absolute.removesuffix('.zip')
+        with zipfile.ZipFile(path.absolute) as zf:
+            zf.extractall(target_dir)
+        return Path(target_dir)
+
 
 class BaseFileHandler:
     """
     The base class for file handling. Filehandlers are used by the file manager to display files
 
     icon: Font-Awesome icon to describe the file type
+    actions: Sequence of FileAction objects - actions that can be performed on the file page
     """
     icon = 'file'
+    actions = ()
     def __init__(self, pattern: str = ''):
         self.pattern = re.compile(pattern, re.IGNORECASE)
 
@@ -76,6 +128,7 @@ class BaseFileHandler:
 
 class TextFileHandler(BaseFileHandler):
     icon = 'file-alt'
+    actions = ()
     def __init__(self, pattern: str):
         super().__init__(pattern)
 
@@ -215,6 +268,7 @@ class DocxFileHandler(BaseFileHandler):
 class ZipFileHandler(BaseFileHandler):
 
     icon = 'file-archive'
+    actions = UnzipAction(),
 
     def to_html(self, path: Path) -> str:
         try:
