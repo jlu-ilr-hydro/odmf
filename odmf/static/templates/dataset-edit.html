@@ -50,6 +50,10 @@
                         <a id="edit-tab" class="nav-link border-top" data-toggle="pill" href="#edit"
                            py:if="is_member('editor') and users.current.level>=ds_act.access"
                         >edit</a>
+                        <a id="add-record-tab" class="nav-link border-top" data-toggle="pill" href="#add-record"
+                           py:if="is_member('editor') and users.current.level>=ds_act.access">
+                            add record
+                        </a>
                         <a id="similar-tab" class="nav-link border-top" data-toggle="pill" href="#similar">similar</a>
 
                         <a id="transforms-tab" class="nav-link flexbox border-top"
@@ -558,6 +562,29 @@
 
                     </form>
                 </div>
+                <div id="add-record" class="tab-pane w-100 mr-4" role="tabpanel" py:if="is_member('editor') and users.current.level>=ds_act.access">
+                    <h3>Add value...</h3>
+                    <form action="${conf.root_url}/dataset/add-record" method="post">
+                       <input type="hidden" name="dataset" value="${ds_act.id}" id="id-input" />
+                       <div class="container w-100">
+                           <div class="form-group">
+                               <label for="add-record-value">value in ${ds_act.valuetype.unit}</label>
+                               <input id="add-record-value" type="number" name="value" class="form-control"/>
+                           </div>
+                           <div class="form-group">
+                               <label for="add-record-time">time</label>
+                               <input id="add-record-time" type="datetime-local" name="time" class="form-control"/>
+                           </div>
+                           <div class="form-group">
+                               <label for="add-record-comment">comment</label>
+                               <input id="add-record-comment" type="text" name="comment"  class="form-control"/>
+                           </div>
+                          <input type="submit" />
+
+                       </div>
+
+                    </form>
+                </div>
                 <div id="transforms" class="tab-pane" role="tabpanel" py:if="ds_act.is_transformed()">
                     <h3>This data set transforms the records of the following <span py:content="len(ds_act.sources)"/> data sets:</h3>
                     <ul style="list-style:none;">
@@ -706,7 +733,6 @@
                         <a href="#filter" class="col-sm dropdown-toggle btn btn-secondary dropdown-toggle " data-toggle="collapse" role="button">
                             <i class="fas fa-filter mr-2"/>Filter
                         </a>
-
                     </div>
                     <div class="alert alert primary collapse w-100" id="filter">
                         <div class="input-group mb-1">
@@ -760,7 +786,10 @@
                             </div>
                         </div>
                     </div>
-                    <div id="recordlist"/>
+                    <div class="row w-100 my-1">
+                        <div class="container" id="recordlist"/>
+                    </div>
+
                 </div>
                 <div id="calibrate" class="tab-pane" role="tabpanel"
                      py:if="ds_act.is_timeseries() and is_member('editor') and users.current.level>=ds_act.access">

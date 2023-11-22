@@ -584,6 +584,26 @@ class DatasetPage:
                              action_help=f'{conf.root_url}/download/wiki/dataset/split.wiki').render()
 
     @expose_for(group.editor)
+    @web.method.post
+    def add_record(self, dataset, time, value, id=None, sample=None, comment=None):
+        """
+        Adds a single record to a dataset, great for connected fieldwork
+        :param dataset: Dataset id
+        :param time: Datetime
+        :param value: the value
+        :param sample: A sample name (usually None)
+        :param comment: A comment (often None)
+        :return:
+        """
+        with db.session_scope() as session:
+            ds: db.Timeseries = session.query(db.Dataset).get(int(dataset))
+            time = web.parsedate(time)
+            ds.addrecord(id, value, time, comment, sample, out_of_timescope_ok=True)
+        raise web.redirect(str(dataset) + '#records')
+
+
+
+    @expose_for(group.editor)
     @web.method.get
     @web.mime.png
     def plot_coverage(self, siteid):
