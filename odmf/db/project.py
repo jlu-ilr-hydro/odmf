@@ -15,7 +15,7 @@ class Project(Base):
     """
     __tablename__ = 'project'
 
-    id = sql.Column(sql.Integer, primary_key=True)
+    id = sql.Column(sql.Integer, primary_key=True, autoincrement=True)
     _person_responsible = sql.Column('person_responsible', sql.String,
                                      sql.ForeignKey('person.username'))
     person_responsible = sql.orm.relationship(
@@ -26,20 +26,53 @@ class Project(Base):
     name = sql.Column(sql.String)
     comment = sql.Column(sql.String)
     directory = sql.Column(sql.String)
+    datasets = sql.orm.relationship('Dataset')
 
+    @property
+    def members_query(self):
+        """Returns a query object with all ProjectMember object related to this project"""
+        return self.session().query(ProjectMember).filter(ProjectMember._project==self.id)
     def members(self, access_level=0):
-        for pm in (
-                self.session().query(ProjectMember)
-                    .filter(ProjectMember._project==self.id)
-                    .filter(ProjectMember.access_level>=access_level)
-                    .order_by(ProjectMember.access_level.desc(), ProjectMember._person)
-        ):
-            yield pm.member, pm.access_level
+         for pm in (
+                 self.members_query.filter(ProjectMember.access_level>=access_level)
+                     .order_by(ProjectMember.access_level.desc(), ProjectMember._person)
+         ):
+             yield pm.member, pm.access_level
 
-    def add_member(self, person: Person, access_level: int=0):
-        pm = ProjectMember(member=person, project=self, access_level=access_level)
-        self.session().add(pm)
+    def add_member(self, person: Person|str, access_level: int=0):
+        if pm:=self[person]:
+            pm.access_level = access_level
+        else:
+            pm = ProjectMember(member=person, project=self, access_level=access_level)
+            self.session().add(pm)
         return pm
+
+    def remove_member(self, username: Person|str):
+        if type(username) is Person:
+            username = username.username
+        n=self.members_query.filter_by(_member=username).delete()
+        if not n:
+            raise ValueError(f'{username} was not a member of {self}, cannot remove')
+
+    def __getitem__(self, username):
+        if type(username) is Person:
+            username = username.username
+        return self.members_query.filter_by(_member=username).first()
+
+
+    def get_access_level(self, user: Person|str):
+        if not type(user) is Person:
+            user = Person.get(self.session(), user)
+
+        if user == self.person_responsible:
+            return 4
+        elif user.access_level>=4:
+            return user.access_level
+        for member, level in self.members():
+            if member == user:
+                return level
+        else:
+            return 0
 
 
     def __str__(self):
@@ -74,10 +107,11 @@ class ProjectMember(Base):
     """
     __tablename__ = 'project_member'
 
-    _project = sql.Column(sql.ForeignKey('project.id', ondelete='CASCADE'), primary_key=True)
-    _person = sql.Column(sql.ForeignKey('person.username', ondelete='CASCADE'), primary_key=True)
+    _project = sql.Column('project', sql.ForeignKey('project.id', ondelete='CASCADE'), primary_key=True)
+    _person = sql.Column('person', sql.ForeignKey('person.username', ondelete='CASCADE'), primary_key=True)
 
     project = sql.orm.relationship('Project')
     member = sql.orm.relationship('Person')
 
     access_level = sql.Column(sql.Integer, nullable=False, default=0)
+

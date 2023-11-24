@@ -131,6 +131,13 @@ class Dataset(Base):
     _source = sql.Column("source", sql.Integer, sql.ForeignKey(
         'datasource.id'), nullable=True)
     source = orm.relationship("Datasource", backref="datasets")
+    access = sql.Column(sql.Integer, default=1, nullable=False)
+    timezone = sql.Column(sql.String,
+                          default=conf.datetime_default_timezone)
+    _project = sql.Column('project', sql.Integer, sql.ForeignKey('project.id'),
+                         nullable=True)
+    project = sql.orm.relationship('Project', back_populates='datasets')
+
     calibration_offset = sql.Column(sql.Float, nullable=False, default=0.0)
     calibration_slope = sql.Column(sql.Float, nullable=False, default=1.0)
     comment = sql.Column(sql.String)
@@ -140,12 +147,8 @@ class Dataset(Base):
     uses_dst = sql.Column(sql.Boolean, default=False, nullable=False)
     __mapper_args__ = dict(polymorphic_identity=None,
                            polymorphic_on=type)
-    access = sql.Column(sql.Integer, default=1, nullable=False)
 
-    timezone = sql.Column(sql.String,
-                          default=conf.datetime_default_timezone)
-    project = sql.Column(sql.Integer, sql.ForeignKey('project.id'),
-                         nullable=True)
+
 
     def __str__(self):
         site = self.site.id if self.site else ''

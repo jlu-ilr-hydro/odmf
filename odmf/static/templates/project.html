@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 
-<py:extends href="bootstrap_navigation.html" xmlns:py="">
+<py:extends href="layout.html" xmlns:py="">
     <py:block name="scripts">
         <!-- insert additional scripts -->
         <script type="text/javascript">
             $(() =>{
-
+                $
             });
         </script>
     </py:block>
@@ -48,19 +48,17 @@
                                  class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4">
                                 <h2 class="display-4 mr-8" py:content="f'{actproject.name}'"/>
                                 <div class="display-4 col-sm my-auto text-right">
-                                    <i class="fas fa-umbrella mr-4"/>${actproject.id}
+                                    <i class="fas fa-user-friends mr-4"/>${actproject.id}
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-lg-10">
-                                    <div class="container border-bottom" py:if="actproject.sourcelink">
-                                        <a href="${f'{conf.root_url}/{actproject.sourcelink}'}">
+                                    <div class="container border-bottom" py:if="actproject.directory">
+                                        <a href="${f'{conf.root_url}/{actproject.directory}'}">
                                             <i class="fas fa-link mr-2"/>${actproject.name} homepage
                                         </a>
                                     </div>
-                                    <div class="container">
-                                       Spokes person: ${actproject.person_responsible}
-                                    </div>
+                                    <div class="container" py:with="p=actproject.person_responsible" py:content="markdown('Spokes person: user:' + p.username)"/>
                                     <div class="container" py:content="markdown(actproject.comment)"/>
                                 </div>
                                 <div class="col-lg-2">
@@ -91,7 +89,7 @@
                                 <input type="text" id="name" name="name" class="form-control" value="${actproject.name}"/>
                             </div>
                         </div>
-                        <div class="form-row">
+                        <!--<div class="form-row">
                             <div class="form-group">
                                 <label for="sourcelink">Link to project homepage</label>
                                 <input type="text" id="sourcelink" name="sourcelink" class="form-control"
@@ -102,7 +100,7 @@
                                 <input type="text" id="organization" name="organization" class="form-control"
                                        value="${actproject.organization}"/>
                             </div>
-                        </div>
+                        </div>-->
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="responsible">Spokes person</label>
@@ -126,32 +124,39 @@
                 </div>
                 <h2 class="border-bottom">Members</h2>
                 <div id="members" class="container">
-                    <h4>Add member</h4>
-                    <ul style="margin-top:0px;padding-top:0px;">
-                        <li py:for="member in actproject.members">
-                            <span py:content="member.person"/>
-                            (<span py:content="member.level"/>)
-                            <button data-member="${member.person}"
-                               py:if="is_member('admin')"
-                               class="btn btn-outline-primary btn-sm rounded-circle px-1 my-0 py-0"
-                               title="remove" data-toggle="tooltip"
-                            ><i class="fas fa-minus"/></button>
-                        </li>
-                        <li py:if="is_member('admin')" class="form-group">
-                            <button py:if="is_member('admin')" id="addmember"
-                                    class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-plus"/>
-                            </button>
-                            <select id="add_who" class="form-control">
-                                <option value="p.username" py:for="p in persons" py:content="p"/>
-                            </select>
-                            <input type="number" min="0" max="4" id="add_level"/>
+                    <ul>
+                        <li py:for="member, level in actproject.members()" class="form-row">
+                            <div class="col-sm">
+                                <span py:content="member" class="ml-2"/>(<span py:content="level"/>)
 
+                            </div>
+                            <button data-member="${member.username}"
+                               py:if="is_member('admin')"
+                               class="btn btn-outline-danger btn-sm px-1 my-0 py-0 col-sm-1 px-4 project-remove-member"
+                               title="remove" data-toggle="tooltip"
+                            ><i class="fas fa-times"/></button>
                         </li>
                     </ul>
+                    <a href="#add-member" class="btn-sm btn-primary dropdown-toggle" data-toggle="collapse" aria-controls="add-member" aria-role="button"><i class="fas fa-plus"/> add member...</a>
+                    <div py:if="is_member('admin')" class="form-row collapse" id="add-member">
+                        <form class="container border" method="post" action="${odmf_ref}/project/add_member">
+                            <input type="hidden" value="${actproject.id}"/>
+                            <select id="add_who" class="form-control col-sm" name="member_name">
+                                <option value="p.username" py:for="p in persons" py:content="p"/>
+                            </select>
+                            <select id="add_level" class="form-control col-sm-3" name="access_level">
+                                <option value="1">Logger</option>
+                                <option value="2">Editor</option>
+                                <option value="3">Supervisor</option>
+                                <option value="4">Admin</option>
+                            </select>
+                            <input type="submit" py:if="is_member('admin')" id="addmember"
+                                    class="btn btn-success btn-sm col-sm-1 project-add-member"/>
+                        </form>
+                    </div>
 
                 </div>
-                <!--h2 class="border-bottom">Datasets</h2>
+                <h2 class="border-bottom">Datasets</h2>
                 <div id="datasets" class="container">
                     <ul>
                         <li py:for="ds in actproject.datasets">
@@ -159,7 +164,7 @@
                                py:content="ds"/>
                         </li>
                     </ul>
-                </div-->
+                </div>
 
             </div>
 

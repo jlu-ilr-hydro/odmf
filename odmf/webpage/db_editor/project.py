@@ -6,7 +6,7 @@ from ..auth import group, expose_for
 from ... import db
 from ...config import conf
 
-@web.show_in_nav_for(1, 'umbrella')
+@web.show_in_nav_for(1, 'user-friends')
 class ProjectPage:
 
     @expose_for(group.logger)
@@ -32,90 +32,47 @@ class ProjectPage:
                               persons=persons, error=error) \
                 .render()
 
-    @expose_for(group.supervisor)
-    def add(self, error=''):
-
-        with db.session_scope() as session:
-            persons = session.query(db.Person)
-            persons = persons.filter(db.Person.access_level > 3)
-
-            res = web.render('project_new.html', persons=persons, error=error) \
-                .render()
-
-            return res
 
     @expose_for(group.supervisor)
+    @web.method.post
     def save(self, **kwargs):
 
         name = kwargs.get('name')
         person = kwargs.get('person')
         comment = kwargs.get('comment')
-
-        if not (name or person):
-            raise web.redirect(conf.root_url + '/project/add', error='Not all form fields were set')
+        project_id = int(kwargs.get('id', 0))
 
         with db.session_scope() as session:
+            if project_id:
+                project = db.Project.get(project_id)
+            else:
+                project = db.Project()
+                session.add(project)
 
             person = session.query(db.Person).get(person)
-
+            project.name = name
+            project.comment = comment
             if person is None:
-                raise RuntimeError(
-                    'Server Error. Please contact the Administrator')
+                raise RuntimeError('Spokesperson not found')
 
-            new_project = db.Project(
-                name=name, person_responsible=person, comment=comment)
-
-            session.add(new_project)
-            session.flush()
-
-            # For the user interface
-            persons = session.query(db.Person)
-            persons = persons.filter(db.Person.access_level > 3)
-
-            error = ''
-
-            res = web.render('project_from_id.html', project=new_project,
-                             persons=persons, error=error).render()
-
-        return res
 
     @expose_for(group.supervisor)
-    def change(self, name=None, person=None, comment=None, project_id=None):
-
-        if (project_id is None) or (name is None) or (person is None):
-            raise web.HTTPError(500)
-
+    @web.method.post
+    def add_member(self, project_id, member_name, access_level):
         with db.session_scope() as session:
+            project = db.Project.get(session, project_id)
+            project.add_member(member_name, access_level)
 
-            if str(project_id).isdigit():
+    @expose_for(group.supervisor)
+    @web.method.post
+    def remove_member(self, project_id, member_name):
+        with db.session_scope() as session:
+            project = db.Project.get(session, project_id)
+            project.remove_member(member_name)
 
-                project = session.query(db.Project).get(project_id)
-                person = session.query(db.Person).get(person)
 
-                # Update
-                project.name = name
-                project.person_responsible = person
 
-                if project.comment is not None:
-                    project.comment = comment
 
-                # Render Webpage
-                persons = session.query(db.Person)
-                persons = persons.filter(db.Person.access_level > 3)
-
-                error = ''
-
-                res = web.render('project_from_id.html', project=project,
-                                 persons=persons, error=error).render('html',
-                                                                      doctype='html')
-
-            else:
-
-                error = 'There was a problem with the server'
-
-                res = self.render_projects(session, error)
-
-            return res
 
     @expose_for(group.supervisor)
     def delete(self, project_id=None, force=None):
@@ -136,12 +93,3 @@ class ProjectPage:
                                  error=error).render()
 
 
-    def render_projects(self, session, error=''):
-
-        session.query(db.Project)
-
-        projects = session.query(db.Project)
-        projects = projects.order_by(db.sql.asc(db.Project.id))
-
-        return web.render('project.html', error=error, projects=projects
-                          ).render()
