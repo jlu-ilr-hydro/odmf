@@ -39,6 +39,7 @@ class Project(Base):
     def add_member(self, person: Person, access_level: int=0):
         pm = ProjectMember(member=person, project=self, access_level=access_level)
         self.session().add(pm)
+        return pm
 
 
     def __str__(self):

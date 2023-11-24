@@ -55,7 +55,7 @@ class Person(Base):
         pm: ProjectMember
         for pm in (
                 self.session().query(ProjectMember)
-                    .filter(ProjectMember._project==self.username)
+                    .filter(ProjectMember.member == self)
                     .order_by(ProjectMember.access_level.desc(), ProjectMember._person)
         ):
             yield pm.project, pm.access_level
@@ -64,3 +64,4 @@ class Person(Base):
         from .project import ProjectMember
         pm = ProjectMember(member=self, project=project, access_level=access_level)
         self.session().add(pm)
+        return pm

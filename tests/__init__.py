@@ -1,6 +1,6 @@
 import pytest
 
-@pytest.fixture(scope='class', autouse=True)
+@pytest.fixture(autouse=True)
 @pytest.mark.parametrize
 def conf(tmp_path_factory):
     """

@@ -4,7 +4,7 @@ import cherrypy
 from .. import conf
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture()
 def db(conf):
     """
     Creates a database in memory with the schema from the ORM classes,

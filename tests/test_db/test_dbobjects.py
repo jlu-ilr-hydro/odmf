@@ -1,14 +1,14 @@
 import datetime
 
 import pytest
-import sqlalchemy.orm
-from contextlib import contextmanager
 from PIL import Image
-import pathlib
-
+import random
+import string
 from . import temp_in_database, db, session, conf
 
 
+def randomstring(n):
+    return ''.join(random.sample(string.ascii_lowercase, n))
 
 @pytest.fixture()
 def site1_in_db(db, session):
@@ -143,7 +143,7 @@ class TestInstallation:
 def person(db, session):
     with temp_in_database(
         db.Person(
-            username='person_1', email='This is an email', firstname='first',
+            username=randomstring(10), email='This is an email', firstname='first',
             surname='last', telephone='this is a phone number', comment='this is a comment',
             can_supervise= False, mobile='this is a mobile number', car_available=0
         ),
@@ -153,7 +153,6 @@ def person(db, session):
 class TestPerson:
     def test_person(self, person):
         assert person
-        assert person.username == 'person_1'
         assert isinstance(person.firstname, str)
         assert isinstance(person.surname, str)
         d = person.__jdict__()
@@ -251,15 +250,14 @@ class TestProject:
 
         members2 = list(project.members(3)) # should be empty list
         print(members2)
-        assert len(members2) == 0 # , f'Added one member with al=2 to project, but project has {len(members2)} members above level 3'
+        assert len(members2) == 0 , f'Added one member with al=2 to project, but project has {len(members2)} members above level 3'
 
-    def test_person_add_project(self, db, session, project, person):
+    def test_person_add_project(self, project, person):
         person.add_project(project, 1)
-        session.flush()
         projects = list(person.projects())
         print(projects)
-        assert len(projects) >= 1 # , f'Added 1 one member to project, but project has {len(projects)} member'
-        assert projects[0][1] == 1 # , f'Project member has unexpected access level of {projects[0][1]}!=1'
+        assert len(projects) >= 1 , f'Added 1 one member to project, but project has {len(projects)} member'
+        assert projects[0][1] == 1 , f'Project member has unexpected access level of {projects[0][1]}!=1'
 
 
 
