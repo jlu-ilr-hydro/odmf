@@ -56,7 +56,7 @@ class Person(Base):
         for pm in (
                 self.session().query(ProjectMember)
                     .filter(ProjectMember.member == self)
-                    .order_by(ProjectMember.access_level.desc(), ProjectMember._person)
+                    .order_by(ProjectMember.access_level.desc(), ProjectMember._member)
         ):
             yield pm.project, pm.access_level
 

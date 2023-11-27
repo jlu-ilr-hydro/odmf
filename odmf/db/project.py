@@ -25,7 +25,8 @@ class Project(Base):
     )
     name = sql.Column(sql.String)
     comment = sql.Column(sql.String)
-    directory = sql.Column(sql.String)
+    sourcelink = sql.Column(sql.String)
+    organization = sql.Column(sql.String, default='uni-giessen.de')
     datasets = sql.orm.relationship('Dataset')
 
     @property
@@ -35,7 +36,7 @@ class Project(Base):
     def members(self, access_level=0):
          for pm in (
                  self.members_query.filter(ProjectMember.access_level>=access_level)
-                     .order_by(ProjectMember.access_level.desc(), ProjectMember._person)
+                     .order_by(ProjectMember.access_level.desc(), ProjectMember._member)
          ):
              yield pm.member, pm.access_level
 
@@ -43,6 +44,8 @@ class Project(Base):
         if pm:=self[person]:
             pm.access_level = access_level
         else:
+            if not type(person) is Person:
+                person = Person.get(self.session(), person)
             pm = ProjectMember(member=person, project=self, access_level=access_level)
             self.session().add(pm)
         return pm
@@ -108,7 +111,7 @@ class ProjectMember(Base):
     __tablename__ = 'project_member'
 
     _project = sql.Column('project', sql.ForeignKey('project.id', ondelete='CASCADE'), primary_key=True)
-    _person = sql.Column('person', sql.ForeignKey('person.username', ondelete='CASCADE'), primary_key=True)
+    _member = sql.Column('member', sql.ForeignKey('person.username', ondelete='CASCADE'), primary_key=True)
 
     project = sql.orm.relationship('Project')
     member = sql.orm.relationship('Person')

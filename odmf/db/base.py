@@ -137,16 +137,17 @@ class ObjectGetter:
     >>> print(ds[10])
     >>> ds.q.filter_by(measured_by='philipp')
     """
-    def __init__(self, cls: type, session: orm.Session):
+    def __init__(self, cls: type, session: orm.Session, **filter):
         self.cls = cls
         self.session = session
+        self.filter = filter
 
     def __repr__(self):
         return f'db.{self.cls.__name__}[...]'
 
     @property
     def q(self) -> orm.Query:
-        return self.session.query(self.cls)
+        return self.session.query(self.cls).filter_by(**self.filter)
 
     def __getitem__(self, item):
         return self.q.get(item)
