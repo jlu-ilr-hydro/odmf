@@ -16,7 +16,7 @@ def markdown(s):
     return literal(__md(s))
 
 # The imports are needed implicitly during rendering
-from ..auth import users, is_member, has_level
+from ..auth import users, is_member, has_level, Level
 from datetime import datetime, timedelta
 
 

@@ -14,7 +14,7 @@
     <py:block name="sidebar">
         <!-- insert sidebar content -->
         <div class="container-fluid">
-            <a class="btn btn-secondary w-100 mb-4" href="${conf.root_url}/project/new" py:if="is_member('supervisor')">
+            <a class="btn btn-secondary w-100 mb-4" href="${conf.root_url}/project/new" py:if="is_member(Level.admin)">
                 <i class="fas fa-plus mr-2"/>
                 new project
             </a>
@@ -85,7 +85,7 @@
                 </div>
                 <div id="edit" class="container collapse border rounded px-4">
                     <form action="save"
-                          method="post" py:if="is_member('supervisor')"
+                          method="post" py:if="is_member(Level.admin, actproject.id)"
                     >
                         <div class="form-row mt-2">
                             <div class="form-group">
@@ -136,33 +136,34 @@
                     <ul>
                         <li py:for="member, level in actproject.members()" class="form-row">
                             <div class="col-sm">
-                                <span py:content="member" class="ml-2"/>(<span py:content="level"/>)
+                                <span class="badge rounded-pill bg-warning" py:content="Level(level).name" />
+                                <span py:content="member" class="ml-2 mr-4"/>
 
                             </div>
-                            <form method="post" action="remove_member">
+
+                            <form class="col-sm" method="post" action="remove_member">
                                 <button data-member="${member.username}"
-                                        py:if="is_member('admin')"
+                                        py:if="is_member(Level.admin, actproject.id)"
                                         type="submit"
                                         class="btn btn-danger btn-sm col-sm-1 pr-3 project-remove-member"
                                         name="member_name" value="${member.username}"
                                         title="remove" data-toggle="tooltip"
-                                ><i class="fas fa-times"/></button>
+                                >
+                                    <i class="fas fa-times"/>
+                                </button>
 
                             </form>
                         </li>
                     </ul>
-                    <a href="#add-member" py:if="is_member('admin')" class="btn-sm btn-primary dropdown-toggle" data-toggle="collapse" aria-controls="add-member" aria-role="button"><i class="fas fa-plus"/> add member...</a>
-                    <div py:if="is_member('admin')" class="collapse" id="add-member">
+                    <a href="#add-member" py:if="is_member(Level.admin, actproject.id)" class="btn-sm btn-primary dropdown-toggle" data-toggle="collapse" aria-controls="add-member" aria-role="button"><i class="fas fa-plus"/> add member...</a>
+                    <div py:if="is_member(Level.admin, actproject.id)" class="collapse" id="add-member">
                         <form class="form-row border" method="post" action="add_member">
                             <input type="hidden" value="${actproject.id}" xname="project_id"/>
                             <select id="add_who" class="form-control col-sm" name="member_name">
                                 <option value="${p.username}" py:for="p in persons" py:content="p"/>
                             </select>
                             <select id="add_level" class="form-control col-sm-3" name="access_level">
-                                <option value="1">Logger</option>
-                                <option value="2">Editor</option>
-                                <option value="3">Supervisor</option>
-                                <option value="4">Admin</option>
+                                <option py:for="l in Level" value="${l.value}" py:content="l.name"/>
                             </select>
                             <button type="submit" id="addmember"
                                     class="btn btn-success btn-sm col-sm-1 project-add-member"><i class="fas fa-check"/></button>

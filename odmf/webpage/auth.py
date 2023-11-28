@@ -12,6 +12,7 @@ import collections
 import cherrypy
 
 from ..tools import hashpw, get_bcrypt_salt
+from enum import IntEnum
 
 ACCESS_LEVELS = [["Guest", "0"],
                  ["Logger", "1"],
@@ -94,31 +95,35 @@ class group:
     supervisor = 'supervisor'
     admin = 'admin'
 
+class Level(IntEnum):
+    guest = 0
+    logger = 1
+    editor = 2
+    supervisor = 3
+    admin = 4
 
 class User(object):
-    groups = ('guest', 'logger', 'editor', 'supervisor', 'admin')
-
-    @classmethod
-    def __level_to_group(cls, level):
-        if level >= 0 and level < len(User.groups):
-            return User.groups[level]
-        else:
-            return "Unknown level %i" % level
 
     def __init__(self, name, level, password, projects=None):
         self.name = name
-        self.level = int(level)
+        self.level = Level(level)
         self.password = password
         self.person = None
         self.projects = projects or []
 
     @property
-    def group(self):
-        return User.__level_to_group(self.level)
+    def group(self) -> str:
+        return self.level.name
 
-    def is_member(self, group):
-        grouplevel = User.groups.index(group)
-        return self.level >= grouplevel
+    def is_member(self, level: Level|str|int, project:int=None):
+        if type(level) is str:
+            level=Level[level]
+        else:
+            level = Level(level or 0)
+        if project is None:
+            return self.level >= level
+        else:
+            return project in self.projects and self.projects[project] >= level or self.level>=Level.admin
 
     def check(self, password):
 
@@ -154,7 +159,10 @@ class Users(collections.UserDict):
             q = session.query(db.Person).filter(db.Person.active == True)
 
             self.data = {
-                person.username: User(person.username, person.access_level, person.password)
+                person.username: User(
+                    person.username, person.access_level, person.password,
+                    projects = {project.id: Level(l) for project, l in person.projects()}
+                )
                 for person in q
             }
 
@@ -208,9 +216,12 @@ users = Users()
 
 
 
-def is_member(group):
-    return bool(users.current) and users.current.is_member(group)
+def is_member(level: Level|str, project=None):
+    return bool(users.current) and users.current.is_member(level, project)
 
+
+def is_project_member(project: int, min_level:Level=Level.guest):
+    return bool(users.current) and users.current.projects.get(project, -1) >= min_level
 
 def require(*conditions):
     """A decorator that appends conditions to the auth.require config
@@ -226,17 +237,17 @@ def require(*conditions):
     return decorate
 
 
-def member_of(groupname):
+def member_of(level: Level|str|int, project: int = None):
     def check():
         user = users.current
-        return user and user.is_member(groupname)
+        return user and user.is_member(level, project)
     return check
 
 
 def has_level(level):
     def check():
         user = users.current
-        return user and user.level >= int(level)
+        return user and user.level >= Level(level)
     return check
 
 
@@ -244,7 +255,10 @@ def expose_for(groupname=None):
     def decorate(f):
         if not hasattr(f, '_cp_config'):
             f._cp_config = {}
-        if groupname:
+        if type(groupname) is Level:
+            f._cp_config.setdefault('auth.require', []).append(
+                has_level(groupname))
+        else:
             f._cp_config.setdefault('auth.require', []).append(
                 member_of(groupname))
         f.exposed = True

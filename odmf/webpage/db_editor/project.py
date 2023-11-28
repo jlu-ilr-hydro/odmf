@@ -1,7 +1,7 @@
 import cherrypy
 
 from .. import lib as web
-from ..auth import group, expose_for
+from ..auth import group, expose_for, users, Level
 
 from ... import db
 from ...config import conf
@@ -10,7 +10,7 @@ from ...config import conf
 @web.show_in_nav_for(1, 'user-friends')
 class ProjectPage:
 
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     def index(self, project_id=None, error=None, msg=None):
 
         with db.session_scope() as session:
@@ -57,6 +57,7 @@ class ProjectPage:
                     raise RuntimeError('Spokesperson not found')
         except RuntimeError as e:
             error = f'Save failed: {e}'
+        users.load()
         raise web.redirect(f'/{conf.root_url}project/{project_id}', error=error, msg=f'{name} updated' if not error else None)
 
 
@@ -70,6 +71,7 @@ class ProjectPage:
                 project.add_member(member_name, int(access_level))
         except RuntimeError as e:
             error = f'Save failed: {e}'
+        users.load()
         raise web.redirect(f'/{conf.root_url}project/{project_id}', error=error, msg=f'{member_name} added' if not error else None)
 
     @expose_for(group.supervisor)
@@ -82,6 +84,7 @@ class ProjectPage:
                 project.remove_member(member_name)
         except RuntimeError as e:
             error = f'Save failed: {e}'
+        users.load()
         raise web.redirect(f'/{conf.root_url}project/{project_id}', error=error, msg=f'{member_name} removed' if not error else None)
 
 

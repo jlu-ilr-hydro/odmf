@@ -15,13 +15,14 @@ from io import StringIO, BytesIO
 import cherrypy
 from cherrypy.lib.static import serve_file
 from urllib.parse import urlencode
-from ..auth import group, expose_for, is_member
+from ..auth import Level, expose_for, is_member, users
 from ...tools import Path
 
 from ...config import conf
 
 from .dbimport import DbImportPage
 from . import filehandlers as fh
+from . import file_auth as fa
 
 
 def write_to_file(dest, src):
@@ -49,13 +50,15 @@ class DownloadPageError(cherrypy.HTTPError):
     def get_error_page(self, *args, **kwargs):
 
         error = f'Problem with {self.path}: {self.message}'
+        modes = fa.check_children(self.path, users.current)
 
         text = web.render(
             'download.html',
-            error=error, message='',
+            error=error, message='', modes=modes, Mode=fa.Mode,
             files=[],
             directories=[],
             curdir=self.path,
+            content='',
             max_size=conf.upload_max_size
         ).render()
 
@@ -72,7 +75,6 @@ def goto(dir, error=None, msg=None):
 
 
 
-
 @web.show_in_nav_for(0, 'file')
 class DownloadPage(object):
     """The file management system. Used to upload, import and find files"""
@@ -85,55 +87,66 @@ class DownloadPage(object):
     to_db = DbImportPage()
     filehandler = fh.MultiHandler()
 
-    @expose_for(group.logger)
+
+    def render_file(self, path, error=None):
+        content = ''
+        try:
+            content = self.filehandler(path)
+        except ValueError as e:
+            content = f'<div class="alert bg-warning"><h3>{e}</h3></div>'
+
+        except cherrypy.CherryPyException:
+            raise
+
+        except Exception as e:
+            if error: error += '\n\n'
+            error += str(e)
+            if is_member(Level.admin):
+                error += '\n```\n' + traceback() + '\n```\n'
+        return content, error
+
+
+    @expose_for(Level.logger)
     @web.method.get
     def index(self, uri='.', error='', msg='', serve=False, _=None):
         path = Path(uri)
-        f_acc = AccessFile(path.to_pythonpath())
-        if not f_acc.check(users.current):
-            raise web.HTTPError(403, f'Forbidden access to resource {path} for {users.current.name}')
-        directories, files = path.listdir()
-        content = ''
-        if path.isfile():
-            if (not serve):
-                try:
-                    content = self.filehandler(path)
-                except ValueError as e:
-                    content = f'<div class="alert bg-warning"><h3>{e}</h3></div>'
+        modes = fa.check_children(path, users.current)
 
-                except cherrypy.CherryPyException:
-                    raise
-
-                except Exception as e:
-                    if error : error += '\n\n'
-                    error += str(e)
-                    if is_member(group.admin):
-                        error += '\n```\n' + traceback() + '\n```\n'
-
-                return web.render(
-                    'download.html', error=error, message=msg,
-                    content=content, handler=self.filehandler,
-                    files=sorted(files),
-                    directories=sorted(directories),
-                    curdir=path,
-                    max_size=conf.upload_max_size
-                ).render()
-            else:
-                return serve_file(path.absolute, disposition='attachment', name=path.basename)
-
-        elif not (path.islegal() and path.exists()):
+        if not all((
+                path.islegal(),
+                path.exists(),
+        )):
             raise HTTPFileNotFoundError(path)
+        hidden = (path.ishidden() and modes[path]<fa.Mode.admin) or modes[path]==fa.Mode.none
+        if hidden:
+            content = f'Forbidden access to resource {path} for {users.current.name}'
+            error = 'No access'
+            files = []
+            directories = []
         else:
-            return web.render(
-                'download.html', error=error, message=msg,
-                files=sorted(files),
-                directories=sorted(directories),
-                handler = self.filehandler,
-                curdir=path,
-                max_size=conf.upload_max_size
-            ).render()
+            content = ''
+            directories, files = path.listdir(hidden=modes[path]>=fa.Mode.admin)
 
-    @expose_for(group.editor)
+        if path.isfile():
+            if serve:
+                return serve_file(path.absolute, disposition='attachment', name=path.basename)
+            else:
+                content, error = self.render_file(path, error)
+
+        return web.render(
+            'download.html',
+            error=error, message=msg,
+            modes=modes, Mode=fa.Mode, owner=fa.get_owner(path),
+            content = content,
+            files=sorted(files),
+            directories=sorted(directories),
+            handler=self.filehandler,
+            curdir=path,
+            max_size=conf.upload_max_size
+        ).render()
+
+
+    @expose_for(Level.editor)
     @web.method.post_or_put
     def upload(self, dir, datafiles, **kwargs):
         """
@@ -174,7 +187,7 @@ class DownloadPage(object):
 
         raise goto(dir, '\n'.join(error), '\n'.join(msg))
 
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     @web.method.post
     def saveindex(self, dir, s):
         """Saves the string s to index.html
@@ -184,14 +197,14 @@ class DownloadPage(object):
         open(path.absolute, 'w').write(s)
         return web.markdown(s)
 
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     @web.method.get
     def getindex(self, dir):
-        index = Path(dir, 'index.html')
         io = StringIO()
-        if index.exists():
-            text = open(index.absolute).read()
-            io.write(text)
+        for indexfile in ['README.md', 'index.html']:
+            if (index:=Path(dir, indexfile)).exists():
+                text = open(index.absolute).read()
+                io.write(text)
 
         imphist = Path(dir, '.import.hist')
 
@@ -202,7 +215,7 @@ class DownloadPage(object):
                 io.write(f' * file:{dir}/{fn} imported by user:{user} at {date} into {ds}\n')
         return web.markdown(io.getvalue())
 
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     @web.method.get
     @web.mime.json
     def listdir(self, dir, pattern=None):
@@ -219,7 +232,7 @@ class DownloadPage(object):
             }
         ).encode('utf-8')
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post_or_put
     def newfolder(self, dir, newfolder):
         error = ''
@@ -232,6 +245,7 @@ class DownloadPage(object):
                     path = Path(dir, newfolder)
                     if not path.exists() and path.islegal():
                         path.make()
+                        fa.set_owner(path, users.current.name)
                         msg = f"{path.href} created"
                     else:
                         error = f"Folder {newfolder} exists already"
@@ -245,12 +259,13 @@ class DownloadPage(object):
         else:
             raise goto(dir, error, msg)
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post_or_put
     def newtextfile(self, dir, newfilename):
         if newfilename:
             try:
                 path = Path(dir, newfilename)
+
                 if not path.basename.endswith('.wiki') or path.basename.endswith('.md'):
                     path = Path(str(path) + '.wiki')
                 if not path.exists() and path.islegal():
@@ -267,7 +282,7 @@ class DownloadPage(object):
         else:
             raise goto(dir, error='Forgotten to give your new file a name?')
 
-    @expose_for(group.admin)
+    @expose_for(Level.editor)
     @web.method.post_or_delete
     def removefile(self, dir, filename):
         """
@@ -275,7 +290,9 @@ class DownloadPage(object):
         """
         path = Path(dir, filename)
         error = msg = ''
-
+        mode = fa.check_directory(path, users.current)
+        if mode < fa.Mode.admin:
+            raise DownloadPageError(path, 403, 'You need to have admin rights on this directory')
         if path.isfile():
             try:
                 os.remove(path.absolute)
@@ -286,7 +303,7 @@ class DownloadPage(object):
         elif path.isdir():
             if path.isempty():
                 try:
-                    dirs, files = path.listdir()
+                    dirs, files = path.listdir(hidden=True)
                     for f in files:
                         if f.ishidden():
                             os.remove(f.absolute)
@@ -303,7 +320,7 @@ class DownloadPage(object):
         url = f'{conf.root_url}/download/{dir}'.strip('.')
         return url + '?' + qs
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post
     def copyfile(self, dir, filename, newfilename):
         """
@@ -331,9 +348,21 @@ class DownloadPage(object):
         url = f'{conf.root_url}/download/{dir}'.strip('.')
         return url + '?' + qs
 
+    @expose_for(Level.editor)
+    @web.method.post
+    def create_access_file(self, uri):
+        path = Path(uri)
+        rule = fa.AccessRule.find_rule(path)
+        owner = fa.get_owner(path)
+        if rule(users.current, owner)>=fa.Mode.admin:
+            rule.save(path)
+            raise goto((path / fa.filename))
+        else:
+            raise DownloadPageError(path, status=403, message='Only admins can create access files')
 
 
-    @expose_for(group.editor)
+
+    @expose_for(Level.editor)
     @web.method.post
     def write_to_file(self, path, text):
         path = Path(path)
@@ -354,7 +383,7 @@ class DownloadPage(object):
     @expose_for()
     @web.method.post
     def action(self, path, actionid: int):
-        from ..auth import users, User
+        from ..auth import users, User, Level
         path = Path(path)
         action_id = web.conv(int, actionid)
         handler = self.filehandler[path]
@@ -363,8 +392,8 @@ class DownloadPage(object):
         except IndexError:
             raise DownloadPageError('not enough actions available')
         if users.current.level < action.access_level:
-            required_group = User.groups[action.access_level]
-            raise DownloadPageError(path, 403,f'you need to be {required_group} for {action}')
+            required_group = Level(action.access_level)
+            raise DownloadPageError(path, 403,f'you need to be {required_group.name} for {action}')
         newpath = action(path)
         msg = {'msg': f'{action} on {path} successful'}
         return f'{newpath.href}?{urlencode(msg)}'

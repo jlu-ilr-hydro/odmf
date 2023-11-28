@@ -34,11 +34,11 @@ class Project(Base):
         """Returns a query object with all ProjectMember object related to this project"""
         return self.session().query(ProjectMember).filter(ProjectMember._project==self.id)
     def members(self, access_level=0):
-         for pm in (
-                 self.members_query.filter(ProjectMember.access_level>=access_level)
-                     .order_by(ProjectMember.access_level.desc(), ProjectMember._member)
-         ):
-             yield pm.member, pm.access_level
+        for pm in (
+                self.members_query.filter(ProjectMember.access_level>=access_level)
+                        .order_by(ProjectMember.access_level.desc(), ProjectMember._member)
+        ):
+            yield pm.member, pm.access_level
 
     def add_member(self, person: Person|str, access_level: int=0):
         if pm:=self[person]:

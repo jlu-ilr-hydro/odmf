@@ -11,10 +11,14 @@ __all__ = ['mail', 'Path']
 
 
 class Path(object):
-    def __init__(self, *path: str, absolute=False):
+    def __init__(self, *path: str|Path|pathlib.Path, absolute=False):
         self.datapath = op.realpath(conf.datafiles)
         if path:
-            if str(path[0]).startswith('/') or absolute:
+            if type(path[0]) is pathlib.Path:
+                self.absolute = str(path[0].absolute())
+            elif type(path[0]) is Path:
+                self.absolute = path[0].absolute
+            elif str(path[0]).startswith('/') or absolute:
                 self.absolute = op.realpath(op.join(*path))
             else:
                 self.absolute = op.realpath(op.join(self.datapath, *path))
@@ -22,6 +26,9 @@ class Path(object):
         else:
             self.absolute = self.datapath
             self.name = '/'
+
+    def __hash__(self):
+        return hash(self.datapath)
 
     @property
     def basename(self)->str:
@@ -47,6 +54,9 @@ class Path(object):
 
     def __str__(self):
         return self.name
+
+    def __repr__(self):
+        return f"odmf.tools.Path('{self.name}')"
 
     def formatsize(self)->str:
         size = op.getsize(self.absolute)
@@ -76,10 +86,13 @@ class Path(object):
     def __add__(self, fn):
         return Path(op.join(self.absolute, fn))
 
+    def __truediv__(self, fn):
+        return Path(op.join(self.absolute, fn))
+
     def make(self):
         os.makedirs(self.absolute, mode=0o770)
 
-    def breadcrumbs(self) -> list[str]:
+    def breadcrumbs(self) -> list[Path]:
         res = [self]
         p = op.dirname(self.absolute)
         while self.datapath in p:
@@ -108,7 +121,7 @@ class Path(object):
     def ishidden(self):
         return self.basename.startswith('.') or self.basename == 'index.html'
 
-    def listdir(self) -> (typing.List[Path], typing.List[Path]):
+    def listdir(self, hidden=False) -> (typing.List[Path], typing.List[Path]):
         """
         Lists all members of the path in
         2 lists:
@@ -120,16 +133,21 @@ class Path(object):
         files = []
         directories = []
         if self.isdir() and self.islegal():
-            for fn in os.listdir(self.absolute):
-                if not fn.startswith('.'):
-                    child = self.child(fn)
-                    if child.isdir():
-                        directories.append(child)
-                    elif child.isfile():
-                        files.append(child)
+            for child in self.iterdir(hidden):
+                if child.isdir():
+                    directories.append(child)
+                elif child.isfile():
+                    files.append(child)
             return directories, files
         else:
             return [], []
+
+    def iterdir(self, hidden=False) -> typing.Generator[Path]:
+        if self.isdir() and self.islegal():
+            for fn in os.listdir(self.absolute):
+                if hidden or not fn.startswith('.'):
+                    yield self.child(fn)
+
 
     def isempty(self) -> bool:
         """

@@ -1,3 +1,5 @@
+import typing
+
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from functools import total_ordering
@@ -51,6 +53,10 @@ class Person(Base):
         return self.surname < other.surname
 
     def projects(self):
+        """
+        Yields Project, access_level tuples
+        :return:
+        """
         from .project import ProjectMember
         pm: ProjectMember
         for pm in (

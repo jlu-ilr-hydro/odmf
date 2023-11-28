@@ -10,8 +10,7 @@ from .auth import users
 from ..config import conf
 from pathlib import Path
 from markdown import markdown
-from .filemanager.file_auth import AccessFile
-
+from .filemanager.file_auth import check_directory
 
 def filelist2html(files):
     text = '\n'.join(f'- [{f.name}]({f.name})' for f in files)
@@ -82,8 +81,7 @@ class StaticServer:
         Serves the static content from the relative path
         """
         p = self.get_path(path)
-        f_acc = AccessFile(p)
-        if not f_acc.check(users.current):
+        if not check_directory(p, users.current):
             raise web.HTTPError(403, f'Forbidden access to resource {p} for {users.current.name}')
 
         if p.is_file():

@@ -126,10 +126,11 @@
                     <a class="nav-link" href="${curdir.parent().href}" ><i class="fas fa-folder-open mr-2" />..</a>
 
                 </li>
-                <li py:for="d in sorted(directories)" class="nav-item border-top" >
-                    <a class="nav-link" href="${d.href}">
+                <li py:for="d in sorted(directories)" class="nav-item border-top " >
+                    <a class="nav-link ${'' if modes[d] else 'disabled'}" href="${d.href}">
                         <i class="fas fa-folder mr-2" /> ${d.basename}
                     </a>
+
                 </li>
             </ul>
             <div class="container m-1 p-1">
@@ -149,7 +150,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="alert alert-success" role="alert" py:if="message" >
                 <div class="row">
                     <div class="col-lg-1">
@@ -160,14 +160,14 @@
                     </div>
                 </div>
             </div>
-            <div class="row" py:if="curdir.isdir()">
+            <div class="row" py:if="curdir.isdir() and modes[curdir]">
 
                 <div class="col-xl">
-                    <div class="row" py:if="is_member('logger')">
-                    </div>
                     <div class="card p-3" >
                         <h5 class="card-title">
-                            <i class="fas fa-folder-open mr-2"/><span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
+                            <i class="fas fa-folder-open mr-2"/>
+                            <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
+                            <span class="badge bg-warning ml-8" py:content="modes[curdir].name"/>
                         </h5>
                         <ul class="nav flex-column card-text mb-3" id="files">
                             <li class="nav-item flexbox mt-1 pt-1 border-top" py:if="not curdir.isroot()" >
@@ -179,21 +179,23 @@
                                 </span>
                             </li>
                             <li py:for="d in directories" class="nav-item flexbox mt-1 pt-1 border-top">
-                                <span >
-                                    <a href="${d.href}" class="nav-link">
+                                <span class="nav-link">
+                                    <a href="${d.href}" class="${'' if modes[d] else 'disabled'}">
                                         <i class="fas fa-folder fa-lg" />
                                         <span py:content="d.basename" />
-                                        </a>
+                                    </a>
+                                        <span class="badge bg-warning text-bg-warning" py:content="modes[d].name"/>
+
                                 </span>
                                 <span>
                                     <button class="btn btn-danger remove-button" data-name="${d.basename}"
-                                            py:if="is_member('admin') and d.isempty()"
-                                            title="remove file" data-toggle="tooltip">
+                                            py:if="modes[d]>=Mode.admin and d.isempty()"
+                                            title="remove directory" data-toggle="tooltip">
                                         <i class="fas fa-times-circle" />
                                     </button>
                                 </span>
                             </li>
-                            <li py:for="f in files" class="nav-item flexbox mt-1 pt-1 border-top" py:if="not f.ishidden()">
+                            <li py:for="f in files" class="nav-item flexbox mt-1 pt-1 border-top" >
                                 <span >
                                     <a href="${f.href}" class="nav-link">
                                         <i class="fas fa-${handler[f].icon} fa-lg" />
@@ -204,32 +206,38 @@
                                 <span>
                                     <a class="btn btn-success" href="${conf.root_url}/download/to_db?filename=${f.name}"
                                        title="import in data base" data-toggle="tooltip"
-                                       py:if="is_member('editor')"
+                                       py:if="modes[curdir]>=Mode.write"
                                     >
                                         <i class="fas fa-file-import" />
                                     </a>
-                                    <button class="btn btn-danger remove-button" data-name="${f.basename}" py:if="is_member('admin')"
+                                    <button class="btn btn-danger remove-button" data-name="${f.basename}" py:if="modes[curdir]>=Mode.admin"
                                             title="remove file" data-toggle="tooltip">
                                         <i class="fas fa-times-circle" />
                                     </button>
-                                    <button class="btn btn-secondary copy-button" data-name="${f.basename}" py:if="is_member('editor')"
+                                    <button class="btn btn-secondary copy-button" data-name="${f.basename}" py:if="modes[curdir]>=Mode.write"
                                             title="copy file" data-toggle="tooltip">
                                         <i class="fas fa-copy" />
                                     </button>
                                 </span>
 
                             </li>
-                            <li py:if="is_member('logger')" class="nav-item mt-4">
-
-                            </li>
                         </ul>
-                        <div class="container">
-                            <button class="btn btn-secondary dropdown-toggle mr-3" type="button"
-                                    id="addFileDropdownButton" data-toggle="dropdown"
+                        <div class="row">
+                            <button class="btn btn-primary dropdown-toggle mr-3 col-sm" type="button"
+                                    id="addFileDropdownButton" data-toggle="dropdown" py:attrs="prop(disabled=modes[curdir]==Mode.read)"
                                     aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-plus-circle" />
                                 Add files and folders
                             </button>
+                            <form method="post" action="${conf.root_url}/download/create_access_file" class="col-sm">
+                                <button class="btn btn-warning mr-3" type="submit" name="uri" value="${curdir}"
+                                   py:if="modes[curdir]==Mode.admin"
+                                >
+                                    <i class="fas fa-cog" /> manage access
+                                </button>
+
+                            </form>
+
                             <div class="dropdown-menu" aria-labelledby="addFileDropdownButton">
                                 <div class="dropdown-item" >
 
@@ -237,12 +245,12 @@
                                         <div class="input-group">
                                             <input type="text" name="newfolder" class="form-control" placeholder="new folder name"/>
                                             <span class="input-group-append">
-                                        <button class="btn btn-secondary" type="submit"
-                                                title="Add new folder" data-toggle="tooltip" data-placement="right"
-                                        >
-                                            <i class="fa fa-folder-plus"></i>
-                                        </button>
-                                    </span>
+                                                    <button class="btn btn-secondary" type="submit"
+                                                            title="Add new folder" data-toggle="tooltip" data-placement="right"
+                                                    >
+                                                        <i class="fa fa-folder-plus"></i>
+                                                    </button>
+                                                </span>
                                         </div>
                                         <input name="dir" type="hidden" value="${curdir}" />
                                     </form>
@@ -287,12 +295,12 @@
                                         </div>
                                     </form>
                                 </div>
+
                             </div>
                         </div>
-
                     </div>
                 </div>
-                <div class="col-lg">
+                <div id="info-box-right-side" class="col-lg">
                     <div class="card help">
                         <div class="card-header">
                             <h3 class="card-title flexbox" >
@@ -304,6 +312,8 @@
                                     <i class="fas fa-edit" title="Click to edit..." data-toggle="tooltip"/>
                                 </a>
                             </h3>
+                            <div py:content="markdown('folder created by user:' + str(owner))"/>
+
                         </div>
                         <div id="help" class="card-body  card-text" />
                         <div id="help-edit" class="card-footer collapse">
@@ -325,13 +335,13 @@
                     </div>
                 </div>
             </div>
-            <div class="row" py:if="defined('content')">
+            <div class="row" py:if="content and modes[curdir]">
                 <h5 class="col-lg-9">
                     <i class="fas fa-${handler[curdir].icon} fa-lg mr-2"/><span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
                 </h5>
                 <div class="col-lg-3">
                     <a py:for="action_id, action in enumerate(handler[curdir].actions)"
-                       py:if="has_level(action.access_level)"
+                       py:if="modes[curdir]==Mode.admin"
                        class="btn btn-secondary action-button"
                        data-toggle="tooltip" title="${action.tooltip}"
                        data-actionid="${action_id}" data-path="${curdir}">
@@ -341,7 +351,7 @@
                     <a class="btn btn-outline-primary" href="${curdir.parent().href}"><i class="fas fa-folder-open mr-4"/>..</a>
                 </div>
             </div>
-            <div class="row" py:if="defined('content')">
+            <div class="row" py:if="content and modes[curdir]">
                 <div class="container mt-4 h100" py:content="literal(content)"/>
             </div>
         </div>
