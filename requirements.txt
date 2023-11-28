@@ -10,8 +10,8 @@ markdown
 matplotlib>=3.5.0,<3.6.0
 
 # scientific python
-pandas~=1.4.0  # Version 1.4 requires sqlalchemy 1.4
-scipy~=1.8.0
+pandas>=1.4.0  # Version 1.4 requires sqlalchemy 1.4
+scipy>=1.8.0
 xlrd==2.0.1
 numba>=0.50.0
 openpyxl>=3.0.7
