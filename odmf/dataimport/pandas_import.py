@@ -158,7 +158,7 @@ def _make_time_column_as_datetime(df: pd.DataFrame, fmt=None):
         # First try the given format, second try with a "free" format. Needed eg. for a two column format
         for timeformat in [fmt, None]:
             try:
-                return pd.to_datetime(c, dayfirst=True, infer_datetime_format=True, format=timeformat)
+                return pd.to_datetime(c, dayfirst=True, format=timeformat)
             except Exception as e:  # difficult to get more specific, as Pandas Exception model is a bit strange
                 # Some sensors believe 24:00 is a valid time, pandas not
                 if any('24:' in a for a in e.args):  # Checks if the error message contains 24

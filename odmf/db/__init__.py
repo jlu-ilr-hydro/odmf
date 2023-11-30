@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-
 from .base import Base, Session, engine, session_scope, orm, conf, sql, newid, ObjectGetter
 from .person import Person
 from .image import Image
