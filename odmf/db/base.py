@@ -146,7 +146,11 @@ class ObjectGetter:
         return self.session.query(self.cls)
 
     def __getitem__(self, item):
-        return self.q.get(item)
+        if (res:=self.q.get(item)) is not None:
+            return res
+        else:
+            raise KeyError(f'{item} not found in {self.cls}')
+
 
     def __repr__(self):
         return 'ObjectGetter(' + self.cls.__name__ + ')'
