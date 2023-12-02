@@ -203,7 +203,7 @@ class Timeseries(Dataset):
         else:
             return 0
 
-    def addrecord(self, Id=None, value=None, time=None, comment=None, sample=None):
+    def addrecord(self, Id=None, value=None, time=None, comment=None, sample=None, out_of_timescope_ok=False):
         """Adds a record to the dataset
         Id: id for the recordset, if None, a new id will be created
         value: value of the record
@@ -220,7 +220,7 @@ class Timeseries(Dataset):
         if (not self.valuetype.inrange(value)):
             raise ValueError(f'RECORD does not fit VALUETYPE: {value:g} {self.valuetype.unit} is out of '
                              f'range for {self.valuetype.name}')
-        if not (self.start <= time <= self.end):
+        if not (self.start <= time <= self.end or out_of_timescope_ok):
             raise ValueError(
                 f'RECORD does not fit DATASET: You tried to insert a record for date {time} '
                 f'to dataset {self}, which allows only records between {self.start} and {self.end}'
@@ -229,6 +229,8 @@ class Timeseries(Dataset):
         result = Record(id=Id, time=time, value=value, dataset=self,
                         comment=comment, sample=sample)
         session.add(result)
+        self.start = min(self.start, time)
+        self.end = max(self.end, time)
         return result
 
     def adjusttimespan(self):

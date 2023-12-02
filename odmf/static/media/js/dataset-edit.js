@@ -67,20 +67,6 @@ function plotds(id) {
         $('#plot-div').html('<div class="alert alert-danger">' + jqhxr.responseText + '</div>')
     });
 }
-function removeds(dsid,dsname,reccount) {
-    var msg = 'Are you absolutly sure to delete ' + dsname + '?' +
-        'It has ' + reccount + ' records!'
-    var really=confirm(msg)
-    if (really) {
-        $.post(odmf_ref('/dataset/remove/') + dsid, function(data) {
-            if (data) {
-                $('.error').html(data);
-            } else {
-                window.back();
-            }
-        });
-    }
-}
 
 /***************************
  * Calibration
@@ -173,6 +159,23 @@ $(function() {
             $('#error').html(jqhxr.responseText)
             $('#error-row').removeClass('d-none')
         })
+    })
+    $('#removeds').click(e => {
+        let btn = $(e.target)
+        var msg = 'Are you absolutly sure to delete ' + btn.data('dsname') + '?' +
+        'It has ' + btn.data('dssize') + ' records!'
+        var really=confirm(msg)
+        if (really) {
+            $.post(odmf_ref('/dataset/remove/') + btn.data('dsid'), data => {
+                if (data) {
+                    $('#error').html(data);
+                    $('#error-row').removeClass('d-none');
+                } else {
+                    window.location.href = odmf_ref('/dataset/?message=ds' + btn.data('dsid') + ' deleted');
+                }
+            });
+    }
+
     })
     $('#trans_help').hide();
     $('.transhelpparent').focusin(function(){

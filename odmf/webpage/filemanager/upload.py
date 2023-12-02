@@ -40,14 +40,15 @@ def write_to_file(dest, src):
             fout.write(data)
 
 
-class HTTPFileNotFoundError(cherrypy.HTTPError):
-    def __init__(self, path: Path):
-        super().__init__(status=404, message=f'{path.href} not found')
+class DownloadPageError(cherrypy.HTTPError):
+    def __init__(self, path: Path, status:int , message: str):
+        super().__init__(status=status, message=message)
+        self.message = message
         self.path = path
 
     def get_error_page(self, *args, **kwargs):
 
-        error = f'Resource {self.path.href} not found'
+        error = f'Problem with {self.path}: {self.message}'
 
         text = web.render(
             'download.html',
@@ -59,6 +60,11 @@ class HTTPFileNotFoundError(cherrypy.HTTPError):
         ).render()
 
         return text.encode('utf-8')
+
+
+class HTTPFileNotFoundError(DownloadPageError):
+    def __init__(self, path: Path):
+        super().__init__(path, status=404, message=f'not found')
 
 
 def goto(dir, error=None, msg=None):
@@ -341,4 +347,22 @@ class DownloadPage(object):
 
         with open(path.absolute, 'w') as f:
             f.write(text)
+
+    @expose_for()
+    @web.method.post
+    def action(self, path, actionid: int):
+        from ..auth import users, User
+        path = Path(path)
+        action_id = web.conv(int, actionid)
+        handler = self.filehandler[path]
+        try:
+            action: fh.FileAction = handler.actions[action_id]
+        except IndexError:
+            raise DownloadPageError('not enough actions available')
+        if users.current.level < action.access_level:
+            required_group = User.groups[action.access_level]
+            raise DownloadPageError(path, 403,f'you need to be {required_group} for {action}')
+        newpath = action(path)
+        msg = {'msg': f'{action} on {path} successful'}
+        return f'{newpath.href}?{urlencode(msg)}'
 

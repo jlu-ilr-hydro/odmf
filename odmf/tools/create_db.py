@@ -7,7 +7,7 @@ from typing import List
 
 logger = logging.getLogger(__name__)
 
-
+from .migrate_db import migrate as migrate_db
 
 
 def create_all_tables() -> List[str]:
@@ -29,12 +29,12 @@ def add_admin(password=None):
     """
     from odmf import db
     from odmf.tools import hashpw
-    password = password or getpass("Enter admin password:")
     with db.session_scope() as session:
         if session.query(db.Person).get('odmf.admin'):
             logger.info('odmf.admin exists already')
         else:
             user = db.Person(username='odmf.admin', firstname='odmf', surname='admin', access_level=4)
+            password = password or getpass("Enter admin password:")
             user.password = hashpw(password)
             session.add(user)
             logger.info('odmf.admin user created')
@@ -46,14 +46,18 @@ def add_quality_data(data):
     :param data: A list of dicts (quality_data below)
     """
     from odmf import db
+    active = False
     with db.session_scope() as session:
 
         for q in data:
             if not session.query(db.Quality).get(q['id']):
                 session.add(db.Quality(**q))
                 logger.debug(f'Added quality level {q["id"]}')
+                active=True
         session.commit()
 
+    if active:
+        logger.info('added quality levels')
 
 quality_data = [
     {
@@ -83,6 +87,7 @@ quality_data = [
     }
 ]
 
+
 def wait_for_db(database_url: str, wait_time: float=20):
     """
     Tries repeatly to connect to the database until the wait_time is running up
@@ -110,21 +115,19 @@ def wait_for_db(database_url: str, wait_time: float=20):
         exit(100)
 
 
-
 def init_db(admin_password: str, wait_time=20):
     """
     Creates in the database: all tables, a user odmf.admin
     and fills the data-quality table with some usable input
     """
     from ..config import conf
-    logging.info('wait for database')
+    logger.info('wait for database')
     wait_for_db(conf.database_url, wait_time)
-    logger.info('create tables')
     tables = create_all_tables()
     add_admin(admin_password)
-    logger.info('created admin user odmf.admin')
     add_quality_data(quality_data)
-    logger.info('added quality levels')
+    migrate_db()
+
     return tables
 
 

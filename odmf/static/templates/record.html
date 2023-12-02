@@ -46,25 +46,15 @@
 	</script>
 	<div class="small">
 		<div class="small">
-            <span />
-            <span style="position: relative; right:0px;">
-                
-            </span>
+			<a href="#recordtable" class="dropdown-toggle btn btn-secondary dropdown-toggle ml-1" data-toggle="collapse" role="botton">
+
+			</a>
+			<span py:content="'%s/%s records' % (currentcount,totalrecords)" />
+			<button class="btn btn-primary" onclick="checkall()">check all</button>
+			<button class="btn btn-danger" onclick="commit_errors()">commit errors</button>
         </div>
-		<table class="table">
+		<table class="table collapse show" id="recordtable">
 			<thead>
-                <tr style="font-weight: normal;" class="small">
-                    <td/>
-                    <td py:content="'%s/%s records' % (currentcount,totalrecords)"/>
-                    
-                    <td/><td/><td/><td/><td/>
-                    <td>
-                        <button class="btn btn-secondary" onclick="checkall()">check all</button>
-                    </td>
-                    <td>
-                        <button class="btn btn-secondary" onclick="commit_errors()">commit errors</button>
-                    </td>
-                </tr>
 				<tr class="record box" >
 					<th>ID</th>
 					<th>time</th>

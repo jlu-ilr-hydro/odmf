@@ -26,11 +26,11 @@ class DatasetPage:
 
     @expose_for(group.logger)
     @web.method.get
-    def index(self, error=''):
+    def index(self, error='', message=None):
         """
         Returns the query page (datasetlist.html). Site logic is handled with ajax
         """
-        return web.render('datasetlist.html', error=error).render()
+        return web.render('datasetlist.html', error=error, message=message).render()
 
     @expose_for(group.guest)
     @web.method.get
@@ -582,6 +582,26 @@ class DatasetPage:
                              totalrecords=totalcount, dataset=ds, actionname="split dataset",
                              action="/dataset/setsplit",
                              action_help=f'{conf.root_url}/download/wiki/dataset/split.wiki').render()
+
+    @expose_for(group.editor)
+    @web.method.post
+    def add_record(self, dataset, time, value, id=None, sample=None, comment=None):
+        """
+        Adds a single record to a dataset, great for connected fieldwork
+        :param dataset: Dataset id
+        :param time: Datetime
+        :param value: the value
+        :param sample: A sample name (usually None)
+        :param comment: A comment (often None)
+        :return:
+        """
+        with db.session_scope() as session:
+            ds: db.Timeseries = session.query(db.Dataset).get(int(dataset))
+            time = web.parsedate(time)
+            ds.addrecord(id, value, time, comment, sample, out_of_timescope_ok=True)
+        raise web.redirect(str(dataset) + '#records')
+
+
 
     @expose_for(group.editor)
     @web.method.get

@@ -42,7 +42,7 @@ class Image(Base):
     def __PIL_to_stream(self, img, height, format):
         from PIL import Image as pil
         lores = img.resize(
-            (height * img.size[0] // img.size[1], height), pil.ANTIALIAS)
+            (height * img.size[0] // img.size[1], height), pil.LANCZOS)
         buffer = BytesIO()
         lores.save(buffer, format)
         return buffer
