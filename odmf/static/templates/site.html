@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <py:extends href="layout.html" xmlns:py="">
     <py:block name="scripts">
-        <script type="text/javascript">
-            const site = ${literal(as_json(actualsite) or '{}')};
+        <script type="text/javascript" py:if="actualsite">
+            const site = ${literal(as_json(actualsite))};
+            const site_geometry = ${literal(as_json(actualsite.as_feature()))}
         </script>
         <script type="text/javascript" src="${conf.root_url}/media/js/site.js"></script>
         <script type="text/javascript" async="async" defer="defer"

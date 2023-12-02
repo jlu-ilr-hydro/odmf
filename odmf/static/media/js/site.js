@@ -20,6 +20,17 @@ function createMap() {
         new google.maps.Point(0,0),
         new google.maps.Point(0, 24));
 
+    map.data.addGeoJson(site_geometry);
+    map.data.setStyle(feature => {
+        return {
+            strokeWeight: feature.getProperty('strokeWidth') || 2,
+            strokeColor: feature.getProperty('strokeColor') || '#FFF',
+            strokeOpacity: feature.getProperty('strokeOpacity') || 0.8,
+            fillColor: feature.getProperty('fillColor') || '#FFF',
+            fillOpacity: feature.getProperty('fillOpacity') || 0.3,
+        }
+    })
+
     var marker = new google.maps.Marker(
         {
             position: new google.maps.LatLng(site.lat,site.lon),
@@ -27,6 +38,8 @@ function createMap() {
             map:map,
             icon:image,
         });
+
+
 }
 
 

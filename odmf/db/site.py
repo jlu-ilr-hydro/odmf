@@ -24,6 +24,7 @@ class Site(Base):
     name = sql.Column(sql.String)
     comment = sql.Column(sql.String)
     icon = sql.Column(sql.String(30))
+    geometry = orm.relationship("SiteGeometry", back_populates='site', uselist=False, cascade="save-update, merge, delete, delete-orphan")
 
     def __init__(self, id:int, lat:float=None, lon:float=None,
                  height:float = None, name:str=None, comment:str=None, icon:str=None,
@@ -52,7 +53,8 @@ class Site(Base):
                     height=self.height,
                     name=self.name,
                     comment=self.comment,
-                    icon=self.icon)
+                    icon=self.icon,
+                    )
 
     def __eq__(self, other):
         if hasattr(other, 'id'):
@@ -78,30 +80,138 @@ class Site(Base):
         lon = dd_to_dms(self.lon)
         return ("%i° %i' %0.2f''N - " % lat) + ("%i° %i' %0.2f''E" % lon)
 
+    @property
+    def __geo_interface__(self):
+        if self.geometry:
+            return self.geometry.geojson
+        else:
+            return {"type": "Point", "coordinates": [self.lat, self.lon]}
+
+    def as_feature(self) -> dict:
+        """
+        Returns the geometry as a GeoJson feature. Style is a nested property
+        :return:
+        """
+        if self.geometry:
+            return self.geometry.as_feature()
+        else:
+            return {
+                "type": "Feature",
+                "geometry": self.__geo_interface__,
+                "properties": self.__jdict__()
+            }
+
 
 @total_ordering
 class SiteGeometry(Base):
     """
     Enhance a site with Geometry features, like line or polygon
-    TODO: sqlalchemy: Do we need polymorphic_identity
-    TODO: Implement __geo_interface__ for Site and GeometrySite
 
     Uses GeoJSON definition to save the geometry of a site
     https://de.wikipedia.org/wiki/GeoJSON
     """
     __tablename__ = 'site_geometry'
 
-    id = sql.Column(sql.Integer, primary_key=True, constraint=sql.ForeignKey('site.id'))
-    site = orm.relationship('Site', backref=orm.backref('geometry'),
-                            primaryjoin="Site.id==SiteGeometry.id")
-    type = sql.Column(sql.Text)  # Contains the GeoJSON geometry type: POINT, POLYGON, MULTILINESTRING etc.
-    coordinates = sql.Column(sql.Text)  # Contains coordinates in GeoJSON notation
-
+    id = sql.Column(sql.Integer, sql.ForeignKey('site.id'), primary_key=True, )
+    site = orm.relationship('Site', back_populates='geometry')
+    geojson = sql.Column(sql.JSON)  # Contains coordinates in GeoJSON notation
     strokewidth = sql.Column(sql.Float)
     strokeopacity = sql.Column(sql.Float)
     strokecolor = sql.Column(sql.Text)
     fillcolor = sql.Column(sql.Text)
     fillopacity = sql.Column(sql.Float)
+
+    @property
+    def __geo_interface__(self):
+        return self.geojson
+    
+    def get_style(self):
+        res = {}
+        if self.strokewidth:
+            res['strokeWidth'] = self.strokewidth
+        if self.strokecolor:
+            res['strokeColor'] = self.strokecolor
+        if self.strokeopacity:
+            res['strokeOpacity'] = self.strokeopacity
+        if self.fillcolor:
+            res['fillColor'] = self.fillcolor
+        if self.fillopacity:
+            res['fillOpacity'] = self.fillopacity
+        return res
+    def as_feature(self) -> dict:
+        """
+        Returns the geometry as a GeoJson feature. Style is a nested property
+        :return:
+        """
+        return {
+            "type": "Feature",
+            "geometry": self.geojson,
+            "properties": self.site.__jdict__() | self.get_style()
+        }
+
+    @classmethod
+    def from_shape(cls, feature, **properties):
+        """
+        Creates a site geometry from an object with __geo_interface__
+        eg. shapely.geometry, geojson-object or an entry from geopandas.GeoDataFrame.iterfeatures
+
+        The **properties keywords can be used to set style properties. If the feature has properties,
+        then the given properties are overridden by the feature
+        """
+        if not 'type' in feature:
+            raise ValueError('Geometry is not a GeoJSON object, no type')
+        elif feature['type'] == 'Feature':
+            if not 'geometry' in feature:
+                raise ValueError('Feature has no geometry')
+            else:
+                geometry = cls(geojson=feature['geometry'])
+                properties = feature.get('properties', properties)
+        else:
+            geometry = cls(geojson=feature)
+
+        for k in properties:
+            if k.lower() != k:
+                properties[k.lower()] = properties[k]
+
+        geometry.strokewidth = properties.get('strokewidth')
+        geometry.strokecolor = properties.get('strokecolor')
+        geometry.strokeopacity = properties.get('strokeopacity')
+        geometry.fillcolor = properties.get('fillcolor')
+        geometry.fillopacity = properties.get('fillopacity')
+
+        return geometry
+
+
+def create_site_from_geometry(
+        session,
+        shape,
+        name: str,
+        id: int|None=None,
+        height:float|None=None,
+        comment:str|None=None,
+        icon:str|None=None
+):
+    """
+    Creates a site from a geometry.
+    :param session: the sqlalchemy session
+    :param shape: An object exposing the __geo_interface__ for geometries. Coordinates **MUST** be in
+        geographical coordinates in WGS84
+    :param name:
+    :param id: The id of the new site, if None a new one is created
+    :param height: The height in m a.s.l of the point
+    :param comment: A text description of the site
+    :param icon: a filename of the site's icon
+    :return:
+    """
+    from shapely import geometry as geo
+    from . import base as db
+    geometry: geo.Polygon = geo.shape(shape)
+    center: geo.Point = geometry.centroid
+    id = id or session.query(db.sql.func.max(Site.id)).scalar() + 1
+    site = Site(id, lon=center.x, lat=center.y, name=name, height=height, comment=comment, icon=icon)
+    site.geometry = SiteGeometry.from_shape(geo.mapping(geometry))
+
+    return site
 
 
 
