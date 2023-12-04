@@ -46,41 +46,40 @@
             <div class="row">
                 <div class="col">
                     <div class="nav flex-column nav-pills" role="tablist"  aria-orientation="vertical" id="tabs">
-                        <a id="description-tab" class="nav-link active border-top" data-toggle="pill" href="#description">dataset</a>
-                        <a id="edit-tab" class="nav-link border-top" data-toggle="pill" href="#edit"
-                           py:if="is_member('editor') and users.current.level>=ds_act.access"
+                        <a id="description-tab" class="nav-link ${['', 'active'][ds_act.is_defined()]} border-top" data-toggle="pill" href="#description">dataset</a>
+                        <a id="edit-tab" class="nav-link ${['', 'active'][not ds_act.is_defined()]} border-top" data-toggle="pill" href="#edit"
+                           py:if="access(Level.editor)"
                         >edit</a>
                         <a id="add-record-tab" class="nav-link border-top" data-toggle="pill" href="#add-record"
-                           py:if="is_member('editor') and users.current.level>=ds_act.access">
+                           py:if="access(Level.editor) and ds_act.is_defined()">
                             add record
                         </a>
-                        <a id="similar-tab" class="nav-link border-top" data-toggle="pill" href="#similar">similar</a>
 
                         <a id="transforms-tab" class="nav-link flexbox border-top"
                            data-toggle="pill" href="#transforms"
-                           py:if="ds_act and ds_act.is_transformed()"
+                           py:if="ds_act.is_defined() and ds_act.is_transformed()"
                         >
                             transforms
                         </a>
                         <a id="plot-tab" class="nav-link flexbox border-top" data-toggle="pill"
-                           py:if="users.current.level >= ds_act.access"
+                           py:if="access(Level.guest) and ds_act.is_defined()"
                            href="#plot"
                         >plot
                         </a>
                         <a id="records-tab" class="nav-link flexbox border-top" data-toggle="pill"
-                           py:if="ds_act.is_timeseries() and is_member('editor') and users.current.level >= ds_act.access"
+                           py:if="access(Level.editor)"
                            href="#records">
                             records
                         </a>
                         <a id="calibrate-tab" class="nav-link flexbox border-top" data-toggle="pill"
-                           py:if="ds_act.is_timeseries() and is_member('editor') and users.current.level>=ds_act.access"
+                           py:if="access(Level.editor)"
                            href="#calibrate"
 
                         >
                             calibrate
                         </a>
                         <a id="export-tab"
-                           py:if="is_member('logger') and users.current.level>=ds_act.access"
+                           py:if="access(Level.logger)"
                            href="#export" class="nav-link flexbox border-top" data-toggle="pill">
                             export
                         </a>
@@ -115,14 +114,20 @@
                 <div class="container">
                     <div id="title-area" class="container bg-dark text-white row w-100 border rounded shadow" py:if="ds_act" py:with="n=ds_act.size()">
                         <div class="col-sm">
-                            <h2 class="display-3">ds<span id="dsid" py:content="ds_act.id"/></h2>
+                            <h2 class="display-3 d-inline-block">ds<span id="dsid" py:content="ds_act.id"/></h2>
+                            <div class="d-inline-block position-absolute top-0 end-0">
+                                <span class="badge bg-info text-bg-info" py:content="ds_act.get_access_level(users.current).name" />
+                            </div>
                         </div>
+
                         <div class="col-sm my-auto">
                             <h3 >
                                 <span py:content="formatdate(ds_act.start)"/> -
                                 <span py:content="formatdate(ds_act.end)"/>
                             </h3>
-                            <h3 py:content="ds_act.name"></h3>
+                            <h3 py:content="ds_act.name"/>
+
+
 
                         </div>
                         <div class="lead col-sm my-auto">
@@ -135,11 +140,10 @@
                         </div>
                     </div>
                 </div>
-
             </div>
             <div id="no-access-row" class="row mt-2 w-100">
                 <div class="container">
-                    <div class="container bg-warning row w-100 border rounded"  py:if="ds_act.access > users.current.level ">
+                    <div class="container bg-warning row w-100 border rounded"  py:if="not access()">
                         <h4 class="col-lg-4">Sorry, ${user()}</h4>
                         <div class="lead col-lg-8">
                             This dataset is not available for you. Ask the owner to get access.
@@ -148,8 +152,9 @@
 
                 </div>
             </div>
+
             <div id="tab-row" class="tab-content row w-100 mt-2">
-                <div id="description" class="tab-pane active mx-auto" role="tabpanel" >
+                <div id="description" class="tab-pane mx-auto ${['', 'active'][ds_act.is_defined()]}" role="tabpanel" >
                     <table class="table mx-auto">
                         <tr>
                             <td class="bold">Type:</td>
@@ -167,28 +172,33 @@
 
                             </td>
                         </tr>
-                        <tr py:if="ds_act.valuetype">
+                        <tr id="desc_valuetype">
                             <td class="bold">Data:</td>
-                            <td><a href="${conf.root_url}/valuetype/${ds_act.valuetype.id}" class="tooltip">
-                            ${ds_act.valuetype.name}
-                                <span>${ds_act.valuetype.comment}</span>
-                            </a>
+                            <td py:if="ds_act.valuetype">
+                                <a href="${conf.root_url}/valuetype/${ds_act.valuetype.id}" class="tooltip">
+                                    ${ds_act.valuetype.name}
+                                    <span>${ds_act.valuetype.comment}</span>
+                                </a>
                                 <span id="statistics" >
-                                <span id="mean">?</span> &plusmn; <span id="std">?</span> ${ds_act.valuetype.unit}, n=<span id="n">${n}</span>
-                            </span>
+                                    <span id="mean">?</span>
+                                    &plusmn;
+                                    <span id="std">?</span>
+                                    ${ds_act.valuetype.unit},
+                                    n=<span id="n">${n}</span>
+                                </span>
                             </td>
                         </tr>
-                        <tr py:if="ds_act.site">
+                        <tr>
                             <td class="bold">Site:</td>
                             <td>
-                                <a href="${conf.root_url}/site/${ds_act.site.id}" py:content="ds_act.site" />
+                                <a href="${conf.root_url}/site/${ds_act._site}" py:content="ds_act.site" />
                             </td>
                         </tr>
-                        <tr py:if="ds_act.measured_by">
+                        <tr>
                             <td class="bold">Responsible:</td>
                             <td>
                                 <a href="${conf.root_url}+ '/user/' + (ds_act.measured_by.username if ds_act.measured_by else '')">
-                                        ${ds_act.measured_by}
+                                    ${ds_act.measured_by}
                                 </a>
                             </td>
                         </tr>
@@ -196,9 +206,9 @@
                             <td class="bold">Quality:</td>
                             <td py:content="ds_act.quality" />
                         </tr>
-                        <tr py:if="ds_act.source">
+                        <tr>
                             <td class="bold">Data source:</td>
-                            <td>
+                            <td py:if="ds_act.source">
                                 <a href="${conf.root_url}/instrument/${ds_act.source.id}" py:content="ds_act.source" />
                                 <a py:if="ds_act.source.manuallink" href="${conf.root_url}/${ds_act.source.manuallink}" class="ml-4"
                                    title="Open manual for ${ds_act.source}" data-toggle="tooltip"
@@ -207,10 +217,10 @@
                                 </a>
                             </td>
                         </tr>
-                        <tr py:if="ds_act.project">
+                        <tr id="desc-project">
                             <td class="bold">Project:</td>
-                            <td>
-                                <a href="${conf.root_url}/project/${ds_act.project}" py:content="activeproject.name"></a>
+                            <td py:if="ds_act.project">
+                                <a href="${conf.root_url}/project/${ds_act.project.id}" py:content="ds_act.project.name"></a>
                             </td>
                         </tr>
                         <tr py:if="ds_act.is_timeseries() and ds_act.quality and ds_act.quality.id>=3">
@@ -221,19 +231,19 @@
                             <td class="bold">Transformation:</td>
                             <td class="big">$~f(x)=${ds_act.latex}~$</td>
                         </tr>
-                        <tr>
+                        <tr id="desc-comment">
                             <td class="bold">Comment:</td>
                             <td>
                                 <div py:content="markdown(ds_act.comment)" style="white-space: pre-line;"/>
                             </td>
                         </tr>
                     </table>
-                    <button py:if="ds_act.is_timeseries() and is_member('editor')" id="create-transformation"
+                    <button py:if="ds_act.is_timeseries() and access(Level.editor)" id="create-transformation"
                             class="btn btn-outline-primary mr-2" data-toggle="tooltip"
                             title="Create a transformed dataset for this">
                         $~f(x)~$ transform
                     </button>
-                    <button py:if="is_member('admin')" class="btn btn-outline-danger mr-2"
+                    <button py:if="access(Level.admin)" class="btn btn-outline-danger mr-2"
                             title="remove dataset permanently" data-toggle="tooltip" id="removeds"
                             data-dsid="${ds_act.id}" data-dsname="${str(ds_act)}" data-dssize="${ds_act.size()}">
                         <i class="fas fa-trash mr-2"/> delete dataset
@@ -241,9 +251,9 @@
 
 
                 </div>
-                <div id="edit" class="tab-pane w-100 mr-4" role="tabpanel" py:if="is_member('editor') and users.current.level>=ds_act.access">
-                    <form action="${conf.root_url}/dataset/saveitem" method="post">
-                        <input type="hidden" name="id" value="${ds_act.id}" id="id-input" />
+                <div id="edit" class="tab-pane w-100 mr-4 ${['', 'active'][not ds_act.is_defined()]}" role="tabpanel" py:if="access(Level.editor)">
+                    <form action="save" method="post">
+                        <input type="hidden" name="id" value="${ds_act.id}"  />
                         <div class="container w-100">
                             <div id="edit-top-buttons" class="form-row mb-2">
 
@@ -277,7 +287,7 @@
                                             </a>
                                         </div>
                                         <select class="form-control border-secondary" id="measured_by"
-                                                name="measured_by">
+                                                name="measured_by" py:attrs="disabled(not access(Level.admin))">
                                             <option value="" disabled="disabled">Please select...</option>
                                             <option py:for="p in persons"
                                                     py:attrs="markoption(p is ds_act.measured_by)"
@@ -320,12 +330,12 @@
                                     <label for="project">
                                         Project
                                     </label>
-                                    <select py:if="is_member('supervisor')" id="project" name="project" class="form-control">
+                                    <select py:attrs="disabled(not access(Level.admin))" id="project" name="project" class="form-control">
                                         <option value="0" >No Project</option>
                                         <option value="${p.id}"
                                                 py:for="p in projects"
                                                 py:content="p.name"
-                                                py:attrs="markoption(p.id == ds_act.project)"></option>
+                                                py:attrs="markoption(p == ds_act.project)"></option>
                                     </select>
 
                                 </div>
@@ -562,26 +572,26 @@
 
                     </form>
                 </div>
-                <div id="add-record" class="tab-pane w-100 mr-4" role="tabpanel" py:if="is_member('editor') and users.current.level>=ds_act.access">
+                <div id="add-record" class="tab-pane w-100 mr-4" role="tabpanel" py:if="access(Level.editor) and ds_act.valuetype">
                     <h3>Add value...</h3>
                     <form action="${conf.root_url}/dataset/add-record" method="post">
-                       <input type="hidden" name="dataset" value="${ds_act.id}" id="id-input" />
-                       <div class="container w-100">
-                           <div class="form-group">
-                               <label for="add-record-value">value in ${ds_act.valuetype.unit}</label>
-                               <input id="add-record-value" type="number" name="value" class="form-control"/>
-                           </div>
-                           <div class="form-group">
-                               <label for="add-record-time">time</label>
-                               <input id="add-record-time" type="datetime-local" name="time" class="form-control"/>
-                           </div>
-                           <div class="form-group">
-                               <label for="add-record-comment">comment</label>
-                               <input id="add-record-comment" type="text" name="comment"  class="form-control"/>
-                           </div>
-                          <input type="submit" />
+                        <input type="hidden" name="dataset" value="${ds_act.id}" id="id-input" />
+                        <div class="container w-100">
+                            <div class="form-group">
+                                <label for="add-record-value">value in ${ds_act.valuetype.unit}</label>
+                                <input id="add-record-value" type="number" name="value" class="form-control"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="add-record-time">time</label>
+                                <input id="add-record-time" type="datetime-local" name="time" class="form-control"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="add-record-comment">comment</label>
+                                <input id="add-record-comment" type="text" name="comment"  class="form-control"/>
+                            </div>
+                            <input type="submit" />
 
-                       </div>
+                        </div>
 
                     </form>
                 </div>
@@ -614,7 +624,6 @@
                         </li>
                     </ul>
                 </div>
-
                 <div id="plot" class="tab-pane w-100 mr-4" role="tabpanel" py:if="users.current.level>=ds_act.access">
                     <div class="container mx-auto">
                         <div class="row">
@@ -703,21 +712,8 @@
                     </div>
 
                 </div>
-                <div id="similar" class="tab-pane" role="tabpanel" >
-                    <div py:for="dsname in datasets" >
-                        <h3>${dsname}</h3>
-                        <div id="${dsname.replace(' ','_')}">
-                            <ul>
-                                <li py:for="ds in datasets[dsname]">
-                                    <a href="${ds.id}">${ds}</a>
-                                </li>
-
-                            </ul>
-                        </div>
-                    </div>
-                </div>
                 <div id="records" class="tab-pane" role="tabpanel"
-                     py:if="is_member('editor') and ds_act and ds_act.is_timeseries() and users.current.level>=ds_act.access">
+                     py:if="ds_act.is_timeseries() and access(Level.editor)">
                     <div class="row w-100">
                         <div class="col-sm">
                             <button class="btn btn-primary w-100" id="find-records">find records</button>
@@ -792,7 +788,7 @@
 
                 </div>
                 <div id="calibrate" class="tab-pane" role="tabpanel"
-                     py:if="ds_act.is_timeseries() and is_member('editor') and users.current.level>=ds_act.access">
+                     py:if="ds_act.is_timeseries() and access(Level.editor)">
                     <div class="row">
                         <div class="col-sm-11">
                             <div class="input-group">
@@ -801,7 +797,7 @@
                                 </div>
                                 <select id="calibrate-select-source" class="form-control">
                                     <option value="" style="font-style: italic;">&lt;Please select...&gt;</option>
-                                    <option py:for="ds in datasets['same time']" value="${ds.id}"
+                                    <option py:for="ds in same_time_ds" value="${ds.id}"
                                             py:content="ds"/>
                                 </select>
                             </div>
@@ -920,7 +916,7 @@
 
 
                 </div>
-                <div id="export" class="tab-pane" role="tabpanel" py:if="is_member('logger') and users.current.level>=ds_act.access">
+                <div id="export" class="tab-pane" role="tabpanel" py:if="access(Level.logger)">
                     <ul>
                         <li py:if="ds_act">
                             <a class="btn btn-primary" href="${conf.root_url}/dataset/records.csv?dataset=${ds_act.id}">
@@ -931,6 +927,7 @@
                     </ul>
                 </div>
             </div>
+
         </div>
     </py:block>
 

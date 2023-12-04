@@ -25,6 +25,8 @@ def prop(**kwargs):
         kw: (kw if value else None) for kw, value in kwargs.items()
     }
 
+def disabled(condition):
+    return prop(disabled=condition)
 
 def markoption(condition):
     return prop(selected=condition)

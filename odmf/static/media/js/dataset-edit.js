@@ -1,5 +1,5 @@
 function loadstatistics(dsid) {
-    $.getJSON(odmf_ref('/dataset/statistics/'),{id:dsid},function(data){
+    $.getJSON(odmf_ref('/dataset/' + dsid + '/statistics/'),{},function(data){
         $('#mean').html(data.mean.toPrecision(4));
         $('#std').html(data.std.toPrecision(4));
         $('#splitthreshold').val(data.std.toPrecision(4));
@@ -166,7 +166,7 @@ $(function() {
         'It has ' + btn.data('dssize') + ' records!'
         var really=confirm(msg)
         if (really) {
-            $.post(odmf_ref('/dataset/remove/') + btn.data('dsid'), data => {
+            $.post('remove', data => {
                 if (data) {
                     $('#error').html(data);
                     $('#error-row').removeClass('d-none');

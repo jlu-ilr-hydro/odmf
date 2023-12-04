@@ -7,7 +7,7 @@ import cherrypy
 from logging import getLogger
 import os
 import sys
-from ..webpage import expose_for
+from ..webpage.auth import expose_for
 
 logger = getLogger(__name__)
 server_config = {

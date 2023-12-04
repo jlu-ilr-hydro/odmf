@@ -255,12 +255,10 @@ def expose_for(groupname=None):
     def decorate(f):
         if not hasattr(f, '_cp_config'):
             f._cp_config = {}
-        if type(groupname) is Level:
-            f._cp_config.setdefault('auth.require', []).append(
-                has_level(groupname))
         else:
             f._cp_config.setdefault('auth.require', []).append(
-                member_of(groupname))
+                member_of(groupname)
+            )
         f.exposed = True
         f.level = groupname
         return f

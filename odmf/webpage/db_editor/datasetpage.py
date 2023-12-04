@@ -9,7 +9,7 @@ from ... import db
 from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 import io
-from ..auth import group, expose_for, users
+from ..auth import Level, expose_for, users
 import codecs
 from ...tools.calibration import Calibration, CalibrationSource
 from ...config import conf
@@ -17,6 +17,17 @@ from pytz import common_timezones
 import cherrypy
 
 
+def get_ds(session, datasetid):
+    """
+    Gets a dataset from an id
+    """
+    return session.query(db.Dataset).get(int(datasetid))
+
+
+def has_access(ds: db.Dataset, level:Level=Level.guest):
+    return ds.get_access_level(users.current) >= max(ds.access, level)
+
+@cherrypy.popargs('datasetid')
 @web.show_in_nav_for(1, icon='clipboard')
 class DatasetPage:
     """
@@ -24,123 +35,96 @@ class DatasetPage:
     """
     exposed = True
 
-    @expose_for(group.logger)
+
+    @expose_for()
     @web.method.get
-    def index(self, error='', message=None):
+    def index(self, datasetid=None, error='', message=None):
         """
         Returns the query page (datasetlist.html). Site logic is handled with ajax
         """
-        return web.render('datasetlist.html', error=error, message=message).render()
-
-    @expose_for(group.guest)
-    @web.method.get
-    def default(self, id='new', site_id=None, vt_id=None, user=None, error='', _=None):
-        """
-        Returns the dataset view and manipulation page (dataset-edit.html).
-        Expects an valid dataset id, 'new' or 'last'. With new, a new dataset
-        is created, if 'last' the last chosen dataset is taken   
-        """
-        if id == 'last':
-            # get the last viewed dataset from web-session. If there is no
-            # last dataset, redirect to index
-            id = web.cherrypy.session.get('dataset')  # @UndefinedVariable
-            if id is None:
-                raise web.redirect(conf.root_url + '/dataset/')
+        if datasetid is None:
+            return web.render('datasetlist.html', error=error, message=message).render()
+        else:
+            with db.session_scope() as session:
+                active = get_ds(session, datasetid)
+                if active:  # save requested dataset as 'last'
+                    web.cherrypy.session['dataset'] = datasetid  # @UndefinedVariable
+                    return self.render_dataset(active, error, message)
+                else:
+                    raise web.redirect(conf.root_url + '/dataset', error=f'No ds{id} available')
+    @expose_for(Level.editor)
+    def new(self, site_id=None, vt_id=None, user=None, error='', _=None):
         with db.session_scope() as session:
 
             site = session.query(db.Site).get(site_id) if site_id else None
-            valuetype = session.query(db.ValueType).get(
-                vt_id) if vt_id else None
+            valuetype = session.query(db.ValueType).get(vt_id) if vt_id else None
             # All projects
 
             if user is None:
                 user = web.user()
             user: db.Person = session.query(db.Person).get(user) if user else None
-            if id == 'new':
-                active = db.Timeseries(
-                    id=db.newid(db.Dataset, session),
-                    name='New Dataset',
-                    site=site,
-                    valuetype=valuetype,
-                    measured_by=user,
-                    access=user.access_level
-                )
-            else:  # Else load requested dataset
-                active = session.query(db.Dataset).get(int(id))
+            active = db.Timeseries(
+                id=db.newid(db.Dataset, session),
+                name='New Dataset',
+                site=site,
+                valuetype=valuetype,
+                measured_by=user,
+                access=user.access_level
+            )
+            return self.render_dataset(active)
+    def render_dataset(self, active: db.Dataset, message='', error=''):
+        """
+        Returns the dataset view and manipulation page (dataset-edit.html).
+        Expects a valid dataset id, 'new' or 'last'. With new, a new dataset
+        is created, if 'last' the last chosen dataset is taken   
+        """
+        web.cherrypy.session['dataset'] = id  # @UndefinedVariable
+        session = active.session()
 
-                if active:  # save requested dataset as 'last'
-                    web.cherrypy.session['dataset'] = id  # @UndefinedVariable
-                else:
-                    raise web.redirect(conf.root_url + '/dataset', error=f'No ds{id} available')
+        def access(level: Level=Level.guest):
+            return has_access(active, level)
 
-            # Setting the project, for editing and ui navigation
-            if active.project is not None:
-                project = session.query(db.Project).get(int(active.project))
-            else:
-                project = None
+        # Render the resulting page
+        return web.render(
+            'dataset-edit.html',
+            # activedataset is the current dataset (id or new)
+            ds_act=active, n=active.size(), access=access,
+            # Render error messages
+            error=error,
+            # All available timezones
+            timezones=common_timezones + ['Fixed/60'],
+            # The title of the page
+            title=f'ds{active.id}',
+            # A couple of prepared queries to fill select elements
+            valuetypes=session.query(db.ValueType).order_by(db.ValueType.name),
+            persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname),
+            sites=session.query(db.Site).order_by(db.Site.id),
+            quality=session.query(db.Quality).order_by(db.Quality.id),
+            datasources=session.query(db.Datasource),
+            projects=session.query(db.Project),
+            same_time_ds=self.parallel_datasets(active)
+        ).render()
 
-            datasets = {
-                "same type": [],
-                "same time": [],
-            }
+    @staticmethod
+    def parallel_datasets(active: db.Timeseries):
+        # parallel dataset (same site and same time, different type)
+        session = active.session()
+        if active.site and active.start and active.end:
+            return session.query(db.Dataset).filter_by(site=active.site).filter(
+                db.Dataset.start <= active.end, db.Dataset.end >= active.start).filter(db.Dataset.id != active.id)
+        else:
+            return []
 
-            try:
-                # load data for dataset-edit.html:
-                # similar datasets (same site and same type)
-                if active.valuetype and active.site:
-                    similar_datasets = self.subset(session, valuetype=active.valuetype.id,
-                                                   site=active.site.id).filter(db.Dataset.id != active.id)
-                else:
-                    similar_datasets = []
-                # parallel dataset (same site and same time, different type)
-                if active.site and active.start and active.end:
-                    parallel_datasets = session.query(db.Dataset).filter_by(site=active.site).filter(
-                        db.Dataset.start <= active.end, db.Dataset.end >= active.start).filter(db.Dataset.id != active.id)
-                else:
-                    parallel_datasets = []
 
-                datasets = {
-                    "same type": similar_datasets,
-                    "same time": parallel_datasets,
-                }
-            except Exception as e:
-                # If loading fails, don't show similar datasets
-                error += str(e)
-
-            # Render the resulting page
-            return web.render(
-                'dataset-edit.html',
-                # activedataset is the current dataset (id or new)
-                ds_act=active, n=active.size() if active else 0,
-                # Render error messages
-                error=error,
-                # similar and parallel datasets
-                datasets=datasets,
-                # The project
-                activeproject=project,
-                # All available timezones
-                timezones=common_timezones + ['Fixed/60'],
-                # The title of the page
-                title='ds' + str(id),
-                # A couple of prepared queries to fill select elements
-                valuetypes=session.query(db.ValueType).order_by(db.ValueType.name),
-                persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname),
-                sites=session.query(db.Site).order_by(db.Site.id),
-                quality=session.query(db.Quality).order_by(db.Quality.id),
-                datasources=session.query(db.Datasource),
-                projects=session.query(db.Project),
-            ).render()
-
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post
-    def saveitem(self, **kwargs):
+    def save(self, **kwargs):
         """
         Saves the changes for an edited dataset
         """
-        id = kwargs.get('id', '')
         try:
             # Get current dataset
-            id = web.conv(int, id, '')
+            id = web.conv(int, kwargs.get('id'), '')
         except:
             raise web.redirect(conf.root_url + f'/dataset/{id}', error=traceback())
         # if save button has been pressed for submitting the dataset
@@ -155,10 +139,12 @@ class DatasetPage:
                     src = session.query(db.Datasource).get(kwargs.get('source'))
 
                     # get the dataset
-                    ds = session.query(db.Dataset).get(int(id))
+                    ds = get_ds(session, id)
                     if not ds:
                         # If no ds with id exists, create a new one
                         ds = db.Timeseries(id=id)
+                    if not has_access(ds, Level.editor):
+                        raise web.HTTPError(403, 'No sufficient rights to alter dataset')
                     # Get properties from the keyword arguments kwargs
                     ds.site = s
                     ds.filename = kwargs.get('filename')
@@ -168,12 +154,9 @@ class DatasetPage:
                     ds.valuetype = vt
                     ds.quality = q
 
-                    # TODO: Is it necessary to protect this
-                    # of being modified by somebody who isn't a supervisor or higher?
-                    if kwargs.get('project') == '0':
-                        ds.project = None
-                    else:
-                        ds.project = kwargs.get('project')
+                    if ds.get_access_level(users.current) >= Level.admin:
+                        project = session.query(db.Project).get(kwargs.get('project'))
+                        ds.project = project
 
                     ds.timezone = kwargs.get('timezone')
 
@@ -204,17 +187,17 @@ class DatasetPage:
         elif 'new' in kwargs:
             id = 'new'
         # reload page
-        raise web.redirect(str(id))
+        raise web.redirect(conf.root_url + f'/dataset/{id}')
 
     @expose_for()
     @web.method.get
     @web.mime.json
-    def statistics(self, id):
+    def statistics(self, datasetid):
         """
         Returns a json file holding the statistics for the dataset (is loaded by page using ajax)
         """
         with db.session_scope() as session:
-            ds = session.query(db.Dataset).get(int(id))
+            ds = get_ds(session, datasetid)
             if ds:
                 # Get statistics
                 mean, std, n = ds.statistics()
@@ -224,17 +207,22 @@ class DatasetPage:
                 # Return empty dataset statistics
                 return web.json_out(dict(mean=0, std=0, n=0))
 
-    @expose_for(group.admin)
+    @expose_for(Level.editor)
     @web.method.post_or_delete
-    def remove(self, dsid):
+    def remove(self, datasetid):
         """
         Removes a dataset. Called by javascript, page reload handled by client
         """
-        try:
-            db.removedataset(dsid)
-            return None
-        except Exception as e:
-            return str(e)
+        with db.session_scope() as session:
+            ds = get_ds(session, datasetid)
+            if has_access(ds, Level.admin):
+                try:
+                    db.removedataset(datasetid)
+                    return None
+                except Exception as e:
+                    return str(e)
+            else:
+                return f'Cannot remove {datasetid} - not admin or owner'
 
     def subset(self, session, valuetype=None, user=None,
                site=None, date=None, instrument=None,
@@ -390,7 +378,7 @@ class DatasetPage:
                 'page': page
             })
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post
     def updaterecorderror(self, dataset, records):
         """
@@ -403,7 +391,7 @@ class DatasetPage:
             for r in q:
                 r.is_error = True
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post
     def setsplit(self, datasetid, recordid):
         """
@@ -427,7 +415,7 @@ class DatasetPage:
         except:
             return traceback()
 
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     @web.method.get
     @web.mime.csv
     def records_csv(self, dataset, raw=False):
@@ -456,7 +444,7 @@ class DatasetPage:
             session.close()
             return st.getvalue()
 
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     @web.method.post
     def plot(self, id, start='', end='', marker='', line='-', color='k', interactive=False):
         """
@@ -538,7 +526,7 @@ class DatasetPage:
                 raise web.HTTPError(500, traceback())
             return web.json_out({'error': None, 'data': records.all()})
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post
     def records(self, dataset, mindate, maxdate, minvalue, maxvalue,
                 threshold=None, limit=None, offset=None):
@@ -583,7 +571,7 @@ class DatasetPage:
                              action="/dataset/setsplit",
                              action_help=f'{conf.root_url}/download/wiki/dataset/split.wiki').render()
 
-    @expose_for(group.editor)
+    @expose_for(Level.logger)
     @web.method.post
     def add_record(self, dataset, time, value, id=None, sample=None, comment=None):
         """
@@ -597,13 +585,15 @@ class DatasetPage:
         """
         with db.session_scope() as session:
             ds: db.Timeseries = session.query(db.Dataset).get(int(dataset))
+            if not has_access(ds, Level.editor):
+                raise web.HTTPError(403, 'Not allowed')
             time = web.parsedate(time)
             ds.addrecord(id, value, time, comment, sample, out_of_timescope_ok=True)
         raise web.redirect(str(dataset) + '#records')
 
 
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.get
     @web.mime.png
     def plot_coverage(self, siteid):
@@ -639,7 +629,7 @@ class DatasetPage:
             fig.savefig(st, dpi=100)
         return st.getvalue()
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post
     def create_transformation(self, sourceid):
         """
@@ -672,7 +662,7 @@ class DatasetPage:
             raise web.AJAXError(500, str(e))
         return '/dataset/%s' % id
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post
     def transform_removesource(self, transid, sourceid):
         """
@@ -688,7 +678,7 @@ class DatasetPage:
         except Exception as e:
             return str(e)
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post
     def transform_addsource(self, transid, sourceid):
         """
@@ -705,7 +695,7 @@ class DatasetPage:
             return str(e)
 
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.get
     @web.mime.json
     def calibration_source_info(self, targetid, sourceid=None, limit=None, max_source_count=100):
@@ -762,7 +752,7 @@ class DatasetPage:
                 result=result
             ).encode('utf-8')
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post
     def apply_calibration(self, targetid, sourceid, slope, offset):
         """

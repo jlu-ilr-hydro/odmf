@@ -13,8 +13,10 @@ import pandas as pd
 
 from .base import Base, session_scope
 from ..config import conf
+from ..webpage import auth
 from typing import Optional
 from logging import getLogger
+
 logger = getLogger(__name__)
 
 tzberlin = pytz.timezone('Europe/Berlin')
@@ -275,6 +277,31 @@ class Dataset(Base):
             datasets = datasets.filter_by(level=level)
         return datasets
 
+    def get_access_level(self, user: auth.User) -> auth.Level:
+        """
+        Returns the access level of a user for this dataset, depending on the users access level,
+        if the datasets project is a project of the user or if the user is the owner.
+
+        Site admins, the owner (measured_by) and admins of this datasets project are admins for the dataset.
+        Lower levels are defined by the project. If the dataset does not belong to a project, the access level to
+        the dataset is the access level of the user
+
+        :param user:
+        :return:
+        """
+        if user.level >= auth.Level.admin:
+            return user.level
+        elif user.name == self.measured_by.username:
+            return auth.Level.admin
+        elif self._project is None:
+            return user.level
+        elif self._project in user.projects:
+            return user.projects[self._project]
+        else:
+            return auth.Level.guest
+
+    def is_defined(self) -> bool:
+        return bool(self.measured_by and self.site and self.valuetype)
 
 def removedataset(*args):
     """Removes a dataset and its records entirely from the database
