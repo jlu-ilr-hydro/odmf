@@ -34,18 +34,25 @@ class Project(Base):
         """Returns a query object with all ProjectMember object related to this project"""
         return self.session().query(ProjectMember).filter(ProjectMember._project==self.id)
     def members(self, access_level=0):
+        from ..webpage.auth import Level
         for pm in (
                 self.members_query.filter(ProjectMember.access_level>=access_level)
                         .order_by(ProjectMember.access_level.desc(), ProjectMember._member)
         ):
-            yield pm.member, pm.access_level
+            yield pm.member, Level(pm.access_level)
+
+        if self.person_responsible:
+            yield self.person_responsible, Level.admin
 
     def add_member(self, person: Person|str, access_level: int=0):
+        from ..webpage.auth import Level
+        if not type(person) is Person:
+            person = Person.get(self.session(), person)
+        if person.access_level < Level.editor and access_level >= Level.editor:
+            raise ValueError(f'Cannot give {person} who is not a global editor editing rights for a project')
         if pm:=self[person]:
             pm.access_level = access_level
         else:
-            if not type(person) is Person:
-                person = Person.get(self.session(), person)
             pm = ProjectMember(member=person, project=self, access_level=access_level)
             self.session().add(pm)
         return pm

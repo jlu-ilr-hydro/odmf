@@ -10,7 +10,7 @@ from ...config import conf
 @web.show_in_nav_for(1, 'user-friends')
 class ProjectPage:
 
-    @expose_for(Level.logger)
+    @expose_for()
     def index(self, project_id=None, error=None, msg=None):
 
         with db.session_scope() as session:
@@ -34,30 +34,34 @@ class ProjectPage:
                 .render()
 
 
-    @expose_for(group.supervisor)
+    @expose_for()
     @web.method.post
     def save(self, project_id:str, name:str, person:str, comment: str, sourcelink: str, organization: str):
         error = ''
 
         project_id = int(project_id)
-        try:
-            with db.session_scope() as session:
-                if project_id:
-                    project = db.Project.get(session, project_id)
-                else:
-                    project = db.Project()
-                    session.add(project)
+        if Level.my(project_id) >= Level.admin:
+            try:
+                with db.session_scope() as session:
+                    if project_id:
+                        project = db.Project.get(session, project_id)
+                    else:
+                        project = db.Project()
+                        session.add(project)
 
-                person = session.query(db.Person).get(person)
-                project.name = name
-                project.comment = comment
-                project.sourcelink = sourcelink
-                project.organization = organization
-                if person is None:
-                    raise RuntimeError('Spokesperson not found')
-        except RuntimeError as e:
-            error = f'Save failed: {e}'
-        users.load()
+                    person = session.query(db.Person).get(person)
+                    project.name = name
+                    project.comment = comment
+                    project.sourcelink = sourcelink
+                    project.organization = organization
+                    project.person_responsible = person
+                    if person is None:
+                        raise RuntimeError('Spokesperson not found')
+            except RuntimeError as e:
+                error = f'Save failed: {e}'
+            users.load()
+        else:
+            error = 'Not enough privileges to edit this project'
         raise web.redirect(f'/{conf.root_url}project/{project_id}', error=error, msg=f'{name} updated' if not error else None)
 
 
@@ -69,8 +73,8 @@ class ProjectPage:
             with db.session_scope() as session:
                 project = db.Project.get(session, project_id)
                 project.add_member(member_name, int(access_level))
-        except RuntimeError as e:
-            error = f'Save failed: {e}'
+        except (RuntimeError, ValueError) as e:
+            error = f'### Save failed: \n\n{e}'
         users.load()
         raise web.redirect(f'/{conf.root_url}project/{project_id}', error=error, msg=f'{member_name} added' if not error else None)
 

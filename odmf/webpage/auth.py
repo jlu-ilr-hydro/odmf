@@ -8,12 +8,14 @@ http://tools.cherrypy.org/wiki/AuthenticationAndAccessRestrictions
 
 import os.path as op
 import collections
+import typing
 
 import cherrypy
 
 from ..tools import hashpw, get_bcrypt_salt
 from enum import IntEnum
 
+# TODO: Delete from here
 ACCESS_LEVELS = [["Guest", "0"],
                  ["Logger", "1"],
                  ["Editor", "2"],
@@ -36,7 +38,7 @@ def get_levels(level):
         return levels_admin()
     else:
         return ACCESS_LEVELS
-
+# till here.
 
 SESSION_KEY = '#!35625/Schwingbach?Benutzer'
 
@@ -102,6 +104,17 @@ class Level(IntEnum):
     supervisor = 3
     admin = 4
 
+    @staticmethod
+    def my(project=None):
+        """
+        Returns the level of the current user
+        """
+        if users.current:
+            return users.current.get_level(project)
+        else:
+            return Level.guest
+
+
 class User(object):
 
     def __init__(self, name, level, password, projects=None):
@@ -109,21 +122,32 @@ class User(object):
         self.level = Level(level)
         self.password = password
         self.person = None
-        self.projects = projects or []
+        self.projects: typing.Dict[int, Level] = projects or {}
 
     @property
     def group(self) -> str:
         return self.level.name
 
-    def is_member(self, level: Level|str|int, project:int=None):
+    def is_member(self, level: Level|str|int, project:int=None) -> bool:
         if type(level) is str:
             level=Level[level]
         else:
             level = Level(level or 0)
-        if project is None:
-            return self.level >= level
+        return self.get_level(project) >= level
+
+    def get_level(self, project: int|None = None) -> Level:
+        """
+        Returns the level of this user. If a project is given, return the level for that project
+        :param project: int (project-id) or db.Project
+        :return:
+        """
+        if project is None or self.level>=Level.admin:
+            return self.level
         else:
-            return project in self.projects and self.projects[project] >= level or self.level>=Level.admin
+            if hasattr(project, 'id'):
+                project = project.id
+            return self.projects.get(project, Level.guest)
+
 
     def check(self, password):
 
@@ -161,7 +185,7 @@ class Users(collections.UserDict):
             self.data = {
                 person.username: User(
                     person.username, person.access_level, person.password,
-                    projects = {project.id: Level(l) for project, l in person.projects()}
+                    projects={project.id: Level(l) for project, l in person.projects()}
                 )
                 for person in q
             }
@@ -219,9 +243,6 @@ users = Users()
 def is_member(level: Level|str, project=None):
     return bool(users.current) and users.current.is_member(level, project)
 
-
-def is_project_member(project: int, min_level:Level=Level.guest):
-    return bool(users.current) and users.current.projects.get(project, -1) >= min_level
 
 def require(*conditions):
     """A decorator that appends conditions to the auth.require config

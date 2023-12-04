@@ -49,6 +49,16 @@
 
     <script>
         //<![CDATA[
+        function datetime_local_now() {
+            // https://stackoverflow.com/a/60884408/3032680
+            var now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+
+            /* remove second/millisecond if needed - credit ref. https://stackoverflow.com/questions/24468518/html5-input-datetime-local-default-value-of-today-and-current-time#comment112871765_60884408 */
+            now.setMilliseconds(null)
+            now.setSeconds(null)
+            return now.toISOString().slice(0, -1);
+        }
         $(function () {
             $('[data-toggle="tooltip"]').tooltip();
             $('#login-logout').click(() => {
@@ -72,6 +82,7 @@
                     });
                 return false;
             });
+            $('.datetime-local-now').val(datetime_local_now())
 
         });
         //]]>

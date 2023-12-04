@@ -589,7 +589,7 @@ class DatasetPage:
                 raise web.HTTPError(403, 'Not allowed')
             time = web.parsedate(time)
             ds.addrecord(id, value, time, comment, sample, out_of_timescope_ok=True)
-        raise web.redirect(str(dataset) + '#records')
+        raise web.redirect(str(dataset) + '/#add-record', message='record added')
 
 
 

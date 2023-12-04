@@ -14,6 +14,10 @@
     <py:block name="sidebar">
         <!-- insert sidebar content -->
         <div class="container-fluid">
+            <a class="btn btn-secondary w-100 mb-4" href="${conf.root_url}/project/">
+                <i class="fas fa-list mr-2"/>
+                list
+            </a>
             <a class="btn btn-secondary w-100 mb-4" href="${conf.root_url}/project/new" py:if="is_member(Level.admin)">
                 <i class="fas fa-plus mr-2"/>
                 new project
@@ -31,20 +35,51 @@
     </py:block>
     <py:block name="content">
         <div class="container m-0 p-0">
-            <div id="error-row" class="row mt-2 w-100 ${'' if error else 'd-none'}">
-                <div class="container">
-                    <div class="row bg-danger text-white border rounded p-4">
-                        <h1 class="display-3 col-lg-2">Error</h1>
-                        <div class="lead col-lg-10" id="error" py:content="markdown(error)"/>
+            <div class="alert bg-danger text-white" role="alert" py:if="error">
+                <div class="row">
+                    <div class="col-lg-1">
+                        <i class="fas fa-exclamation-circle fa-3x"/>
+                    </div>
+                    <div class="col-lg-11">
+                        <p class="lead" py:content="markdown(error)"/>
                     </div>
                 </div>
             </div>
-            <div id="msg-row" class="row mt-2 w-100 ${'' if msg else 'd-none'}">
-                <div class="container">
-                    <div class="row bg-success text-white border rounded p-4">
-                        <div class="lead col-lg-10" id="msg" py:content="markdown(msg)"/>
+            <div class="alert alert-success" role="alert" py:if="msg" >
+                <div class="row">
+                    <div class="col-lg-1">
+                        <i class="fas fa-info-circle fa-3x"/>
+                    </div>
+                    <div class="col-lg-11">
+                        <p class="" py:content="markdown(msg)"/>
                     </div>
                 </div>
+            </div>
+            <div class="accordion" py:if="not actproject" id="project-list">
+                <div id="list-title-area"
+                     class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4">
+                    <h2 class="display-4 mr-8">Projects</h2>
+                    <div class="display-4 col-sm my-auto text-right">
+                        <i class="fas fa-user-friends mr-4"/>
+                    </div>
+                </div>
+
+                 <div py:for="project in projects" class="card">
+                     <div class="card-header" id="project-header-${project.id}">
+                         <div class="row">
+                             <h2 class="mb-0 col-sm">
+                                 <button class="btn btn-block text-left" type="button" data-toggle="collapse" data-target="#project-${project.id}" aria-controls="#project-${project.id}" py:content="project.name">
+
+                                 </button>
+                             </h2>
+                             <div class="col-sm-1 badge badge-info" py:content="Level.my(project.id).name"/>
+                         </div>
+                         <div id="project-${project.id}" class="collapse" aria-labelledby="project-header-${project.id}" data-parent="#project-list">
+                             <a py:if="is_member(Level.admin, project.id)" class="btn btn-secondary float-right mt-4" href="${project.id}" title="edit" data-toggle="tooltip"><i class="fas fa-edit"/></a>
+                             <div class="card-body" py:content="markdown(project.comment)"/>
+                         </div>
+                     </div>
+                 </div>
             </div>
             <div class="container" py:if="actproject">
                 <div id="description" py:if="actproject">
@@ -52,13 +87,24 @@
                         <div class="container">
                             <div id="title-area"
                                  class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4">
-                                <h2 class="display-4 mr-8" py:content="f'{actproject.name}'"/>
+                                <div>
+                                    <h2 class="display-4 mr-8 d-inline-block" py:content="f'{actproject.name}'"/>
+                                    <div class="d-inline-block position-absolute top-0 end-0">
+                                        <span class="badge bg-info text-bg-info" py:content="Level.my(actproject.id).name" />
+                                    </div>
+
+                                </div>
                                 <div class="display-4 col-sm my-auto text-right">
                                     <i class="fas fa-user-friends mr-4"/>${actproject.id}
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-lg-10">
+                            <div>
+                                <div class="float-right" py:if="is_member(Level.admin, actproject.id)">
+                                    <a class="btn btn-secondary dropdown-toggle" href="#edit" data-toggle="collapse">
+                                        <i class="fas fa-edit"/>
+                                    </a>
+                                </div>
+                                <div>
                                     <div class="container border-bottom">
                                         <a href="${actproject.sourcelink}">
                                             <i class="fas fa-link mr-2"/>${actproject.name} homepage
@@ -69,11 +115,6 @@
                                     </div>
                                     <div class="container" py:with="p=actproject.person_responsible" py:content="markdown('Spokes person: user:' + (p.username if p else 'N/A'))"/>
                                     <div class="container" py:content="markdown(actproject.comment)"/>
-                                </div>
-                                <div class="col-lg-2">
-                                    <a class="btn btn-secondary dropdown-toggle" href="#edit" data-toggle="collapse">
-                                        edit
-                                    </a>
                                 </div>
 
                             </div>
@@ -114,7 +155,7 @@
                             <div class="form-group">
                                 <label for="responsible">Spokes person</label>
                                 <select id="responsible" name="person" class="form-control">
-                                    <option value="${p.username}" py:content="p" py:for="p in supervisors" py:attrs="markoption(p == actproject.person_responsible)"/>
+                                    <option value="${p.username}" py:content="f'{p} ({Level(p.access_level).name})'" py:for="p in supervisors" py:attrs="markoption(p == actproject.person_responsible)"/>
                                 </select>
                             </div>
                         </div>
@@ -160,7 +201,7 @@
                         <form class="form-row border" method="post" action="add_member">
                             <input type="hidden" value="${actproject.id}" xname="project_id"/>
                             <select id="add_who" class="form-control col-sm" name="member_name">
-                                <option value="${p.username}" py:for="p in persons" py:content="p"/>
+                                <option value="${p.username}" py:for="p in persons" py:content="f'{p} ({Level(p.access_level).name})'"/>
                             </select>
                             <select id="add_level" class="form-control col-sm-3" name="access_level">
                                 <option py:for="l in Level" value="${l.value}" py:content="l.name"/>
