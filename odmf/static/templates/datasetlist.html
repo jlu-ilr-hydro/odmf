@@ -16,6 +16,7 @@
 
                 }
 
+                let pr = $('#prselect').val()
                 let vt = $('#vtselect').val()
                 let user = $('#userselect').val()
                 let site = $('#siteselect').val()
@@ -38,9 +39,11 @@
                             date:date,
                             dstype:type,
                             instrument:instrument,
+                            project:pr
                         },
                         data => {
                             $('#userselect').html(options(data.measured_by, x=>x.username, fmt.user))
+                            $('#prselect').html(options(data.project, fmt.id, fmt.name)).val(pr);
                             $('#vtselect').html(options(data.valuetype, fmt.id, fmt.name)).val(vt);
                             $('#siteselect').html(options(data.site, fmt.id, fmt.site)).val(site);
                             $('#instrumentselect').html(options(data.source, fmt.id, fmt.name)).val(instrument)
@@ -59,6 +62,7 @@
                 var date = $('#dateselect').val();
                 var type = $('#typeselect').val();
                 var instrument = $('#instrumentselect').val();
+                let project = $('#prselect').val();
                 let limit = $('#limit').val();
                 let page = $('#page').val();
                 $.getJSON(odmf_ref('/dataset/json'),
@@ -69,14 +73,15 @@
                             date:date,
                             dstype:type,
                             instrument:instrument,
+                            project: project,
                             limit: limit,
                             page: page
                         },
                         function(data){
                             var items = [];
-                            var templ = '<a href="${conf.root_url}/dataset/ID" class="list-group-item list-group-item-action">LABEL</a>';
+                            var templ = '<a href="${conf.root_url}/dataset/ID" class="list-group-item list-group-item-action">LABEL <span class="badge badge-warning float-right">ACL</span></a>';
                             $.each( data.datasets, function( index, item ) {
-                                items.push(templ.replace(/ID/, item.id).replace(/LABEL/, item.label));
+                                items.push(templ.replace(/ID/, item.id).replace(/LABEL/, item.label).replace(/ACL/, item.accesslevel));
                             });
                             $('#dscount').html(((data.page - 1) * data.limit) + ' - ' + (data.page * data.limit) + ' of ' + data.count + ' datasets');
                             $('#dslist').html(items.join('\n'));
@@ -154,6 +159,10 @@
                     <a class="btn btn-secondary col-sm-2 border-circle text-light" onclick="clearFilter()" title="clear filter" data-toggle="tooltip">
                         <i class="fas fa-times" />
                     </a>
+                </div>
+                <div class="form-group mb-1 row">
+                    <label for="prselect" class="small m-0">Project</label>
+                    <select id="prselect" class="form-control form-select filter" tabindex="2"/>
                 </div>
                 <div class="form-group mb-1 row">
                     <label for="vtselect" class="small m-0">Value type</label>
