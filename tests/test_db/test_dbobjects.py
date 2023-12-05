@@ -145,7 +145,7 @@ def person(db, session):
         db.Person(
             username=randomstring(10), email='This is an email', firstname='first',
             surname='last', telephone='this is a phone number', comment='this is a comment',
-            can_supervise= False, mobile='this is a mobile number', car_available=0
+            can_supervise= False, mobile='this is a mobile number', car_available=0, access_level=2
         ),
         session) as person:
         yield person
@@ -244,13 +244,11 @@ class TestProject:
     def test_project_add_member(self, project, person):
         project.add_member(person, 2)
         members = list(project.members())
-        print(members)
         assert len(members) >= 1# , f'Added 1 one member to project, but project has {len(members)} member'
         assert members[0][1] == 2# , f'Project member has unexpected access level of {members[0].access_level}!=1'
 
-        members2 = list(project.members(3)) # should be empty list
-        print(members2)
-        assert len(members2) == 0 , f'Added one member with al=2 to project, but project has {len(members2)} members above level 3'
+        members2 = list(project.members(4)) # should contain the project owner
+        assert len(members2) == 1 , f'Added one member with al=2 to project, but project has {len(members2)} members above level 3'
 
     def test_person_add_project(self, project, person):
         person.add_project(project, 1)

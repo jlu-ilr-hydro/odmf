@@ -227,7 +227,7 @@ class Timeseries(Dataset):
             self.start = min(self.start or time, time)
             self.end = max(self.end or time, time)
 
-        elif self.start <= time <= self.end:
+        elif not(self.start <= time <= self.end):
             raise ValueError(
                 f'RECORD does not fit DATASET: You tried to insert a record for date {time} '
                 f'to dataset {self}, which allows only records between {self.start} and {self.end}'
