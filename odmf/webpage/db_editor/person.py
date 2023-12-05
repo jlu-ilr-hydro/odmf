@@ -1,7 +1,7 @@
 import cherrypy
 
 from .. import lib as web
-from ..auth import users, group, expose_for, hashpw, is_self, get_levels, HTTPAuthError
+from ..auth import users, expose_for, hashpw, is_self, Level
 
 from ... import db
 from traceback import format_exc as traceback
@@ -10,7 +10,7 @@ from traceback import format_exc as traceback
 @web.show_in_nav_for(1, 'user')
 class PersonPage:
 
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     def default(self, act_user=None, error='', msg=''):
         with db.session_scope() as session:
             persons = session.query(db.Person).order_by(
@@ -45,17 +45,16 @@ class PersonPage:
                 error=error, message=msg,
                 jobs=jobs,
                 act_user=act_user,
-                levels=get_levels,
                 is_self=is_self
             ).render()
 
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     @web.method.post
     def saveitem(self, **kwargs):
         username = kwargs.get('username')
         error = ''
         msg = ''
-        if is_self(username) or users.current.level > 2:
+        if is_self(username) or users.current.level >= Level.admin:
             with db.session_scope() as session:
                 p_act = session.query(db.Person).filter_by(
                     username=username).first()
@@ -76,7 +75,7 @@ class PersonPage:
                     p_act.active = False
 
                 # Simple Validation
-                if kwargs.get('password') and users.current.is_member('admin') or is_self(username):
+                if kwargs.get('password') and users.current.is_member(Level.admin) or is_self(username):
                     pw = kwargs['password']
                     pw2 = kwargs.get('password_verify')
                     if len(pw) < 8:
@@ -92,7 +91,7 @@ class PersonPage:
                     p_act.access_level = acl
                 msg = f'{username} saved'
         else:
-            error=f'As a {users.current.group} user, you may only change your own values'
+            error=f'As a {users.current.Level.name} user, you may only change your own values'
 
         raise web.redirect(username, error=error, msg=msg)
 

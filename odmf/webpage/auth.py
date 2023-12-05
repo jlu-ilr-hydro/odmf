@@ -15,33 +15,7 @@ import cherrypy
 from ..tools import hashpw, get_bcrypt_salt
 from enum import IntEnum
 
-# TODO: Delete from here
-ACCESS_LEVELS = [["Guest", "0"],
-                 ["Logger", "1"],
-                 ["Editor", "2"],
-                 ["Supervisor", "3"],
-                 ["Admin", "4"]]
-
-
-def levels_supervisor():
-    return levels_admin()[:2]
-
-
-def levels_admin():
-    return ACCESS_LEVELS[1:5]
-
-
-def get_levels(level):
-    if level == int(ACCESS_LEVELS[3][1]):
-        return levels_supervisor()
-    elif level == int(ACCESS_LEVELS[4][1]):
-        return levels_admin()
-    else:
-        return ACCESS_LEVELS
-# till here.
-
 SESSION_KEY = '#!35625/Schwingbach?Benutzer'
-
 
 def sessionuser()->str:
     "Returns the username saved in the session"

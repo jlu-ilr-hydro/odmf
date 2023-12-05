@@ -113,7 +113,7 @@
                         />
                     </div>
                 </div>
-                <div class="form-group row" py:if="is_member('admin') or is_self(U.username) or act_user=='new'">
+                <div class="form-group row" py:if="is_member(Level.admin) or is_self(U.username) or act_user=='new'">
                     <label for="password" class="col-lg-2 col-form-label">password</label>
                     <div class="col-lg-4">
                         <input type="password" id="password" name="password"
@@ -139,11 +139,10 @@
                                 py:attrs="prop(disabled=not (is_member('supervisor') or is_self(U.username)))"
                                 class="form-control"
                         >
-                            <option py:for="value in levels(users.current.level)"
-                                    py:content="value[0]"
-                                    py:if="int(users.current.level)>=int(value[1])"
-                                    value="${value[1]}"
-                                    py:attrs="markoption(str(value[1]) == str(U.access_level))"/>
+                            <option py:for="l in Level"
+                                    py:content="l.name"
+                                    value="${l.value}"
+                                    py:attrs="prop(selected=l.value == U.access_level, disabled=l>users.current.level)"/>
                         </select>
                     </div>
                     <div class="col-lg-2"></div>
@@ -167,13 +166,21 @@
 
                 <div class="form-group row">
                     <button type="submit" class="col-lg-2 btn btn-primary w-100"
-                            py:attrs="prop(disabled=not (is_member('supervisor') or is_self(U.username)))"
+                            py:attrs="prop(disabled=not (is_member(Level.supervisor) or is_self(U.username)))"
                     >
                         save
                     </button>
 
                 </div>
             </form>
+
+            <h2 class="mt-4">Projects:</h2>
+            <div class="list-group">
+                <a py:for="project, level in active_person.projects()" href="${f'{conf.root_url}/project/{project.id}'}" class="list-group-item list-group-item-action">
+                    <span py:content="project.name"/>
+                    <span class="badge badge-warning float-right" py:content="level.name"/>
+                </a>
+            </div>
 
         </div>
 
