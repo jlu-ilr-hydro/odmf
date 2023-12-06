@@ -25,8 +25,8 @@ class Migrator:
             logger.info(f'added {table}.{column}')
 
     def run(self):
-        self.add_column('project', 'organization', sql.String(), "default 'uni-giessen.de'")
-        self.add_column('project', 'sourcelink', sql.String())
+        # self.add_column('project', 'organization', sql.String(), "default 'uni-giessen.de'")
+        # self.add_column('project', 'sourcelink', sql.String())
         logger.info('migration complete')
 
     def ___run_all(self):

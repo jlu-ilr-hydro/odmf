@@ -18,6 +18,7 @@ def summarize_item(
         instrument: typing.Optional[int]=None,
         date: typing.Optional[datetime.datetime]=None,
         type: typing.Optional[str]=None,
+        factor: typing.Optional[float]=None,
         **kwargs
 ):
     """
@@ -50,7 +51,8 @@ def summarize_item(
                 name += f' in {level} m'
         group = db.DatasetGroup([ds.id for ds in ds_filter],start, end)
         series = group.asseries(session)
-    return dict(name=name, value=series.agg(aggregate), unit=vt.unit, aggregation=aggregate, n=len(series), start=start, end=end)
+        factor = factor or 1.0
+    return dict(name=name, value=series.agg(aggregate) * factor, unit=vt.unit, aggregation=aggregate, n=len(series), start=start, end=end)
 
 def summary(time: str, items: typing.List[typing.Dict]) -> pd.DataFrame:
     """
