@@ -6,6 +6,8 @@ Created on 13.07.2012
 @author: philkraf
 '''
 import datetime
+
+import cherrypy
 import pandas as pd
 import io
 from cherrypy.lib.static import serve_fileobj
@@ -25,28 +27,30 @@ from ...config import conf
 
 @web.expose
 @web.show_in_nav_for(1, 'map-marker-alt')
+@cherrypy.popargs('siteid')
 class SitePage:
     url = conf.root_url + '/site/'
     @expose_for(group.guest)
-    def default(self, actualsite_id=None, error=''):
+    def index(self, siteid=None, error=''):
         """
         Shows the page for a single site.
         """
+        siteid = web.conv(int, siteid)
         with db.session_scope() as session:
             pref = Preferences()
 
-            if not actualsite_id:
-                actualsite_id = pref['site']
+            if not siteid:
+                siteid = pref['site']
             else:
-                pref['site'] = actualsite_id
+                pref['site'] = siteid
 
             datasets = instruments = []
             try:
                 instruments = session.query(db.Datasource).order_by(db.Datasource.name)
                 all_sites = session.query(db.Site).order_by(db.Site.id)
-                actualsite = session.query(db.Site).get(int(actualsite_id))
+                actualsite = session.query(db.Site).get(int(siteid))
                 if not actualsite:
-                    error = f'Site #{actualsite_id} does not exist'
+                    error = f'Site #{siteid} does not exist'
                 else:
                     datasets = actualsite.datasets.join(db.ValueType).order_by(
                         db.ValueType.name, db.sql.desc(db.Dataset.end)
@@ -54,7 +58,7 @@ class SitePage:
             except:
                 error = traceback()
                 actualsite = None
-            return web.render('site.html', id=int(actualsite_id), actualsite=actualsite, error=error,
+            return web.render('site.html', id=siteid, actualsite=actualsite, error=error,
                               datasets=datasets, icons=self.geticons(), instruments=instruments, all_sites=all_sites
                               ).render()
 
@@ -78,34 +82,63 @@ class SitePage:
 
     @expose_for(group.editor)
     @web.method.post
-    def saveitem(self, **kwargs):
+    def save(self, siteid, lon=None, lat=None, name=None, height=None, icon=None, comment=None, save=None):
         try:
-            siteid = web.conv(int, kwargs.get('id'), '')
+            siteid = web.conv(int, siteid)
         except:
             raise web.redirect(f'{self.url}/{siteid}', error=traceback())
-        if 'save' in kwargs:
-            with db.session_scope() as session:
-                try:
-                    lon = web.conv(float, kwargs.get('lon'))
-                    lat = web.conv(float, kwargs.get('lat'))
-                    if lon > 180 or lat > 180:
-                        lat, lon = proj.UTMtoLL(23, lat, lon, conf.utm_zone)
-                    if None in (lon, lat):
-                        raise web.redirect(f'../{siteid}', error='The site has no coordinates')
+        with db.session_scope() as session:
+            try:
+                lon = web.conv(float, lon)
+                lat = web.conv(float, lat)
+                if lon > 180 or lat > 180:
+                    lat, lon = proj.UTMtoLL(23, lat, lon, conf.utm_zone)
+                if None in (lon, lat):
+                    raise web.redirect(f'../{siteid}', error='The site has no coordinates')
 
-                    site = session.query(db.Site).get(siteid)
-                    if not site:
-                        site = db.Site(id=siteid, lat=lat, lon=lon)
-                        session.add(site)
-                    site.lat, site.lon = lat, lon
-                    site.name = kwargs.get('name')
-                    site.height = web.conv(float, kwargs.get('height'))
-                    site.icon = kwargs.get('icon')
-                    site.comment = kwargs.get('comment')
-                except Exception as e:
-                    tb = traceback()
-                    raise web.redirect(f'{self.url}/{siteid}', error=f'## {e}\n\n```{tb}```')
+                site = session.query(db.Site).get(siteid)
+                if not site:
+                    site = db.Site(id=siteid, lat=lat, lon=lon)
+                    session.add(site)
+                site.lat, site.lon = lat, lon
+                site.name = name or site.name
+                site.height = web.conv(float, height) or site.height
+                site.icon = icon or site.icon
+                site.comment = comment or site.comment
+            except Exception as e:
+                tb = traceback()
+                raise web.redirect(f'{self.url}/{siteid}', error=f'## {e}\n\n```{tb}```')
         raise web.redirect(f'{self.url}/{siteid}')
+
+    @expose_for(group.editor)
+    @web.method.post
+    def savegeo(self, siteid, geojson=None, strokewidth=None, strokeopacity=None, strokecolor=None, fillopacity=None, fillcolor=None):
+        import json
+        with db.session_scope() as session:
+            try:
+                siteid = web.conv(int, siteid)
+                site = session.query(db.Site).get(siteid)
+                if not (siteid or site):
+                    raise web.redirect(f'{self.url}/{siteid}', error=f'#{siteid} not found')
+                if site.geometry:
+                    geometry = site.geometry
+                else:
+                    geometry = db.site.SiteGeometry()
+
+                geojson = json.loads(geojson)
+                geometry.geojson = geojson or geometry.geojson
+                geometry.strokewidth = strokewidth or geometry.strokewidth
+                geometry.strokeopacity = strokeopacity or geometry.strokeopacity
+                geometry.strokecolor = strokecolor or geometry.strokecolor
+                geometry.fillopacity = fillopacity or geometry.fillopacity
+                geometry.fillcolor = fillcolor or geometry.fillcolor
+            except Exception as e:
+                tb = traceback()
+                raise web.redirect(f'{self.url}/{siteid}', error=f'## {e}\n\n```{tb}```')
+        raise web.redirect(f'{self.url}/{siteid}')
+
+
+
 
     @expose_for()
     @web.mime.json

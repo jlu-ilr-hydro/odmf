@@ -99,27 +99,22 @@
                                 #${actualsite.id}
                             </div>
                         </div>
-                        <div class="row mb-4">
-                            <div class="col-sm-1">
-                                <a class="btn btn-outline-primary rounded-pill"
-                                   href="${conf.root_url}/map?site=${actualsite.id}"
-                                   title="show on map..." data-toggle="tooltip"
-                                >
-                                    <i class="fas fa-map"/>
-                                </a>
-
-                            </div>
-                            <div class="col-sm-5 text-center">
-                                <div py:content="actualsite.as_coordinatetext()"/>
-                            </div>
-                            <div class="col-sm-5 text-center">
-                                <div py:content="'UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
+                        <div class="container">
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <a class="btn btn-outline-primary rounded-pill"
+                                       href="${conf.root_url}/map?site=${actualsite.id}"
+                                       title="show on map..." data-toggle="tooltip"
+                                    >
+                                        <i class="fas fa-map"/>
+                                    </a>
+                                </div>
+                                <div class="list-group-item" py:content="actualsite.as_coordinatetext()"/>
+                                <div class="list-group-item" py:content="'UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
+                                <div class="list-group-item" py:if="actualsite.height is not None" py:content="f'{actualsite.height:0.2f} m a.s.l.'"/>
+                                <div class="list-group-item" py:content="markdown(actualsite.comment)"/>
                             </div>
                         </div>
-                        <div class="row border rounded">
-                            <div class="col" py:content="markdown(actualsite.comment)"/>
-                        </div>
-
                     </div>
 
 
@@ -136,79 +131,137 @@
                         <hr class="my-4"/>
                         <p>If you need to edit sites, please ask the site-administrators to elevate your privileges.</p>
                     </div>
+                    <div class="container">
+                        <form py:if="is_member('editor')"
+                              action="save" method="post"
+                              class="container-fluid mt-3">
+                            <div class="form-group row">
+                                <label for="id" class="col-sm-4 col-form-label">ID:</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="id"  value="${actualsite.id}"
+                                           readonly="readonly" class="readonly form-control"/>
 
-                    <form py:if="is_member('editor')"
-                          action="${conf.root_url}/site/saveitem" method="post"
-                          class="container-fluid mt-3">
-                        <div class="form-group row">
-                            <label for="id" class="col-sm-4 col-form-label">ID:</label>
-                            <div class="col-sm-8">
-                                <input type="text" id="id" name="id" value="${actualsite.id}"
-                                       readonly="readonly" class="readonly form-control"/>
-
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="lon" class="col-sm-4 col-form-label">Longitude:</label>
-                            <div class="col-sm-8 input-group">
-                                <input type="text" id="lon" name="lon" value="${actualsite.lon}"  class="form-control"/>
-                                <div class="input-group-append"><span class="input-group-text">° E</span></div>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="lat" class="col-sm-4 col-form-label">Latitude:</label>
-                            <div class="col-sm-8 input-group">
-                                <input type="text" id="lat" name="lat" value="${actualsite.lat}"  class="form-control"/>
-                                <div class="input-group-append"><span class="input-group-text">° N</span></div>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="height" class="col-sm-4 col-form-label">Height:</label>
-                            <div class="col-sm-8 input-group">
-                                <input type="text" id="height" name="height" value="${actualsite.height}"  class="form-control"/>
-                                <div class="input-group-append"><span class="input-group-text">m a.s.l.</span></div>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="name" class="col-sm-4 col-form-label">Name:</label>
-                            <div class="col-sm-8">
-                                <input type="text" id="name" name="name" value="${actualsite.name}"  class="form-control"/>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-sm-4">
-                                <label for="iconfile" class="col-form-label">Icon:</label>
-                                <img src="${conf.root_url}/media/mapicons/${actualsite.icon if actualsite.icon else 'unknown.png'}" id="currenticon" />
-                            </div>
-                            <div class="col-sm-8">
-                                <div class="">
-                                    <button type="button" class="icon-button btn btn-outline-primary mr-1 mb-1"
-                                            data-icon="${icon}"
-                                            py:for="icon in icons"
-                                    >
-                                        <img src="${conf.root_url}/media/mapicons/${icon}"/>
-                                    </button>
-                                    <input name="icon" type="hidden" id="iconfile" value="${actualsite.icon}" />
                                 </div>
                             </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-sm-4">
-                                <label for="comment">Comment</label>
-                                <a title="Get help for using links and formats"
-                                   data-toggle="tooltip" data-placement="top" class="wiki-help" href="${conf.root_url}/download/wiki/help.wiki"
-                                >
-                                    <i class="fas fa-question-circle"/>
-                                </a>
+                            <div class="form-group row">
+                                <label for="lon" class="col-sm-4 col-form-label">Longitude:</label>
+                                <div class="col-sm-8 input-group">
+                                    <input type="text" id="lon" name="lon" value="${actualsite.lon}"  class="form-control"/>
+                                    <div class="input-group-append"><span class="input-group-text">° E</span></div>
+                                </div>
                             </div>
-                            <div class="col-sm">
+                            <div class="form-group row">
+                                <label for="lat" class="col-sm-4 col-form-label">Latitude:</label>
+                                <div class="col-sm-8 input-group">
+                                    <input type="text" id="lat" name="lat" value="${actualsite.lat}"  class="form-control"/>
+                                    <div class="input-group-append"><span class="input-group-text">° N</span></div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="height" class="col-sm-4 col-form-label">Height:</label>
+                                <div class="col-sm-8 input-group">
+                                    <input type="text" id="height" name="height" value="${actualsite.height}"  class="form-control"/>
+                                    <div class="input-group-append"><span class="input-group-text">m a.s.l.</span></div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="name" class="col-sm-4 col-form-label">Name:</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="name" name="name" value="${actualsite.name}"  class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-4">
+                                    <label for="iconfile" class="col-form-label">Icon:</label>
+                                    <img src="${conf.root_url}/media/mapicons/${actualsite.icon if actualsite.icon else 'unknown.png'}" id="currenticon" />
+                                </div>
+                                <div class="col-sm-8">
+                                    <div class="">
+                                        <button type="button" class="icon-button btn btn-outline-primary mr-1 mb-1"
+                                                data-icon="${icon}"
+                                                py:for="icon in icons"
+                                        >
+                                            <img src="${conf.root_url}/media/mapicons/${icon}"/>
+                                        </button>
+                                        <input name="icon" type="hidden" id="iconfile" value="${actualsite.icon}" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-4">
+                                    <label for="comment">Comment</label>
+                                    <a title="Get help for using links and formats"
+                                       data-toggle="tooltip" data-placement="top" class="wiki-help" href="${conf.root_url}/download/wiki/help.wiki"
+                                    >
+                                        <i class="fas fa-question-circle"/>
+                                    </a>
+                                </div>
+                                <div class="col-sm">
                                 <textarea id="comment" name="comment"
                                           class="form-control"
                                           rows="10" py:content="actualsite.comment"/>
+                                </div>
                             </div>
-                        </div>
-                        <button type="submit" id="save" name="save" class="btn btn-success">save</button>
-                    </form>
+                            <button type="submit" id="save" class="btn btn-success" >save</button>
+                        </form>
+                        <hr/>
+                        <a class="btn btn-secondary dropdown-toggle" href="#geoForm" role="button" id="geoFormButton" data-toggle="collapse" aria-expanded="false">
+                            <i class="fas fa-draw-polygon"/> show geometry
+                        </a>
+                        <form id="geoForm" py:if="is_member('editor')" action="savegeo" method="post" aria-labelledby="geoFormButton"
+                              class="collapse container-fluid mt-3" py:with="geo=actualsite.geometry">
+                            <div class="form-group row">
+                                <div class="col-sm-4">
+                                    <label for="geojson">Geometry in geojson notation</label>
+                                </div>
+                                <div class="col-sm">
+                                <textarea id="geojson" name="geojson"
+                                          class="form-control"
+                                          rows="2" py:content="as_json(geo.geojson) if geo else ''"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="geo-strokeWidth" class="col-sm-4 col-form-label">stroke width</label>
+                                <div class="col-sm-8">
+                                    <input type="range" id="geo-strokeWidth" name="strokewidth" min="1" max="10" value="${(geo and geo.strokewidth) or 3}"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="geo-strokeOpacity" class="col-sm-4 col-form-label">stroke opacity</label>
+                                <div class="col-sm-8">
+                                    <input type="range" id="geo-strokeOpacity" name="strokeopacity" min="0" max="1.0" step="0.05" value="${(geo and geo.strokeopacity) or 50}"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="geo-strokeColor" class="col-sm-4 col-form-label">stroke color</label>
+                                <div class="col-sm-8">
+                                    <input type="color" id="geo-strokeColor" name="strokecolor" value="${(geo and geo.strokecolor) or '#FFFFFF'}"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="geo-fillOpacity" class="col-sm-4 col-form-label">fill opacity</label>
+                                <div class="col-sm-8">
+                                    <input type="range" id="geo-fillOpacity" name="fillopacity" min="0" max="1.0" step="0.05" value="${(geo and geo.fillopacity) or 50}"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="geo-fillColor" class="col-sm-4 col-form-label">fill color</label>
+                                <div class="col-sm-8">
+                                    <input type="color" id="geo-fillColor" name="fillcolor" value="${(geo and geo.fillcolor) or '#FFFFFF'}"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <button type="submit" id="geo-save" class="btn btn-success" value="${actualsite.id}">save geometry</button>
+
+
+                        </form>
+
+                    </div>
                 </div>
                 <div class="tab-pane" id="messagelist" role="tabpanel">
                     <p>

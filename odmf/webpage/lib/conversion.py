@@ -29,13 +29,13 @@ def as_json(*args, **kwargs) -> str:
     A JSON string
     """
     if len(args) == 1:
-        return json.dumps(args[0], sort_keys=True, indent=4, default=jsonhandler)
+        return json.dumps(args[0], indent=4, default=jsonhandler)
     elif len(args) == 0:
-        return json.dumps(kwargs, sort_keys=True, indent=4, default=jsonhandler)
+        return json.dumps(kwargs, indent=4, default=jsonhandler)
     elif kwargs:
         raise ValueError('You can\'t create a json representation from mixing positional and key word arguments')
     else:
-        return json.dumps(list(args), sort_keys=True, indent=4, default=jsonhandler)
+        return json.dumps(list(args), indent=4, default=jsonhandler)
 
 
 def formatdate(t=None, fmt='%d.%m.%Y'):
