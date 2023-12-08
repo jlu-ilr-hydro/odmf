@@ -8,7 +8,7 @@ from contextlib import contextmanager
 import pandas as pd
 
 from .. import lib as web
-from ..auth import users, expose_for, group, has_level
+from ..auth import users, expose_for, has_level, Level
 from ... import db
 from ...config import conf
 from . import BaseAPI, get_help
@@ -57,12 +57,12 @@ class DatasetAPI(BaseAPI):
             ds = session.query(db.Dataset).get(dsid)
             if not ds:
                 raise web.APIError(404, f'ds{dsid} does not exist')
-            elif check_access and not has_level(ds.access):
+            elif check_access and ds.access > ds.get_access_level(users.current):
                 raise web.APIError(403, f'ds{dsid} is protected. Need a higher access level')
             else:
                 yield ds
 
-    @expose_for(group.guest)
+    @expose_for(Level.guest)
     @web.method.get
     def index(self, dsid=None):
         """
@@ -75,10 +75,10 @@ class DatasetAPI(BaseAPI):
             url, res = get_help(self, self.url)
             res[f'{self.url}/[n]'] = f"A dataset with the id [n]. See {self.url}/list method"
             return web.json_out(res)
-        with self.get_dataset(dsid, False) as ds:
+        with self.get_dataset(dsid, check_access=False) as ds:
             return web.json_out(ds)
 
-    @expose_for(group.guest)
+    @expose_for(Level.guest)
     @web.mime.json
     def records(self, dsid):
         """
@@ -87,7 +87,7 @@ class DatasetAPI(BaseAPI):
         with self.get_dataset(dsid) as ds:
             return web.json_out(ds.records.all())
 
-    @expose_for(group.guest)
+    @expose_for(Level.guest)
     def values(self, dsid, start=None, end=None):
         """
         NOT TESTED! Returns the calibrated values for a dataset
@@ -97,13 +97,13 @@ class DatasetAPI(BaseAPI):
         :return: JSON list of time/value pairs
         """
         web.mime.json.set()
-        start = web.parsedate(start, False)
-        end = web.parsedate(end, False)
+        start = web.parsedate(start, raiseerror=False)
+        end = web.parsedate(end, raiseerror=False)
         with self.get_dataset(dsid) as ds:
             series = ds.asseries(start, end)
             return series.to_json().encode('utf-8')
 
-    @expose_for(group.guest)
+    @expose_for(Level.guest)
     @web.method.get
     def values_parquet(self, dsid, start=None, end=None):
         """
@@ -147,7 +147,7 @@ class DatasetAPI(BaseAPI):
                 for ds in datasets
             ])
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post_or_put
     def new(self, **kwargs):
         """
@@ -210,7 +210,7 @@ class DatasetAPI(BaseAPI):
                 # On error render the error message
                 raise web.APIError(400, 'Creating new timeseries failed') from e
 
-    @expose_for(group.admin)
+    @expose_for(Level.admin)
     @web.method.post_or_delete
     def delete(self, dsid: int):
         with db.session_scope() as session:
@@ -221,7 +221,7 @@ class DatasetAPI(BaseAPI):
             session.delete(ds)
             return web.json_out(dict(status='success', datasets=[dsid]))
 
-    @expose_for(group.guest)
+    @expose_for(Level.guest)
     @web.method.get
     def count_records(self, dsid: int):
         web.mime.plain.set()
@@ -231,7 +231,7 @@ class DatasetAPI(BaseAPI):
             return f'{ds.size()}'.encode('utf-8')
 
 
-    @expose_for(group.admin)
+    @expose_for(Level.admin)
     @web.method.post_or_delete
     def delete_records(self, dsid: int, start=None, end=None):
         """
@@ -241,6 +241,8 @@ class DatasetAPI(BaseAPI):
         with db.session_scope() as session:
             if not (ds := session.query(db.Timeseries).get(dsid)):
                 raise web.APIError(404, f'Dataset {dsid} not found')
+            if ds.access > ds.get_access_level(users.current):
+                raise web.APIError(403, 'Not enough privileges')
             records = ds.records
             if start:
                start = web.parsedate(start)
@@ -253,7 +255,7 @@ class DatasetAPI(BaseAPI):
             return f'{count} records deleted'.encode('utf-8')
 
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post_or_put
     def addrecord(self, dsid: int, value: float, time: str,
                   sample: str = None, comment: str = None, recid: int = None):
@@ -275,6 +277,9 @@ class DatasetAPI(BaseAPI):
             try:
                 dsid = self.parse_id(dsid)
                 ds = session.query(db.Timeseries).get(dsid)
+                if ds.access > ds.get_access_level(users.current):
+                    raise web.APIError(403, 'Not enough privileges')
+
                 if not ds:
                     return 'Timeseries ds:{} does not exist'.format(dsid)
                 new_rec = ds.addrecord(Id=recid, time=time, value=value, comment=comment, sample=sample)
@@ -282,7 +287,7 @@ class DatasetAPI(BaseAPI):
             except Exception as e:
                 raise web.APIError(400, 'Could not add record') from e
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post_or_put
     def addrecords_parquet(self):
         """
@@ -299,7 +304,7 @@ class DatasetAPI(BaseAPI):
         return web.json_out(dict(status='success', datasets=list(datasets), records=records))
 
     @web.json_in()
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post_or_put
     def addrecords_json(self):
         """
@@ -332,6 +337,10 @@ class DatasetAPI(BaseAPI):
                     ...  # reuse last dataset
                 if not dataset:
                     warnings.append(f'ds{dsid} does not exist')
+                    continue
+                elif dataset.access > dataset.get_access_level(users.current):
+                    warnings.append(f'ds{dsid} forbidden to append data for {users.current}')
+                    continue
                 # get value, time, sample, comment and recid
                 value = web.conv(float, rec.get('value'))
                 time = web.parsedate(rec.get('time'), False)

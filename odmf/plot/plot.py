@@ -70,23 +70,26 @@ class Line:
                                       self.subplot.plot.aggregate)
         return name
 
-    def getdatasets(self, session, userlevel=10):
+    def getdatasets(self, session):
         """
         Loads the datasets for this line
         """
-
+        from ..webpage.auth import users
+        me = users.current
         datasets = session.query(db.Dataset).filter(
             db.Dataset._valuetype == self.valuetypeid,
             db.Dataset._site == self.siteid,
             db.Dataset.start <= self.subplot.plot.end,
-            db.Dataset.end >= self.subplot.plot.start,
-            db.Dataset.access <= userlevel
+            db.Dataset.end >= self.subplot.plot.start
         )
         if self.instrumentid:
             datasets = datasets.filter(db.Dataset._source == self.instrumentid)
         if self.level is not None:
             datasets = datasets.filter(db.Dataset.level == self.level)
-        return datasets.order_by(db.Dataset.start).all()
+        return [
+            ds for ds in datasets.order_by(db.Dataset.start)
+            if ds.get_access_level(me) >= ds.access
+        ]
 
     def load(self, start=None, end=None):
         """

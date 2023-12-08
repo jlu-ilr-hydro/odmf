@@ -72,7 +72,7 @@ def addrecords_parquet(filename):
     Expects a table in the apache arrow format to import records to existing datasets. Expected column names:
     dataset, id, time, value [,sample, comment, is_error]
     """
-
+    from ..webpage.auth import users
     # Load dataframe
     df = pd.read_parquet(filename)
     df = df[~df.value.isna()]
@@ -86,6 +86,16 @@ def addrecords_parquet(filename):
         datasets = session.query(db.Dataset).filter(db.Dataset.id.in_(ds_ids)).order_by(db.Dataset.id)
 
         # Alter id and timeranges
+        error_ds = [
+            ds.id
+            for ds in datasets
+            if ds.access > ds.get_access_level(users.current)
+        ]
+
+        if error_ds:
+            error_ds = ', '.join(f'ds{ds.id}' for ds in error_ds)
+            raise ValueError(f'{users.current} may not append to datasets {error_ds}')
+
         for ds in datasets:
             _adjust_id(df, ds)
             _adjust_time(df, ds)
