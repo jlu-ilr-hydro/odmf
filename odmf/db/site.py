@@ -124,7 +124,7 @@ class SiteGeometry(Base):
     @property
     def __geo_interface__(self):
         return self.geojson
-    
+
     def get_style(self):
         res = {}
         if self.strokewidth:
