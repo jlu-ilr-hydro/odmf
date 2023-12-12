@@ -113,10 +113,11 @@
             <div id="title-row" class="row mt-2 w-100">
                 <div class="container">
                     <div id="title-area" class="container bg-dark text-white row w-100 border rounded shadow" py:if="ds_act" py:with="n=ds_act.size()">
-                        <div class="col-sm">
-                            <h2 class="display-3 d-inline-block">ds<span id="dsid" py:content="ds_act.id"/></h2>
-                            <div class="d-inline-block position-absolute top-0 end-0">
-                                <span class="badge bg-info text-bg-info" py:content="ds_act.get_access_level(users.current).name" />
+                        <div class="col-sm row">
+                            <h2 class="display-3 col-sm">ds<span id="dsid" py:content="ds_act.id"/></h2>
+                            <div class="col-sm">
+                                <div class="badge bg-info text-bg-info " py:content="ds_act.get_access_level(users.current).name" />
+                                <div class="" py:content="ds_act.project"/>
                             </div>
                         </div>
 
@@ -156,6 +157,10 @@
             <div id="tab-row" class="tab-content row w-100 mt-2">
                 <div id="description" class="tab-pane mx-auto ${['', 'active'][ds_act.is_defined()]}" role="tabpanel" >
                     <table class="table mx-auto">
+                        <tr>
+                            <td class="bold">Project:</td>
+                            <td py:with="prj=ds_act.project"><a py:if="prj" href="${f'{conf.root_url}/project/{prj.id}'}" py:content="prj.name"/></td>
+                        </tr>
                         <tr>
                             <td class="bold">Type:</td>
                             <td>${ds_act.type}</td>
@@ -248,8 +253,6 @@
                             data-dsid="${ds_act.id}" data-dsname="${str(ds_act)}" data-dssize="${ds_act.size()}">
                         <i class="fas fa-trash mr-2"/> delete dataset
                     </button>
-
-
                 </div>
                 <div id="edit" class="tab-pane w-100 mr-4 ${['', 'active'][not ds_act.is_defined()]}" role="tabpanel" py:if="access(Level.editor)">
                     <form action="save" method="post">
@@ -560,7 +563,6 @@
                                 <label for="filename">filename</label>
                                 <input id="filename" name="filename" class="form-control" type="text" value="${ds_act.filename}"/>
                             </div>
-
                             <div class="form-row">
                                 <label for="comment">Comments:</label>
                                 <textarea id="comment" name="comment"
@@ -569,7 +571,6 @@
                                           py:content="ds_act.comment" />
                             </div>
                         </div>
-
                     </form>
                 </div>
                 <div id="add-record" class="tab-pane w-100 mr-4" role="tabpanel" py:if="access(Level.editor) and ds_act.valuetype">

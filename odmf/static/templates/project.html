@@ -24,7 +24,7 @@
             </a>
             <div class="nav flex-column nav-pills">
                 <a py:for="proj in projects"
-                   class="nav-link ${['', 'active'][bool(actproject and proj.id==actproject.id)]}"
+                   class="nav-link ${['', 'active'][bool(actproject and proj.id==actproject.id)]} ${'' if is_member(Level.logger) else 'disabled'}"
                    href="${f'{conf.root_url}/project/{proj.id}'}"
                    py:content="f'{proj.id} - {proj.name}'"
                 />
@@ -55,34 +55,25 @@
                     </div>
                 </div>
             </div>
-            <div class="accordion" py:if="not actproject" id="project-list">
-                <div id="list-title-area"
-                     class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4">
-                    <h2 class="display-4 mr-8">Projects</h2>
-                    <div class="display-4 col-sm my-auto text-right">
-                        <i class="fas fa-user-friends mr-4"/>
-                    </div>
+            <py:if test="(not actproject) or Level.my(actproject.id)==Level.guest">
+            <div id="list-title-area"
+                 class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4">
+                <h2 class="display-4 mr-8">Projects</h2>
+                <div class="display-4 col-sm my-auto text-right">
+                    <i class="fas fa-user-friends mr-4"/>
                 </div>
-
-                 <div py:for="project in projects" class="card">
-                     <div class="card-header" id="project-header-${project.id}">
-                         <div class="row">
-                             <h2 class="mb-0 col-sm">
-                                 <button class="btn btn-block text-left" type="button" data-toggle="collapse" data-target="#project-${project.id}" aria-controls="#project-${project.id}" py:content="project.name">
-
-                                 </button>
-                             </h2>
-                             <div class="col-sm-1 badge badge-info" py:content="Level.my(project.id).name"/>
-                         </div>
-                         <div id="project-${project.id}" class="collapse" aria-labelledby="project-header-${project.id}" data-parent="#project-list">
-                             <a py:if="is_member(Level.admin, project.id)" class="btn btn-secondary float-right mt-4" href="${project.id}" title="edit" data-toggle="tooltip"><i class="fas fa-edit"/></a>
-                             <div class="card-body" py:content="markdown(project.comment)"/>
-                         </div>
-                     </div>
-                 </div>
             </div>
-            <div class="container" py:if="actproject">
-                <div id="description" py:if="actproject">
+            <div class="list-group" id="project-list">
+                <a py:for="project in projects"
+                   href="${project.id}"
+                   class="list-group-item list-group-item-action ${'' if Level.my(project.id)>Level.guest else 'disabled'}">
+                    <span class="h3" py:content="project.name"/>
+                    <span class="col-sm-1 badge badge-info float-right" py:content="Level.my(project.id).name"/>
+                </a>
+            </div>
+            </py:if><py:else>
+            <div class="container">
+                <div id="description">
                     <div class="row mt-2 w-100">
                         <div class="container">
                             <div id="title-area"
@@ -130,12 +121,12 @@
                     >
                         <div class="form-row mt-2">
                             <div class="form-group">
-                                <label for="">ID:</label>
-                                <input type="text" id="id" xname="id" class="form-control" value="${actproject.id}"
+                                <label for="id">ID:</label>
+                                <input type="text" id="id" class="form-control" value="${actproject.id}"
                                        readonly="readonly"/>
                             </div>
                             <div class="form-group">
-                                <label for="">Name:</label>
+                                <label for="name">Name:</label>
                                 <input type="text" id="name" name="name" class="form-control" value="${actproject.name}"/>
                             </div>
                         </div>
@@ -161,7 +152,7 @@
                         </div>
                         <div class="form-row mb-2">
 
-                            <label for="">Description:</label>
+                            <label for="comment">Description:</label>
                             <textarea id="comment" name="comment" class="form-control"
                                       rows="4"
                                       py:content="actproject.comment"/>
@@ -223,7 +214,7 @@
                 </div>
 
             </div>
-
+            </py:else>
         </div>
     </py:block>
 </py:extends>

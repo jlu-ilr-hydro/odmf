@@ -71,22 +71,33 @@ class Project(Base):
 
 
     def get_access_level(self, user: Person|str):
+        """
+        Returns the level a given user has in context of this project
+
+        Site admins and project spokepersons evaluate as Level.admin, every other project member
+        with their level as saved in the members list (Level.logger...Level.admin). Users who are not
+        members of the project and not site admins evaluate as Level.guest
+
+        :param user: A db.Person object or a username
+        :return: the Level
+        """
+        from ..webpage.auth import Level
         if not type(user) is Person:
             user = Person.get(self.session(), user)
 
         if user == self.person_responsible:
-            return 4
-        elif user.access_level>=4:
-            return user.access_level
+            return Level.admin
+        elif user.access_level >= Level.admin:
+            return Level(user.access_level)
         for member, level in self.members():
             if member == user:
-                return level
+                return Level(level)
         else:
-            return 0
+            return Level.guest
 
 
     def __str__(self):
-        return f'prj:{self.id} {self.name} ({self.person_responsible})'
+        return self.name
 
     def __repr__(self):
         return "<Project(id=%s, name=%s, person=%s)>" % \
