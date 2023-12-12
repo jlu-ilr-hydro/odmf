@@ -523,7 +523,8 @@ class ImportDescription(object):
         # Load from the file
 
         try:
-            config.read_file(open(path))
+            with open(path) as f:
+                config.read_file(f)
         except UnicodeDecodeError:
             rawdata = open(path, 'rb').read()
             result = chardet.detect(rawdata)
