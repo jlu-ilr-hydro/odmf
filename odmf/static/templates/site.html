@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <py:extends href="layout.html" xmlns:py="">
     <py:block name="scripts">
-        <script type="text/javascript">
-            const site = ${literal(as_json(actualsite) or '{}')};
+        <script type="text/javascript" py:if="actualsite">
+            const site = ${literal(as_json(actualsite))};
+            const site_geometry = ${literal(as_json(actualsite.as_feature()))}
         </script>
         <script type="text/javascript" src="${conf.root_url}/media/js/site.js"></script>
         <script type="text/javascript" async="async" defer="defer"
@@ -50,22 +51,23 @@
             <div class="row"  py:if="actualsite">
                 <div class="col">
                     <div class="nav flex-column nav-pills" role="tablist"  aria-orientation="vertical" id="site-tab">
-                        <a id="site-tab" class="nav-link active border-top" data-toggle="pill" href='#sitedescription'>site</a>
-                        <a id="map-tab" class="nav-link border-top" data-toggle="pill" href='#map'>map</a>
-                        <a id="edit-tab" class="nav-link border-top" data-toggle="pill" href="#edit">edit</a>
+                        <a id="site-tab" class="nav-link active border-top" data-toggle="pill" href='#sitedescription'><i class="fas fa-info mr-2"/>site</a>
+                        <a id="map-tab" class="nav-link border-top" data-toggle="pill" href='#map'><i class="fas fa-map mr-2"/> map</a>
+                        <a id="edit-tab" class="nav-link border-top" data-toggle="pill" href="#edit"><i class="fas fa-edit mr-2"/>edit</a>
                         <a id="message-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#messagelist">
-                            <span>messages</span><span class="badge badge-primary badge-pill" py:content="actualsite.logs.count()"/>
+                            <span><i class="fas fa-tags mr-2"/>messages</span><span class="badge badge-primary badge-pill" py:content="actualsite.logs.count()"/>
                         </a>
                         <a id="pic-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#pictures">
-                            <span>pictures</span><span class="badge badge-primary badge-pill" py:content="actualsite.images.count()"/>
+                            <span><i class="fas fa-camera mr-2"/>pictures</span><span class="badge badge-primary badge-pill" py:content="actualsite.images.count()"/>
                         </a>
                         <a id="instrument-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#instrumentlist">
-                            <span>instruments</span><span class="badge badge-primary badge-pill" py:content="actualsite.instruments.count()"/>
+                            <span><i class="fas fa-thermometer-half mr-2"/>instruments</span><span class="badge badge-primary badge-pill" py:content="actualsite.instruments.count()"/>
                         </a>
                         <a id="dataset-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#datasetlist">
-                            <span>datasets</span><span class="badge badge-primary badge-pill" py:content="actualsite.datasets.count()"/>
+                            <span><i class="fas fa-clipboard mr-2"/>datasets</span><span class="badge badge-primary badge-pill" py:content="actualsite.datasets.count()"/>
                         </a>
-                        <a id="export-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#export">export</a>
+                        <a id="export-tab" class="nav-link border-top" data-toggle="pill" href="#export"><i class="fas fa-file-export mr-2"/>export</a>
+                        <a id="import-tab" class="nav-link border-top" data-toggle="pill" href="#import"><i class="fas fa-file-import mr-2"/>import</a>
                     </div>
                 </div>
             </div>
@@ -98,27 +100,22 @@
                                 #${actualsite.id}
                             </div>
                         </div>
-                        <div class="row mb-4">
-                            <div class="col-sm-1">
-                                <a class="btn btn-outline-primary rounded-pill"
-                                   href="${conf.root_url}/map?site=${actualsite.id}"
-                                   title="show on map..." data-toggle="tooltip"
-                                >
-                                    <i class="fas fa-map"/>
-                                </a>
-
-                            </div>
-                            <div class="col-sm-5 text-center">
-                                <div py:content="actualsite.as_coordinatetext()"/>
-                            </div>
-                            <div class="col-sm-5 text-center">
-                                <div py:content="'UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
+                        <div class="container">
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <a class="btn btn-outline-primary rounded-pill"
+                                       href="${conf.root_url}/map?site=${actualsite.id}"
+                                       title="show on map..." data-toggle="tooltip"
+                                    >
+                                        <i class="fas fa-map"/>
+                                    </a>
+                                </div>
+                                <div class="list-group-item" py:content="actualsite.as_coordinatetext()"/>
+                                <div class="list-group-item" py:content="'UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
+                                <div class="list-group-item" py:if="actualsite.height is not None" py:content="f'{actualsite.height:0.2f} m a.s.l.'"/>
+                                <div class="list-group-item" py:content="markdown(actualsite.comment)"/>
                             </div>
                         </div>
-                        <div class="row border rounded">
-                            <div class="col" py:content="markdown(actualsite.comment)"/>
-                        </div>
-
                     </div>
 
 
@@ -135,79 +132,137 @@
                         <hr class="my-4"/>
                         <p>If you need to edit sites, please ask the site-administrators to elevate your privileges.</p>
                     </div>
+                    <div class="container">
+                        <form py:if="is_member('editor')"
+                              action="save" method="post"
+                              class="container-fluid mt-3">
+                            <div class="form-group row">
+                                <label for="id" class="col-sm-4 col-form-label">ID:</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="id"  value="${actualsite.id}"
+                                           readonly="readonly" class="readonly form-control"/>
 
-                    <form py:if="is_member('editor')"
-                          action="${conf.root_url}/site/saveitem" method="post"
-                          class="container-fluid mt-3">
-                        <div class="form-group row">
-                            <label for="id" class="col-sm-4 col-form-label">ID:</label>
-                            <div class="col-sm-8">
-                                <input type="text" id="id" name="id" value="${actualsite.id}"
-                                       readonly="readonly" class="readonly form-control"/>
-
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="lon" class="col-sm-4 col-form-label">Longitude:</label>
-                            <div class="col-sm-8 input-group">
-                                <input type="text" id="lon" name="lon" value="${actualsite.lon}"  class="form-control"/>
-                                <div class="input-group-append"><span class="input-group-text">° E</span></div>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="lat" class="col-sm-4 col-form-label">Latitude:</label>
-                            <div class="col-sm-8 input-group">
-                                <input type="text" id="lat" name="lat" value="${actualsite.lat}"  class="form-control"/>
-                                <div class="input-group-append"><span class="input-group-text">° N</span></div>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="height" class="col-sm-4 col-form-label">Height:</label>
-                            <div class="col-sm-8 input-group">
-                                <input type="text" id="height" name="height" value="${actualsite.height}"  class="form-control"/>
-                                <div class="input-group-append"><span class="input-group-text">m a.s.l.</span></div>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="name" class="col-sm-4 col-form-label">Name:</label>
-                            <div class="col-sm-8">
-                                <input type="text" id="name" name="name" value="${actualsite.name}"  class="form-control"/>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-sm-4">
-                                <label for="iconfile" class="col-form-label">Icon:</label>
-                                <img src="${conf.root_url}/media/mapicons/${actualsite.icon if actualsite.icon else 'unknown.png'}" id="currenticon" />
-                            </div>
-                            <div class="col-sm-8">
-                                <div class="">
-                                    <button type="button" class="icon-button btn btn-outline-primary mr-1 mb-1"
-                                            data-icon="${icon}"
-                                            py:for="icon in icons"
-                                    >
-                                        <img src="${conf.root_url}/media/mapicons/${icon}"/>
-                                    </button>
-                                    <input name="icon" type="hidden" id="iconfile" value="${actualsite.icon}" />
                                 </div>
                             </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-sm-4">
-                                <label for="comment">Comment</label>
-                                <a title="Get help for using links and formats"
-                                   data-toggle="tooltip" data-placement="top" class="wiki-help" href="${conf.root_url}/download/wiki/help.wiki"
-                                >
-                                    <i class="fas fa-question-circle"/>
-                                </a>
+                            <div class="form-group row">
+                                <label for="lon" class="col-sm-4 col-form-label">Longitude:</label>
+                                <div class="col-sm-8 input-group">
+                                    <input type="text" id="lon" name="lon" value="${actualsite.lon}"  class="form-control"/>
+                                    <div class="input-group-append"><span class="input-group-text">° E</span></div>
+                                </div>
                             </div>
-                            <div class="col-sm">
+                            <div class="form-group row">
+                                <label for="lat" class="col-sm-4 col-form-label">Latitude:</label>
+                                <div class="col-sm-8 input-group">
+                                    <input type="text" id="lat" name="lat" value="${actualsite.lat}"  class="form-control"/>
+                                    <div class="input-group-append"><span class="input-group-text">° N</span></div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="height" class="col-sm-4 col-form-label">Height:</label>
+                                <div class="col-sm-8 input-group">
+                                    <input type="text" id="height" name="height" value="${actualsite.height}"  class="form-control"/>
+                                    <div class="input-group-append"><span class="input-group-text">m a.s.l.</span></div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="name" class="col-sm-4 col-form-label">Name:</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="name" name="name" value="${actualsite.name}"  class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-4">
+                                    <label for="iconfile" class="col-form-label">Icon:</label>
+                                    <img src="${conf.root_url}/media/mapicons/${actualsite.icon if actualsite.icon else 'unknown.png'}" id="currenticon" />
+                                </div>
+                                <div class="col-sm-8">
+                                    <div class="">
+                                        <button type="button" class="icon-button btn btn-outline-primary mr-1 mb-1"
+                                                data-icon="${icon}"
+                                                py:for="icon in icons"
+                                        >
+                                            <img src="${conf.root_url}/media/mapicons/${icon}"/>
+                                        </button>
+                                        <input name="icon" type="hidden" id="iconfile" value="${actualsite.icon}" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-4">
+                                    <label for="comment">Comment</label>
+                                    <a title="Get help for using links and formats"
+                                       data-toggle="tooltip" data-placement="top" class="wiki-help" href="${conf.root_url}/download/wiki/help.wiki"
+                                    >
+                                        <i class="fas fa-question-circle"/>
+                                    </a>
+                                </div>
+                                <div class="col-sm">
                                 <textarea id="comment" name="comment"
                                           class="form-control"
                                           rows="10" py:content="actualsite.comment"/>
+                                </div>
                             </div>
-                        </div>
-                        <button type="submit" id="save" name="save" class="btn btn-success">save</button>
-                    </form>
+                            <button type="submit" id="save" class="btn btn-success" >save</button>
+                        </form>
+                        <hr/>
+                        <a class="btn btn-secondary dropdown-toggle" href="#geoForm" role="button" id="geoFormButton" data-toggle="collapse" aria-expanded="false">
+                            <i class="fas fa-draw-polygon"/> show geometry
+                        </a>
+                        <form id="geoForm" py:if="is_member('editor')" action="savegeo" method="post" aria-labelledby="geoFormButton"
+                              class="collapse container-fluid mt-3" py:with="geo=actualsite.geometry">
+                            <div class="form-group row">
+                                <div class="col-sm-4">
+                                    <label for="geojson">Geometry in geojson notation</label>
+                                </div>
+                                <div class="col-sm">
+                                <textarea id="geojson" name="geojson"
+                                          class="form-control"
+                                          rows="2" py:content="as_json(geo.geojson) if geo else ''"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="geo-strokeWidth" class="col-sm-4 col-form-label">stroke width</label>
+                                <div class="col-sm-8">
+                                    <input type="range" id="geo-strokeWidth" name="strokewidth" min="1" max="10" value="${(geo and geo.strokewidth) or 3}"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="geo-strokeOpacity" class="col-sm-4 col-form-label">stroke opacity</label>
+                                <div class="col-sm-8">
+                                    <input type="range" id="geo-strokeOpacity" name="strokeopacity" min="0" max="1.0" step="0.05" value="${(geo and geo.strokeopacity) or 50}"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="geo-strokeColor" class="col-sm-4 col-form-label">stroke color</label>
+                                <div class="col-sm-8">
+                                    <input type="color" id="geo-strokeColor" name="strokecolor" value="${(geo and geo.strokecolor) or '#FFFFFF'}"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="geo-fillOpacity" class="col-sm-4 col-form-label">fill opacity</label>
+                                <div class="col-sm-8">
+                                    <input type="range" id="geo-fillOpacity" name="fillopacity" min="0" max="1.0" step="0.05" value="${(geo and geo.fillopacity) or 50}"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="geo-fillColor" class="col-sm-4 col-form-label">fill color</label>
+                                <div class="col-sm-8">
+                                    <input type="color" id="geo-fillColor" name="fillcolor" value="${(geo and geo.fillcolor) or '#FFFFFF'}"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <button type="submit" id="geo-save" class="btn btn-success" value="${actualsite.id}">save geometry</button>
+
+
+                        </form>
+
+                    </div>
                 </div>
                 <div class="tab-pane" id="messagelist" role="tabpanel">
                     <p>
@@ -321,32 +376,59 @@
                     </ul>
                 </div>
                 <div class="tab-pane" id="export" role="tabpanel">
-                    <h1 class="display-4">
-                        Download site coordinates
-                    </h1>
-                    <ul class="list-group">
-                        <li class="list-group-item">
-                            <a href="export?format=xlsx">
-                                <i class="fas fa-file-excel mr-4"/> Excel
-                            </a>
-                        </li>
-                        <li class="list-group-item">
-                            <a href="export?format=csv">
-                                <i class="fas fa-file-csv mr-4" /> CSV
-                            </a>
-                        </li>
-                        <li class="list-group-item">
-                            <a href="export?format=tsv">
-                                <i class="fas fa-file mr-4" /> TSV
-                            </a>
-                        </li>
-                        <li class="list-group-item">
-                            <a href="export?format=json">
-                                <i class="fas fa-file-code mr-4"/> JSON
-                            </a>
-                        </li>
+                    <div class="container">
+                        <h1>
+                            Download site coordinates
+                        </h1>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <a href="export?format=xlsx">
+                                    <i class="fas fa-file-excel mr-4"/> Excel
+                                </a>
+                            </li>
+                            <li class="list-group-item">
+                                <a href="export?format=csv">
+                                    <i class="fas fa-file-csv mr-4" /> CSV
+                                </a>
+                            </li>
+                            <li class="list-group-item">
+                                <a href="export?format=tsv">
+                                    <i class="fas fa-file mr-4" /> TSV
+                                </a>
+                            </li>
+                            <li class="list-group-item">
+                                <a href="export?format=json">
+                                    <i class="fas fa-file-code mr-4"/> JSON
+                                </a>
+                            </li>
 
-                    </ul>
+                        </ul>
+                    </div>
+                </div>
+                <div class="tab-pane" id="import" role="tabpanel">
+                    <div class="container">
+                        <h1>Import sites</h1>
+                        <div class="alert alert-danger ">
+                            Importing sites is not implemented yet. You can upload tabular data (csv, excel, parquet) or
+                            geojson files into the filemanager and ask a site administrator to create sites using
+                            the programming interface. Note the hints below, though.
+                        </div>
+                        <hr/>
+                        <h2>Import tabular data</h2>
+                        <div class="alert alert-warning">
+                            When you import sites, note that the tabular data <strong>must</strong> have the columns
+                            <code>name, lat, long</code>. Optionally the column names <code>height, icon, comment</code>
+                            are used.
+                        </div>
+                        <h2>Import geojson data</h2>
+                        <div class="alert alert-warning">
+                            If you are importing geospatial data in geojson form, the projection
+                            of the data <strong>must</strong> be geographical with WGS84 ellipsoid. Each feature
+                            <strong>must</strong> have a <code>name</code> property. Optionally property names <code>height, icon, comment</code>
+                            are used. GeoJSON files can be created with QGIS from most geospatial data, tutorials are simple to find with
+                            common search machines, like this one: <a href="https://support.tygron.com/wiki/How_to_create_a_GeoJSON_in_QGIS">How_to_create_a_GeoJSON_in_QGIS</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

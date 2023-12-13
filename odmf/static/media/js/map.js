@@ -95,10 +95,16 @@ function getSelectionSymbol() {
 }
 function setmarkers(source, filter) {
 	clearmarker();
+	map.data.forEach(feature => {
+		map.data.remove(feature)
+	})
 	let selectionsymbol = getSelectionSymbol();
 	let selectedsite = $('#map_canvas').data('site')
 	$.getJSON(source, filter, function(data) {
-		$.each(data,function(index,item) {
+		$.each(data.features, function(index,feature) {
+			map.data.addGeoJson(feature)
+
+			let item = feature.properties
 			if (!item.icon) {
 				icon='unknown.png';
 			} else {
@@ -184,7 +190,7 @@ function popSelect() {
 		$('#instrumentselect').html(html).val(filter.instrument);
 	}).fail(jqhxr => seterror(jqhxr.responseText));
 
-	setmarkers(odmf_ref('/site/json'),filter);
+	setmarkers(odmf_ref('/site/geojson'),filter);
 }
 function clearFilter() {
 	$('.filter').val('');
@@ -234,7 +240,15 @@ function initMap(site) {
 		}
 
 		map = createmap(data.map.lat,data.map.lng,data.map.zoom,data.map.type);
-
+		map.data.setStyle(feature => {
+			return {
+				strokeWeight: feature.getProperty('strokeWidth') || 2,
+				strokeColor: feature.getProperty('strokeColor') || '#FFF',
+				strokeOpacity: feature.getProperty('strokeOpacity') || 0.8,
+				fillColor: feature.getProperty('fillColor') || '#FFF',
+				fillOpacity: feature.getProperty('fillOpacity') || 0.3,
+			}
+		})
 		markers = [];
 		$('.filter').val('');
 		$('#dateselect').val('');

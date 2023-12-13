@@ -6,12 +6,15 @@ Created on 13.07.2012
 @author: philkraf
 '''
 import datetime
+
+import cherrypy
 import pandas as pd
 import io
 from cherrypy.lib.static import serve_fileobj
 from traceback import format_exc as traceback
 from glob import glob
 import os.path as op
+import typing
 
 from .. import lib as web
 from ... import db
@@ -24,28 +27,30 @@ from ...config import conf
 
 @web.expose
 @web.show_in_nav_for(1, 'map-marker-alt')
+@cherrypy.popargs('siteid')
 class SitePage:
     url = conf.root_url + '/site/'
     @expose_for(group.guest)
-    def default(self, actualsite_id=None, error=''):
+    def index(self, siteid=None, error=''):
         """
         Shows the page for a single site.
         """
+        siteid = web.conv(int, siteid)
         with db.session_scope() as session:
             pref = Preferences()
 
-            if not actualsite_id:
-                actualsite_id = pref['site']
+            if not siteid:
+                siteid = pref['site']
             else:
-                pref['site'] = actualsite_id
+                pref['site'] = siteid
 
             datasets = instruments = []
             try:
                 instruments = session.query(db.Datasource).order_by(db.Datasource.name)
                 all_sites = session.query(db.Site).order_by(db.Site.id)
-                actualsite = session.query(db.Site).get(int(actualsite_id))
+                actualsite = session.query(db.Site).get(int(siteid))
                 if not actualsite:
-                    error = f'Site #{actualsite_id} does not exist'
+                    error = f'Site #{siteid} does not exist'
                 else:
                     datasets = actualsite.datasets.join(db.ValueType).order_by(
                         db.ValueType.name, db.sql.desc(db.Dataset.end)
@@ -53,7 +58,7 @@ class SitePage:
             except:
                 error = traceback()
                 actualsite = None
-            return web.render('site.html', id=int(actualsite_id), actualsite=actualsite, error=error,
+            return web.render('site.html', id=siteid, actualsite=actualsite, error=error,
                               datasets=datasets, icons=self.geticons(), instruments=instruments, all_sites=all_sites
                               ).render()
 
@@ -77,34 +82,63 @@ class SitePage:
 
     @expose_for(group.editor)
     @web.method.post
-    def saveitem(self, **kwargs):
+    def save(self, siteid, lon=None, lat=None, name=None, height=None, icon=None, comment=None, save=None):
         try:
-            siteid = web.conv(int, kwargs.get('id'), '')
+            siteid = web.conv(int, siteid)
         except:
             raise web.redirect(f'{self.url}/{siteid}', error=traceback())
-        if 'save' in kwargs:
-            with db.session_scope() as session:
-                try:
-                    lon = web.conv(float, kwargs.get('lon'))
-                    lat = web.conv(float, kwargs.get('lat'))
-                    if lon > 180 or lat > 180:
-                        lat, lon = proj.UTMtoLL(23, lat, lon, conf.utm_zone)
-                    if None in (lon, lat):
-                        raise web.redirect(f'../{siteid}', error='The site has no coordinates')
+        with db.session_scope() as session:
+            try:
+                lon = web.conv(float, lon)
+                lat = web.conv(float, lat)
+                if lon > 180 or lat > 180:
+                    lat, lon = proj.UTMtoLL(23, lat, lon, conf.utm_zone)
+                if None in (lon, lat):
+                    raise web.redirect(f'../{siteid}', error='The site has no coordinates')
 
-                    site = session.query(db.Site).get(siteid)
-                    if not site:
-                        site = db.Site(id=siteid, lat=lat, lon=lon)
-                        session.add(site)
-                    site.lat, site.lon = lat, lon
-                    site.name = kwargs.get('name')
-                    site.height = web.conv(float, kwargs.get('height'))
-                    site.icon = kwargs.get('icon')
-                    site.comment = kwargs.get('comment')
-                except Exception as e:
-                    tb = traceback()
-                    raise web.redirect(f'{self.url}/{siteid}', error=f'## {e}\n\n```{tb}```')
+                site = session.query(db.Site).get(siteid)
+                if not site:
+                    site = db.Site(id=siteid, lat=lat, lon=lon)
+                    session.add(site)
+                site.lat, site.lon = lat, lon
+                site.name = name or site.name
+                site.height = web.conv(float, height) or site.height
+                site.icon = icon or site.icon
+                site.comment = comment or site.comment
+            except Exception as e:
+                tb = traceback()
+                raise web.redirect(f'{self.url}/{siteid}', error=f'## {e}\n\n```{tb}```')
         raise web.redirect(f'{self.url}/{siteid}')
+
+    @expose_for(group.editor)
+    @web.method.post
+    def savegeo(self, siteid, geojson=None, strokewidth=None, strokeopacity=None, strokecolor=None, fillopacity=None, fillcolor=None):
+        import json
+        with db.session_scope() as session:
+            try:
+                siteid = web.conv(int, siteid)
+                site = session.query(db.Site).get(siteid)
+                if not (siteid or site):
+                    raise web.redirect(f'{self.url}/{siteid}', error=f'#{siteid} not found')
+                if site.geometry:
+                    geometry = site.geometry
+                else:
+                    geometry = db.site.SiteGeometry()
+
+                geojson = json.loads(geojson)
+                geometry.geojson = geojson or geometry.geojson
+                geometry.strokewidth = strokewidth or geometry.strokewidth
+                geometry.strokeopacity = strokeopacity or geometry.strokeopacity
+                geometry.strokecolor = strokecolor or geometry.strokecolor
+                geometry.fillopacity = fillopacity or geometry.fillopacity
+                geometry.fillcolor = fillcolor or geometry.fillcolor
+            except Exception as e:
+                tb = traceback()
+                raise web.redirect(f'{self.url}/{siteid}', error=f'## {e}\n\n```{tb}```')
+        raise web.redirect(f'{self.url}/{siteid}')
+
+
+
 
     @expose_for()
     @web.mime.json
@@ -168,77 +202,158 @@ class SitePage:
             except Exception as e:
                 raise web.AJAXError(500, str(e))
 
-
-    @expose_for()
-    @web.mime.json
-    @web.method.get
-    def json(self, valuetype=None, instrument=None, user=None, date=None, max_data_age=None, fulltext=None):
+    def sites_filter(self, session, valuetype=None, instrument=None, user=None, date=None, max_data_age=None, fulltext=None, project=None) -> typing.List[db.Site]:
         """
-        Returns the sites matching the filter variables as json representation
+        Returns the sites matching the filter variables as a geojson FeatureCollectiom
 
         Parameters
         ----------
         valuetype: id
             Return only sites with datasets containing this valuetype
 
-        user:
-            user name of user doing measurements at this site
-        date:
-
-        max_data_age
         instrument: id
             Return only sites with an active installation of the given instrument_id,
             use '*' to match any active installation, negative number to include removed installations
 
+        user:
+            user name of user doing measurements at this site
+
+        date: datetime
+            Return only sites with datasets at this date
+
+        max_data_age: int
+            Only return sites where data has been collected in the last `max_data_age` days
+
+        fulltext: str
+            Return sites containing the fulltext in the title or the description
+
+        project: int
+            Returns sites with dataset from a specific project
+
+        """
+
+        valuetype = web.conv(int, valuetype)
+        date = web.parsedate(date, False)
+        max_data_age = web.conv(int, max_data_age)
+        Q = session.query
+        if any([valuetype, user, date, max_data_age]):
+            datasets = Q(db.Dataset)
+            if valuetype:
+                datasets = datasets.filter_by(_valuetype=valuetype)
+            if user:
+                datasets = datasets.filter_by(_measured_by=user)
+            if date:
+                datasets = datasets.filter(
+                    db.Dataset.start <= date, db.Dataset.end >= date)
+            if max_data_age:
+                age = datetime.timedelta(days=max_data_age * 365.25)
+                oldest = datetime.datetime.today() - age
+                datasets = datasets.filter(db.Dataset.end >= oldest)
+            if project:
+                datasets = datasets.filter_by(_project=project)
+            sites = {ds.site for ds in datasets}
+        else:
+            sites = set(session.query(db.Site))
+
+        if instrument:
+            if instrument == 'any':
+                installations = Q(db.Installation).filter(db.Installation.removedate == None)
+            elif instrument == 'installed':
+                installations = Q(db.Installation).join(db.Datasource).filter(
+                    db.Installation.removedate == None,
+                    db.Datasource.sourcetype != 'manual'
+                )
+            else:
+                instrument = web.conv(int, instrument)
+                installations = Q(db.Installation).filter_by(_instrument=abs(instrument))
+                if instrument > 0:
+                    installations = installations.filter(db.Installation.removedate == None)
+            sites &= {inst.site for inst in installations}
+        if fulltext:
+            from sqlalchemy import or_
+            filter = Q(db.Site).filter(
+                or_(
+                    db.Site.name.ilike('%' + fulltext + '%'),
+                    db.Site.comment.ilike('%' + fulltext + '%')
+                )
+            )
+            sites &= set(filter)
+
+        return sorted(sites, key=lambda s: s.id)
+
+    @expose_for()
+    @web.mime.json
+    @web.method.get
+    def json(self, valuetype=None, instrument=None, user=None, date=None, max_data_age=None, fulltext=None, project=None):
+        """
+        Returns the sites matching the filter variables as a geojson FeatureCollectiom
+
+        Parameters
+        ----------
+        valuetype: id
+            Return only sites with datasets containing this valuetype
+
+        instrument: id
+            Return only sites with an active installation of the given instrument_id,
+            use '*' to match any active installation, negative number to include removed installations
+
+        user:
+            user name of user doing measurements at this site
+
+        date: datetime
+            Return only sites with datasets at this date
+
+        max_data_age: int
+            Only return sites where data has been collected in the last `max_data_age` days
+
+        fulltext: str
+            Return sites containing the fulltext in the title or the description
+
         """
         try:
-            valuetype = web.conv(int, valuetype)
-            date = web.parsedate(date, False)
-            max_data_age = web.conv(int, max_data_age)
             with db.session_scope() as session:
-                Q = session.query
-                if any([valuetype, user, date, max_data_age]):
-                    datasets = Q(db.Dataset)
-                    if valuetype:
-                        datasets = datasets.filter_by(_valuetype=valuetype)
-                    if user:
-                        datasets = datasets.filter_by(_measured_by=user)
-                    if date:
-                        datasets = datasets.filter(
-                            db.Dataset.start <= date, db.Dataset.end >= date)
-                    if max_data_age:
-                        age = datetime.timedelta(days=max_data_age * 365.25)
-                        oldest = datetime.datetime.today() - age
-                        datasets = datasets.filter(db.Dataset.end >= oldest)
-                    sites = {ds.site for ds in datasets}
-                else:
-                    sites = set(session.query(db.Site))
+                sites = self.sites_filter(session, valuetype, instrument, user, date, max_data_age, fulltext)
+                return web.json_out(sites)
+        except Exception as e:
+            raise web.AJAXError(500, str(e))
 
-                if instrument:
-                    if instrument == 'any':
-                        installations = Q(db.Installation).filter(db.Installation.removedate == None)
-                    elif instrument == 'installed':
-                        installations = Q(db.Installation).join(db.Datasource).filter(
-                            db.Installation.removedate == None,
-                            db.Datasource.sourcetype != 'manual'
-                        )
-                    else:
-                        instrument = web.conv(int, instrument)
-                        installations = Q(db.Installation).filter_by(_instrument=abs(instrument))
-                        if instrument > 0 :
-                            installations = installations.filter(db.Installation.removedate == None)
-                    sites &= {inst.site for inst in installations}
-                if fulltext:
-                    from sqlalchemy import or_
-                    filter = Q(db.Site).filter(
-                        or_(
-                            db.Site.name.ilike('%' + fulltext + '%'),
-                            db.Site.comment.ilike('%' + fulltext + '%')
-                        )
-                    )
-                    sites &= set(filter)
+    @expose_for()
+    @web.mime.json
+    @web.method.get
+    def geojson(self, valuetype=None, instrument=None, user=None, date=None, max_data_age=None, fulltext=None, project=None):
+        """
+        Returns the sites matching the filter variables as a geojson FeatureCollection
 
-                return web.json_out(sorted(sites, key=lambda s: s.id))
+        Parameters
+        ----------
+        valuetype: id
+            Return only sites with datasets containing this valuetype
+
+        instrument: id
+            Return only sites with an active installation of the given instrument_id,
+            use '*' to match any active installation, negative number to include removed installations
+
+        user:
+            user name of user doing measurements at this site
+
+        date: datetime
+            Return only sites with datasets at this date
+
+        max_data_age: int
+            Only return sites where data has been collected in the last `max_data_age` days
+
+        fulltext: str
+            Return sites containing the fulltext in the title or the description
+
+        """
+        try:
+            with db.session_scope() as session:
+                sites = self.sites_filter(session, valuetype, instrument, user, date, max_data_age, fulltext)
+                geojson = {
+                    "type": "FeatureCollection",
+                    "features": [s.as_feature() for s in sites]
+                }
+                return web.json_out(geojson)
         except Exception as e:
             raise web.AJAXError(500, str(e))
 
