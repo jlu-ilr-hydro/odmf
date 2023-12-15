@@ -120,6 +120,13 @@ class Configuration:
     def google_maps_api(self, callback: str):
         return f'https://maps.googleapis.com/maps/api/js?key={self.google_maps_api_key}&callback={callback}'
 
+    def url(self, *uri):
+        uri = '/'.join((str(s) for s in uri))
+        if uri.startswith('/'):
+            return self.root_url + uri
+        else:
+            return self.root_url + '/' + uri
+
     @property
     def version(self):
         return __version__
