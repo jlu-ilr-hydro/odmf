@@ -20,7 +20,7 @@
             function popSelect() {
                 $.getJSON(odmf_ref('/site/json'),[],function(data){
                     var html='<option value="">select the photo site...</option>';
-                    $.each(data,function(index,item){
+                    $.each(data[0],function(index,item){
                         html += '<option value="'+item.id+'">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
                     });
                     $('.sites').html(html);

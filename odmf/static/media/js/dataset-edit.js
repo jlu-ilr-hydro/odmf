@@ -112,7 +112,6 @@ function do_calibration(targetid, sourceid, limit, ask_to_calibrate=false) {
 
 function apply_calibration(targetid, sourceid, slope, offset) {
         $.post(
-        // TODO: Get slope and offset from DOM
         odmf_ref('/dataset/apply_calibration'),
         {
             targetid: targetid,

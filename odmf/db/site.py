@@ -98,7 +98,7 @@ class Site(Base):
         if self.geometry:
             return self.geometry.geojson
         else:
-            return {"type": "Point", "coordinates": [self.lat, self.lon]}
+            return {"type": "Point", "coordinates": [self.lon, self.lat]}
 
     def as_feature(self) -> dict:
         """
@@ -225,34 +225,6 @@ def create_site_from_geometry(
     site.geometry = SiteGeometry.from_shape(geo.mapping(geometry))
 
     return site
-
-
-
-
-@total_ordering
-class SiteGeometry(Base):
-    """
-    Enhance a site with Geometry features, like line or polygon
-    TODO: sqlalchemy: Do we need polymorphic_identity
-    TODO: Implement __geo_interface__ for Site and GeometrySite
-
-    Uses GeoJSON definition to save the geometry of a site
-    https://de.wikipedia.org/wiki/GeoJSON
-    """
-    __tablename__ = 'site_geometry'
-
-    id = sql.Column(sql.Integer, sql.ForeignKey('site.id'), primary_key=True)
-    site = orm.relationship('Site', backref=orm.backref('geometry'),
-                            primaryjoin="Site.id==SiteGeometry.id")
-    type = sql.Column(sql.Text)  # Contains the GeoJSON geometry type: POINT, POLYGON, MULTILINESTRING etc.
-    coordinates = sql.Column(sql.Text)  # Contains coordinates in GeoJSON notation
-
-    strokewidth = sql.Column(sql.Float)
-    strokeopacity = sql.Column(sql.Float)
-    strokecolor = sql.Column(sql.Text)
-    fillcolor = sql.Column(sql.Text)
-    fillopacity = sql.Column(sql.Float)
-
 
 
 

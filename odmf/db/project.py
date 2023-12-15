@@ -123,8 +123,6 @@ class Project(Base):
 class ProjectMember(Base):
     """
     n:n Association object between projects and their members.
-
-    TODO: Write tests
     """
     __tablename__ = 'project_member'
 

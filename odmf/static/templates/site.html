@@ -27,26 +27,16 @@
     <py:block name="sidebar">
         <div class="container-fluid">
             <h4 py:if="actualsite">
-                <img src="${conf.root_url}/media/mapicons/${actualsite.icon or 'unknown.png'}"/>
-                <span py:content="actualsite" />
             </h4>
-            <a class="btn btn-primary" href="${conf.root_url}/map?site=${id}">show on map...</a>
             <hr/>
-            <div>
-                goto:
+            <div class="btn-group" role="group">
+                <a href="../${id - 1}" class="btn btn-outline-secondary" py:attrs="{'disabled':'disabled'} if id == 1 else {}">&lt;</a>
+                <a href="../" class="btn btn-secondary " type="button" >
+                    list...
+                </a>
+                <a href="../${id + 1}" class="btn btn-outline-secondary">&gt;</a>
             </div>
-            <div class="btn-group dropright" role="group">
-                <a href="./${id - 1}" class="btn btn-secondary form-control" py:attrs="{'disabled':'disabled'} if id == 1 else {}">&lt;</a>
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="sites_dropdown_button"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    sites
-                </button>
-                <div id="sites-dropdown" class="dropdown-menu">
-                    <a href="./new#edit" class="dropdown-item"><i class="fas fa-plus mr-2"/>create a new site...</a>
-                    <a href="./${s.id}" py:for="s in all_sites" py:content="s" class="dropdown-item"/>
-                </div>
-                <a href="./${id + 1}" class="btn btn-secondary form-control">&gt;</a>
-            </div>
+
             <hr/>
             <div class="row"  py:if="actualsite">
                 <div class="col">
@@ -66,8 +56,6 @@
                         <a id="dataset-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#datasetlist">
                             <span><i class="fas fa-clipboard mr-2"/>datasets</span><span class="badge badge-primary badge-pill" py:content="actualsite.datasets.count()"/>
                         </a>
-                        <a id="export-tab" class="nav-link border-top" data-toggle="pill" href="#export"><i class="fas fa-file-export mr-2"/>export</a>
-                        <a id="import-tab" class="nav-link border-top" data-toggle="pill" href="#import"><i class="fas fa-file-import mr-2"/>import</a>
                     </div>
                 </div>
             </div>
@@ -107,7 +95,7 @@
                                        href="${conf.root_url}/map?site=${actualsite.id}"
                                        title="show on map..." data-toggle="tooltip"
                                     >
-                                        <i class="fas fa-map"/>
+                                        <i class="fas fa-map"/> show on map
                                     </a>
                                 </div>
                                 <div class="list-group-item" py:content="actualsite.as_coordinatetext()"/>
@@ -206,8 +194,8 @@
                             <button type="submit" id="save" class="btn btn-success" >save</button>
                         </form>
                         <hr/>
-                        <a class="btn btn-secondary dropdown-toggle" href="#geoForm" role="button" id="geoFormButton" data-toggle="collapse" aria-expanded="false">
-                            <i class="fas fa-draw-polygon"/> show geometry
+                        <a class="btn btn-small btn-secondary dropdown-toggle" href="#geoForm" role="button" id="geoFormButton" data-toggle="collapse" aria-expanded="false">
+                            <i class="fas fa-draw-polygon mr-2"/><py:if test="actualsite.geometry">edit</py:if><py:else>add</py:else> geometry
                         </a>
                         <form id="geoForm" py:if="is_member('editor')" action="savegeo" method="post" aria-labelledby="geoFormButton"
                               class="collapse container-fluid mt-3" py:with="geo=actualsite.geometry">
@@ -403,31 +391,6 @@
                             </li>
 
                         </ul>
-                    </div>
-                </div>
-                <div class="tab-pane" id="import" role="tabpanel">
-                    <div class="container">
-                        <h1>Import sites</h1>
-                        <div class="alert alert-danger ">
-                            Importing sites is not implemented yet. You can upload tabular data (csv, excel, parquet) or
-                            geojson files into the filemanager and ask a site administrator to create sites using
-                            the programming interface. Note the hints below, though.
-                        </div>
-                        <hr/>
-                        <h2>Import tabular data</h2>
-                        <div class="alert alert-warning">
-                            When you import sites, note that the tabular data <strong>must</strong> have the columns
-                            <code>name, lat, long</code>. Optionally the column names <code>height, icon, comment</code>
-                            are used.
-                        </div>
-                        <h2>Import geojson data</h2>
-                        <div class="alert alert-warning">
-                            If you are importing geospatial data in geojson form, the projection
-                            of the data <strong>must</strong> be geographical with WGS84 ellipsoid. Each feature
-                            <strong>must</strong> have a <code>name</code> property. Optionally property names <code>height, icon, comment</code>
-                            are used. GeoJSON files can be created with QGIS from most geospatial data, tutorials are simple to find with
-                            common search machines, like this one: <a href="https://support.tygron.com/wiki/How_to_create_a_GeoJSON_in_QGIS">How_to_create_a_GeoJSON_in_QGIS</a>
-                        </div>
                     </div>
                 </div>
             </div>

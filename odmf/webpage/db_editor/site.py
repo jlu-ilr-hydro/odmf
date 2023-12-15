@@ -35,14 +35,14 @@ class SitePage:
         """
         Shows the page for a single site.
         """
+        pref = Preferences()
         siteid = web.conv(int, siteid)
-        with db.session_scope() as session:
-            pref = Preferences()
+        if not siteid:
+            return web.render('site-list.html', error=error)
 
-            if not siteid:
-                siteid = pref['site']
-            else:
-                pref['site'] = siteid
+        with db.session_scope() as session:
+
+            pref['site'] = siteid
 
             datasets = instruments = []
             try:
@@ -202,12 +202,19 @@ class SitePage:
             except Exception as e:
                 raise web.AJAXError(500, str(e))
 
-    def sites_filter(self, session, valuetype=None, instrument=None, user=None, date=None, max_data_age=None, fulltext=None, project=None) -> typing.List[db.Site]:
+    @staticmethod
+    def sites_filter(session,
+                     valuetype=None, instrument=None,
+                     user=None, date=None, max_data_age=None,
+                     fulltext=None, project=None) -> typing.Tuple[typing.List[db.Site], int]:
         """
         Returns the sites matching the filter variables as a geojson FeatureCollectiom
 
         Parameters
         ----------
+        session:
+            The database session object
+
         valuetype: id
             Return only sites with datasets containing this valuetype
 
@@ -235,8 +242,9 @@ class SitePage:
         valuetype = web.conv(int, valuetype)
         date = web.parsedate(date, False)
         max_data_age = web.conv(int, max_data_age)
+        project = web.conv(int, project)
         Q = session.query
-        if any([valuetype, user, date, max_data_age]):
+        if any([valuetype, user, date, max_data_age, project]):
             datasets = Q(db.Dataset)
             if valuetype:
                 datasets = datasets.filter_by(_valuetype=valuetype)
@@ -279,12 +287,12 @@ class SitePage:
             )
             sites &= set(filter)
 
-        return sorted(sites, key=lambda s: s.id)
+        return sorted(sites, key=lambda s: s.id), len(sites)
 
     @expose_for()
     @web.mime.json
     @web.method.get
-    def json(self, valuetype=None, instrument=None, user=None, date=None, max_data_age=None, fulltext=None, project=None):
+    def json(self, valuetype=None, instrument=None, user=None, date=None, max_data_age=None, fulltext=None, project=None, limit=None, page=None):
         """
         Returns the sites matching the filter variables as a geojson FeatureCollectiom
 
@@ -312,15 +320,21 @@ class SitePage:
         """
         try:
             with db.session_scope() as session:
-                sites = self.sites_filter(session, valuetype, instrument, user, date, max_data_age, fulltext)
-                return web.json_out(sites)
+                sites, count = self.sites_filter(session, valuetype, instrument, user, date, max_data_age, fulltext, project)
+
+                if page and limit:
+                    page, limit = int(page), int(limit)
+                    offset = (page - 1) * limit
+                    sites = sites[offset:limit * page]
+
+                return web.json_out(dict(sites=sites, count=count, limit=limit, page= page))
         except Exception as e:
             raise web.AJAXError(500, str(e))
 
     @expose_for()
     @web.mime.json
     @web.method.get
-    def geojson(self, valuetype=None, instrument=None, user=None, date=None, max_data_age=None, fulltext=None, project=None):
+    def geojson(self, valuetype=None, instrument=None, user=None, date=None, max_data_age=None, fulltext=None, project=None, limit=None, offset=None):
         """
         Returns the sites matching the filter variables as a geojson FeatureCollection
 
@@ -348,7 +362,7 @@ class SitePage:
         """
         try:
             with db.session_scope() as session:
-                sites = self.sites_filter(session, valuetype, instrument, user, date, max_data_age, fulltext)
+                sites, count = self.sites_filter(session, valuetype, instrument, user, date, max_data_age, fulltext, project)
                 geojson = {
                     "type": "FeatureCollection",
                     "features": [s.as_feature() for s in sites]

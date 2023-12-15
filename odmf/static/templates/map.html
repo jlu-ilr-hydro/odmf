@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <py:extends href="layout.html" xmlns:py="">
     <py:block name="scripts">
-
+        <script type="text/javascript" src="${conf.root_url}/media/js/site-filter.js"/>
         <script type="text/javascript" src="${conf.root_url}/media/js/map.js"></script>
         <script type="text/javascript" async="async" defer="defer"
                 src="${conf.google_maps_api('initMap')}">
         </script>
         <script>
-            $(function() {
-                $(function () {
-                    $('[data-toggle="tooltip"]').tooltip()
-                });
-
+            $(() =>{
+                $('[data-toggle="tooltip"]').tooltip()
+                // Do not put anything map related here but in initMap in map.js
+                // The map is created async and takes a bit of time
             });
         </script>
     </py:block>
@@ -32,80 +31,26 @@
             <div class="alert alert-dark">
                 <span id="coordinates">Not in map</span>
             </div>
-            <div class="custom-control custom-switch" title="Use double click to create a new site" data-toggle="tooltip">
-                <input type="checkbox" id="createsite" class="custom-control-input"/>
-                <label class="custom-control-label" for="createsite">new site</label>
+            <div class="container flexbox">
+                <div class="custom-control custom-switch col-sm" title="Use double click to create a new site" data-toggle="tooltip">
+                    <input type="checkbox" id="createsite" class="custom-control-input"/>
+                    <label class="custom-control-label" for="createsite">new site</label>
+                </div>
+                <button title="Show all sites" data-toggle="tooltip" class="btn btn-outline-dark col-sm" id="zoom-home">
+                    <i class="fas fa-home" />
+                </button>
             </div>
 
         </div>
         <div class="mt-3" id="filter-collapse">
-            <a href="#filter" id="filter-toggle" class="btn btn-secondary flexbox h1"
-                    data-toggle="collapse">
-                <span><i class="fas fa-filter mr-2"/>Filter</span><span><i class="fas fa-plus-circle"/></span>
+            <a href="#filter" id="filter-toggle" class="btn btn-secondary flexbox h1 dropdown-toggle"
+               data-toggle="collapse">
+                <span><i class="fas fa-filter mr-2"/>Filter</span><span class="ml-auto badge badge-pill badge-primary" id="site-count">0</span>
             </a>
             <div id="filter" class="collapse card card-body" >
-                <div class="form-group small mt-0 mb-0">
-                    <label for="vtselect" class="col-form-label">value type:</label>
-                    <select id="vtselect" onchange="popSelect();" class="form-control">
-                        <option class="firstoption" value=""><i>value type...</i></option>
-                    </select>
-                </div>
-                <div class="form-group small  mt-0 mb-0">
-                    <label for="userselect" class="col-form-label">user:</label>
-                    <select id="userselect" onchange="popSelect();" class="form-control filter">
-                        <option value=""><i>Please select...</i></option>
-                    </select>
-                </div>
-                <div class="form-group small  mt-0 mb-0">
-                    <label for="instrumentselect" class="col-form-label">instrument:</label>
-                    <select id="instrumentselect" onchange="popSelect();" class="form-control">
-                        <option value=""><i>Please select...</i></option>
-                    </select>
-                </div>
-                <div class="form-group small mt-0 mb-0">
-                    <label for="ageselect" class="col-form-label">Measurements in the last years:</label>
-                    <input id="max_data_age" type="number" class="form-control filter" value="3"
-                           onchange="popSelect();" title="Show only sites, where measurements in the last x years have been performed"/>
-                </div>
-                <div class="form-group small mt-0 mb-0">
-                    <label for="dateselect" class="col-form-label">date:</label>
-                    <input id="dateselect" type="date" class="form-control filter" value=""
-                           onchange="popSelect();" title="Show only sites with a dataset for this date"/>
-                </div>
-                <div class="form-group small mt-0 mb-0">
-                    <label for="fulltext" class="col-form-label">search term in name and comments of site:</label>
-                    <input id="fulltext" type="text" class="form-control filter" value="" placeholder="fulltext search"
-                           onchange="popSelect();" title="Show only sites with a dataset for this date"/>
-                </div>
-                <div class="form-group small mt-0 mb-0">
-                    <label class="col-form-label" for="filter-buttons">apply:</label>
-                    <div id="filter-buttons" class="">
-                        <button onclick="popSelect();" title="Apply the filter" data-toggle="tooltip" class="btn btn-outline-dark">
-                            <i class="fas fa-filter"/>
-                        </button>
-                        <button onclick="clearFilter();" title="Clear filter and show all sites"
-                                data-toggle="tooltip" data-placement="bottom"
-                                class="btn btn-outline-dark">
-                            <span class="fa-stack" style="font-size: 0.5em;" >
-                                <i class="fas fa-filter fa-stack-2x"/>
-                                <i class="fas fa-times fa-stack-2x" style="color:Tomato"/>
-                            </span>
-
-                        </button>
-                        <button onclick="zoomToMarkers();" title="Show all sites" data-toggle="tooltip" class="btn btn-outline-dark">
-                            <i class="fas fa-globe" />
-                        </button>
-                    </div>
-                </div>
-                <div class="form-group small mt-0 mb-0">
-                    <div class="custom-control custom-switch" data-toggle="tooltip" title="Show only sites with datasets">
-                        <input id="datasetsonly" type="checkbox" onchange="popSelect();" class="custom-control-input"/>
-                        <label for="datasetsonly" class="custom-control-label">only datasets</label>
-                    </div>
-                </div>
-
-
+                <py:include href="site-filter.html"/>
             </div>
+
         </div>
 
         <hr />
