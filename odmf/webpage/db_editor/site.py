@@ -47,7 +47,6 @@ class SitePage:
             datasets = instruments = []
             try:
                 instruments = session.query(db.Datasource).order_by(db.Datasource.name)
-                all_sites = session.query(db.Site).order_by(db.Site.id)
                 actualsite = session.query(db.Site).get(int(siteid))
                 if not actualsite:
                     error = f'Site #{siteid} does not exist'
@@ -59,16 +58,16 @@ class SitePage:
                 error = traceback()
                 actualsite = None
             return web.render('site.html', id=siteid, actualsite=actualsite, error=error,
-                              datasets=datasets, icons=self.geticons(), instruments=instruments, all_sites=all_sites
+                              datasets=datasets, icons=self.geticons(), instruments=instruments
                               ).render()
 
     @expose_for(group.editor)
+    @web.method.get
     def new(self, lat=None, lon=None, name=None, error=''):
         with db.session_scope() as session:
             datasets = instruments = []
             try:
                 instruments = session.query(db.Datasource).order_by(db.Datasource.name)
-                all_sites = session.query(db.Site).order_by(db.Site.id)
                 actualsite = db.Site(id=db.newid(db.Site, session),
                                      lon=web.conv(float, lon) or 8.55, lat=web.conv(float, lat) or 50.5,
                                      name=name or '<enter site name>')
@@ -77,12 +76,12 @@ class SitePage:
                 actualsite = None
 
             return web.render('site.html', id=int(actualsite.id), actualsite=actualsite, error=error,
-                              datasets=datasets, icons=self.geticons(), instruments=instruments, all_sites=all_sites
+                              datasets=datasets, icons=self.geticons(), instruments=instruments
                               ).render()
 
     @expose_for(group.editor)
     @web.method.post
-    def save(self, siteid, lon=None, lat=None, name=None, height=None, icon=None, comment=None, save=None):
+    def save(self, siteid, lon=None, lat=None, name=None, height=None, icon=None, comment=None):
         try:
             siteid = web.conv(int, siteid)
         except:
