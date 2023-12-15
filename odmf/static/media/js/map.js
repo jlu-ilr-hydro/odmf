@@ -1,5 +1,6 @@
 // toggle the appeareance of the element with id. Uses jQuery slide
 let markers = []
+let selected_marker = null
 function toggle(id) {
 	$('#'+id).slideToggle('fast');
 }
@@ -64,9 +65,22 @@ function selectsite(id) {
 	var selectionSymbol = getSelectionSymbol();
 	$.each(markers,function(index,item) {
 		if (item.get('id') == id) {
-			item.setShadow(selectionSymbol);
-		} else {
-			item.setShadow(null);
+			if (selected_marker) {
+				selected_marker.set('position', new google.maps.LatLng(item.position.lat(), item.position.lng()))
+			} else {
+				selected_marker = new google.maps.Marker({
+					position: new google.maps.LatLng(item.position.lat(), item.position.lng()),
+					map: map,
+					icon: {
+						url: odmf_ref('/media/mapicons/selection.png'),
+						size: new google.maps.Size(37,37),
+						origin: new google.maps.Point(0,0),
+						anchor: new google.maps.Point(6,30)
+					}
+
+				})
+			}
+
 		}
 	});
 	setpref({site:id});
@@ -84,7 +98,6 @@ function setmarkers(data) {
 	map.data.forEach(feature => {
 		map.data.remove(feature)
 	})
-	let selectionsymbol = getSelectionSymbol();
 	let selectedsite = $('#map_canvas').data('site')
 
 	$.each(data.features, (index,feature) => {
@@ -97,35 +110,46 @@ function setmarkers(data) {
 		} else {
 			icon = item.icon;
 		}
-		let image = new google.maps.MarkerImage(
-			odmf_ref('/media/mapicons/') + icon,
-			new google.maps.Size(24, 24),
-			new google.maps.Point(0,0),
-			new google.maps.Point(0, 24));
 		let marker = new google.maps.Marker(
 			{
 				position: new google.maps.LatLng(item.lat,item.lon),
 				title:'#' + item.id + '(' + item.name + ')',
 				map:map,
-				icon:image,
+				icon:{
+					url: odmf_ref('/media/mapicons/') + icon,
+					size: new google.maps.Size(24, 24),
+					origin: new google.maps.Point(0,0),
+					anchor: new google.maps.Point(0, 24)
+				},
 				zIndex: 100,
 			}
 		);
 		marker.set('id',item.id);
 		if (item.id == selectedsite) {
-			marker.setShadow(selectionsymbol);
+			if (selected_marker) {
+				selected_marker.position = new google.maps.LatLng(item.lat, item.lon)
+			} else {
+				selected_marker = new google.maps.Marker({
+					position: new google.maps.LatLng(item.lat, item.lon),
+					map: map,
+					icon: {
+						url: odmf_ref('/media/mapicons/selection.png'),
+						size: new google.maps.Size(37,37),
+						origin: new google.maps.Point(0,0),
+						anchor: new google.maps.Point(6,30)
+					}
+
+				})
+			}
+
 		}
-		(function(eventmarker,id){
-			google.maps.event.addListener(marker,'click',function() {
-				selectsite(item.id);
-			});
-		}(marker,item.id));
-		(function(eventmarker,id){
-			google.maps.event.addListener(marker,'dblclick',function() {
+		google.maps.event.addListener(marker,'click',function() {
+			selectsite(item.id);
+		});
+		google.maps.event.addListener(marker,'dblclick',function() {
 				map.setCenter(marker.getPosition());
 				map.setZoom(map.getZoom()+2);
-			})
-		})(marker,item.id);
+		})
 		markers.push(marker)
 	});
 
