@@ -1,30 +1,14 @@
 // toggle the appeareance of the element with id. Uses jQuery slide
 let markers = []
 let selected_marker = null
+let map = null
 function toggle(id) {
 	$('#'+id).slideToggle('fast');
 }
 function seterror(text) {
 	$('#error').html(text).removeClass('d-none')
 }
-function setpref(data) {
-	$.ajaxSetup({ scriptCharset:"utf-8",
-		contentType:"application/json; charset=utf-8" });
-	$.post(odmf_ref('/preferences/update'),JSON.stringify(data, null, 4),null,'json');
-}
-// Saves the actual map preferences to the session / file
-function savemappref() {
-	if (map) {
-		var center = map.getCenter();
-		var data = {item:'map',
-			lat:center.lat(),
-			lng:center.lng(),
-			zoom:map.getZoom(),
-			type:map.getMapTypeId()
-		};
-		setpref(data);
-	}
-}
+
 // Shows the actual map coordinates in div #coordinates. Event handler
 function map_mousemove(loc) {
 	$('#coordinates').html(loc.lat().toFixed(6) + '°N, ' + loc.lng().toFixed(6) + '°E');
@@ -54,44 +38,42 @@ function clearmarker() {
 }
 
 function selectsite(id) {
-	$('#infotext').load(odmf_ref('/map/sitedescription/') + id,
-		function(response, status, xhr) {
-			if (status == "error") {
-				var msg = "Sorry but there was an error: ";
-				$("#infotext").html(msg + xhr.status + " " + xhr.statusText);
+	localStorage.setItem('map-selected-site', id)
+	if (id) {
+		$('#infotext').load(odmf_ref('/map/sitedescription/') + id,
+			function(response, status, xhr) {
+				if (status == "error") {
+					var msg = "Sorry but there was an error: ";
+					$("#infotext").html(msg + xhr.status + " " + xhr.statusText);
+				}
+			});
+		$('#map_canvas').data('site', id);
+		$.each(markers,function(index,item) {
+			if (item.get('id') == id) {
+				if (selected_marker) {
+					selected_marker.set('position', new google.maps.LatLng(item.position.lat(), item.position.lng()))
+				} else {
+					selected_marker = new google.maps.Marker({
+						position: new google.maps.LatLng(item.position.lat(), item.position.lng()),
+						map: map,
+						icon: {
+							url: odmf_ref('/media/mapicons/selection.png'),
+							size: new google.maps.Size(37,37),
+							origin: new google.maps.Point(0,0),
+							anchor: new google.maps.Point(6,30)
+						}
+
+					})
+				}
+
 			}
 		});
-	$('#map_canvas').data('site', id);
-	var selectionSymbol = getSelectionSymbol();
-	$.each(markers,function(index,item) {
-		if (item.get('id') == id) {
-			if (selected_marker) {
-				selected_marker.set('position', new google.maps.LatLng(item.position.lat(), item.position.lng()))
-			} else {
-				selected_marker = new google.maps.Marker({
-					position: new google.maps.LatLng(item.position.lat(), item.position.lng()),
-					map: map,
-					icon: {
-						url: odmf_ref('/media/mapicons/selection.png'),
-						size: new google.maps.Size(37,37),
-						origin: new google.maps.Point(0,0),
-						anchor: new google.maps.Point(6,30)
-					}
 
-				})
-			}
+	} else {
+		selected_marker = null
+		$('#infotext').html('<h3>No site selected</h3>')
+	}
 
-		}
-	});
-	setpref({site:id});
-	$('#title').html('Map <a href="/site/'+ id + '">site #' + id + '</a>');
-
-}
-function getSelectionSymbol() {
-	return new google.maps.MarkerImage(odmf_ref('/media/mapicons/selection.png'),
-		new google.maps.Size(37,37),
-		new google.maps.Point(0,0),
-		new google.maps.Point(6,30));
 }
 function setmarkers(data) {
 	clearmarker();
@@ -163,69 +145,54 @@ function zoomToMarkers() {
 	map.setCenter(latlngbounds.getCenter());
 	map.fitBounds(latlngbounds);
 }
-function createmap(lat,lng,zoom,type) {
-	var latlng = new google.maps.LatLng(lat, lng);
-	var mapOptions = {
-		zoom: zoom,
-		center: latlng,
-		mapTypeId: type
-	};
 
-	var map=new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+function saveOptions() {
+	localStorage.setItem('map', JSON.stringify(
+		{
+			center: map.getCenter(),
+			zoom: map.getZoom(),
+			mapTypeId: map.getMapTypeId()
+		}
+	))
+
+}
+function initMap(site) {
+
+
+	mapOptions = JSON.parse(localStorage.getItem('map'))
+	map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
 	google.maps.event.addListener(map,'dblclick',function(event) {
 		map_dblclick(event.latLng);
 	});
 	google.maps.event.addListener(map,'mousemove',function(event) {
 		map_mousemove(event.latLng);
 	});
-	return map
-
-}
-
-
-function initMap(site) {
-	map=null;
-
-	$.getJSON(odmf_ref('/preferences'), {}, function( data ) {
-		if (site) {
-			data.site = site.id;
-			data.map.zoom = 20;
-			data.map.lat = site.lat;
-			data.map.lng = site.lon;
+	google.maps.event.addListener(map, 'bounds_changed', saveOptions)
+	map.data.setStyle(feature => {
+		return {
+			strokeWeight: feature.getProperty('strokeWidth') || 2,
+			strokeColor: feature.getProperty('strokeColor') || '#FFF',
+			strokeOpacity: feature.getProperty('strokeOpacity') || 0.8,
+			fillColor: feature.getProperty('fillColor') || '#FFF',
+			fillOpacity: feature.getProperty('fillOpacity') || 0.3,
+			zIndex: 10
 		}
+	})
+	markers = [];
+	function applyFilter() {
+		filter = new SiteFilter().populate_form()
+		filter.apply((data)=>{
+			setmarkers(data)
+			$('#site-count').html(data.features.length)
+		}, odmf_ref('/site/geojson'))
+	}
+	$('.filter').on('change', applyFilter)
+	$('#zoom-home').on('click', zoomToMarkers)
+	clearFilter()
+	applyFilter()
+	if (!mapOptions ||!mapOptions.center) {
+		zoomToMarkers()
+	}
+	selectsite(localStorage.getItem('map-selected-site'))
 
-		map = createmap(data.map.lat,data.map.lng,data.map.zoom,data.map.type);
-		map.data.setStyle(feature => {
-			return {
-				strokeWeight: feature.getProperty('strokeWidth') || 2,
-				strokeColor: feature.getProperty('strokeColor') || '#FFF',
-				strokeOpacity: feature.getProperty('strokeOpacity') || 0.8,
-				fillColor: feature.getProperty('fillColor') || '#FFF',
-				fillOpacity: feature.getProperty('fillOpacity') || 0.3,
-				zIndex: 10
-			}
-		})
-		markers = [];
-		if (data.site) {
-			selectsite(data.site);
-		}
-		function applyFilter() {
-			filter = new SiteFilter().populate_form()
-			filter.apply((data)=>{
-				setmarkers(data)
-				$('#site-count').html(data.features.length)
-			}, odmf_ref('/site/geojson'))
-		}
-		$('.filter').on('change', applyFilter)
-		$('#zoom-home').on('click', zoomToMarkers)
-		clearFilter()
-		applyFilter()
-
-	}).fail(function( jqxhr, textStatus, error){
-
-		$('#map_canvas').html('JSONerror:' + textStatus + ',' + error);
-	});
-
-	$(window).on("beforeunload", savemappref);
-	// Get map preferences
 }
