@@ -9,6 +9,13 @@ from ..test_db.test_dbdataset import *
 def response_to_json(res: bytes):
     return json.loads(res.decode())
 
+
+@pytest.fixture
+def apilogin(root):
+    res = root.api.login(username='odmf.admin', password='test')
+    assert res.decode('utf-8') == 'OK'
+    return root.api
+
 class TestDatasetAPI:
 
     def test_index(self, root, timeseries):
@@ -17,46 +24,49 @@ class TestDatasetAPI:
         )
         assert res.get('id') == 1
 
-    def test_records(self, root, timeseries, thousand_records):
+
+    def test_records(self, apilogin, timeseries, thousand_records):
         res = response_to_json(
-            root.api.dataset.records('ds1')
+            apilogin.dataset.records('ds1')
         )
         assert len(res) == 1000
 
-    def test_values(self, root, timeseries, thousand_records):
+    def test_values(self, apilogin, timeseries, thousand_records):
         timeseries.calibration_offset = 100
         res = response_to_json(
-            root.api.dataset.values('ds1')
+            apilogin.dataset.values('ds1')
         )
         assert len(res) == 1000
         # ser = pd.Series(res)
         # assert all(ser > 0)
 
-    def test_values_parquet(self, root, timeseries, thousand_records):
+    def test_values_parquet(self, apilogin, timeseries, thousand_records):
         timeseries.calibration_offset = 100
         timeseries.session().commit()
         buf = io.BytesIO()
-        buf.write(root.api.dataset.values_parquet('ds1'))
+        buf.write(apilogin.dataset.values_parquet('ds1'))
         buf.seek(0)
         df = pd.read_parquet(buf)
         assert len(df) == 1000
         assert sum(df.value < 0) == 0
 
-    def test_list(self, root, timeseries):
+    def test_list(self, apilogin, timeseries):
         res = response_to_json(
-            root.api.dataset.list()
+            apilogin.dataset.list()
         )
         assert len(res) == 1
         assert res == [1]
 
     @pytest.mark.skip('tot test deletion, existing timeseries may not be temporary')
-    def test_delete(self, root, timeseries):
-        res = response_to_json(root.api.dataset.delete(dsid=1))
+    def test_delete(self, apilogin, timeseries):
+        apilogin.login(username='odmf.admin', password='test')
+        res = response_to_json(apilogin.dataset.delete(dsid=1))
         assert res['status'] == 'success'
-        assert root.api.dataset.list() == '0'
+        assert apilogin.dataset.list() == '0'
 
 
-    def test_new(self, root, db, timeseries):
+    def test_new(self, apilogin, db, timeseries):
+        apilogin.login(username='odmf.admin', password='test')
         data = dict(
             measured_by='odmf.admin',
             valuetype=1,
@@ -64,13 +74,14 @@ class TestDatasetAPI:
             site=1,
             source=1
         )
-        res = root.api.dataset.new(**data).decode()
+        res = apilogin.dataset.new(**data).decode()
         assert res == 'ds2'
         with db.session_scope() as session:
             assert db.Dataset.get(session, 2).id == 2
 
-    def test_addrecord(self, root, timeseries):
-        res = root.api.dataset.addrecord(
+    def test_addrecord(self, apilogin, timeseries):
+        apilogin.login(username='odmf.admin', password='test')
+        res = apilogin.dataset.addrecord(
             dsid='ds1',
             value='2.5',
             time='2020-02-20 07:15:00',
@@ -79,15 +90,15 @@ class TestDatasetAPI:
         rec = timeseries.records.first()
         assert rec.value == 2.5
 
-    def test_statistics(self, root, timeseries, thousand_records):
-        res = response_to_json(root.api.dataset.statistics('ds1'))
+    def test_statistics(self, apilogin, timeseries, thousand_records):
+        res = response_to_json(apilogin.dataset.statistics('ds1'))
         assert 'n' in res
         assert 'mean' in res
         assert 'std' in res
         assert res['n'] == 1000
 
     @pytest.mark.parametrize('with_id', [True, False])
-    def test_addrecords_parquet(self, with_id, root, timeseries):
+    def test_addrecords_parquet(self, with_id, apilogin, timeseries):
         import pandas as pd
         df = pd.DataFrame(index=pd.RangeIndex(1, 1001, 1))
         df['dataset'] = 1
@@ -102,7 +113,7 @@ class TestDatasetAPI:
         cherrypy.request.body = stream
 
         res = response_to_json(
-            root.api.dataset.addrecords_parquet()
+            apilogin.dataset.addrecords_parquet()
         )
         # Check response
         assert res['status'] == 'success'
@@ -112,7 +123,7 @@ class TestDatasetAPI:
         # Check database
         assert timeseries.records.count() == 1000
 
-    def test_addrecords_json_withid(self, root, timeseries):
+    def test_addrecords_json_withid(self, apilogin, timeseries):
         import datetime
         start = datetime.datetime(2022,1,1,12)
         records = [
@@ -128,7 +139,7 @@ class TestDatasetAPI:
         cherrypy.request.json = json.loads(json_str)
 
         res = response_to_json(
-            root.api.dataset.addrecords_json()
+            apilogin.dataset.addrecords_json()
         )
         # Check response
         assert res['status'] == 'success'

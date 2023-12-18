@@ -56,15 +56,15 @@ def to_html(error=None, success=None, info=None, text=None):
 
 class HTTPError(_HTTPError):
     def __init__(self, status: int, message: str):
-        self.message = message
         super().__init__(status, str(message))
-
-
-class APIError(_HTTPError):
-
-    def __init__(self, status: int, message: str):
+        self.traceback = traceback()
         self.message = message
         logger.warning(self.traceback)
+
+
+class APIError(HTTPError):
+
+    def __init__(self, status: int, message: str):
         super().__init__(status, str(message))
 
 
