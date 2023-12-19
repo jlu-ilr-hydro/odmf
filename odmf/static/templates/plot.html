@@ -2,7 +2,7 @@
 
 <py:extends href="layout.html" xmlns:py="">
     <py:block name="scripts">
-        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
         <script type="text/javascript" py:if="plot">
             sessionStorage.setItem('plot', JSON.stringify(${literal(as_json(plot))}, 4));
         </script>
