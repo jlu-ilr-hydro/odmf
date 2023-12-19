@@ -89,7 +89,7 @@
             }
 
             $(function() {
-                $('#log-remove').click(() =>{
+                $('#log-remove').on('click', () =>{
                     let check = confirm('Do you really want to delete this log?');
                     if (check) {
                         $.post(odmf_ref('/log/remove'), {id:${actuallog.id}}, function(data) {

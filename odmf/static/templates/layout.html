@@ -65,12 +65,12 @@
         }
         $(function () {
             $('[data-toggle="tooltip"]').tooltip();
-            $('#login-logout').click(() => {
+            $('#login-logout').on('click', () => {
                 $.post('${conf.root_url}/api/logout').done(() => {
                     window.location.reload()
                 })
             })
-            $('#login-btn').click( function(){
+            $('#login-btn').on('click',  function(){
                 $.post('${conf.root_url}/api/login', $('#login-form').serialize())
                     .done(function() {
                         var curLoc =window.location.href;

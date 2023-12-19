@@ -59,12 +59,12 @@ $(function() {
     $('.nav-pills a').on('shown.bs.tab', function (e) {
         window.location.hash = e.target.hash;
     })
-    $('.icon-button').click(e => {
+    $('.icon-button').on('click', e => {
         let icon = $(e.currentTarget).data('icon')
         $('#currenticon').attr('src',odmf_ref('/media/mapicons/') + icon);
         $('#iconfile').val(icon);
     })
-    $('.installation-remove-button').click(e => {
+    $('.installation-remove-button').on('click', e => {
         let t = $(e.currentTarget)
         $.post(odmf_ref('/site/removeinstrument'),
             {
@@ -81,7 +81,7 @@ $(function() {
             $('.error').html(jqhxr.responseText)
         })
     });
-    $('#add-instrument-button').click(e => {
+    $('#add-instrument-button').on('click', e => {
         $.post(odmf_ref('/site/addinstrument'),
             {
                 instrumentid:$('#instrumentselect').val(),

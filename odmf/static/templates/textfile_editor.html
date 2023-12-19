@@ -1,7 +1,7 @@
 <html lang="en" xmlns:py="">
 <script>
     $(()=> {
-        $('#source-editor-save').click(e => {
+        $('#source-editor-save').on('click', e => {
             $.post(
                 '${conf.root_url}/download/write_to_file',
                 {

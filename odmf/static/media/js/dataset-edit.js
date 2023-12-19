@@ -149,7 +149,7 @@ $(function() {
     const dsid = parseInt($("#dsid").html());
     $(".timepicker").attr('placeholder', '00:00');
 
-    $('#create-transformation').click(e => {
+    $('#create-transformation').on('click', e => {
         $.post(odmf_ref('/dataset/create_transformation/'),
             {sourceid: $('#id-input').val()}
         ).done(data => {
@@ -159,7 +159,7 @@ $(function() {
             $('#error-row').removeClass('d-none')
         })
     })
-    $('#removeds').click(e => {
+    $('#removeds').on('click', e => {
         let btn = $(e.target)
         var msg = 'Are you absolutly sure to delete ' + btn.data('dsname') + '?' +
         'It has ' + btn.data('dssize') + ' records!'
@@ -183,17 +183,17 @@ $(function() {
     $('.transhelpparent').focusout(function(){
         $('#trans_help').hide();
     });
-    $('#trans_sources').change(function() {
+    $('#trans_sources').on('change', function() {
         $('#trans_add_source').prop('disabled', !($(this).val() > 0));
     });
     loadstatistics(dsid);
-    $('#goto').change(function(event) {
+    $('#goto').on('change', function(event) {
         window.location.href=odmf_ref('/dataset/') + $('#goto').val();
     });
-    $('#gotods-btn').click(function() {
+    $('#gotods-btn').on('click', function() {
         window.location.href=odmf_ref('/dataset/') + $('#goto').val();;
     });
-    $('#find-records').click(function() {
+    $('#find-records').on('click', function() {
        loadrecords(dsid);
     });
     // Javascript to enable link to tab
@@ -213,7 +213,7 @@ $(function() {
     /*********************
      * Calibration
      */
-    $('#calibrate-select-source').change(function() {
+    $('#calibrate-select-source').on('change', function() {
         let sourceid = $(this).val();
         let limit = $('#calibrate-limit-time-error').val();
         $('#calibration-result .value').removeClass('bg-warning');
@@ -225,14 +225,14 @@ $(function() {
         }
 
     });
-    $('#calibrate-button-start').click(function() {
+    $('#calibrate-button-start').on('click', function() {
         let sourceid = $('#calibrate-select-source').val();
         let limit = $('#calibrate-limit-time-error').val();
         if (sourceid) {
             do_calibration(dsid, sourceid, limit, true);
         }
     });
-    $('.do-calibration').click(function() {
+    $('.do-calibration').on('click', function() {
         let sourceid= +$('#calibrate-select-source').val();
         let offset = 0;
         let slope = 0;

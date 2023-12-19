@@ -27,28 +27,28 @@
         $(() => {
             $('#plotname').val(window.plot.name)
             $('#save-button-text').html(window.plot.name)
-            $('#plotname').change(event => {
+            $('#plotname').on('change', event => {
                 window.plot.name = $(event.currentTarget).val()
                 $('#save-button-text').html(window.plot.name)
             })
-            $('.load-file').click(event =>{
+            $('.load-file').on('click', event =>{
                 let href = odmf_ref('/datafiles/' + $(event.currentTarget).data('href'))
                 $.getJSON(href, {}, data =>{
                     window.plot.update(data)
                     hide_me()
                 })
             })
-            $('.change-dir').click(event =>{
+            $('.change-dir').on('click', event =>{
                 let href = $(event.currentTarget).data('path')
                 reload(href)
             })
-            $('#save-button').click(event => {
+            $('#save-button').on('click', event => {
                 $.post(odmf_ref('/plot/filedialog/save/'), {
                     plot: JSON.stringify(window.plot, null, 4),
                     path: '${path}/' + window.plot.name + '.plot'
                 }).fail(seterror)
             })
-            $('.delete-button').click(event => {
+            $('.delete-button').on('click', event => {
                 let href = $(event.currentTarget).data('path');
                 $.post(odmf_ref('/plot/filedialog/delete/'), {path: href}).done(reload).fail(seterror);
             })

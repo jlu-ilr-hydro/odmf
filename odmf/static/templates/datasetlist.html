@@ -110,19 +110,19 @@
                 } else if (dir === '+' && page < $('#page option:last').val()) {
                     page++;
                 }
-                $('#page').val(page).change()
+                $('#page').val(page).trigger('change')
                 setFilter();
             }
 
             $(function() {
-                $('#goto').change(() => {
+                $('#goto').on('change', () => {
                     window.location.href=odmf_ref('/dataset/') + $('#goto').val();
                 });
-                $('#gotods-btn').click(() =>  {
+                $('#gotods-btn').on('click', () =>  {
                     window.location.href=odmf_ref('/dataset/') + $('#goto').val();
                 });
-                $('.filter').change(popSelect)
-                $('.page').click(pageChange)
+                $('.filter').on('change', popSelect)
+                $('.page').on('click', pageChange)
 
                 popSelect();
 

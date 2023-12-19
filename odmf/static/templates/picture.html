@@ -40,7 +40,7 @@
                 popSelect();
                 enableupload();
                 $('#bigimage').prop('height',512);
-                $('#imagesize').change(function() {
+                $('#imagesize').on('change', function() {
                     $('#bigimage').prop('height',$(this).val());
                 });
                 $('#imagesize').val(512);

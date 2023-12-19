@@ -13,7 +13,7 @@
             }
 
             $(function() {
-                $('.remove-button').click(function() {
+                $('.remove-button').on('click', function() {
                     var name = $(this).data('name');
                     if (window.confirm("Do you really want to delete " + name + " file?")) {
                         $.post(odmf_ref('/download/removefile/'), {dir: '${curdir}',filename: name},
@@ -23,7 +23,7 @@
                         );
                     }
                 });
-                $('.copy-button').click(function() {
+                $('.copy-button').on('click', function() {
                     let name = $(this).data('name');
                     let newfilename = window.prompt("New filename", 'copy_of_' + name)
                     if (newfilename) {
@@ -34,14 +34,14 @@
                         );
                     }
                 });
-                $('.action-button').click(function() {
+                $('.action-button').on('click', function() {
                     let actionid = $(this).data('actionid')
                     $.post(odmf_ref('/download/action/'), {path: '${curdir}', actionid: actionid}, function(success_url) {
                         window.location = success_url
                     })
                 })
 
-                $('#datafile').change( function(evt) {
+                $('#datafile').on('change',  function(evt) {
                     var path = evt.target.files[0];
                     if(isFileSizeToBig(path.size)) {
                         alert("Please split your file! " + path.name + " has more than ${max_size//1000000} mb. Has " + path.size / 1000000 + " MB");
@@ -52,7 +52,7 @@
                     $('.upload').prop('disabled', !$(this).val());
                 });
 
-                $('.help').click(function() {
+                $('.help').on('click', function() {
                     $('#help-edit').collapse('show');
                 });
 
@@ -69,7 +69,7 @@
                     $('#help-edit-save').prop('disabled', !${bool2js(is_member('editor'))});
                     // Save file on click
                 });
-                $('#help-edit-save').click(function() {
+                $('#help-edit-save').on('click', function() {
                     var text=$('#help-edit textarea').val();
                     $.post(
                         odmf_ref('/download/saveindex/'),
@@ -81,7 +81,7 @@
                     );
 
                 });
-                $('#help-edit-cancel').click(function() {
+                $('#help-edit-cancel').on('click', function() {
                     $('#help').load(odmf_ref('/download/getindex?dir=${curdir}'));
                     $('#help-edit').collapse('hide');
                 });

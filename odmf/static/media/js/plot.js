@@ -36,20 +36,20 @@ function download_on_post(url,  data) {
 		form.append(input)
 	})
 	console.debug(form.html())
-	$(form).appendTo('body').submit()
+	$(form).appendTo('body').trigger('submit')
 }
 
 function set_content_tree_handlers() {
-	$('.removeline').click(event => {
+	$('.removeline').on('click', event => {
 		let btn = $(event.currentTarget);
 		window.plot.removeline(btn.data('subplot'), btn.data('lineno')).apply()
 	})
-	$('.exportline').click(event => {
+	$('.exportline').on('click', event => {
 		let btn = $(event.currentTarget);
 		download_on_post('export_csv', {plot: JSON.stringify(window.plot, null, 4), subplot: btn.data('subplot'), line: btn.data('lineno')})
 	})
 
-	$('.showdataset').click(event => {
+	$('.showdataset').on('click', event => {
 		let btn = $(event.currentTarget)
 		let sp = btn.data('subplot')
 		let line = btn.data('lineno')
@@ -75,14 +75,14 @@ function set_content_tree_handlers() {
 		}
 
 	});
-	$('.sp-logsite-button').click(event =>{
+	$('.sp-logsite-button').on('click', event =>{
 		let subplot=$(event.currentTarget).data('subplot');
 		let html = `<div class="dropdown-item sp-logsite-item" data-subplot="${subplot}">no logs</div>\n` +
 			window.plot.get_sites(subplot).map(
 			value => `<div class="dropdown-item sp-logsite-item" data-subplot="${subplot}" data-site="${value}">#${value}</div>`
 			).reduce((acc, v)=>acc + '\n' + v)
 		$(`.sp-logsite-list[data-subplot=${subplot}]`).html(html)
-		$(`.sp-logsite-item[data-subplot=${subplot}]`).click(event =>{
+		$(`.sp-logsite-item[data-subplot=${subplot}]`).on('click', event =>{
 			let div = $(event.currentTarget)
 			let subplot=div.data('subplot');
 			let site = div.data('site');
@@ -91,12 +91,12 @@ function set_content_tree_handlers() {
 		});
 	});
 
-	$('.sp-remove-button').click(event=>{
+	$('.sp-remove-button').on('click', event=>{
 		window.plot.removesubplot(
 			$(event.currentTarget).data('subplot')
 		);
 	})
-	$('.sp-changeylimit-button').click(event=>{
+	$('.sp-changeylimit-button').on('click', event=>{
 		window.plot.changeylimit($(event.currentTarget).data('subplot'))
 	})
 
@@ -361,7 +361,7 @@ function set_line_dialog_handlers() {
 
     });
 
-    $('#newline-dialog .dataset-select').change(() => {
+    $('#newline-dialog .dataset-select').on('change', () => {
 		let dlg =$('#newline-dialog')
 		let line = line_from_dialog()
 		let	valuetype = parseInt($('#nl-value').val())
@@ -376,7 +376,7 @@ function set_line_dialog_handlers() {
 
 	});
 
-    $('#newline-dialog .nl-style').change(() => {
+    $('#newline-dialog .nl-style').on('change', () => {
 		let	valuetype = parseInt($('#nl-value').val())
 		let site = parseInt($('#nl-site').val())
 		let linestyle = $('#nl-linestyle').val()
@@ -389,7 +389,7 @@ function set_line_dialog_handlers() {
 
 	})
 
-    $('#nl-OK').click(() => {
+    $('#nl-OK').on('click', () => {
     	let dlg =$('#newline-dialog')
     	let plot = window.plot
 		let line = line_from_dialog()
@@ -422,14 +422,14 @@ function makeExportDialog() {
 		)
 	)
 	$('#export-plot').val(JSON.stringify(window.plot))
-	$('#export-method').change(e => {
+	$('#export-method').on('change', e => {
 		if ($(e.currentTarget).val() === 'regular') {
 			$('#export-grid').parents('.row').show(200)
 		} else {
 			$('#export-grid').parents('.row').hide(200)
 		}
 	}).val('union').change()
-	$('#export-interpolation-method').change(e => {
+	$('#export-interpolation-method').on('change', e => {
 		if ($(e.currentTarget).val()) {
 			$('#export-interpolation-limit').parents('.row').show(200)
 		} else {
@@ -445,14 +445,14 @@ $(() => {
 	// $(".date").datetimepicker({format: 'YYYY-MM-DD HH:mm'})
 	$('#addsubplot').prop('disabled', false);
 
-	$('#btn-clf').click(function() {
+	$('#btn-clf').on('click', function() {
 		let plot = window.plot
 		plot.subplots = [];
 		plot.aggregate = null
 		plot.columns = 1
 		plot.apply()
 	});
-	$('#addsubplot').click(e => {
+	$('#addsubplot').on('click', e => {
 		window.plot.addsubplot()
 	})
     // Fluid layout doesn't seem to support 100% height; manually set it
@@ -470,12 +470,12 @@ $(() => {
 
 	set_line_dialog_handlers()
 
-	$('#reload_plot').click(() => {
+	$('#reload_plot').on('click', () => {
 		window.plot.render()
 	});
 
 
-	$('#fig-export button').click(event => {
+	$('#fig-export button').on('click', event => {
 		let fmt=$(event.currentTarget).data('format');
 		if (fmt) {
 			download_on_post('image', {format: fmt, plot: JSON.stringify(window.plot, null, 4)})
@@ -491,7 +491,7 @@ $(() => {
 	})
 	$('#export-dialog').on('show.bs.modal', makeExportDialog)
 
-	$('.killplotfn').click(function() {
+	$('.killplotfn').on('click', function() {
 		var fn = $(this).html();
 		if (confirm('Do you really want to delete your plot "' + fn + '" from the server'))
 			$.post('deleteplotfile',{filename:fn},seterror);

@@ -13,7 +13,7 @@
             $('#plotaggregate').val(plot.aggregate || '')
             $('#prop-description').val(plot.description)
 
-            $('#prop-OK').click(event => {
+            $('#prop-OK').on('click', event => {
                 let plot = window.plot
                 plot.start = gettime('start')
                 plot.end = gettime('end')
