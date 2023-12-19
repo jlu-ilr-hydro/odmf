@@ -67,27 +67,6 @@
     </py:block>
     <py:block name="content">
         <div class="content">
-            <div class="alert bg-danger text-white mt-3" role="alert" py:if="error">
-                <div class="row">
-                    <div class="col-lg-1">
-                        <i class="fas fa-exclamation-circle fa-3x"/>
-                    </div>
-                    <div class="col-lg-11">
-                        <p class="lead" py:content="markdown(error)"/>
-                    </div>
-                </div>
-            </div>
-
-            <div class="alert alert-success mt-3" role="alert" py:if="message" >
-                <div class="row">
-                    <div class="col-lg-1">
-                        <i class="fas fa-info-circle fa-3x"/>
-                    </div>
-                    <div class="col-lg-11">
-                        <p class="" py:content="markdown(message)"/>
-                    </div>
-                </div>
-            </div>
             <div class="row">
                 <div class="col-lg">
                     <table id="joblist" class="table">

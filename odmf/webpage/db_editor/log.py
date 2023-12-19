@@ -180,7 +180,7 @@ class LogPage:
                 else:
                     user = session.query(db.Person).get(web.user())
                 logid = db.newid(db.Log, session)
-                return db.Log(id=logid, site=site, user=user, message=msg, time=date)
+                return db.Log(id=logid, site=site, user=user, success=msg, time=date)
 
             errors = []
             logs = []

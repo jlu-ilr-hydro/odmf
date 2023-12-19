@@ -24,16 +24,6 @@
     </py:block>
     <py:block name="content">
         <div class="container">
-            <div class="row mt-2 w-100">
-                <div class="container">
-                    <div class="container bg-danger text-white row w-100 border rounded" py:if="error">
-                        <h1 class="display-3 col-lg-2">Error</h1>
-                        <div class="lead col-lg-10" py:content="markdown(error)"/>
-                    </div>
-
-                </div>
-            </div>
-
             <div class="container" py:if="actualvaluetype" py:with="vt_act=actualvaluetype">
                 <div id="description" py:if="vt_act">
                     <div class="row mt-2 w-100">

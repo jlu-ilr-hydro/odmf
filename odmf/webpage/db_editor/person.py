@@ -42,7 +42,7 @@ class PersonPage:
                 persons=persons,
                 active_person=p_act,
                 supervisors=supervisors,
-                error=error, message=msg,
+                error=error, success=msg,
                 jobs=jobs,
                 act_user=act_user,
                 is_self=is_self

@@ -64,17 +64,6 @@
     </py:block>
     <py:block name="content">
         <div class="container-fluid">
-            <div class="alert bg-danger text-white" role="alert" py:if="error">
-                <div class="row">
-                    <div class="col-lg-1">
-                        <i class="fas fa-exclamation-circle fa-3x"/>
-                    </div>
-                    <div class="col-lg-11">
-                        <p class="lead" py:content="markdown(error)"/>
-                    </div>
-                </div>
-            </div>
-
             <div class="tab-content" id="tab" py:if="actualsite" >
                 <div class="tab-pane active" id ="sitedescription" role="tabpanel">
                     <div class="container">

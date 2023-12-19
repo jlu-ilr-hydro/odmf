@@ -43,7 +43,7 @@ class DatasetPage:
         Returns the query page (datasetlist.html). Site logic is handled with ajax
         """
         if datasetid is None:
-            return web.render('datasetlist.html', error=error, message=message).render()
+            return web.render('datasetlist.html', error=error, success=message).render()
         else:
             with db.session_scope() as session:
                 active = get_ds(session, datasetid)
@@ -51,7 +51,7 @@ class DatasetPage:
                     web.cherrypy.session['dataset'] = datasetid  # @UndefinedVariable
                     return self.render_dataset(active, error, message)
                 else:
-                    raise web.redirect(conf.root_url + '/dataset', error=f'No ds{id} available')
+                    raise web.redirect(conf.root_url + '/dataset', error=f'No ds{datasetid} available')
     @expose_for(Level.editor)
     def new(self, site_id=None, vt_id=None, user=None, error='', _=None):
         with db.session_scope() as session:
@@ -90,7 +90,7 @@ class DatasetPage:
             # activedataset is the current dataset (id or new)
             ds_act=active, n=active.size(), access=access,
             # Render error messages
-            error=error,
+            error=error, success=message,
             # All available timezones
             timezones=common_timezones + ['Fixed/60'],
             # The title of the page

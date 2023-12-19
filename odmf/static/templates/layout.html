@@ -75,15 +75,15 @@
                     .done(function() {
                         var curLoc =window.location.href;
                         curLoc = curLoc.replace(/error\=[^&]*/, '')
-                                .replace('?&', '?')
-                                .replace(/\?$/,'')
-                                .replace('&&', '&');
+                            .replace('?&', '?')
+                            .replace(/\?$/,'')
+                            .replace('&&', '&');
                         window.location.replace(curLoc);
                     })
                     .fail(
                         function(response) {
-                           window.location = '${conf.root_url}/login?error=' + encodeURI(response.responseText);
-                    });
+                            window.location = '${conf.root_url}/login?error=' + encodeURI(response.responseText);
+                        });
                 return false;
             });
             $('.datetime-local-now').val(datetime_local_now())
@@ -110,19 +110,19 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
             <a class="nav-link dropdown-toggle h4"
                href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown"
                aria-haspopup="true" aria-expanded="false">
-                   ${title}
+                ${title}
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                    <a class="dropdown-item flexbox"
-                       py:for="resource in nav_items"
-                       href="${resource.uri}"
-                       title="${resource.doc}"
-                       data-toggle="tooltip"
-                       data-placement="right"
-                    >
-                        <span py:content="resource.name" />
-                        <i class="fas fa-${resource.icon or 'question_circle'} fa-lg"/>
-                    </a>
+                <a class="dropdown-item flexbox"
+                   py:for="resource in nav_items"
+                   href="${resource.uri}"
+                   title="${resource.doc}"
+                   data-toggle="tooltip"
+                   data-placement="right"
+                >
+                    <span py:content="resource.name" />
+                    <i class="fas fa-${resource.icon or 'question_circle'} fa-lg"/>
+                </a>
 
 
             </div>
@@ -154,10 +154,10 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
                 </a>
                 <div class="dropdown-menu bg-dark dropdown-menu-right" aria-labelledby="login-link" style="min-width: 15rem;">
                     <form id="login-form" class="m-2 p-2 bg-light border-rounded" >
-                            <label for="login-username">Username</label>
-                            <input type="text" class="form-control" id="login-username" name="username" />
-                            <label for="login-password">Password:</label>
-                            <input type="password" name="password" id="login-password" class="form-control"/>
+                        <label for="login-username">Username</label>
+                        <input type="text" class="form-control" id="login-username" name="username" />
+                        <label for="login-password">Password:</label>
+                        <input type="password" name="password" id="login-password" class="form-control"/>
                     </form>
                     <div id="login-error" />
                     <div class="row p-2">
@@ -172,14 +172,13 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
             </li>
             <li class="nav-item">
                 <div class="">
-                <img src="${conf.url(conf.nav_left_logo)}"
-                     alt="${conf.url(conf.nav_left_logo)}"  class="logo mt-2"/>
-                    </div>
+                    <img src="${conf.url(conf.nav_left_logo)}"
+                         alt="${conf.url(conf.nav_left_logo)}"  class="logo mt-2"/>
+                </div>
             </li>
         </ul>
     </div>
 </nav>
-
 
 <div class="container-fluid">
     <div class="row h-100">
@@ -192,7 +191,39 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
             </div>
         </nav>
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 p-0 h-100">
+            <div class="container-fluid">
+                <div class="alert bg-danger text-white w-100 ${dnone_if(not error)}" role="alert">
+                    <div class="row">
+                        <div class="col-lg-1">
+                            <i class="fas fa-exclamation-circle fa-3x"/>
+                        </div>
+                        <div class="col-lg-11">
+                            <p class="lead" py:content="markdown(error)"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-info w-100 ${dnone_if(not info)}" role="alert"  >
+                    <div class="row">
+                        <div class="col-lg-1">
+                            <i class="fas fa-info-circle fa-3x"/>
+                        </div>
+                        <div class="col-lg-11">
+                            <p class="" py:content="markdown(info)"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-success w-100 ${dnone_if(not success)}" role="alert"  >
+                    <div class="row">
+                        <div class="col-lg-1">
+                            <i class="fas fa-info-circle fa-3x"/>
+                        </div>
+                        <div class="col-lg-11">
+                            <p class="" py:content="markdown(success)"/>
+                        </div>
+                    </div>
+                </div>
 
+            </div>
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
                 <p py:block="content">
 

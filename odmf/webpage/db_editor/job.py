@@ -47,7 +47,7 @@ class JobPage:
 
             return web.render(
                 'job.html', jobs=jobs, job=job,
-                error=error, message=msg, db=db,
+                error=error, success=msg, db=db,
                 username=user, onlyactive=onlyactive,
                 **queries
             ).render()

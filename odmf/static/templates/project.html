@@ -35,26 +35,6 @@
     </py:block>
     <py:block name="content">
         <div class="container m-0 p-0">
-            <div class="alert bg-danger text-white" role="alert" py:if="error">
-                <div class="row">
-                    <div class="col-lg-1">
-                        <i class="fas fa-exclamation-circle fa-3x"/>
-                    </div>
-                    <div class="col-lg-11">
-                        <p class="lead" py:content="markdown(error)"/>
-                    </div>
-                </div>
-            </div>
-            <div class="alert alert-success" role="alert" py:if="msg" >
-                <div class="row">
-                    <div class="col-lg-1">
-                        <i class="fas fa-info-circle fa-3x"/>
-                    </div>
-                    <div class="col-lg-11">
-                        <p class="" py:content="markdown(msg)"/>
-                    </div>
-                </div>
-            </div>
             <py:if test="(not actproject) or Level.my(actproject.id)==Level.guest">
             <div id="list-title-area"
                  class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4">
