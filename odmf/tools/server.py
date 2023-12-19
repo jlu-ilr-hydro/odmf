@@ -7,7 +7,6 @@ import cherrypy
 from logging import getLogger
 import os
 import sys
-from ..webpage.auth import expose_for
 
 logger = getLogger(__name__)
 server_config = {
@@ -18,6 +17,38 @@ server_config = {
     'log.access_file': prefix + '/access.log',
     'log.error_file': prefix + '/error.log',
 }
+
+def set_response_cookie(path=None, path_header=None, name='session_id',
+                        timeout=60, domain=None, secure=False, httponly=False):
+    """
+    This is a copy of cherrypy's set_response_cookie function that sets the cookie for
+    the session. We set the samesite to strict and monkey patch cherrypy with that
+
+    """
+    # Set response cookie
+    cookie = cherrypy.serving.response.cookie
+    cookie[name] = cherrypy.serving.session.id
+    cookie[name]['path'] = (
+        path or
+        cherrypy.serving.request.headers.get(path_header) or
+        '/'
+    )
+
+    if timeout:
+        cookie[name]['max-age'] = timeout * 60
+    if domain is not None:
+        cookie[name]['domain'] = domain
+    if secure:
+        cookie[name]['secure'] = 1
+    if httponly:
+        if not cookie[name].isReservedKey('httponly'):
+            raise ValueError('The httponly cookie token is not supported.')
+        cookie[name]['httponly'] = 1
+
+    cookie[name]['samesite'] = 'Lax'
+
+import cherrypy.lib.sessions
+cherrypy.lib.sessions.set_response_cookie = set_response_cookie
 
 
 def configure_app(autoreload=False):
