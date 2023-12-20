@@ -41,7 +41,7 @@ class ColumnDataset:
 
         if col.append:
             try:
-                self.dataset: db.Timeseries = session.query(db.Dataset).get(int(col.append))
+                self.dataset: db.Timeseries = session.get(db.Dataset, int(col.append))
                 assert self.dataset.type == 'timeseries'
                 self.dataset.start = min(start, self.dataset.start)
                 self.dataset.end = max(end, self.dataset.end)
@@ -101,11 +101,11 @@ def columndatasets_from_description(
     """
     with session.no_autoflush:
         # Get instrument, user and site object from db
-        inst = session.query(db.Datasource).get(idescr.instrument)
-        user = session.query(db.Person).get(user)
-        site = session.query(db.Site).get(siteid)
+        inst = session.get(db.Datasource, idescr.instrument)
+        user = session.get(db.Person, user)
+        site = session.get(db.Site, siteid)
         # Get "raw" as data quality, to use as a default value
-        raw = session.query(db.Quality).get(0)
+        raw = session.get(db.Quality, 0)
         # Get all the relevant valuetypes (vt) from db as a dict for fast look up
         valuetypes = {
             vt.id: vt for vt in
@@ -332,7 +332,7 @@ def get_dataframe_for_ds_column(session, column: ImportColumn, data: pd.DataFram
         dsid = int(dsid)
         # int conversion is necessary to prevent
         # (psycopg2.ProgrammingError) can't adapt type 'numpy.int64'
-        ds = session.query(db.Dataset).get(dsid)
+        ds = session.get(db.Dataset, dsid)
         if ds:
             # Filter data for the current ds
             ds_data = data[ds_ids == dsid]

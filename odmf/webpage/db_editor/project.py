@@ -49,7 +49,7 @@ class ProjectPage:
                         project = db.Project()
                         session.add(project)
 
-                    person = session.query(db.Person).get(person)
+                    person = session.get(db.Person, person)
                     project.name = name
                     project.comment = comment
                     project.sourcelink = sourcelink

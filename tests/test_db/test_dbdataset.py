@@ -88,7 +88,7 @@ class TestValueType:
         assert 'id' in d
 
     def test_ValueType_load(self, value_type, session, db, record):
-        value_type_1 = session.query(db.ValueType).get(1)
+        value_type_1 = session.get(db.ValueType, 1)
         assert hash(value_type_1) == hash(value_type)
         assert not value_type < value_type
         assert not value_type_1 == value_type
@@ -233,13 +233,13 @@ class TestRemovedataset:
         id = timeseries.id
         db.removedataset(timeseries.id)
         session.commit()
-        assert session.query(db.Dataset).get(id) is None
+        assert session.get(db.Dataset, id) is None
 
     def test_removedataset_str(self, db, timeseries):
         session = timeseries.session()
         id = timeseries.id
         db.removedataset(str(timeseries.id))
         session.commit()
-        assert session.query(db.Dataset).get(id) is None
+        assert session.get(db.Dataset, id) is None
 
 

@@ -391,7 +391,7 @@ class ImportDescription(object):
         from .. import db
         config = RawConfigParser(allow_no_value=True)
         with db.session_scope() as session:
-            inst = session.query(db.Datasource).get(self.instrument)
+            inst = session.get(db.Datasource, self.instrument)
             if not inst:
                 raise ValueError(
                     'Error in import description: %s is not a valid instrument id')

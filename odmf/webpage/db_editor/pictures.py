@@ -18,7 +18,7 @@ class PicturePage(object):
     @expose_for()
     def image(self, id):
         with db.session_scope() as session:
-            img = session.query(db.Image).get(int(id))
+            img = session.get(db.Image, int(id))
 
             if img:
                 web.mime.set(img.mime)
@@ -30,7 +30,7 @@ class PicturePage(object):
     @expose_for()
     def thumbnail(self, id):
         with db.session_scope() as session:
-            img = session.query(db.Image).get(int(id))
+            img = session.get(db.Image, int(id))
 
             if img:
                 web.mime.set(img.mime)
@@ -46,7 +46,7 @@ class PicturePage(object):
             img = imagelist = None
             error = ''
             if id:
-                img = session.query(db.Image).get(int(id))
+                img = session.get(db.Image, int(id))
                 if not img:
                     error = "No image with id=%s found" % id
             else:
@@ -63,8 +63,8 @@ class PicturePage(object):
     @expose_for(group.logger)
     def upload(self, imgfile, siteid, user):
         with db.session_scope() as session:
-            site = session.query(db.Site).get(int(siteid)) if siteid else None
-            by = session.query(db.Person).get(user) if user else None
+            site = session.get(db.Site, int(siteid)) if siteid else None
+            by = session.get(db.Person, user) if user else None
             img = db.Image(site=site, by=by, imagefile=imgfile.file)
             session.add(img)
             session.flush()

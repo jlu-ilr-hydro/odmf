@@ -28,14 +28,14 @@ class PersonPage:
                 p_act = db.Person(active=True)
             else:
                 try:
-                    p_act = session.query(db.Person).get(act_user)
+                    p_act = session.get(db.Person, act_user)
                     if p_act is None:
                         raise ValueError(
                             "There is no user with the name '%s'" % act_user)
                     jobs = p_act.jobs.order_by(db.sql.asc(
                         db.Job.done), db.sql.asc(db.Job.due))
                 except:
-                    p_act = session.query(db.Person).get(users.current.name)
+                    p_act = session.get(db.Person, users.current.name)
                     error = traceback()
             return web.render(
                 'person.html',

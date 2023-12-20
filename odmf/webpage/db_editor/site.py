@@ -47,7 +47,7 @@ class SitePage:
             datasets = instruments = []
             try:
                 instruments = session.query(db.Datasource).order_by(db.Datasource.name)
-                actualsite = session.query(db.Site).get(int(siteid))
+                actualsite = session.get(db.Site, int(siteid))
                 if not actualsite:
                     error = f'Site #{siteid} does not exist'
                 else:
@@ -95,7 +95,7 @@ class SitePage:
                 if None in (lon, lat):
                     raise web.redirect(f'../{siteid}', error='The site has no coordinates')
 
-                site = session.query(db.Site).get(siteid)
+                site = session.get(db.Site, siteid)
                 if not site:
                     site = db.Site(id=siteid, lat=lat, lon=lon)
                     session.add(site)
@@ -116,7 +116,7 @@ class SitePage:
         with db.session_scope() as session:
             try:
                 siteid = web.conv(int, siteid)
-                site = session.query(db.Site).get(siteid)
+                site = session.get(db.Site, siteid)
                 if not (siteid or site):
                     raise web.redirect(f'{self.url}/{siteid}', error=f'#{siteid} not found')
                 if site.geometry:
@@ -163,8 +163,8 @@ class SitePage:
             with db.session_scope() as session:
 
                 date = web.parsedate(date)
-                site = session.query(db.Site).get(int(siteid))
-                instrument = session.query(db.Datasource).get(int(instrumentid))
+                site = session.get(db.Site, int(siteid))
+                instrument = session.get(db.Datasource, int(instrumentid))
                 pot_installations = session.query(db.Installation)
                 pot_installations = pot_installations.filter(
                     db.Installation.instrument == instrument, db.Installation.site == site)
@@ -187,7 +187,7 @@ class SitePage:
         with db.session_scope() as session:
             try:
                 date = web.parsedate(date)
-                site = session.query(db.Site).get(int(siteid))
+                site = session.get(db.Site, int(siteid))
                 inst: db.Installation = session.query(db.Installation).filter_by(
                     _site=int(siteid), _instrument=int(instrumentid), id=int(installationid)
                 ).first()
@@ -412,7 +412,7 @@ class SitePage:
     @web.method.get
     def with_instrument(self, instrumentid):
         with db.session_scope() as session:
-            inst = session.query(db.Datasource).get(int(instrumentid))
+            inst = session.get(db.Datasource, int(instrumentid))
             return web.json_out(sorted(set(i.site for i in inst.sites)))
 
     @expose_for(group.logger)

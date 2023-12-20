@@ -54,7 +54,7 @@ class DatasetAPI(BaseAPI):
     def get_dataset(dsid: str, check_access=True) -> db.Dataset:
         dsid = DatasetAPI.parse_id(dsid)
         with db.session_scope() as session:
-            ds = session.query(db.Dataset).get(dsid)
+            ds = session.get(db.Dataset, dsid)
             if not ds:
                 raise web.APIError(404, f'ds{dsid} does not exist')
             elif check_access and ds.access > ds.get_access_level(users.current):
@@ -158,11 +158,11 @@ class DatasetAPI(BaseAPI):
         """
         with db.session_scope() as session:
             try:
-                pers = session.query(db.Person).get(kwargs.get('measured_by'))
-                vt = session.query(db.ValueType).get(kwargs.get('valuetype'))
-                q = session.query(db.Quality).get(kwargs.get('quality'))
-                s = session.query(db.Site).get(kwargs.get('site'))
-                src = session.query(db.Datasource).get(kwargs.get('source'))
+                pers = session.get(db.Person, kwargs.get('measured_by'))
+                vt = session.get(db.ValueType, kwargs.get('valuetype'))
+                q = session.get(db.Quality, kwargs.get('quality'))
+                s = session.get(db.Site, kwargs.get('site'))
+                src = session.get(db.Datasource, kwargs.get('source'))
 
                 ds = db.Timeseries()
                 # Get properties from the keyword arguments kwargs
@@ -214,7 +214,7 @@ class DatasetAPI(BaseAPI):
     @web.method.post_or_delete
     def delete(self, dsid: int):
         with db.session_scope() as session:
-            if not (ds := session.query(db.Dataset).get(dsid)):
+            if not (ds := session.get(db.Dataset, dsid)):
                 raise web.APIError(404, f'Dataset {dsid} not found')
             if isinstance(ds, db.Timeseries) and ds.size():
                 raise web.APIError(500, f'Dataset ds{dsid} has {ds.size()} records. Call api.dataset.delete_records({dsid}) first, to delete all records')
@@ -226,7 +226,7 @@ class DatasetAPI(BaseAPI):
     def count_records(self, dsid: int):
         web.mime.plain.set()
         with db.session_scope() as session:
-            if not (ds := session.query(db.Dataset).get(dsid)):
+            if not (ds := session.get(db.Dataset, dsid)):
                 raise web.APIError(404, f'Dataset {dsid} not found')
             return f'{ds.size()}'.encode('utf-8')
 
@@ -239,7 +239,7 @@ class DatasetAPI(BaseAPI):
         """
         web.mime.plain.set()
         with db.session_scope() as session:
-            if not (ds := session.query(db.Timeseries).get(dsid)):
+            if not (ds := session.get(db.Timeseries, dsid)):
                 raise web.APIError(404, f'Dataset {dsid} not found')
             if ds.access > ds.get_access_level(users.current):
                 raise web.APIError(403, 'Not enough privileges')
@@ -276,7 +276,7 @@ class DatasetAPI(BaseAPI):
         with db.session_scope() as session:
             try:
                 dsid = self.parse_id(dsid)
-                ds = session.query(db.Timeseries).get(dsid)
+                ds = session.get(db.Timeseries, dsid)
                 if ds.access > ds.get_access_level(users.current):
                     raise web.APIError(403, 'Not enough privileges')
 
@@ -332,7 +332,7 @@ class DatasetAPI(BaseAPI):
                                     f'(allowed keywords are dsid, dataset and dataset_id)')
                 if not dataset or dataset.id != dsid:
                     # load dataset from db
-                    dataset = session.query(db.Dataset).get(dsid)
+                    dataset = session.get(db.Dataset, dsid)
                 else:
                     ...  # reuse last dataset
                 if not dataset:

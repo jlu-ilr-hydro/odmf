@@ -20,7 +20,7 @@ class DatasourcePage:
                                      name='<Name>')
             else:
                 try:
-                    inst = session.query(db.Datasource).get(int(id))
+                    inst = session.get(db.Datasource, int(id))
                 except:
                     error = traceback()
                     inst = None
@@ -37,7 +37,7 @@ class DatasourcePage:
         if 'save' in kwargs:
             try:
                 with db.session_scope() as session:
-                    inst = session.query(db.Datasource).get(int(id))
+                    inst = session.get(db.Datasource, int(id))
                     if not inst:
                         inst = db.Datasource(id=id)
                         session.add(inst)

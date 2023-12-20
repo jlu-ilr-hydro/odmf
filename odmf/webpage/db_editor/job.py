@@ -17,11 +17,11 @@ class JobPage:
             if user is None:
                 user = web.user()
             if jobid == 'new':
-                author = session.query(db.Person).get(web.user())
+                author = session.get(db.Person, web.user())
                 job = db.Job(id=db.newid(db.Job, session),
                              name='name of new job', author=author)
                 if user:
-                    p_user = session.query(db.Person).get(user)
+                    p_user = session.get(db.Person, user)
                     job.responsible = p_user
                     job.due = datetime.now()
 
@@ -30,7 +30,7 @@ class JobPage:
                     _responsible=web.user(), done=False).order_by(db.Job.due).first()
             else:
                 try:
-                    job = session.query(db.Job).get(int(jobid))
+                    job = session.get(db.Job, int(jobid))
                 except:
                     error = traceback()
                     job = None
@@ -54,7 +54,7 @@ class JobPage:
     @expose_for(group.logger)
     def done(self, jobid, time=None):
         with db.session_scope() as session:
-            job = session.query(db.Job).get(int(jobid))
+            job = session.get(db.Job, int(jobid))
             if time:
                 time = web.parsedate(time)
             return job.make_done(users.current.name, time)
@@ -72,7 +72,7 @@ class JobPage:
         else:
             try:
                 with db. session_scope() as session:
-                    job = session.query(db.Job).get(id)
+                    job = session.get(db.Job, id)
                     if not job:
                         job = db.Job(id=id, _author=web.user())
                     if kwargs.get('due'):
@@ -86,7 +86,7 @@ class JobPage:
                     job.type = kwargs.get('type')
 
                     if kwargs['save'] == 'own':
-                        p_user = session.query(db.Person).get(web.user())
+                        p_user = session.get(db.Person, web.user())
                         job.author = p_user
                         msg = f'{job.name} is now yours'
                     elif kwargs['save'] == 'done':
