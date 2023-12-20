@@ -50,10 +50,6 @@
                         <a id="edit-tab" class="nav-link ${['', 'active'][not ds_act.is_defined()]} border-top" data-toggle="pill" href="#edit"
                            py:if="access(Level.editor)"
                         >edit</a>
-                        <a id="add-record-tab" class="nav-link border-top" data-toggle="pill" href="#add-record"
-                           py:if="access(Level.editor) and ds_act.is_defined()">
-                            add record
-                        </a>
 
                         <a id="transforms-tab" class="nav-link flexbox border-top"
                            data-toggle="pill" href="#transforms"
@@ -67,7 +63,7 @@
                         >plot
                         </a>
                         <a id="records-tab" class="nav-link flexbox border-top" data-toggle="pill"
-                           py:if="access(Level.editor)"
+                           py:if="access(Level.editor) and ds_act.is_timeseries()"
                            href="#records">
                             records
                         </a>
@@ -77,11 +73,6 @@
 
                         >
                             calibrate
-                        </a>
-                        <a id="export-tab"
-                           py:if="access(Level.logger)"
-                           href="#export" class="nav-link flexbox border-top" data-toggle="pill">
-                            export
                         </a>
                     </div>
                 </div>
@@ -258,13 +249,6 @@
                     <form action="save" method="post">
                         <input type="hidden" name="id" value="${ds_act.id}"  />
                         <div class="container w-100">
-                            <div id="edit-top-buttons" class="form-row mb-2">
-
-                                <button type="submit" id="save" name="save" class="btn btn-outline-success mr-2" >
-                                    <i class="fas fa-save mr-2"/> Save
-                                </button>
-
-                            </div>
                             <div id="edit-name-user-vt" class="form-row">
                                 <div class="form-group col-lg">
                                     <label for="name">Name:</label>
@@ -570,30 +554,14 @@
                                           rows="10"
                                           py:content="ds_act.comment" />
                             </div>
-                        </div>
-                    </form>
-                </div>
-                <div id="add-record" class="tab-pane w-100 mr-4" role="tabpanel" py:if="access(Level.editor) and ds_act.valuetype">
-                    <h3>Add value...</h3>
-                    <form action="${conf.root_url}/dataset/add-record" method="post">
-                        <input type="hidden" name="dataset" value="${ds_act.id}" id="id-input" />
-                        <div class="container w-100">
-                            <div class="form-group">
-                                <label for="add-record-value">value in ${ds_act.valuetype.unit}</label>
-                                <input id="add-record-value" type="number" name="value" class="form-control"/>
-                            </div>
-                            <div class="form-group">
-                                <label for="add-record-time">time</label>
-                                <input id="add-record-time" type="datetime-local" name="time" class="form-control datetime-local-now"/>
-                            </div>
-                            <div class="form-group">
-                                <label for="add-record-comment">comment</label>
-                                <input id="add-record-comment" type="text" name="comment"  class="form-control"/>
-                            </div>
-                            <input type="submit" />
+                            <div id="edit-top-buttons" class="form-row mb-2">
 
-                        </div>
+                                <button type="submit" id="save" name="save" class="btn btn-success mr-2" >
+                                    <i class="fas fa-check mr-2"/> save changes
+                                </button>
 
+                            </div>
+                        </div>
                     </form>
                 </div>
                 <div id="transforms" class="tab-pane" role="tabpanel" py:if="ds_act.is_transformed()">
@@ -715,9 +683,34 @@
                 </div>
                 <div id="records" class="tab-pane" role="tabpanel"
                      py:if="ds_act.is_timeseries() and access(Level.editor)">
+                    <div class="my-2">
+                        <a href="#add-record-div" class="btn btn-primary dropdown-toggle" data-toggle="collapse"><i class="fas fa-plus-circle"/> new record</a>
+                        <div id="add-record-div" class="border collapse mb-2 py-2">
+                            <form id="add-record-form" action="${conf.root_url}/dataset/add-record" method="post">
+                                <input type="hidden" name="dataset" value="${ds_act.id}" id="id-input" />
+                                <div class="container w-100">
+                                    <div class="form-group">
+                                        <label for="add-record-value">value in ${ds_act.valuetype.unit}</label>
+                                        <input id="add-record-value" type="number" name="value" class="form-control"/>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="add-record-time">time</label>
+                                        <input id="add-record-time" type="datetime-local" name="time" class="form-control datetime-local-now"/>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="add-record-comment">comment</label>
+                                        <input id="add-record-comment" type="text" name="comment"  class="form-control"/>
+                                    </div>
+                                    <button type="submit" class="btn btn-success"><i class="fas fa-check"/> add</button>
+
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
                     <div class="row w-100">
                         <div class="col-sm">
-                            <button class="btn btn-primary w-100" id="find-records">find records</button>
+                            <button class="btn btn-primary w-100" id="find-records"><i class="fas fa-search"/> find records</button>
                         </div>
                         <div class="col-sm input-group" title="limit the number of records" data-toggle="tooltip">
                             <div class="input-group-prepend">
@@ -916,16 +909,6 @@
 
 
 
-                </div>
-                <div id="export" class="tab-pane" role="tabpanel" py:if="access(Level.logger)">
-                    <ul>
-                        <li py:if="ds_act">
-                            <a class="btn btn-primary" href="${conf.root_url}/dataset/records.csv?dataset=${ds_act.id}">
-                                Export as CSV
-                            </a>
-                            Get Values as csv-file. Open with Excel if English language settings are chosen in Windows.
-                        </li>
-                    </ul>
                 </div>
             </div>
 

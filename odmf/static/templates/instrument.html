@@ -96,7 +96,7 @@
                                 </div>
                                 <div class="col-lg-2">
                                     <a class="btn btn-secondary dropdown-toggle" href="#edit" data-toggle="collapse">
-                                        edit
+                                        <i class="fas fa-edit"/> edit
                                     </a>
                                 </div>
 
@@ -109,7 +109,7 @@
                 </div>
                 <div id="edit" class="container collapse border rounded px-4">
                     <form action="${conf.root_url}/instrument/saveitem"
-                          method="post" py:if="is_member('supervisor')"
+                          method="post" py:if="is_member(Level.editor)"
                     >
                         <div class="form-row mt-2">
                             <div class="form-group">
@@ -139,7 +139,7 @@
                                       py:content="inst_act.comment"/>
                         </div>
                         <button class="btn btn-success mb-2" type="submit" id="save" name="save" >
-                            <i class="fas fa-save mr-2"/>
+                            <i class="fas fa-check mr-2"/>
                             save changes
                         </button>
                     </form>
