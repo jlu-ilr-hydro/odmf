@@ -112,7 +112,7 @@ class ODMFExtension(markdown.Extension):
         md.inlinePatterns.register(PatternLink(md, r'(project:)([0-9]+)', r'/project/\3', '\u25B8' + r'\2\3'), 'link project', 100)
         md.inlinePatterns.register(PatternLink(md, r'(dir:)(\S+)', r'/download/\3', '\u25B8' + r'\3'), 'link dir', 100)
         md.inlinePatterns.register(PatternLink(md, r'(user:)([a-zA-Z\.]+)', r'/user/\3', user2name), 'link user', 100)
-        md.inlinePatterns.register(PatternLink(md, r'(photo:)([0-9]+)', r'/picture/?id=\3', '\u25B8' + r'\2\3'), 'link photo', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(photo:)([0-9]+)', r'/picture/\3', '\u25B8' + r'\2\3'), 'link photo', 100)
         md.inlinePatterns.register(PatternLink(md, r'(log:)([0-9]+)', r'/log/\3', '\u25B8' + r'\2\3'), 'link log', 100)
         md.inlinePatterns.register(PatternLink(md, r'(wiki:)([\w/]+)', r'/download/\3', '[\\3]'), 'link wiki', 100)
         md.inlinePatterns.register(PatternLink(md, r'((?:f|ht)tps?://)([^,\s]+)', r'\2\3', r'\3'), 'urlize', 90)

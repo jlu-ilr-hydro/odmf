@@ -11,3 +11,4 @@ venv*
 instances
 dist
 build
+/*instance*/

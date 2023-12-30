@@ -20,7 +20,7 @@
             function popSelect() {
                 $.getJSON(odmf_ref('/site/json'),[],function(data){
                     var html='<option value="">select the photo site...</option>';
-                    $.each(data[0],function(index,item){
+                    $.each(data.sites,function(index,item){
                         html += '<option value="'+item.id+'">' +'#' + item.id + ' ('+ item.name + ')' + '</option>';
                     });
                     $('.sites').html(html);
@@ -44,6 +44,23 @@
                     $('#bigimage').prop('height',$(this).val());
                 });
                 $('#imagesize').val(512);
+                $('.rotate').on('click', e => {
+                    let obj = {
+                        degrees: $(e.currentTarget).data('degrees')
+                    }
+                    $.post('rotate', obj, ()=>{
+                        window.location = '.'
+                    }).fail(data => {
+                        console.debug(data)
+                    })
+                })
+                $('.delete').on('click', e => {
+                    $.post('delete', {}, ()=>{
+                        window.location = '..'
+                    }).fail(data => {
+                        console.debug(data)
+                    })
+                })
             });
 
             //]]>
@@ -98,24 +115,68 @@
             <div py:if="picture" class="container-fluid bg-dark">
                 <div class="card">
                     <img src="${conf.root_url}/picture/image/${picture.id}" id="bigimage" class="card-image-top"/>
-                    <div class="card-body">
-                        photo:${picture.id} ${formatdatetime(picture.time)} by
-                        <a href="${conf.root_url}/user/${picture.by.username}">${picture.by}</a>
-                        <div>
-                            Location: <a href="${conf.root_url}/site/${picture.site.id}">${picture.site}</a>
-                        </div>
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <label for="imagesize" class="input-group-text">Picture height</label>
+                    <div class="card-body" >
+                        <div class="float-right">
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <label for="imagesize" class="input-group-text"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> size</label>
+                                </div>
+                                <select id="imagesize" class="custom-select form-control">
+                                    <option value="256">256 px</option>
+                                    <option value="512">512 px</option>
+                                    <option value="768">768 px</option>
+                                    <option value="1024">1024 px</option>
+                                </select>
+                            
                             </div>
-                            <select id="imagesize" class="custom-select">
-                                <option value="256">256 px</option>
-                                <option value="512">512 px</option>
-                                <option value="768">768 px</option>
-                                <option value="1024">1024 px</option>
-                            </select>
+
                         </div>
+                        <div py:content="markdown(picture.comment)"/>
                     </div>
+
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">photo:${picture.id} ${formatdatetime(picture.time)} by
+                            <a href="${conf.root_url}/user/${picture.by.username}" class="card-link">${picture.by}</a>
+                        </li>
+                        
+                        <li class="list-group-item">
+                            Location: <a href="${conf.root_url}/site/${picture.site.id}">${picture.site}</a>
+                        </li>
+                        <li class="list-group-item">
+                        </li>
+                        <li class="list-group-item" py:if="is_member(Level.editor)">
+                            <a href="#edit" class="btn btn-secondary dropdown-toggle" data-toggle="collapse" title="edit">
+                                <i class="fas fa-edit"/>
+                            </a>
+                            <div id="edit" class="collapse container border p-1">
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-outline-primary rotate" data-id="${picture.id}" data-degrees="270" title="rotate right" data-toggle="tooltip" py:if="is_member(Level.editor)">
+                                        <i class="fas fa-rotate-right"/>
+                                    </button>
+                                    <button class="btn btn-outline-primary rotate" data-id="${picture.id}" data-degrees="90" title="rotate left" data-toggle="tooltip" py:if="is_member(Level.editor)">
+                                        <i class="fas fa-rotate-left"/>
+                                    </button>
+                                    <button class="btn btn-outline-danger delete" data-id="${picture.id}" title="delete" data-toggle="tooltip" py:if="is_member(Level.admin)">
+                                        <i class="fas fa-times"/>
+                                    </button>
+                        
+                                </div>
+                                <form method="POST" action="change">
+                                    <div class="form-group">
+                                        <label for="edit-site">Location</label>
+                                        <select id="edit-site" name="siteid" class="form-control sites"></select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="edit-comment">Comment</label>
+                                        <textarea id="edit-comment" name="comment" class="form-control" py:content="picture.comment"></textarea>
+                                    </div>
+                                    <button class="btn btn-success" type="submit"><i class="fas fa-check"/></button>
+
+                                </form>
+                            </div>
+                        </li>
+                    </ul>
+
                 </div>
 
             </div>
@@ -124,7 +185,7 @@
                 <div py:for="img in imagelist" style="display:inline-grid" >
                     <div class="card mb-1 ">
                         <div class="card-image-top">
-                            <a href="${conf.root_url}/picture?id=${img.id}">
+                            <a href="${conf.root_url}/picture/${img.id}">
                                 <img src="data:${img.mime};base64,${img.thumbnail64()}"
                                      title="${img}"/>
                             </a>

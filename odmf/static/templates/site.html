@@ -269,7 +269,7 @@
 
                 <div class="tab-pane" id="pictures" role="tabpanel">
                     <div py:for="img in actualsite.images" style="display: inline">
-                        <a href="${conf.root_url}/picture?id=${img.id}">
+                        <a href="${conf.root_url}/picture/${img.id}">
                             <img src="${conf.root_url}/picture/thumbnail/${img.id}"
                                  title="${'%s: %s (%s)' % (formatdatetime(img.time),img.name, img.by)}"
                                  data-toggle="tooltip"

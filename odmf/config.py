@@ -120,8 +120,10 @@ class Configuration:
     def google_maps_api(self, callback: str):
         return f'https://maps.googleapis.com/maps/api/js?key={self.google_maps_api_key}&callback={callback}'
 
-    def url(self, *uri):
+    def url(self, *uri, **query):
         uri = '/'.join((str(s) for s in uri))
+        if query:
+            uri += '?' + '&'.join(f'{k}={v}' for k, v in query.items())
         if uri.startswith('/'):
             return self.root_url + uri
         else:

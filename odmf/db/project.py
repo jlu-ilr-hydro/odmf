@@ -3,7 +3,7 @@ import sqlalchemy.orm as orm
 from .base import Base
 from .person import Person
 from functools import total_ordering
-
+from ..tools.migrate_db import new_column
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -25,8 +25,8 @@ class Project(Base):
     )
     name = sql.Column(sql.String)
     comment = sql.Column(sql.String)
-    sourcelink = sql.Column(sql.String)
-    organization = sql.Column(sql.String, default='uni-giessen.de')
+    sourcelink = new_column(sql.Column(sql.String))
+    organization = new_column(sql.Column(sql.String, default='uni-giessen.de'))
     datasets = sql.orm.relationship('Dataset')
 
     @property
@@ -134,3 +134,6 @@ class ProjectMember(Base):
 
     access_level = sql.Column(sql.Integer, nullable=False, default=0)
 
+
+# NewColumn('project', 'organization', self.db.sql.String(), "default 'uni-giessen.de'")
+# NewColumn('project', 'sourcelink', self.db.sql.String())
