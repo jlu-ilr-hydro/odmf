@@ -18,18 +18,22 @@ function createMap() {
         odmf_ref('/media/mapicons/') + icon,
         new google.maps.Size(24, 24),
         new google.maps.Point(0,0),
-        new google.maps.Point(0, 24));
-
-    map.data.addGeoJson(site_geometry);
-    map.data.setStyle(feature => {
-        return {
-            strokeWeight: feature.getProperty('strokeWidth') || 2,
-            strokeColor: feature.getProperty('strokeColor') || '#FFF',
-            strokeOpacity: feature.getProperty('strokeOpacity') || 0.8,
-            fillColor: feature.getProperty('fillColor') || '#FFF',
-            fillOpacity: feature.getProperty('fillOpacity') || 0.3,
-        }
-    })
+        new google.maps.Point(0, 24)
+        );
+    if (site_geometry.geometry.type != 'Point') {
+    
+        map.data.addGeoJson(site_geometry);
+        map.data.setStyle(feature => {
+            return {
+                strokeWeight: feature.getProperty('strokeWidth') || 2,
+                strokeColor: feature.getProperty('strokeColor') || '#FFF',
+                strokeOpacity: feature.getProperty('strokeOpacity') || 0.8,
+                fillColor: feature.getProperty('fillColor') || '#FFF',
+                fillOpacity: feature.getProperty('fillOpacity') || 0.3,
+            }
+        })
+    
+    }
 
     var marker = new google.maps.Marker(
         {
