@@ -97,7 +97,7 @@
                             onchange="enableupload();" />
 
                     <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="imgfile" name="imgfile"/>
+                        <input type="file" class="custom-file-input" id="imgfile" name="imgfile" multiple="multiple"/>
                         <label class="custom-file-label" for="imgfile">Choose file</label>
                     </div>
                 </div>
@@ -145,22 +145,23 @@
                         <li class="list-group-item">
                         </li>
                         <li class="list-group-item" py:if="is_member(Level.editor)">
-                            <a href="#edit" class="btn btn-secondary dropdown-toggle" data-toggle="collapse" title="edit">
-                                <i class="fas fa-edit"/>
-                            </a>
+                            <div class="btn-group" role="group">
+                                <a href="#edit" class="btn btn-secondary dropdown-toggle" data-toggle="collapse" title="edit">
+                                    <i class="fas fa-edit"/>
+                                </a>
+                                <button class="btn btn-outline-primary rotate" data-id="${picture.id}" data-degrees="270" title="rotate right" data-toggle="tooltip" py:if="is_member(Level.editor)">
+                                    <i class="fas fa-rotate-right"/>
+                                </button>
+                                <button class="btn btn-outline-primary rotate" data-id="${picture.id}" data-degrees="90" title="rotate left" data-toggle="tooltip" py:if="is_member(Level.editor)">
+                                    <i class="fas fa-rotate-left"/>
+                                </button>
+                                <button class="btn btn-outline-danger delete" data-id="${picture.id}" title="delete" data-toggle="tooltip" py:if="is_member(Level.admin)">
+                                    <i class="fas fa-times"/>
+                                </button>
+                    
+                            </div>
+
                             <div id="edit" class="collapse container border p-1">
-                                <div class="btn-group" role="group">
-                                    <button class="btn btn-outline-primary rotate" data-id="${picture.id}" data-degrees="270" title="rotate right" data-toggle="tooltip" py:if="is_member(Level.editor)">
-                                        <i class="fas fa-rotate-right"/>
-                                    </button>
-                                    <button class="btn btn-outline-primary rotate" data-id="${picture.id}" data-degrees="90" title="rotate left" data-toggle="tooltip" py:if="is_member(Level.editor)">
-                                        <i class="fas fa-rotate-left"/>
-                                    </button>
-                                    <button class="btn btn-outline-danger delete" data-id="${picture.id}" title="delete" data-toggle="tooltip" py:if="is_member(Level.admin)">
-                                        <i class="fas fa-times"/>
-                                    </button>
-                        
-                                </div>
                                 <form method="POST" action="change">
                                     <div class="form-group">
                                         <label for="edit-site">Location</label>

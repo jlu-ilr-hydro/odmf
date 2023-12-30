@@ -60,15 +60,19 @@ class PicturePage:
     @web.method.post
     @expose_for(Level.logger)
     def upload(self, imgfile, siteid, user, comment=''):
+        if hasattr(imgfile, 'file'):
+            imgfiles = [imgfile]
+        else:
+            imgfiles = imgfile
         with db.session_scope() as session:
             site = session.get(db.Site, int(siteid)) if siteid else None
             by = session.get(db.Person, user) if user else None
-            img = db.Image(site=site, by=by, imagefile=imgfile.file, comment=comment)
-            session.add(img)
-            session.flush()
-            imgid = img.id
-
-        raise web.redirect(conf.url('/picture', imgid))
+            username = by.username
+            for imgfile in imgfiles:
+                img = db.Image(site=site, by=by, imagefile=imgfile.file, comment=comment)
+                session.add(img)
+                session.flush()
+        raise web.redirect(conf.url('picture'), site=siteid, by=username)
 
     @web.method.post
     @expose_for(Level.editor)
