@@ -86,6 +86,12 @@
                     $('#help-edit').collapse('hide');
                 });
 
+                $('#hiddenFiles').on('change', () => {
+                    $('.hiddenfile').toggleClass('d-none', ~this.checked)
+                })
+                $('.hiddenfile').toggleClass('d-none', ~$('#hiddenFiles').prop('checked'))
+
+
             });
             //]]>
         </script>
@@ -170,6 +176,7 @@
                             <span class="badge bg-warning ml-8 float-right" py:content="modes[curdir].name"/>
                         </h5>
                         <ul class="nav flex-column card-text mb-3" id="files">
+
                             <li class="nav-item flexbox mt-1 pt-1 border-top" py:if="not curdir.isroot()" >
                                 <span >
                                     <a href="${curdir.parent().href}" class="nav-link">
@@ -194,7 +201,7 @@
                                     </button>
                                 </span>
                             </li>
-                            <li py:for="f in files" class="nav-item flexbox mt-1 pt-1 border-top" >
+                            <li py:for="f in files" class="nav-item flexbox mt-1 pt-1 border-top ${'hiddenfile' if f.ishidden() else ''}" >
                                 <span >
                                     <a href="${f.href}" class="nav-link">
                                         <i class="fas fa-${handler[f].icon} fa-lg" />
@@ -221,21 +228,26 @@
 
                             </li>
                         </ul>
-                        <div class="row">
-                            <button class="btn btn-primary dropdown-toggle mr-3 col-sm" type="button"
+                        <div class="nav">
+                            <button class="btn btn-primary dropdown-toggle mr-3 nav-item" type="button"
                                     id="addFileDropdownButton" data-toggle="dropdown" py:attrs="prop(disabled=modes[curdir]==Mode.read)"
                                     aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-plus-circle" />
                                 Add files and folders
                             </button>
-                            <form method="post" action="${conf.root_url}/download/create_access_file" class="col-sm">
-                                <button class="btn btn-warning mr-3" type="submit" name="uri" value="${curdir}"
-                                   py:if="modes[curdir]==Mode.admin"
+                            <form method="post" action="${conf.root_url}/download/create_access_file" class="nav-item">
+                                <button class="btn btn-secondary mr-3" type="submit" name="uri" value="${curdir}"
+                                   py:if="modes[curdir]>=Mode.admin"
                                 >
                                     <i class="fas fa-cog" /> manage access
                                 </button>
 
                             </form>
+                            <div class="nav-item custom-control custom-checkbox" py:if="modes[curdir]>=Mode.admin">
+                                <input type="checkbox" class="custom-control-input" id="hiddenFiles"/>
+                                <label class="custom-control-label" for="hiddenFiles">show hidden files</label>
+                            </div>
+
 
                             <div class="dropdown-menu" aria-labelledby="addFileDropdownButton">
                                 <div class="dropdown-item" >

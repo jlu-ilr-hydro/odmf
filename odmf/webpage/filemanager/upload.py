@@ -192,7 +192,7 @@ class DownloadPage(object):
     def saveindex(self, dir, s):
         """Saves the string s to index.html
         """
-        path = Path(dir,  'index.html')
+        path = Path(dir,  '.readme.md')
         s = s.replace('\r', '')
         open(path.absolute, 'w').write(s)
         return web.markdown(s)
@@ -201,7 +201,7 @@ class DownloadPage(object):
     @web.method.get
     def getindex(self, dir):
         io = StringIO()
-        for indexfile in ['README.md', 'index.html']:
+        for indexfile in ['.readme.md', 'README.md', 'index.html']:
             if (index:=Path(dir, indexfile)).exists():
                 text = open(index.absolute).read()
                 io.write(text)
