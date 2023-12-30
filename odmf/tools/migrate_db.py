@@ -8,11 +8,51 @@ New tables get added by create tables. Changes to columns should be described he
 import sqlalchemy as sql
 from sqlalchemy.sql.type_api import TypeEngine as SqlTypeEngine
 import logging
+import dataclasses
 logger = logging.getLogger(__name__)
+
+@dataclasses.dataclass
+class NewColumn:
+    table: str
+    column: str
+    type: SqlTypeEngine
+    contraint: str = ''
+    _instances = []
+    
+    def execute(self):
+        from .. import db
+        inspector = sql.inspect(db.engine)
+        columns = [c['name'] for c in inspector.get_columns(self.table)]
+        if self.column not in columns:
+            cmd = f'ALTER TABLE {self.table} ADD COLUMN {self.column} {self.type.compile()} {self.constraint};'
+            logger.debug(cmd)
+            db.engine.execute(cmd)
+            logger.info(f'added {self.table}.{self.column}')
+
+    def __init__(self, table: str, column: str, type: SqlTypeEngine, constraint=''):
+        self.table = table
+        self.column = column
+        self.type = type
+        self.constraint = constraint
+        NewColumn._instances.append(self)
+
+    @classmethod
+    def execute_all(cls):
+        for obj in cls._instances:
+            obj.execute()
+
+new_column_list = []
+def new_column(column: sql.Column):
+    new_column_list.append(column)
+    return column
+
+
+
 class Migrator:
     """
     A class to migrate the database by adding necessary columns
     """
+
     def __init__(self):
         from .. import db
         self.db = db
@@ -25,8 +65,6 @@ class Migrator:
             logger.info(f'added {table}.{column}')
 
     def run(self):
-        self.add_column('project', 'organization', sql.String(), "default 'uni-giessen.de'")
-        self.add_column('project', 'sourcelink', sql.String())
         logger.info('migration complete')
 
     def ___run_all(self):
@@ -51,7 +89,13 @@ class Migrator:
 
 
 def migrate():
-    Migrator().run()
+    for col in new_column_list:
+        expr = col.expression
+        print(expr)
+        NewColumn(expr.table.name, expr.name, expr.type, ' '.join(expr.constraints)).execute()
+
+    # NewColumn.execute_all()
+    # Migrator().run()
 
 
 
