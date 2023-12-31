@@ -59,15 +59,18 @@ class Person(Base):
         """
         from .project import ProjectMember, Project
         from ..webpage.auth import Level
-        pm: ProjectMember
-        for pm in (
-                self.session().query(ProjectMember)
-                    .filter(ProjectMember.member == self)
-                    .order_by(ProjectMember.access_level.desc(), ProjectMember._member)
-        ):
-            yield pm.project, Level(pm.access_level)
-        for project in self.session().query(Project).filter(Project.person_responsible == self):
-            yield project, Level.admin
+        if not self.session():
+            return None
+        else:
+            pm: ProjectMember
+            for pm in (
+                    self.session().query(ProjectMember)
+                        .filter(ProjectMember.member == self)
+                        .order_by(ProjectMember.access_level.desc(), ProjectMember._member)
+            ):
+                yield pm.project, Level(pm.access_level)
+            for project in self.session().query(Project).filter(Project.person_responsible == self):
+                yield project, Level.admin
 
 
     def add_project(self, project, access_level: int=0):

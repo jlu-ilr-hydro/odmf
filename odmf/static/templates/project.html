@@ -166,7 +166,7 @@
                 <h2 class="border-bottom">Members</h2>
                 <div id="members" class="container">
                     <ul>
-                        <li py:for="member, level in actproject.members()" class="form-row">
+                        <li py:for="member, level in actproject.members(with_responsible=False)" class="form-row">
                             <div class="col-sm">
                                 <span class="badge rounded-pill bg-warning" py:content="Level(level).name" />
                                 <span py:content="member" class="ml-2 mr-4"/>
@@ -177,7 +177,7 @@
                                 <button data-member="${member.username}"
                                         py:if="is_member(Level.admin, actproject.id)"
                                         type="submit"
-                                        class="btn btn-danger btn-sm col-sm-1 pr-3 project-remove-member"
+                                        class="btn btn-danger btn-sm col-sm-1 project-remove-member"
                                         name="member_name" value="${member.username}"
                                         title="remove" data-toggle="tooltip"
                                 >

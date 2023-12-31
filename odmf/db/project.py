@@ -33,7 +33,12 @@ class Project(Base):
     def members_query(self):
         """Returns a query object with all ProjectMember object related to this project"""
         return self.session().query(ProjectMember).filter(ProjectMember._project==self.id)
-    def members(self, access_level=0):
+    def members(self, access_level=0, with_responsible=True):
+        """
+        Yields member, access level tuples for each member.
+        """
+        if not self.session(): # For a new project no session and no member exists!
+            return None
         from ..webpage.auth import Level
         for pm in (
                 self.members_query.filter(ProjectMember.access_level>=access_level)
@@ -41,7 +46,7 @@ class Project(Base):
         ):
             yield pm.member, Level(pm.access_level)
 
-        if self.person_responsible:
+        if self.person_responsible and with_responsible:
             yield self.person_responsible, Level.admin
 
     def add_member(self, person: Person|str, access_level: int=0):
