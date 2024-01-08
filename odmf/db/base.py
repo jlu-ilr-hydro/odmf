@@ -8,7 +8,6 @@ Created on 13.02.2012
 
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
-from sqlalchemy.ext.declarative import declarative_base
 from contextlib import contextmanager
 from functools import total_ordering
 
@@ -112,10 +111,10 @@ class Base(object):
 
     @classmethod
     def get(cls, session, id):
-        return session.query(cls).get(id)
+        return session.get(cls, id)
 
 
-Base = declarative_base(cls=Base)
+Base = orm.declarative_base(cls=Base)
 metadata = Base.metadata
 
 
@@ -150,7 +149,7 @@ class ObjectGetter:
         return self.session.query(self.cls).filter_by(**self.filter)
 
     def __getitem__(self, item):
-        if (res:=self.q.get(item)) is not None:
+        if (res:=self.session.get(self.cls, item)) is not None:
             return res
         else:
             raise KeyError(f'{item} not found in {self.cls}')

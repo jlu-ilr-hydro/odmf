@@ -115,14 +115,14 @@ class Line:
         return series
 
     def valuetype(self, session):
-        return session.query(db.ValueType).get(
+        return session.get(db.ValueType, 
             int(self.valuetypeid)) if self.valuetypeid else None
 
     def site(self, session):
-        return session.query(db.Site).get(int(self.siteid)) if self.siteid else None
+        return session.get(db.Site, int(self.siteid)) if self.siteid else None
 
     def instrument(self, session):
-        return session.query(db.Datasource).get(
+        return session.get(db.Datasource, 
             int(self.instrumentid)) if self.instrumentid else None
 
     def export_csv(self, stream, start=None, end=None):
@@ -194,7 +194,7 @@ class Subplot:
         elif self.lines:
             with db.session_scope() as session:
                 l = self.lines[0]
-                valuetype = session.query(db.ValueType).get(l.valuetypeid)
+                valuetype = session.get(db.ValueType, l.valuetypeid)
                 return f'{valuetype.name} [{valuetype.unit}]'
         else:
             return 'unknown'

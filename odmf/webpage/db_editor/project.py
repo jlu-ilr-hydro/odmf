@@ -38,8 +38,10 @@ class ProjectPage:
     @web.method.post
     def save(self, project_id:str, name:str, person:str, comment: str, sourcelink: str, organization: str):
         error = ''
-
-        project_id = int(project_id)
+        if project_id == 'new':
+            project_id = None
+        else:
+            project_id = int(project_id)
         if Level.my(project_id) >= Level.admin:
             try:
                 with db.session_scope() as session:
@@ -49,7 +51,7 @@ class ProjectPage:
                         project = db.Project()
                         session.add(project)
 
-                    person = session.query(db.Person).get(person)
+                    person = session.get(db.Person, person)
                     project.name = name
                     project.comment = comment
                     project.sourcelink = sourcelink
@@ -57,6 +59,8 @@ class ProjectPage:
                     project.person_responsible = person
                     if person is None:
                         raise RuntimeError('Spokesperson not found')
+                    session.flush()
+                    project_id = project.id
             except RuntimeError as e:
                 error = f'Save failed: {e}'
             users.load()

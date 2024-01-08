@@ -30,7 +30,7 @@ def add_admin(password=None):
     from odmf import db
     from odmf.tools import hashpw
     with db.session_scope() as session:
-        if session.query(db.Person).get('odmf.admin'):
+        if session.get(db.Person, 'odmf.admin'):
             logger.info('odmf.admin exists already')
         else:
             user = db.Person(username='odmf.admin', firstname='odmf', surname='admin', access_level=4)
@@ -50,7 +50,7 @@ def add_quality_data(data):
     with db.session_scope() as session:
 
         for q in data:
-            if not session.query(db.Quality).get(q['id']):
+            if not session.get(db.Quality, q['id']):
                 session.add(db.Quality(**q))
                 logger.debug(f'Added quality level {q["id"]}')
                 active=True

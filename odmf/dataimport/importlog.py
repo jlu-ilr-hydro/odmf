@@ -87,7 +87,7 @@ class LogbookImport:
             df[c] = df[c].astype('Int64')
 
         with db.session_scope() as session:
-            _user: db.Person = session.query(db.Person).get(user)
+            _user: db.Person = session.get(db.Person, user)
             if not _user:
                 raise RuntimeError('%s is not a valid user' % user)
             else:
@@ -150,7 +150,7 @@ class LogbookImport:
 
     def get_dataset(self, session, row, data) -> db.Timeseries:
         """Loads the dataset from a row and checks if it is manually measured and at the correct site"""
-        ds = session.query(db.Dataset).get(data.dataset)
+        ds = session.get(db.Dataset, data.dataset)
         if not ds:
             raise LogImportRowError(row, f'Dataset {data.dataset} does not exist')
         # check dataset is manual measurement
@@ -193,8 +193,8 @@ class LogbookImport:
         Creates a new db.Log object from a row without dataset
         """
         time = data.time.to_pydatetime()
-        site = session.query(db.Site).get(data.site)
-        user = session.query(db.Person).get(self.user)
+        site = session.get(db.Site, data.site)
+        user = session.get(db.Person, self.user)
 
         if not site:
             raise LogImportRowError(row, f'Log: Site #{data.site} not found')

@@ -33,5 +33,5 @@ class MapPage(object):
         if not siteid:
             return('<div class="error">Site %s not found</div>' % siteid)
         with db.session_scope() as session:
-            site = session.query(db.Site).get(int(siteid))
+            site = session.get(db.Site, int(siteid))
             return web.render('sitedescription.html', site=site).render()

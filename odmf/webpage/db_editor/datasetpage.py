@@ -21,7 +21,7 @@ def get_ds(session, datasetid):
     """
     Gets a dataset from an id
     """
-    return session.query(db.Dataset).get(int(datasetid))
+    return session.get(db.Dataset, int(datasetid))
 
 
 def has_access(ds: db.Dataset, level:Level=Level.guest):
@@ -56,13 +56,13 @@ class DatasetPage:
     def new(self, site_id=None, vt_id=None, user=None, error='', _=None):
         with db.session_scope() as session:
 
-            site = session.query(db.Site).get(site_id) if site_id else None
-            valuetype = session.query(db.ValueType).get(vt_id) if vt_id else None
+            site = session.get(db.Site, site_id) if site_id else None
+            valuetype = session.get(db.ValueType, vt_id) if vt_id else None
             # All projects
 
             if user is None:
                 user = web.user()
-            user: db.Person = session.query(db.Person).get(user) if user else None
+            user: db.Person = session.get(db.Person, user) if user else None
             active = db.Timeseries(
                 id=db.newid(db.Dataset, session),
                 name='New Dataset',
@@ -132,11 +132,11 @@ class DatasetPage:
             # get database session
             with db.session_scope() as session:
                 try:
-                    pers = session.query(db.Person).get(kwargs.get('measured_by'))
-                    vt = session.query(db.ValueType).get(kwargs.get('valuetype'))
-                    q = session.query(db.Quality).get(kwargs.get('quality'))
-                    s = session.query(db.Site).get(kwargs.get('site'))
-                    src = session.query(db.Datasource).get(kwargs.get('source'))
+                    pers = session.get(db.Person, kwargs.get('measured_by'))
+                    vt = session.get(db.ValueType, kwargs.get('valuetype'))
+                    q = session.get(db.Quality, kwargs.get('quality'))
+                    s = session.get(db.Site, kwargs.get('site'))
+                    src = session.get(db.Datasource, kwargs.get('source'))
 
                     # get the dataset
                     ds = get_ds(session, id)
@@ -155,7 +155,7 @@ class DatasetPage:
                     ds.quality = q
 
                     if ds.get_access_level(users.current) >= Level.admin:
-                        project = session.query(db.Project).get(kwargs.get('project'))
+                        project = session.get(db.Project, kwargs.get('project'))
                         ds.project = project
 
                     ds.timezone = kwargs.get('timezone')
@@ -232,12 +232,12 @@ class DatasetPage:
         """
         datasets: db.orm.Query = session.query(db.Dataset)
         if user:
-            user = session.query(db.Person).get(user)
+            user = session.get(db.Person, user)
             datasets = datasets.filter_by(measured_by=user)
         if project and project!='NaN':
             datasets = datasets.filter_by(_project=int(project))
         if site and site!='NaN':
-            site = session.query(db.Site).get(web.conv(int, site))
+            site = session.get(db.Site, web.conv(int, site))
             datasets = datasets.filter_by(site=site)
         if date:
             date = web.parsedate(date)
@@ -246,13 +246,13 @@ class DatasetPage:
                 db.Dataset.end >= date
             )
         if valuetype and valuetype!='NaN':
-            vt = session.query(db.ValueType).get(web.conv(int, valuetype))
+            vt = session.get(db.ValueType, web.conv(int, valuetype))
             datasets = datasets.filter_by(valuetype=vt)
         if instrument:
             if instrument in ('null', 'NaN'):
                 source = None
             else:
-                source = session.query(db.Datasource).get(int(instrument))
+                source = session.get(db.Datasource, int(instrument))
             datasets = datasets.filter_by(source=source)
         if dstype:
             datasets = datasets.filter_by(type=type)
@@ -362,7 +362,7 @@ class DatasetPage:
         """
         with db.session_scope() as session:
             recids = set(int(r) for r in records.split())
-            ds = session.query(db.Dataset).get(int(dataset))
+            ds = session.get(db.Dataset, int(dataset))
             q = ds.records.filter(db.Record.id.in_(recids))
             for r in q:
                 r.is_error = True
@@ -375,7 +375,7 @@ class DatasetPage:
         """
         try:
             with db.session_scope() as session:
-                ds = session.query(db.Dataset).get(int(datasetid))
+                ds = session.get(db.Dataset, int(datasetid))
                 rec = ds.records.filter_by(id=int(recordid)).first()
                 ds, dsnew = ds.split(rec.time)
                 if ds.comment:
@@ -401,7 +401,7 @@ class DatasetPage:
         TODO: replace with export function with multiple formats using pandas
         """
         with db.session_scope() as session:
-            ds = session.query(db.Dataset).get(dataset)
+            ds = session.get(db.Dataset, dataset)
             st = io.BytesIO()
             st.write(codecs.BOM_UTF8)
             st.write(('"Dataset","ID","time","%s","site","comment"\n' %
@@ -429,7 +429,7 @@ class DatasetPage:
         import pylab as plt
         try:
             with db.session_scope() as session:
-                ds: db.Timeseries = session.query(db.Dataset).get(int(id))
+                ds: db.Timeseries = session.get(db.Dataset, int(id))
                 if users.current.level < ds.access:
                     return f"""
                     <div class="alert alert-danger"><h2>No access</h2><p class="lead">
@@ -472,7 +472,7 @@ class DatasetPage:
         Returns the records of the dataset as JSON
         """
         with db.session_scope() as session:
-            ds = session.query(db.Dataset).get(int(dataset))
+            ds = session.get(db.Dataset, int(dataset))
             if users.current.level < ds.access:  # @UndefinedVariable
                 raise web.HTTPError(403, 'User privileges not sufficient to access ds:' +
                                          str(dataset))
@@ -513,7 +513,7 @@ class DatasetPage:
         jquery from the delivered JSON
         """
         with db.session_scope() as session:
-            ds = session.query(db.Dataset).get(int(dataset))
+            ds = session.get(db.Dataset, int(dataset))
             records = ds.records.order_by(
                 db.Record.time).filter(~db.Record.is_error)
             tstart = web.parsedate(mindate.strip(), raiseerror=False)
@@ -560,7 +560,7 @@ class DatasetPage:
         :return:
         """
         with db.session_scope() as session:
-            ds: db.Timeseries = session.query(db.Dataset).get(int(dataset))
+            ds: db.Timeseries = session.get(db.Dataset, int(dataset))
             if not has_access(ds, Level.editor):
                 raise web.HTTPError(403, 'Not allowed')
             time = web.parsedate(time)
@@ -615,7 +615,7 @@ class DatasetPage:
         id = int(sourceid)
         try:
             with db.session_scope() as session:
-                sts = session.query(db.Timeseries).get(id)
+                sts = session.get(db.Timeseries, id)
                 id = db.newid(db.Dataset, session)
                 tts = db.TransformedTimeseries(
                     id=id,
@@ -647,8 +647,8 @@ class DatasetPage:
         """
         try:
             with db.session_scope() as session:
-                tts = session.query(db.TransformedTimeseries).get(int(transid))
-                sts = session.query(db.Timeseries).get(int(sourceid))
+                tts = session.get(db.TransformedTimeseries, int(transid))
+                sts = session.get(db.Timeseries, int(sourceid))
                 tts.sources.remove(sts)
                 tts.updatetime()
         except Exception as e:
@@ -663,8 +663,8 @@ class DatasetPage:
         """
         try:
             with db.session_scope() as session:
-                tts = session.query(db.TransformedTimeseries).get(int(transid))
-                sts = session.query(db.Timeseries).get(int(sourceid))
+                tts = session.get(db.TransformedTimeseries, int(transid))
+                sts = session.get(db.Timeseries, int(sourceid))
                 tts.sources.append(sts)
                 tts.updatetime()
         except Exception as e:
@@ -691,10 +691,10 @@ class DatasetPage:
         """
         with db.session_scope() as session:
             error = ''
-            target = session.query(db.Dataset).get(int(targetid))
+            target = session.get(db.Dataset, int(targetid))
             if sourceid:
                 sourceid = int(sourceid)
-                source_ds: db.Dataset = session.query(db.Dataset).get(sourceid)
+                source_ds: db.Dataset = session.get(db.Dataset, sourceid)
                 unit = source_ds.valuetype.unit
             else:
                 unit = '?'
@@ -738,8 +738,8 @@ class DatasetPage:
         error = ''
         try:
             with db.session_scope() as session:
-                target: db.Dataset = session.query(db.Dataset).get(int(targetid))
-                source = session.query(db.Dataset).get(int(sourceid))
+                target: db.Dataset = session.get(db.Dataset, int(targetid))
+                source = session.get(db.Dataset, int(sourceid))
                 target.calibration_slope = float(slope)
                 target.calibration_offset = float(offset)
                 target.valuetype = source.valuetype

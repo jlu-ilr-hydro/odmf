@@ -3,7 +3,7 @@ import sqlalchemy.orm as orm
 from .base import Base
 from .person import Person
 from functools import total_ordering
-
+from ..tools.migrate_db import new_column
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -25,15 +25,20 @@ class Project(Base):
     )
     name = sql.Column(sql.String)
     comment = sql.Column(sql.String)
-    sourcelink = sql.Column(sql.String)
-    organization = sql.Column(sql.String, default='uni-giessen.de')
+    sourcelink = new_column(sql.Column(sql.String))
+    organization = new_column(sql.Column(sql.String, default='uni-giessen.de'))
     datasets = sql.orm.relationship('Dataset')
 
     @property
     def members_query(self):
         """Returns a query object with all ProjectMember object related to this project"""
         return self.session().query(ProjectMember).filter(ProjectMember._project==self.id)
-    def members(self, access_level=0):
+    def members(self, access_level=0, with_responsible=True):
+        """
+        Yields member, access level tuples for each member.
+        """
+        if not self.session(): # For a new project no session and no member exists!
+            return None
         from ..webpage.auth import Level
         for pm in (
                 self.members_query.filter(ProjectMember.access_level>=access_level)
@@ -41,7 +46,7 @@ class Project(Base):
         ):
             yield pm.member, Level(pm.access_level)
 
-        if self.person_responsible:
+        if self.person_responsible and with_responsible:
             yield self.person_responsible, Level.admin
 
     def add_member(self, person: Person|str, access_level: int=0):
@@ -134,3 +139,6 @@ class ProjectMember(Base):
 
     access_level = sql.Column(sql.Integer, nullable=False, default=0)
 
+
+# NewColumn('project', 'organization', self.db.sql.String(), "default 'uni-giessen.de'")
+# NewColumn('project', 'sourcelink', self.db.sql.String())

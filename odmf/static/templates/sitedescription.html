@@ -46,7 +46,7 @@
         <div id="pic-carousel" class="carousel slide" data-ride="carousel">
             <div class="carousel-inner">
                 <div class="center carousel-item ${'' if i else 'active'}" py:for="i, img in enumerate(site.images)" >
-                    <a href="${conf.root_url}/picture?id=${img.id}">
+                    <a href="${conf.root_url}/picture/${img.id}">
                         <img class="rounded" src="data:${img.mime};base64,${img.thumbnail64()}" />
                     </a>
                 </div>

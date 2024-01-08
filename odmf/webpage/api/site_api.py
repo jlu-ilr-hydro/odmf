@@ -31,7 +31,7 @@ class SiteAPI(BaseAPI):
             url, res = get_help(self, self.url)
             return web.json_out(res)
         with db.session_scope() as session:
-            if not (site := session.query(db.Site).get(siteid)):
+            if not (site := session.get(db.Site, siteid)):
                 raise web.APIError(404, f'#{site} does not exist')
             else:
                 return web.json_out(site)

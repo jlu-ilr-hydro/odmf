@@ -22,7 +22,7 @@ class VTPage:
                                   name='<Name>')
             else:
                 try:
-                    vt = session.query(db.ValueType).get(int(vt_id))
+                    vt = session.get(db.ValueType, int(vt_id))
                     # image=b64encode(self.sitemap.draw([actualsite]))
                 except:
                     error = traceback()
@@ -41,7 +41,7 @@ class VTPage:
         if 'save' in kwargs:
             try:
                 with db.session_scope() as session:
-                    vt = session.query(db.ValueType).get(int(id))
+                    vt = session.get(db.ValueType, int(id))
                     if not vt:
                         vt = db.ValueType(id=id)
                         session.add(vt)

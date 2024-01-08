@@ -307,7 +307,7 @@ def removedataset(*args):
     """Removes a dataset and its records entirely from the database
     !!Handle with care, there will be no more checking!!"""
     with session_scope() as session:
-        datasets = [session.query(Dataset).get(int(a)) for a in args]
+        datasets = [session.get(Dataset, int(a)) for a in args]
         for ds in datasets:
             dsid = ds.id
             if ds.is_timeseries():

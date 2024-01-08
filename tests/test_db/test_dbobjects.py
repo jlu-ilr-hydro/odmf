@@ -56,7 +56,7 @@ class TestSite:
             site = db.Site(id=3, name='xyz')
 
     def test_site_load(self, db, session, site1_in_db):
-        site = session.query(db.Site).get(1)
+        site = session.get(db.Site, 1)
         assert site == site1_in_db
         assert not site < site
         assert hash(site) == hash(site1_in_db)
@@ -87,7 +87,7 @@ class TestDatasource:
         assert not datasource1_in_db.linkname()
 
     def test_comparison(self, db, session, datasource1_in_db):
-        datasource = session.query(db.Datasource).get(1)
+        datasource = session.get(db.Datasource, 1)
         assert datasource1_in_db == datasource
         assert not datasource1_in_db < datasource
         with pytest.raises(TypeError):
@@ -182,7 +182,7 @@ class TestLog:
         assert 'id' in d
 
     def test_log_load(self, log, session, db):
-        log_1 = session.query(db.Log).get(1)
+        log_1 = session.get(db.Log, 1)
         assert log_1 == log
         assert not log < log
 
@@ -210,7 +210,7 @@ class TestJob:
         assert 'id' in d
 
     def test_job_load(self, job, session, db):
-        job_1 = session.query(db.Job).get(1)
+        job_1 = session.get(db.Job, 1)
         assert job_1 == job
         assert not job < job
         assert repr(job).startswith("<Job")
@@ -238,7 +238,7 @@ class TestProject:
         assert 'id' in d
 
     def test_project_load(self, project, session, db):
-        project_1 = session.query(db.Project).get(1)
+        project_1 = session.get(db.Project, 1)
         assert project_1 == project
 
     def test_project_add_member(self, project, person):

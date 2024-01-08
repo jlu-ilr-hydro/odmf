@@ -20,16 +20,16 @@ class LogPage:
                              message='<Log Message>', time=datetime.today())
                 user = web.user()
                 if user:
-                    log.user = session.query(db.Person).get(user)
+                    log.user = session.get(db.Person, user)
                 if siteid:
-                    log.site = session.query(db.Site).get(int(siteid))
+                    log.site = session.get(db.Site, int(siteid))
                 log.time = datetime.today()
             elif logid is None:
                 log = session.query(db.Log).order_by(
                     db.sql.desc(db.Log.time)).first()
             else:
                 try:
-                    log = session.query(db.Log).get(int(logid))
+                    log = session.get(db.Log, int(logid))
                 except:
                     error = traceback()
                     log = None
@@ -62,14 +62,14 @@ class LogPage:
         if 'save' in kwargs:
             with db.session_scope() as session:
                 try:
-                    log = session.query(db.Log).get(id)
+                    log = session.get(db.Log, id)
                     if not log:
                         log = db.Log(id=id)
                     if kwargs.get('date'):
                         log.time = web.parsedate(kwargs['date'])
                     log.message = kwargs.get('message')
-                    log.user = session.query(db.Person).get(kwargs.get('user'))
-                    log.site = session.query(db.Site).get(kwargs.get('site'))
+                    log.user = session.get(db.Person, kwargs.get('user'))
+                    log.site = session.get(db.Site, kwargs.get('site'))
                 except:
                     raise web.redirect(conf.root_url + '/log/' + str(id),
                                       error=('\n'.join('%s: %s' % it for it in kwargs.items())) + '\n' + traceback(),
@@ -83,7 +83,7 @@ class LogPage:
     @web.method.post_or_put
     def remove(self, id):
         with db.session_scope() as session:
-            log = session.query(db.Log).get(id)
+            log = session.get(db.Log, id)
             if log:
                 session.delete(log)
                 session.commit()
@@ -163,7 +163,7 @@ class LogPage:
                 msg = ls[0]
                 try:
                     siteid = int(ls[1])
-                    site = session.query(db.Site).get(siteid)
+                    site = session.get(db.Site, siteid)
                     if not site:
                         raise ValueError()
                 except (TypeError, ValueError):
@@ -173,12 +173,12 @@ class LogPage:
                 else:
                     date = datetime.today()
                 if len(ls) > 3:
-                    user = session.query(db.Person).get(ls[3])
+                    user = session.get(db.Person, ls[3])
                     if not user:
                         raise LogFromClipboardError(
                             line, f"Username {ls[3]} is not in the database")
                 else:
-                    user = session.query(db.Person).get(web.user())
+                    user = session.get(db.Person, web.user())
                 logid = db.newid(db.Log, session)
                 return db.Log(id=logid, site=site, user=user, success=msg, time=date)
 
