@@ -63,6 +63,15 @@
             now.setSeconds(null)
             return now.toISOString().slice(0, -1);
         }
+        function set_message(msg_type, msg) {
+            let id='#' + msg_type + '-msg'
+            $(id).toggleClass('d-none', !(msg))
+            $(id + ' p').html(msg)
+        }
+        set_error = msg => {return set_message('error', msg)}
+        set_info = msg => {return set_message('info', msg)}
+        set_success = msg => {return set_message('success', msg)}
+
         $(function () {
             $('[data-toggle="tooltip"]').tooltip();
             $('#login-logout').on('click', () => {
@@ -192,33 +201,33 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
         </nav>
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 p-0 h-100">
             <div class="container-fluid">
-                <div class="alert bg-danger text-white w-100 ${dnone_if(not error)}" role="alert">
+                <div id="error-msg" class="alert alert-danger w-100 ${dnone_if(not error)}" role="alert">
                     <div class="row">
                         <div class="col-lg-1">
                             <i class="fas fa-exclamation-circle fa-3x"/>
                         </div>
                         <div class="col-lg-11">
-                            <p class="lead" py:content="markdown(error)"/>
+                            <p class="lead" id="errortext" py:content="markdown(error)"/>
                         </div>
                     </div>
                 </div>
-                <div class="alert alert-info w-100 ${dnone_if(not info)}" role="alert"  >
+                <div id="info-msg" class="alert alert-info w-100 ${dnone_if(not info)}" role="alert"  >
                     <div class="row">
                         <div class="col-lg-1">
                             <i class="fas fa-info-circle fa-3x"/>
                         </div>
                         <div class="col-lg-11">
-                            <p class="" py:content="markdown(info)"/>
+                            <p class="lead" py:content="markdown(info)"/>
                         </div>
                     </div>
                 </div>
-                <div class="alert alert-success w-100 ${dnone_if(not success)}" role="alert"  >
+                <div id="success-msg" class="alert alert-success w-100 ${dnone_if(not success)}" role="alert"  >
                     <div class="row">
                         <div class="col-lg-1">
                             <i class="fas fa-info-circle fa-3x"/>
                         </div>
                         <div class="col-lg-11">
-                            <p class="" py:content="markdown(success)"/>
+                            <p class="lead" py:content="markdown(success)"/>
                         </div>
                     </div>
                 </div>

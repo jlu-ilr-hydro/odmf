@@ -6,7 +6,7 @@ function toggle(id) {
 	$('#'+id).slideToggle('fast');
 }
 function seterror(text) {
-	$('#error').html(text).removeClass('d-none')
+	$('#map-error').html(text).removeClass('d-none')
 }
 
 // Shows the actual map coordinates in div #coordinates. Event handler
