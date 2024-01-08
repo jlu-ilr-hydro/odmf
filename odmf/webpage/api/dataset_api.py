@@ -202,7 +202,8 @@ class DatasetAPI(BaseAPI):
                     ds.expression = kwargs.get('expression')
                     ds.latex = kwargs.get('latex')
                 # Save changes
-                session.commit()
+                session.add(ds)
+                session.flush()
                 cherrypy.response.status = 200
                 return f'ds{ds.id}'.encode()
 
