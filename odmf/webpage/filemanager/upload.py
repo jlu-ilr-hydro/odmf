@@ -54,7 +54,7 @@ class DownloadPageError(cherrypy.HTTPError):
 
         text = web.render(
             'download.html',
-            error=error, message='', modes=modes, Mode=fa.Mode,
+            error=error, success='', modes=modes, Mode=fa.Mode,
             files=[],
             directories=[],
             curdir=self.path,
@@ -135,7 +135,7 @@ class DownloadPage(object):
 
         return web.render(
             'download.html',
-            error=error, message=msg,
+            error=error, success=msg,
             modes=modes, Mode=fa.Mode, owner=fa.get_owner(path),
             content = content,
             files=sorted(files),

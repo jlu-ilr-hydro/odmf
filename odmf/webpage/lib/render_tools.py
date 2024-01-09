@@ -54,3 +54,11 @@ def not_external():
 def bool2js(b: bool) -> str:
     return str(b).lower()
 
+def class_if(condition, class_name):
+    if condition:
+        return class_name
+    else:
+        return ''
+
+def dnone_if(condition):
+    return class_if(condition, 'd-none')

@@ -11,15 +11,14 @@ import collections
 import typing
 
 import cherrypy
-
+from ..config import conf
 from ..tools import hashpw, get_bcrypt_salt
 from enum import IntEnum
 
-SESSION_KEY = '#!35625/Schwingbach?Benutzer'
 
 def sessionuser()->str:
     "Returns the username saved in the session"
-    return cherrypy.session.get(SESSION_KEY)
+    return cherrypy.session.get(conf.session_key)
 
 
 class HTTPAuthError(cherrypy.HTTPError):
@@ -44,13 +43,10 @@ def check_auth(*args, **kwargs):
     if user:
         cherrypy.request.login = user
     if conditions is not None:
-        if user:
-            for condition in conditions:
-                # A condition is just a callable that returns true or false
-                if not condition():
-                    raise HTTPAuthError()
-        else:
-            raise HTTPAuthError()
+        for condition in conditions:
+            # A condition is just a callable that returns true or false
+            if not condition():
+                raise HTTPAuthError()
 
 
 cherrypy.tools.auth = cherrypy.Tool('before_handler', check_auth)
@@ -63,13 +59,6 @@ def abspath(fn):
     return op.join(basepath, normpath)
 
 
-class group:
-    "This class is only a constant holder, for using code completion for require "
-    guest = 'guest'
-    logger = 'logger'
-    editor = 'editor'
-    supervisor = 'supervisor'
-    admin = 'admin'
 
 class Level(IntEnum):
     guest = 0
@@ -201,12 +190,12 @@ class Users(collections.UserDict):
             return error
         else:
             cherrypy.session.regenerate()
-            cherrypy.session[SESSION_KEY] = cherrypy.request.login = username
+            cherrypy.session[conf.session_key] = cherrypy.request.login = username
             return
 
     def logout(self):
         cherrypy.request.login = None
-        cherrypy.session[SESSION_KEY] = None
+        cherrypy.session[conf.session_key] = None
         cherrypy.lib.sessions.expire()
 
 
@@ -234,8 +223,11 @@ def require(*conditions):
 
 def member_of(level: Level|str|int, project: int = None):
     def check():
-        user = users.current
-        return user and user.is_member(level, project)
+        if level:
+            user = users.current
+            return bool(user) and user.is_member(level, project)
+        else:
+            return True
     return check
 
 

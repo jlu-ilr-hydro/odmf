@@ -57,6 +57,7 @@ class Configuration:
     preferences = './preferences'
     description = 'A server for data-management for quantitative field research'
     user = os.environ.get('USER') or os.environ.get('USERNAME')
+    session_key = '#!35625/Schwingbach?Benutzer'
 
 
     def to_dict(self):

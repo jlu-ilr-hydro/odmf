@@ -8,7 +8,7 @@ from contextlib import contextmanager
 import pandas as pd
 
 from .. import lib as web
-from ..auth import users, expose_for, group, has_level
+from ..auth import users, expose_for, Level, has_level
 from ... import db
 from ...config import conf
 from . import BaseAPI, get_help

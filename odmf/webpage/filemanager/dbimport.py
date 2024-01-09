@@ -6,7 +6,7 @@ import io
 import pandas as pd
 from cherrypy import log
 
-from odmf.webpage.auth import group, expose_for
+from odmf.webpage.auth import Level, expose_for
 
 from odmf import dataimport as di
 from odmf import db
@@ -42,7 +42,7 @@ class DbImportPage:
     Class to handle data imports from files
     """
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     def index(self, filename, **kwargs):
         filepath = Path(filename)
         if not filepath.exists():
@@ -121,7 +121,7 @@ class DbImportPage:
 
 
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post
     def submit_config(self, filename, siteid, **kwargs):
         path = Path(filename.strip('/'))

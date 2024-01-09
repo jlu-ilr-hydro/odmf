@@ -10,14 +10,14 @@ from logging import getLogger
 from ..markdown import MarkDown
 from .renderer import render
 from . import mime
-from ..auth import users, group, is_member
+from ..auth import users, Level, is_member
 
 markdown = MarkDown()
 logger = getLogger(__name__)
 
 
 def format_traceback(tb: str) -> str:
-    if users.current.is_member(group.admin):
+    if users.current.is_member(Level.admin):
         return f'\n\n```\n{tb}\n```\n'
     else:
         return ''
@@ -99,7 +99,7 @@ class HTMLErrorHandler(ErrorHandler):
         - request: `{req.request_line}`
 
         """).strip()
-        if is_member(group.admin):
+        if is_member(Level.admin):
             text = '\n```\n' + traceback + '\n```\n'
         else:
             text = ''
@@ -118,7 +118,7 @@ class HTMLErrorHandler(ErrorHandler):
         - request: `{req.request_line}`
 
         """).strip()
-        if is_member(group.admin):
+        if is_member(Level.admin):
             text = '\n```\n' + traceback + '\n```\n'
         else:
             text = '####' +  traceback.strip().split('\n')[-1]
@@ -146,7 +146,7 @@ class JSONErrorHandler(ErrorHandler):
     def status_default(self, status=None, message=None, version=None, traceback=None):
         from . import json_out
         req = cherrypy.request
-        if is_member(group.admin):
+        if is_member(Level.admin):
             return json_out(
                 status=status,
                 message=message,

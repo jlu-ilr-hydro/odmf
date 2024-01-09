@@ -6,13 +6,7 @@
 
 
 function seterror(jqhxr ,textStatus, errorThrown) {
-	if (textStatus) {
-		$('#error').html(jqhxr.responseText);
-		$('#error-row').removeClass('d-none');
-	} else {
-		$('#error-row').addClass('d-none');
-		$('#error').html('');
-	}
+	set_error(textStatus)
 }
 
 function gettime(startOrEnd) {

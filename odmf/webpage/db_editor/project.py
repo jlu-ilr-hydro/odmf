@@ -1,7 +1,7 @@
 import cherrypy
 
 from .. import lib as web
-from ..auth import group, expose_for, users, Level
+from ..auth import Level, expose_for, users, Level
 
 from ... import db
 from ...config import conf
@@ -69,7 +69,7 @@ class ProjectPage:
         raise web.redirect(f'/{conf.root_url}project/{project_id}', error=error, msg=f'{name} updated' if not error else None)
 
 
-    @expose_for(group.supervisor)
+    @expose_for(Level.supervisor)
     @web.method.post
     def add_member(self, project_id, member_name, access_level):
         error = None
@@ -82,7 +82,7 @@ class ProjectPage:
         users.load()
         raise web.redirect(f'/{conf.root_url}project/{project_id}', error=error, msg=f'{member_name} added' if not error else None)
 
-    @expose_for(group.supervisor)
+    @expose_for(Level.supervisor)
     @web.method.post
     def remove_member(self, project_id, member_name):
         error = None
