@@ -1,6 +1,6 @@
 
 from .. import lib as web
-from ..auth import group, expose_for
+from ..auth import Level, expose_for
 from ...config import conf
 from ... import db
 
@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 @web.show_in_nav_for(1, 'tags')
 class LogPage:
 
-    @expose_for(group.guest)
+    @expose_for(Level.guest)
     def default(self, logid=None, siteid=None, lastlogdate=None, days=None, error=''):
         with db.session_scope() as session:
 
@@ -52,7 +52,7 @@ class LogPage:
             ).render()
 
 
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     @web.method.post_or_put
     def saveitem(self, **kwargs):
         try:
@@ -79,7 +79,7 @@ class LogPage:
             id = 'new'
         raise web.redirect(conf.root_url + '/log/' + str(id))
 
-    @expose_for(group.supervisor)
+    @expose_for(Level.supervisor)
     @web.method.post_or_put
     def remove(self, id):
         with db.session_scope() as session:
@@ -89,7 +89,7 @@ class LogPage:
                 session.commit()
             raise web.redirect('.')
 
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     @web.mime.json
     @web.method.get
     def json(self, siteid=None, user=None, old=None, until=None, days=None,
@@ -143,7 +143,7 @@ class LogPage:
             return web.json_out(logs.all())
 
 
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     @web.mime.html
     def fromclipboard(self, paste):
         lines = paste.splitlines()

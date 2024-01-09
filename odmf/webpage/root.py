@@ -3,7 +3,7 @@ import cherrypy.lib.sessions
 from .. import prefix
 from . import lib as web
 from .lib.errors import errorhandler
-from .auth import users, group, expose_for
+from .auth import users, Level, expose_for
 
 from .. import db
 from ..config import conf
@@ -87,7 +87,7 @@ class Root(object):
             return web.render('login.html', error=error, frompage=frompage).render()
 
 
-    @expose_for(group.admin)
+    @expose_for(Level.admin)
     @web.mime.json
     @web.method.get
     def showjson(self, **kwargs):

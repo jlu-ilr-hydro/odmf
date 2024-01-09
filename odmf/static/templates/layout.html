@@ -91,7 +91,7 @@
                     })
                     .fail(
                         function(response) {
-                            window.location = '${conf.root_url}/login?error=' + encodeURI(response.responseText);
+                            set_error(response.responseText)
                         });
                 return false;
             });

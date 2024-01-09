@@ -1,6 +1,6 @@
 
 from .. import lib as web
-from ..auth import users, group, expose_for
+from ..auth import users, Level, expose_for
 
 from ... import db
 
@@ -11,7 +11,7 @@ from datetime import datetime
 @web.show_in_nav_for(1, 'tasks')
 class JobPage:
 
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     def default(self, jobid=None, user=None, onlyactive='active', error='', msg=''):
         with db.session_scope() as session:
             if user is None:
@@ -51,7 +51,7 @@ class JobPage:
                 username=user, onlyactive=onlyactive,
                 **queries
             ).render()
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     def done(self, jobid, time=None):
         with db.session_scope() as session:
             job = session.get(db.Job, int(jobid))
@@ -60,7 +60,7 @@ class JobPage:
             return job.make_done(users.current.name, time)
 
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     def saveitem(self, **kwargs):
         error = msg = ''
         try:
@@ -100,7 +100,7 @@ class JobPage:
 
             raise web.redirect(str(id), error=error, msg=msg)
 
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     @web.mime.json
     def json(self, responsible=None, author=None, onlyactive=False, dueafter=None):
         with db.session_scope() as session:

@@ -63,13 +63,6 @@ def abspath(fn):
     return op.join(basepath, normpath)
 
 
-class group:
-    "This class is only a constant holder, for using code completion for require "
-    guest = 'guest'
-    logger = 'logger'
-    editor = 'editor'
-    supervisor = 'supervisor'
-    admin = 'admin'
 
 class Level(IntEnum):
     guest = 0
@@ -234,8 +227,11 @@ def require(*conditions):
 
 def member_of(level: Level|str|int, project: int = None):
     def check():
-        user = users.current
-        return user and user.is_member(level, project)
+        if level:
+            user = users.current
+            return user and user.is_member(level, project)
+        else:
+            return True
     return check
 
 
