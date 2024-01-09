@@ -70,7 +70,10 @@ class Root(object):
         """
         Enter here your username and password to get access to restricted data or to change data
         """
-        if logout:
+        if cherrypy.request.method != 'POST':
+            return web.render('login.html', error=error, frompage=frompage).render()
+
+        elif logout:
             users.logout()
             return web.render('login.html', error=error, frompage=frompage).render()
 
@@ -79,7 +82,7 @@ class Root(object):
             error = users.login(username, password)
             frompage = frompage or conf.root_url + '/login'
             if error:
-                raise web.redirect('login', error=error, frompage=frompage)
+                return web.render('login.html', error=error, frompage=frompage).render()
             else:
                 raise web.redirect(frompage)
         else:

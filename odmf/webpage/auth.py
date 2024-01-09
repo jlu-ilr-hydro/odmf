@@ -44,13 +44,10 @@ def check_auth(*args, **kwargs):
     if user:
         cherrypy.request.login = user
     if conditions is not None:
-        if user:
-            for condition in conditions:
-                # A condition is just a callable that returns true or false
-                if not condition():
-                    raise HTTPAuthError()
-        else:
-            raise HTTPAuthError()
+        for condition in conditions:
+            # A condition is just a callable that returns true or false
+            if not condition():
+                raise HTTPAuthError()
 
 
 cherrypy.tools.auth = cherrypy.Tool('before_handler', check_auth)
@@ -229,7 +226,7 @@ def member_of(level: Level|str|int, project: int = None):
     def check():
         if level:
             user = users.current
-            return user and user.is_member(level, project)
+            return bool(user) and user.is_member(level, project)
         else:
             return True
     return check
