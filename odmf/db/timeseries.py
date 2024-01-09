@@ -85,7 +85,7 @@ class Record(Base):
 
 class Timeseries(Dataset):
     __mapper_args__ = dict(polymorphic_identity='timeseries')
-    records: orm.Query
+    # records: orm.Query
 
     def split(self, time):
         """Creates a new dataset using copy and assignes all records after

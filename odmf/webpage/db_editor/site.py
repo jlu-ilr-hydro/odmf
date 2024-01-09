@@ -21,7 +21,6 @@ from ... import db
 from ..auth import expose_for, Level
 from io import BytesIO
 from ...db import projection as proj
-from ..preferences import Preferences
 from ...config import conf
 
 
@@ -35,14 +34,11 @@ class SitePage:
         """
         Shows the page for a single site.
         """
-        pref = Preferences()
         siteid = web.conv(int, siteid)
         if not siteid:
             return web.render('site-list.html', error=error)
 
         with db.session_scope() as session:
-
-            pref['site'] = siteid
 
             datasets = instruments = []
             try:

@@ -49,7 +49,7 @@ class DatasetPage:
                 active = get_ds(session, datasetid)
                 if active:  # save requested dataset as 'last'
                     web.cherrypy.session['dataset'] = datasetid  # @UndefinedVariable
-                    return self.render_dataset(active, error, message)
+                    return self.render_dataset(session, active, error, message)
                 else:
                     raise web.redirect(conf.root_url + '/dataset', error=f'No ds{datasetid} available')
     @expose_for(Level.editor)
@@ -69,17 +69,19 @@ class DatasetPage:
                 site=site,
                 valuetype=valuetype,
                 measured_by=user,
-                access=user.access_level
+                access=user.access_level,
+                timezone=conf.datetime_default_timezone,
+                calibration_offset=0,
+                calibration_slope=1
             )
-            return self.render_dataset(active)
-    def render_dataset(self, active: db.Dataset, message='', error=''):
+            return self.render_dataset(session, active)
+    def render_dataset(self, session, active: db.Dataset, message='', error=''):
         """
         Returns the dataset view and manipulation page (dataset-edit.html).
         Expects a valid dataset id, 'new' or 'last'. With new, a new dataset
         is created, if 'last' the last chosen dataset is taken   
         """
         web.cherrypy.session['dataset'] = id  # @UndefinedVariable
-        session = active.session()
 
         def access(level: Level=Level.guest):
             return has_access(active, level)
@@ -143,8 +145,6 @@ class DatasetPage:
                     if not ds:
                         # If no ds with id exists, create a new one
                         ds = db.Timeseries(id=id)
-                    if not has_access(ds, Level.editor):
-                        raise web.HTTPError(403, 'No sufficient rights to alter dataset')
                     # Get properties from the keyword arguments kwargs
                     ds.site = s
                     ds.filename = kwargs.get('filename')
@@ -179,8 +179,11 @@ class DatasetPage:
                     if ds.is_transformed():
                         ds.expression = kwargs.get('expression')
                         ds.latex = kwargs.get('latex')
-                    # Save changes
-                    session.commit()
+
+                    session.add(ds)
+                    session.flush()
+                    if not has_access(ds, Level.editor):
+                        raise web.HTTPError(403, 'No sufficient rights to alter dataset')
                 except:
                     # On error render the error message
                     raise web.redirect(conf.root_url + f'/dataset/{id}', error=traceback())
