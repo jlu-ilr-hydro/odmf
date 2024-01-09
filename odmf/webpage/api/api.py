@@ -2,7 +2,7 @@ import cherrypy
 from io import BytesIO
 
 from .. import lib as web
-from ..auth import users, expose_for, group
+from ..auth import users, expose_for, Level
 from ...tools import Path as OPath
 from ..lib.errors import errorhandler
 from ...config import conf
@@ -55,7 +55,7 @@ class API(BaseAPI):
         users.logout()
         return 'OK'.encode('utf-8')
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.put
     def upload(self, targetpath: str, overwrite: bool = False):
         """

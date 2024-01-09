@@ -23,7 +23,7 @@ from ..plot import Plot
 from .markdown import MarkDown
 from .. import db
 from . import lib as web
-from .auth import group, expose_for, users
+from .auth import Level, expose_for, users
 
 # Try to use plotly, if not available use matplotlib
 try:
@@ -53,7 +53,7 @@ class PlotError(web.HTTPError):
         return render('plot.html', plot=None, error=error).render().encode('utf-8')
 
 
-plotgroup = group.logger
+plotgroup = Level.logger
 
 
 class PlotFileDialog:

@@ -92,15 +92,6 @@
     </py:block>
     <py:block name="content">
         <div class="container">
-            <div id="error-row" class="row mt-2 w-100 ${'' if error else 'd-none'} ">
-                <div class="container">
-                    <div class="container bg-danger text-white row w-100 border rounded " >
-                        <h1 class="display-3 col-lg-2">Error</h1>
-                        <div id="error" class="lead col-lg-10" py:content="markdown(error)"/>
-                    </div>
-
-                </div>
-            </div>
             <div id="title-row" class="row mt-2 w-100">
                 <div class="container">
                     <div id="title-area" class="container bg-dark text-white row w-100 border rounded shadow" py:if="ds_act" py:with="n=ds_act.size()">

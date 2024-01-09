@@ -1,6 +1,6 @@
 
 from .. import lib as web
-from ..auth import group, expose_for
+from ..auth import Level, expose_for
 
 from ... import db
 
@@ -9,7 +9,7 @@ from traceback import format_exc as traceback
 @web.show_in_nav_for(2, 'thermometer-half')
 class DatasourcePage:
 
-    @expose_for(group.guest)
+    @expose_for(Level.guest)
     def default(self, id='new'):
         with db.session_scope() as session:
             instruments = session.query(db.Datasource).order_by(db.Datasource.id)
@@ -28,7 +28,7 @@ class DatasourcePage:
             return web.render('instrument.html', instruments=instruments,
                             actualinstrument=inst, error=error).render()
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     def saveitem(self, **kwargs):
         try:
             id = web.conv(int, kwargs.get('id'), '')

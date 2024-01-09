@@ -1,7 +1,7 @@
 
 
 from .. import lib as web
-from ..auth import group, expose_for
+from ..auth import Level, expose_for
 
 from ... import db
 from traceback import format_exc as traceback
@@ -10,7 +10,7 @@ from traceback import format_exc as traceback
 @web.show_in_nav_for(2, 'ruler')
 class VTPage:
 
-    @expose_for(group.guest)
+    @expose_for(Level.guest)
     def default(self, vt_id='new'):
         with db.session_scope() as session:
             valuetypes = session.query(
@@ -32,7 +32,7 @@ class VTPage:
             return web.render('valuetype.html', valuetypes=valuetypes,
                                 actualvaluetype=vt, error=error).render()
 
-    @expose_for(group.supervisor)
+    @expose_for(Level.supervisor)
     def saveitem(self, **kwargs):
         try:
             id = web.conv(int, kwargs.get('id'), '')
@@ -55,7 +55,7 @@ class VTPage:
                                   ).render()
         raise web.redirect('./%s' % id)
 
-    @expose_for(group.guest)
+    @expose_for(Level.guest)
     @web.mime.json
     def json(self):
         with db.session_scope() as session:

@@ -3,7 +3,7 @@ import cherrypy.lib.sessions
 from .. import prefix
 from . import lib as web
 from .lib.errors import errorhandler
-from .auth import users, group, expose_for
+from .auth import users, Level, expose_for
 
 from .. import db
 from ..config import conf
@@ -70,7 +70,10 @@ class Root(object):
         """
         Enter here your username and password to get access to restricted data or to change data
         """
-        if logout:
+        if cherrypy.request.method != 'POST':
+            return web.render('login.html', error=error, frompage=frompage).render()
+
+        elif logout:
             users.logout()
             return web.render('login.html', error=error, frompage=frompage).render()
 
@@ -79,7 +82,7 @@ class Root(object):
             error = users.login(username, password)
             frompage = frompage or conf.root_url + '/login'
             if error:
-                raise web.redirect('login', error=error, frompage=frompage)
+                return web.render('login.html', error=error, frompage=frompage).render()
             else:
                 raise web.redirect(frompage)
         else:
@@ -87,7 +90,7 @@ class Root(object):
             return web.render('login.html', error=error, frompage=frompage).render()
 
 
-    @expose_for(group.admin)
+    @expose_for(Level.admin)
     @web.mime.json
     @web.method.get
     def showjson(self, **kwargs):

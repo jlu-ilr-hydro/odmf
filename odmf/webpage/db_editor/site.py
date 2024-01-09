@@ -18,7 +18,7 @@ import typing
 
 from .. import lib as web
 from ... import db
-from ..auth import expose_for, group
+from ..auth import expose_for, Level
 from io import BytesIO
 from ...db import projection as proj
 from ..preferences import Preferences
@@ -30,7 +30,7 @@ from ...config import conf
 @cherrypy.popargs('siteid')
 class SitePage:
     url = conf.root_url + '/site/'
-    @expose_for(group.guest)
+    @expose_for(Level.guest)
     def index(self, siteid=None, error=''):
         """
         Shows the page for a single site.
@@ -61,7 +61,7 @@ class SitePage:
                               datasets=datasets, icons=self.geticons(), instruments=instruments
                               ).render()
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.get
     def new(self, lat=None, lon=None, name=None, error=''):
         with db.session_scope() as session:
@@ -79,7 +79,7 @@ class SitePage:
                               datasets=datasets, icons=self.geticons(), instruments=instruments
                               ).render()
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post
     def save(self, siteid, lon=None, lat=None, name=None, height=None, icon=None, comment=None):
         try:
@@ -109,7 +109,7 @@ class SitePage:
                 raise web.redirect(f'{self.url}/{siteid}', error=f'## {e}\n\n```{tb}```')
         raise web.redirect(f'{self.url}/{siteid}')
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post
     def savegeo(self, siteid, geojson=None, strokewidth=None, strokeopacity=None, strokecolor=None, fillopacity=None, fillcolor=None):
         import json
@@ -156,7 +156,7 @@ class SitePage:
             inst = session.query(db.Datasource).all()
             return web.json_out(sorted(inst))
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post
     def addinstrument(self, siteid, instrumentid, date=None, comment=None):
         try:
@@ -181,7 +181,7 @@ class SitePage:
             raise web.AJAXError(500, str(e))
 
 
-    @expose_for(group.editor)
+    @expose_for(Level.editor)
     @web.method.post
     def removeinstrument(self, siteid, instrumentid, installationid, date=None):
         with db.session_scope() as session:
@@ -407,7 +407,7 @@ class SitePage:
         path = conf.abspath('media/mapicons')
         return sorted(op.basename(p) for p in glob(op.join(path, '*.png')) if not op.basename(p) == 'selection.png')
 
-    @expose_for(group.guest)
+    @expose_for(Level.guest)
     @web.mime.json
     @web.method.get
     def with_instrument(self, instrumentid):
@@ -415,7 +415,7 @@ class SitePage:
             inst = session.get(db.Datasource, int(instrumentid))
             return web.json_out(sorted(set(i.site for i in inst.sites)))
 
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     @web.mime.csv
     @web.method.get
     def sites_csv(self):
@@ -433,7 +433,7 @@ class SitePage:
                           (s.id, s.lon, s.lat, x, y, h, s.name, c)).encode('utf-8'))
             return st.getvalue()
 
-    @expose_for(group.logger)
+    @expose_for(Level.logger)
     @web.method.get
     def export(self, format='xlsx'):
         from ...tools.exportdatasets import export_dataframe
