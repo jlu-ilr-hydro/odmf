@@ -65,6 +65,8 @@ class LogPage:
                     log = session.get(db.Log, id)
                     if not log:
                         log = db.Log(id=id)
+                        session.add(log)
+                        session.flush()
                     if kwargs.get('date'):
                         log.time = web.parsedate(kwargs['date'])
                     log.message = kwargs.get('message')

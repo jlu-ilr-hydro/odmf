@@ -156,7 +156,7 @@ def _make_time_column_as_datetime(df: pd.DataFrame, fmt=None):
         Converts a column to_datetime and raises a LogImportStructError on failure
         """
         # First try the given format, second try with a "free" format. Needed eg. for a two column format
-        for timeformat in [fmt, None]:
+        for timeformat in [fmt, 'mixed']:
             try:
                 return pd.to_datetime(c, dayfirst=True, format=timeformat)
             except Exception as e:  # difficult to get more specific, as Pandas Exception model is a bit strange

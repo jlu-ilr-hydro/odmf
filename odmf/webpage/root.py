@@ -3,7 +3,7 @@ import cherrypy.lib.sessions
 from .. import prefix
 from . import lib as web
 from .lib.errors import errorhandler
-from .auth import users, Level, expose_for
+from .auth import users, Level, expose_for, HTTPAuthError
 
 from .. import db
 from ..config import conf
@@ -11,7 +11,6 @@ from datetime import datetime, timedelta
 from . import db_editor as dbe
 from . import map
 from .filemanager import upload
-from .preferences import Preferences
 from . import plot
 from . import api
 from . import static
@@ -41,13 +40,12 @@ class Root(object):
     log = dbe.LogPage()
 
     valuetype = dbe.VTPage()
-    project = dbe.ProjectPage()
     instrument = dbe.DatasourcePage()
+    project = dbe.ProjectPage()
     user = dbe.PersonPage()
     # admin = cll.AdminPage()
     api = api.API()
 
-    preferences = Preferences()
     media = static.StaticServer('media', listdir=True)
     datafiles = static.StaticServer(conf.datafiles, listdir=True)
 
@@ -82,7 +80,7 @@ class Root(object):
             error = users.login(username, password)
             frompage = frompage or conf.root_url + '/login'
             if error:
-                return web.render('login.html', error=error, frompage=frompage).render()
+                raise HTTPAuthError(referrer=frompage)
             else:
                 raise web.redirect(frompage)
         else:

@@ -52,28 +52,29 @@ class TestLogin:
         assert cherrypy.request.login != 'odmf.admin'
 
     def test_login_bad_user(self, root):
-        with pytest.raises(cherrypy.HTTPRedirect) as redirect_info:
+        import odmf.webpage.auth as auth
+        with pytest.raises(auth.HTTPAuthError) as redirect_info:
+            cherrypy.request.method = 'POST'
             root.login(frompage='/', username='nobody', password='bla')
-        error = redirect_info.value.urls[0].split('?')[-1]
-        assert error.startswith('error=')
-        assert 'not+found' in error
         assert cherrypy.request.login != 'odmf.admin'
 
     def test_login_wrong_pw(self, root):
-        with pytest.raises(cherrypy.HTTPRedirect) as redirect_info:
+        import odmf.webpage.auth as auth
+        with pytest.raises(auth.HTTPAuthError) as redirect_info:
+            cherrypy.request.method = 'POST'
             root.login(frompage='/', username='odmf.admin', password='bla')
-        error = redirect_info.value.urls[0].split('?')[-1]
-        assert error.startswith('error=')
         assert cherrypy.request.login != 'odmf.admin'
 
     def test_login_ok_from_map(self, root):
         with pytest.raises(cherrypy.HTTPRedirect) as redirect_info:
+            cherrypy.request.method = 'POST'
             root.login(frompage='/map', username='odmf.admin', password='test')
         assert redirect_info.value.urls[0].endswith('/map')
         assert cherrypy.request.login == 'odmf.admin'
 
     def test_login_ok_from_login(self, root):
         with pytest.raises(cherrypy.HTTPRedirect) as redirect_info:
+            cherrypy.request.method = 'POST'
             root.login(frompage=None, username='odmf.admin', password='test')
         assert redirect_info.value.urls[0].endswith('/login')
         assert cherrypy.request.login == 'odmf.admin'
@@ -81,6 +82,7 @@ class TestLogin:
     @pytest.mark.skip('do not unit test logout, cannot expire session out of a running server')
     def test_logout(self, root):
         cherrypy.request.login = 'odmf.admin'
+        cherrypy.request.method = 'POST'
         res = root.login(logout=True)
         assert cherrypy.request.login != 'odmf.admin'
         assert 'About' in res

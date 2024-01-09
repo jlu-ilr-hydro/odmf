@@ -18,7 +18,8 @@ def db(conf):
     cdb.create_all_tables()
     cdb.add_admin('test')
     cdb.add_quality_data(cdb.quality_data)
-    return db
+    yield db
+    db.Base.metadata.clear()
 
 @pytest.fixture()
 def session(db) -> sqlalchemy.orm.Session:
