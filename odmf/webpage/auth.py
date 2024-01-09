@@ -11,15 +11,14 @@ import collections
 import typing
 
 import cherrypy
-
+from ..config import conf
 from ..tools import hashpw, get_bcrypt_salt
 from enum import IntEnum
 
-SESSION_KEY = '#!35625/Schwingbach?Benutzer'
 
 def sessionuser()->str:
     "Returns the username saved in the session"
-    return cherrypy.session.get(SESSION_KEY)
+    return cherrypy.session.get(conf.session_key)
 
 
 class HTTPAuthError(cherrypy.HTTPError):
@@ -201,12 +200,12 @@ class Users(collections.UserDict):
             return error
         else:
             cherrypy.session.regenerate()
-            cherrypy.session[SESSION_KEY] = cherrypy.request.login = username
+            cherrypy.session[conf.session_key] = cherrypy.request.login = username
             return
 
     def logout(self):
         cherrypy.request.login = None
-        cherrypy.session[SESSION_KEY] = None
+        cherrypy.session[conf.session_key] = None
         cherrypy.lib.sessions.expire()
 
 
