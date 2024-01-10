@@ -76,6 +76,14 @@ class FileAction:
             path = Path(path)
         return self.action(path)
 
+    def check(self, path: str):
+        """
+        Returns True, if the action can be performed
+        :param path:
+        :return:
+        """
+        return True
+
     def __str__(self):
         return self.name
 
@@ -105,7 +113,7 @@ class BaseFileHandler:
     actions: Sequence of FileAction objects - actions that can be performed on the file page
     """
     icon = 'file'
-    actions = ()
+    actions: typing.Sequence[FileAction] = ()
     def __init__(self, pattern: str = ''):
         self.pattern = re.compile(pattern, re.IGNORECASE)
 
@@ -124,6 +132,9 @@ class BaseFileHandler:
 
     def __call__(self, path: Path):
         return self.to_html(path)
+
+    def get_actions(self, path: Path):
+        return [action for action in self.actions if action.check(path.absolute)]
 
 
 class TextFileHandler(BaseFileHandler):
