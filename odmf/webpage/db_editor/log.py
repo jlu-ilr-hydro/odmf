@@ -1,3 +1,4 @@
+import cherrypy
 
 from .. import lib as web
 from ..auth import Level, expose_for
@@ -8,46 +9,48 @@ from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 
 
+@cherrypy.popargs('logid')
 @web.show_in_nav_for(1, 'tags')
 class LogPage:
 
-    @expose_for(Level.guest)
-    def default(self, logid=None, siteid=None, lastlogdate=None, days=None, error=''):
-        with db.session_scope() as session:
 
-            if logid == 'new':
-                log = db.Log(id=db.newid(db.Log, session),
-                             message='<Log Message>', time=datetime.today())
-                user = web.user()
-                if user:
-                    log.user = session.get(db.Person, user)
-                if siteid:
-                    log.site = session.get(db.Site, int(siteid))
-                log.time = datetime.today()
-            elif logid is None:
-                log = session.query(db.Log).order_by(
-                    db.sql.desc(db.Log.time)).first()
-            else:
+    @expose_for(Level.guest)
+    @web.method.get
+    def index(self, logid=None, error=''):
+        with db.session_scope() as session:
+            log = None
+            if logid is not None:
                 try:
                     log = session.get(db.Log, int(logid))
                 except:
                     error = traceback()
-                    log = None
-            if lastlogdate:
-                until = web.parsedate(lastlogdate)
-            else:
-                until = datetime.today()
-            days = web.conv(int, days, 30)
-            loglist = session.query(db.Log).filter(db.Log.time <= until,
-                                                   db.Log.time >= until - timedelta(
-                                                       days=days)) \
-                .order_by(db.sql.desc(db.Log.time))
-
             sitelist = session.query(db.Site).order_by(db.sql.asc(db.Site.id))
             personlist = session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname)
             return web.render(
-                'log.html', actuallog=log, error=error, db=db,
-                loglist=loglist, sites=sitelist,
+                'log.html', actuallog=log, error=error,
+                types=session.scalars(db.sql.select(db.Log.type).distinct()),
+                sites=sitelist,
+                persons=personlist
+            ).render()
+
+    @expose_for(Level.logger)
+    @web.method.get
+    def new(self, siteid=None):
+        with db.session_scope() as session:
+            log = db.Log(id=db.newid(db.Log, session),
+                         message='<Log Message>', time=datetime.today())
+            user = web.user()
+            if user:
+                log.user = session.get(db.Person, user)
+            if siteid:
+                log.site = session.get(db.Site, int(siteid))
+            log.time = datetime.today()
+            sitelist = session.query(db.Site).order_by(db.sql.asc(db.Site.id))
+            personlist = session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname)
+            return web.render(
+                'log.html', actuallog=log,
+                types=session.scalars(db.sql.select(db.Log.type).distinct()),
+                sites=sitelist,
                 persons=personlist
             ).render()
 
@@ -72,11 +75,13 @@ class LogPage:
                     log.message = kwargs.get('message')
                     log.user = session.get(db.Person, kwargs.get('user'))
                     log.site = session.get(db.Site, kwargs.get('site'))
+                    log.type = kwargs.get('type')
                 except:
-                    raise web.redirect(conf.root_url + '/log/' + str(id),
-                                      error=('\n'.join('%s: %s' % it for it in kwargs.items())) + '\n' + traceback(),
-                                      title='Log #%s' % id
-                                      ).render()
+                    raise web.redirect(
+                        conf.root_url + '/log/' + str(id),
+                        error=('\n'.join('%s: %s' % it for it in kwargs.items())) + '\n' + traceback(),
+                        title='Log #%s' % id
+                    )
         elif 'new' in kwargs:
             id = 'new'
         raise web.redirect(conf.root_url + '/log/' + str(id))

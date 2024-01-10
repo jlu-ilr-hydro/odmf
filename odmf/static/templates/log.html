@@ -4,53 +4,36 @@
     <py:block name="scripts">
         <script>
             // <![CDATA[
-            function setmsg(text,label) {
-                $('#message').text(text);
-                $('#msghint').html(label);
-            }
-
             function formatiso(isostr) { //from http://dev.enekoalonso.com/2010/09/21/date-from-iso-8601-string/
                 var parts = isostr.match(/\d+/g);
                 return parts[2] + '.' + parts[1] + '.' + parts[0] + ' ' + parts[3] + ':' + parts[4] + ':' + parts[5];
             }
-            function toggle(id) {
-                var obj = $('#'+id)
-                if (obj.css('display')=='none') {
-                    obj.css('display','inline');
-                } else {
-                    obj.css('display','none');
-                }
-            }
+            Date.prototype.toDateInputValue = (function() {
+                var local = new Date(this);
+                local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
+                return local.toJSON().slice(0,10);
+            });
 
             function listlogs() {
-                until = $('#lastlogdate').val();
-                days = $('#days').val();
-                siteid = $('#siteid').val();
-                keywords = $('#keywords').val();
+                let until = $('#lastlogdate').val();
+                let days = $('#days').val();
+                let siteid = $('#siteid').val();
+                let keywords = $('#keywords').val();
                 $.getJSON(odmf_ref('/log/json'),{until:until, days:days, siteid:siteid, keywords:keywords}, function(data) {
                     html='';
-                    //templ='<li><a href="#href#">#text#</a></li>';
-
-                    templ='<tr>' +
-                            '   <td>#date#</td>' +
-                            '   <td><a href="#href#">#comment#</a></td>' +
-                            '   <td><a href="${conf.root_url}/site/#siteid#">#siteid#</a></td>' +
-                            '   <td><a href="${conf.root_url}/user/#userid#">#user#</a></td>' +
-                            '</tr>';
-
+                    templ='<a href="#href#" class="list-group-item list-group-item-action w-100"><span class="badge badge-secondary type-badge" >#type#</span><span class="alert alert-info">#date#</span>' +
+                        '<span class="alert alert-secondary" >#userid#@##siteid#</span>' +
+                        '<span>#comment#</span>' +
+                        '</a>';
                     $.each(data,function(index,item) {
-                        //text = formatiso(item.time)+': '
-                        //	+ item.message + ' at site#'+item.site.id
-                        //	+' ('+item.user.firstname + ' ' + item.user.surname + ')';
-
                         html += templ.replace(/#href#/,odmf_ref('/log/')+item.id)
                                 .replace(/#comment#/,item.message)
                                 .replace(/#date#/, formatiso(item.time))
-                                .replace(/#siteid#/, item.site.id).replace(/#siteid#/, item.site.id)
+                                .replace(/#siteid#/, item.site.id)
                                 .replace(/#userid#/, item.user.username)
                                 .replace(/#user#/, item.user.firstname + ' ' + item.user.surname)
+                                .replace(/#type#/, item.type)
                     });
-                    $('#loglist').html("");
                     $('#loglist').html(html);
                 });
             }
@@ -61,31 +44,13 @@
                     listlogs();
                 })
             }
-            function remove(id) {
-                check = confirm('Do you really want to delete this log?');
-                if (check) {
-                    $.post(odmf_ref('/log/remove'), {id:id}, function(data) {
-                        if (data) {
-                            $('#error').html(data);
-                        }
-                    });
-                }
-            }
 
-            function appendSiteToSiteList()
-            {
-                var sitelist = $('#sitelist').val();
-                var site = $('#sitepicker').val();
-
-                if (sitelist == "")
-                {
-                    $('#sitelist').val(site);
-                }
-                else if (sitelist != "")
-                {
-                    $('#sitelist').val(sitelist + ', ' + site);
-                }
-
+            function earlier_logs() {
+                let until = new Date($('#lastlogdate').val());
+                let days = $('#days').val();
+                until.setDate(until.getDate() - days);
+                $('#lastlogdate').val(until.toDateInputValue())
+                listlogs();
             }
 
             $(function() {
@@ -100,34 +65,48 @@
                         });
                     }
                 })
-                listlogs(null,30);
+                if (window.location.href.includes('new')) {
+                    $('#edit').addClass('show')
+                }
+                $('#lastlogdate').val(new Date().toDateInputValue());
+                $('.get-logs').on('click', listlogs)
+                $('.get-logs').on('change', listlogs)
+                $('#earlier').on('click', earlier_logs)
+                $('.type-option').on('click', e=>{
+                    $('#type').val($(e.currentTarget).html())
+                })
+                listlogs();
             });
             // ]]>
         </script>
     </py:block>
+    <py:block name="style">
+        <style>
+            .type-badge {
+                min-width: 10em
+            }
+        </style>
+    </py:block>
     <py:block name="sidebar">
         <!-- insert sidebar content -->
         <div class="container-fluid">
-            <div class="mb-2" py:if="actuallog">
-                <button class="btn btn-outline-danger rounded-pill shadow" id="log-remove" data-id="${actuallog.id}">
-                    <i class="fas fa-minus" />
-                </button>
-                remove log
+            <div class="mb-2 w-100" py:if="actuallog">
+
             </div>
-            <div class="mb-2">
-                <a href="${conf.root_url}/log/new" class="btn btn-outline-success rounded-pill shadow" id="log-add">
-                    <i class="fas fa-plus" />
+            <div class="mb-2 w-100">
+                <a href="${conf.root_url}/log/new" class="btn btn-success shadow w-100" id="log-add">
+                    <i class="fas fa-plus" /> add new log
                 </a>
-                add new log
+
             </div>
-            <div class="mb-2">
+            <div class="mb-2 w-100">
                 <button id="toggle-paste" type="button"
-                        class="btn btn-outline-primary rounded-pill shadow"
+                        class="btn btn-secondary shadow w-100"
                         data-toggle="modal" data-target="#pastediv"
                 >
-                    <i class="fas fa-paste" />
+                    <i class="fas fa-paste" /> paste log from clipboard
                 </button>
-                paste log from clipboard
+
             </div>
 
         </div>
@@ -135,7 +114,7 @@
     <py:block name="content">
         <div class="container">
 
-            <div class="container" py:if="actuallog">
+            <div class="container" >
                 <div id="description" py:if="actuallog">
                     <div class="row mt-2 w-100">
                         <div class="container">
@@ -151,12 +130,14 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-lg-10">
-                                    <div class="container lead">
-                                        <a href="${conf.root_url}/site/${actuallog.site.id}" py:if="actuallog.site">
+                                <div class="col-lg-10 w-100">
+                                    <div class="container lead w-100">
+                                        <a href="${conf.root_url}/site/${actuallog.site.id}/#messagelist" py:if="actuallog.site">
                                             <img src="${conf.root_url}/media/mapicons/${actuallog.site.icon or 'unknown.png'}"/>
                                                 ${actuallog.site}
                                         </a>
+                                        <div class="badge badge-light mr-auto" py:content="actuallog.type" />
+
                                     </div>
 
                                     <hr/>
@@ -174,13 +155,13 @@
 
                 </div>
 
-                <div id="edit" class="container collapse border rounded px-4 pt-4">
+                <div id="edit" py:if="actuallog" class="container collapse border rounded p-4">
                     <form id="logform" action="${conf.root_url}/log/saveitem" method="post"
                           py:if="actuallog and is_member('logger')">
                         <input class="d-none" value="${actuallog.id}" name="id"/>
                         <div class="form-group row">
                             <label for="user" class="col-form-label col-md-2">Who?</label>
-                            <select name="user" class="form-control col-md-10">
+                            <select id="user" name="user" class="form-control col-md-10">
                                 <option py:for="p in persons"
                                         py:attrs="markoption(p is actuallog.user)"
                                         py:content="p"
@@ -190,12 +171,12 @@
                         </div>
                         <div class="form-group row">
                             <label for="date" class="col-form-label col-md-2">When?</label>
-                            <input name="date" class="form-control col-md-10" type="date" value="${formatdate(actuallog.time, '%Y-%m-%d')}"/>
+                            <input id="date" name="date" class="form-control col-md-10" type="date" value="${formatdate(actuallog.time, '%Y-%m-%d')}"/>
 
                         </div>
                         <div class="form-group row">
                             <label for="site" class="col-form-label col-md-2">Where?</label>
-                            <select name="site" class="form-control col-md-10">
+                            <select id="site" name="site" class="form-control col-md-10">
                                 <option value=""><i>&lt;Please select...&gt;</i></option>
                                 <option py:for="s in sites"
                                         py:attrs="markoption(s is actuallog.site)"
@@ -206,63 +187,67 @@
                         </div>
                         <div class="form-group row">
                             <label for="message" class="col-form-label col-md-2">What?</label>
-                            <textarea name="message" id="message"
-                                      class="form-control col-md-10"
-                                      rows="10" py:content="actuallog.message" />
-                            <button py:if="is_member('logger')" type="submit" name="save" class="btn btn-outline-success">
-                                <i class="fas fa-check mr-2"/>save
-                            </button>
+                            <div class="col-md-10">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">type:</button>
+
+                                        <div class="dropdown-menu">
+                                            <a href="#" py:for="type in types" class="dropdown-item type-option" py:content="type" py:if="type"/>
+                                        </div>
+                                    </div>
+                                    <input id="type" name="type" class="form-control d-inline" value="${actuallog.type}"/>
+                                </div>
+
+                                <textarea name="message" id="message"
+                                          class="form-control"
+                                          rows="10" py:content="actuallog.message" />
+
+                            </div>
 
                         </div>
+                        <button py:if="is_member('logger')" type="submit" name="save" class="btn btn-success">
+                                <i class="fas fa-check mr-2"/>save
+                        </button>
+                        <button class="btn btn-danger" id="log-remove" data-id="${actuallog.id}">
+                            <i class="fas fa-trash-can" /> remove log
+                        </button>
+
                     </form>
                 </div>
 
                 <div id="log-history">
-                    <h4>History</h4>
-                    Show Logbook until
-                    <input id="lastlogdate" type="date" class="form-control" onchange="listlogs();"/>
-                    for
-                    <select id="days" onchange="listlogs();" class="form-control">
-                        <option value="1">1</option>
-                        <option value="7">7</option>
-                        <option value="30" selected="selected">30</option>
-                        <option value="90">90</option>
-                        <option value="365">365</option>
-                    </select>
-                    days and site number
+                    <h3>History</h3>
+                    <div class="form-group">
+                        Show Logbook until
+                        <input id="lastlogdate" type="date" class="form-control get-logs"/>
+                        for
+                        <select id="days" class="form-control get-logs">
+                            <option value="1">1 days</option>
+                            <option value="7">7 days</option>
+                            <option value="30" selected="selected">30 days</option>
+                            <option value="90">90 days</option>
+                            <option value="365">365 days</option>
+                        </select>
+                        days and site number
 
-                    <select id="siteid" onchange="listlogs();" class="form-control">
-                        <option>All</option>
-                        <option py:for="site in sites"
-                                py:content="site"
-                                py:attrs="markoption(site.id == sites[0].id)"
-                                value="${site.id}"></option>
-                    </select><br/>
+                        <select id="siteid" class="form-control get-logs">
+                            <option>All</option>
+                            <option py:for="site in sites"
+                                    py:content="site"
+                                    py:attrs="markoption(site.id == (actuallog and actuallog._site))"
+                                    value="${site.id}"></option>
+                        </select><br/>
 
-                    And with keywords (case sensitive) in comments
-                    <input type="text" name="keywords" id="keywords" class="form-control"/>
+                        And with keywords (case sensitive) in comments
+                        <input type="text" name="keywords" id="keywords" class="form-control get-logs"/>
 
-                    <button onclick="listlogs();" class="btn btn-info">go</button>
-
-                    <table id="table-loglist" class="table">
-                        <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Message</th>
-                            <th>Siteid</th>
-                            <th>Measured By</th>
-                        </tr>
-                        </thead>
-                        <tbody id="loglist">
-                        </tbody>
-                        <tfoot>
-                        <tr>
-                            <td colspan="4" style="text-align:center"><strong>End of Table</strong></td>
-                        </tr>
-                        </tfoot>
-                    </table>
+                        <button class="btn btn-secondary mt-1 get-logs"><i class="fas fa-tags mr-2"/>get logs</button>
+                        <button id="earlier" class="btn btn-secondary mt-1"><i class="fas fa-clock-rotate-left mr-2"/>earlier</button>
+                    </div>
 
                 </div>
+                <div id="loglist" class="list-group"></div>
 
             </div>
         </div>

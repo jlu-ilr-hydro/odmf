@@ -12,16 +12,13 @@
 
     </py:block>
     <py:block name="style">
-        <style type="text/css">
+        <style>
             .removed {
                 color: grey;
             }
-            #sites-dropdown {
-                max-height: 50vh;
-                overflow-y: auto;
-
+            .log-type-badge {
+                min-width: 10em
             }
-
         </style>
     </py:block>
     <py:block name="sidebar">
@@ -40,7 +37,10 @@
             <hr/>
             <div class="row"  py:if="actualsite">
                 <div class="col">
-                    <div class="nav flex-column nav-pills" role="tablist"  aria-orientation="vertical" id="site-tab">
+                    <h4>
+                        <img src="${conf.root_url}/media/mapicons/${actualsite.icon or 'unknown.png'}" height="24px" class="mr-2" />${actualsite}
+                    </h4>
+                    <div class="nav flex-column nav-pills" role="tablist"  aria-orientation="vertical">
                         <a id="site-tab" class="nav-link active border-top" data-toggle="pill" href='#sitedescription'><i class="fas fa-info mr-2"/>site</a>
                         <a id="map-tab" class="nav-link border-top" data-toggle="pill" href='#map'><i class="fas fa-map mr-2"/> map</a>
                         <a id="edit-tab" class="nav-link border-top" data-toggle="pill" href="#edit"><i class="fas fa-edit mr-2"/>edit</a>
@@ -244,15 +244,18 @@
                     <p>
                         Please report briefly any actions you have performed on this site, or if you observed something unusual.
                     </p>
-                    <ul>
-                        <li py:if="is_member('logger')">
-                            <a href="${conf.root_url}/log/new?siteid=${actualsite.id}" style="font-style: italic;">New message...</a>
-                        </li>
-                        <li py:for="log in actualsite.logs">
-                            <a href="${conf.root_url}/log/${log.id}" py:content="formatdatetime(log.time)"/>
-                                ${log.user}<sup>log:${log.id}</sup> ${markdown(log.message)}
-                        </li>
-                    </ul>
+                    <div class="list-group">
+                        <a class="list-group-item list-group-item-action list-group-item-success" py:if="is_member('logger')" href="${conf.root_url}/log/new?siteid=${actualsite.id}" ><i class="fas fa-plus"></i> New message...</a>
+                        <a href="${conf.root_url}/log/${log.id}" class="list-group-item list-group-item-action" py:for="log in actualsite.logs">
+                            <div class="mb-3">
+                                <span class="badge badge-secondary log-type-badge" >${log.type}</span>
+                                <span class="alert alert-info">${formatdatetime(log.time)}</span>
+                                <span class="alert alert-secondary" >${log.user}<sup>log:${log.id}</sup></span>
+                            </div>
+                            <div>${markdown(log.message)}</div>
+                        </a>
+
+                    </div>
 
                 </div>
 

@@ -351,4 +351,5 @@ class Log(Base):
                     time=self.time,
                     user=self.user,
                     site=self.site,
-                    message=self.message)
+                    message=self.message,
+                    type=self.type)
