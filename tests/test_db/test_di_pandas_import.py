@@ -25,16 +25,17 @@ def test_load_dataframe(csv_file_for_import, db):
 
 def test_load_dataframe_column_problem(csv_file_for_import, db):
     """
-    This test is for issue #106, to see if it is working with total_columns
+    This test is for issue #103, to see if it is working with total_columns
+    https://github.com/jlu-ilr-hydro/odmf/issues/103
     """
     from odmf.dataimport import pandas_import as pi
     idescr = pi.ImportDescription.from_file(csv_file_for_import)
-    # Skip another line to create situation in #106
+    # Skip another line to create situation in #103
     idescr.skiplines += 1
     # See #106 happening
     with pytest.raises(pi.DataImportError):
         df = pi.load_dataframe(idescr=idescr, filepath=csv_file_for_import)
-    # Solve #106 by giving the total line number
+    # Solve #103 by giving the total line number
     idescr.total_columns = 6
     df = pi.load_dataframe(idescr=idescr, filepath=csv_file_for_import)
     assert not df.empty
