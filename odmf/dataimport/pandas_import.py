@@ -224,13 +224,16 @@ def _load_csv(idescr: ImportDescription, filepath: Path) -> pd.DataFrame:
     """
     encoding = idescr.encoding or 'utf-8'
     columns, names = idescr.get_column_names()
+    if idescr.total_columns:
+        csv_names=range(idescr.total_columns)
     try:
         df = pd.read_csv(
             filepath.absolute, header=None,
             skiprows=idescr.skiplines, skipfooter=idescr.skipfooter or 0,
             delimiter=idescr.delimiter, decimal=idescr.decimalpoint,
             na_values=idescr.nodata, skipinitialspace=True,
-            encoding=encoding, engine='python', quotechar='"'
+            encoding=encoding, engine='python', quotechar='"',
+            names=idescr.total_columns and range(idescr.total_columns)
         )
         df = df[columns]
         df.columns = names

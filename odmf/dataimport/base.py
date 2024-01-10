@@ -285,7 +285,8 @@ class ImportDescription(object):
     def __init__(self, instrument, skiplines=0, skipfooter=None, delimiter=',', decimalpoint='.',
                  dateformat=None, datecolumns=(0, 1),
                  timezone=conf.datetime_default_timezone, project=None,
-                 nodata=[], worksheet=1, samplecolumn=None, sample_mapping=None, encoding=None):
+                 nodata=[], worksheet=1, samplecolumn=None, sample_mapping=None, encoding=None,
+                 total_columns=None):
         """
         instrument: the database id of the instrument that produced this file
         skiplines: The number of lines prepending the actual data
@@ -299,7 +300,8 @@ class ImportDescription(object):
         worksheet: The position of the worksheet of an excel file. Optional and default is the first (1)
         sample_column: Column number containing the name of a sample
         sample_mapping: Mapping of labcodes to site ids. Is Optional and default is None
-
+        total_columns: Total number of columns in file. Can be omitted in most cases,
+                       when the column number is varying, it allows to read the file
         """
         self.name = ''
         self.fileextension = ''
@@ -338,7 +340,8 @@ class ImportDescription(object):
         # Sample mapping can be None
         self.sample_mapping = sample_mapping
         self.encoding = encoding
-
+        self.total_columns = total_columns
+    
     def __str__(self):
         io = StringIO()
         self.to_config().write(io)
@@ -409,11 +412,14 @@ class ImportDescription(object):
         config.set(section, 'project', self.project)
         config.set(section, 'timezone', self.timezone)
         config.set(section, 'nodata', self.nodata)
-        config.set(section, 'worksheet', self.worksheet)
+        if self.worksheet:
+            config.set(section, 'worksheet', self.worksheet)
         if self.sample_mapping:
             config.set(section, 'sample_mapping', self.sample_mapping)
         if self.fileextension:
             config.set(section, 'fileextension', self.fileextension)
+        if self.total_columns:
+            config.set(section, 'total_columns', self.total_columns)
         for col in self.columns:
             section = col.name
             config.add_section(section)
@@ -484,20 +490,23 @@ class ImportDescription(object):
                                  ' valid timezone' % timezone)
 
         # Create a new TextImportDescriptor from config file
-        tid = cls(instrument=config.getint(sections[0], 'instrument', fallback=0),
-                  skiplines=config.getint(sections[0], 'skiplines', fallback=0),
-                  skipfooter=config.getint(sections[0], 'skipfooter', fallback=0),
-                  delimiter=getvalue(sections[0], 'delimiter'),
-                  decimalpoint=getvalue(sections[0], 'decimalpoint'),
-                  dateformat=getvalue(sections[0], 'dateformat'),
-                  datecolumns=config_getlist(sections[0], 'datecolumns'),
-                  project=getvalue(sections[0], 'project'),
-                  timezone=getvalue(sections[0], 'timezone'),
-                  nodata=config_getlist(sections[0], 'nodata'),
-                  worksheet=getvalue(sections[0], 'worksheet', int),
-                  samplecolumn=getvalue(sections[0], 'samplecolumn', int),
-                  encoding=getvalue(sections[0], 'encoding'),
-                  sample_mapping=config_getdict(config, sections[0], 'sample_mapping'))
+        tid = cls(
+            instrument=config.getint(sections[0], 'instrument', fallback=0),
+            skiplines=config.getint(sections[0], 'skiplines', fallback=0),
+            skipfooter=config.getint(sections[0], 'skipfooter', fallback=0),
+            delimiter=getvalue(sections[0], 'delimiter'),
+            decimalpoint=getvalue(sections[0], 'decimalpoint'),
+            dateformat=getvalue(sections[0], 'dateformat'),
+            datecolumns=config_getlist(sections[0], 'datecolumns'),
+            project=getvalue(sections[0], 'project'),
+            timezone=getvalue(sections[0], 'timezone'),
+            nodata=config_getlist(sections[0], 'nodata'),
+            worksheet=getvalue(sections[0], 'worksheet', int),
+            samplecolumn=getvalue(sections[0], 'samplecolumn', int),
+            encoding=getvalue(sections[0], 'encoding'),
+            total_columns=getvalue(sections[0], 'total_columns', int),
+            sample_mapping=config_getdict(config, sections[0], 'sample_mapping')
+        )
 
         tid.name = sections[0]
         for section in sections[1:]:
