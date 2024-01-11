@@ -382,14 +382,13 @@ class DownloadPage(object):
 
     @expose_for()
     @web.method.post
-    def action(self, path, actionid: int):
+    def action(self, path, action: str):
         from ..auth import users, User, Level
         path = Path(path)
-        action_id = web.conv(int, actionid)
         handler = self.filehandler[path]
         try:
-            action: fh.FileAction = handler.actions[action_id]
-        except IndexError:
+            action: fh.FileAction = handler.actions[action]
+        except KeyError:
             raise DownloadPageError('not enough actions available')
         if users.current.level < action.access_level:
             required_group = Level(action.access_level)

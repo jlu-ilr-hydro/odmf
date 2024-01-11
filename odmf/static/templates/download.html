@@ -36,7 +36,7 @@
                 });
                 $('.action-button').on('click', function() {
                     let actionid = $(this).data('actionid')
-                    $.post(odmf_ref('/download/action/'), {path: '${curdir}', actionid: actionid}, function(success_url) {
+                    $.post(odmf_ref('/download/action/'), {path: '${curdir}', action: actionid}, function(success_url) {
                         window.location = success_url
                     })
                 })
@@ -190,19 +190,13 @@
                                     </a>
                                 </span>
                                 <span>
-                                    <a class="btn btn-success" href="${conf.root_url}/download/to_db?filename=${f.name}"
-                                       title="import in data base" data-toggle="tooltip"
-                                       py:if="modes[curdir]>=Mode.write"
-                                    >
-                                        <i class="fas fa-file-import" />
-                                    </a>
-                                    <button class="btn btn-danger remove-button" data-name="${f.basename}" py:if="modes[curdir]>=Mode.admin"
-                                            title="remove file" data-toggle="tooltip">
-                                        <i class="fas fa-times-circle" />
-                                    </button>
                                     <button class="btn btn-secondary copy-button" data-name="${f.basename}" py:if="modes[curdir]>=Mode.write"
                                             title="copy file" data-toggle="tooltip">
                                         <i class="fas fa-copy" />
+                                    </button>
+                                    <button class="btn btn-danger remove-button" data-name="${f.basename}" py:if="modes[curdir]>=Mode.admin"
+                                            title="remove file" data-toggle="tooltip">
+                                        <i class="fas fa-times-circle" />
                                     </button>
                                 </span>
 
@@ -326,17 +320,12 @@
                     </div>
                 </div>
             </div>
-            <div class="row" py:if="content and modes[curdir]">
-                <h5 class="col-lg-9">
+            <div class="d-flex" py:if="content and modes[curdir]">
+                <h5 class="">
                     <i class="fas fa-${handler[curdir].icon} fa-lg mr-2"/><span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
                 </h5>
-                <div class="col-lg-3">
-                    <a py:for="action_id, action in enumerate(handler[curdir].get_actions(curdir))"
-                       class="btn btn-secondary action-button"
-                       data-toggle="tooltip" title="${action.tooltip}"
-                       data-actionid="${action_id}" data-path="${curdir}">
-                        <i class="fas fa-${action.icon}" />${action.title}
-                    </a>
+                <div class="ml-auto">
+                    ${literal(handler[curdir].get_action_buttons(curdir))}
                     <a class="btn btn-primary" href="./?serve=True"><i class="fas fa-file-download mr-4"/>download</a>
                     <a class="btn btn-outline-primary" href="${curdir.parent().href}"><i class="fas fa-folder-open mr-4"/>..</a>
                 </div>

@@ -5,6 +5,7 @@ from odmf.webpage import lib as web
 import io
 import pandas as pd
 from cherrypy import log
+import cherrypy
 
 from odmf.webpage.auth import Level, expose_for
 
@@ -43,21 +44,7 @@ class DbImportPage:
     """
 
     @expose_for(Level.editor)
-    def index(self, filename, **kwargs):
-        filepath = Path(filename)
-        if not filepath.exists():
-            raise web.redirect(f'{filepath.parent().href}', f'{filepath} not found - cannot import')
-        import re
-        # If the file ends with log.xls[x], import as log list
-        if re.match(r'(.*)_log\.xlsx?$', filename):
-            log("Import with logimport")
-            return self.as_logimport(filename, **kwargs)
-        # else import as instrument file
-        else:
-            return self.with_config(filename, **kwargs)
-
-    @staticmethod
-    def as_logimport(filename, **kwargs):
+    def log(self, filename, **kwargs):
         path = Path(filename.strip('/'))
         error = di.checkimport(path)
         if error:
@@ -68,7 +55,7 @@ class DbImportPage:
         except importlog.LogImportError as e:
             raise web.redirect(path.parent().href, error=str(e))
 
-        if 'commit' in kwargs and cancommit:
+        if cherrypy.request.method=='POST' and 'commit' in kwargs and cancommit:
             di.savetoimports(path.absolute, web.user(), ["_various_as_its_manual"])
             raise web.redirect(path.parent().href, error=error)
         else:
@@ -77,8 +64,8 @@ class DbImportPage:
                 cancommit=cancommit, error=error
             ).render()
 
-    @staticmethod
-    def with_config(filename, **kwargs):
+    @expose_for(Level.editor)
+    def conf(self, filename, **kwargs):
         """
         Shows dbimport.html with the datafile loaded and ready for import
         """
