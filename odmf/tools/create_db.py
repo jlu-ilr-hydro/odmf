@@ -101,7 +101,7 @@ def wait_for_db(database_url: str, wait_time: float=20):
         try:
             time.sleep(0.25)
             logger.debug(f'try to connect to database {i}')
-            engine = create_engine(database_url, encoding='utf-8')
+            engine = create_engine(database_url)
             with engine.connect():
                 ...
         except Exception as e:

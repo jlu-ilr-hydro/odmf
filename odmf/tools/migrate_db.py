@@ -26,7 +26,8 @@ class NewColumn:
         if self.column not in columns:
             cmd = f'ALTER TABLE {self.table} ADD COLUMN {self.column} {self.type.compile()} {self.constraint};'
             logger.debug(cmd)
-            db.engine.execute(cmd)
+            with db.engine.connect() as connection:
+                connection.exec_driver_sql(cmd)
             logger.info(f'added {self.table}.{self.column}')
 
     def __init__(self, table: str, column: str, type: SqlTypeEngine, constraint=''):
@@ -61,7 +62,9 @@ class Migrator:
         inspector = self.db.sql.inspect(self.db.engine)
         columns = [c['name'] for c in inspector.get_columns(table)]
         if column not in columns:
-            self.db.engine.execute(f'ALTER TABLE {table} ADD COLUMN {column} {type.compile()} {constraint};')
+            cmd = f'ALTER TABLE {table} ADD COLUMN {column} {type.compile()} {constraint};'
+            with self.db.engine.connect() as connection:
+                connection.exec_driver_sql(cmd)
             logger.info(f'added {table}.{column}')
 
     def run(self):
@@ -80,18 +83,18 @@ class Migrator:
         """
         inspector = self.db.sql.inspect(self.db.engine)
         from sqlalchemy.sql import ddl
-        for table_name, table in self.db.Base.metadata.tables.items():
-            columns = [c['name'] for c in inspector.get_columns(table)]
-            for c in table.columns:
-                if c.name not in columns:
-                    cc = ddl.CreateColumn(c)
-                    self.db.engine.execute(f'ALTER TABLE {table_name} ADD COLUMN {cc}')
+        with self.db.engine.connect() as db_con:
+            for table_name, table in self.db.Base.metadata.tables.items():
+                columns = [c['name'] for c in inspector.get_columns(table)]
+                for c in table.columns:
+                    if c.name not in columns:
+                        cc = ddl.CreateColumn(c)
+                        db_con.execute(f'ALTER TABLE {table_name} ADD COLUMN {cc}')
 
 
 def migrate():
     for col in new_column_list:
         expr = col.expression
-        print(expr)
         NewColumn(expr.table.name, expr.name, expr.type, ' '.join(expr.constraints)).execute()
 
     # NewColumn.execute_all()
