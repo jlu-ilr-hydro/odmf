@@ -539,7 +539,12 @@
                                 <input id="filename" name="filename" class="form-control" type="text" value="${ds_act.filename}"/>
                             </div>
                             <div class="form-row">
-                                <label for="comment">Comments:</label>
+                                <label for="comment">Comments:
+                                </label>
+                                <a title="Get help for using links and formats" data-toggle="tooltip" data-placement="top" class="ml-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
+                                    <i class="fas fa-question-circle"/>
+                                </a>
+
                                 <textarea id="comment" name="comment"
                                           class="form-control"
                                           rows="10"
