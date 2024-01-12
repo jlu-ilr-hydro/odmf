@@ -6,7 +6,7 @@ import cherrypy
 from cherrypy.lib.static import serve_file
 
 from . import lib as web
-from .auth import users
+from .auth import users, Level
 from ..config import conf
 from pathlib import Path
 from markdown import markdown
@@ -93,3 +93,41 @@ class StaticServer:
         else:
             raise web.HTTPError(403, message='Directory forbidden')
 
+
+@web.show_in_nav_for(Level.guest, 'circle-question')
+class Help:
+    def _cp_dispatch(self, vpath: list):
+        cherrypy.request.params['uri'] = '/'.join(vpath)
+        vpath.clear()
+        return self
+    @web.expose
+    def index(self, uri=''):
+        from pathlib import Path
+        import odmf
+
+        home = (Path(odmf.__file__).parent / 'static/media/help').resolve()
+
+        if '..' in uri:
+            raise web.HTTPError(403, message='Forbidden access')
+
+        path = home / uri
+        if path.is_dir():
+            path /= 'index.md'
+        path = path.with_suffix('.md')
+
+        content = path.read_text()
+
+        directories = []
+        files = []
+
+        for p in path.parent.iterdir():
+            if p.is_dir():
+                directories.append(p.name)
+            elif p.name != 'index.md':
+                files.append(p.name.strip('.md'))
+
+
+        return web.render(
+            'help.html', title='Help', path=path,
+            content=content, directories=directories, files=files
+        ).render()

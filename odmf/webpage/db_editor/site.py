@@ -25,7 +25,7 @@ from ...config import conf
 
 
 @web.expose
-@web.show_in_nav_for(1, 'map-marker-alt')
+@web.show_in_nav_for(1, 'map-location')
 @cherrypy.popargs('siteid')
 class SitePage:
     url = conf.root_url + '/site/'

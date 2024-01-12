@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+
+<py:extends href="layout.html" xmlns:py="">
+    <py:block name="scripts">
+        <!-- insert additional scripts -->
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <!-- insert sidebar content -->
+        <div class="list-group">
+            <a href=".." class="list-group-item list-group-item-action ${class_if(path.name=='index.md', 'active')}" >
+                <i class="fas fa-folder-open"/> ..
+            </a>
+            <a href="${('./' if path.name=='index.md' else '../') + dir}/" py:for="dir in directories" class="list-group-item list-group-item-action">
+                <i class="fas fa-folder"/> ${dir}
+            </a>
+            <a href="${('./' if path.name=='index.md' else '../') + file}" py:for="file in files" class="list-group-item list-group-item-action ${class_if(path.name.strip('.md')==file, 'active')}">
+                <i class="fas fa-file-lines"/> ${file}
+            </a>
+
+        </div>
+
+    </py:block>
+    <py:block name="content">
+        <div class="container m-0 p-0">
+            <div>
+                <div class="container" py:content="markdown(content)">
+
+                </div>
+            </div>
+
+        </div>
+    </py:block>
+</py:extends>

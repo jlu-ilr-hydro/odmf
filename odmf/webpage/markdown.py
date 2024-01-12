@@ -7,6 +7,7 @@ Created on 15.05.2013
 import markdown
 from markdown.inlinepatterns import Pattern
 from xml.etree import ElementTree as etree
+from markdown.util import AtomicString
 import bleach
 import typing
 import re
@@ -45,7 +46,7 @@ class PatternLink(Pattern):
             text = m.expand(self.text)
         el = etree.Element("a")
         el.set('href', href)
-        el.text = markdown.util.AtomicString(text)
+        el.text = text
         return el
 
 
@@ -104,24 +105,23 @@ class ODMFExtension(markdown.Extension):
         """ Replace autolink with UrlizePattern """
         from ..config import conf
         def user2name(s):
-            return ' '.join(S.title() for S in s.group(3).split('.'))
-        md.inlinePatterns.register(PatternLink(md, r'(ds)([0-9]+)', r'/dataset/\3/', '\u25B8' + r'\2\3'), 'link datasets', 100)
-        md.inlinePatterns.register(PatternLink(md, r'(file:)(\S+)', r'/download/\3', '\u25B8' + r'\3'), 'link files', 100)
-        md.inlinePatterns.register(PatternLink(md, r'(#)([0-9]+)', r'/site/\3', '\u25B8' + r'\2\3'), 'link sites', 1000)
-        md.inlinePatterns.register(PatternLink(md, r'(job:)([0-9]+)', r'/job/\3', '\u25B8' + r'\2\3'), 'link job', 100)
-        md.inlinePatterns.register(PatternLink(md, r'(project:)([0-9]+)', r'/project/\3', '\u25B8' + r'\2\3'), 'link project', 100)
-        md.inlinePatterns.register(PatternLink(md, r'(dir:)(\S+)', r'/download/\3', '\u25B8' + r'\3'), 'link dir', 100)
+            return '!fa-user ' + ' '.join(S.title() for S in s.group(3).split('.'))
+        md.inlinePatterns.register(PatternLink(md, r'(ds:)([0-9]+)', r'/dataset/\3/', r'!fa-clipboard \3'), 'link datasets', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(file:)(\S+)', r'/download/\3', r'!fa-file \3'), 'link files', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(site:)([0-9]+)', r'/site/\3', r'!fa-map-location \3'), 'link sites', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(job:)([0-9]+)', r'/job/\3', r'!fa-list-check \3'), 'link job', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(project:)([0-9]+)', r'/project/\3', r'!fa-users \3'), 'link project', 100)
         md.inlinePatterns.register(PatternLink(md, r'(user:)([a-zA-Z\.]+)', r'/user/\3', user2name), 'link user', 100)
-        md.inlinePatterns.register(PatternLink(md, r'(photo:)([0-9]+)', r'/picture/\3', '\u25B8' + r'\2\3'), 'link photo', 100)
-        md.inlinePatterns.register(PatternLink(md, r'(log:)([0-9]+)', r'/log/\3', '\u25B8' + r'\2\3'), 'link log', 100)
-        md.inlinePatterns.register(PatternLink(md, r'(wiki:)([\w/]+)', r'/download/\3', '[\\3]'), 'link wiki', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(photo:)([0-9]+)', r'/picture/\3', r'!fa-camera \3'), 'link photo', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(log:)([0-9]+)', r'/log/\3', r'!fa-tag \2\3'), 'link log', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(help:)(\S+)', r'/help/\3', '!fa-circle-question \\3'), 'link wiki', 100)
         md.inlinePatterns.register(PatternLink(md, r'((?:f|ht)tps?://)([^,\s]+)', r'\2\3', r'\3'), 'urlize', 90)
         md.inlinePatterns.register(SymbolPattern(md, r'(-->)', '\u2192'), 'replace rarrow', 100)
         md.inlinePatterns.register(SymbolPattern(md, r'(<--)', '\u2190'), 'replace larrow', 100)
         md.inlinePatterns.register(SymbolPattern(md, r'(==>)', '\u21D2'), 'replace rarrow big', 100)
         md.inlinePatterns.register(SymbolPattern(md, r'(<==)', '\u21D0'), 'replace larrow big', 100)
         md.inlinePatterns.register(VideoPattern(md, r'(video:)([\w\.\:\-\/]*)'), 'video', 100)
-        md.inlinePatterns.register(FontAwesomePattern(md), 'fa-icon', 100)
+        md.inlinePatterns.register(FontAwesomePattern(md), 'fa-icon', 50)
 
 
 class bleach_allow:
