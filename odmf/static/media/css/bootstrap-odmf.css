@@ -62,13 +62,17 @@ body {
 }
 
 .code {
-    background-color: white;
+    color: #0078B6;
     font-family: monospace;
     white-space: pre;
     border: solid 1px black;
     padding: 1em;
 }
 
+code {
+    color: #0078B6;
+    white-space: pre;
+}
 blockquote {
   background: #f9f9f9;
   border-left: 10px solid #ccc;
