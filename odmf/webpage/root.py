@@ -43,7 +43,7 @@ class Root(object):
     instrument = dbe.DatasourcePage()
     project = dbe.ProjectPage()
     user = dbe.PersonPage()
-    # admin = cll.AdminPage()
+    help = static.Help()
     api = api.API()
 
     media = static.StaticServer('media', listdir=True)
@@ -68,8 +68,11 @@ class Root(object):
         """
         Enter here your username and password to get access to restricted data or to change data
         """
+
         if cherrypy.request.method != 'POST':
-            return web.render('login.html', error=error, frompage=frompage).render()
+            with db.session_scope() as session:
+                admins = session.scalars(db.sql.select(db.Person).where(db.Person.access_level>=4))
+                return web.render('login.html', error=error, frompage=frompage, admins=admins).render()
 
         elif logout:
             users.logout()
@@ -84,8 +87,8 @@ class Root(object):
             else:
                 raise web.redirect(frompage)
         else:
-            # Username or password not given, let the use retry
-            return web.render('login.html', error=error, frompage=frompage).render()
+            # Username or password not given, let the user retry
+            return web.render('login.html', error=error, frompage=frompage, admins=[]).render()
 
 
     @expose_for(Level.admin)
