@@ -84,13 +84,11 @@ def get_owner(path: Path) -> str|None:
             with open(fn.absolute) as f:
                 return f.read().strip()
     else:
-        return None
+        return 'odmf.admin'
 
 def set_owner(path: Path, owner: str):
     with open((path / owner_file).absolute, 'w') as f:
         f.write(owner)
-
-
 
 
 def check_directory(path: Path, user: auth.User) -> Mode:

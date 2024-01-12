@@ -71,7 +71,7 @@ class Root(object):
 
         if cherrypy.request.method != 'POST':
             with db.session_scope() as session:
-                admins = session.scalars(db.sql.select(db.Person).where(db.Person.access_level>=4))
+                admins = session.scalars(db.sql.select(db.Person).where(db.Person.access_level>=4, db.Person.active==True))
                 return web.render('login.html', error=error, frompage=frompage, admins=admins).render()
 
         elif logout:
