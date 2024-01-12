@@ -42,7 +42,14 @@
                 <textarea id="source-editor-ta" class="form-control" rows="20">${literal(source)}</textarea>
             </div>
             <div>
-                <button id="source-editor-save" class="btn btn-success">save</button>
+                <button id="source-editor-save" class="btn btn-success">
+                    <i class="fas fa-check"/> save
+                </button>
+                <a href="${conf.root_url}/help/odmf-markdown" class="btn btn-primary"
+                   title="Help for formatting" data-toggle="tooltip">
+                    <i class="fas fa-question-circle" />
+                </a>
+
             </div>
         </div>
     </div>

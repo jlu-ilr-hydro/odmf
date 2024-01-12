@@ -177,7 +177,7 @@
                                     <button class="btn btn-danger remove-button" data-name="${d.basename}"
                                             py:if="modes[d]>=Mode.admin and d.isempty()"
                                             title="remove directory" data-toggle="tooltip">
-                                        <i class="fas fa-times-circle" />
+                                        <i class="fas fa-trash-can" />
                                     </button>
                                 </span>
                             </li>
@@ -196,7 +196,7 @@
                                     </button>
                                     <button class="btn btn-danger remove-button" data-name="${f.basename}" py:if="modes[curdir]>=Mode.admin"
                                             title="remove file" data-toggle="tooltip">
-                                        <i class="fas fa-times-circle" />
+                                        <i class="fas fa-trash-can" />
                                     </button>
                                 </span>
 
@@ -312,7 +312,7 @@
                                 <i class="fas fa-times-circle mr-1" />
                                 cancel
                             </button>
-                            <a href="${conf.root_url}/download/wiki/help.wiki" class="btn btn-info"
+                            <a href="${conf.root_url}/help/odmf-markdown" class="btn btn-primary"
                                title="Help for formatting" data-toggle="tooltip">
                                 <i class="fas fa-question-circle" />
                             </a>
