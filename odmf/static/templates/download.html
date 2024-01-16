@@ -190,6 +190,12 @@
                                     </a>
                                 </span>
                                 <span>
+
+                                    <button py:if="f.basename in import_history" class="btn btn-success" aria-expanded="false" aria-controls="import-history-${f.basename}"
+                                            data-toggle="popover" title="Already imported" data-content="${markdown(import_history[f.basename])}" data-html="true"
+                                    >
+                                        <i class="fas fa-check"/>
+                                    </button>
                                     <button class="btn btn-secondary copy-button" data-name="${f.basename}" py:if="modes[curdir]>=Mode.write"
                                             title="copy file" data-toggle="tooltip">
                                         <i class="fas fa-copy" />
@@ -325,6 +331,11 @@
                     <i class="fas fa-${handler[curdir].icon} fa-lg mr-2"/><span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
                 </h5>
                 <div class="ml-auto">
+                    <button py:if="curdir.basename in import_history" class="btn btn-success"
+                            data-toggle="popover" title="Already imported" data-content="${markdown(import_history[curdir.basename])}" data-html="true"
+                    >
+                        <i class="fas fa-check"/>
+                    </button>
                     ${literal(handler[curdir].get_action_buttons(curdir))}
                     <a class="btn btn-primary" href="./?serve=True"><i class="fas fa-file-download mr-4"/>download</a>
                     <a class="btn btn-outline-primary" href="${curdir.parent().href}"><i class="fas fa-folder-open mr-4"/>..</a>
