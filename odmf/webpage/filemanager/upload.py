@@ -105,6 +105,27 @@ class DownloadPage(object):
                 error += '\n```\n' + traceback() + '\n```\n'
         return content, error
 
+    def get_import_history(self, path: Path):
+        """
+        Returns a dictionary with the import history for each file in the given path that is mentioned in the
+        `.import.hist` file
+        :param path:
+        """
+        if path.isfile():
+            path = path.parent()
+
+        imphist = path / '.import.hist'
+
+        if imphist.exists():
+            with imphist.to_pythonpath().open() as f:
+                data = [l.split(',', 3) for l in f]
+            return {
+                l[0]: f'imported by user:{l[1]} at {l[2]} into {l[3]}'
+                for l in data
+            }
+        else:
+            return {}
+
 
     @expose_for(Level.logger)
     @web.method.get
@@ -141,7 +162,7 @@ class DownloadPage(object):
             files=sorted(files),
             directories=sorted(directories),
             handler=self.filehandler,
-            curdir=path,
+            curdir=path, import_history=self.get_import_history(path),
             max_size=conf.upload_max_size
         ).render()
 
@@ -206,13 +227,6 @@ class DownloadPage(object):
                 text = open(index.absolute).read()
                 io.write(text)
 
-        imphist = Path(dir, '.import.hist')
-
-        if imphist.exists():
-            io.write('\n')
-            for l in open(imphist.absolute):
-                fn, user, date, ds = l.split(',', 3)
-                io.write(f' * file:{dir}/{fn} imported by user:{user} at {date} into {ds}\n')
         return web.markdown(io.getvalue())
 
     @expose_for(Level.logger)

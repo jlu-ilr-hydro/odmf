@@ -82,7 +82,9 @@ class ConfImportAction(FileAction):
     def check(self, path: Path):
         from ...dataimport import ImportDescription
         try:
-            _ = ImportDescription.from_file(path.absolute)
+            descr = ImportDescription.from_file(path.absolute)
+            with path.to_pythonpath().open(encoding=descr.encoding or 'utf-8') as f:
+                f.read(100)
         except IOError:
             return False
         else:

@@ -57,22 +57,33 @@ class API(BaseAPI):
 
     @expose_for(Level.editor)
     @web.method.put
-    def upload(self, targetpath: str, overwrite: bool = False):
+    def upload(self, targetpath: str, overwrite: bool = False, append: bool = False):
         """
+        Usage:
+        >>>with odmfclient.login('https://localhost', 'admin', 'admin'):
+        ...    api.upload(b'Some binary data...', '/path/to/file', overwrite=False, append=False)
+
         :param targetpath: The path of the directory, where this file should be stored
         :param datafile: the file to upload
         :param overwrite: If True, an existing file will be overwritten. Else an error is raised
+        :param append: If True and targetpath exist, append to it
         :return: 200 OK / 400 Traceback
         """
         web.mime.plain.set()
         fn = OPath(targetpath)
         if not fn.islegal:
             raise web.APIError(400, f"'{fn}' is not legal")
-        if fn.exists() and not overwrite:
+        elif fn.exists() and not (overwrite or append):
             raise web.APIError(400, f"'{fn}' exists already and overwrite is not allowed, set overwrite")
         from pathlib import Path as PyPath
         data = cherrypy.request.body.read()
-        PyPath(fn.absolute).write_bytes(data)
+        if append and fn.exists():
+            with fn.to_pythonpath().open('ab') as f:
+                f.write(data)
+        else:
+            with fn.to_pythonpath().open('wb') as f:
+                f.write(data)
+
         return 'OK'.encode('utf-8')
 
 
