@@ -19,7 +19,7 @@ asteval>=0.9.25
 pyarrow
 # database
 pytz==2022.1
-
+psycopg2-binary
 sqlalchemy>=2.0.0
 bcrypt
 bleach>=3.1.0
