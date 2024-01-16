@@ -74,6 +74,7 @@
 
         $(function () {
             $('[data-toggle="tooltip"]').tooltip();
+            $('[data-toggle="popover"]').popover();
             $('#login-logout').on('click', () => {
                 $.post('${conf.root_url}/api/logout').done(() => {
                     window.location.reload()

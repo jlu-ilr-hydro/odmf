@@ -1,7 +1,7 @@
 import io
 import typing
 
-import chardet
+from charset_normalizer import detect
 import pandas as pd
 
 
@@ -18,10 +18,13 @@ markdown = MarkDown()
 def load_text_file(path: Path) -> str:
     with open(path.absolute, 'rb') as f:
         data = f.read()
-        try:
-            return data.decode('utf-8')
-        except UnicodeDecodeError:
-            detection = chardet.detect(data)
+        for enc in 'utf-8', 'latin1', 'windows-1252', None:
+            try:
+                    return data.decode(enc)
+            except UnicodeDecodeError:
+                continue
+        else:
+            detection = detect(data[:10000])
             if not detection['encoding']:
                 raise ValueError(f'{path} is a binary file')
             return data.decode(detection['encoding'])
@@ -106,7 +109,6 @@ class TextFileHandler(BaseFileHandler):
 
 class ConfFileHandler(TextFileHandler):
     icon = 'file-import'
-    actions = fa.ConfImportAction(),
     def render(self, source):
         def div(content, *classes):
             classes = ' '.join(classes)
@@ -171,14 +173,14 @@ class CsvFileHandler(BaseFileHandler):
     icon = 'file-csv'
     actions = fa.ConfImportAction(),
     def to_html(self, path: Path) -> str:
+
+        text_io = load_text_stream(path)
         try:
-            text_io = load_text_stream(path)
             df = pd.read_csv(text_io, sep=None, engine='python')
             return table_to_html(df)
         except Exception as e:
-            text = load_text_file(path)
 
-            return '\n<pre>\n' + text + '\n</pre>\n'
+            return '\n<pre>\n' + text_io.getvalue() + '\n</pre>\n'
 
 
 class ParquetFileHandler(BaseFileHandler):
@@ -248,7 +250,7 @@ class MultiHandler(BaseFileHandler):
         PlotFileHandler(r'\.plot$'),
         ExcelFileHandler(r'\.xls.?$'),
         DocxFileHandler(r'\.docx$'),
-        CsvFileHandler(r'\.csv$'),
+        CsvFileHandler(r'\.(csv|dat)$'),
         ParquetFileHandler(r'\.parquet$'),
         PdfFileHandler(r'\.pdf$'),
         ImageFileHandler(r'\.(jpg|jpeg|png|svg|gif)$'),

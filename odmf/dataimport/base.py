@@ -12,7 +12,7 @@ import os
 from configparser import RawConfigParser
 from io import StringIO
 import typing
-import chardet
+from charset_normalizer import detect
 
 import ast
 
@@ -536,9 +536,9 @@ class ImportDescription(object):
                 config.read_file(f)
         except UnicodeDecodeError:
             rawdata = open(path, 'rb').read()
-            result = chardet.detect(rawdata)
+            result = detect(rawdata)
 
-            # if chardet can't detect encoding
+            # if charset_normalizer can't detect encoding
             if result['encoding'] is None:
                 result['encoding'] = 'unknown'
 
