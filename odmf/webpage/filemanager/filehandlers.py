@@ -91,7 +91,7 @@ class BaseFileHandler:
 
 class TextFileHandler(BaseFileHandler):
     icon = 'file-alt'
-    actions = ()
+    actions = fa.ConfImportAction(),
     def __init__(self, pattern: str):
         super().__init__(pattern)
 
