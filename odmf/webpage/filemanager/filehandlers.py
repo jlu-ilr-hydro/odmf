@@ -106,6 +106,7 @@ class TextFileHandler(BaseFileHandler):
 
 class ConfFileHandler(TextFileHandler):
     icon = 'file-import'
+    actions = fa.ConfImportAction(),
     def render(self, source):
         def div(content, *classes):
             classes = ' '.join(classes)
