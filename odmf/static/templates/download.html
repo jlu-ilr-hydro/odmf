@@ -61,7 +61,7 @@
                 $('#help-edit').on('show.bs.collapse', function () {
                     // Load current file in textarea
                     $.get({
-                        url:'${curdir.raw_url}/index.html',
+                        url:'${curdir.raw_url}/.readme.md',
                         cache:false
                     }).then(function(text) {
                         $('#help-edit textarea').val(text);
