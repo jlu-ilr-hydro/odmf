@@ -55,7 +55,7 @@ class Project(Base):
             person = Person.get(self.session(), person)
         if person.access_level < Level.editor and access_level >= Level.editor:
             raise ValueError(f'Cannot give {person} who is not a global editor editing rights for a project')
-        if pm:=self[person]:
+        if pm:=self.get_member(person):
             pm.access_level = access_level
         else:
             pm = ProjectMember(member=person, project=self, access_level=access_level)
@@ -69,9 +69,11 @@ class Project(Base):
         if not n:
             raise ValueError(f'{username} was not a member of {self}, cannot remove')
 
-    def __getitem__(self, username):
+    def get_member(self, username: Person|str):
         if type(username) is Person:
             username = username.username
+        elif type(username) is not str:
+            raise TypeError(f'{username} is neither a person nor a string')
         return self.members_query.filter_by(_member=username).first()
 
 

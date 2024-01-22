@@ -1,2 +1,2 @@
-__version__ = '2024.1.1.dev'
+__version__ = '2024.1.21'
 prefix = '.'
