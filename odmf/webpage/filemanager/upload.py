@@ -397,17 +397,16 @@ class DownloadPage(object):
     @expose_for()
     @web.method.post
     def action(self, path, action: str):
-        from ..auth import users, User, Level
+        from ..auth import users
         path = Path(path)
         handler = self.filehandler[path]
         try:
-            action: fh.FileAction = handler.actions[action]
-        except KeyError:
-            raise DownloadPageError('not enough actions available')
-        if users.current.level < action.access_level:
-            required_group = Level(action.access_level)
-            raise DownloadPageError(path, 403,f'you need to be {required_group.name} for {action}')
-        newpath = action(path)
-        msg = {'msg': f'{action} on {path} successful'}
+            newpath = handler.post_action(action, path, users.current.level)
+        except ValueError:
+            raise DownloadPageError(path, 403,f'not enough privileges for {action} on {path}')
+        if newpath:
+            msg = {'msg': f'{action} on {path} successful'}
+        else:
+            msg = {'error': f'{action} on {path} not available'}
         return f'{newpath.href}?{urlencode(msg)}'
 

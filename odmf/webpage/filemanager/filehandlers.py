@@ -11,6 +11,8 @@ import re
 from ...config import conf
 from . import fileactions as fa
 from ..markdown import MarkDown
+from ..auth import Level
+
 
 markdown = MarkDown()
 
@@ -87,6 +89,15 @@ class BaseFileHandler:
             print(action)
             action.check(path)
         return '\n'.join(action.html(path) for action in self.actions if action.check(path))
+
+    def post_action(self, actionname: str, path: str, userlevel: Level):
+        for action in self.actions:
+            if action.name == actionname:
+                if userlevel >= action.access_level:
+                    return action.post(path)
+                else:
+                    raise ValueError('Invalid privileges')
+
 
 
 class TextFileHandler(BaseFileHandler):
