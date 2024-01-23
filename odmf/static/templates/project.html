@@ -125,7 +125,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="responsible">Spokes person</label>
-                                <select id="responsible" name="person" class="form-control">
+                                <select id="responsible" name="person" class="form-control select2">
                                     <option value="${p.username}" py:content="f'{p} ({Level(p.access_level).name})'" py:for="p in supervisors" py:attrs="markoption(p == actproject.person_responsible)"/>
                                 </select>
                             </div>
@@ -175,7 +175,8 @@
                     <div py:if="is_member(Level.admin, actproject.id)" class="collapse" id="add-member">
                         <form class="form-row border" method="post" action="add_member">
                             <input type="hidden" value="${actproject.id}" xname="project_id"/>
-                            <select id="add_who" class="form-control col-sm" name="member_name">
+
+                            <select id="add_who" class="form-control col-sm-8 select2" name="member_name" >
                                 <option value="${p.username}" py:for="p in persons" py:content="f'{p} ({Level(p.access_level).name})'"/>
                             </select>
                             <select id="add_level" class="form-control col-sm-3" name="access_level">

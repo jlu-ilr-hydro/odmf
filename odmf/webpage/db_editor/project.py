@@ -26,12 +26,14 @@ class ProjectPage:
             else:
                 project_from_id = projects[int(project_id)]
 
-            return web.render('project.html',
-                              projects=projects.q.order_by(db.Project.id),
-                              actproject=project_from_id,
-                              supervisors=supervisors,
-                              persons=persons, error=error, msg=msg) \
-                .render()
+            return web.render(
+                'project.html',
+                projects=projects.q.order_by(db.Project.id),
+                actproject=project_from_id,
+                supervisors=supervisors,
+                persons=persons.q.order_by(db.Person.surname),
+                error=error, msg=msg
+            ).render()
 
 
     @expose_for()

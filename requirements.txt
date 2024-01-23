@@ -44,3 +44,5 @@ coverage
 # woftester only
 lxml
 coloredlogs
+
+geopandas
