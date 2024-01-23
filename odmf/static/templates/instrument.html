@@ -6,7 +6,7 @@
             function popSelect() {
                 $.getJSON(odmf_ref('/site/json'),[],function(data){
                     var html='<option value=""><i>Please select...</i></option>';
-                    $.each(data[0],function(index,item){
+                    $.each(data.sites,function(index,item){
                         html += '<option value="' + item.id + '">#' + item.id + ' ('+ item.name + ')' + '</option>';
                     });
                     $('#siteselect').html(html);
@@ -158,7 +158,7 @@
                                 <i class="fas fa-map-marker-alt"/>
                             </span>
                         </div>
-                        <select id="siteselect" class="form-control"
+                        <select id="siteselect" class="form-control select2"
                                 data-toggle="tooltip"
                                 title="Where has the instrument been installed"
                         >

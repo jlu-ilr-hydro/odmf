@@ -264,7 +264,7 @@
                                                 <i class="fas fa-plus"/>
                                             </a>
                                         </div>
-                                        <select class="form-control border-secondary" id="measured_by"
+                                        <select class="form-control select2 border-secondary" id="measured_by"
                                                 name="measured_by" py:attrs="disabled(not access(Level.admin))">
                                             <option value="" disabled="disabled">Please select...</option>
                                             <option py:for="p in persons"
@@ -291,7 +291,7 @@
                                                 <i class="fas fa-plus"/>
                                             </a>
                                         </div>
-                                        <select class="form-control border-secondary" id="valuetype" name="valuetype">
+                                        <select class="form-control select2 border-secondary" id="valuetype" name="valuetype">
                                             <option value="" disabled="disabled">Please select...</option>
                                             <option py:for="vt in valuetypes"
                                                     py:attrs="markoption(vt is ds_act.valuetype)"
@@ -335,7 +335,7 @@
                                                 <i class="fas fa-plus"/>
                                             </a>
                                         </div>
-                                        <select id="site" name="site" class="form-control border-secondary">
+                                        <select id="site" name="site" class="form-control border-secondary select2">
                                             <option value="" disabled="disabled">Please select...</option>
                                             <option py:for="s in sites"
                                                     py:attrs="markoption(s is ds_act.site)"
@@ -381,7 +381,7 @@
                                             </a>
                                         </div>
 
-                                        <select id="source" name="source" class="form-control border-secondary">
+                                        <select id="source" name="source" class="form-control select2 border-secondary">
                                             <option value="" disabled="disabled">Please select...</option>
                                             <option py:for="datasource in datasources"
                                                     py:attrs="markoption(datasource is ds_act.source)"
@@ -430,7 +430,7 @@
                                     <label for="timezone">
                                         Timezone
                                     </label>
-                                    <select id="timezone" name="timezone" class="form-control">
+                                    <select id="timezone" name="timezone" class="form-control select2">
                                         <option py:for="timezone in timezones"
                                                 py:attrs="markoption(timezone == ds_act.timezone)"
                                                 py:content="timezone"

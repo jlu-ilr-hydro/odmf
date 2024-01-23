@@ -78,8 +78,8 @@
             <span><i class="fas fa-filter mr-2"/>Filter</span><span><i class="fas fa-plus-circle"/></span>
         </a>
         <div class="collapse card card-body" id="filter">
-            <select id="siteselect" class="sites form-control" onchange="reload();"/>
-            <select id="userselect" class="users col-lg form-control" onchange="reload();"/>
+            <select id="siteselect" class="sites form-control select2" onchange="reload();"/>
+            <select id="userselect" class="users col-lg form-control select2" onchange="reload();"/>
 
         </div>
         <a href="#upload" class="btn btn-secondary flexbox h1" data-toggle="collapse"
@@ -91,9 +91,9 @@
             <form method="post" enctype="multipart/form-data" action="${conf.root_url}/picture/upload"
                   py:if="is_member('logger')" id="uploadform">
                 <div class="form-group">
-                    <select class="sites form-control" id="uploadsite"
+                    <select class="sites form-control select2" id="uploadsite"
                             name="siteid" onchange="enableupload();" title="site" data-toggle="tooltip"/>
-                    <select class="users form-control" id="uploaduser" name="user"
+                    <select class="users form-control select2" id="uploaduser" name="user"
                             onchange="enableupload();" />
 
                     <div class="custom-file">
@@ -165,7 +165,7 @@
                                 <form method="POST" action="change">
                                     <div class="form-group">
                                         <label for="edit-site">Location</label>
-                                        <select id="edit-site" name="siteid" class="form-control sites"></select>
+                                        <select id="edit-site" name="siteid" class="form-control select2 sites"></select>
                                     </div>
                                     <div class="form-group">
                                         <label for="edit-comment">Comment</label>

@@ -161,7 +161,7 @@
                         <input class="d-none" value="${actuallog.id}" name="id"/>
                         <div class="form-group row">
                             <label for="user" class="col-form-label col-md-2">Who?</label>
-                            <select id="user" name="user" class="form-control col-md-10">
+                            <select id="user" name="user" class="form-control select2 col-md-10">
                                 <option py:for="p in persons"
                                         py:attrs="markoption(p is actuallog.user)"
                                         py:content="p"
@@ -176,7 +176,7 @@
                         </div>
                         <div class="form-group row">
                             <label for="site" class="col-form-label col-md-2">Where?</label>
-                            <select id="site" name="site" class="form-control col-md-10">
+                            <select id="site" name="site" class="form-control select2 col-md-10">
                                 <option value=""><i>&lt;Please select...&gt;</i></option>
                                 <option py:for="s in sites"
                                         py:attrs="markoption(s is actuallog.site)"
@@ -229,9 +229,8 @@
                             <option value="90">90 days</option>
                             <option value="365">365 days</option>
                         </select>
-                        days and site number
-
-                        <select id="siteid" class="form-control get-logs">
+                        site number
+                        <select id="siteid" class="form-control select2 get-logs">
                             <option>All</option>
                             <option py:for="site in sites"
                                     py:content="site"
