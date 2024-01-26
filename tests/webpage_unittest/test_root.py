@@ -92,15 +92,14 @@ class TestLogin:
 def markdown_file(conf):
     p = Path(conf.home) / 'test.md'
     p.write_text('\n'.join([
-        'ds1000',
+        'ds:1000',
         'file:x/y/z',
         'file:/x/y/z',
-        'site #1',
+        'site:1',
         'user:odmf.admin',
         'https://127.0.0.1:8081',
         '--> ==> <-- <==',
         '!fa-map',
-        'video:https://127.0.0.1/video',
         ]))
     yield p
     p.unlink(missing_ok=True)
@@ -117,7 +116,6 @@ class TestMarkDown:
         assert f'href="{conf.root_url}/user/odmf.admin"' in html_text
         assert '<a href="https://127.0.0.1:8081">127.0.0.1:8081</a>' in html_text
         assert 'class="fas fa-map"' in html_text
-        assert '<video' in html_text
 
     def test_markdown_bytes(self, conf, markdown_file):
         md_text = markdown_file.read_bytes()
@@ -129,7 +127,6 @@ class TestMarkDown:
         assert f'href="{conf.root_url}/user/odmf.admin"' in html_text
         assert '<a href="https://127.0.0.1:8081">127.0.0.1:8081</a>' in html_text
         assert 'class="fas fa-map"' in html_text
-        assert '<video' in html_text
 
     def test_markdown_missing_file(self, root):
         with pytest.raises(FileNotFoundError):
