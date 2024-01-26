@@ -38,37 +38,49 @@ function set_content_tree_handlers() {
 		let btn = $(event.currentTarget);
 		window.plot.removeline(btn.data('subplot'), btn.data('lineno')).apply()
 	})
-	$('.exportline').on('click', event => {
-		let btn = $(event.currentTarget);
-		download_on_post('export_csv', {plot: JSON.stringify(window.plot, null, 4), subplot: btn.data('subplot'), line: btn.data('lineno')})
-	})
-
 	$('.showdataset').on('click', event => {
 		let btn = $(event.currentTarget)
 		let sp = btn.data('subplot')
 		let line = btn.data('lineno')
 		let dsl = $(`#datasetlist_${sp}_${line}`)
+		let l = window.plot.subplots[sp].lines[line]
+		$.getJSON(
+			'linedatasets.json',
+			{
+				valuetype: l.valuetype,
+				site: l.site,
+				instrument: l.instrument,
+				level:l.level,
+				start: window.plot.start,
+				end: window.plot.end,
+			},
+			data => {
+				let home = odmf_ref('/dataset')
+				let html = ''
+				if (data)
+					html += data.map(item => `<li><a href="${home}/${item.id}">${item.label}</a></li>`).reduce((acc, v) => acc + '\n' + v);
+				$(`#datasetlist_${sp}_${line}`).html(html)
+			}
+		);
 		if (!dsl.html()) {
-			$.getJSON(
-				'linedatasets.json',
-				{
-					subplot: sp,
-					line: line,
-					plot: JSON.stringify(window.plot, null, 4)
-				},
-				data => {
-					let home = odmf_ref('/dataset')
-					let html = ''
-					if (data)
-						html += data.map(item => `<li><a href="${home}/${item.id}">${item.label}</a></li>`).reduce((acc, v) => acc + '\n' + v);
-					$(`#datasetlist_${sp}_${line}`).html(html)
-				}
-			);
 		} else {
 			dsl.html('');
 		}
 
 	});
+	$('.moveline').on('click', event =>{
+		let btn = $(event.currentTarget)
+		let sp = plot.subplots[btn.data('subplot')]
+		let lineno = +btn.data('lineno')
+		let target_lineno =  +lineno + (+btn.data('move'))
+		if (target_lineno>=0 && target_lineno<=sp.lines.length) {
+			let line = sp.lines[lineno]
+			sp.lines.splice(lineno, 1)
+			sp.lines.splice(target_lineno, 0, line)
+			window.plot.apply()
+		}
+
+	})
 	$('.sp-logsite-button').on('click', event =>{
 		let subplot=$(event.currentTarget).data('subplot');
 		let html = `<div class="dropdown-item sp-logsite-item" data-subplot="${subplot}">no logs</div>\n` +
