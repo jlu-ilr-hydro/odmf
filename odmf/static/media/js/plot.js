@@ -44,30 +44,31 @@ function set_content_tree_handlers() {
 		let line = btn.data('lineno')
 		let dsl = $(`#datasetlist_${sp}_${line}`)
 		let l = window.plot.subplots[sp].lines[line]
-		$.getJSON(
-			'linedatasets.json',
-			{
-				valuetype: l.valuetype,
-				site: l.site,
-				instrument: l.instrument,
-				level:l.level,
-				start: window.plot.start,
-				end: window.plot.end,
-			},
-			data => {
-				let home = odmf_ref('/dataset')
-				let html = ''
-				if (data)
-					html += data.map(item => `<li><a href="${home}/${item.id}">${item.label}</a></li>`).reduce((acc, v) => acc + '\n' + v);
-				$(`#datasetlist_${sp}_${line}`).html(html)
-			}
-		);
 		if (!dsl.html()) {
+			$.getJSON(
+				'linedatasets.json',
+				{
+					valuetype: l.valuetype,
+					site: l.site,
+					instrument: l.instrument,
+					level:l.level,
+					start: window.plot.start,
+					end: window.plot.end,
+				},
+				data => {
+					let home = odmf_ref('/dataset')
+					let html = ''
+					if (data)
+						html += data.map(item => `<li><a href="${home}/${item.id}">${item.label}</a></li>`).reduce((acc, v) => acc + '\n' + v);
+					$(`#datasetlist_${sp}_${line}`).html(html)
+				}
+			);
 		} else {
 			dsl.html('');
 		}
 
-	});
+	})
+	
 	$('.moveline').on('click', event =>{
 		let btn = $(event.currentTarget)
 		let sp = plot.subplots[btn.data('subplot')]
