@@ -1,7 +1,7 @@
 # Observatory Data Management Framework
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/jlu-ilr-hydro/odmf)
-
+![Github actions](https://github.com/jlu-ilr-hydro/odmf/actions/workflows/python-app.yml/badge.svg)
 ### This project provides a webinterface for managing scientific data measurement based on
 [cherrypy](https://github.com/cherrypy/cherrypy) and [postgres](https://www.postgresql.org/).
 
