@@ -220,7 +220,7 @@ class Plot:
         @param start: Date for the beginning x axis
         @param end: Date of the end of the x axis
         """
-        self.start = start  or datetime.today() - timedelta(days=90)
+        self.start = start or datetime.today() - timedelta(days=90)
         self.end = end or datetime.today()
         self.size = (width or 640, height or 480)
         self.columns = columns or 1

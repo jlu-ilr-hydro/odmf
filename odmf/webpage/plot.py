@@ -261,25 +261,29 @@ class PlotPage(object):
 
     @expose_for(plotgroup)
     @web.mime.json
-    def linedatasets_json(self, subplot, line, plot):
-        plot_dict = web.json.loads(plot)
-        plot: Plot = Plot(**plot_dict)
-        line = plot.subplots[int(subplot) - 1].lines[int(line)]
+    def linedatasets_json(self,valuetype, site, instrument, level, start, end):
+        from pandas import to_datetime
         with db.session_scope() as session:
-            userlevel = users.current.level if users.current else 0
-            datasets = line.getdatasets(session, userlevel)
+            valuetype = web.conv(int, valuetype)
+            site = web.conv(int, site)
+            level = web.conv(float, level)
+            instrument = web.conv(int, instrument)
+            start = to_datetime(start)
+            end = to_datetime(end)
+            me = users.current
+            datasets = session.query(db.Dataset).filter(
+                db.Dataset._valuetype == valuetype,
+                db.Dataset._site == site,
+                db.Dataset.start <= end,
+                db.Dataset.end >= start
+            )
+            if instrument:
+                datasets = datasets.filter(db.Dataset._source == instrument)
+            if level is not None:
+                datasets = datasets.filter(db.Dataset.level == level)
+            datasets =  [
+                ds for ds in datasets.order_by(db.Dataset.start)
+                if ds.get_access_level(me) >= ds.access
+            ]
             return web.json_out(datasets)
 
-    @expose_for(plotgroup)
-    @web.method.post
-    def export_csv(self, plot, subplot, line):
-        # jplot, sp_no, line_no = web.cherrypy.request.json
-        jplot = json.loads(plot)
-        plot: Plot = Plot(**jplot)
-        sp = plot.subplots[int(subplot) - 1]
-        line = sp.lines[int(line)]
-        filename = ''.join(c if (c.isalnum() or c in '.-_') else '_' for c in line.name) + '.csv'
-        buffer = io.StringIO()
-        line.export_csv(io, plot.start, plot.end)
-        buffer.seek(0)
-        return serve_fileobj(buffer, str(web.mime.csv), 'attachment', filename)

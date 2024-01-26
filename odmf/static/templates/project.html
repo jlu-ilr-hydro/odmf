@@ -191,7 +191,7 @@
                 <h2 class="border-bottom">Datasets</h2>
                 <div id="datasets" class="container">
                     <ul>
-                        <li py:for="ds in actproject.datasets">
+                        <li py:for="ds in sorted(actproject.datasets, key=lambda ds:ds.id)">
                             <a href="${conf.root_url}/dataset/${ds.id}"
                                py:content="ds"/>
                         </li>
