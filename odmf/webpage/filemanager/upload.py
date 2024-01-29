@@ -127,7 +127,7 @@ class DownloadPage(object):
             return {}
 
 
-    @expose_for(Level.logger)
+    @expose_for()
     @web.method.get
     def index(self, uri='.', error='', msg='', serve=False, _=None):
         path = Path(uri)
@@ -138,7 +138,7 @@ class DownloadPage(object):
                 path.exists(),
         )):
             raise HTTPFileNotFoundError(path)
-        hidden = (path.ishidden() and modes[path]<fa.Mode.admin) or modes[path]==fa.Mode.none
+        hidden = (path.ishidden() and modes[path] < fa.Mode.admin) or modes[path]==fa.Mode.none
         if hidden:
             content = f'Forbidden access to resource {path} for {users.current.name}'
             error = 'No access'
@@ -336,7 +336,7 @@ class DownloadPage(object):
 
     @expose_for(Level.editor)
     @web.method.post
-    def copyfile(self, dir, filename, newfilename):
+    def copyfile(self, dir, filename, newfilename, action):
         """
         Copies filename in directory to newfilename
         """
@@ -353,10 +353,14 @@ class DownloadPage(object):
             error = f'{targetpath} exists already, choose another name'
         else:
             try:
-                shutil.copyfile(path.absolute, targetpath.absolute)
-                msg = f'{path} copied to {targetpath}'
+                if action == 'copy':
+                    shutil.copyfile(path.absolute, targetpath.absolute)
+                    msg = f'{path} copied to {targetpath}'
+                elif action == 'rename':
+                    shutil.move(path.absolute, targetpath.absolute)
+                    msg = f'{path} moved to {targetpath}'
             except:
-                error = "Could not delete the file. A good reason would be a mismatch of user rights on the server " \
+                error = "Could not copy the file. A good reason would be a mismatch of user rights on the server " \
                         "file system"
         qs = urlencode({'error': error, 'msg': msg})
         url = f'{conf.root_url}/download/{dir}'.strip('.')

@@ -28,10 +28,16 @@ class HTTPAuthError(cherrypy.HTTPError):
 
     def get_error_page(self, *args, **kwargs):
         from .lib import render
+        from .. import db
         user = users.current
         error = f'Sorry, {user.name}, your status as a **{user.group}** is not sufficient to access **{self.referrer}**. ' \
                 f'Either log in with more privileges or ask the administrators for elevated privileges.'
-        return render('login.html', error=error, frompage='').render().encode('utf-8')
+        try:
+            with db.session_scope() as session:
+                admins = session.scalars(db.sql.select(db.Person).where(db.Person.access_level >= 4, db.Person.active == True))
+                return render('login.html', admins=admins, error=error, frompage='').render().encode('utf-8')
+        except:
+            return render('login.html', admins=[], error=error, frompage='').render().encode('utf-8')
 
 
 def check_auth(*args, **kwargs):
