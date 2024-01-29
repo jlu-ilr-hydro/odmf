@@ -347,8 +347,10 @@ class DownloadPage(object):
             error = '{path} is not a legal position'
         elif not targetpath.islegal():
             error = f'{targetpath} not a valid copy destination'
-        elif not path.isfile():
-            error = f'{path} is not a file'
+        elif fa.check_directory(path, users.current) <= fa.Mode.write:
+            error = f'No write access on {path}'
+        elif fa.check_directory(targetpath, users.current) <= fa.Mode.write:
+            error = f'No write access on {targetpath}'
         elif targetpath.exists():
             error = f'{targetpath} exists already, choose another name'
         else:

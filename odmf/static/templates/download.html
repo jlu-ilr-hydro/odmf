@@ -166,24 +166,38 @@
                                     <span >..</span>
                                 </span>
                             </a>
-                            <a py:for="d in directories"
+                            <div py:for="d in directories"
                                py:if="modes[d]"
-                               class="list-group-item list-group-item-action flexbox mt-1 pt-1 border-top"
+                               class="list-group-item list-group-item-action"
                                href="${d.href}"
                             >
-                                <span>
-                                    <i class="fas fa-folder fa-lg" />
-                                    <span py:content="d.basename" />
-                                </span>
-                                <span>
-                                    <span class="badge bg-warning text-bg-warning" py:content="modes[d].name"/>
-                                    <button class="btn btn-danger remove-button" data-name="${d.basename}"
-                                            py:if="modes[d]>=Mode.admin and d.isempty()"
-                                            title="remove directory" data-toggle="tooltip">
-                                        <i class="fas fa-trash-can" />
-                                    </button>
-                                </span>
-                            </a>
+                                <nav class="nav flexbox">
+                                    <a href="${d.href}" class="nav-link active">
+                                        <i class="fas fa-folder fa-lg" />
+                                        <span py:content="d.basename" />
+                                    </a>
+                                    <div class="dropdown">
+                                        <span class="badge bg-warning text-bg-warning" py:content="modes[d].name"/>
+                                        <button class="btn btn-sm btn-light dropdown-toggle"
+                                                type="button" data-toggle="dropdown"
+                                                aria-expanded="false" aria-haspopup="true"
+                                                py:if="modes[curdir]>=Mode.write">
+
+                                        </button>
+
+                                        <div class="dropdown-menu" >
+                                            <a class="dropdown-item copy-button" data-name="${d.basename}" data-action="rename"
+                                               py:if="modes[d]>=Mode.admin">
+                                                <i class="fas fa-pen-to-square" /> rename
+                                            </a>
+                                            <a class="dropdown-item remove-button" data-name="${d.basename}"
+                                               py:if="modes[d]>=Mode.admin and d.isempty()">
+                                                <i class="fas fa-trash-can" /> remove empty directory
+                                            </a>
+                                        </div>
+                                    </div>
+                                </nav>
+                            </div>
                             <div py:for="f in files" class="list-group-item  border-top ${class_if(f.ishidden(), 'hiddenfile')}">
                                 <nav class="nav flexbox">
                                     <a href="${f.href}" class="nav-link active">

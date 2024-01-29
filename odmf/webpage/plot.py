@@ -122,7 +122,7 @@ class PlotFileDialog:
         return str(p.parent()).encode('utf-8')
 
 
-@web.show_in_nav_for(0, 'chart-line')
+@web.show_in_nav_for(1, 'chart-line')
 class PlotPage(object):
     filedialog = PlotFileDialog()
 
