@@ -99,7 +99,9 @@ def _make_timeindex(series: typing.List[pd.Series], timeindexsource: typing.Unio
     """
     if timeindexsource == 'union':
         result = series[0].index
-        return result.union_many(s.index for s in series)
+        for s in series[1:]:
+            result = result.union(s.index)
+        return result
 
     elif timeindexsource == 'intersection':
         return _make_intersection_timeindex(series, tolerance)

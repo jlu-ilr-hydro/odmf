@@ -19,6 +19,7 @@ from datetime import datetime
 import io
 import json
 from ..tools import Path as OPath
+from ..config import conf
 from ..plot import Plot
 from .markdown import MarkDown
 from .. import db
@@ -210,7 +211,7 @@ class PlotPage(object):
                 interpolation_method, interpolation_limit
             )
         except Exception as e:
-            raise web.redirect(url='/plot', error=str(e))
+            raise web.redirect(conf.url('/plot'), error=str(e))
 
         buffer = io.BytesIO()
         mime = web.mime.get(fileformat, web.mime.binary)
