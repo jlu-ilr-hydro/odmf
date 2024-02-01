@@ -6,7 +6,6 @@ name: ODMF - Observatory Data Management Framework
 on:
   push:
     branches: [ master ]
-    paths: [ .github/workflows ]
   pull_request:
     branches: [ master ]
 
