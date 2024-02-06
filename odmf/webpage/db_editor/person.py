@@ -59,7 +59,7 @@ class PersonPage:
                 p_act = session.query(db.Person).filter_by(
                     username=username).first()
                 if not p_act:
-                    p_act = db.Person(username=username)
+                    p_act = db.Person(username=username, active=False)
                     session.add(p_act)
                 p_act.email = kwargs.get('email')
                 p_act.firstname = kwargs.get('firstname')
@@ -75,6 +75,7 @@ class PersonPage:
                     p_act.active = False
 
                 # Simple Validation
+
                 if kwargs.get('password') and users.current.is_member(Level.admin) or is_self(username):
                     pw = kwargs['password']
                     pw2 = kwargs.get('password_verify')
@@ -89,6 +90,9 @@ class PersonPage:
                 acl = web.conv(int, kwargs.get('access_level'))
                 if acl and acl <= users.current.level:
                     p_act.access_level = acl
+
+                if error:
+                    raise web.redirect(username, error=error)
                 msg = f'{username} saved'
         else:
             error=f'As a {users.current.Level.name} user, you may only change your own values'

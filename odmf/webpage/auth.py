@@ -88,7 +88,7 @@ class User(object):
 
     def __init__(self, name, level, password, projects=None):
         self.name = name
-        self.level = Level(level)
+        self.level = Level(level or 0)
         self.password = password
         self.person = None
         self.projects: typing.Dict[int, Level] = projects or {}
@@ -119,7 +119,8 @@ class User(object):
 
 
     def check(self, password):
-
+        if not password or not self.password:
+            return False
         # Salt of the password out of the db into unicode too
         salt = get_bcrypt_salt(self.password)
 
