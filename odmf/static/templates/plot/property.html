@@ -1,5 +1,8 @@
 <html>
     <script>
+        $('#plotaggregate').select2({
+            tags: true
+        })
         $(()=>{
             if (plot.start) {
                 $('#startdate').val(plot.start.split(/[T,\s]/)[0])
@@ -49,18 +52,19 @@
             <input id="prop-columns" class="props form-control" type="number" value="" max="" min="1"/>
             <label for="plotaggregate">Aggregation:
                 <a class="btn btn-secondary"
-                   href="${conf.root_url}/download/wiki/plot/aggregate"
+                   href="${conf.root_url}/help/plot/aggregate"
                    title="What is aggregation?" data-toggle="tooltip"
                 >
                     <i class="fas fa-question"/>
                 </a>
             </label>
-            <select id="plotaggregate" class="props form-control">
+            <select id="plotaggregate" class="props select2 form-control">
                 <option value="">No aggregation</option>
                 <option value="30Min">Half hourly</option>
                 <option value="h">Hourly</option>
                 <option value="D">Daily</option>
                 <option value="W">Weekly</option>
+                <!--option value="decade">per decade</--option-->
                 <option value="M">Monthly</option>
                 <option value="Y">Yearly</option>
             </select>

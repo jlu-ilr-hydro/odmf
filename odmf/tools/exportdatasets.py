@@ -8,6 +8,32 @@ Created on 05.06.2013
 
 import pandas as pd
 import typing
+import datetime
+
+
+class DecadeMonthStart(pd._libs.tslibs.offsets.BaseOffset):  # noqa
+    """
+    A try to use decades as resample periods, based on this pandas question:
+    https://github.com/pandas-dev/pandas/issues/35569
+
+     - but not working
+    """
+    _attributes = frozenset(["n"])
+    _prefix = "DMS"
+
+    __init__ = pd.offsets.BaseOffset.__init__
+
+    @pd._libs.tslibs.offsets.apply_wraps
+    def _apply(self, other: datetime.datetime):
+        n = self.n
+        current_decade = min((other.day - 1) // 10, 3)
+        months = (current_decade + n) // 3
+        decade = (current_decade + n) % 3
+        day = (decade % 3) * 10 + 1
+        year = other.year + (other.month + months) // 12
+        month = (other.month + months - 1) % 12 + 1
+        return datetime.datetime(year, month, day)
+
 
 def _merge_sparse(index: pd.DatetimeIndex, series: typing.List[pd.Series], tolerance: pd.Timedelta) -> pd.DataFrame:
     """
@@ -111,10 +137,13 @@ def _make_timeindex(series: typing.List[pd.Series], timeindexsource: typing.Unio
 
     else:
         # interprete timeindexsource as frequency for a regular grid
-        freq = pd.Timedelta(timeindexsource)
-        start = min(s.index.min() for s in series).floor(freq)
-        end = max(s.index.max() for s in series).ceil(freq)
-        return pd.date_range(start, end, freq=freq)
+        if timeindexsource == 'decade':
+            offset = DecadeMonthStart()
+        else:
+            offset = pd.tseries.frequencies.to_offset(timeindexsource)
+        start = offset.rollback(min(s.index.min() for s in series))
+        end = offset.rollforward(max(s.index.max() for s in series))
+        return pd.date_range(start, end, freq=offset)
 
 
 def merge_series(

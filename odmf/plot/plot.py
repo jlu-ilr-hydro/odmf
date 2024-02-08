@@ -105,7 +105,11 @@ class Line:
             series = group.asseries(session, self.name)
 
         if self.subplot.plot.aggregate:
-            sampler = series.resample(self.subplot.plot.aggregate)
+            if self.subplot.plot.aggregate == 'decade':
+                from ..tools.exportdatasets import DecadeMonthStart
+                sampler = series.resample(DecadeMonthStart())
+            else:
+                sampler = series.resample(self.subplot.plot.aggregate)
             series = sampler.aggregate(self.aggregatefunction or 'mean')
 
         # There were problems with arrays from length 0
