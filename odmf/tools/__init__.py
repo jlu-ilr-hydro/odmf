@@ -1,5 +1,4 @@
-from __future__ import annotations
-
+from glob import glob
 import os
 import os.path as op
 import typing
@@ -167,6 +166,35 @@ class Path(object):
 
     def to_pythonpath(self) -> pathlib.Path:
         return pathlib.Path(self.absolute)
+
+    def glob(self, pattern: str):
+        """
+        Finds all files fitting the glob pattern in this path. This path should be a directory
+        :param pattern: a wild card pattern, eg. *.txt
+        :return: List of Paths
+        """
+        return [
+            Path(g, True)
+            for g in glob((self / pattern).absolute)
+        ]
+
+    def glob_up(self, pattern: str):
+        """
+        A generator that yields files fitting the glob pattern in this path or any parent directories of self. Stops
+        at the home directory.
+
+        :raises: StopIteration if pattern is not found
+        :param pattern: a wildcard pattern, eg. *.txt
+        :yield: the first fitting file
+        """
+        path = Path(self.absolute, True)
+        while not path.glob(pattern):
+            path = path.parent()
+            # if stoppath is found raise an error
+            if not path.islegal():
+                raise IOError('Could not find lab-config.yml file for file description')
+        # Use the first .conf file in the directory
+        return Path(glob(path / pattern))[0]
 
     @classmethod
     def from_pythonpath(cls, pypath: pathlib.Path):
