@@ -477,7 +477,7 @@ class ImportDescription(object):
 
             if project:
                 rows = session.query(db.Project)\
-                    .filter(db.Project.id == project).count()
+                    .filter(db.Project.id == int(project)).count()
                 if rows != 1:
                     raise ValueError('Error in import description: \'%s\' is no'
                                      ' valid project identifier' % project)
