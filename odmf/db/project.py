@@ -40,6 +40,7 @@ class Project(Base):
         if not self.session(): # For a new project no session and no member exists!
             return None
         from ..webpage.auth import Level
+        access_level = Level(access_level)
         for pm in (
                 self.members_query.filter(ProjectMember.access_level>=access_level)
                         .order_by(ProjectMember.access_level.desc(), ProjectMember._member)
