@@ -8,7 +8,7 @@ The parser is defined using a yml file.
 Example:
 """
 example = r"""
-pattern: (\w+?)_([0-9\.]+_[0-9]+\:[0-9]+)_?(?:[-+]?[0-9\.]+)
+pattern: (\w+?)_([0-9\.]+_[0-9]+\:[0-9]+)_?([\-\+]?[0-9\.]+)?
 site:
   group: 1
   map:
@@ -18,19 +18,36 @@ site:
     B1: 123
     B2: 138
     B3: 203 
-date:
+time:
   group: 2
   format: "%d%m%y_%H:%M"
 level:
   group: 3
+  factor: -0.01
 """
+
+
 class SampleParserPart:
+    """
+    Describes a section of a sample name that can be parsed into some meaningful information to find a suitable dataset.
+
+    Used as a superclass for concrete parsings
+    """
     def __init__(self, pattern: str, group: int, type: callable):
+        """
+
+        :param pattern: A re pattern to identify the sample's name part
+        :param group: The group number of the re pattern
+        :param type: A callable that returns the parsed object from the string part
+        """
         self.pattern = re.compile(pattern)
         self.group = group
         self.type = type
 
     def __call__(self, sample: str):
+        """
+        Returns the parsed object from the sample name
+        """
         if match := self.pattern.match(sample):
             try:
                 value = match.group(self.group)
@@ -40,29 +57,68 @@ class SampleParserPart:
         else:
             return None
 
+
+class IntParser(SampleParserPart):
+    """
+    Parses an int from a sample name. Simple specialization of SampleParserPart.
+    """
+    def __init__(self, pattern: str, group: int):
+        super().__init__(pattern, group, int)
+
+
+class FloatParser(SampleParserPart):
+    """
+    Parses an float from a sample name, with an optional factor.
+
+    The factor can be used for scaling Eg. if you need a level, the level can be given as 60 meaning 60cm below ground and translated by the
+    factor -0.01 to m
+    """
+    def __init__(self, pattern: str, group: int, factor: float=1.0):
+        super().__init__(pattern, group, self.to_float_with_factor)
+        self.factor = factor
+
+    def to_float_with_factor(self, raw_val:str):
+        if raw_val:
+            val = float(raw_val)
+            return val * self.factor
+        else:
+            return None
+
+
+
 class SiteParser(SampleParserPart):
-    def __init__(self, pattern: str, group: int, map: dict=None):
+    """
+    Parses a site id (int) from a sample name.
+
+    If the sample name includes unconventional site names, a dictionaty can be used to translate
+    the site name to the site number.
+    """
+    def __init__(self, pattern: str, group: int, map: dict = None):
         self.map = map or {}
         super().__init__(pattern, group, self.parse_site)
 
     def parse_site(self, raw_site: str):
         try:
-            return self.map.get(raw_site, int(raw_site))
-        except (ValueError, TypeError):
-            raise ValueError(f"Invalid site, {raw_site} - does not match pattern: {self}, nor is it a number")
+            return self.map.get(raw_site) or int(raw_site)
+        except (ValueError, TypeError) as e:
+            raise ValueError(f"Invalid site, {raw_site} - does not match pattern: {self.pattern}, nor is it a number")
+
 
 class DateParser(SampleParserPart):
+    """
+    Parses a date from a sample name. Uses the given date format
+    """
     def __init__(self, pattern: str, group: int, format: str):
+        """
+
+        :param pattern: A re pattern to identify the sample's name part
+        :param group: The group number of the re pattern
+        :param format: A date format eg. %Y-%m-%d
+        """
         fmt_fnct = lambda date: datetime.strptime(date, format)
         super().__init__(pattern, group, fmt_fnct)
 
-class IntParser(SampleParserPart):
-    def __init__(self, pattern: str, group: int):
-        super().__init__(pattern, group, int)
 
-class FloatParser(SampleParserPart):
-    def __init__(self, pattern: str, group: int):
-        super().__init__(pattern, group, float)
 
 class SampleParser:
     """
@@ -83,7 +139,7 @@ class SampleParser:
         'site': SiteParser,
         'dataset': IntParser,
         'level': FloatParser,
-        'instrument' : IntParser
+        'instrument': IntParser
     }
 
     def __init__(self, data: dict):
@@ -92,6 +148,7 @@ class SampleParser:
             k: self.parsers[k](pattern=pattern, **data[k])
             for k in data
         }
+
     def __call__(self, sample):
         return {
             k: self.parts[k](sample)
@@ -101,8 +158,9 @@ class SampleParser:
 
 if __name__ == '__main__':
     import yaml
+
     data = yaml.safe_load(example)
     print(data)
     sampler = SampleParser(data)
     print(yaml.safe_dump(sampler('F1_040720_22:41')))
-    print(yaml.safe_dump(sampler('12_040720_22:42_-0.6')))
+    print(yaml.safe_dump(sampler('12_040720_22:42_60')))
