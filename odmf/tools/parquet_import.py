@@ -66,15 +66,14 @@ def _adjust_time(df: pd.DataFrame, ds: db.Dataset):
     ds.start = min(ds.start, df.loc[df.dataset == ds.id, 'time'].min().to_pydatetime())
     ds.end = max(ds.end, df.loc[df.dataset == ds.id, 'time'].max().to_pydatetime())
 
-
-def addrecords_parquet(filename):
+def addrecords_dataframe(df: pd.DataFrame):
     """
-    Expects a table in the apache arrow format to import records to existing datasets. Expected column names:
-    dataset, id, time, value [,sample, comment, is_error]
+    Adds records from a dataframe to the database
+    :param df: The dataframe in record table format
+    :return:
     """
     from ..webpage.auth import users
-    # Load dataframe
-    df = pd.read_parquet(filename)
+
     df = df[~df.value.isna()]
     _adjust_columns(df)
 
@@ -105,6 +104,13 @@ def addrecords_parquet(filename):
         df.to_sql('record', conn, if_exists='append', index=False, method='multi', chunksize=1000)
         return ds_ids, len(df)
 
+def addrecords_parquet(filename):
+    """
+    Expects a table in the apache arrow format to import records to existing datasets. Expected column names:
+    dataset, id, time, value [,sample, comment, is_error]
+    """
+    df = pd.read_parquet(filename)
+    return addrecords_dataframe(df)
 
 if __name__ == '__main__':
     import sys
