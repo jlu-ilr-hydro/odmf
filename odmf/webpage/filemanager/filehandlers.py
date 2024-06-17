@@ -171,7 +171,7 @@ class MarkDownFileHandler(TextFileHandler):
 class ExcelFileHandler(BaseFileHandler):
 
     icon = 'file-excel'
-    actions = fa.ConfImportAction(), fa.LogImportAction()
+    actions = fa.ConfImportAction(), fa.LogImportAction(), fa.LabImportAction()
     def to_html(self, path: Path) -> str:
 
         with open(path.absolute, 'rb') as f:

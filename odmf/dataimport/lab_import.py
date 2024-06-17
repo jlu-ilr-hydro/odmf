@@ -3,6 +3,7 @@ Reads a table with lab data using a configuration file (in yaml format)
 
 Example config file:
 """
+import typing
 import pandas as pd
 import yaml
 from .. import db
@@ -24,7 +25,7 @@ columns:                 # Description of each column, use the column name as ob
                 B1: 123
                 B2: 138
                 B3: 203
-        date:
+        time:
             group: 2
             format: "%d%m%y_%H:%M"
         level:
@@ -46,22 +47,39 @@ def find_dataset(session: db.Session, time=None, site=None, level=None, valuetyp
     - if other filters are given, they are used. If no dataset exists at the given date, the next earlier dataset fitting the other filters is returned
     - if multiple datasets match the date, an error is raised
     """
-    if dataset:
+    if not pd.isna(dataset):
         dataset = int(dataset)
         if ds := session.get(db.Dataset, dataset):
             return ds
         else:
             raise ValueError(f"Dataset {dataset} not found")
     else:
-        candidates = db.Dataset.filter(session=session, date=time, valuetype=valuetype, instrument=instrument, level=level, site=site)
+        def type_or_none(cls, x):
+            if x is None:
+                return x
+            else:
+                return cls(x)
+        candidates = db.Dataset.filter(
+            session=session, date=time,
+            valuetype=type_or_none(int, valuetype),
+            instrument=type_or_none(int, instrument),
+            level=type_or_none(float, level),
+            site=type_or_none(int, site)
+        )
         ccount = candidates.count()
         if ccount == 1:
             return candidates.first()
         elif ccount == 0:
             candidate: db.Dataset = (
-                db.Dataset.filter(session=session, date=None, valuetype=valuetype, instrument=instrument, level=level, site=site)
-                .filter(db.Dataset.end < time)
-                .order_by(db.Dataset.desc())
+                db.Dataset.filter(
+                    session=session,
+                    date=None,
+                    valuetype=type_or_none(int, valuetype),
+                    instrument=type_or_none(int, instrument),
+                    level=type_or_none(float, level),
+                    site=type_or_none(int, site)
+                ).filter(db.Dataset.end < time)
+                .order_by(db.Dataset.end.desc())
                 .limit(1)
             ).first()
             if candidate:
@@ -82,7 +100,7 @@ def find_datasets(df_melt: pd.DataFrame):
     that row.
     """
     errors = []
-    result = pd.Series(index=df_melt.index, dtype=int)
+    result = pd.Series(index=df_melt.index, dtype='Int64')
     with db.session_scope() as session:
         for index, row in df_melt.iterrows():
             try:
@@ -97,10 +115,10 @@ def check_columns(table: pd.DataFrame, labcolumns: dict):
     Checks that the columns in the table match the columns in the labcolumns dictionary. Raises on error
     """
     missing = [
-        col for col in table.columns if col not in labcolumns
+        col for col in labcolumns if col not in table.columns
     ]
     if missing:
-        raise ValueError(f"Missing columns: {', '.join(missing)}")
+        raise ValueError(f"Missing columns: {missing}")
     else:
         return labcolumns
 
@@ -119,13 +137,12 @@ def parse_sample(series: pd.Series, sample_column: dict):
     :param sample_column: the config description of the sample column
     :return: a dataframe with parsed columns, a subset of time, site, dataset, level
     """
-    sample_column.pop('type')
     sampler = SampleParser(sample_column)
 
     parsed = pd.DataFrame([
         sampler(v) for v in series
     ],
-        index=series.index()
+        index=series.index
     )
     parsed.dropna(axis=1, how='all', inplace=True)
     return parsed
@@ -182,21 +199,14 @@ def clean_and_aggregate_df_melt(df_melt: pd.DataFrame):
     for col in df_melt_clean.columns:
         if col not in keep_cols:
             del df_melt_clean[col]
-    return df_melt_clean.groupby(['dataset', 'time']).mean()
+    return df_melt_clean.groupby(['dataset', 'time', 'sample']).mean().reset_index()
 
 
-def labimport(filename: Path, dryrun=False):
+def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typing.Sequence[dict]):
     """
     Steps to do
-    + find config
-    + read file
-    + check column names
-    + parse sample
-    + melt dataframe
-    + assign value types to value columns
-    + find datasets and apply to each row
-    + drop filter values like site / level / valuetype etc
     + aggregate by dataset and time (`df.groupby(by=['dataset', 'time']).mean()`)
+    What happens if one dataset exist, but not the second?
     + result table has record schema (dataset, id, time, value, is_error) -> import
     :return:
     """
@@ -206,7 +216,7 @@ def labimport(filename: Path, dryrun=False):
         labconf = yaml.safe_load(f)
 
     read = getattr(pd, labconf.get('driver', 'read_excel'))
-    df: pd.DataFrame = read(filename.absolute, **labconf.get('driver_options', {}))
+    df: pd.DataFrame = read(filename.absolute, **labconf.get('driver-options', {}))
     labcolumns = check_columns(df, labconf.get('columns', {}))
 
     rename_column_by_type(df, labcolumns, 'time', 'dataset', 'site', 'level')
@@ -219,13 +229,29 @@ def labimport(filename: Path, dryrun=False):
         df['sample'] = None
 
     df_melt = melt_table(df, labcolumns)
+    #TODO: better return table with records per dataset
     datasets, errors = find_datasets(df_melt)
+    df_melt['dataset'] = datasets
+    df_melt.dropna(inplace=True)
+    df_agg = clean_and_aggregate_df_melt(df_melt)
+    info = {
+        'measured' : len(df_melt),
+        'aggregated' : len(df_agg),
+    }
+    if not dryrun:
+        _, record_count = parquet_import.addrecords_dataframe(df_agg)
+        info['imported'] = record_count
+    return set(int(i) for i in df_agg.dataset), info, errors, labconf
 
-    if dryrun or errors:
-        return 'failed' if errors else 'success', set(datasets), errors
-    else:
-        # Do aggregation
-        df_agg = clean_and_aggregate_df_melt(df_melt)
-        datasets, record_count = parquet_import.addrecords_dataframe(df_agg)
-        return 'success', datasets, record_count
 
+if __name__ == '__main__':
+    from odmf.dataimport import lab_import as li
+    from odmf.tools import Path
+    import yaml
+    p = Path('lab/3_2021.xls')
+    labconf = yaml.safe_load(open(p.glob_up('*.labimport').absolute))
+    df = pd.read_excel(p.absolute, **labconf.get('driver-options', {}))
+    labcolumns = li.check_columns(df, labconf.get('columns', {}))
+    li.apply_sample_column(df, labcolumns, 1)
+    df_melt = li.melt_table(df, labcolumns)
+    datasets, errors = li.find_datasets(df_melt)

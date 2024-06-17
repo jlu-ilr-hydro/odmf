@@ -147,6 +147,7 @@ class SampleParser:
         self.parts = {
             k: self.parsers[k](pattern=pattern, **data[k])
             for k in data
+            if k != 'type'
         }
 
     def __call__(self, sample):

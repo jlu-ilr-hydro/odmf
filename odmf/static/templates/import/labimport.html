@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<py:extends href="layout.html" xmlns:py="">
+    <py:block name="scripts">
+        <!-- insert additional scripts -->
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <div class="container">
+            <div class="list-group">
+                <a class="list-group-item list-group-item-action list-group-item-primary" data-toggle="tooltip" title="back to file" href="${filename.href}">
+                    <i class="fas fa-file"/> back to file
+                </a>
+                <a class="list-group-item list-group-item-action" data-toggle="tooltip" title="reload file" href="javascript:window.location.reload(true)">
+                    <i class="fas fa-redo"/> reload
+                </a>
+            </div>
+        </div>
+    </py:block>
+    <py:block name="content">
+        <!--
+            filename: the filename to import
+            logs : the list of dictionaries as returned from importlog
+            error: some error messages
+            cancommit: If True, a commit is possible
+        -->
+        <div class="container">
+            <h3 class="mt-4">${filename} - lab import</h3>
+            <div class="alert alert-danger" py:if="bool(errors)">
+                The log file has errors. You can commit the data without errors, but it will be difficult to ensure the
+                data integrity, if you want to import the errors corrected later. Rather fix the errors now and import
+                the whole file. If you are sure, that the errors will never be imported, just proceed.
+            </div>
+            <div class="container">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>
+                            <button class="btn btn-link btn-block text-left" type="button"
+                                    data-toggle="collapse" data-target="#infolist"
+                                    aria-expanded="true" aria-controls="infolist">
+                                <span class="badge badge-primary" >i</span> Info
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="infolist" class="collapse show">
+                        <div class="card-body">
+                            <div class="list-group">
+                                <div py:for="info_name, info_msg in info_dict.items()" class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>${info_name}</div>
+                                    <div class="badge badge-primary">${info_msg}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>
+                            <button class="btn btn-link btn-block text-left" type="button"
+                                    data-toggle="collapse" data-target="#config"
+                                    aria-expanded="true" aria-controls="config">
+                                <span class="badge badge-secondary" >c</span> Config
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="config" class="collapse">
+                        <div class="card-body">
+                            <div class="list-group">
+                                <div py:for="config_name, config_msg in labconf.items()" class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>${config_name}</div>
+                                    <div class="badge badge-primary">${config_msg}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>
+                            <button class="btn btn-link btn-block text-left" type="button"
+                                    data-toggle="collapse" data-target="#errorlist"
+                                    aria-expanded="false">
+                                Errors <span class="badge badge-danger" py:content="len(errors)"/>
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="errorlist" class="collapse">
+                        <div class="card-body">
+                            <div py:for="err in errors" class="row" >
+                                <div class="col">Sample: ${err['sample']}</div>
+                                <div class="col alert alert-danger">${err['error']}</div>
+                                <div class="col">
+                                    <a href="${conf.url('valuetype', err['valuetype'])}">
+                                        Valuetype: ${err['valuetype']}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card mt-2">
+                    <div class="card-header">
+                        <h2>
+                            <button class="btn btn-link btn-block text-left" type="button"
+                                    data-toggle="collapse" data-target="#datasetlist"
+                                    aria-expanded="false" aria-controls="datasetlist">
+                                Datasets <span class="badge badge-success" py:content="len(datasets)"/>
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="datasetlist" class="collapse">
+                        <div class="card-body">
+                            <div class="list-group">
+                                <div class="list-group-item" py:for="ds in datasets">${markdown(str(ds))}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card mt-2">
+                    <div class="card-header">
+                        <form action="" method="post" class="form-inline" >
+                            <button class="btn btn-success mr-5"
+                                    type="submit" name="commit" value="commit" py:attrs="prop(disabled=not cancommit)">
+                                <i class="fas fa-file-import"/> import
+                            </button>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" value="err_ok" name="errors_ok" py:attrs="prop(checked=not bool(errors))" id="check_err_ok" />
+                                <label class="form-check-label" for="check_err_ok">Submit with errors</label>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </py:block>
+
+</py:extends>

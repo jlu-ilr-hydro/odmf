@@ -1,4 +1,7 @@
 import typing
+
+import yaml
+
 from ...tools import Path
 from ...config import conf
 
@@ -91,6 +94,9 @@ class ConfImportAction(FileAction):
             return True
 
 class LogImportAction(FileAction):
+    """
+    Lets the user import a log like sheet, without any description file
+    """
     name ='import-log'
     icon = 'upload'
     title = 'log'
@@ -105,3 +111,27 @@ class LogImportAction(FileAction):
         df = pd.read_excel(path.absolute)
         columns = [c.lower() for c in df.columns]
         return all(c in columns for c in 'time|site|dataset|value|logtype|message'.split('|'))
+
+class LabImportAction(FileAction):
+    """
+    Moves the user to a page for import sheets from a lab instrument. Uses a .labimport yaml file to describe the content
+    """
+
+    name ='import-lab'
+    icon = 'flask'
+    title = 'lab'
+    tooltip = 'Import to database using .labimport file'
+
+    def href(self, path: Path):
+        return conf.url('/download/to_db/lab', filename=path.name)
+
+    def check(self, path: Path):
+        try:
+            fn = path.glob_up('*.labimport')
+            with open(fn.absolute) as f:
+                lab_imports = yaml.safe_load(f)
+            return 'driver' in lab_imports and 'columns' in lab_imports
+        except (OSError, ValueError):
+            return False
+
+
