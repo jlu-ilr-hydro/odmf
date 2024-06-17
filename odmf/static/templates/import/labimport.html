@@ -115,7 +115,10 @@
                     <div id="datasetlist" class="collapse">
                         <div class="card-body">
                             <div class="list-group">
-                                <div class="list-group-item" py:for="ds in datasets">${markdown(str(ds))}</div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center" py:for="ds, rcount in datasets">
+                                    <div>${ds}</div>
+                                    <div class="badge badge-primary">${rcount}</div>
+                                </div>
                             </div>
                         </div>
                     </div>

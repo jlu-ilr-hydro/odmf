@@ -146,7 +146,10 @@ class DbImportPage:
             raise web.redirect(path.href, msg=f'File import successful: added {info["imported"]} records in {len(datasets)} datasets')
 
         with db.session_scope() as session:
-            ds_objects = session.query(db.Dataset).filter(db.Dataset.id.in_(datasets)).all()
+            ds_objects = [
+                (ds, datasets[ds.id]) for ds in
+                session.query(db.Dataset).filter(db.Dataset.id.in_(datasets))
+            ]
             return web.render(
                 'import/labimport.html',
                 error = error,

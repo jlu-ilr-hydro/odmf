@@ -144,8 +144,7 @@ def parse_sample(series: pd.Series, sample_column: dict):
     ],
         index=series.index
     )
-    parsed.dropna(axis=1, how='all', inplace=True)
-    return parsed
+    return parsed.dropna(axis=1, how='all')
 
 def apply_sample_column(table: pd.DataFrame, labcolumns: dict, samplecolumn: str):
     """
@@ -159,7 +158,7 @@ def apply_sample_column(table: pd.DataFrame, labcolumns: dict, samplecolumn: str
     for col in sample_df.columns:
         if col not in table.columns:
             table[col] = sample_df[col]
-    table.rename(columns={samplecolumn: 'sample'}, inplace=True)
+    return table.rename(columns={samplecolumn: 'sample'}, inplace=True)
 
 
 def melt_table(table: pd.DataFrame, labcolumns: dict):
@@ -229,10 +228,9 @@ def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typin
         df['sample'] = None
 
     df_melt = melt_table(df, labcolumns)
-    #TODO: better return table with records per dataset
     datasets, errors = find_datasets(df_melt)
     df_melt['dataset'] = datasets
-    df_melt.dropna(inplace=True)
+    df_melt = df_melt.dropna()
     df_agg = clean_and_aggregate_df_melt(df_melt)
     info = {
         'measured' : len(df_melt),
@@ -241,7 +239,11 @@ def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typin
     if not dryrun:
         _, record_count = parquet_import.addrecords_dataframe(df_agg)
         info['imported'] = record_count
-    return set(int(i) for i in df_agg.dataset), info, errors, labconf
+    datasets = {
+        int(i) : (df_agg.dataset == i).sum()
+        for i in df_agg.dataset
+    }
+    return datasets, info, errors, labconf
 
 
 if __name__ == '__main__':
