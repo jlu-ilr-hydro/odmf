@@ -10,7 +10,7 @@ from .. import db
 from ..tools import Path, parquet_import
 from .sample_parser import SampleParser
 
-example="""
+example=r"""
 driver: read_excel   # pandas function to read the table. See: https://pandas.pydata.org/docs/reference/io.html
 columns:                 # Description of each column, use the column name as object name
     Sample:              # Name of the sample column, in this case Sample

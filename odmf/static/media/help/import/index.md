@@ -13,16 +13,15 @@ The methods are described in detail below.
 
 ### For manual measurements:
 If you need to write down a single record (or very few) and you have online access, use **direct input**. 
-If you have a field computer but no online access, note your records in an excel sheet with a special structure, to perform the **log-import**.
+If you have a field computer but no online access, note your records in an excel sheet with a special structure, to use 
+help:import/log.
 
 ### For sensors / instruments with tabular output
 
 If your sensors produces many values in a uniform way, like eg. 
 soilmoisture sensors with soilmoisture and soiltemperature data that is
 logged by a recorder, you can use .conf-files to describe the files
-produced by the logger. Refer to the **conf-import**, but it is best to
-get this a first time explained, but someone with experience in the 
-field.
+produced by the logger. Refer to the help:import/conf.
 
 If you are a Python programmer, you can very simply write a program 
 that creates a pandas dataframe in a special format and send the
@@ -36,30 +35,14 @@ Python package
 Goto the [!fa-clipboard -dataset page](/dataset) and navigate to the dataset, you want to add the record. Goto record --> add record, put in
 date, time and value, and you are done.
 
-# Log-Import
+# help:import/log
 
 You can write down your findings in a specially formatted excel file (or transform your data in that format) to import records
-and log messages from the field. Create an excel file that has the following column names in the first row, no other header row is allowed:
+and log messages from the field.
 
-- time (actual date and time, _required_, **must** be a real date/time format)
-- site (site id, _required_)
-- dataset (dataset id, _optional_)
-- value (the actual value in the unit of the dataset, _optional_)
-- logtype (the type of message, _optional_)
-- message (a message, _optional_)
+more: help:import/log
 
-Each row in the file is either imported as a record, (dataset id and value must be provided), or as a log message for the 
-site (logtype and message are required). A record can get an extra comment with the message. You should find a 
-template here file:template/import-template-log.xlsx folder
-
-When you open the file, a button [!fa-upload log] is there, to start the import. 
-
-#### NOTE: 
-
-Only completely correct files can be used for import. If any row is not suitable, you **MUST** correct or delete that row for import. Because **log import** can scatter values around in the database, errors are very difficult to correct.
-#### BE CAREFUL!
-
-# Conf-Import
+# help:import/conf
 
 Data-Loggers usually create tabular data for a number of sensors at the same site. One can create .conf-files 
 (in [INI-format](https://en.wikipedia.org/wiki/INI_file)), that describe the tabular format of the data logger.
@@ -68,5 +51,14 @@ a .conf file in the same directory or in a directory above can be imported. The 
 describing the data format and sections for each column that should be imported. Each data column creates a new dataset,
 except the column is declared to append to an existing dataset.
 
+more: help:import/conf
 
+# help:import/lab
+
+Lab analysis devices usually produce result lists with a mangled sample name and several columns of results. With an
+`.labimport` file in [yaml format](https://en.wikipedia.org/wiki/YAML), the file structure and a method how to unmangle
+the sample name can be provided. This is not simple and one should seek help from a person who knows a bit about 
+[RegEx](https://en.wikipedia.org/wiki/Regular_expression)
+
+ more: help:import/lab
 

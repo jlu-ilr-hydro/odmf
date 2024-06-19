@@ -29,9 +29,14 @@
         <div class="container">
             <h3 class="mt-4">${filename} - lab import</h3>
             <div class="alert alert-danger" py:if="bool(errors)">
-                The log file has errors. You can commit the data without errors, but it will be difficult to ensure the
+                The lab file has errors. You can commit the data without errors, but it will be difficult to ensure the
                 data integrity, if you want to import the errors corrected later. Rather fix the errors now and import
                 the whole file. If you are sure, that the errors will never be imported, just proceed.
+            </div>
+            <div class="alert alert-info">
+                ${markdown('''This lab file is understood using a `.labimport` file, that describes the content (see config).
+                To learn more about lab-import see here: help:import/lab , for general help about importing data into
+                the database help:import .''')}
             </div>
             <div class="container">
                 <div class="card">
@@ -67,14 +72,7 @@
                         </h2>
                     </div>
                     <div id="config" class="collapse">
-                        <div class="card-body">
-                            <div class="list-group">
-                                <div py:for="config_name, config_msg in labconf.items()" class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div>${config_name}</div>
-                                    <div class="badge badge-primary">${config_msg}</div>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="card-body" py:content="literal(dict_to_html(labconf))"/>
                     </div>
 
                 </div>
