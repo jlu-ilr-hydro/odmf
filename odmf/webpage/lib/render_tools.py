@@ -3,6 +3,7 @@ Helper functions and data to use in templates
 
 All objects defined here will be available inside of the templates
 """
+import typing
 
 import cherrypy as __cp
 
@@ -14,6 +15,45 @@ __md = __MarkDown()
 def markdown(s):
     from kajiki.template import literal
     return literal(__md(s))
+
+
+def dict_to_html(key='', value=None):
+    if value is None:
+        value = key
+        key = ''
+    def header(key):
+        if key:
+            return f'''
+                <a class="list-group-action" data-toggle="collapse" href="#c-{key}-list">{key}<i class="fas fa-caret-down ml-2"></i></a>
+                <div class="collapse list-group" id="c-{key}-list">
+            '''
+        else:
+            return f'<div class="list-group" id="{key}-list">'
+
+    if isinstance(value, typing.Mapping):
+        body = '\n'.join(
+            f'<div class="list-group-item">{dict_to_html(k, v)}</div>'
+            for k, v in value.items()
+        )
+        return header(key) + body + '\n</div>'
+
+    elif isinstance(value, str):
+        if key:
+            return f'<span class="font-weight-bold">{key}</span>: {value}'
+        else:
+            return str(value)
+
+    elif isinstance(value, typing.Sequence):
+        body = '\n'.join(
+            f'<div class="list-group-item">{dict_to_html(value=item)}</div>'
+            for item in value
+        )
+        return header(key) + body + '\n</div>'
+    elif not key:
+        return str(value)
+    else:
+        return f'<span class="font-weight-bold">{key}</span>: {value}'
+
 
 # The imports are needed implicitly during rendering
 from ..auth import users, is_member, has_level, Level

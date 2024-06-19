@@ -4,14 +4,17 @@
 - repeated imports of the same format
 - files contain data for multiple sites
 
+!!! alert alert-info "Table of contents"
+    [TOC]
 
 Analysis carried out in a lab usually result in Excel files with a somewhat encoded sample name with multiple values per sample. If multiple values for the same dataset and the same time exist, this method is building the mean value
 The samples in one batch can origin from multiple sites. Such files can be described with `.labimport` file. This import 
 is ment for rather small datafiles, like a couple of hundred rows, as it is rather slow. 
 
-The `.labimport` file consists of two main parts: The decription of the **file format** eg. how to interprete the file as a table
-and the decription of the meaning of each column. For each value in the table a fitting dataset **must** exist. Creating 
-a `.labimport` file is difficult and should be mentored by a person with programming experience.
+The `.labimport` file consists of two main parts: 
+1. The decription of the **file format** eg. how to interprete the file as a table
+2. the decription of each column. For each value in the table a fitting dataset **must** exist. Creating 
+   a `.labimport` file is difficult and should be mentored by a person with programming experience.
 
 ## File format
 
@@ -21,28 +24,33 @@ If you know how to load tables in `R` - this is quite similar.
 
 ### Common driver functions
 
-#### [read_excel](https://pandas.pydata.org/docs/reference/api/pandas.read_excel.html#pandas.read_excel)
+#### [read_excel](https://pandas.pydata.org/docs/reference/api/pandas.read_excel.html)
 
 Reads excel files (.xlsx, .xlsb, .xls). Typical keywords are `sheet_name` and `index_col`. If your data is in the only 
 worksheet and all data is well formatted, you do not need any options. If you have multiple header lines use `skiprows`
 to skip those.
 
-##### [read_csv](https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html#pandas.read_csv)
+#### [read_csv](https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html)
 
 Reads tabular text files with a seperator. Default is `,` as the variable seperator and `.` as the
 decimal sign. This can be changed with `sep: ";"` and `decimal: ","`, the quotes are important here.
 If you have date/time column, make sure to use the date parsing options of read_csv with the keywords date_format 
 and parse_dates, as described in the link. If the date of the sample can be inferred from the sample name, this is not necessary.
 
+#### [read_parquet](https://pandas.pydata.org/docs/reference/api/pandas.read_parquet.html)
+
+Read tabular data in the Apache parquet format. The parquet format is not that well known, but fast, reliable and compact.
+Best suited for datasets created in Python or R.
+
 #### General options
 
 `skiprows`, `nrow`, `usecols` and `skipfooter` are keywords that can be used in every table format to ignore
 unnecessary data. `na_values` is used to name conventions of N/A-Values in the file. If the file does not have column headers, 
-or the column headers must be skipped, please indicate it with `headers: null` or give each column its own name
+or the column headers are in the  skipped rows, please indicate it with `header: null`. In that case, you refer to the columns by its position (starting with 0) or you can give column names with a list: `names: [A, B, C, D]`
 
-## Columns
+## columns
 
-Each column is addressed by its name (or in few cases postion). The columns are treated differently by its type.
+Each column is addressed by its name or by postion. The columns are treated differently by its type.
 
 ### type: value
 
@@ -111,11 +119,26 @@ If additional markers are needed, please post an issue in github (https://github
 
 ### type: row-factor
 
+#### NOTE: Not implemented yet, do not use
+
 If the samples have been diluted, the row-factor in this column can be used to scale all values in that row. 
 
 # Example 1
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~.yaml
+This is an example for an excel file with the data in `Table 1` and the named columns `Sample`, `N_NO3` and `N_NH4`.
+The sample includes a site name (not a site id!), the sampling time and eventually the level. The site names are
+mapped to numeric site ids in the database.
+
+The table may look like:
+
+!!! table table-striped "Example table"
+    | Sample               | N_NO3 | N_NH4 | remarks
+    |----------------------|-------|-------|--------
+    | F1_6.5.2023_11:15_60 |2.5785|0.9456| Site: F1 (#137), time: May 6th, 2023 in 60cm depth
+    | B1_7.5.2023_12:45    |2.5785|0.9456| Site: B1 (#123), time: May 7th, 2023 no level
+
+## `.labimport` file
+```
 driver: read_excel   # pandas function to read the table. See: https://pandas.pydata.org/docs/reference/io.html
 driver-options:  # keyword args for the pandas function. See: https://pandas.pydata.org/docs/reference/io.html
     sheet_name: Table 1   # Sheet name
@@ -133,7 +156,7 @@ columns:                 # Description of each column, use the column name as ob
                 B1: 123
                 B2: 138
                 B3: 203
-        date:
+        time:
             group: 2
             format: "%d.%m.%y_%H:%M"
         level:
@@ -147,4 +170,68 @@ columns:                 # Description of each column, use the column name as ob
         type: value
         factor: 14.3
         valuetype: 4
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
+
+# Example 2
+
+This example is for data produced by an ioc chromatograph. There are multiple header rows to be skipped. The sample
+name contains the site id (as in the database, no translation needed), and the sampling time (seperated by _).
+Since the column headers are skipped, new column names are assigned in the .labimport file.
+
+!!! table table-striped "Example table"
+    | Sample | Name             | Amount | Amount | Amount | Amount | Amount | Amount | Amount
+    |--------|------------------|--------|--------|--------|--------|--------|--------|-----
+    | No.|                  | mg/l  |mg/l| mg/lmg/l | mg/l   | mg/l | mg/l| mg/l
+    | |                  | Fl   |Cl|No2| Br    |No3|SO4|PO4
+    || 13_030321_10:30 |0.1187|19.13|n.a.|        |19.798|44.2271|0.6177
+    | | 13_030321_10:30  | 0.1165| 18.7297| n.a.| | 19.4155| 43.516| 0.6174
+    | | 19_030321_10:42  | 0.1165           | 24.7767| n.a.| | 16.731| 26.7428| 0.6313
+    | | 19_030321_10:42  | 0.1213           | 25.5579| n.a.| | 17.2184| 27.4383| 0.6143
+    | | 134_030321_11:28 | 0.1544           | 5.9271| n.a.| | 18.0146| 11.4721| n.a.
+
+
+## `.labimport` file
+
+```
+driver: read_excel   # pandas function to read the table. See: https://pandas.pydata.org/docs/reference/io.html
+driver-options:
+    skiprows: 4   # skip the for header rows
+    header: null  # do not expect any column names (they are skipped)
+    na_values: ['n.a.', 'N/A']    #  Value to understand as no-data
+    names: [_, sample, F, Cl, NO2, Br, NO3, SO4, PO4]
+
+columns:                 # Description of each column, use the column name as object name
+    sample:              # Name of the sample column
+        type: sample     # Necessary to understand column as sample names
+        pattern: ([0-9]+)_([0-9\.]+_[0-9]+\:[0-9]+)
+        site:
+            group: 1
+        time:
+            group: 2
+            format: "%d%m%y_%H:%M"
+    F:  # Floride
+        type: value
+        valuetype: 10
+    Cl:  # Chloride
+        type: value
+        valuetype: 11
+    NO2: # No2
+        type: value
+        valuetype: 12
+        factor: 0.3032   # conversion in NO2-N
+    Br: # Br
+        type: value
+        valuetype: 13
+    NO3: # No3
+        type: value
+        valuetype: 14
+        factor: 0.2259   # conversion to NO3-N
+    SO4: # SO4
+        type: value
+        valuetype: 15
+        factor: 0.334    # conversion to SO4-S
+    PO4: # PO4
+        type: value
+        valuetype: 16
+        factor: 0.3261   # conversion to PO4-P
+```

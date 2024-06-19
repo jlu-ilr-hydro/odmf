@@ -143,11 +143,11 @@ class SampleParser:
     }
 
     def __init__(self, data: dict):
-        pattern = data.pop('pattern')
+        pattern = data['pattern']
         self.parts = {
             k: self.parsers[k](pattern=pattern, **data[k])
             for k in data
-            if k != 'type'
+            if k not in ('type', 'pattern')
         }
 
     def __call__(self, sample):

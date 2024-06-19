@@ -14,6 +14,7 @@ from odmf import db
 from odmf.dataimport import importlog
 from odmf.dataimport import pandas_import as pi
 from ...dataimport import lab_import as li
+from ..lib.render_tools import dict_to_html
 
 from odmf.tools import Path
 
@@ -62,7 +63,7 @@ class DbImportPage:
             raise web.redirect(path.parent().href, error=error)
         else:
             return web.render(
-                'logimport.html', filename=path, logs=logs,
+                'import/logimport.html', filename=path, logs=logs,
                 cancommit=cancommit, error=error
             ).render()
 
@@ -144,7 +145,6 @@ class DbImportPage:
         if not dryrun:
             di.savetoimports(path.absolute, web.user(), datasets)
             raise web.redirect(path.href, msg=f'File import successful: added {info["imported"]} records in {len(datasets)} datasets')
-
         with db.session_scope() as session:
             ds_objects = [
                 (ds, datasets[ds.id]) for ds in

@@ -149,7 +149,7 @@ class MarkDown:
     def __init__(self):
         odmf_ext = ODMFExtension()
 
-        self.md = markdown.Markdown(extensions=['admonition', 'extra', odmf_ext])
+        self.md = markdown.Markdown(extensions=['admonition', 'extra', 'toc', odmf_ext])
 
     def __call__(self, s) -> str:
         if s:
