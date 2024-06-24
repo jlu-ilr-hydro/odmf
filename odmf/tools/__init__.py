@@ -1,17 +1,17 @@
-from __future__ import annotations
-
+from glob import glob
 import os
 import os.path as op
 import typing
 import bcrypt
 from ..config import conf
 import pathlib
+from contextlib import contextmanager
 
 __all__ = ['mail', 'Path']
 
 
 class Path(object):
-    def __init__(self, *path: str|Path|pathlib.Path, absolute=False):
+    def __init__(self, *path: str|typing.Self|pathlib.Path, absolute=False):
         self.datapath = op.realpath(conf.datafiles)
         if path:
             if type(path[0]) is pathlib.Path:
@@ -84,15 +84,15 @@ class Path(object):
         return ('%s' % self) > ('%s' % other)
 
     def __add__(self, fn):
-        return Path(op.join(self.absolute, fn))
+        return Path(self.absolute, fn, absolute=True)
 
     def __truediv__(self, fn):
-        return Path(op.join(self.absolute, fn))
+        return Path(self.absolute, fn, absolute=True)
 
     def make(self):
         os.makedirs(self.absolute, mode=0o770)
 
-    def breadcrumbs(self) -> list[Path]:
+    def breadcrumbs(self) -> list[typing.Self]:
         res = [self]
         p = op.dirname(self.absolute)
         while self.datapath in p:
@@ -100,8 +100,8 @@ class Path(object):
             p = op.dirname(p)
         return res
 
-    def child(self, filename) -> Path:
-        return Path(op.join(self.absolute, filename))
+    def child(self, filename) -> typing.Self:
+        return Path(op.join(self.absolute, filename), absolute=True)
 
     def isdir(self) -> bool:
         return op.isdir(self.absolute)
@@ -115,13 +115,13 @@ class Path(object):
     def exists(self) -> bool:
         return op.exists(self.absolute)
 
-    def parent(self) -> Path:
-        return Path(op.dirname(self.absolute))
+    def parent(self) -> typing.Self:
+        return Path(op.dirname(self.absolute), absolute=True)
 
     def ishidden(self):
         return self.basename.startswith('.') or self.basename == 'index.html'
 
-    def listdir(self, hidden=False) -> (typing.List[Path], typing.List[Path]):
+    def listdir(self, hidden=False) -> (typing.List[typing.Self], typing.List[typing.Self]):
         """
         Lists all members of the path in
         2 lists:
@@ -142,7 +142,7 @@ class Path(object):
         else:
             return [], []
 
-    def iterdir(self, hidden=False) -> typing.Generator[Path]:
+    def iterdir(self, hidden=False) -> typing.Generator[typing.Self, None, None]:
         if self.isdir() and self.islegal():
             for fn in os.listdir(self.absolute):
                 if hidden or not fn.startswith('.'):
@@ -168,9 +168,44 @@ class Path(object):
     def to_pythonpath(self) -> pathlib.Path:
         return pathlib.Path(self.absolute)
 
+    def glob(self, pattern: str):
+        """
+        Finds all files fitting the glob pattern in this path. This path should be a directory
+        :param pattern: a wild card pattern, eg. *.txt
+        :return: List of Paths
+        """
+        return [
+            Path(g, absolute=True)
+            for g in glob((self / pattern).absolute)
+        ]
+
+    def glob_up(self, pattern: str):
+        """
+        A generator that yields files fitting the glob pattern in this path or any parent directories of self. Stops
+        at the home directory.
+
+        :raises: StopIteration if pattern is not found
+        :param pattern: a wildcard pattern, eg. *.txt
+        :yield: the first fitting file
+        """
+        path = Path(self.absolute, absolute=True)
+        while not path.glob(pattern):
+            path = path.parent()
+            # if stoppath is found raise an error
+            if not path.islegal():
+                raise IOError(f'Could not find a file with pattern {pattern} above {self}')
+        # Use the first .conf file in the directory
+        return path.glob(pattern)[0]
+
     @classmethod
     def from_pythonpath(cls, pypath: pathlib.Path):
         return cls(str(pypath.absolute()), absolute=True)
+
+    @contextmanager
+    def open(self, mode='r'):
+        with open(self.absolute, mode=mode) as f:
+            yield f
+
 
 
 def hashpw(password, salt=None):

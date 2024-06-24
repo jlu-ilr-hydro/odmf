@@ -18,8 +18,8 @@ openpyxl>=3.0.7
 asteval>=0.9.25
 pyarrow
 # database
-pytz==2022.1
-psycopg2-binary
+
+pytz
 sqlalchemy>=2.0.0
 bcrypt
 bleach>=3.1.0

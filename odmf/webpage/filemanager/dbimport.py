@@ -13,6 +13,9 @@ from odmf import dataimport as di
 from odmf import db
 from odmf.dataimport import importlog
 from odmf.dataimport import pandas_import as pi
+from ...dataimport import lab_import as li
+from ..lib.render_tools import dict_to_html
+
 from odmf.tools import Path
 
 
@@ -94,7 +97,7 @@ class DbImportPage:
 
 
         return web.render(
-            'dbimport.html',
+            'import/confimport.html',
             rawcontent=rawcontent,
             config=config,
             stats=stats,
@@ -125,4 +128,41 @@ class DbImportPage:
 
         else:
             raise web.redirect(path.parent().href, msg='\n'.join(f' - {msg}' for msg in messages))
+
+
+    @expose_for(Level.editor)
+    def lab(self, filename, **kwargs):
+
+        path = Path(filename.strip('/'))
+        error = di.checkimport(path)
+        dryrun = True
+        if not error and cherrypy.request.method == 'POST':
+            if 'errors_ok' in kwargs:
+                dryrun = False
+            else:
+                error = 'Errors are present: if you want to import with errors present, you need to check "Submit with errors"'
+        datasets, info, errors, labconf = li.labimport(path, dryrun=dryrun)
+        if not dryrun:
+            di.savetoimports(path.absolute, web.user(), datasets)
+            raise web.redirect(path.href, msg=f'File import successful: added {info["imported"]} records in {len(datasets)} datasets')
+        print(dict_to_html(labconf))
+        with db.session_scope() as session:
+            ds_objects = [
+                (ds, datasets[ds.id]) for ds in
+                session.query(db.Dataset).filter(db.Dataset.id.in_(datasets))
+            ]
+            return web.render(
+                'import/labimport.html',
+                error = error,
+                filename=path, cancommit=True,
+                labconf=labconf,
+                datasets=ds_objects,
+                info_dict=info,
+                errors=errors
+            ).render()
+
+
+
+
+
 

@@ -1,7 +1,6 @@
 import pytest
 
 @pytest.fixture(autouse=True)
-@pytest.mark.parametrize
 def conf(tmp_path_factory):
     """
     Creates a configuration with a :memory: SQLite database
