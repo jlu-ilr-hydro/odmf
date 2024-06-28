@@ -141,7 +141,12 @@ class DbImportPage:
                 dryrun = False
             else:
                 error = 'Errors are present: if you want to import with errors present, you need to check "Submit with errors"'
-        datasets, info, errors, labconf = li.labimport(path, dryrun=dryrun)
+        try:
+            datasets, info, errors, labconf = li.labimport(path, dryrun=dryrun)
+        except li.LabImportError as e:
+            raise web.redirect(path.href, error=str(e))
+        except Exception as e:
+            raise web.redirect(path.href, error=str(e))
         if not dryrun:
             di.savetoimports(path.absolute, web.user(), datasets)
             raise web.redirect(path.href, msg=f'File import successful: added {info["imported"]} records in {len(datasets)} datasets')

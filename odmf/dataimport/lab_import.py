@@ -40,6 +40,17 @@ columns:                 # Description of each column, use the column name as ob
         valuetype: 4
 """
 
+class LabImportError(RuntimeError):
+    def __init__(self, path: Path, msg):
+        self.path = path
+        self.msg = msg
+    def __str__(self):
+        if li_file := self.path.glob_up('*.labimport'):
+            return f'Lab import error for {self.path.markdown} with {li_file.markdown} : {self.msg}'
+        else:
+            return f'Lab import error for {self.path.markdown} : {self.msg}'
+
+
 def find_dataset(session: db.Session, time=None, site=None, level=None, valuetype=None, instrument=None, dataset=None, **kwargs):
     """
     Finds a dataset, from a rough description.
@@ -52,7 +63,7 @@ def find_dataset(session: db.Session, time=None, site=None, level=None, valuetyp
         if ds := session.get(db.Dataset, dataset):
             return ds
         else:
-            raise ValueError(f"Dataset {dataset} not found")
+            raise LabImportError(f"Dataset {dataset} not found")
     else:
         def type_or_none(cls, x):
             if x is None:
@@ -214,11 +225,14 @@ def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typin
     with conffile.open() as f:
         labconf = yaml.safe_load(f)
 
-    read = getattr(pd, labconf.get('driver', 'read_excel'))
-    df: pd.DataFrame = read(filename.absolute, **labconf.get('driver-options', {}))
-    labcolumns = check_columns(df, labconf.get('columns', {}))
+    try:
+        read = getattr(pd, labconf.get('driver', 'read_excel'))
+        df: pd.DataFrame = read(filename.absolute, **labconf.get('driver-options', {}))
+        labcolumns = check_columns(df, labconf.get('columns', {}))
+        rename_column_by_type(df, labcolumns, 'time', 'dataset', 'site', 'level')
 
-    rename_column_by_type(df, labcolumns, 'time', 'dataset', 'site', 'level')
+    except Exception as e:
+        raise LabImportError(filename, str(e))
 
     if samplecolumn := get_type_column('sample', labcolumns):
         apply_sample_column(df, labcolumns, samplecolumn)
