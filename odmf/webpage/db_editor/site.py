@@ -432,18 +432,9 @@ class SitePage:
     @expose_for(Level.logger)
     @web.method.get
     def export(self, format='xlsx'):
-        from ...tools.exportdatasets import export_dataframe
+        from ...tools.exportdatasets import serve_dataframe
         with db.session_scope() as session:
             q = session.query(db.Site)
             dataframe = pd.read_sql(q.statement, session.bind)
-            buffer = io.BytesIO()
-            mime = web.mime.get(format, web.mime.binary)
-            buffer = export_dataframe(buffer, dataframe, format, index_label=None)
             name = f'sites-{datetime.datetime.now():%Y-%m-%d}'
-            buffer.seek(0)
-            return serve_fileobj(
-                buffer,
-                str(mime),
-                'attachment',
-                name + '.' + format
-            )
+            return serve_dataframe(dataframe, f'{name}.{format}')

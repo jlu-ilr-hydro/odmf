@@ -190,7 +190,7 @@ class PlotPage(object):
         -------
 
         """
-        from ..tools.exportdatasets import merge_series, export_dataframe
+        from ..tools.exportdatasets import merge_series, serve_dataframe
         if fileformat not in ('xlsx', 'csv', 'tsv', 'pickle', 'json', 'msgpack', 'parquet'):
             raise web.HTTPError(500, 'Unknown fileformat: ' + fileformat)
         plot_dict = web.json.loads(plot)
@@ -212,17 +212,9 @@ class PlotPage(object):
         except Exception as e:
             raise web.redirect(url='/plot', error=str(e))
 
-        buffer = io.BytesIO()
-        mime = web.mime.get(fileformat, web.mime.binary)
-        buffer = export_dataframe(buffer, dataframe, fileformat)
         plotname = plot.name or f'export-{datetime.now():%Y-%m-%d_%H-%M}'
-        buffer.seek(0)
-        return serve_fileobj(
-            buffer,
-            str(mime),
-            'attachment',
-            plotname + '.' + fileformat
-        )
+
+        return serve_dataframe(dataframe, f'{plotname}.{fileformat}')
 
     @expose_for(plotgroup)
     @web.method.post

@@ -4,7 +4,17 @@
     <py:block name="scripts">
         <script>
             //<![CDATA[
-
+            function get_filter() {
+                return {
+                    project: $('#prselect').val(),
+                    valuetype: $('#vtselect').val(),
+                    user: $('#userselect').val(),
+                    site: $('#siteselect').val(),
+                    date: $('#dateselect').val(),
+                    dstype: $('#typeselect').val(),
+                    instrument: $('#instrumentselect').val(),
+                }
+            }
             function popSelect() {
 
                 let options = (data, get_value, get_name) => {
@@ -16,13 +26,7 @@
 
                 }
 
-                let pr = $('#prselect').val()
-                let vt = $('#vtselect').val()
-                let user = $('#userselect').val()
-                let site = $('#siteselect').val()
-                let date = $('#dateselect').val()
-                let type = $('#typeselect').val()
-                let instrument = $('#instrumentselect').val()
+                let f=get_filter()
                 let fmt = {
                     id: x=>x ? x.id : '',
                     name: x=>x ? x.name : '',
@@ -31,50 +35,26 @@
                     self: x => x
                 }
                 $.getJSON(
-                        odmf_ref('/dataset/attributes'),
-                        {
-                            valuetype:vt,
-                            user:user,
-                            site:site,
-                            date:date,
-                            dstype:type,
-                            instrument:instrument,
-                            project:pr
-                        },
+                        odmf_ref('/dataset/attributes'),f,
                         data => {
                             $('#userselect').html(options(data.measured_by, x=>x.username, fmt.user))
-                            $('#prselect').html(options(data.project, fmt.id, fmt.name)).val(pr);
-                            $('#vtselect').html(options(data.valuetype, fmt.id, fmt.name)).val(vt);
-                            $('#siteselect').html(options(data.site, fmt.id, fmt.site)).val(site);
-                            $('#instrumentselect').html(options(data.source, fmt.id, fmt.name)).val(instrument)
-                            $('#typeselect').html(options(data.type, fmt.self, fmt.self)).val(type)
+                            $('#prselect').html(options(data.project, fmt.id, fmt.name)).val(f.project);
+                            $('#vtselect').html(options(data.valuetype, fmt.id, fmt.name)).val(f.valuetype);
+                            $('#siteselect').html(options(data.site, fmt.id, fmt.site)).val(f.site);
+                            $('#instrumentselect').html(options(data.source, fmt.id, fmt.name)).val(f.instrument)
+                            $('#typeselect').html(options(data.type, fmt.self, fmt.self)).val(f.type)
 
                         }
                 );
+                setFilter();
             }
             function setFilter() {
                 // Linklist to datasets
-                var vt = $('#vtselect').val();
-                var user = $('#userselect').val();
-                var site = $('#siteselect').val();
-                var date = $('#dateselect').val();
-                var type = $('#typeselect').val();
-                var instrument = $('#instrumentselect').val();
-                let project = $('#prselect').val();
-                let limit = $('#limit').val();
-                let page = $('#page').val();
-                $.getJSON(odmf_ref('/dataset/json'),
-                        {
-                            valuetype: vt,
-                            user:user,
-                            site:site,
-                            date:date,
-                            dstype:type,
-                            instrument:instrument,
-                            project: project,
-                            limit: limit,
-                            page: page
-                        },
+                let f = get_filter()
+                f.page = $('#page').val();
+                f.limit = $('#limit').val()
+                $.getJSON(odmf_ref('/dataset/json'), f,
+
                         function(data){
                             var items = [];
                             var templ = '<a href="${conf.root_url}/dataset/ID" class="list-group-item list-group-item-action">LABEL <span class="badge badge-warning float-right">ACL</span></a>';
@@ -121,6 +101,9 @@
                 });
                 $('.filter').on('change', popSelect)
                 $('.page').on('click', pageChange)
+                $('#export-datasets').on('click', () =>{
+
+                })
 
                 popSelect();
 
@@ -151,7 +134,7 @@
                 </a>
             </div>
             <hr/>
-            <div id="filter" class="container" >
+            <form id="filter" class="container" method="POST" action="to_excel">
                 <div class="mb-1 row border rounded">
                     <h4 class="col-sm-10"><i class="fas fa-filter fa-sm mr-2" />Filter</h4>
                     <a class="btn btn-secondary col-sm-2 border-circle text-light" onclick="clearFilter()" title="clear filter" data-toggle="tooltip">
@@ -160,37 +143,48 @@
                 </div>
                 <div class="form-group mb-1 row">
                     <label for="prselect" class="small m-0">Project</label>
-                    <select id="prselect" class="form-control select2 form-select filter" tabindex="2"/>
+                    <select id="prselect" name="project" class="form-control select2 form-select filter" tabindex="2"/>
                 </div>
                 <div class="form-group mb-1 row">
                     <label for="vtselect" class="small m-0">Value type</label>
-                    <select id="vtselect" class="form-control select2 form-select filter" tabindex="2"/>
+                    <select id="vtselect" name="valuetype" class="form-control select2 form-select filter" tabindex="2"/>
                 </div>
                 <div class="form-group mb-1 row">
                     <label for="siteselect" class="small m-0">Site</label>
-                    <select id="siteselect" class="form-control select2 form-select filter" tabindex="3"/>
+                    <select id="siteselect" name="site" class="form-control select2 form-select filter" tabindex="3"/>
                 </div>
 
                 <div class="form-group mb-1 row">
                     <label for="userselect" class="small m-0">Creator</label>
-                    <select id="userselect" class="form-control select2 form-select filter" tabindex="4"/>
+                    <select id="userselect" name="user" class="form-control select2 form-select filter" tabindex="4"/>
                 </div>
                 <div class="form-group mb-1 row">
                     <label for="typeselect" class="small m-0">Type</label>
-                    <select id="typeselect" class="form-control form-select filter" tabindex="5"/>
+                    <select id="typeselect" name="dstype" class="form-control form-select filter" tabindex="5"/>
                 </div>
 
                 <div class="form-group mb-1 row">
                     <label for="vtselect" class="small m-0">Instrument / source</label>
-                    <select id="instrumentselect" class="form-control select2 form-select filter" tabindex="6"
+                    <select id="instrumentselect" name="instrument" class="form-control select2 form-select filter" tabindex="6"
                             title="Instument" data-toggle="tooltip"/>
                 </div>
                 <div class="form-group mb-1 row">
                     <label for="dateselect" class="small m-0">date</label>
-                    <input id="dateselect" type="date" class="form-control form-select filter" value="" tabindex="7" placeholder="date..."
+                    <input id="dateselect" name="date" type="date" class="form-control form-select filter" value="" tabindex="7" placeholder="date..."
                            title="Show only sites with a dataset for this date" data-toggle="tooltip"/>
                 </div>
-            </div>
+                <div class="form-group mt-4 row">
+                    <label for="export-datasets" class="small m-0"><i class="fas fa-file-excel"/> Export dataset list as Excel file</label>
+                    <button  id="export-datasets"
+                             class="btn btn-secondary form-control"
+                             type="submit"
+                    >
+                        <i class="fas fa-file-export"/> export list
+                    </button>
+
+                </div>
+
+            </form>
         </div>
 
     </py:block>
@@ -219,14 +213,6 @@
 
                     </div>
                 </li>
-                <!--li class="nav-item dropdown mr-auto">
-                    <button id="exportrecords" class="btn btn-info"
-                            title="Only available when valuetype and site are selected. Beware multi-instrument and multi-level situations."
-                            data-toggle="tooltip"
-                    >
-                        export datasets
-                    </button>
-                </li-->
             </ul>
             <div id="dslist" class="overflow-auto list-group">
             </div>
