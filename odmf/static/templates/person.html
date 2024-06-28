@@ -6,7 +6,7 @@
             $(document).ready(function(){
                 $("#listSearch").on("keyup", function() {
                     var value = $(this).val().toLowerCase();
-                    $("#userList li").filter(function() {
+                    $("#userList a").filter(function() {
                         $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
                     });
                 });
@@ -18,6 +18,14 @@
     </py:block>
     <py:block name="sidebar">
         <div class="container">
+            <a class="btn btn-secondary w-100 mb-1"
+               href="${conf.root_url}/user/new"
+               py:if="is_member('supervisor')">
+                    <i class="fas fa-user-plus mr-3" />
+                    new user...
+
+            </a>
+            <hr/>
             <div class="input-group mb-1">
                 <div class="input-group-prepend">
                     <span class="input-group-text">
@@ -27,20 +35,14 @@
                 </div>
                 <input class="form-control" id="listSearch" type="text" placeholder="search user..."/>
             </div>
-            <a class="btn btn-light w-100 mb-1"
-               href="${conf.root_url}/user/new"
-               py:if="is_member('supervisor')">
-                    <i class="fas fa-user-plus mr-3" />
-                    new user...
-
-            </a>
-            <hr/>
-            <ul class="list-group" id="userList">
-                <li class="list-group-item flexbox" py:for="pp in persons">
-                    <a href="${conf.root_url+ '/user/' + pp.username}" py:content="pp"/>
-                    <i class="fas fa-user" />
-                </li>
-            </ul>
+            <div class="list-group" id="userList">
+                <a class="list-group-item list-group-item-action flexbox ${class_if(not pp.active,'list-group-item-light')} ${class_if(pp == active_person, 'active')}"
+                   py:for="pp in persons"
+                   href="${conf.root_url+ '/user/' + pp.username}">
+                    <span>${pp}</span>
+                    <span><i class="fas fa-user" /></span>
+                </a>
+            </div>
         </div>
     </py:block>
     <py:block name="content">

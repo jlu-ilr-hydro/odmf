@@ -51,8 +51,6 @@
 
                         }
                 );
-                $('#exportrecords').prop('disabled',!(vt && site));
-                setFilter();
             }
             function setFilter() {
                 // Linklist to datasets
@@ -221,33 +219,14 @@
 
                     </div>
                 </li>
-                <li class="nav-item dropdown mr-auto">
-                    <button id="toggleexport"  data-toggle="dropdown"
-                            class="btn btn-secondary dropdown-toggle"
-                            aria-haspopup="true" aria-expanded="false"
+                <!--li class="nav-item dropdown mr-auto">
+                    <button id="exportrecords" class="btn btn-info"
+                            title="Only available when valuetype and site are selected. Beware multi-instrument and multi-level situations."
+                            data-toggle="tooltip"
                     >
-                        export
+                        export datasets
                     </button>
-                    <div class="dropdown-menu" id="exportdiv" aria-labelledby="toggleexport">
-                        <div class="dropdown-item">
-                            <h4 class="">Export records from all data sets</h4>
-                            <button id="exportrecords" disabled="disabled" class="btn btn-info"
-                                    title="Only available when valuetype and site are selected. Beware multi-instrument and multi-level situations."
-                                    data-toggle="tooltip"
-                            >
-                                export records
-                            </button>
-                            <span >
-                                    <input type="checkbox" id="exportrecordswitherror"
-                                           title="Check, if you want to have records mark as error exported also"
-                                           data-toggle="tooltip"
-                                    />
-                            include error records
-                        </span>
-
-                        </div>
-                    </div>
-                </li>
+                </li-->
             </ul>
             <div id="dslist" class="overflow-auto list-group">
             </div>

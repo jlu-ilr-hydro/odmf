@@ -22,12 +22,22 @@
                 <i class="fas fa-plus mr-2"/>
                 new project
             </a>
-            <div class="nav flex-column nav-pills">
-                <a py:for="proj in projects"
-                   class="nav-link ${['', 'active'][bool(actproject and proj.id==actproject.id)]} ${'' if is_member(Level.logger) else 'disabled'}"
-                   href="${f'{conf.root_url}/project/{proj.id}'}"
-                   py:content="f'{proj.id} - {proj.name}'"
-                />
+            <div class="input-group mb-1">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">
+                        <i class=" fas fa-search" />
+                    </span>
+
+                </div>
+                <input class="form-control sidebar-list-filter" id="listSearch" type="text" placeholder="filter..." data-target="#projList"/>
+            </div>
+            <div class="list-group" id="projList">
+                <a class="list-group-item list-group-item-action flexbox ${class_if(proj == actproject, 'active')}"
+                   py:for="proj in projects"
+                   href="${f'{conf.root_url}/project/{proj.id}'}">
+                    <span>${proj}</span>
+                    <span><i class="fas fa-group" /></span>
+                </a>
             </div>
 
         </div>
