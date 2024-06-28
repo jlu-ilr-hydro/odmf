@@ -48,6 +48,12 @@ Best suited for datasets created in Python or R.
 unnecessary data. `na_values` is used to name conventions of N/A-Values in the file. If the file does not have column headers, 
 or the column headers are in the  skipped rows, please indicate it with `header: null`. In that case, you refer to the columns by its position (starting with 0) or you can give column names with a list: `names: [A, B, C, D]`
 
+## aggregate
+
+In many cases, samples are measured more than once to get a more reliable result. With the aggregate keyword, values for
+duplicated samples can be aggregated, usually as mean value. If no aggregation is given, the values will be imported as duplicate
+records.
+
 ## columns
 
 Each column is addressed by its name or by postion. The columns are treated differently by its type.
@@ -134,8 +140,8 @@ The table may look like:
 !!! table table-striped "Example table"
     | Sample               | N_NO3 | N_NH4 | remarks
     |----------------------|-------|-------|--------
-    | F1_6.5.2023_11:15_60 |2.5785|0.9456| Site: F1 (#137), time: May 6th, 2023 in 60cm depth
-    | B1_7.5.2023_12:45    |2.5785|0.9456| Site: B1 (#123), time: May 7th, 2023 no level
+    | F1_6.5.2023_11:15_60 |2.5785|0.9456  | Site: F1 (#137), time: May 6th, 2023 in 60cm depth
+    | B1_7.5.2023_12:45    |2.5785|0.9456  | Site: B1 (#123), time: May 7th, 2023 no level
 
 ## `.labimport` file
 ```
@@ -176,7 +182,8 @@ columns:                 # Description of each column, use the column name as ob
 
 This example is for data produced by an ioc chromatograph. There are multiple header rows to be skipped. The sample
 name contains the site id (as in the database, no translation needed), and the sampling time (seperated by _).
-Since the column headers are skipped, new column names are assigned in the .labimport file.
+Since the column headers are skipped, new column names are assigned in the .labimport file. Every sample is measured 
+twice, for higher accuracy. The duplicated measurements should be aggregated as the mean value.
 
 !!! table table-striped "Example table"
     | Sample | Name             | Amount | Amount | Amount | Amount | Amount | Amount | Amount
@@ -194,6 +201,7 @@ Since the column headers are skipped, new column names are assigned in the .labi
 
 ```
 driver: read_excel   # pandas function to read the table. See: https://pandas.pydata.org/docs/reference/io.html
+aggregate: mean
 driver-options:
     skiprows: 4   # skip the for header rows
     header: null  # do not expect any column names (they are skipped)

@@ -27,7 +27,7 @@
             cancommit: If True, a commit is possible
         -->
         <div class="container">
-            <h3 class="mt-4">${filename} - lab import</h3>
+            <h1 class="mt-4" py:content="markdown(f'Lab import for {filename.markdown} with {conffile.markdown}')"></h1>
             <div class="alert alert-danger" py:if="bool(errors)">
                 The lab file has errors. You can commit the data without errors, but it will be difficult to ensure the
                 data integrity, if you want to import the errors corrected later. Rather fix the errors now and import

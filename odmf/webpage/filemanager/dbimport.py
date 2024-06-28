@@ -157,8 +157,10 @@ class DbImportPage:
             ]
             return web.render(
                 'import/labimport.html',
-                error = error,
-                filename=path, cancommit=True,
+                error= error,
+                filename=path,
+                conffile=path.glob_up('*.labimport'),
+                cancommit=True,
                 labconf=labconf,
                 datasets=ds_objects,
                 info_dict=info,
