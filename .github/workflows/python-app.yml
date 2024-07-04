@@ -6,7 +6,6 @@ name: ODMF - Observatory Data Management Framework
 on:
   push:
     branches: [ master ]
-    paths: [ .github/workflows ]
   pull_request:
     branches: [ master ]
 
@@ -17,7 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ "3.11" ]
+        python-version: 
+        - "3.11"
+        - "3.12"
 
     steps:
       - uses: actions/checkout@v4

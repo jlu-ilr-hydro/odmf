@@ -26,7 +26,7 @@ class Person(Base):
     mobile = sql.Column(sql.String)
     car_available = sql.Column(sql.Integer, default=0)
     password = sql.Column(sql.VARCHAR)
-    access_level = sql.Column(sql.INTEGER)
+    access_level = sql.Column(sql.INTEGER, nullable=False, default=0)
     active = sql.Column(sql.Boolean, default=True, nullable=False)
 
     def __str__(self):

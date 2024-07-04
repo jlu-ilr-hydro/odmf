@@ -1,8 +1,7 @@
 import pytest
-import pandas as pd
-from .. import conf
-from ..test_db import db
+from ..test_db import db, session, conf
 from .test_di_base import di_conf_file
+from .db_fixtures import project, person
 
 @pytest.fixture
 def csv_file_for_import(tmp_path, di_conf_file):
@@ -17,13 +16,13 @@ def csv_file_for_import(tmp_path, di_conf_file):
     return sample_file
 
 
-def test_load_dataframe(csv_file_for_import, db):
+def test_load_dataframe(csv_file_for_import, db, project, person):
     from odmf.dataimport import pandas_import as pi
     idescr = pi.ImportDescription.from_file(csv_file_for_import)
     df = pi.load_dataframe(idescr=idescr, filepath=csv_file_for_import)
     assert not df.empty
 
-def test_load_dataframe_column_problem(csv_file_for_import, db):
+def test_load_dataframe_column_problem(csv_file_for_import, db, project, person):
     """
     This test is for issue #103, to see if it is working with total_columns
     https://github.com/jlu-ilr-hydro/odmf/issues/103

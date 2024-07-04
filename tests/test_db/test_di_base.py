@@ -2,19 +2,22 @@ import pytest
 import configparser
 
 from .. import conf
-from ..test_db import db
-
+from . import db, session
+from .db_fixtures import project, person
 # Create a config file for the Odyssey Logger
 @pytest.fixture()
 def di_conf_file(tmp_path):
 
     config = configparser.ConfigParser(interpolation=None)
-    config['Tipping Bucket (rain intensity)'] = {'instrument': '5',
-                                                 'skiplines': '9',
-                                                 'delimiter': ',',
-                                                 'decimalpoint': '.',
-                                                 'dateformat': '%d/%m/%Y %H:%M:%S',
-                                                 'datecolumns': '1, 2'}
+    config['Tipping Bucket (rain intensity)'] = {
+        'instrument': '5',
+        'skiplines': '9',
+        'delimiter': ',',
+        'decimalpoint': '.',
+        'dateformat': '%d/%m/%Y %H:%M:%S',
+        'datecolumns': '1, 2',
+        'project': '1'
+    }
 
     config['rain tips'] = {'column': '4',
                            'name': 'rain tips',
@@ -30,7 +33,7 @@ def di_conf_file(tmp_path):
     return config_path
 
 
-def test_from_file(di_conf_file, db):
+def test_from_file(di_conf_file, db, session, project):
     from odmf.dataimport import base
     pattern = '*.conf'
     descr = base.ImportDescription.from_file(path=di_conf_file, pattern=pattern)

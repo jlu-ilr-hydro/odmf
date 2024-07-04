@@ -15,12 +15,11 @@ class PersonPage:
         with db.session_scope() as session:
             persons = session.query(db.Person).order_by(
                 db.sql.desc(db.Person.can_supervise), db.Person.surname)
-
+            me: db.Person = session.query(db.Person).get(users.current.name)
             # 'guest' user can't see himself in the user list
             if users.current.name == 'guest':
                 persons = persons.filter(db.Person.access_level != 0)
                 # TODO: url "host/guest" shouldn't be accessible for the guest user
-
             supervisors = persons.filter(db.Person.can_supervise == True)
             jobs = []
             act_user = act_user or users.current.name
@@ -37,6 +36,15 @@ class PersonPage:
                 except:
                     p_act = session.get(db.Person, users.current.name)
                     error = traceback()
+            user_projects = [p for p, level in p_act.projects()]
+            if me.access_level >= Level.admin:
+                potential_projects = [p for p in session.query(db.Project).order_by(db.Project.id) if p not in user_projects]
+            else:
+                potential_projects = [
+                    p for p, level in me.projects()
+                    if level >= Level.admin and p not in user_projects
+                ]
+
             return web.render(
                 'person.html',
                 persons=persons,
@@ -45,6 +53,7 @@ class PersonPage:
                 error=error, success=msg,
                 jobs=jobs,
                 act_user=act_user,
+                potential_projects=potential_projects,
                 is_self=is_self
             ).render()
 
@@ -59,7 +68,7 @@ class PersonPage:
                 p_act = session.query(db.Person).filter_by(
                     username=username).first()
                 if not p_act:
-                    p_act = db.Person(username=username)
+                    p_act = db.Person(username=username, active=False, access_level=0)
                     session.add(p_act)
                 p_act.email = kwargs.get('email')
                 p_act.firstname = kwargs.get('firstname')
@@ -69,12 +78,13 @@ class PersonPage:
                         db.Person).get(kwargs.get('supervisor'))
                 p_act.telephone = kwargs.get('telephone')
                 p_act.comment = kwargs.get('comment')
-                if kwargs.get('status') == 'on':
+                if kwargs.get('status') == 'on' or is_self(username):
                     p_act.active = True
                 else:
                     p_act.active = False
 
                 # Simple Validation
+
                 if kwargs.get('password') and users.current.is_member(Level.admin) or is_self(username):
                     pw = kwargs['password']
                     pw2 = kwargs.get('password_verify')
@@ -85,15 +95,33 @@ class PersonPage:
                     else:
                         error = 'Passwords not equal'
                 # Simple Validation
-                # if users.current.level == ACCESS_LEVELS['Supervisor']:
                 acl = web.conv(int, kwargs.get('access_level'))
                 if acl and acl <= users.current.level:
                     p_act.access_level = acl
+
+                if error:
+                    raise web.redirect(username, error=error)
                 msg = f'{username} saved'
         else:
             error=f'As a {users.current.Level.name} user, you may only change your own values'
 
         raise web.redirect(username, error=error, msg=msg)
+
+    @expose_for(Level.editor)
+    @web.method.post
+    def addproject(self, username, project, level):
+        with db.session_scope() as session:
+            me: db.Person = session.query(db.Person).get(users.current.name)
+            user: db.Person = session.query(db.Person).get(username)
+            project: db.Project = session.query(db.Project).get(int(project))
+            level = Level(int(level))
+            if project.get_access_level(me) >= Level.admin:
+                project.add_member(user, level)
+                msg = f'Added {user} to {project} as {level.name}'
+            else:
+                raise web.HTTPError(403, f'You are not an admin of the project {project}, can\'t add members')
+        raise web.redirect(username, msg=msg)
+
 
     @expose_for()
     @web.mime.json

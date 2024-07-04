@@ -31,7 +31,7 @@ class ColumnDataset:
                  id: int, user: db.Person, site: db.Site, inst: db.Datasource,
                  valuetypes: typing.Dict[int, db.ValueType], raw: db.Quality,
                  start: datetime.datetime, end: datetime.datetime,
-                 filename: typing.Optional[str] = None
+                 filename: typing.Optional[str] = None, project: db.Project = None
                  ):
 
         self.column = col
@@ -62,7 +62,7 @@ class ColumnDataset:
                 access=col.access if col.access is not None else 1,
                 # Get timezone from descriptor or, if not present from global conf
                 timezone=idescr.timezone or conf.datetime_default_timezone,
-                project=idescr.project)
+                project=project)
             session.add(self.dataset)
 
         self.id = self.dataset.id
@@ -104,6 +104,7 @@ def columndatasets_from_description(
         inst = session.get(db.Datasource, idescr.instrument)
         user = session.get(db.Person, user)
         site = session.get(db.Site, siteid)
+        project = session.get(db.Project, idescr.project)
         # Get "raw" as data quality, to use as a default value
         raw = session.get(db.Quality, 0)
         # Get all the relevant valuetypes (vt) from db as a dict for fast look up
@@ -123,7 +124,7 @@ def columndatasets_from_description(
                     ColumnDataset(
                         session, idescr, col, None,
                         user, site, inst, valuetypes, raw,
-                        start, end, filepath.name
+                        start, end, filepath.name, project
                     )
                 )
             elif not col.ds_column:
@@ -132,7 +133,7 @@ def columndatasets_from_description(
                         session, idescr, col,
                         newid + len(newdatasets),
                         user, site, inst, valuetypes, raw,
-                        start, end, filepath.name
+                        start, end, filepath.name, project
                     )
                 )
 

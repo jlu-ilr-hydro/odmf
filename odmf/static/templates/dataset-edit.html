@@ -230,11 +230,7 @@
                             title="Create a transformed dataset for this">
                         $~f(x)~$ transform
                     </button>
-                    <button py:if="access(Level.admin)" class="btn btn-outline-danger mr-2"
-                            title="remove dataset permanently" data-toggle="tooltip" id="removeds"
-                            data-dsid="${ds_act.id}" data-dsname="${str(ds_act)}" data-dssize="${ds_act.size()}">
-                        <i class="fas fa-trash mr-2"/> delete dataset
-                    </button>
+
                 </div>
                 <div id="edit" class="tab-pane w-100 mr-4 ${['', 'active'][not ds_act.is_defined()]}" role="tabpanel" py:if="access(Level.editor)">
                     <form action="save" method="post">
@@ -555,7 +551,11 @@
                                 <button type="submit" id="save" name="save" class="btn btn-success mr-2" >
                                     <i class="fas fa-check mr-2"/> save changes
                                 </button>
-
+                                <button py:if="access(Level.admin)" class="btn btn-danger mr-2"
+                                        title="remove dataset permanently" data-toggle="tooltip" id="removeds"
+                                        data-dsid="${ds_act.id}" data-dsname="${str(ds_act)}" data-dssize="${ds_act.size()}">
+                                    <i class="fas fa-trash mr-2"/> delete dataset
+                                </button>
                             </div>
                         </div>
                     </form>
