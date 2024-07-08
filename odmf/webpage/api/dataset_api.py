@@ -128,6 +128,7 @@ class DatasetAPI(BaseAPI):
     @web.method.get
     def list(
             self,
+            project: typing.Optional[int] = None,
             valuetype: typing.Optional[int] = None,
             user: typing.Optional[str] = None,
             site: typing.Optional[int] = None,
@@ -141,11 +142,36 @@ class DatasetAPI(BaseAPI):
         """
         web.mime.json.set()
         with db.session_scope() as session:
-            datasets = db.Dataset.filter(session, valuetype, user, site, date, instrument, type, level)
+            datasets = db.Dataset.filter(session, project, valuetype, user, site, date, instrument, type, level)
             return web.json_out([
                 ds.id
                 for ds in datasets
             ])
+    @expose_for()
+    @web.method.get
+    def listobj(
+            self,
+            project: typing.Optional[int] = None,
+            valuetype: typing.Optional[int] = None,
+            user: typing.Optional[str] = None,
+            site: typing.Optional[int] = None,
+            date: typing.Optional[datetime.datetime] = None,
+            instrument: typing.Optional[int] = None,
+            type: typing.Optional[str] = None,
+            level: typing.Optional[float] = None
+    ):
+        """
+        Returns a JSON list of all available dataset objects
+        """
+        web.mime.json.set()
+        ds: db.Dataset
+        with db.session_scope() as session:
+            datasets = db.Dataset.filter(session, project, valuetype, user, site, date, instrument, type, level)
+            return web.json_out([
+                ds.__jdict__()
+                for ds in datasets
+            ])
+
 
     @expose_for(Level.editor)
     @web.method.post_or_put
