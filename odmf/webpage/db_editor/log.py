@@ -35,7 +35,7 @@ class LogPage:
 
     @expose_for(Level.logger)
     @web.method.get
-    def new(self, siteid=None):
+    def new(self, siteid=None, type=None, message=None):
         with db.session_scope() as session:
             log = db.Log(id=db.newid(db.Log, session),
                          message='<Log Message>', time=datetime.today())
@@ -44,12 +44,17 @@ class LogPage:
                 log.user = session.get(db.Person, user)
             if siteid:
                 log.site = session.get(db.Site, int(siteid))
+            if type:
+                log.type = type
+            if message:
+                log.message = message
             log.time = datetime.today()
             sitelist = session.query(db.Site).order_by(db.sql.asc(db.Site.id))
             personlist = session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname)
+            typelist = session.scalars(db.sql.select(db.Log.type).distinct())
             return web.render(
                 'log.html', actuallog=log,
-                types=session.scalars(db.sql.select(db.Log.type).distinct()),
+                types=typelist,
                 sites=sitelist,
                 persons=personlist
             ).render()
