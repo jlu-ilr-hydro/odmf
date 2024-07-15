@@ -26,7 +26,7 @@ While the docker installation in preferred, odmf can be installed in a python vi
 
 Install virtual environment in directory `venv` and upgrade infrastructure, and activate it
 
-    $ python3.9 -m venv venv
+    $ python -m venv venv
     $ source venv/bin/activate
     $ python -m pip install --upgrade pip wheel setuptools
 
@@ -39,13 +39,3 @@ Check command line tool
     $ odmf --help
 
 
-    $ pip install -e odmf-src
-    $ odmf --help
-    $ 
-
-Change the config with the instructions from [conf.py](https://jlu-ilr-hydro.github.io/odmf/source/conf.py) wiki page.
-When the configuration is edited to meet your requirements, start the server and browse to https://localhost:8080
-
-    $ python3 start.py
-
-[Visit the institute's homepage](http://www.uni-giessen.de/faculties/f09/institutes/ilr/hydro?set_language=en)

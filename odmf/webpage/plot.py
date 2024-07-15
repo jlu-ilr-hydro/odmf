@@ -19,6 +19,7 @@ from datetime import datetime
 import io
 import json
 from ..tools import Path as OPath
+from ..config import conf
 from ..plot import Plot
 from .markdown import MarkDown
 from .. import db
@@ -122,7 +123,7 @@ class PlotFileDialog:
         return str(p.parent()).encode('utf-8')
 
 
-@web.show_in_nav_for(0, 'chart-line')
+@web.show_in_nav_for(1, 'chart-line')
 class PlotPage(object):
     filedialog = PlotFileDialog()
 
@@ -210,7 +211,7 @@ class PlotPage(object):
                 interpolation_method, interpolation_limit
             )
         except Exception as e:
-            raise web.redirect(url='/plot', error=str(e))
+            raise web.redirect(conf.url('/plot'), error=str(e))
 
         plotname = plot.name or f'export-{datetime.now():%Y-%m-%d_%H-%M}'
 

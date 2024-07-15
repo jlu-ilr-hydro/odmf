@@ -170,7 +170,7 @@ $(function() {
                     $('#error').html(data);
                     $('#error-row').removeClass('d-none');
                 } else {
-                    window.location.href = odmf_ref('/dataset/?success=ds' + btn.data('dsid') + ' deleted');
+                    window.location.href = odmf_ref('/dataset/?message=ds' + btn.data('dsid') + ' deleted');
                 }
             });
     }

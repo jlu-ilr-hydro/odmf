@@ -28,10 +28,16 @@ class HTTPAuthError(cherrypy.HTTPError):
 
     def get_error_page(self, *args, **kwargs):
         from .lib import render
+        from .. import db
         user = users.current
         error = f'Sorry, {user.name}, your status as a **{user.group}** is not sufficient to access **{self.referrer}**. ' \
                 f'Either log in with more privileges or ask the administrators for elevated privileges.'
-        return render('login.html', error=error, frompage='').render().encode('utf-8')
+        try:
+            with db.session_scope() as session:
+                admins = session.scalars(db.sql.select(db.Person).where(db.Person.access_level >= 4, db.Person.active == True))
+                return render('login.html', admins=admins, error=error, frompage='').render().encode('utf-8')
+        except:
+            return render('login.html', admins=[], error=error, frompage='').render().encode('utf-8')
 
 
 def check_auth(*args, **kwargs):
@@ -82,7 +88,7 @@ class User(object):
 
     def __init__(self, name, level, password, projects=None):
         self.name = name
-        self.level = Level(level)
+        self.level = Level(level or 0)
         self.password = password
         self.person = None
         self.projects: typing.Dict[int, Level] = projects or {}
@@ -113,7 +119,8 @@ class User(object):
 
 
     def check(self, password):
-
+        if not password or not self.password:
+            return False
         # Salt of the password out of the db into unicode too
         salt = get_bcrypt_salt(self.password)
 

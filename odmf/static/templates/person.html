@@ -144,7 +144,7 @@
                               class="form-control"
                               rows="4"
                               py:content="U.comment"
-                              py:attrs="prop(disabled=not (is_member('supervisor') or is_self(U.username)))"
+                              py:attrs="prop(disabled=not (is_member(Level.supervisor) or is_self(U.username)))"
                     />
                 </div>
 
@@ -165,6 +165,25 @@
                     <span class="badge badge-warning float-right" py:content="level.name"/>
                 </a>
             </div>
+            <a href="#add-member" py:if="potential_projects"
+               class="btn-sm btn-primary dropdown-toggle" data-toggle="collapse"
+               aria-controls="add-member" aria-role="button">
+                <i class="fas fa-plus"/> add project ...
+            </a>
+            <div id="add-member" class="collapse" py:if="potential_projects">
+                <form method="post" action="addproject" class="form-row">
+                    <input type="hidden" value="${active_person.username}" name="username"/>
+                    <select id="add_project" class="form-control col-sm-8 " name="project">
+                        <option py:for="p in potential_projects" value="${p.id}">${p}</option>
+                    </select>
+                    <select id="add_level" class="form-control col-sm-3" name="level">
+                        <option py:for="l in Level" value="${l.value}" py:content="l.name"/>
+                    </select>
+                    <button class="btn btn-success btn-sm col-sm-1" type="submit" title="add record"><i class="fas fa-check"/></button>
+                </form>
+
+            </div>
+
 
         </div>
 

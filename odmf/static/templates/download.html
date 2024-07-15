@@ -25,9 +25,10 @@
                 });
                 $('.copy-button').on('click', function() {
                     let name = $(this).data('name');
-                    let newfilename = window.prompt("New filename", 'copy_of_' + name)
+                    let action = $(this).data('action')
+                    let newfilename = window.prompt("New filename", action + '_of_' + name)
                     if (newfilename) {
-                        $.post(odmf_ref('/download/copyfile/'), {dir: '${curdir}',filename: name, newfilename: newfilename},
+                        $.post(odmf_ref('/download/copyfile/'), {dir: '${curdir}',filename: name, newfilename: newfilename, action:action},
                             function(success_url) {
                                 window.location = success_url;
                             }
@@ -155,59 +156,93 @@
                             <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
                             <span class="badge bg-warning ml-8 float-right" py:content="modes[curdir].name"/>
                         </h5>
-                        <ul class="nav flex-column card-text mb-3" id="files">
-
-                            <li class="nav-item flexbox mt-1 pt-1 border-top" py:if="not curdir.isroot()" >
+                        <div class="list-group flex-column card-text mb-3" id="files">
+                            <a class="list-group-item list-group-action flexbox mt-1 pt-1 border-top"
+                               py:if="not curdir.isroot()"
+                               href="${curdir.parent().href}"
+                            >
                                 <span >
-                                    <a href="${curdir.parent().href}" class="nav-link">
-                                        <i class="fas fa-folder-open" />
-                                        <span >..</span>
-                                    </a>
+                                    <i class="fas fa-folder-open" />
+                                    <span >..</span>
                                 </span>
-                            </li>
-                            <li py:for="d in directories" class="nav-item flexbox mt-1 pt-1 border-top">
-                                <span class="nav-link">
-                                    <a href="${d.href}" class="${'' if modes[d] else 'disabled'}">
+                            </a>
+                            <div py:for="d in directories"
+                               py:if="modes[d]"
+                               class="list-group-item list-group-item-action"
+                               href="${d.href}"
+                            >
+                                <nav class="nav flexbox">
+                                    <a href="${d.href}" class="nav-link active">
                                         <i class="fas fa-folder fa-lg" />
                                         <span py:content="d.basename" />
                                     </a>
-                                    <span class="badge bg-warning text-bg-warning" py:content="modes[d].name"/>
-                                </span>
-                                <span>
-                                    <button class="btn btn-danger remove-button" data-name="${d.basename}"
-                                            py:if="modes[d]>=Mode.admin and d.isempty()"
-                                            title="remove directory" data-toggle="tooltip">
-                                        <i class="fas fa-trash-can" />
-                                    </button>
-                                </span>
-                            </li>
-                            <li py:for="f in files" class="nav-item flexbox mt-1 pt-1 border-top ${'hiddenfile' if f.ishidden() else ''}" >
-                                <span >
-                                    <a href="${f.href}" class="nav-link">
+                                    <div class="dropdown">
+                                        <span class="badge bg-warning text-bg-warning" py:content="modes[d].name"/>
+                                        <button class="btn btn-sm btn-light dropdown-toggle"
+                                                type="button" data-toggle="dropdown"
+                                                aria-expanded="false" aria-haspopup="true"
+                                                py:if="modes[curdir]>=Mode.write">
+
+                                        </button>
+
+                                        <div class="dropdown-menu" >
+                                            <a class="dropdown-item copy-button" data-name="${d.basename}" data-action="rename"
+                                               py:if="modes[d]>=Mode.admin">
+                                                <i class="fas fa-pen-to-square" /> rename
+                                            </a>
+                                            <a class="dropdown-item remove-button" data-name="${d.basename}"
+                                               py:if="modes[d]>=Mode.admin and d.isempty()">
+                                                <i class="fas fa-trash-can" /> remove empty directory
+                                            </a>
+                                        </div>
+                                    </div>
+                                </nav>
+                            </div>
+                            <div py:for="f in files" class="list-group-item  border-top ${class_if(f.ishidden(), 'hiddenfile')}">
+                                <nav class="nav flexbox">
+                                    <a href="${f.href}" class="nav-link active">
                                         <i class="fas fa-${handler[f].icon} fa-lg" />
                                         <span py:content="f.basename" class="mr-auto"/>
                                         <span class="ml-4 badge badge-secondary" py:content="f.formatsize()" />
                                     </a>
-                                </span>
-                                <span>
 
-                                    <button py:if="f.basename in import_history" class="btn btn-success" aria-expanded="false" aria-controls="import-history-${f.basename}"
-                                            data-toggle="popover" title="Already imported" data-content="${markdown(import_history[f.basename])}" data-html="true"
-                                    >
-                                        <i class="fas fa-check"/>
-                                    </button>
-                                    <button class="btn btn-secondary copy-button" data-name="${f.basename}" py:if="modes[curdir]>=Mode.write"
-                                            title="copy file" data-toggle="tooltip">
-                                        <i class="fas fa-copy" />
-                                    </button>
-                                    <button class="btn btn-danger remove-button" data-name="${f.basename}" py:if="modes[curdir]>=Mode.admin"
-                                            title="remove file" data-toggle="tooltip">
-                                        <i class="fas fa-trash-can" />
-                                    </button>
-                                </span>
+                                    <div class="nav-item dropdown">
+                                        <a py:if="f.basename in import_history"
+                                             class="text-success" href="#"
+                                             aria-expanded="false" aria-controls="import-history-${f.basename}"
+                                             data-toggle="popover" title="Already imported" data-content="${markdown(import_history[f.basename])}" data-html="true"
+                                        >
+                                            <i class="fas fa-check"/>
+                                        </a>
+                                        <button class="btn btn-sm btn-light dropdown-toggle"
+                                                type="button" data-toggle="dropdown"
+                                                aria-expanded="false" aria-haspopup="true"
+                                                py:if="modes[curdir]>=Mode.write">
 
-                            </li>
-                        </ul>
+                                        </button>
+
+                                        <div class="dropdown-menu" >
+                                            <a class="dropdown-item copy-button" data-name="${f.basename}" py:if="modes[curdir]>=Mode.write" data-action="copy"
+                                            >
+                                                <i class="fas fa-copy" /> copy
+                                            </a>
+                                            <a class="dropdown-item copy-button" data-name="${f.basename}" py:if="modes[curdir]>=Mode.write" data-action="rename">
+                                                <i class="fas fa-file-pen"/> rename
+                                            </a>
+                                            <a class="dropdown-item remove-button"
+                                               data-name="${f.basename}" py:if="modes[curdir]>=Mode.admin"
+                                            >
+                                                <i class="fas fa-trash-can" /> delete
+                                            </a>
+
+                                        </div>
+
+                                    </div>
+
+                                </nav>
+                            </div>
+
+                        </div>
                         <div class="nav">
                             <button class="btn btn-primary dropdown-toggle mr-3 nav-item" type="button"
                                     id="addFileDropdownButton" data-toggle="dropdown" py:attrs="prop(disabled=modes[curdir]==Mode.read)"

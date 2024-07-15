@@ -184,10 +184,8 @@
                     <a href="#add-member" py:if="is_member(Level.admin, actproject.id)" class="btn-sm btn-primary dropdown-toggle" data-toggle="collapse" aria-controls="add-member" aria-role="button"><i class="fas fa-plus"/> add member...</a>
                     <div py:if="is_member(Level.admin, actproject.id)" class="collapse" id="add-member">
                         <form class="form-row border" method="post" action="add_member">
-                            <input type="hidden" value="${actproject.id}" xname="project_id"/>
-
                             <select id="add_who" class="form-control col-sm-8 select2" name="member_name" >
-                                <option value="${p.username}" py:for="p in persons" py:content="f'{p} ({Level(p.access_level).name})'"/>
+                                <option value="${p.username}" py:for="p in persons" py:content="f'{p} ({Level(p.access_level or 0).name})'"/>
                             </select>
                             <select id="add_level" class="form-control col-sm-3" name="access_level">
                                 <option py:for="l in Level" value="${l.value}" py:content="l.name"/>

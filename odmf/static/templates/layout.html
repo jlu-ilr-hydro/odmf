@@ -115,6 +115,9 @@
                         });
                 return false;
             });
+            $('.close-button').on('click', function() {
+                $(this).parent().parent().addClass('d-none');
+            })
             $('.datetime-local-now').val(datetime_local_now())
             $(".sidebar-list-filter").on("keyup", function() {
                 let value = $(this).val().toLowerCase();
@@ -229,33 +232,42 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 p-0 h-100">
             <div class="container-fluid">
                 <div id="error-msg" class="alert alert-danger w-100 ${dnone_if(not error)}" role="alert">
-                    <div class="row">
-                        <div class="col-lg-1">
+                    <div class="d-flex flex-row">
+                        <div class="mr-2">
                             <i class="fas fa-exclamation-circle fa-3x"/>
                         </div>
-                        <div class="col-lg-11">
+                        <div class="">
                             <p class="lead" id="errortext" py:content="markdown(error)"/>
                         </div>
+                        <a class="ml-auto close-button">
+                            <i class="fas fa-times"/>
+                        </a>
                     </div>
                 </div>
                 <div id="info-msg" class="alert alert-info w-100 ${dnone_if(not info)}" role="alert"  >
-                    <div class="row">
-                        <div class="col-lg-1">
+                    <div class="d-flex flex-row">
+                        <div class="mr-2">
                             <i class="fas fa-info-circle fa-3x"/>
                         </div>
-                        <div class="col-lg-11">
+                        <div class="">
                             <p class="lead" py:content="markdown(info)"/>
                         </div>
+                        <a class="ml-auto close-button">
+                            <i class="fas fa-times"/>
+                        </a>
                     </div>
                 </div>
                 <div id="success-msg" class="alert alert-success w-100 ${dnone_if(not success)}" role="alert"  >
-                    <div class="row">
-                        <div class="col-lg-1">
+                    <div class="d-flex flex-row">
+                        <div class="mr-2">
                             <i class="fas fa-info-circle fa-3x"/>
                         </div>
-                        <div class="col-lg-11">
+                        <div class="">
                             <p class="lead" py:content="markdown(success)"/>
                         </div>
+                        <a class="ml-auto close-button">
+                            <i class="fas fa-times"/>
+                        </a>
                     </div>
                 </div>
 
