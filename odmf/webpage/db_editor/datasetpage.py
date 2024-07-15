@@ -356,6 +356,28 @@ class DatasetPage:
                 'limit': limit,
                 'page': page
             })
+    @expose_for()
+    @web.method.post
+    @web.mime.xlsx
+    def to_excel(self, valuetype=None, user=None, site=None,
+             date=None, instrument=None, dstype=None,
+             level=None, project=None, onlyaccess=False, limit=None, page=None):
+        """Exports the current dataset list as an excel file"""
+        import pandas as pd
+        from ...tools.exportdatasets import serve_dataframe
+        with db.session_scope() as session:
+            dataset_q = self.subset(
+                session, valuetype, user, site,
+                date, instrument, dstype, level, onlyaccess, project
+            ).order_by(db.Dataset.id)
+            if limit:
+                dataset_q = dataset_q.limit(int(limit))
+            if page:
+                dataset_q = dataset_q.offset((int(page) - 1) * int(limit))
+            datasets = pd.read_sql(dataset_q.statement, session.bind)
+            name = f'datasets-{datetime.now():%Y-%m-%d}.xlsx'
+            return serve_dataframe(datasets, name)
+
 
     @expose_for(Level.editor)
     @web.method.post

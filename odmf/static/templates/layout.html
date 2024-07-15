@@ -119,6 +119,13 @@
                 $(this).parent().parent().addClass('d-none');
             })
             $('.datetime-local-now').val(datetime_local_now())
+            $(".sidebar-list-filter").on("keyup", function() {
+                let value = $(this).val().toLowerCase();
+                let target = $(this).data('target')
+                $(target + ' a').filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
 
         });
         //]]>

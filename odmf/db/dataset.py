@@ -246,6 +246,7 @@ class Dataset(Base):
     @classmethod
     def filter(
             cls, session,
+            project: Optional[int]=None,
             valuetype: Optional[int]=None,
             user: Optional[str]=None,
             site: Optional[int]=None,

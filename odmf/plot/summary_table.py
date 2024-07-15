@@ -36,7 +36,7 @@ def summarize_item(
     :param type: timeseries or transformed_timeseries
     :return: A dict with name, value, unit, aggregation and n (number of measurements)
     """
-    ds_filter = db.Dataset.filter(session, valuetype, user, site, date, instrument, type, level)
+    ds_filter = db.Dataset.filter(session, None, valuetype, user, site, date, instrument, type, level)
     if not ds_filter.count():
         return dict(name='No data', value = np.NaN, unit='', aggregation=aggregate, n=0, start = pd.NaT, end=pd.NaT)
     else:

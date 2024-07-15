@@ -218,6 +218,30 @@ def export_dataframe(stream, data: pd.DataFrame, fileformat: str, index_label='t
         data.to_parquet(stream)
     return stream
 
+def serve_dataframe(data: pd.DataFrame, name:str, index_label=None):
+    """
+    Prepares a dataframe for download
+    :param data: the dataframe to export
+    :param fileformat:
+    :param index_label:
+    :return:
+    """
+    from io import BytesIO
+    from cherrypy.lib.static import serve_fileobj
+    from ..webpage import lib as web
+    stream = BytesIO()
+    fileformat = name.split('.')[-1]
+    export_dataframe(stream, data, fileformat, index_label)
+    stream.seek(0)
+    mime = web.mime.get(fileformat, web.mime.binary)
+    return serve_fileobj(
+                stream,
+                str(mime),
+                'attachment',
+                name
+            )
+
+
 
 if __name__ == '__main__':
     import numpy as np

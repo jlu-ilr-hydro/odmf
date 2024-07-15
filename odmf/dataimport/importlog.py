@@ -12,7 +12,10 @@ class LogImportError(RuntimeError):
     pass
 
 class LogImportStructError(LogImportError):
-    pass
+    @classmethod
+    def join(cls, subproblems):
+        return cls('import of log-data not possible: ' + ', '.join(f' - {str(sp)}' for sp in subproblems))
+
 
 class LogImportRowError(LogImportError):
     """
@@ -79,19 +82,28 @@ class LogbookImport:
         if not all(c in df.columns for c in "time|site|dataset|value|logtype|message".split('|')):
             raise LogImportStructError('The log excel sheet misses some of the follwing columns: '
                                'time|site|dataset|value|logtype|message')
-
-        make_time_column_as_datetime(df)
+        errors = []
+        try:
+            make_time_column_as_datetime(df)
+        except LogImportStructError as e:
+            errors.append(e)
 
         # Convert site and dataset to int, just to be sure
+
         for c in ('site', 'dataset'):
-            df[c] = df[c].astype('Int64')
+            try:
+                df[c] = df[c].astype('Int64')
+            except (ValueError, TypeError) as e:
+                errors.append(LogImportStructError(f'column {c} is not numeric'))
 
         with db.session_scope() as session:
             _user: db.Person = session.get(db.Person, user)
             if not _user:
-                raise RuntimeError('%s is not a valid user' % user)
+                errors.append(LogImportStructError('%s is not a valid user' % user))
             else:
                 self.user = _user.username
+        if errors:
+            raise LogImportStructError.join(errors)
 
     def __call__(self, commit=False):
         logs = []

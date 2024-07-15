@@ -40,6 +40,17 @@ columns:                 # Description of each column, use the column name as ob
         valuetype: 4
 """
 
+class LabImportError(RuntimeError):
+    def __init__(self, path: Path, msg):
+        self.path = path
+        self.msg = msg
+    def __str__(self):
+        if li_file := self.path.glob_up('*.labimport'):
+            return f'Lab import error for {self.path.markdown} with {li_file.markdown} : {self.msg}'
+        else:
+            return f'Lab import error for {self.path.markdown} : {self.msg}'
+
+
 def find_dataset(session: db.Session, time=None, site=None, level=None, valuetype=None, instrument=None, dataset=None, **kwargs):
     """
     Finds a dataset, from a rough description.
@@ -52,7 +63,7 @@ def find_dataset(session: db.Session, time=None, site=None, level=None, valuetyp
         if ds := session.get(db.Dataset, dataset):
             return ds
         else:
-            raise ValueError(f"Dataset {dataset} not found")
+            raise LabImportError(f"Dataset {dataset} not found")
     else:
         def type_or_none(cls, x):
             if x is None:
@@ -191,14 +202,14 @@ def rename_column_by_type(table: pd.DataFrame, labcolumns, *coltypes):
         if column := get_type_column(coltype, labcolumns):
             table.rename(columns={column: coltype}, inplace=True)
 
-def clean_and_aggregate_df_melt(df_melt: pd.DataFrame):
+def clean_df_melt(df_melt: pd.DataFrame):
     """Removes unused columns and aggregates dataframe"""
     keep_cols = ['dataset', 'time', 'value', 'sample']
     df_melt_clean = df_melt.copy()
     for col in df_melt_clean.columns:
         if col not in keep_cols:
             del df_melt_clean[col]
-    return df_melt_clean.groupby(['dataset', 'time', 'sample']).mean().reset_index()
+    return df_melt_clean
 
 
 def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typing.Sequence[dict]):
@@ -214,11 +225,14 @@ def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typin
     with conffile.open() as f:
         labconf = yaml.safe_load(f)
 
-    read = getattr(pd, labconf.get('driver', 'read_excel'))
-    df: pd.DataFrame = read(filename.absolute, **labconf.get('driver-options', {}))
-    labcolumns = check_columns(df, labconf.get('columns', {}))
+    try:
+        read = getattr(pd, labconf.get('driver', 'read_excel'))
+        df: pd.DataFrame = read(filename.absolute, **labconf.get('driver-options', {}))
+        labcolumns = check_columns(df, labconf.get('columns', {}))
+        rename_column_by_type(df, labcolumns, 'time', 'dataset', 'site', 'level')
 
-    rename_column_by_type(df, labcolumns, 'time', 'dataset', 'site', 'level')
+    except Exception as e:
+        raise LabImportError(filename, str(e))
 
     if samplecolumn := get_type_column('sample', labcolumns):
         apply_sample_column(df, labcolumns, samplecolumn)
@@ -231,7 +245,12 @@ def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typin
     datasets, errors = find_datasets(df_melt)
     df_melt['dataset'] = datasets
     df_melt = df_melt.dropna()
-    df_agg = clean_and_aggregate_df_melt(df_melt)
+    df_melt = clean_df_melt(df_melt)
+
+    if agg_method := labconf.get('aggregate'):
+        df_agg = df_melt.groupby(['dataset', 'time', 'sample']).agg(agg_method).reset_index()
+    else:
+        df_agg = df_melt
     info = {
         'measured' : len(df_melt),
         'aggregated' : len(df_agg),

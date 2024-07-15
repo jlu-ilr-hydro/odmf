@@ -38,7 +38,7 @@ date, time and value, and you are done.
 # help:import/log
 
 You can write down your findings in a specially formatted excel file (or transform your data in that format) to import records
-and log messages from the field.
+and log messages from the field to **append existing datasets**.
 
 more: help:import/log
 
@@ -48,7 +48,7 @@ Data-Loggers usually create tabular data for a number of sensors at the same sit
 (in [INI-format](https://en.wikipedia.org/wiki/INI_file)), that describe the tabular format of the data logger.
 The .conf file is either in the same directory as the data file or in a directory above. Excel and CSV-Files with
 a .conf file in the same directory or in a directory above can be imported. The .conf file consists of a general section
-describing the data format and sections for each column that should be imported. Each data column creates a new dataset,
+describing the data format and sections for each column that should be imported. Each data column **creates a new dataset**,
 except the column is declared to append to an existing dataset.
 
 more: help:import/conf
@@ -58,7 +58,7 @@ more: help:import/conf
 Lab analysis devices usually produce result lists with a mangled sample name and several columns of results. With an
 `.labimport` file in [yaml format](https://en.wikipedia.org/wiki/YAML), the file structure and a method how to unmangle
 the sample name can be provided. This is not simple and one should seek help from a person who knows a bit about 
-[RegEx](https://en.wikipedia.org/wiki/Regular_expression)
+[RegEx](https://en.wikipedia.org/wiki/Regular_expression). 
 
  more: help:import/lab
 

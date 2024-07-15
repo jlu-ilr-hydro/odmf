@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <py:extends href="layout.html" xmlns:py="">
     <py:block name="scripts">
-        <!-- insert additional scripts -->
     </py:block>
     <py:block name="style">
         <!-- insert additional styles -->
@@ -12,12 +11,22 @@
                 <i class="fas fa-plus mr-2"/>
                 new valuetype
             </a>
-            <div class="nav flex-column nav-pills" >
-                <a py:for="v in valuetypes"
-                   class="nav-link ${['', 'active'][v.id==actualvaluetype.id]}"
-                   href="${f'{conf.root_url}/valuetype/{v.id}'}"
-                   py:content="v"
-                />
+            <div class="input-group mb-1">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">
+                        <i class=" fas fa-search" />
+                    </span>
+
+                </div>
+                <input class="form-control sidebar-list-filter" id="listSearch" type="text" placeholder="filter..." data-target="#vtList"/>
+            </div>
+            <div class="list-group" id="vtList">
+                <a class="list-group-item list-group-item-action flexbox ${class_if(v ==actualvaluetype, 'active')}"
+                   py:for="v in valuetypes"
+                   href="${f'{conf.root_url}/valuetype/{v.id}'}">
+                    <span>${v}</span>
+                    <span><i class="fas fa-ruler" /></span>
+                </a>
             </div>
 
         </div>
