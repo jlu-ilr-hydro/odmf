@@ -120,7 +120,6 @@
     </py:block>
     <py:block name="sidebar">
         <div class="container-fluid ">
-
             <div id="collapse-buttons" class="btn-group-vertical w-100">
                 <button class="btn btn-outline-danger" id="btn-clf" role="button">
                     <i class="fas fa-times-circle"/> clear figure
@@ -152,7 +151,23 @@
                 </div>
             </div>
             <div id="content-tree" class="mt-2 w-100">
-                <h4 id="plot-name">name...</h4>
+                <div class="row">
+                    <h4 id="plot-name" class="col-auto mr-auto">name...</h4>
+                    <div class="col-auto">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="autoreload_switch" py:attrs="prop(checked=autoreload)"/>
+                            <label class="custom-control-label"
+                                   for="autoreload_switch"
+                                   data-toggle="tooltip"
+                                   title="Automatic reload of data, switches off automatically, if refresh takes longer than 1000 ms ">
+                                <i class="fas fa-refresh"/>
+                            </label>
+                        </div>
+                        <div class="small text-secondary text-right" id="rendertime" data-toggle="tooltip" title="render time"></div>
+                    </div>
+                </div>
+
+
 
                 <!--
                     Subplots
@@ -168,6 +183,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
 
         </div>

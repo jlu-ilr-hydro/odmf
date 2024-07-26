@@ -129,7 +129,7 @@ class PlotPage(object):
 
     @expose_for(plotgroup)
     @web.method.get
-    def index(self, f=None, j=None, error=''):
+    def index(self, f=None, j=None, autoreload=False, error=''):
         """
         Shows the plot page
 
@@ -163,11 +163,12 @@ class PlotPage(object):
         if j:
             try:
                 plot = json.loads(j)
+                autoreload = True
             except json.JSONDecodeError as e:
                 error = '\n'.join(f'{i:3} | {l}' for i, l in enumerate(j.split('\n'))) + f'\n\n {e}'
                 plot = None
 
-        return web.render('plot.html', plot=plot, error=error.replace("'", r"\'")).render()
+        return web.render('plot.html', plot=plot, autoreload=autoreload, error=error.replace("'", r"\'")).render()
 
     @expose_for(plotgroup)
     @web.method.get
