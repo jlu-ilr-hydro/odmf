@@ -5,6 +5,7 @@
         $('#timeselect').on('change', event => {
             let start = $('#timeselect').val()
             $('#manualTimeControl').toggleClass('d-none', !(start===''))
+
         })
         $('#manualTimeControl').toggleClass('d-none', plot.start < 0)
 

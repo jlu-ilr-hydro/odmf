@@ -72,7 +72,7 @@ function set_content_tree_handlers() {
 		}
 
 	})
-	
+
 	$('.moveline').on('click', event =>{
 		let btn = $(event.currentTarget)
 		let sp = plot.subplots[btn.data('subplot')]
@@ -90,7 +90,7 @@ function set_content_tree_handlers() {
 		let subplot=$(event.currentTarget).data('subplot');
 		let html = `<div class="dropdown-item sp-logsite-item" data-subplot="${subplot}">no logs</div>\n` +
 			window.plot.get_sites(subplot).map(
-			value => `<div class="dropdown-item sp-logsite-item" data-subplot="${subplot}" data-site="${value}">#${value}</div>`
+				value => `<div class="dropdown-item sp-logsite-item" data-subplot="${subplot}" data-site="${value}">#${value}</div>`
 			).reduce((acc, v)=>acc + '\n' + v)
 		$(`.sp-logsite-list[data-subplot=${subplot}]`).html(html)
 		$(`.sp-logsite-item[data-subplot=${subplot}]`).on('click', event =>{
@@ -370,22 +370,22 @@ function set_line_dialog_handlers() {
 		let dlg =$('#newline-dialog')
 		let sp = button.data('subplot')
 		let ln = button.data('lineno')
-    	dlg.data('subplot', sp);
-    	dlg.data('lineno', ln);
-    	dlg.data('replace', button.data('replace'));
-    	let plot = window.plot;
-    	let line = {linestyle: '-'}
-    	if (!(sp >= 0)) {
-    		$('#error').html('#' + button.id + ' has no subplot').parent().parent().fadeIn()
+		dlg.data('subplot', sp);
+		dlg.data('lineno', ln);
+		dlg.data('replace', button.data('replace'));
+		let plot = window.plot;
+		let line = {linestyle: '-'}
+		if (!(sp >= 0)) {
+			$('#error').html('#' + button.id + ' has no subplot').parent().parent().fadeIn()
 		}
-    	else if (ln >= 0) {
-    		line = plot.subplots[sp].lines[ln]
+		else if (ln >= 0) {
+			line = plot.subplots[sp].lines[ln]
 		}
 		lineDialogPopSelect(line.valuetype, line.site, ()=>{line_to_dialog(line)})
 
-    });
+	});
 
-    $('#newline-dialog .dataset-select').on('change', () => {
+	$('#newline-dialog .dataset-select').on('change', () => {
 		let dlg =$('#newline-dialog')
 		let line = line_from_dialog()
 		let	valuetype = parseInt($('#nl-value').val())
@@ -400,7 +400,7 @@ function set_line_dialog_handlers() {
 
 	});
 
-    $('#newline-dialog .nl-style').on('change', () => {
+	$('#newline-dialog .nl-style').on('change', () => {
 		let	valuetype = parseInt($('#nl-value').val())
 		let site = parseInt($('#nl-site').val())
 		let linestyle = $('#nl-linestyle').val()
@@ -413,9 +413,9 @@ function set_line_dialog_handlers() {
 
 	})
 
-    $('#nl-OK').on('click', () => {
-    	let dlg =$('#newline-dialog')
-    	let plot = window.plot
+	$('#nl-OK').on('click', () => {
+		let dlg =$('#newline-dialog')
+		let plot = window.plot
 		let line = line_from_dialog()
 		let sp_no = dlg.data('subplot')
 		let line_no = dlg.data('lineno')
@@ -479,18 +479,18 @@ $(() => {
 	$('#addsubplot').on('click', e => {
 		window.plot.addsubplot()
 	})
-    // Fluid layout doesn't seem to support 100% height; manually set it
-    $(window).resize(() => {
-    	let plotElement = $('#plot');
-    	let po = plotElement.offset();
-    	po.totalHeight = $(window).height();
+	// Fluid layout doesn't seem to support 100% height; manually set it
+	$(window).resize(() => {
+		let plotElement = $('#plot');
+		let po = plotElement.offset();
+		po.totalHeight = $(window).height();
 		po.em1 = parseFloat(getComputedStyle(plotElement[0]).fontSize);
-    	let plotHeight = po.totalHeight - po.top - 2 * po.em1;
-    	plotElement.height(plotHeight);
+		let plotHeight = po.totalHeight - po.top - 2 * po.em1;
+		plotElement.height(plotHeight);
 		window.plot.apply(plotElement.width(), plotHeight)
-    });
+	});
 
-    $(window).resize();
+	$(window).resize();
 
 	set_line_dialog_handlers()
 
@@ -520,6 +520,45 @@ $(() => {
 		if (confirm('Do you really want to delete your plot "' + fn + '" from the server'))
 			$.post('deleteplotfile',{filename:fn},seterror);
 	});
+
+	$('#timeselect').on('change', event => {
+		let start = $('#timeselect').val()
+		$('#manualTimeControl').toggleClass('d-none', !(start===''))
+		$('#propshort').html($('#timeselect :selected').html())
+
+	})
+	$('#manualTimeControl').toggleClass('d-none', plot.start < 0)
+	if (plot.start < 0) {
+		$('#timeselect').val(plot.start)
+		let today = new Date();
+		$('#enddate').val(today.toISOString().split(/[T,\s]/)[0])
+		today.setFullYear(today.getFullYear() - 1)
+		$('#startdate').val(today.toISOString().split(/[T,\s]/)[0])
+
+
+	} else if (plot.start) {
+		$('#timeselect').val('')
+		$('#startdate').val(plot.start.split(/[T,\s]/)[0])
+	}
+	if (plot.end && !(plot.end <0)) {
+		$('#enddate').val(plot.end.split(/[T,\s]/)[0])
+	}
+	$('#prop-columns').val(plot.columns).attr('max', Math.max(1, plot.subplots.length))
+	$('#plotaggregate').val(plot.aggregate || '')
+	$('#prop-description').val(plot.description)
+
+	$('#prop-OK').on('click', event => {
+		let plot = window.plot
+		plot.start = gettime('start')
+		plot.end = gettime('end')
+		plot.columns = parseInt($('#prop-columns').val())
+		plot.aggregate = $('#plotaggregate').val()
+		plot.description = $('#prop-description').val()
+		plot.apply()
+	});
+
+
+
 });
 
 	    

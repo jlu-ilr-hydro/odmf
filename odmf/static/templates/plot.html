@@ -120,52 +120,76 @@
     </py:block>
     <py:block name="sidebar">
         <div class="container-fluid ">
-            <div id="collapse-buttons" class="btn-group-vertical w-100">
-                <button class="btn btn-outline-danger" id="btn-clf" role="button">
-                    <i class="fas fa-times-circle"/> clear figure
-                </button>
-                <button class="btn btn-outline-primary"
-                        id="property-toggle" data-toggle="modal" data-target="#property-dialog"
-                        role="tab" aria-controls="property-dialog">
-                    <i class="fas fa-cog"/> properties...
-                </button>
-                <button class="btn btn-outline-primary"
-                        id="toolbar-toggle" data-toggle="modal" data-target="#file-dialog"
-                        role="button" aria-controls="file-dialog">
-                    <i class="fas fa-file"/> load / save plot...
-                </button>
-                <button class="btn btn-outline-primary"
-                        id="property-toggle" data-toggle="modal" data-target="#export-dialog"
-                        role="tab" aria-controls="export-dialog">
-                    <i class="fas fa-file-export"/> export data...
-                </button>
-                <div class="btn-group" id="fig-export">
-                    <button class="btn btn-outline-primary"
-                            id="json-toggle" data-toggle="modal" data-target="#json-dialog"
-                            role="tab" aria-controls="json-dialog">
-                        {}
-                    </button>
-                    <button data-format="png" class="btn btn-outline-primary" data-toggle="tooltip" title="Export as PNG"><i class="fas fa-file-image"/></button>
-                    <button data-format="svg" class="btn btn-outline-primary" data-toggle="tooltip" title="Export as SVG"><i class="fas fa-file-code"/></button>
-                    <button data-format="pdf" class="btn btn-outline-primary" data-toggle="tooltip" title="Export as PDF"><i class="fas fa-file-pdf"/></button>
+            <div class="row">
+                <h4 id="plot-name" class="col-auto mr-auto">name...</h4>
+                <div class="col-auto">
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="autoreload_switch" py:attrs="prop(checked=autoreload)"/>
+                        <label class="custom-control-label"
+                               for="autoreload_switch"
+                               data-toggle="tooltip"
+                               title="Automatic reload of data, switches off automatically, if refresh takes longer than 1000 ms ">
+                            <i class="fas fa-refresh"/>
+                        </label>
+                    </div>
+                    <div class="small text-secondary text-right" id="rendertime" data-toggle="tooltip" title="render time"></div>
                 </div>
             </div>
-            <div id="content-tree" class="mt-2 w-100">
-                <div class="row">
-                    <h4 id="plot-name" class="col-auto mr-auto">name...</h4>
-                    <div class="col-auto">
-                        <div class="custom-control custom-switch">
-                            <input type="checkbox" class="custom-control-input" id="autoreload_switch" py:attrs="prop(checked=autoreload)"/>
-                            <label class="custom-control-label"
-                                   for="autoreload_switch"
-                                   data-toggle="tooltip"
-                                   title="Automatic reload of data, switches off automatically, if refresh takes longer than 1000 ms ">
-                                <i class="fas fa-refresh"/>
-                            </label>
-                        </div>
-                        <div class="small text-secondary text-right" id="rendertime" data-toggle="tooltip" title="render time"></div>
+            <div class="small" id="propshort">short-form</div>
+            <a class="btn btn-secondary dropdown-toggle" href="#properties" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="properties">
+                <i class="fas fa-cog" title="properties"/>
+            </a>
+            <div class="card collapse" id="properties">
+                <div class="card-body form-group">
+                    <div class="row mb-2">
+                        <label class="col-4" for="timeselect"><i class="fas fa-clock"/> time span:</label>
+                        <select class="col props form-control" id="timeselect">
+                            <option value="" class="alert alert-primary">select time span</option>
+                            <option value="-1">last day</option>
+                            <option value="-7">last week</option>
+                            <option value="-31">last month</option>
+                            <option value="-365">last year</option>
+                            <option value="-1826">last five years</option>
+                            <option value="-100000">all values</option>
+                        </select>
                     </div>
+                    <div id="manualTimeControl" class="">
+                        <div class="row">
+                            <label class="col-4 text-right" for="startdate">start:</label>
+                            <input class="col props form-control" type="date" id="startdate" name="startdate" value=""/>
+                        </div>
+                        <div class="row">
+                            <label class="col-4 text-right" for="enddate">end:</label>
+                            <input class="col props form-control" type="date" id="enddate" name="enddate" value=""/>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label class="col-4" for="plotaggregate"><i class="fas fa-ruler-horizontal"/> Aggregation:</label>
+                        <select id="plotaggregate" class="col props form-control">
+                            <option value="">No aggregation</option>
+                            <option value="30Min">Half hourly</option>
+                            <option value="h">Hourly</option>
+                            <option value="D">Daily</option>
+                            <option value="W">Weekly</option>
+                            <option value="M">Monthly</option>
+                            <option value="Y">Yearly</option>
+                        </select>
+                    </div>
+
+                    <div class="row mt-2">
+                        <label class="col-4" for="prop-columns"><i class="fas fa-border-all"/> subplot columns</label>
+                        <input id="prop-columns" class="col props form-control" type="number" value="" max="" min="1"/>
+                    </div>
+                    <label class="" for="prop-description">Description (markdown)</label>
+                    <textarea id="prop-description" rows="" class="form-control"></textarea>
                 </div>
+                <div class="card-footer">
+                    <button id="prop-OK" type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+                </div>
+
+            </div>
+
+            <div id="content-tree" class="mt-2 w-100">
 
 
 
