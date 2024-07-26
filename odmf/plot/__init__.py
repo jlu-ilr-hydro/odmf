@@ -1,1 +1,1 @@
-from .plot import Line, Subplot, Plot
+from .plot import Line, Subplot, Plot, NoDataError

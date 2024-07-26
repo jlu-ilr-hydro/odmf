@@ -6,13 +6,17 @@
 
 
 function seterror(jqhxr ,textStatus, errorThrown) {
-	set_error(textStatus)
+	set_error(jqhxr.responseText)
 }
 
 function gettime(startOrEnd) {
+	let timespan = $('#timeselect').val()
+	if (timespan < 0) {
+		return timespan * 1;
+	}
 	let res = $('#'+ startOrEnd + 'date').val();
 	if (res) {
-		res += ' ' + ($('#'+ startOrEnd + 'time').val() || '00:00');
+		res += ' ' + ($('#'+ startOrEnd + 'time').val() || '00:00:00');
 	} else {
 		let today = new Date();
 		if (startOrEnd == 'start') {
@@ -123,18 +127,14 @@ class Plot {
 			this.subplots =  saved_plot.subplots || []
 
 		} else {
-			this.name =  ''
+			this.name =  'Unnamed plot'
 			this.start = gettime('start')
 			this.end =  gettime('end')
 			this.columns =  1
 			this.aggregate = ''
 			this.height =  640
 			this.width =  480
-			this.subplots = [{
-				lines: [],
-				ylim: null,
-				logsite: null,
-			}]
+			this.subplots = []
 
 		}
 	}
@@ -162,7 +162,7 @@ class Plot {
 				$('#plot').html(result);
 				$('#plot-reload-button').addClass('d-none')
 				$('#plot').removeClass('semitransparent')
-				$('#error-row').addClass('d-none')
+				set_error('')
 				let renderTime = Date.now() - startTime
 				$('#rendertime').html(renderTime.toString() + ' ms')
 				if (renderTime > 1000) {

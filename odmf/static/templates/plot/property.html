@@ -1,64 +1,81 @@
 <html>
-    <script>
-        $('#plotaggregate').select2({
-            tags: true
+<script>
+    //<![CDATA[
+    $(()=>{
+        $('#timeselect').on('change', event => {
+            let start = $('#timeselect').val()
+            $('#manualTimeControl').toggleClass('d-none', !(start===''))
         })
-        $(()=>{
-            if (plot.start) {
-                $('#startdate').val(plot.start.split(/[T,\s]/)[0])
-                $('#starttime').val(plot.start.split(/[T,\s]/)[1])
-            }
-            if (plot.end) {
-                $('#enddate').val(plot.end.split(/[T,\s]/)[0])
-                $('#endtime').val(plot.end.split(/[T,\s]/)[1])
-            }
-            $('#prop-columns').val(plot.columns).attr('max', Math.max(1, plot.subplots.length))
-            $('#plotaggregate').val(plot.aggregate || '')
-            $('#prop-description').val(plot.description)
+        $('#manualTimeControl').toggleClass('d-none', plot.start < 0)
 
-            $('#prop-OK').on('click', event => {
-                let plot = window.plot
-                plot.start = gettime('start')
-                plot.end = gettime('end')
-                plot.columns = parseInt($('#prop-columns').val())
-                plot.aggregate = $('#plotaggregate').val()
-                plot.description = $('#prop-description').val()
-                plot.apply()
-            });
+        if (plot.start < 0) {
+            $('#timeselect').val(plot.start)
+            let today = new Date();
+            $('#enddate').val(today.toISOString().split(/[T,\s]/)[0])
+            today.setFullYear(today.getFullYear() - 1)
+            $('#startdate').val(today.toISOString().split(/[T,\s]/)[0])
 
-        })
-    </script>
-    <div class="modal-content">
-        <div class="modal-header bg-primary text-light">
-            <h5 class="modal-title"><i class="fas fa-cog"/>Properties</h5>
+
+        } else if (plot.start) {
+            $('#timeselect').val('')
+            $('#startdate').val(plot.start.split(/[T,\s]/)[0])
+        }
+        if (plot.end && !(plot.end <0)) {
+            $('#enddate').val(plot.end.split(/[T,\s]/)[0])
+        }
+        $('#prop-columns').val(plot.columns).attr('max', Math.max(1, plot.subplots.length))
+        $('#plotaggregate').val(plot.aggregate || '')
+        $('#prop-description').val(plot.description)
+
+        $('#prop-OK').on('click', event => {
+            let plot = window.plot
+            plot.start = gettime('start')
+            plot.end = gettime('end')
+            plot.columns = parseInt($('#prop-columns').val())
+            plot.aggregate = $('#plotaggregate').val()
+            plot.description = $('#prop-description').val()
+            plot.apply()
+        });
+
+    })
+    // ]]>
+</script>
+<div class="modal-content">
+    <div class="modal-header bg-primary text-light">
+        <h5 class="modal-title"><i class="fas fa-cog"/> Properties</h5>
+        <a class="btn btn-primary ml-auto" href="${conf.root_url}/help/plot" aria-label="help"><i class="fas fa-question-circle"/></a>
+    </div>
+    <div class="modal-body form-group">
+        <div class="row mb-2">
+            <label class="col-4" for="timeselect"><i class="fas fa-clock"/> time span:</label>
+            <select class="col props form-control" id="timeselect">
+                <option value="" class="alert alert-primary">select time span</option>
+                <option value="-1">last day</option>
+                <option value="-7">last week</option>
+                <option value="-31">last month</option>
+                <option value="-365">last year</option>
+                <option value="-1826">last five years</option>
+                <option value="-100000">all values</option>
+            </select>
+
         </div>
-        <div class="modal-body form-group">
-            <label for="startdatetime">start:</label>
-            <div id="startdatetime" class="input-group">
-                <input class="props form-control" type="date" id="startdate" name="startdate"
-                       value=""/>
-                <input class="props timepicker form-control" id="starttime" name="starttime"
-                       value=""/>
+        <div id="manualTimeControl" class="">
+            <div class="row">
+                <label class="col-4 text-right" for="startdate">start:</label>
+                <input class="col props form-control" type="date" id="startdate" name="startdate" value=""/>
             </div>
-            <label for="enddatetime">end:</label>
-            <div id="enddatetime" class="input-group">
-
-                <input class="props form-control" type="date" id="enddate" name="enddate"
-                       value=""/>
-                <input class="props timepicker form-control" id="endtime" name="endtime"
-                       value=""/>
+            <div class="row">
+                <label class="col-4 text-right" for="enddate">end:</label>
+                <input class="col props form-control" type="date" id="enddate" name="enddate" value=""/>
             </div>
-            <label for="prop-columns">Subplot columns</label>
-            <input id="prop-columns" class="props form-control" type="number" value="" max="" min="1"/>
-            <label for="plotaggregate">Aggregation:
-                <a class="btn btn-secondary"
-                   href="${conf.root_url}/help/plot/aggregate"
-                   title="What is aggregation?" data-toggle="tooltip"
-                >
-                    <i class="fas fa-question"/>
-                </a>
-            </label>
-            <select id="plotaggregate" class="props select2 form-control">
+        </div>
+        <div class="row mt-2">
+            <label class="col-4" for="prop-columns"><i class="fas fa-border-all"/> subplot columns</label>
+            <input id="prop-columns" class="col props form-control" type="number" value="" max="" min="1"/>
+        </div>
+        <div class="row">
+            <label class="col-4" for="plotaggregate"><i class="fas fa-ruler-horizontal"/> Aggregation:</label>
+            <select id="plotaggregate" class="col props form-control">
                 <option value="">No aggregation</option>
                 <option value="30Min">Half hourly</option>
                 <option value="h">Hourly</option>
@@ -67,12 +84,14 @@
                 <option value="M">Monthly</option>
                 <option value="Y">Yearly</option>
             </select>
-            <label for="prop-description">Description (markdown)</label>
-            <textarea id="prop-description" rows="" class="form-control"></textarea>
         </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-            <button id="prop-OK" type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
-        </div>
+        <label class="" for="prop-description">Description (markdown)</label>
+        <textarea id="prop-description" rows="" class="form-control"></textarea>
+
     </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button id="prop-OK" type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+    </div>
+</div>
 </html>

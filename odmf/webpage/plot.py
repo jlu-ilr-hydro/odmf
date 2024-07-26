@@ -15,12 +15,12 @@ from traceback import format_exc as traceback
 from cherrypy.lib.static import serve_fileobj
 from logging import getLogger
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import io
 import json
 from ..tools import Path as OPath
 from ..config import conf
-from ..plot import Plot
+from ..plot import Plot, NoDataError
 from .markdown import MarkDown
 from .. import db
 from . import lib as web
@@ -40,6 +40,24 @@ if sys.platform == 'win32':
                              'family': 'sans-serif'})
 
 markdown = MarkDown()
+
+
+def to_datetime(start, end):
+    if isinstance(start, str):
+        if start[0] == '-':
+            start = datetime.today() + timedelta(days=int(start))
+        else:
+            start = pd.to_datetime(start).to_pydatetime()
+    if isinstance(start, int):
+        start = datetime.today() + timedelta(days=int(start))
+    if isinstance(end, str):
+        if end[0] == '-':
+            end = datetime.today()
+        else:
+            end = pd.to_datetime(start).to_pydatetime()
+    if isinstance(end, int):
+        end = datetime.today()
+    return start, end
 
 
 class PlotError(web.HTTPError):
@@ -197,8 +215,9 @@ class PlotPage(object):
             raise web.HTTPError(500, 'Unknown fileformat: ' + fileformat)
         plot_dict = web.json.loads(plot)
         plot: Plot = Plot(**plot_dict)
+        start, end = plot.get_time_span()
         lines = [line for lines in plot.subplots for line in lines]
-        series = [line.load(plot.start, plot.end) for line in lines]
+        series = [line.load(start, end) for line in lines]
         # Convert timeindex to int if possible
         timeindex = web.conv(int, timeindex, timeindex)
         # If timeindex is 'regular', replace with time grid
@@ -233,8 +252,10 @@ class PlotPage(object):
         try:
             plot = Plot(**plot_data)
             if not plot.subplots:
-                raise IndexError('Nothing to plot, add a subplot')
+                raise NoDataError('Nothing to plot, add a subplot')
             svg = plot_backend.to_html(plot)
+        except NoDataError as e:
+            raise web.AJAXError(400, str(e)) from e
         except Exception as e:
             if users.current.is_member('admin'):
                 msg = str(e) + '\n\n```\n' + traceback() + '\n```\n'
@@ -256,14 +277,12 @@ class PlotPage(object):
     @expose_for(plotgroup)
     @web.mime.json
     def linedatasets_json(self,valuetype, site, instrument, level, start, end):
-        from pandas import to_datetime
         with db.session_scope() as session:
             valuetype = web.conv(int, valuetype)
             site = web.conv(int, site)
             level = web.conv(float, level)
             instrument = web.conv(int, instrument)
-            start = to_datetime(start)
-            end = to_datetime(end)
+            start, end = to_datetime(start, end)
             me = users.current
             datasets = session.query(db.Dataset).filter(
                 db.Dataset._valuetype == valuetype,
@@ -271,9 +290,9 @@ class PlotPage(object):
                 db.Dataset.start <= end,
                 db.Dataset.end >= start
             )
-            if instrument:
+            if not pd.isnull(instrument):
                 datasets = datasets.filter(db.Dataset._source == instrument)
-            if level is not None:
+            if not pd.isnull(level):
                 datasets = datasets.filter(db.Dataset.level == level)
             datasets =  [
                 ds for ds in datasets.order_by(db.Dataset.start)
