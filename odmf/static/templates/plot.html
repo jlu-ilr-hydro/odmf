@@ -24,7 +24,7 @@
                                     class="sp-remove-button btn btn-sm btn-danger py-0" data-toggle="tooltip"
                                     title="remove subplot §position§ from figure"
                             >
-                                <i class="fas fa-times-circle"/>
+                                <i class="fas fa-trash"/>
                             </button>
                             <button class="sp-changeylimit-button btn btn-sm btn-primary py-0" data-toggle="tooltip" data-subplot="§position§"
                                     title="change y axis limit"
@@ -63,9 +63,9 @@
                 </div>
                 <div class="collapse" id="linetools_§sp_pos§_§i§" style="transition: 50ms;" >
                     <div class="btn-group" >
-                        <button title="remove line" class="btn btn-sm py-0 btn-secondary removeline"
+                        <button title="remove line" class="btn btn-sm py-0 btn-danger removeline"
                                 data-toggle="tooltip"  data-html="true" data-lineno="§i§" data-subplot="§sp_pos§">
-                            <i class="fas fa-times-circle"/>
+                            <i class="fas fa-trash"/>
                         </button>
                         <button class="btn btn-sm py-0 btn-secondary showdataset"
                                 data-html="true"  title="show datasets of line" data-lineno="§i§" data-subplot="§sp_pos§">
@@ -120,7 +120,6 @@
     </py:block>
     <py:block name="sidebar">
         <div class="container-fluid ">
-
             <div id="collapse-buttons" class="btn-group-vertical w-100">
                 <button class="btn btn-outline-danger" id="btn-clf" role="button">
                     <i class="fas fa-times-circle"/> clear figure
@@ -152,7 +151,23 @@
                 </div>
             </div>
             <div id="content-tree" class="mt-2 w-100">
-                <h4 id="plot-name">name...</h4>
+                <div class="row">
+                    <h4 id="plot-name" class="col-auto mr-auto">name...</h4>
+                    <div class="col-auto">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="autoreload_switch" py:attrs="prop(checked=autoreload)"/>
+                            <label class="custom-control-label"
+                                   for="autoreload_switch"
+                                   data-toggle="tooltip"
+                                   title="Automatic reload of data, switches off automatically, if refresh takes longer than 1000 ms ">
+                                <i class="fas fa-refresh"/>
+                            </label>
+                        </div>
+                        <div class="small text-secondary text-right" id="rendertime" data-toggle="tooltip" title="render time"></div>
+                    </div>
+                </div>
+
+
 
                 <!--
                     Subplots
@@ -168,6 +183,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
 
         </div>

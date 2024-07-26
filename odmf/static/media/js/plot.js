@@ -6,13 +6,17 @@
 
 
 function seterror(jqhxr ,textStatus, errorThrown) {
-	set_error(textStatus)
+	set_error(jqhxr.responseText)
 }
 
 function gettime(startOrEnd) {
+	let timespan = $('#timeselect').val()
+	if (timespan < 0) {
+		return timespan * 1;
+	}
 	let res = $('#'+ startOrEnd + 'date').val();
 	if (res) {
-		res += ' ' + ($('#'+ startOrEnd + 'time').val() || '00:00');
+		res += ' ' + ($('#'+ startOrEnd + 'time').val() || '00:00:00');
 	} else {
 		let today = new Date();
 		if (startOrEnd == 'start') {
@@ -123,18 +127,14 @@ class Plot {
 			this.subplots =  saved_plot.subplots || []
 
 		} else {
-			this.name =  ''
+			this.name =  'Unnamed plot'
 			this.start = gettime('start')
 			this.end =  gettime('end')
 			this.columns =  1
 			this.aggregate = ''
 			this.height =  640
 			this.width =  480
-			this.subplots = [{
-				lines: [],
-				ylim: null,
-				logsite: null,
-			}]
+			this.subplots = []
 
 		}
 	}
@@ -147,8 +147,9 @@ class Plot {
 		this.apply()
 		return this
 	}
-	render() {
+	render(do_apply=true) {
 		$('#plot').html('Loading image...');
+		let startTime = Date.now()
 		$.ajax({
 			method: 'POST',
 			url: odmf_ref('/plot/figure'),
@@ -161,10 +162,20 @@ class Plot {
 				$('#plot').html(result);
 				$('#plot-reload-button').addClass('d-none')
 				$('#plot').removeClass('semitransparent')
-				$('#error-row').addClass('d-none')
+				set_error('')
+				let renderTime = Date.now() - startTime
+				$('#rendertime').html(renderTime.toString() + ' ms')
+				if (renderTime > 1000) {
+					$('#autoreload_switch').prop('checked', false)
+				}
 			})
 			.fail(seterror);
-		return this.apply()
+		if (do_apply) {
+			return this.apply()
+		} else {
+			return this
+		}
+
 	}
 
 	addsubplot() {
@@ -184,6 +195,7 @@ class Plot {
 		let txt_plot = JSON.stringify(this, null, 4);
 		$('#plot-name').html(this.name)
 		$('#content-tree .subplot').remove();
+		let autoreload = $('#autoreload_switch').prop('checked');
 		this.subplots.forEach((subplot, index) => {
 			let txt = $('#subplot-template').html()
 				.replace(/§position§/g, index)
@@ -203,10 +215,15 @@ class Plot {
 		})
 		sessionStorage.setItem('plot', txt_plot);
 		$('#json-row pre').html(txt_plot);
-		$('#plot-reload-button').css('top',this.height / 2).css('left', this.width / 3).removeClass('d-none')
-		$('#plot').addClass('semitransparent')
 		set_content_tree_handlers();
-		return this
+		if (autoreload) {
+			return this.render(false);
+		} else {
+			$('#plot-reload-button').css('top',this.height / 2).css('left', this.width / 3).removeClass('d-none')
+			$('#plot').addClass('semitransparent')
+			return this
+		}
+
 	}
 	removesubplot(id) {
 		this.subplots.splice(id, 1);

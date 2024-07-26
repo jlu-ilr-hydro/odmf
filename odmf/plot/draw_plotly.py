@@ -48,7 +48,7 @@ def _make_figure(plot: Plot) -> go.Figure:
     fig.update_yaxes()
     fig.add_traces(
         [
-            _draw_line(l, plot.start, plot.end)
+            _draw_line(l, *plot.get_time_span())
             for l in plot.lines()
         ],
         rows=rows,
