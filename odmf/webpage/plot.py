@@ -12,11 +12,10 @@ import pandas as pd
 
 from traceback import format_exc as traceback
 
-from cherrypy.lib.static import serve_fileobj
 from logging import getLogger
 
 from datetime import datetime, timedelta
-import io
+
 import json
 from ..tools import Path as OPath
 from ..config import conf
@@ -197,8 +196,6 @@ class PlotPage(object):
     @web.method.post
     def export(self, plot, fileformat, timeindex, tolerance, grid, interpolation_method, interpolation_limit):
         """
-        TODO: Compare to exportall_csv and RegularExport
-
         Parameters
         ----------
         plot: The plot as JSON

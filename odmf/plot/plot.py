@@ -109,7 +109,7 @@ class Line:
             else:
                 series = pd.Series([])
 
-        if self.subplot.plot.aggregate:
+        if self.subplot.plot.aggregate and not series.empty:
             if self.subplot.plot.aggregate == 'decade':
                 from ..tools.exportdatasets import DecadeMonthStart
                 sampler = series.resample(DecadeMonthStart())
@@ -236,7 +236,7 @@ class Plot:
             if end[0] == '-':
                 end = int(end)
             else:
-                end = pd.to_datetime(start).to_pydatetime()
+                end = pd.to_datetime(end).to_pydatetime()
         self.start = start or -90
         self.end = end or -90
         self.size = (width or 640, height or 480)
