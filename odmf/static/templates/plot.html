@@ -120,8 +120,13 @@
     </py:block>
     <py:block name="sidebar">
         <div class="container-fluid ">
-            <div class="row">
+           <div class="row">
                 <h4 id="plot-name" class="col-auto mr-auto">name...</h4>
+                <div class="col-auto">
+                    <button class="btn btn-outline-primary do-reload" role="button" title="reload">
+                        <i class="fas fa-sync-alt"/>
+                    </button>
+                </div>
                 <div class="col-auto">
                     <div class="custom-control custom-switch">
                         <input type="checkbox" class="custom-control-input" id="autoreload_switch" py:attrs="prop(checked=autoreload)"/>
@@ -129,13 +134,17 @@
                                for="autoreload_switch"
                                data-toggle="tooltip"
                                title="Automatic reload of data, switches off automatically, if refresh takes longer than 1000 ms ">
-                            <i class="fas fa-refresh"/>
+                            auto reload
                         </label>
                     </div>
                     <div class="small text-secondary text-right" id="rendertime" data-toggle="tooltip" title="render time"></div>
+
                 </div>
             </div>
-            <div class="small" id="propshort">short-form</div>
+            <div id="property-summary">
+                properties
+            </div>
+
             <a class="btn btn-secondary dropdown-toggle" href="#properties" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="properties">
                 <i class="fas fa-cog" title="properties"/>
             </a>
@@ -219,7 +228,7 @@
                     PLOT
                 </div>
                 <div id="plot-reload-button" class="position-absolute" style="top: 10em; left: 10em">
-                    <button id="reload_plot" class="btn btn-outline-primary bg-light shadow transition">
+                    <button class="btn btn-outline-primary bg-light shadow transition do-reload">
                         <h3><i class="fas fa-sync-alt"/> reload plot</h3>
                     </button>
                 </div>
@@ -378,6 +387,7 @@
                                     <option value="max">max</option>
                                     <option value="stdev">stdev</option>
                                     <option value="sum">&Sigma;</option>
+                                    <option value="count">count</option>
                                 </select>
                             </div>
                         </div>

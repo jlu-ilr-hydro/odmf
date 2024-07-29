@@ -214,6 +214,7 @@ class Plot {
 			$('#ct-new-subplot').before(obj);
 		})
 		sessionStorage.setItem('plot', txt_plot);
+		$('#property-summary').html(plot.toString())
 		$('#json-row pre').html(txt_plot);
 		set_content_tree_handlers();
 		if (autoreload) {
@@ -257,6 +258,13 @@ class Plot {
 		if (sp && line >= 0)
 			sp.lines.splice(line, 1);
 		return this
+	}
+
+	toString() {
+		if (this.start < 0) {
+			return 'last ' + (this.start*-1) + ' days, aggregate: ' + this.aggregate
+		}
+		return this.start.toString().slice(0,10) + ' - ' + this.end.toString().slice(0,10) + ', aggregate: ' + this.aggregate
 	}
 }
 
@@ -494,7 +502,7 @@ $(() => {
 
 	set_line_dialog_handlers()
 
-	$('#reload_plot').on('click', () => {
+	$('.do-reload').on('click', () => {
 		window.plot.render()
 	});
 
