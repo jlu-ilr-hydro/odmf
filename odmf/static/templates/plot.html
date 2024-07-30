@@ -17,50 +17,50 @@
 
         <div class="d-none"  id="subplot-template" type="template" >
             <div class="subplot card mb-2 w-100">
-                <div class="card-header">
-                    <h5 class="card-title">plot §position§
-                        <span class="btn-group card-text">
-                            <button data-subplot="§position§"
-                                    class="sp-remove-button btn btn-sm btn-danger py-0" data-toggle="tooltip"
-                                    title="remove subplot §position§ from figure"
-                            >
-                                <i class="fas fa-trash"/>
-                            </button>
-                            <button class="sp-changeylimit-button btn btn-sm btn-primary py-0" data-toggle="tooltip" data-subplot="§position§"
-                                    title="change y axis limit"
-                            >
-                                <i>y</i>&#x2195;
-                            </button>
-                            <button data-toggle="dropdown" class="btn btn-sm btn-primary py-0 dropdown-toggle sp-logsite-button"
-                                    data-subplot="§position§">
-                                <i class="fas fa-tags" data-toggle="tooltip" title="Show logged events at a site in the graph"/> #§logsite§
-                            </button>
-                            <div class="dropdown-menu sp-logsite-list" data-subplot="§position§">
-                            </div>
-                        </span>
+                <div class="card-header flexbox">
+                    <h5 class="card-title" >
+                        subplot §position§
                     </h5>
-                </div>
-                <div class="card-body">
 
-                    <ul id="line-list" class="list-group list-group-flush">
-                        <li class="newline list-group-item">
-                            <button class="btn btn-sm btn-primary btn-outline shadow py-0" data-toggle="modal" data-target="#newline-dialog"
-                                    data-subplot="§position§" id="addline_§position§" data-replace="new">
-                                <i class="fas fa-plus-circle"/> add line...
-                            </button>
-                        </li>
-                    </ul>
+                    <div class="btn-group flex-right" id="sp_§position§_tools">
+                        <button data-subplot="§position§"
+                                class="sp-remove-button btn btn-sm btn-danger py-0" data-toggle="tooltip"
+                                title="remove subplot §position§ from figure"
+                        >
+                            <i class="fas fa-trash"/>
+                        </button>
+                        <button class="sp-changeylimit-button btn btn-sm btn-primary py-0" data-toggle="tooltip" data-subplot="§position§"
+                                title="change y axis limit"
+                        >
+                            <i>y</i>&#x2195;
+                        </button>
+                        <button data-toggle="dropdown" class="btn btn-sm btn-primary py-0 dropdown-toggle sp-logsite-button"
+                                data-subplot="§position§">
+                            <i class="fas fa-tags" data-toggle="tooltip" title="Show logged events at a site in the graph"/> #§logsite§
+                        </button>
+                        <div class="dropdown-menu sp-logsite-list" data-subplot="§position§">
+                        </div>
+                    </div>
+
                 </div>
+                <ul id="line-list" class="list-group list-group-flush">
+                    <li class="newline list-group-item">
+                        <button class="btn btn-sm btn-primary btn-outline shadow py-0" data-toggle="modal" data-target="#newline-dialog"
+                                data-subplot="§position§" id="addline_§position§" data-replace="new">
+                            <i class="fas fa-plus-circle"/> add line...
+                        </button>
+                    </li>
+                </ul>
 
             </div>
 
         </div>
-        <div class="d-none" id="line-template" type="template">
+        <ul class="d-none" id="line-template" type="template">
             <li class="line list-group-item">
-                <div class="btn btn-sm btn-light border w-100 text-left d-flex"
-                     data-toggle="collapse" data-target="#linetools_§sp_pos§_§i§" aria-expanded="false" aria-controls="linetools_§sp_pos§_§i§">
+                <a class="list-group-item-action text-left d-flex"
+                   data-toggle="collapse" data-target="#linetools_§sp_pos§_§i§" aria-expanded="false" aria-controls="linetools_§sp_pos§_§i§">
                     <span style="color:§color§; font-weight: bolder" >§linestyle§ §marker§</span> §linename§ <i class="fas fa-caret-down ml-auto"></i>
-                </div>
+                </a>
                 <div class="collapse" id="linetools_§sp_pos§_§i§" style="transition: 50ms;" >
                     <div class="btn-group" >
                         <button title="remove line" class="btn btn-sm py-0 btn-danger removeline"
@@ -90,7 +90,7 @@
                 </div>
             </li>
 
-        </div>
+        </ul>
     </py:block>
     <py:block name="style">
         <style type="text/css">
@@ -120,61 +120,85 @@
     </py:block>
     <py:block name="sidebar">
         <div class="container-fluid ">
-           <div class="row">
-                <h4 id="plot-name" class="col-auto mr-auto">name...</h4>
-                <div class="col-auto">
-                    <button class="btn btn-outline-primary do-reload" role="button" title="reload">
-                        <i class="fas fa-sync-alt"/>
-                    </button>
-                </div>
-                <div class="col-auto">
-                    <div class="custom-control custom-switch">
-                        <input type="checkbox" class="custom-control-input" id="autoreload_switch" py:attrs="prop(checked=autoreload)"/>
-                        <label class="custom-control-label"
-                               for="autoreload_switch"
-                               data-toggle="tooltip"
-                               title="Automatic reload of data, switches off automatically, if refresh takes longer than 1000 ms ">
-                            auto reload
-                        </label>
+            <div class="dropdown mb-2">
+                <a class="btn btn-primary btn-sm dropdown-toggle w-100 flexbox" href="#" role="button" id="file-menu-link" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="file-menu">
+                    <i class="fas fa-bars"/> file menu
+                </a>
+                <div class="dropdown-menu" aria-labelledby="file-menu-link">
+                        <a class="dropdown-item"
+                           id="toolbar-toggle" data-toggle="modal" data-target="#file-dialog"
+                           role="button" aria-controls="file-dialog">
+                            <i class="fas fa-file"/> load / save plot...
+                        </a>
+                        <a class="dropdown-item"
+                           id="property-toggle" data-toggle="modal" data-target="#export-dialog"
+                           role="tab" aria-controls="export-dialog">
+                            <i class="fas fa-file-export"/> export data...
+                        </a>
+                        <a class="dropdown-item"
+                            id="json-toggle" data-toggle="modal" data-target="#json-dialog"
+                            role="tab" aria-controls="json-dialog">
+                            {} show json code
+                        </a>
+
+                        <div class="dropdown-divider"></div>
+                        <a data-format="png" class="dropdown-item figure-export" data-toggle="tooltip" title="Export as PNG">
+                            <i class="fas fa-file-image"/> export as png
+                        </a>
+                        <a data-format="svg" class="dropdown-item figure-export" data-toggle="tooltip" title="Export as SVG">
+                            <i class="fas fa-file-code"/> export as svg
+                        </a>
+                        <a data-format="pdf" class="dropdown-item figure-export" data-toggle="tooltip" title="Export as PDF">
+                            <i class="fas fa-file-pdf"/> export as pdf
+                        </a>
+
+
                     </div>
-                    <div class="small text-secondary text-right" id="rendertime" data-toggle="tooltip" title="render time"></div>
 
                 </div>
+            <div class="flexbox">
+                <h4 id="plot-name" class="mr-auto">name...</h4>
+                <button class="btn btn-outline-primary do-reload" role="button" title="reload">
+                    <i class="fas fa-sync-alt"/>
+                </button>
             </div>
-            <div id="property-summary">
-                properties
-            </div>
+            <div class="card" >
+                <div class="card-header flexbox">
+                    <a class="list-group-item-action dropdown-toggle " href="#properties" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="properties">
+                        <i class="fas fa-cog" title="properties"/>
+                        <span id="property-summary">properties</span>
 
-            <a class="btn btn-secondary dropdown-toggle" href="#properties" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="properties">
-                <i class="fas fa-cog" title="properties"/>
-            </a>
-            <div class="card collapse" id="properties">
-                <div class="card-body form-group">
-                    <div class="row mb-2">
-                        <label class="col-4" for="timeselect"><i class="fas fa-clock"/> time span:</label>
-                        <select class="col props form-control" id="timeselect">
-                            <option value="" class="alert alert-primary">select time span</option>
+                    </a>
+
+                </div>
+                <div id="properties" class="collapse card-body form-group">
+                    <div class="">
+                        <label class="small" for="prop-timeselect"><i class="fas fa-clock"/> time span:</label>
+                        <select class="props form-control prop-time" id="prop-timeselect">
+                            <option value="manual" class="alert alert-primary">select time span</option>
                             <option value="-1">last day</option>
                             <option value="-7">last week</option>
+                            <option value="-10">last 10 days</option>
                             <option value="-31">last month</option>
+                            <option value="-90">last 90 days</option>
                             <option value="-365">last year</option>
                             <option value="-1826">last five years</option>
                             <option value="-100000">all values</option>
                         </select>
                     </div>
-                    <div id="manualTimeControl" class="">
+                    <div id="manualTimeControl" class="d-none">
                         <div class="row">
-                            <label class="col-4 text-right" for="startdate">start:</label>
-                            <input class="col props form-control" type="date" id="startdate" name="startdate" value=""/>
+                            <label class="col-4 text-right" for="prop-startdate">start:</label>
+                            <input class="col props form-control prop-time" type="date" id="prop-startdate" name="startdate" value=""/>
                         </div>
                         <div class="row">
-                            <label class="col-4 text-right" for="enddate">end:</label>
-                            <input class="col props form-control" type="date" id="enddate" name="enddate" value=""/>
+                            <label class="col-4 text-right" for="prop-enddate">end:</label>
+                            <input class="col props form-control prop-time" type="date" id="prop-enddate" name="enddate" value=""/>
                         </div>
                     </div>
-                    <div class="row">
-                        <label class="col-4" for="plotaggregate"><i class="fas fa-ruler-horizontal"/> Aggregation:</label>
-                        <select id="plotaggregate" class="col props form-control">
+                    <div class="">
+                        <label class="small" for="prop-aggregate"><i class="fas fa-ruler-horizontal"/> Aggregation:</label>
+                        <select id="prop-aggregate" class="props form-control">
                             <option value="">No aggregation</option>
                             <option value="30Min">Half hourly</option>
                             <option value="h">Hourly</option>
@@ -185,17 +209,30 @@
                         </select>
                     </div>
 
-                    <div class="row mt-2">
-                        <label class="col-4" for="prop-columns"><i class="fas fa-border-all"/> subplot columns</label>
-                        <input id="prop-columns" class="col props form-control" type="number" value="" max="" min="1"/>
+                    <div class="">
+                        <label class="small" for="prop-columns"><i class="fas fa-border-all"/> subplot columns</label>
+                        <input id="prop-columns" class="props form-control" type="number" value="" max="" min="1"/>
                     </div>
-                    <label class="" for="prop-description">Description (markdown)</label>
-                    <textarea id="prop-description" rows="" class="form-control"></textarea>
-                </div>
-                <div class="card-footer">
-                    <button id="prop-OK" type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
-                </div>
+                    <div class="">
+                        <label class="small" for="prop-description"><i class="fas fa-comment"/> description (markdown)</label>
+                        <textarea id="prop-description" rows="" class="form-control"></textarea>
 
+                    </div>
+
+                    <div class="">
+                        <label for="autoreload_switch" class="small"><i class="fas fa-sync-alt"/> auto reload</label>
+                        <div class="custom-control custom-switch border">
+                            <input type="checkbox" class="custom-control-input" id="autoreload_switch" py:attrs="prop(checked=autoreload)"/>
+                            <label class="custom-control-label flexbox"
+                                   for="autoreload_switch"
+                                   data-toggle="tooltip"
+                                   title="Automatic reload of data, switches off automatically, if refresh takes longer than 1000 ms ">
+                                auto reload <span class="small badge badge-secondary text-right ml-auto" id="rendertime" data-toggle="tooltip" title="render-time"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
             <div id="content-tree" class="mt-2 w-100">
@@ -385,7 +422,7 @@
                                     <option value="mean">mean</option>
                                     <option value="min">min</option>
                                     <option value="max">max</option>
-                                    <option value="stdev">stdev</option>
+                                    <option value="std">std</option>
                                     <option value="sum">&Sigma;</option>
                                     <option value="count">count</option>
                                 </select>

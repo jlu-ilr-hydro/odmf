@@ -10,19 +10,15 @@ function seterror(jqhxr ,textStatus, errorThrown) {
 }
 
 function gettime(startOrEnd) {
-	let timespan = $('#timeselect').val()
+	let timespan = $('#prop-timeselect').val()
 	if (timespan < 0) {
 		return timespan * 1;
 	}
-	let res = $('#'+ startOrEnd + 'date').val();
+	let res = $('#prop-'+ startOrEnd + 'date').val();
 	if (res) {
-		res += ' ' + ($('#'+ startOrEnd + 'time').val() || '00:00:00');
+		res += ' ' + ($('#prop-'+ startOrEnd + 'time').val() || '00:00:00');
 	} else {
-		let today = new Date();
-		if (startOrEnd == 'start') {
-			today.setFullYear(today.getFullYear() - 1)
-		}
-		res = today.toISOString();
+		return -90
 	}
 	return res;
 }
@@ -194,8 +190,29 @@ class Plot {
 		}
 		let txt_plot = JSON.stringify(this, null, 4);
 		$('#plot-name').html(this.name)
+
+		if (plot.start < 0) {
+			$('#prop-timeselect').val(plot.start)
+			let today = new Date();
+			$('#prop-enddate').val(today.toISOString().split(/[T,\s]/)[0])
+			today.setFullYear(today.getFullYear() - 1)
+			$('#prop-startdate').val(today.toISOString().split(/[T,\s]/)[0])
+
+
+		} else if (plot.start) {
+			$('#timeselect').val('')
+			$('#startdate').val(plot.start.split(/[T,\s]/)[0])
+		}
+		if (plot.end && !(plot.end <0)) {
+			$('#enddate').val(plot.end.split(/[T,\s]/)[0])
+		}
+		$('#prop-columns').val(plot.columns).attr('max', Math.max(1, plot.subplots.length))
+		$('#prop-aggregate').val(plot.aggregate || '')
+		$('#prop-description').val(plot.description)
+
 		$('#content-tree .subplot').remove();
 		let autoreload = $('#autoreload_switch').prop('checked');
+
 		this.subplots.forEach((subplot, index) => {
 			let txt = $('#subplot-template').html()
 				.replace(/§position§/g, index)
@@ -214,7 +231,7 @@ class Plot {
 			$('#ct-new-subplot').before(obj);
 		})
 		sessionStorage.setItem('plot', txt_plot);
-		$('#property-summary').html(plot.toString())
+		$('#property-summary').html($('#prop-timeselect :selected').text() + ' / ' + $('#prop-aggregate :selected').text())
 		$('#json-row pre').html(txt_plot);
 		set_content_tree_handlers();
 		if (autoreload) {
@@ -262,9 +279,11 @@ class Plot {
 
 	toString() {
 		if (this.start < 0) {
-			return 'last ' + (this.start*-1) + ' days, aggregate: ' + this.aggregate
+			let txt = 'last ' + (this.start*-1) + ' days'
+			if (this.aggregate) txt += ' agg: ' + this.aggregate
+			return txt
 		}
-		return this.start.toString().slice(0,10) + ' - ' + this.end.toString().slice(0,10) + ', aggregate: ' + this.aggregate
+		return this.start.toString().slice(0,10) + ' - ' + this.end.toString().slice(0,10) + ', agg: ' + this.aggregate
 	}
 }
 
@@ -506,17 +525,18 @@ $(() => {
 		window.plot.render()
 	});
 
+	$('.do-apply').on('change', () => {
+		window.plot.apply()
+	})
 
-	$('#fig-export button').on('click', event => {
+
+	$('.figure-export').on('click', event => {
 		let fmt=$(event.currentTarget).data('format');
 		if (fmt) {
 			download_on_post('image', {format: fmt, plot: JSON.stringify(window.plot, null, 4)})
 		}
 	})
 
-	$('#property-dialog').on('show.bs.modal', event => {
-		$('#property-dialog-content').load('property/')
-	})
 
 	$('#file-dialog').on('show.bs.modal', event => {
 		$('#file-dialog-content').load('filedialog/')
@@ -529,39 +549,32 @@ $(() => {
 			$.post('deleteplotfile',{filename:fn},seterror);
 	});
 
-	$('#timeselect').on('change', event => {
-		let start = $('#timeselect').val()
-		$('#manualTimeControl').toggleClass('d-none', !(start===''))
-		$('#propshort').html($('#timeselect :selected').html())
+	$('#manualTimeControl').toggleClass('d-none', plot.start < 0)
+
+	$('.prop-time').on('change', event => {
+		let start = $('#prop-timeselect').val()
+		$('#manualTimeControl').toggleClass('d-none', !(start==='manual'))
+
+		plot.start = gettime('start')
+		plot.end = gettime('end')
+		plot.apply()
+
 
 	})
-	$('#manualTimeControl').toggleClass('d-none', plot.start < 0)
-	if (plot.start < 0) {
-		$('#timeselect').val(plot.start)
-		let today = new Date();
-		$('#enddate').val(today.toISOString().split(/[T,\s]/)[0])
-		today.setFullYear(today.getFullYear() - 1)
-		$('#startdate').val(today.toISOString().split(/[T,\s]/)[0])
-
-
-	} else if (plot.start) {
-		$('#timeselect').val('')
-		$('#startdate').val(plot.start.split(/[T,\s]/)[0])
-	}
-	if (plot.end && !(plot.end <0)) {
-		$('#enddate').val(plot.end.split(/[T,\s]/)[0])
-	}
-	$('#prop-columns').val(plot.columns).attr('max', Math.max(1, plot.subplots.length))
-	$('#plotaggregate').val(plot.aggregate || '')
-	$('#prop-description').val(plot.description)
+	$('#prop-aggregate').on('change', () => {
+		plot.aggregate = $('#prop-aggregate').val()
+		plot.apply()
+	})
+	$('#prop-columns').on('change', () => {
+		plot.columns = parseInt($('#prop-columns').val())
+		plot.apply()
+	})
+	$('#prop-description').on('change', () => {
+		plot.description = $('#prop-description').val()
+	})
 
 	$('#prop-OK').on('click', event => {
 		let plot = window.plot
-		plot.start = gettime('start')
-		plot.end = gettime('end')
-		plot.columns = parseInt($('#prop-columns').val())
-		plot.aggregate = $('#plotaggregate').val()
-		plot.description = $('#prop-description').val()
 		plot.apply()
 	});
 
