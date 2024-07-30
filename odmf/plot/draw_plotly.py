@@ -11,13 +11,15 @@ from . import Plot, Line
 from ..config import conf
 
 
-def _draw_line(line: Line, start, end) -> go.Scatter:
+def _draw_line(line: Line, start, end):
 
     data = line.load(start, end)
     mode = ''
     linestyle = None
     marker = None
-    if line.linestyle:
+    if line.linestyle == 'bar':
+        return go.Bar(x=data.index, y=data, marker={'color': line.color, 'line': {'color': '#000000', 'width': 1}})
+    elif line.linestyle:
         mode = 'lines'
         dash_dict = {'-': 'solid', ':': 'dot', '.': 'dot', '--': 'dash', '-.': 'dashdot'}
         linestyle = {'color': line.color, 'dash': dash_dict[line.linestyle], 'width': line.linewidth}

@@ -275,11 +275,6 @@
 
     </py:block>
     <py:block name="extrahtml">
-        <div id="property-dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog" id="property-dialog-content">
-            </div>
-        </div>
-
         <div id="file-dialog" class="modal fade" tabindex="-1" role="dialog"  aria-hidden="true">
             <div id="file-dialog-content" class="modal-dialog">
 
@@ -296,7 +291,7 @@
                         <div class="modal-body">
                             <input id="export-plot" name="plot" class="d-none" />
                             <div class="form-group row">
-                                <label class="col-lg-3" for="export-format">File format</label>
+                                <label class="col-lg-3" for="fileformat">File format</label>
                                 <div class="col-lg-9">
                                     <select name="fileformat" class="form-control">
                                         <option value="xlsx">Excel</option>
@@ -455,6 +450,7 @@
                                     <option value=":">...</option>
                                     <option value="--">--</option>
                                     <option value="-.">-.</option>
+                                    <option value="bar">Bar</option>
                                 </select>
                             </div>
                         </div>
