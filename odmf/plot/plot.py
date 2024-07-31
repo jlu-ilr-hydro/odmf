@@ -188,7 +188,7 @@ class Subplot:
             logs = session.query(db.Log).filter_by(_site=self.logsite).filter(
                 db.Log.time >= start).filter(db.Log.time <= end)
             return [
-                (log.time, log.type, str(log))
+                (log.time, log.type, log.message)
                 for log in logs
             ]
 

@@ -82,20 +82,24 @@ function set_content_tree_handlers() {
 		}
 
 	})
-	$('.sp-logsite-button').on('click', event =>{
+	$('.sp-logsite-list').on('change', event =>{
+		let div = $(event.currentTarget)
+		let subplot=div.data('subplot');
+		let site = div.val() * 1;
+		window.plot.subplots[subplot].logsite = site || null;
+		window.plot.apply()
+	});
+	$('.sp-tools').on('show.bs.dropdown', event =>{
 		let subplot=$(event.currentTarget).data('subplot');
-		let html = `<div class="dropdown-item sp-logsite-item" data-subplot="${subplot}">no logs</div>\n` +
-			window.plot.get_sites(subplot).map(
-				value => `<div class="dropdown-item sp-logsite-item" data-subplot="${subplot}" data-site="${value}">#${value}</div>`
-			).reduce((acc, v)=>acc + '\n' + v)
-		$(`.sp-logsite-list[data-subplot=${subplot}]`).html(html)
-		$(`.sp-logsite-item[data-subplot=${subplot}]`).on('click', event =>{
-			let div = $(event.currentTarget)
-			let subplot=div.data('subplot');
-			let site = div.data('site');
-			window.plot.subplots[subplot].logsite = site || null;
-			window.plot.apply()
-		});
+		let act_site = window.plot.subplots[subplot].logsite
+		let html = `<option class="sp-logsite-item" data-subplot="${subplot}" value="">no logs</option>\n`
+		let sites = window.plot.get_sites(subplot).map(value => `<option class="sp-logsite-item" data-subplot="${subplot}" value="${value}">#${value}</option>`)
+		if (sites.length) html += sites.reduce((acc, v)=>acc + '\n' + v)
+
+		let sp_select = $(`.sp-logsite-list[data-subplot=${subplot}]`)
+		sp_select.html(html)
+		sp_select.val(act_site)
+
 	});
 
 	$('.sp-remove-button').on('click', event=>{
@@ -229,6 +233,7 @@ class Plot {
 				nl.before(line_html);
 			})
 			$('#ct-new-subplot').before(obj);
+
 		})
 		sessionStorage.setItem('plot', txt_plot);
 		$('#property-summary').html($('#prop-timeselect :selected').text() + ' / ' + $('#prop-aggregate :selected').text())
@@ -497,11 +502,13 @@ $(() => {
 	$('#addsubplot').prop('disabled', false);
 
 	$('#btn-clf').on('click', function() {
-		let plot = window.plot
-		plot.subplots = [];
-		plot.aggregate = null
-		plot.columns = 1
-		plot.apply()
+		if (confirm('Are you sure to delete the plot?')) {
+			let plot = window.plot
+			plot.subplots = [];
+			plot.aggregate = null
+			plot.columns = 1
+			plot.apply()
+		}
 	});
 	$('#addsubplot').on('click', e => {
 		window.plot.addsubplot()
