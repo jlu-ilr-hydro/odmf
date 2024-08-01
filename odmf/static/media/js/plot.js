@@ -118,6 +118,7 @@ class Plot {
 		let saved_plot = JSON.parse(sessionStorage.getItem('plot'))
 		if (saved_plot && !$.isEmptyObject(saved_plot)) {
 			this.name =   saved_plot.name || ''
+			this.path =   saved_plot.path || ''
 			this.start =  saved_plot.start || gettime('start')
 			this.end =  saved_plot.end || gettime('end')
 			this.columns =  saved_plot.columns || 1
@@ -128,6 +129,7 @@ class Plot {
 
 		} else {
 			this.name =  'Unnamed plot'
+			this.path =  ''
 			this.start = gettime('start')
 			this.end =  gettime('end')
 			this.columns =  1
@@ -144,7 +146,7 @@ class Plot {
 				this[key] = obj[key]
 			}
 		}
-		this.apply()
+		this.render()
 		return this
 	}
 	render(do_apply=true) {
@@ -183,6 +185,8 @@ class Plot {
 		return this.apply()
 	}
 
+	/** Updates all plot related widgets on the site using the current plot object
+	 **/
 	apply(width, height) {
 		if (width) {
 			this.width = width
@@ -194,6 +198,9 @@ class Plot {
 		}
 		let txt_plot = JSON.stringify(this, null, 4);
 		$('#plot-name').html(this.name)
+		let href = odmf_ref('/download/' + this.path)
+		$('#plot-path').html(this.path + '/' + this.name + '.plot')
+
 
 		if (plot.start < 0) {
 			$('#prop-timeselect').val(plot.start)
@@ -535,6 +542,14 @@ $(() => {
 	$('.do-apply').on('change', () => {
 		window.plot.apply()
 	})
+	$('#plot-save').on('click', () => {
+		$.post(odmf_ref('/plot/filedialog/save/'), {
+			plot: JSON.stringify(window.plot, null, 4),
+			path: window.plot.path + '/' + window.plot.name + '.plot'
+		})
+			.done(() => {window.plot.apply()})
+			.fail(seterror)
+	})
 
 
 	$('.figure-export').on('click', event => {
@@ -546,10 +561,15 @@ $(() => {
 
 
 	$('#file-dialog').on('show.bs.modal', event => {
-		$('#file-dialog-content').load('filedialog/')
+		let path= encodeURIComponent(window.plot.path)
+		$('#file-dialog-content').load('filedialog/?path=' + path)
 	})
 	$('#export-dialog').on('show.bs.modal', makeExportDialog)
-
+	$('#autoreload_switch').on('change', event=> {
+		if ($(event.currentTarget).prop('checked')) {
+			window.plot.render()
+		}
+	})
 	$('.killplotfn').on('click', function() {
 		var fn = $(this).html();
 		if (confirm('Do you really want to delete your plot "' + fn + '" from the server'))

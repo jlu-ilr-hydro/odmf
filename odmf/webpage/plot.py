@@ -164,6 +164,7 @@ class PlotPage(object):
             Plot page
         """
         plot = None
+        p = None
         if not j and f:
             try:
                 if f[0] == '~' and web.user():
@@ -180,6 +181,8 @@ class PlotPage(object):
         if j:
             try:
                 plot = json.loads(j)
+                if p:
+                    plot['path'] = str(p.parent())
                 autoreload = True
             except json.JSONDecodeError as e:
                 error = '\n'.join(f'{i:3} | {l}' for i, l in enumerate(j.split('\n'))) + f'\n\n {e}'

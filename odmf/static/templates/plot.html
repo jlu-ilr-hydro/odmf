@@ -45,44 +45,65 @@
     <py:block name="sidebar">
         <div class="container-fluid ">
             <div class="dropdown mb-2">
-                <a class="btn btn-primary btn-sm dropdown-toggle w-100 flexbox" href="#" role="button" id="file-menu-link" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="file-menu">
-                    <i class="fas fa-bars"/> file menu
+                <a class=" w-100 flexbox" href="#" role="button" id="file-menu-link" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="file-menu">
+                    <h4 id="plot-name" class="mr-auto">name...</h4>
+                    <div class="ml-auto btn btn-primary"><i class="fas fa-bars"/></div>
                 </a>
+
+
                 <div class="dropdown-menu" aria-labelledby="file-menu-link">
+                    <button class="dropdown-item dropdown-item-action do-reload" role="button" >
+                        <i class="fas fa-sync-alt"/> redraw plot
+                    </button>
+                    <div class="dropdown-item">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="autoreload_switch" py:attrs="prop(checked=autoreload)"/>
+                            <label class="custom-control-label flexbox"
+                                   for="autoreload_switch"
+                                   data-toggle="tooltip"
+                                   title="Automatic reload of data, switches off automatically, if refresh takes longer than 1000 ms ">
+                                auto reload
+                            </label>
+                        </div>
+                    </div>
+                    <button id="btn-clf" title="delete plot" class="dropdown-item dropdown-item-action text-danger"><i class="fas fa-times"/> delete</button>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-header" >
+                        <div id="plot-path"/>
+
+                    </div>
+                    <button class="dropdown-item dropdown-item-action" id="plot-save"><i class="fas fa-floppy-disk"/> save</button>
+
                     <a class="dropdown-item"
                        id="toolbar-toggle" data-toggle="modal" data-target="#file-dialog"
                        role="button" aria-controls="file-dialog">
-                        <i class="fas fa-file"/> load / save plot...
+                        <i class="fas fa-folder-open"/> load / save as ...
                     </a>
                     <a class="dropdown-item"
-                       id="property-toggle" data-toggle="modal" data-target="#export-dialog"
-                       role="tab" aria-controls="export-dialog">
+                       id="export-toggle" data-toggle="modal" data-target="#export-dialog"
+                       role="button" aria-controls="export-dialog">
                         <i class="fas fa-file-export"/> export data...
                     </a>
                     <a class="dropdown-item"
                        id="json-toggle" data-toggle="modal" data-target="#json-dialog"
-                       role="tab" aria-controls="json-dialog">
-                        {} show json code
+                       role="button" aria-controls="json-dialog">
+                        {} show plot code
                     </a>
 
                     <div class="dropdown-divider"></div>
-                    <a data-format="png" class="dropdown-item figure-export" data-toggle="tooltip" title="Export as PNG">
+                    <a data-format="png" class="dropdown-item figure-export" data-toggle="tooltip" title="Export as PNG" role="button">
                         <i class="fas fa-file-image"/> export as png
                     </a>
-                    <a data-format="svg" class="dropdown-item figure-export" data-toggle="tooltip" title="Export as SVG">
+                    <a data-format="svg" class="dropdown-item figure-export" data-toggle="tooltip" title="Export as SVG" role="button">
                         <i class="fas fa-file-code"/> export as svg
                     </a>
-                    <a data-format="pdf" class="dropdown-item figure-export" data-toggle="tooltip" title="Export as PDF">
+                    <a data-format="pdf" class="dropdown-item figure-export" data-toggle="tooltip" title="Export as PDF" role="button">
                         <i class="fas fa-file-pdf"/> export as pdf
                     </a>
 
 
                 </div>
 
-            </div>
-            <div class="flexbox">
-                <h4 id="plot-name" class="mr-auto">name...</h4>
-                <button id="btn-clf" title="delete plot" class="btn btn-sm btn-light"><i class="fas fa-times"/></button>
             </div>
             <div class="card" >
                 <div class="card-header flexbox">
@@ -93,25 +114,6 @@
 
                 </div>
                 <div id="properties" class="collapse card-body form-group">
-                    <div class="">
-                        <label for="autoreload_switch" class="small"><i class="fas fa-sync-alt"/> reload</label>
-                        <div class="flexbox border">
-                            <button class="btn btn-sm btn-primary do-reload" role="button" title="reload now">
-                                <i class="fas fa-sync-alt"/>
-                            </button>
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input" id="autoreload_switch" py:attrs="prop(checked=autoreload)"/>
-                                <label class="custom-control-label flexbox"
-                                       for="autoreload_switch"
-                                       data-toggle="tooltip"
-                                       title="Automatic reload of data, switches off automatically, if refresh takes longer than 1000 ms ">
-                                    auto reload
-                                </label>
-                            </div>
-                            <div class="small badge badge-secondary text-right" id="rendertime" data-toggle="tooltip" title="render-time"></div>
-                        </div>
-                    </div>
-
                     <div class="">
                         <label class="small" for="prop-timeselect"><i class="fas fa-clock"/> time span:</label>
                         <select class="props form-control prop-time" id="prop-timeselect">
@@ -139,13 +141,13 @@
                     <div class="">
                         <label class="small" for="prop-aggregate"><i class="fas fa-ruler-horizontal"/> Aggregation:</label>
                         <select id="prop-aggregate" class="props form-control">
-                            <option value="">No aggregation</option>
-                            <option value="30Min">Half hourly</option>
-                            <option value="h">Hourly</option>
-                            <option value="D">Daily</option>
-                            <option value="W">Weekly</option>
-                            <option value="M">Monthly</option>
-                            <option value="Y">Yearly</option>
+                            <option value="">no aggregation</option>
+                            <option value="30Min">half hourly</option>
+                            <option value="h">hourly</option>
+                            <option value="D">daily</option>
+                            <option value="W">weekly</option>
+                            <option value="M">monthly</option>
+                            <option value="Y">yearly</option>
                         </select>
                     </div>
 
@@ -178,6 +180,7 @@
                 </div>
 
             </div>
+            <div class="mt-1 badge badge-secondary text-right" id="rendertime" data-toggle="tooltip" title="render-time"></div>
 
         </div>
     </py:block>
@@ -218,7 +221,7 @@
                         </a>
                         <div class="dropdown-divider"/>
                         <div class="dropdown-header "
-                           data-subplot="§position§">
+                             data-subplot="§position§">
                             <i class="fas fa-tags" data-toggle="tooltip" title="Show logged events at a site in the graph"/> log-events
                         </div>
                         <div class="dropdown-item">
