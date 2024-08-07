@@ -6,13 +6,17 @@
 
 
 function seterror(jqhxr ,textStatus, errorThrown) {
-	set_error(textStatus)
+	set_error(jqhxr.responseText)
 }
 
 function gettime(startOrEnd) {
+	let timespan = $('#timeselect').val()
+	if (timespan < 0) {
+		return timespan * 1;
+	}
 	let res = $('#'+ startOrEnd + 'date').val();
 	if (res) {
-		res += ' ' + ($('#'+ startOrEnd + 'time').val() || '00:00');
+		res += ' ' + ($('#'+ startOrEnd + 'time').val() || '00:00:00');
 	} else {
 		let today = new Date();
 		if (startOrEnd == 'start') {
@@ -123,18 +127,14 @@ class Plot {
 			this.subplots =  saved_plot.subplots || []
 
 		} else {
-			this.name =  ''
+			this.name =  'Unnamed plot'
 			this.start = gettime('start')
 			this.end =  gettime('end')
 			this.columns =  1
 			this.aggregate = ''
 			this.height =  640
 			this.width =  480
-			this.subplots = [{
-				lines: [],
-				ylim: null,
-				logsite: null,
-			}]
+			this.subplots = []
 
 		}
 	}
@@ -147,8 +147,9 @@ class Plot {
 		this.apply()
 		return this
 	}
-	render() {
+	render(do_apply=true) {
 		$('#plot').html('Loading image...');
+		let startTime = Date.now()
 		$.ajax({
 			method: 'POST',
 			url: odmf_ref('/plot/figure'),
@@ -161,10 +162,20 @@ class Plot {
 				$('#plot').html(result);
 				$('#plot-reload-button').addClass('d-none')
 				$('#plot').removeClass('semitransparent')
-				$('#error-row').addClass('d-none')
+				set_error('')
+				let renderTime = Date.now() - startTime
+				$('#rendertime').html(renderTime.toString() + ' ms')
+				if (renderTime > 1000) {
+					$('#autoreload_switch').prop('checked', false)
+				}
 			})
 			.fail(seterror);
-		return this.apply()
+		if (do_apply) {
+			return this.apply()
+		} else {
+			return this
+		}
+
 	}
 
 	addsubplot() {
@@ -184,6 +195,7 @@ class Plot {
 		let txt_plot = JSON.stringify(this, null, 4);
 		$('#plot-name').html(this.name)
 		$('#content-tree .subplot').remove();
+		let autoreload = $('#autoreload_switch').prop('checked');
 		this.subplots.forEach((subplot, index) => {
 			let txt = $('#subplot-template').html()
 				.replace(/§position§/g, index)
@@ -202,11 +214,17 @@ class Plot {
 			$('#ct-new-subplot').before(obj);
 		})
 		sessionStorage.setItem('plot', txt_plot);
+		$('#property-summary').html(plot.toString())
 		$('#json-row pre').html(txt_plot);
-		$('#plot-reload-button').css('top',this.height / 2).css('left', this.width / 3).removeClass('d-none')
-		$('#plot').addClass('semitransparent')
 		set_content_tree_handlers();
-		return this
+		if (autoreload) {
+			return this.render(false);
+		} else {
+			$('#plot-reload-button').css('top',this.height / 2).css('left', this.width / 3).removeClass('d-none')
+			$('#plot').addClass('semitransparent')
+			return this
+		}
+
 	}
 	removesubplot(id) {
 		this.subplots.splice(id, 1);
@@ -240,6 +258,13 @@ class Plot {
 		if (sp && line >= 0)
 			sp.lines.splice(line, 1);
 		return this
+	}
+
+	toString() {
+		if (this.start < 0) {
+			return 'last ' + (this.start*-1) + ' days, aggregate: ' + this.aggregate
+		}
+		return this.start.toString().slice(0,10) + ' - ' + this.end.toString().slice(0,10) + ', aggregate: ' + this.aggregate
 	}
 }
 
@@ -477,7 +502,7 @@ $(() => {
 
 	set_line_dialog_handlers()
 
-	$('#reload_plot').on('click', () => {
+	$('.do-reload').on('click', () => {
 		window.plot.render()
 	});
 
@@ -503,6 +528,10 @@ $(() => {
 		if (confirm('Do you really want to delete your plot "' + fn + '" from the server'))
 			$.post('deleteplotfile',{filename:fn},seterror);
 	});
+	$('#autoreload_div').on('click', event => {
+		alert('hä?')
+		window.plot.render()
+	})
 });
 
 	    

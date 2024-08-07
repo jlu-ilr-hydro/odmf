@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta
-
+import pandas as pd
 from .. import db
 
+class NoDataError(ValueError):
+    ...
 
 def asdict(obj):
     """
@@ -49,7 +51,7 @@ class Line:
         self.aggregatefunction = aggregatefunction
         self.name = name or self.generate_name()
         if not (linestyle or marker):
-            raise ValueError('Lines need either a linestyle or a marker for the creation')
+            raise NoDataError('Lines need either a linestyle or a marker for the creation')
 
     def generate_name(self):
         """
@@ -76,11 +78,12 @@ class Line:
         """
         from ..webpage.auth import users
         me = users.current
+        start, end = self.subplot.plot.get_time_span()
         datasets = session.query(db.Dataset).filter(
             db.Dataset._valuetype == self.valuetypeid,
             db.Dataset._site == self.siteid,
-            db.Dataset.start <= self.subplot.plot.end,
-            db.Dataset.end >= self.subplot.plot.start
+            db.Dataset.start <= end,
+            db.Dataset.end >= start
         )
         if self.instrumentid:
             datasets = datasets.filter(db.Dataset._source == self.instrumentid)
@@ -96,15 +99,17 @@ class Line:
         Loads the records into an array
         """
         with db.session_scope() as session:
-            end = end or self.subplot.plot.end
-            start = start or self.subplot.plot.start
+            plot_timespan = self.subplot.plot.get_time_span()
+            end = end or plot_timespan[1]
+            start = start or plot_timespan[0]
             datasets = self.getdatasets(session)
-            if not datasets:
-                raise ValueError("No data to compute")
-            group = db.DatasetGroup([ds.id for ds in datasets], start, end)
-            series = group.asseries(session, self.name)
+            if datasets:
+                group = db.DatasetGroup([ds.id for ds in datasets], start, end)
+                series = group.asseries(session, self.name)
+            else:
+                series = pd.Series([])
 
-        if self.subplot.plot.aggregate:
+        if self.subplot.plot.aggregate and not series.empty:
             if self.subplot.plot.aggregate == 'decade':
                 from ..tools.exportdatasets import DecadeMonthStart
                 sampler = series.resample(DecadeMonthStart())
@@ -112,9 +117,6 @@ class Line:
                 sampler = series.resample(self.subplot.plot.aggregate)
             series = sampler.aggregate(self.aggregatefunction or 'mean')
 
-        # There were problems with arrays from length 0
-        if series.empty:
-            raise ValueError("No data to compute")
         series.name = str(self)
         return series
 
@@ -180,10 +182,11 @@ class Subplot:
         return iter(self.lines)
 
     def get_logs(self):
+        start, end = self.plot.get_time_span()
         with db.session_scope() as session:
             # Get logbook entries for logsite during the plot-time
             logs = session.query(db.Log).filter_by(_site=self.logsite).filter(
-                db.Log.time >= self.plot.start).filter(db.Log.time <= self.plot.end)
+                db.Log.time >= start).filter(db.Log.time <= end)
             return [
                 (log.time, log.type, str(log))
                 for log in logs
@@ -224,8 +227,18 @@ class Plot:
         @param start: Date for the beginning x axis
         @param end: Date of the end of the x axis
         """
-        self.start = start or datetime.today() - timedelta(days=90)
-        self.end = end or datetime.today()
+        if isinstance(start, str):
+            if start[0] == '-':
+                start = int(start)
+            else:
+                start = pd.to_datetime(start).to_pydatetime()
+        if isinstance(end, str):
+            if end[0] == '-':
+                end = int(end)
+            else:
+                end = pd.to_datetime(end).to_pydatetime()
+        self.start = start or -90
+        self.end = end or -90
         self.size = (width or 640, height or 480)
         self.columns = columns or 1
         self.subplots = []
@@ -238,6 +251,19 @@ class Plot:
         ]
 
         self.args = kwargs
+
+    def get_time_span(self):
+        """
+        Returns the time span for the plot
+        """
+        if isinstance(self.start, int):
+            end = datetime.today()
+            start = end + timedelta(days=self.start)
+            return start, end
+        else:
+            return (self.start or datetime.today() - timedelta(days=90),
+                    self.end or datetime.today())
+
 
     def lines(self):
 

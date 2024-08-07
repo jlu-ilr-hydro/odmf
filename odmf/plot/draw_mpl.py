@@ -52,7 +52,7 @@ def _draw_subplot(subplot: Subplot, ax: Axes, start: datetime.datetime, end: dat
             ax.text(x, ax.get_ylim()[0], logtype,
                     ha='left', va='bottom', fontsize=subplot.plot.fontsize(0.9))
 
-    ax.set_xlim(subplot.plot.start, subplot.plot.end)
+    ax.set_xlim(*subplot.plot.get_time_span())
 
     for xtl in ax.get_xticklabels():
         xtl.set_rotation(15)
@@ -73,7 +73,7 @@ def _draw_plot(plot: Plot) -> Figure:
     fig, axes = plt.subplots(ncols=plot.columns, nrows=rows, squeeze=False,
                              figsize=size_inch, dpi=100, sharex='all')
     for sp, ax in zip(plot.subplots, axes.ravel()):
-        _draw_subplot(sp, ax, plot.start, plot.end)
+        _draw_subplot(sp, ax, *plot.get_time_span())
 
     fig.subplots_adjust(top=0.975, bottom=0.1, hspace=0.0)
     return fig
