@@ -32,7 +32,7 @@ class TransformedTimeseries(Dataset):
 
     def asseries(self, start=None, end=None):
         datasets = self.sources
-        data = pd.Series()
+        data = []
         if self.expression.startswith('plugin.transformation'):
             # This is a plugin transformation
             # import transformation module
@@ -41,8 +41,9 @@ class TransformedTimeseries(Dataset):
             for src in datasets:
                 v = src.asseries(start, end)
                 v = self.transform(v)
-                data = data.append(v)
-            data = data.sort_index()
+                data.append(v)
+
+            data = pd.concat(data).sort_index()
         return data
 
     def updatetime(self):
