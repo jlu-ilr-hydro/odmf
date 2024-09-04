@@ -231,7 +231,7 @@ def serve_dataframe(data: pd.DataFrame, name:str, index_label=None):
     from ..webpage import lib as web
     stream = BytesIO()
     fileformat = name.split('.')[-1]
-    export_dataframe(stream, data, fileformat, index_label)
+    export_dataframe(stream, data, fileformat, index_label or 'time')
     stream.seek(0)
     mime = web.mime.get(fileformat, web.mime.binary)
     return serve_fileobj(
