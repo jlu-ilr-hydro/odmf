@@ -12,11 +12,10 @@ import pandas as pd
 
 from traceback import format_exc as traceback
 
-from cherrypy.lib.static import serve_fileobj
 from logging import getLogger
 
 from datetime import datetime, timedelta
-import io
+
 import json
 from ..tools import Path as OPath
 from ..config import conf
@@ -165,6 +164,7 @@ class PlotPage(object):
             Plot page
         """
         plot = None
+        p = None
         if not j and f:
             try:
                 if f[0] == '~' and web.user():
@@ -181,6 +181,8 @@ class PlotPage(object):
         if j:
             try:
                 plot = json.loads(j)
+                if p:
+                    plot['path'] = str(p.parent())
                 autoreload = True
             except json.JSONDecodeError as e:
                 error = '\n'.join(f'{i:3} | {l}' for i, l in enumerate(j.split('\n'))) + f'\n\n {e}'
@@ -197,8 +199,6 @@ class PlotPage(object):
     @web.method.post
     def export(self, plot, fileformat, timeindex, tolerance, grid, interpolation_method, interpolation_limit):
         """
-        TODO: Compare to exportall_csv and RegularExport
-
         Parameters
         ----------
         plot: The plot as JSON

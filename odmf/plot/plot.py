@@ -109,7 +109,7 @@ class Line:
             else:
                 series = pd.Series([])
 
-        if self.subplot.plot.aggregate:
+        if self.subplot.plot.aggregate and not series.empty:
             if self.subplot.plot.aggregate == 'decade':
                 from ..tools.exportdatasets import DecadeMonthStart
                 sampler = series.resample(DecadeMonthStart())
@@ -188,7 +188,7 @@ class Subplot:
             logs = session.query(db.Log).filter_by(_site=self.logsite).filter(
                 db.Log.time >= start).filter(db.Log.time <= end)
             return [
-                (log.time, log.type, str(log))
+                (log.time, log.type, log.message)
                 for log in logs
             ]
 
@@ -220,7 +220,7 @@ class Plot:
     Represents a full plot (matplotlib figure)
     """
 
-    def __init__(self, height=None, width=None, columns=None, start=None, end=None, **kwargs):
+    def __init__(self, height=None, width=None, columns=None, start=None, end=None, name=None, path=None, aggregate=None, description=None, **kwargs):
         """
         @param size: A tuple (width,height), the size of the plot in inches (with 100dpi)
         @param columns: number of subplot columns
@@ -236,15 +236,17 @@ class Plot:
             if end[0] == '-':
                 end = int(end)
             else:
-                end = pd.to_datetime(start).to_pydatetime()
+                end = pd.to_datetime(end).to_pydatetime()
         self.start = start or -90
         self.end = end or -90
         self.size = (width or 640, height or 480)
+        self.name = name or ''
+        self.path = path or ''
+        self.aggregate = aggregate or ''
+        self.description = description or ''
+
         self.columns = columns or 1
         self.subplots = []
-        self.name = kwargs.pop('name', '')
-        self.aggregate = kwargs.pop('aggregate', '')
-        self.description = kwargs.pop('description', '')
         self.subplots = [
             Subplot(self, **spargs)
             for i, spargs in enumerate(kwargs.pop('subplots', []))
@@ -266,7 +268,6 @@ class Plot:
 
 
     def lines(self):
-
         return [line for sp in self.subplots for line in sp.lines]
 
     def fontsize(self, em):
@@ -279,9 +280,11 @@ class Plot:
         """
         Creates a dictionary with all properties of the plot, the subplots and their lines
         """
-        return dict(width=self.size[0], height=self.size[1], columns=self.columns,
-                    start=self.start, end=self.end,
-                    subplots=asdict(self.subplots),
-                    aggregate=self.aggregate,
-                    description=self.description)
+        return dict(
+            width=self.size[0], height=self.size[1], columns=self.columns,
+            start=self.start, end=self.end, aggregate=self.aggregate,
+            name=self.name, path=self.path,
+            description=self.description,
+            subplots=asdict(self.subplots),
+        )
 
