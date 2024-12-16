@@ -3,12 +3,11 @@ A stub for a plotting backend producing interactive plots with plotly
 
 Each backend needs to implement the function to_image(plot, format, dpi) and to_html(plot).
 """
-
+import pandas as pd
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
-import io
+from datetime import datetime
 from . import Plot, Line
-from ..config import conf
 
 
 def _draw_line(line: Line, start, end) -> go.Scatter:
@@ -17,7 +16,13 @@ def _draw_line(line: Line, start, end) -> go.Scatter:
     mode = ''
     linestyle = None
     marker = None
-    if line.linestyle:
+    if line.linestyle == 'bar':
+        marker = {
+            'color': line.color,
+            'line': {'color': '#000000', 'width': 1}
+        }
+        return go.Bar(x=data.index, y=data, marker=marker, name=line.name)
+    elif line.linestyle:
         mode = 'lines'
         dash_dict = {'-': 'solid', ':': 'dot', '.': 'dot', '--': 'dash', '-.': 'dashdot'}
         linestyle = {'color': line.color, 'dash': dash_dict[line.linestyle], 'width': line.linewidth}
@@ -31,7 +36,7 @@ def _draw_line(line: Line, start, end) -> go.Scatter:
 
         marker = {'color': line.color, 'symbol': symbol}
 
-    return go.Scatter(x=data.index, y=data, mode=mode, line=linestyle, marker=marker, name=line.name)
+    return go.Scatter(x=data.index, y=data, mode=mode, line=linestyle, marker=marker, name=line.name, connectgaps=False)
 
 
 def _make_figure(plot: Plot) -> go.Figure:
@@ -54,6 +59,24 @@ def _make_figure(plot: Plot) -> go.Figure:
         rows=rows,
         cols=cols
     )
+    for i, sp in enumerate(plot.subplots):
+        if sp.logsite in [l.siteid for l in sp.lines]:
+            # Traverse logs and draw them
+            logtime: datetime
+            for logtime, logtype, logtext in sp.get_logs():
+                x = logtime.timestamp() * 1000
+                row, col = 1 + i // plot.columns, 1 + i % plot.columns
+                fig.add_vline(
+                    x, row=row, col=col,
+                    opacity=0.5,
+                    line={
+                        'color': '#FF0000',
+                        'width': 4,
+                    },
+                    annotation={
+                        'text': f'<i>{logtype}</i>: {logtext}',
+                    }
+                )
 
     fig.update_yaxes()
     fig.update_layout(width=plot.size[0], height=plot.size[1], template='none')

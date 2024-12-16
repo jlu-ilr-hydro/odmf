@@ -15,9 +15,9 @@
     -->
     <script>
         function reload(path) {
-        $.get(odmf_ref('/plot/filedialog/'), {path: path}, html => {
-            $('#file-dialog-content').html(html)
-        })
+            $.get(odmf_ref('/plot/filedialog/'), {path: path}, html => {
+                $('#file-dialog-content').html(html)
+            })
 
         }
         function hide_me() {
@@ -32,8 +32,11 @@
                 $('#save-button-text').html(window.plot.name)
             })
             $('.load-file').on('click', event =>{
-                let href = odmf_ref('/datafiles/' + $(event.currentTarget).data('href'))
+                let path = $(event.currentTarget).data('href')
+                let href = odmf_ref('/datafiles/' + path)
+                console.log('click@.load-file: path:' + path + ' href:' + href + '$path: ${path}')
                 $.getJSON(href, {}, data =>{
+                    data.path = '${path}'
                     window.plot.update(data)
                     hide_me()
                 })
@@ -43,10 +46,13 @@
                 reload(href)
             })
             $('#save-button').on('click', event => {
+                window.plot.path = '${path}'
                 $.post(odmf_ref('/plot/filedialog/save/'), {
                     plot: JSON.stringify(window.plot, null, 4),
                     path: '${path}/' + window.plot.name + '.plot'
-                }).fail(seterror)
+                })
+                    .done(() => {window.plot.apply()})
+                    .fail(seterror)
             })
             $('.delete-button').on('click', event => {
                 let href = $(event.currentTarget).data('path');
@@ -56,17 +62,11 @@
     </script>
     <div class="modal-content">
         <div class="modal-header bg-primary text-light">
-            <h5 class="modal-title">File</h5>
+            <h5 class="modal-title">/${path}/</h5>
         </div>
         <div class="modal-body">
-            <div id="save-plot-container" class="container border p-3">
-                <div class="">
-                    <label for="plotname">name:</label>
-                    <input type="text" class="form-control" value="" id="plotname"/>
-                </div>
-            </div>
             <div id="load-plot-container" class="container border p-3 mt-1">
-                <h3><i class="fas fa-folder-open"/>load...</h3>
+                <div class=""><i class="fas fa-folder-open"/> load</div>
                 <div class="file-list d-flex border-bottom mt-1" py:if="path.absolute != path.datapath">
                     <button class="btn change-dir mr-auto" data-path="${path.parent()}">
                         <i class="fas fa-folder fa-lg mr-2"/>..
@@ -89,9 +89,17 @@
                 </div>
             </div>
         </div>
+        <div class="modal-body">
+            <div><i class="fas fa-floppy-disk"/> save to /${path}/</div>
+            <div id="save-plot-container" class="flexbox border p-3">
+                <label class="mr-2" for="plotname">name:</label>
+                <input type="text" class="form-control" value="" id="plotname"/>
+                <button id="save-button" type="button" class="btn btn-success" data-dismiss="modal"><i class="fas fa-check"/></button>
+            </div>
+
+        </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-            <button id="save-button" type="button" class="btn btn-primary" data-dismiss="modal">Save</button>
         </div>
     </div>
 </html>

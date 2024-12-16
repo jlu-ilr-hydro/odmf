@@ -11,10 +11,14 @@ Analysis carried out in a lab usually result in Excel files with a somewhat enco
 The samples in one batch can origin from multiple sites. Such files can be described with `.labimport` file. This import 
 is ment for rather small datafiles, like a couple of hundred rows, as it is rather slow. 
 
+
+
 The `.labimport` file consists of two main parts: 
-1. The decription of the **file format** eg. how to interprete the file as a table
-2. the decription of each column. For each value in the table a fitting dataset **must** exist. Creating 
-   a `.labimport` file is difficult and should be mentored by a person with programming experience.
+1. The description of the **file format** eg. how to interprete the file as a table
+2. the description of each column. For each value in the table a fitting dataset **must** exist. 
+   If you create new datasets, the start and end must be set to a timerange inside the time range covered by the data.
+
+Creating a `.labimport` file is difficult and should be mentored by a person with programming experience.
 
 ## File format
 
@@ -88,7 +92,7 @@ A column indicating the level (eg. depth) of a sampling. If the dataset is given
 
 This is a very complex type and can be used to derive metadata like site, time, depth from a sample name (this is called parsing). 
 If additional columns for this information exists already, use the type `samplename`, then no parsing takes place and the
-name is only copied. This is not easy - if you are no programmer, you might need help from someone with programming kno
+name is only copied. This is not easy - if you are no programmer, you might need help from someone with programming knowledge
 
 The sample column contains a regex-pattern to describe the content of the sample name. 
 [Regular expression (regex)](https://en.wikipedia.org/wiki/Regular_expression) is
@@ -113,7 +117,7 @@ This pattern matches sample names like F1_4.12.2023_12:54_60 and can mean a samp
 at 12:54 in a depth of 60 cm.
 
 To derive the site, date and level, the parts must be translated. The date can be translated by the group number 
-(in the example 2) and the date format, in the example %d.%m.%Y_%H:%M using Pythons notation of date formats 
+(in the example 2) and the date format, in the example %d.%m.%Y_%H:%M using [Pythons notation of date formats](https://docs.python.org/3/library/datetime.html#format-codes)
 (which is used by a number of other programming languages). The site needs also the right group (in the example 1),
 and you can add a map to translate site names into site id's of the database. If your data uses already the official
 site id's, that map can be left out.
@@ -143,6 +147,10 @@ The table may look like:
     | F1_6.5.2023_11:15_60 |2.5785|0.9456  | Site: F1 (#137), time: May 6th, 2023 in 60cm depth
     | B1_7.5.2023_12:45    |2.5785|0.9456  | Site: B1 (#123), time: May 7th, 2023 no level
 
+Note that the date/time is encoded in the sample with a 4-digit year (6.5.2023_11:15 => Myy 6th, 2023, 11:15) and uses
+as a date format `%d.%m.%Y_%H:%M`. The upper case `%Y` is the 4-digit year. [More about date formats...](https://docs.python.org/3/library/datetime.html#format-codes)
+
+
 ## `.labimport` file
 ```
 driver: read_excel   # pandas function to read the table. See: https://pandas.pydata.org/docs/reference/io.html
@@ -164,7 +172,7 @@ columns:                 # Description of each column, use the column name as ob
                 B3: 203
         time:
             group: 2
-            format: "%d.%m.%y_%H:%M"
+            format: "%d.%m.%Y_%H:%M"
         level:
             group: 3
             factor: -0.01
@@ -196,6 +204,8 @@ twice, for higher accuracy. The duplicated measurements should be aggregated as 
     | | 19_030321_10:42  | 0.1213           | 25.5579| n.a.| | 17.2184| 27.4383| 0.6143
     | | 134_030321_11:28 | 0.1544           | 5.9271| n.a.| | 18.0146| 11.4721| n.a.
 
+Note that the date/time is encoded in the sample with a 2-digit year (030321_10:30 => March 3rd, 2021, 10:30) and uses
+as a date format `%d%m%y_%H:%M`. The lower case `%y` is the 2-digit year. [More about date formats...](https://docs.python.org/3/library/datetime.html#format-codes)
 
 ## `.labimport` file
 
