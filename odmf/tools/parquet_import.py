@@ -92,7 +92,7 @@ def addrecords_dataframe(df: pd.DataFrame):
         ]
 
         if error_ds:
-            error_ds = ', '.join(f'ds{ds.id}' for ds in error_ds)
+            error_ds = ', '.join(f'ds{ds}' for ds in error_ds)
             raise ValueError(f'{users.current} may not append to datasets {error_ds}')
 
         for ds in datasets:
