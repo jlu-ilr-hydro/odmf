@@ -6,13 +6,14 @@ Created on 21.05.2012
 
 @author: philkraf
 '''
-
-from . import db
-# Import smtplib for the actual sending function
+from odmf.config import conf
+from odmf import db
 import sys
 # Import the email modules we'll need
-from .tools.mail import EMail, send
+from odmf.tools.mail import Mailer
+
 from datetime import datetime
+
 msgtemplate = """
 Liebe/r %(you)s,
 
@@ -32,7 +33,7 @@ Dear %(you)s,
 
 the task "%(job)s" in the Schwingbach area was due at %(due)s, and you have been assigned
 for it. If the job can wait, please change the due date. If you have any questions regarding this task, do not hesitate to ask. If you have already
-finished the tasked, please mark it as done at http://fb09-pasig.umwelt.uni-giessen.de:8081/job/%(id)s.
+finished the task, please mark it as done at http://fb09-pasig.umwelt.uni-giessen.de:8081/job/%(id)s.
 
 Thank you,
 
@@ -49,16 +50,13 @@ if __name__ == "__main__":
     today = datetime.today()
     print(today.strftime('%d.%m.%Y %H:%M'))
     mails = []
-    for job in session.query(db.Job).filter(db.Job.done is False, db.Job.due < today):
-        if job.is_due():
-            if job.description:
-                job.parse_description(action='due')
-            subject = 'Studienlandschaft Schwingbach: %s' % job.name
-            msgdata = dict(id=job.id, you=job.responsible.firstname, due=job.due, job=job.name, descr=job.description,
-                           me=job.author.firstname)
-            msg = msgtemplate % msgdata
-            mails.append(EMail(job.author.email, [
-                         job.responsible.email], subject, msg))
-            print(("    %s->%s: %s" % (job.author.username,
-                                       job.responsible.username, job.name)).encode('utf-8'))
-    send(mails)
+    with Mailer(filename=conf.mailer_config) as mailer:
+        for job in session.query(db.Job).filter(db.Job.done is False, db.Job.due < today):
+            if job.is_due():
+                if job.description:
+                    job.parse_description(action='due')
+                subject = 'ODMF: %s' % job.name
+                msgdata = dict(id=job.id, you=job.responsible.firstname, due=job.due, job=job.name, descr=job.description,
+                               me=job.author.firstname)
+                msg = msgtemplate % msgdata
+                mailer.send(subject, msg, [job.responsible.email])
