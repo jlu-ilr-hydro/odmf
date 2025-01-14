@@ -166,7 +166,6 @@ class DownloadPage(object):
             max_size=conf.upload_max_size
         ).render()
 
-
     @expose_for(Level.editor)
     @web.method.post_or_put
     def upload(self, dir, datafiles, **kwargs):
@@ -245,6 +244,29 @@ class DownloadPage(object):
                     or re.match(pattern, f.basename))
             }
         ).encode('utf-8')
+
+    @expose_for()
+    @web.method.get
+    @web.mime.json
+    def search_in_files(self, uri, pattern, full_text=False):
+        """
+        Searches for file names and content under the given uri
+
+        TODO: Need to add access rules to filter result
+
+        :param uri:
+        :param pattern:
+        :param full_text:
+        :return:
+        """
+        from ...tools.rgrep import rgrep, rglob
+        path = Path(uri)
+        if not path.islegal():
+            raise DownloadPageError(path, status=403, message='Location not allowed')
+        result = rglob(pattern, path.absolute)
+        if full_text:
+            result.update(rgrep(pattern, path.absolute))
+        return web.as_json(dict(sorted(result.items()))).encode('utf-8')
 
     @expose_for(Level.editor)
     @web.method.post_or_put
@@ -371,6 +393,10 @@ class DownloadPage(object):
     @expose_for(Level.editor)
     @web.method.post
     def create_access_file(self, uri):
+        """
+        Creates the .access.yml file for access control
+        :param uri: URI of the file
+        """
         path = Path(uri)
         rule = fa.AccessRule.find_rule(path)
         owner = fa.get_owner(path)
@@ -379,8 +405,6 @@ class DownloadPage(object):
             raise goto((path / fa.filename))
         else:
             raise DownloadPageError(path, status=403, message='Only admins can create access files')
-
-
 
     @expose_for(Level.editor)
     @web.method.post
