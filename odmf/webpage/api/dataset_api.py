@@ -6,6 +6,7 @@ import datetime
 from contextlib import contextmanager
 
 import pandas as pd
+import json
 
 from .. import lib as web
 from ..auth import users, expose_for, has_level, Level
@@ -330,7 +331,6 @@ class DatasetAPI(BaseAPI):
 
         return web.json_out(dict(status='success', datasets=list(datasets), records=records))
 
-    @web.json_in()
     @expose_for(Level.editor)
     @web.method.post_or_put
     def addrecords_json(self):
@@ -344,7 +344,7 @@ class DatasetAPI(BaseAPI):
                   ], ...);
         """
         web.mime.json.set()
-        data = cherrypy.request.json
+        data = json.load(cherrypy.request.body)
         if not type(data) is list:
             data = [data]
         warnings = []
