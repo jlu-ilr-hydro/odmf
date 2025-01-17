@@ -53,17 +53,25 @@ class DatasetPage:
                 else:
                     raise web.redirect(conf.root_url + '/dataset', error=f'No ds{datasetid} available')
     @expose_for(Level.editor)
-    def new(self, site_id=None, vt_id=None, user=None, error='', _=None):
+    def new(self, site_id=None, vt_id=None, user=None, error='', _=None, template=None):
+        active = None
         with db.session_scope() as session:
+            if template:
+                template_ds = session.get(db.Timeseries, template)
+                if not template_ds:
+                    error=f'Dataset {template} not found - cannot use as a template'
+                else:
+                    active = template_ds.copy(db.newid(db.Dataset, session))
+            else:
+                site = session.get(db.Site, site_id) if site_id else None
+                valuetype = session.get(db.ValueType, vt_id) if vt_id else None
+                # All projects
 
-            site = session.get(db.Site, site_id) if site_id else None
-            valuetype = session.get(db.ValueType, vt_id) if vt_id else None
-            # All projects
+                if user is None:
+                    user = web.user()
+                user: db.Person = session.get(db.Person, user) if user else None
 
-            if user is None:
-                user = web.user()
-            user: db.Person = session.get(db.Person, user) if user else None
-            active = db.Timeseries(
+            active = active or db.Timeseries(
                 id=db.newid(db.Dataset, session),
                 name='New Dataset',
                 site=site,
@@ -75,6 +83,7 @@ class DatasetPage:
                 calibration_slope=1
             )
             return self.render_dataset(session, active, error=error)
+
     def render_dataset(self, session, active: db.Dataset, message='', error=''):
         """
         Returns the dataset view and manipulation page (dataset-edit.html).
@@ -104,13 +113,12 @@ class DatasetPage:
             quality=session.query(db.Quality).order_by(db.Quality.id),
             datasources=session.query(db.Datasource),
             projects=session.query(db.Project),
-            same_time_ds=self.parallel_datasets(active)
+            same_time_ds=self.parallel_datasets(session, active)
         ).render()
 
     @staticmethod
-    def parallel_datasets(active: db.Timeseries):
+    def parallel_datasets(session, active: db.Timeseries):
         # parallel dataset (same site and same time, different type)
-        session = active.session()
         if active.site and active.start and active.end:
             return session.query(db.Dataset).filter_by(site=active.site).filter(
                 db.Dataset.start <= active.end, db.Dataset.end >= active.start).filter(db.Dataset.id != active.id)
