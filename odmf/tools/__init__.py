@@ -233,3 +233,15 @@ def get_bcrypt_salt(hashed):
     Get the salt from on bcrypt hashed string
     """
     return hashed[:29]
+
+def create_hash(password: str):
+    """
+    Create a new salted hash of a password.
+    """
+    return hashpw(password, None)
+
+def check_password(password: str, hashed: str):
+    """
+    Check if a given password matches its hashed version.
+    """
+    return password and len(hashed > 29) and hashpw(password, hashed[:29])
