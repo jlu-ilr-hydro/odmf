@@ -184,7 +184,6 @@ class DownloadPage(object):
             max_size=conf.upload_max_size
         ).render()
 
-
     @expose_for(Level.editor)
     @web.method.post_or_put
     def upload(self, dir, datafiles, **kwargs):
@@ -267,6 +266,50 @@ class DownloadPage(object):
                     or re.match(pattern, f.basename))
             }
         ).encode('utf-8')
+
+    @expose_for()
+    def search(self, uri, pattern, full_text=False):
+        """
+        Searches for file names and content under the given uri
+
+        TODO: Need to add access rules to filter result
+
+        :param uri:
+        :param pattern:
+        :param full_text:
+        :return:
+        """
+        from ...tools.rgrep import rgrep, rglob
+        path = Path(uri)
+        msg = f'Search for `{pattern}´ in {path} file names'
+        check_access(fa.Mode.read, path)
+        modes = fa.check_children(path, users.current)
+        matches = rglob(pattern, path.absolute)
+        if full_text:
+            matches.update(rgrep(pattern, path.absolute))
+            msg += ' and content'
+        path_list = [
+            (Path(p), msg) for p, msg in matches.items()
+        ]
+
+        path_list = sorted([
+            (p, msg) for p, msg in path_list
+            if p.islegal() and fa.check_directory(p, users.current) >= fa.Mode.read
+        ])
+
+
+
+        return web.render(
+            'download.html',
+            error='', success=msg,
+            modes=modes, Mode=fa.Mode, owner=fa.get_owner(path),
+            content=None,
+            files=[p for p, msg in path_list],
+            directories=[],
+            handler=self.filehandler,
+            curdir=path, import_history=self.get_import_history(path),
+            max_size=conf.upload_max_size
+        ).render()
 
     @expose_for(Level.editor)
     @web.method.post_or_put
@@ -395,6 +438,10 @@ class DownloadPage(object):
     @expose_for(Level.editor)
     @web.method.post
     def create_access_file(self, uri):
+        """
+        Creates the .access.yml file for access control
+        :param uri: URI of the file
+        """
         path = Path(uri)
         rule = fa.AccessRule.find_rule(path)
         owner = fa.get_owner(path)
@@ -403,8 +450,6 @@ class DownloadPage(object):
             raise goto((path / fa.filename))
         else:
             raise DownloadPageError(path, status=403, message='Only admins can create access files')
-
-
 
     @expose_for(Level.editor)
     @web.method.post
