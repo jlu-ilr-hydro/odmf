@@ -43,6 +43,7 @@ def get_session_class():
 
 
 engine, Session = get_session_class()
+Session.newid = lambda self, cls: newid(cls, self)
 
 
 @contextmanager

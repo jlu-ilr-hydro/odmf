@@ -245,11 +245,15 @@
                         </div>
                         <div class="nav">
                             <button class="btn btn-primary dropdown-toggle mr-3 nav-item" type="button"
-                                    id="addFileDropdownButton" data-toggle="dropdown" py:attrs="prop(disabled=modes[curdir]==Mode.read)"
-                                    aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-plus-circle" />
-                                Add files and folders
-                            </button>
+                                    id="addFileDropdownButton" data-toggle="dropdown" py:attrs="prop(hidden=Mode.write>modes[curdir])"
+                                    aria-haspopup="true" aria-expanded="false"><i class="fas fa-plus-circle" /> Add files and folders</button>
+                            <div py:if="Mode.write>modes[curdir]" class="alert alert-light nav-item">
+                                <span class="fa-stack fa-1x">
+                                    <i class="fa-solid fa-pen fa-stack-1x"></i>
+                                    <i class="fa-solid fa-ban fa-stack-2x"></i>
+                                </span>
+                                no write access on this folder, ask the ${owner} if you need it.
+                            </div>
                             <form method="post" action="${conf.root_url}/download/create_access_file" class="nav-item">
                                 <button class="btn btn-secondary mr-3" type="submit" name="uri" value="${curdir}"
                                    py:if="modes[curdir]>=Mode.admin"

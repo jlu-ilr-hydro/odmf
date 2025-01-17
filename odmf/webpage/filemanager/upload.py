@@ -74,6 +74,22 @@ def goto(dir, error=None, msg=None):
     return web.redirect(f'{conf.root_url}/download/{dir}'.strip('.'), error=error or '', msg=msg or '')
 
 
+def check_access(mode: fa.Mode, dir: Path, no_raise=False):
+    """
+    Checks if path has read access for the current user
+    :param dir: the path to check
+    :param no_raise: if True return True/False else raise HTTP-403 error
+    :return:
+    """
+    path = Path(dir)
+    if fa.check_directory(path, users.current) < mode:
+        if no_raise:
+            return False
+        else:
+            raise DownloadPageError(path, 403, f'{users.current} has no read access to {path}')
+    else:
+        return True
+
 
 @web.show_in_nav_for(0, 'file')
 class DownloadPage(object):
@@ -132,11 +148,13 @@ class DownloadPage(object):
     def index(self, uri='.', error='', msg='', serve=False, _=None):
         path = Path(uri)
         modes = fa.check_children(path, users.current)
-
-        if not all((
-                path.islegal(),
-                path.exists(),
-        )):
+        check_access(fa.Mode.read, path)
+        if not all(
+                (
+                    path.islegal(),
+                    path.exists(),
+                )
+        ):
             raise HTTPFileNotFoundError(path)
         hidden = (path.ishidden() and modes[path] < fa.Mode.admin) or modes[path]==fa.Mode.none
         if hidden:
@@ -185,9 +203,10 @@ class DownloadPage(object):
         """
         error = []
         msg = []
+        path = Path(dir)
+        check_access(fa.Mode.write, path)
         # Loop over incoming datafiles. Single files need some special treatment
         for datafile in (list(datafiles) or [datafiles]):
-            path = Path(dir)
             if not path:
                 path.make()
             fn = path + datafile.filename
@@ -212,14 +231,16 @@ class DownloadPage(object):
     def saveindex(self, dir, s):
         """Saves the string s to index.html
         """
-        path = Path(dir,  '.readme.md')
+        path = Path(dir)
+        check_access(fa.Mode.write, path)
         s = s.replace('\r', '')
-        open(path.absolute, 'w').write(s)
+        open((path / '.readme.md').absolute, 'w').write(s)
         return web.markdown(s)
 
     @expose_for(Level.logger)
     @web.method.get
     def getindex(self, dir):
+        check_access(fa.Mode.read, dir)
         io = StringIO()
         for indexfile in ['.readme.md', 'README.md', 'index.html']:
             if (index:=Path(dir, indexfile)).exists():
@@ -234,6 +255,7 @@ class DownloadPage(object):
     def listdir(self, dir, pattern=None):
         import re
         path = Path(dir)
+        check_access(fa.Mode.read, path)
         directories, files = path.listdir()
         return web.as_json(
             directories={d.basename: d.href for d in sorted(directories)},
@@ -271,6 +293,7 @@ class DownloadPage(object):
     @expose_for(Level.editor)
     @web.method.post_or_put
     def newfolder(self, dir, newfolder):
+        check_access(fa.Mode.write, dir)
         error = ''
         msg = ''
         if newfolder:
@@ -298,6 +321,7 @@ class DownloadPage(object):
     @expose_for(Level.editor)
     @web.method.post_or_put
     def newtextfile(self, dir, newfilename):
+        check_access(fa.Mode.write, dir)
         if newfilename:
             try:
                 path = Path(dir, newfilename)
@@ -326,9 +350,7 @@ class DownloadPage(object):
         """
         path = Path(dir, filename)
         error = msg = ''
-        mode = fa.check_directory(path, users.current)
-        if mode < fa.Mode.admin:
-            raise DownloadPageError(path, 403, 'You need to have admin rights on this directory')
+        check_access(fa.Mode.admin, path)
         if path.isfile():
             try:
                 os.remove(path.absolute)
@@ -363,7 +385,9 @@ class DownloadPage(object):
         Copies filename in directory to newfilename
         """
         path = Path(dir, filename)
+        check_access(fa.Mode.read, path)
         targetpath = Path(dir, newfilename)
+        check_access(fa.Mode.write, targetpath)
         error = msg = ''
         if not path.islegal():
             error = '{path} is not a legal position'
@@ -410,6 +434,7 @@ class DownloadPage(object):
     @web.method.post
     def write_to_file(self, path, text):
         path = Path(path)
+        check_access(fa.Mode.write, path)
         error = msg = ''
         if not path.islegal() or path.isdir():
             raise goto(path, error='Write failed at ' + str(path))
