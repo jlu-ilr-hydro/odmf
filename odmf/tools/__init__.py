@@ -10,7 +10,7 @@ from contextlib import contextmanager
 __all__ = ['mail', 'Path']
 
 
-class Path(object):
+class Path:
     def __init__(self, *path: str|typing.Self|pathlib.Path, absolute=False):
         self.datapath = op.realpath(conf.datafiles)
         if path:
@@ -92,13 +92,19 @@ class Path(object):
     def make(self):
         os.makedirs(self.absolute, mode=0o770)
 
-    def breadcrumbs(self) -> list[typing.Self]:
+    def breadcrumbs(self, stop: typing.Optional[typing.Self]=None) -> list[typing.Self]:
         res = [self]
         p = op.dirname(self.absolute)
         while self.datapath in p:
             res.insert(0, Path(p))
             p = op.dirname(p)
         return res
+
+    def relative_name(self, parent: typing.Self) -> str:
+        if parent.href.strip('.') in self.href:
+            return self.href.replace(parent.href.strip('.'),'').strip('/')
+        else:
+            return self.href
 
     def child(self, filename) -> typing.Self:
         return Path(op.join(self.absolute, filename), absolute=True)
