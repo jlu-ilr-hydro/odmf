@@ -51,7 +51,7 @@ class Configuration:
     # woftester_receiver_mail = ['philipp.kraft@umwelt.uni-giessen.de']
     # woftester_sender_mail = 'woftester@umwelt.uni-giessen.de'
     # cuahsi_wsdl_endpoint = 'http://fb09-pasig.umwelt.uni-giessen.de/wof/index.php/cuahsi_1_1.asmx?WSDL'
-    # smtp_serverurl = 'mailout.uni-giessen.de'
+    mailer_config = None
     root_url = ''
     datafiles = './datafiles'
     preferences = './preferences'

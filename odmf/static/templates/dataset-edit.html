@@ -230,6 +230,9 @@
                             title="Create a transformed dataset for this">
                         $~f(x)~$ transform
                     </button>
+                    <a href="${conf.root_url}/dataset/new?template=${ds_act.id}#edit" class="btn btn-outline-primary mr-2" data-toggle="tooltip" title="Create a new dataset using this as a template">
+                        <i class="fas fa-copy"/> copy
+                    </a>
 
                 </div>
                 <div id="edit" class="tab-pane w-100 mr-4 ${['', 'active'][not ds_act.is_defined()]}" role="tabpanel" py:if="access(Level.editor)">
