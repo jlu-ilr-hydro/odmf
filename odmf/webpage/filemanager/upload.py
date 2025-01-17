@@ -268,9 +268,7 @@ class DownloadPage(object):
         ).encode('utf-8')
 
     @expose_for()
-    @web.method.get
-    @web.mime.json
-    def search_in_files(self, uri, pattern, full_text=False):
+    def search(self, uri, pattern, full_text=False):
         """
         Searches for file names and content under the given uri
 
@@ -283,12 +281,35 @@ class DownloadPage(object):
         """
         from ...tools.rgrep import rgrep, rglob
         path = Path(uri)
-        if not path.islegal():
-            raise DownloadPageError(path, status=403, message='Location not allowed')
-        result = rglob(pattern, path.absolute)
+        msg = f'Search for `{pattern}´ in {path} file names'
+        check_access(fa.Mode.read, path)
+        modes = fa.check_children(path, users.current)
+        matches = rglob(pattern, path.absolute)
         if full_text:
-            result.update(rgrep(pattern, path.absolute))
-        return web.as_json(dict(sorted(result.items()))).encode('utf-8')
+            matches.update(rgrep(pattern, path.absolute))
+            msg += ' and content'
+        path_list = [
+            (Path(p), msg) for p, msg in matches.items()
+        ]
+
+        path_list = sorted([
+            (p, msg) for p, msg in path_list
+            if p.islegal() and fa.check_directory(p, users.current) >= fa.Mode.read
+        ])
+
+
+
+        return web.render(
+            'download.html',
+            error='', success=msg,
+            modes=modes, Mode=fa.Mode, owner=fa.get_owner(path),
+            content=None,
+            files=[p for p, msg in path_list],
+            directories=[],
+            handler=self.filehandler,
+            curdir=path, import_history=self.get_import_history(path),
+            max_size=conf.upload_max_size
+        ).render()
 
     @expose_for(Level.editor)
     @web.method.post_or_put
