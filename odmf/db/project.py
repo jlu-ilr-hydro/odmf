@@ -25,8 +25,8 @@ class Project(Base):
     )
     name = sql.Column(sql.String)
     comment = sql.Column(sql.String)
-    sourcelink = new_column(sql.Column(sql.String))
-    organization = new_column(sql.Column(sql.String, default='uni-giessen.de'))
+    sourcelink = sql.Column(sql.String)
+    organization = sql.Column(sql.String, default='uni-giessen.de')
     datasets = sql.orm.relationship('Dataset')
 
     @property
