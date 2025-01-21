@@ -1,3 +1,5 @@
+import typing
+
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from datetime import datetime, timedelta
@@ -7,11 +9,20 @@ from functools import total_ordering
 
 # from ..tools.mail import EMail
 from .base import Base, newid
-from .site import Log
+from .site import Log, Site
 from .person import Person
+from ..tools.migrate_db import new_column
 
 from logging import getLogger
 logger = getLogger(__name__)
+
+
+job_at_sites = sql.Table(
+    'job_is_at_site',
+    Base.metadata,
+    sql.Column('job', sql.ForeignKey('job.id'), primary_key=True),
+    sql.Column('site', sql.ForeignKey('site.id'), primary_key=True),
+)
 
 @total_ordering
 class Job(Base):
@@ -36,12 +47,20 @@ class Job(Base):
     # Number of days to repeat this job, if NULL, negetative or zero, the job is not repeated
     # The new job is generated when this job is done, due date is the number of days after this due date
     repeat = sql.Column(sql.Integer)
+    # Job duration in days after due date
+    duration = new_column(sql.Column(sql.Integer))
     # A http link to help with the execution of the job
     link = sql.Column(sql.String)
     # A job type
     type = sql.Column(sql.String)
     # The date the job was done
     donedate = sql.Column(sql.DateTime)
+
+    sites: orm.Mapped[typing.List[Site]] = orm.relationship(
+        secondary=job_at_sites
+    )
+
+
 
     def __str__(self):
         return "%s: %s %s" % (self.responsible, self.name, ' (Done)' if self.done else '')
