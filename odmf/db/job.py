@@ -5,7 +5,7 @@ from collections import deque
 from traceback import format_exc as traceback
 from functools import total_ordering
 
-from ..tools.mail import EMail
+# from ..tools.mail import EMail
 from .base import Base, newid
 from .site import Log
 from .person import Person
@@ -147,8 +147,8 @@ class Job(Base):
                                     + '''%(text)s\n\n'''\
                                     + '''%(description)s\n''' % msgdata
                                 subject = 'Studienlandschaft Schwingbach: job #%(id)s is %(action)s' % msgdata
-                                EMail(by.email, list(set([you.email for you in to] + [
-                                      self.responsible.email, self.author.email])), subject, text).send()
+                                #EMail(by.email, list(set([you.email for you in to] + [
+                                #      self.responsible.email, self.author.email])), subject, text).send()
                             except:
                                 raise RuntimeError(
                                     '"%s" is not a valid mail, problem: %s' % (line, traceback()))

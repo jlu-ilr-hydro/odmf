@@ -124,7 +124,7 @@ class TestDatasetAPI:
         assert timeseries.records.count() == 1000
 
     def test_addrecords_json_withid(self, apilogin, timeseries):
-        import datetime
+        import datetime, io
         start = datetime.datetime(2022,1,1,12)
         records = [
             dict(
@@ -135,8 +135,10 @@ class TestDatasetAPI:
             )
             for n in range(1000)
         ]
-        json_str = json.dumps(records)
-        cherrypy.request.json = json.loads(json_str)
+        buffer = io.BytesIO()
+        buffer.write(json.dumps(records).encode('utf-8'))
+        buffer.seek(0)
+        cherrypy.request.body = buffer
 
         res = response_to_json(
             apilogin.dataset.addrecords_json()

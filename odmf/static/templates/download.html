@@ -120,13 +120,35 @@
     </py:block>
     <py:block name="sidebar">
         <div class="nav-item mr-4 p-2">
-            <nav aria-label="breadcrumb" class="">
-                <ol class="breadcrumb">
+            <nav aria-label="breadcrumb" class="float">
+                <ol class="breadcrumb nav-item">
                     <li py:for="bc in curdir.breadcrumbs()" class="breadcrumb-item">
                         <a href="${bc.href}" py:content="bc.basename" />
                     </li>
                 </ol>
             </nav>
+            <div class="dropdown nav-item ">
+                    <button class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown"><i class="fas fa-search"></i></button>
+                    <div class="dropdown-menu shadow">
+                        <form method="GET" action="${conf.root_url}/download/search" class="p-3">
+                            <input name="uri" value="${curdir}" type="hidden"/>
+                            <div class="form-group">
+                                <label for="search-pattern">Search for:</label>
+                                <input id="search-pattern" name="pattern" class="form-control"/>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="full_text" id="search-fulltext"/>
+                                    <label for="search-fulltext" class="form-check-label">Full text search (slow)</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> search</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
             <h5>content</h5>
             <ul class="nav flex-column" id="directories">
                 <li py:if="not curdir.isroot()" class="nav-item border-top">
@@ -151,10 +173,13 @@
 
                 <div class="col-xl">
                     <div class="card p-3" >
-                        <h5 class="card-title">
+                        <h5 class="card-title nav">
                             <i class="fas fa-folder-open mr-2"/>
-                            <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
-                            <span class="badge bg-warning ml-8 float-right" py:content="modes[curdir].name"/>
+                            <div class="">
+                                <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
+                            </div>
+                            <div class="badge bg-warning nav-item ml-auto" py:content="modes[curdir].name"/>
+
                         </h5>
                         <div class="list-group flex-column card-text mb-3" id="files">
                             <a class="list-group-item list-group-action flexbox mt-1 pt-1 border-top"
@@ -202,7 +227,7 @@
                                 <nav class="nav flexbox">
                                     <a href="${f.href}" class="nav-link active">
                                         <i class="fas fa-${handler[f].icon} fa-lg" />
-                                        <span py:content="f.basename" class="mr-auto"/>
+                                        <span py:content="f.relative_name(curdir)" class="mr-auto"/>
                                         <span class="ml-4 badge badge-secondary" py:content="f.formatsize()" />
                                     </a>
 
@@ -245,11 +270,15 @@
                         </div>
                         <div class="nav">
                             <button class="btn btn-primary dropdown-toggle mr-3 nav-item" type="button"
-                                    id="addFileDropdownButton" data-toggle="dropdown" py:attrs="prop(disabled=modes[curdir]==Mode.read)"
-                                    aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-plus-circle" />
-                                Add files and folders
-                            </button>
+                                    id="addFileDropdownButton" data-toggle="dropdown" py:attrs="prop(hidden=Mode.write>modes[curdir])"
+                                    aria-haspopup="true" aria-expanded="false"><i class="fas fa-plus-circle" /> Add files and folders</button>
+                            <div py:if="Mode.write>modes[curdir]" class="alert alert-light nav-item">
+                                <span class="fa-stack fa-1x">
+                                    <i class="fa-solid fa-pen fa-stack-1x"></i>
+                                    <i class="fa-solid fa-ban fa-stack-2x"></i>
+                                </span>
+                                no write access on this folder, ask the folder owner ${owner} if you need it.
+                            </div>
                             <form method="post" action="${conf.root_url}/download/create_access_file" class="nav-item">
                                 <button class="btn btn-secondary mr-3" type="submit" name="uri" value="${curdir}"
                                    py:if="modes[curdir]>=Mode.admin"
