@@ -14,7 +14,9 @@ import cherrypy
 from ..config import conf
 from ..tools import hashpw, get_bcrypt_salt
 from enum import IntEnum
+import logging
 
+logger = logging.getLogger(__name__)
 
 def sessionuser()->str:
     "Returns the username saved in the session"
@@ -44,15 +46,14 @@ def check_auth(*args, **kwargs):
     """Checks the authentification for a given page. 
     Function is exported as a cherrypy tool
     """
-    conditions = cherrypy.request.config.get('auth.require')
+    conditions = cherrypy.request.config.get('auth.require', [])
     user = sessionuser()
     if user:
         cherrypy.request.login = user
-    if conditions is not None:
-        for condition in conditions:
-            # A condition is just a callable that returns true or false
-            if not condition():
-                raise HTTPAuthError()
+    for condition in conditions:
+        # A condition is just a callable that returns true or false
+        if not condition():
+            raise HTTPAuthError()
 
 
 cherrypy.tools.auth = cherrypy.Tool('before_handler', check_auth)
@@ -245,19 +246,19 @@ def has_level(level):
     return check
 
 
-def expose_for(groupname=None):
+def expose_for(level: Level = Level.guest):
     def decorate(f):
+
         if not hasattr(f, '_cp_config'):
             f._cp_config = {}
-        else:
-            f._cp_config.setdefault('auth.require', []).append(
-                member_of(groupname)
-            )
+        f._cp_config.setdefault('auth.require', []).append(
+            member_of(level)
+        )
         f.exposed = True
-        f.level = groupname
+        logger.debug(f'{f}._cp_config={f._cp_config}')
+        f.level = level
         return f
     return decorate
-
 
 def is_self(name):
     return users.current.name == name
