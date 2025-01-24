@@ -5,10 +5,12 @@ from collections import deque
 from traceback import format_exc as traceback
 from functools import total_ordering
 
+
 # from ..tools.mail import EMail
 from .base import Base, newid
 from .site import Log
 from .person import Person
+from ..tools.migrate_db import new_column
 
 from logging import getLogger
 logger = getLogger(__name__)
@@ -33,6 +35,8 @@ class Job(Base):
                                    backref=orm.backref('jobs', lazy='dynamic'))
     # Marks the job as done
     done = sql.Column("done", sql.Boolean, default=False)
+    # Job duration in days after due
+    duration: orm.Mapped[int] = new_column(sql.Column(sql.Integer))
     # Number of days to repeat this job, if NULL, negetative or zero, the job is not repeated
     # The new job is generated when this job is done, due date is the number of days after this due date
     repeat = sql.Column(sql.Integer)
@@ -52,6 +56,7 @@ class Job(Base):
     def __jdict__(self):
         return dict(id=self.id,
                     name=self.name,
+                    type=self.type,
                     description=self.description,
                     due=self.due,
                     donedate=self.donedate,
@@ -189,16 +194,6 @@ class Job(Base):
                 msg.extend(errors)
         return '\n'.join(msg)
 
-    @property
-    def color(self):
-        if self.done:
-            return '#FFF'
-        dt = (self.due - datetime.now()).days
-        if dt < 0:
-            return '#F00'
-        elif dt == 0:
-            return '#F80'
-        elif dt < 2:
-            return '#8F4'
-        else:
-            return '#8F8'
+    def end(self):
+        return self.due + timedelta(days=self.duration or 0)
+

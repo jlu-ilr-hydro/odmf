@@ -1,5 +1,6 @@
 setuptools>=39.0
 wheel>=0.30
+python-dateutil
 
 charset_normalizer
 PyYAML>=5.1

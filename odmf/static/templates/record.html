@@ -33,7 +33,6 @@
 				res +=$(this).val() + ' '
 			});
 			$.post(odmf_ref('/dataset/updaterecorderror'),{dataset:${dataset.id},records:res},function(data){
-				alert('done');
 				if (data) {
 					$('.error').html(data);				
 				} else {

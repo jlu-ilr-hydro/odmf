@@ -71,24 +71,21 @@ def formatfloat(v, style='%g'):
 
 
 def parsedate(s, raiseerror=True):
+    from dateutil.parser import parse, isoparse
     if not s:
+        return None
+    # res = None
+    try:
+        return isoparse(s)
+    except ValueError:
+        ...
+    try:
+        return parse(s, dayfirst=True)
+    except ValueError:
         if raiseerror:
-            raise ValueError(f'Given date is None')
+            raise ValueError(f'{s} is not a valid date')
         else:
             return None
-
-    res = None
-    formats = ('%d.%m.%Y %H:%M:%S', '%d.%m.%Y %H:%M', '%d.%m.%Y', '%Y-%m-%d', '%Y-%m-%d %H:%M:%S',
-               '%Y/%m/%dT%H:%M:%S', '%Y-%m-%dT%H:%M', '%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S')
-    for fmt in formats:
-        try:
-            res = datetime.strptime(s.strip('Z'), fmt)
-        except (ValueError, TypeError):
-            pass
-    if not res and raiseerror:
-        raise ValueError('%s is not a valid date/time format' % s)
-    else:
-        return res
 
 
 def conv(cls, s, default=None):

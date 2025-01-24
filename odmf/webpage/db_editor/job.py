@@ -1,29 +1,75 @@
+import cherrypy
 
+from ...config import conf
 from .. import lib as web
 from ..auth import users, Level, expose_for
 
 from ... import db
 
 from traceback import format_exc as traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 
-
+@cherrypy.popargs('jobid')
 @web.show_in_nav_for(1, 'tasks')
 class JobPage:
 
+    def can_edit(self, job: db.Job):
+        return job._responsible == web.user() or job._author == web.user()
+
+
+    def save_job(self, jobid, **kwargs):
+        """Save a job with new properties. Called by index POST"""
+        error = msg = ''
+        try:
+            id = web.conv(int, kwargs.get('id'), '')
+        except (TypeError, ValueError):
+            error = 'The job id is not a number'
+        else:
+            with db. session_scope() as session:
+                job = session.get(db.Job, id)
+                if not job:
+                    job = db.Job(id=id, _author=web.user())
+                    session.add(job)
+                    session.flush()
+                    jobid=job.id
+                elif not self.can_edit(job):
+                    error = 'Only author and responsible person can edit a job'
+                    raise web.redirect(conf.url('job', job.id, error=error))
+
+                if kwargs.get('due'):
+                    job.due = web.parsedate(kwargs['due'])
+                if job.due is None:
+                    raise web.redirect(conf.url('job', jobid, error='No due date'))
+                job.name = kwargs.get('name')
+                job.description = kwargs.get('description')
+                job.responsible = session.query(
+                    db.Person).get(kwargs.get('responsible'))
+                job.link = kwargs.get('link')
+                job.duration = web.conv(int, kwargs.get('duration'))
+                job.repeat = web.conv(int, kwargs.get('repeat'))
+                job.type = kwargs.get('type')
+
+                if kwargs['save'] == 'own':
+                    p_user = session.get(db.Person, web.user())
+                    job.author = p_user
+                    msg = f'{job.name} is now yours'
+                elif kwargs['save'] == 'done':
+                    job.make_done(users.current.name)
+                    msg = f'{job} is done'
+                else:
+                    msg = f'{job} is saved'
+
+        raise web.redirect(conf.url('job', jobid, error=error, success=msg))
+
+
     @expose_for(Level.logger)
-    def default(self, jobid=None, user=None, onlyactive='active', error='', msg=''):
+    def show_job(self, jobid, error=None, success=None):
+        """Shows a single job, called by self.index"""
         with db.session_scope() as session:
-            if user is None:
-                user = web.user()
             if jobid == 'new':
                 author = session.get(db.Person, web.user())
                 job = db.Job(id=db.newid(db.Job, session),
                              name='name of new job', author=author)
-                if user:
-                    p_user = session.get(db.Person, user)
-                    job.responsible = p_user
-                    job.due = datetime.now()
 
             elif jobid is None or jobid == 'undefined':
                 job = session.query(db.Job).filter_by(
@@ -37,21 +83,38 @@ class JobPage:
             queries = dict(
                 persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname).all(),
                 jobtypes=session.query(db.Job.type).order_by(db.Job.type).distinct().all(),
+                my_jobs=session.query(db.Job).filter(db.Job._responsible == web.user(), ~db.Job.done).order_by(db.Job.due).all(),
+                my_jobs_author=session.query(db.Job).filter(db.Job._author == web.user(), ~db.Job.done).order_by(db.Job.due).all(),
             )
 
-            jobs = session.query(db.Job).order_by(db.Job.done, db.Job.due.desc())
-            if user != 'all':
-                jobs = jobs.filter(db.Job._responsible == user)
-            if onlyactive:
-                jobs = jobs.filter(~ db.Job.done)
-
             return web.render(
-                'job.html', jobs=jobs, job=job,
-                error=error, success=msg, db=db,
-                username=user, onlyactive=onlyactive,
+                'job.html', job=job, can_edit=self.can_edit(job),
+                error=error, success=success, db=db,
+                username=users.current, now=datetime.now(),
                 **queries
             ).render()
+
+    def list_jobs(self, **kwargs):
+        with db.session_scope() as session:
+            jobtypes=session.query(db.Job.type).order_by(db.Job.type).distinct()
+            persons = sorted(set([j.responsible for j in session.query(db.Job) if j.responsible] + [j.author for j in session.query(db.Job) if j.author]))
+
+            return web.render('job-list.html', jobtypes=jobtypes, persons=persons).render()
+
+
     @expose_for(Level.logger)
+    def index(self, jobid=None, error=None, success=None, **kwargs):
+        if cherrypy.request.method == 'GET':
+            if jobid:
+                return self.show_job(jobid)
+            else:
+                return self.list_jobs()
+        if cherrypy.request.method == 'POST':
+            return self.save_job(jobid, **kwargs)
+
+
+    @expose_for(Level.logger)
+    @web.method.post
     def done(self, jobid, time=None):
         with db.session_scope() as session:
             job = session.get(db.Job, int(jobid))
@@ -60,63 +123,44 @@ class JobPage:
             return job.make_done(users.current.name, time)
 
 
-    @expose_for(Level.editor)
-    def saveitem(self, **kwargs):
-        error = msg = ''
-        try:
-            id = web.conv(int, kwargs.get('id'), '')
-        except (TypeError, ValueError):
-            error = 'The job id is not a number'
-        if 'save' not in kwargs:
-            msg = 'Data sent not for saving'
-        else:
-            try:
-                with db. session_scope() as session:
-                    job = session.get(db.Job, id)
-                    if not job:
-                        job = db.Job(id=id, _author=web.user())
-                    if kwargs.get('due'):
-                        job.due = web.parsedate(kwargs['due'])
-                    job.name = kwargs.get('name')
-                    job.description = kwargs.get('description')
-                    job.responsible = session.query(
-                        db.Person).get(kwargs.get('responsible'))
-                    job.link = kwargs.get('link')
-                    job.repeat = web.conv(int, kwargs.get('repeat'))
-                    job.type = kwargs.get('type')
-
-                    if kwargs['save'] == 'own':
-                        p_user = session.get(db.Person, web.user())
-                        job.author = p_user
-                        msg = f'{job.name} is now yours'
-                    elif kwargs['save'] == 'done':
-                        job.make_done(users.current.name)
-                        msg = f'{job} is done'
-                    else:
-                        msg = f'{job} is saved'
-            except:
-                tb = traceback()
-                error = ('\n'.join('%s: %s' % it for it in kwargs.items())) + '\n' + tb
-
-            raise web.redirect(str(id), error=error, msg=msg)
-
     @expose_for(Level.logger)
     @web.mime.json
-    def json(self, responsible=None, author=None, onlyactive=False, dueafter=None):
+    def json(self, persons=None, types=None, onlyactive=False,  start=None, end=None):
         with db.session_scope() as session:
+            jobs = session.query(db.Job)
+            if start:
+                start = web.parsedate(start)
+                jobs = jobs.filter(db.Job.due >= start)
+            if end:
+                end = web.parsedate(end)
+                jobs = jobs.filter(db.Job.due <= end)
+            if persons:
+                persons = persons.split(',')
+                jobs = jobs.filter(db.sql.or_(db.Job._responsible.in_(persons), db.Job._author.in_(persons)))
+            if types:
+                types = types.split(',')
+                jobs = jobs.filter(db.sql.or_(db.Job.type.in_(types)))
 
-            jobs = session.query(db.Job).order_by(db.Job.done ,db.Job.due.desc())
-            if responsible != 'all':
-                if not responsible:
-                    responsible = users.current.name
-                jobs = jobs.filter(db.Job._responsible == responsible)
-            if onlyactive:
+            if onlyactive == 'true':
                 jobs = jobs.filter(~db.Job.done)
-            if author:
-                jobs = jobs.filter(db.Job.author == author)
-            try:
-                jobs = jobs.filter(db.Job.due > web.parsedate(dueafter))
-            except:
-                pass
-            return web.json_out(jobs.all())
+
+            events = [self.as_event(job) for job in jobs]
+            return web.json_out(events)
+
+
+    @staticmethod
+    def as_event(job: db.Job):
+        event = {
+            'id': f'job:{job.id}',
+            'allDay': True,
+            'start': job.due.isoformat(),
+            'end': (job.due + timedelta(days=(job.duration or 0))).isoformat(),
+            'title': f'{job.type}: {job.name}',
+            'url': conf.url('job', job.id)
+        }
+        if job.done:
+            event['className'] = 'alert-success'
+
+        return event
+
 
