@@ -170,11 +170,11 @@ function initMap(site) {
 	google.maps.event.addListener(map, 'bounds_changed', saveOptions)
 	map.data.setStyle(feature => {
 		return {
-			strokeWeight: feature.getProperty('strokeWidth') || 2,
-			strokeColor: feature.getProperty('strokeColor') || '#FFF',
-			strokeOpacity: feature.getProperty('strokeOpacity') || 0.8,
-			fillColor: feature.getProperty('fillColor') || '#FFF',
-			fillOpacity: feature.getProperty('fillOpacity') || 0.3,
+			strokeWeight: feature.getProperty('strokeWidth'),
+			strokeColor: feature.getProperty('strokeColor'),
+			strokeOpacity: feature.getProperty('strokeOpacity'),
+			fillColor: feature.getProperty('fillColor'),
+			fillOpacity: feature.getProperty('fillOpacity'),
 			zIndex: 10
 		}
 	})
