@@ -24,7 +24,7 @@ def _draw_series(data, ax: Axes, line: Line):
     data.plot.line(**style, ax=ax, label=line.name)
 
 
-def _draw_subplot(subplot: Subplot, ax: Axes, start: datetime.datetime, end: datetime.datetime):
+def _draw_subplot(subplot: Subplot, ax: Axes, start: datetime.datetime, end: datetime.datetime, showlegend=True):
 
     data_series = [
         line.load(start, end)
@@ -60,7 +60,8 @@ def _draw_subplot(subplot: Subplot, ax: Axes, start: datetime.datetime, end: dat
     ax.tick_params(axis='both', which='major', labelsize=subplot.plot.fontsize(1.1))
 
     ax.grid()
-    ax.legend(loc=0, prop=dict(size=subplot.plot.fontsize(1)))
+    if showlegend:
+        ax.legend(loc=0, prop=dict(size=subplot.plot.fontsize(1)))
 
 
 def _draw_plot(plot: Plot) -> Figure:
@@ -73,7 +74,7 @@ def _draw_plot(plot: Plot) -> Figure:
     fig, axes = plt.subplots(ncols=plot.columns, nrows=rows, squeeze=False,
                              figsize=size_inch, dpi=100, sharex='all')
     for sp, ax in zip(plot.subplots, axes.ravel()):
-        _draw_subplot(sp, ax, *plot.get_time_span())
+        _draw_subplot(sp, ax, *plot.get_time_span(), showlegend=plot.legend)
 
     fig.subplots_adjust(top=0.975, bottom=0.1, hspace=0.0)
     return fig

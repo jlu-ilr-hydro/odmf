@@ -332,6 +332,32 @@ class DatasetAPI(BaseAPI):
         return web.json_out(dict(status='success', datasets=list(datasets), records=records))
 
     @expose_for(Level.editor)
+    @web.method.get
+    def end_times(self, datasets):
+        """
+        Returns the end timestamps for each of the given datasets
+        :param datasets: A comma-separated list of dataset ids
+        :return: JSON object with dataset id's (in ds:XXX form) as key and timestamp as value and 'max' and 'min' as newest and oldest value
+        """
+        web.mime.json.set()
+        datasets = [
+            web.conv(float, f)
+            for f in datasets.split(',')
+            if web.conv(float, f)
+        ]
+        with db.session_scope() as session:
+            stmt = db.sql.select(db.Timeseries.id, db.Timeseries.end).where(db.Dataset.id.in_(datasets))
+            ds: db.Timeseries
+            result = {
+                f'ds:{id}': end.isoformat()
+                for id, end in session.execute(stmt)
+            }
+            result['min'] = min(result.values())
+            result['max'] = max(result.values())
+            return web.json_out(result)
+
+
+    @expose_for(Level.editor)
     @web.method.post_or_put
     def addrecords_json(self):
         """
