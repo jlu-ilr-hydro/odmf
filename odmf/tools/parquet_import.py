@@ -66,6 +66,7 @@ def _adjust_time(df: pd.DataFrame, ds: db.Dataset):
     ds.start = min(ds.start, df.loc[df.dataset == ds.id, 'time'].min().to_pydatetime())
     ds.end = max(ds.end, df.loc[df.dataset == ds.id, 'time'].max().to_pydatetime())
 
+
 def addrecords_dataframe(df: pd.DataFrame):
     """
     Adds records from a dataframe to the database
@@ -74,7 +75,8 @@ def addrecords_dataframe(df: pd.DataFrame):
     """
     from ..webpage.auth import users
 
-    df = df[~df.value.isna()]
+    # Make copy to avoid copy on write problems
+    df = df[pd.notnull(df.value)].copy()
     _adjust_columns(df)
 
     with db.session_scope() as session:
@@ -104,6 +106,7 @@ def addrecords_dataframe(df: pd.DataFrame):
         df.to_sql('record', conn, if_exists='append', index=False, method='multi', chunksize=1000)
         return ds_ids, len(df)
 
+
 def addrecords_parquet(filename):
     """
     Expects a table in the apache arrow format to import records to existing datasets. Expected column names:
@@ -112,8 +115,9 @@ def addrecords_parquet(filename):
     df = pd.read_parquet(filename)
     return addrecords_dataframe(df)
 
+
 if __name__ == '__main__':
     import sys
+
     logger.setLevel(logging.INFO)
     addrecords_parquet(sys.argv[1])
-
