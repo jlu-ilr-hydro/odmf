@@ -5,12 +5,22 @@
         <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
         <script>
             let calendar;
+            function get_filter() {
+                return {
+                    persons: $('#filter-persons').val(),
+                    sites: $('#filter-sites').val(),
+                    types: $('#filter-types').val(),
+                    onlyactive: $('#filter-active').is(':checked')
+                }
+            }
             document.addEventListener('DOMContentLoaded', function() {
                 let filter = JSON.parse(sessionStorage.getItem('job-filter'))
                 if (filter) {
                     $('#filter-persons').val(filter.persons)
+                    $('#filter-sites').val(filter.sites)
                     $('#filter-types').val(filter.types)
                     $('#filter-active').prop('checked', filter.onlyactive)
+
                 } else {
                     $('#filter-persons').val(`${user()}`)
                     $('#filter-active').prop('checked', true)
@@ -21,23 +31,13 @@
                     headerToolbar: { center: 'dayGridMonth,multiMonthYear,listYear' },
                     events: {
                         url: "${conf.url('job','json')}",
-                        extraParams: function() {
-                            return {
-                                persons: $('#filter-persons').val(),
-                                types: $('#filter-types').val(),
-                                onlyactive: $('#filter-active').is(':checked')
-                            }
-                        }
+                        extraParams: get_filter
                     }
                 });
                 calendar.render();
                 $('.filter').on('change', event => {
                     sessionStorage.setItem('job-filter', JSON.stringify(
-                        {
-                                persons: $('#filter-persons').val(),
-                                types: $('#filter-types').val(),
-                                onlyactive: $('#filter-active').is(':checked')
-                            }
+                        get_filter()
                     ))
                     calendar.refetchEvents()
                 })
@@ -72,8 +72,14 @@
                 </div>
                 <div class="form-group">
                     <label for="filter-persons">persons</label>
-                    <select class="select2 form-control filter" id="filter-persons" multiple="multiple" name="person[]">
+                    <select class="select2 form-control filter" id="filter-persons" multiple="multiple">
                         <option py:for="p in persons" value="${p.username}">${p}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filter-sites">sites</label>
+                    <select class="select2 form-control filter" id="filter-sites" multiple="multiple">
+                        <option py:for="s in sites" value="${s.id}">${s}</option>
                     </select>
                 </div>
             </div>

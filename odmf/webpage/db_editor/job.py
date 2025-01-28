@@ -101,9 +101,14 @@ class JobPage:
     def list_jobs(self, **kwargs):
         with db.session_scope() as session:
             jobtypes=session.query(db.Job.type).order_by(db.Job.type).distinct()
-            persons = sorted(set([j.responsible for j in session.query(db.Job) if j.responsible] + [j.author for j in session.query(db.Job) if j.author]))
-
-            return web.render('job-list.html', jobtypes=jobtypes, persons=persons).render()
+            persons = set()
+            sites = set()
+            for j in session.query(db.Job):
+                persons.add(j.responsible)
+                persons.add(j.author)
+                sites.update((j.log or {}).get('sites', []))
+            sites = session.query(db.Site).filter(db.Site.id.in_(sites)).order_by(db.Site.id)
+            return web.render('job-list.html', jobtypes=sorted(jobtypes), persons=sorted(persons), sites=sites).render()
 
 
     @expose_for(Level.logger)
@@ -129,7 +134,7 @@ class JobPage:
 
     @expose_for(Level.logger)
     @web.mime.json
-    def json(self, persons=None, types=None, onlyactive=False,  start=None, end=None):
+    def json(self, start=None, end=None, persons=None, types=None, sites=None, onlyactive=False):
         with db.session_scope() as session:
             jobs = session.query(db.Job)
             if start:
@@ -144,10 +149,11 @@ class JobPage:
             if types:
                 types = types.split(',')
                 jobs = jobs.filter(db.sql.or_(db.Job.type.in_(types)))
-
             if onlyactive == 'true':
                 jobs = jobs.filter(~db.Job.done)
-
+            if sites:
+                sites = set(int(s) for s in sites.split(','))
+                jobs = [j for j in jobs.filter(db.Job.log.isnot(None)) if sites & set(j.log['sites'])]
             events = [self.as_event(job) for job in jobs]
             return web.json_out(events)
 
