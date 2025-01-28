@@ -69,13 +69,17 @@
                         <i class="fas fa-tasks mr-4"/>${job.id}
                     </div>
                 </div>
-                <div py:content="markdown(job.description)"/>
-
                 <div class="row">
                     <h5 class="col-sm-4">Status:</h5>
                     <h5 class="col-sm-8"
                         py:content="'done at ' + formatdate(job.donedate) if job.done else 'due at ' + formatdate(job.due)"/>
                 </div>
+                <div py:content="markdown(job.description)"/>
+                <div py:if="job.log and not job.done">
+                    <h4>When done create logs:</h4>
+                    <div py:content="literal(dict_to_html(job.log))"/>
+                </div>
+
 
                 <div class="container mt-4">
                     <a href="#edit-div" class="btn btn-secondary dropdown-toggle" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="edit-div">
@@ -145,6 +149,12 @@
                                             value="${p.username}" />
                                 </select>
                             </div>
+                            <label for="edit-description" class="markdown">
+                                Description:
+                                <a title="Get help for using links and formats" data-toggle="tooltip" data-placement="top" class="ml-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
+                                    <i class="fas fa-question-circle"/>
+                                </a>
+                            </label>
                             <div class="form-group row">
                                 <textarea  id="edit-description" name="description"
                                            class="markdown form-control"
@@ -152,6 +162,7 @@
                                 >${job.description}</textarea>
 
                             </div>
+                            <h4>Create logs when job is done</h4>
                             <div class="form-group row">
                                 <label for="edit-logsites" class="col-form-label col-sm-4">for each site:</label>
                                 <select name="sites[]" id="edit-logsites" class="col-sm-8 form-control select2" multiple="multiple">
