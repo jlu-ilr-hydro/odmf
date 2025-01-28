@@ -124,7 +124,7 @@ class Configuration:
     def url(self, *uri, **query):
         uri = '/'.join((str(s) for s in uri))
         if query:
-            uri += '?' + '&'.join(f'{k}={v}' for k, v in query.items())
+            uri += '?' + '&'.join(f'{k}={v}' for k, v in query.items() if v)
         if uri.startswith('/'):
             return self.root_url + uri
         else:

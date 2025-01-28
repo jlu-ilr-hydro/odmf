@@ -41,7 +41,9 @@ def redirect(url, **kwargs):
     """
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
     qs = urlencode(kwargs)
-    return cherrypy.HTTPRedirect(url + '?' + qs)
+    if qs:
+        url += '?' + qs
+    return cherrypy.HTTPRedirect(url)
 
 
 def json_out(obj=None, **kwargs):

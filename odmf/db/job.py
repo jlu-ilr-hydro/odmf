@@ -4,11 +4,11 @@ from datetime import datetime, timedelta
 from collections import deque
 from traceback import format_exc as traceback
 from functools import total_ordering
-
+from sqlalchemy_json import NestedMutableJson
 
 # from ..tools.mail import EMail
 from .base import Base, newid
-from .site import Log
+from .site import Log, Site
 from .person import Person
 from ..tools.migrate_db import new_column
 
@@ -46,7 +46,8 @@ class Job(Base):
     type = sql.Column(sql.String)
     # The date the job was done
     donedate = sql.Column(sql.DateTime)
-
+    # Contains data to create logs on done
+    log: orm.Mapped[NestedMutableJson] = sql.Column(NestedMutableJson)
     def __str__(self):
         return "%s: %s %s" % (self.responsible, self.name, ' (Done)' if self.done else '')
 
@@ -80,6 +81,29 @@ class Job(Base):
 
     def is_due(self):
         return (not self.done) and (self.due + timedelta(days=1) < datetime.today())
+
+
+
+    def log_to_sites(self, by=None, time=None):
+        session = self.session()
+        logsites = (self.log or {}).get('sites', [])
+        msg = (self.log or {}).get('messsage', '')
+        logcount = 0
+        for siteid in logsites:
+            site = Site.get(session, siteid)
+            if site:
+                session.add(
+                    Log(
+                        id=newid(Log, session),
+                        _user=by or self.responsible.username,
+                        time=time or datetime.now(),
+                        message=msg,
+                        site=site,
+                        type=self.type
+                    )
+                )
+                logcount += 1
+        return logcount
 
     def parse_description(self, by=None, action='done', time=None):
         """Creates jobs, logs and mails from the description
@@ -126,14 +150,15 @@ class Job(Base):
                                 after = int(cmd[cmd.index('after') + 1])
                             else:
                                 after = 0
-                            objects.append(Job(id=newid(Job, session),
-                                               name=text,
-                                               due=time +
-                                               timedelta(days=after),
-                                               author=self.author,
-                                               responsible=self.responsible,
-                                               link=self.link,
-                                               type=self.type))
+                            objects.append(
+                                Job(id=newid(Job, session),
+                                    name=text,
+                                    due=time + timedelta(days=after),
+                                    author=self.author,
+                                    responsible=self.responsible,
+                                    link=self.link,
+                                    type=self.type)
+                            )
                         # Write a mail
                         elif cmd[1] == 'mail':
                             try:
@@ -165,7 +190,7 @@ class Job(Base):
         return objects, errors
 
     def make_done(self, by, time=None):
-        "Marks the job as done and performs effects of the job"
+        """Marks the job as done and performs effects of the job"""
         self.done = True
         if not time:
             time = datetime.now()
@@ -178,20 +203,18 @@ class Job(Base):
                          description=self.description,
                          due=self.due + timedelta(days=self.repeat),
                          author=self.author,
+                         duration=self.duration,
                          responsible=self.responsible,
                          repeat=self.repeat,
                          link=self.link,
-                         type=self.type)
+                         type=self.type,
+                         data=self.data)
             session.add(newjob)
             msg.append('Added new job %s' % newjob)
-        if self.description:
-            objects, errors = self.parse_description('done', by, time)
-            session.add_all(objects)
-            session.commit()
-            msg.extend(str(o) for o in objects)
-            if errors:
-                msg.append('ERRORS:')
-                msg.extend(errors)
+        if self.log:
+            log_count = self.log_to_sites(by, time)
+            if log_count:
+                msg.append(f'Added {log_count} log messages to sites.')
         return '\n'.join(msg)
 
     def end(self):

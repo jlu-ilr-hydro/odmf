@@ -57,7 +57,18 @@ class JobPage:
                     job.make_done(users.current.name)
                     msg = f'{job} is done'
                 else:
-                    msg = f'{job} is saved'
+                    msg = f'{job} saved'
+
+                if logsites:=kwargs.get('sites[]'):
+                    if not job.log:
+                        job.log = dict()
+                    job.log |= {'sites': [web.conv(int, sid) for sid in logsites]}
+                    job.log['message'] = kwargs.get('logmsg')
+                elif job.log and 'sites' in job.data:
+                    job.log = None
+
+
+
 
         raise web.redirect(conf.url('job', jobid, error=error, success=msg))
 
@@ -69,29 +80,22 @@ class JobPage:
             if jobid == 'new':
                 author = session.get(db.Person, web.user())
                 job = db.Job(id=db.newid(db.Job, session),
-                             name='name of new job', author=author)
-
-            elif jobid is None or jobid == 'undefined':
-                job = session.query(db.Job).filter_by(
-                    _responsible=web.user(), done=False).order_by(db.Job.due).first()
+                             name='name of new job', author=author, _author=author.username)
+                session.flush()
             else:
-                try:
-                    job = session.get(db.Job, int(jobid))
-                except:
-                    error = traceback()
-                    job = None
-            queries = dict(
-                persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname).all(),
-                jobtypes=session.query(db.Job.type).order_by(db.Job.type).distinct().all(),
-                my_jobs=session.query(db.Job).filter(db.Job._responsible == web.user(), ~db.Job.done).order_by(db.Job.due).all(),
-                my_jobs_author=session.query(db.Job).filter(db.Job._author == web.user(), ~db.Job.done).order_by(db.Job.due).all(),
-            )
+                job = session.get(db.Job, web.conv(int, jobid))
+                if not job:
+                    raise web.redirect(conf.url('job', error=f'Job {jobid} not found'))
 
             return web.render(
                 'job.html', job=job, can_edit=self.can_edit(job),
                 error=error, success=success, db=db,
                 username=users.current, now=datetime.now(),
-                **queries
+                persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname).all(),
+                jobtypes=session.query(db.Job.type).order_by(db.Job.type).distinct().all(),
+                my_jobs=session.query(db.Job).filter(db.Job._responsible == web.user(), ~db.Job.done).order_by(db.Job.due).all(),
+                my_jobs_author=session.query(db.Job).filter(db.Job._author == web.user(), ~db.Job.done).order_by(db.Job.due).all(),
+                sites=session.query(db.Site).order_by(db.Site.name),
             ).render()
 
     def list_jobs(self, **kwargs):
@@ -106,7 +110,7 @@ class JobPage:
     def index(self, jobid=None, error=None, success=None, **kwargs):
         if cherrypy.request.method == 'GET':
             if jobid:
-                return self.show_job(jobid)
+                return self.show_job(jobid, error, success)
             else:
                 return self.list_jobs()
         if cherrypy.request.method == 'POST':
@@ -159,7 +163,10 @@ class JobPage:
             'url': conf.url('job', job.id)
         }
         if job.done:
-            event['className'] = 'alert-success'
+            event['className'] = 'text-success alert-success'
+        elif job.is_due():
+            event['className'] = 'text-white bg-danger'
+
 
         return event
 
