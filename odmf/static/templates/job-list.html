@@ -14,7 +14,7 @@
                 }
             }
             document.addEventListener('DOMContentLoaded', function() {
-                let filter = JSON.parse(sessionStorage.getItem('job-filter'))
+                let filter = JSON.parse(localStorage.getItem('job-filter'))
                 if (filter) {
                     $('#filter-persons').val(filter.persons)
                     $('#filter-sites').val(filter.sites)
@@ -36,7 +36,7 @@
                 });
                 calendar.render();
                 $('.filter').on('change', event => {
-                    sessionStorage.setItem('job-filter', JSON.stringify(
+                    localStorage.setItem('job-filter', JSON.stringify(
                         get_filter()
                     ))
                     calendar.refetchEvents()
