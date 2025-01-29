@@ -22,7 +22,7 @@ class Root(object):
     """
     _cp_config = {
         'tools.sessions.on': True,
-        'tools.sessions.timeout': 24 * 60 * 7,  # One week
+        'tools.sessions.timeout': 24 * 60 * 60,  # 2 Months
         'tools.sessions.storage_class': cherrypy.lib.sessions.FileSession,
         'tools.sessions.storage_path': prefix + '/sessions',
         'tools.proxy.on': True,
