@@ -64,7 +64,7 @@ class JobPage:
                         job.log = dict()
                     job.log |= {'sites': [web.conv(int, sid) for sid in logsites]}
                     job.log['message'] = kwargs.get('logmsg')
-                elif job.log and 'sites' in job.data:
+                elif job.log and 'sites' in job.log:
                     job.log = None
 
 
@@ -74,13 +74,24 @@ class JobPage:
 
 
     @expose_for(Level.logger)
-    def show_job(self, jobid, error=None, success=None):
+    def show_job(self, jobid, error=None, success=None, copy=None):
         """Shows a single job, called by self.index"""
         with db.session_scope() as session:
             if jobid == 'new':
                 author = session.get(db.Person, web.user())
                 job = db.Job(id=db.newid(db.Job, session),
                              name='name of new job', author=author, _author=author.username)
+                oldjob = session.query(db.Job).get(copy)
+                if oldjob:
+                    job.log = oldjob.log
+                    job.description = oldjob.description
+                    job.name = oldjob.name
+                    job.type = oldjob.type
+                    job.duration = oldjob.duration
+                    job.repeat = oldjob.repeat
+                    job.responsible =  oldjob.responsible
+                    job.link = oldjob.link
+
                 session.flush()
             else:
                 job = session.get(db.Job, web.conv(int, jobid))
@@ -115,12 +126,24 @@ class JobPage:
     def index(self, jobid=None, error=None, success=None, **kwargs):
         if cherrypy.request.method == 'GET':
             if jobid:
-                return self.show_job(jobid, error, success)
+                return self.show_job(jobid, error, success, copy=kwargs.get('copy'))
             else:
                 return self.list_jobs()
-        if cherrypy.request.method == 'POST':
+        elif cherrypy.request.method == 'POST':
             return self.save_job(jobid, **kwargs)
+        elif cherrypy.request.method == 'DELETE':
+            with db.session_scope() as session:
+                job = session.get(db.Job, jobid)
+                if not job:
+                    raise web.redirect(conf.url('job', error=f'Job {jobid} not found'))
+                if not self.can_edit(job):
+                    raise web.redirect(conf.url('job', error=f'Job {jobid} is not yours'))
+                success = f'{job} is deleted'
+                session.delete(job)
+            raise web.redirect(conf.url('job', success=success))
 
+    @expose_for(Level.logger)
+    @web.method.post
 
     @expose_for(Level.logger)
     @web.method.post
@@ -134,7 +157,7 @@ class JobPage:
 
     @expose_for(Level.logger)
     @web.mime.json
-    def json(self, start=None, end=None, persons=None, types=None, sites=None, onlyactive=False):
+    def json(self, start=None, end=None, persons=None, types=None, sites=None, onlyactive=False, fulltext=None):
         with db.session_scope() as session:
             jobs = session.query(db.Job)
             if start:
@@ -151,6 +174,13 @@ class JobPage:
                 jobs = jobs.filter(db.sql.or_(db.Job.type.in_(types)))
             if onlyactive == 'true':
                 jobs = jobs.filter(~db.Job.done)
+            if fulltext:
+                jobs = jobs.filter(
+                    db.sql.or_(
+                        db.Job.name.icontains(fulltext),
+                        db.Job.description.icontains(fulltext)
+                    )
+                )
             if sites:
                 sites = set(int(s) for s in sites.split(','))
                 jobs = [j for j in jobs.filter(db.Job.log.isnot(None)) if sites & set(j.log['sites'])]

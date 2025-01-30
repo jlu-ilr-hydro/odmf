@@ -10,7 +10,8 @@
                     persons: $('#filter-persons').val(),
                     sites: $('#filter-sites').val(),
                     types: $('#filter-types').val(),
-                    onlyactive: $('#filter-active').is(':checked')
+                    onlyactive: $('#filter-active').is(':checked'),
+                    fulltext: $('#filter-fulltext').val()
                 }
             }
             document.addEventListener('DOMContentLoaded', function() {
@@ -20,6 +21,7 @@
                     $('#filter-sites').val(filter.sites)
                     $('#filter-types').val(filter.types)
                     $('#filter-active').prop('checked', filter.onlyactive)
+                    $('#filter-fulltext').val(filter.fulltext)
 
                 } else {
                     $('#filter-persons').val(`${user()}`)
@@ -81,6 +83,10 @@
                     <select class="select2 form-control filter" id="filter-sites" multiple="multiple">
                         <option py:for="s in sites" value="${s.id}">${s}</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label for="filter-fulltext">text search</label>
+                    <input class="form-control filter" id="filter-fulltext" placeholder="search text"/>
                 </div>
             </div>
         </div>
