@@ -19,6 +19,9 @@
                             $('#error').html(jqhxr.responseText)
                             $('#error-row').removeClass('d-none')
                         })
+                        .done(function(text) {
+                            location.href='${conf.url("job")}'
+                        })
                 })
             })
 
@@ -96,7 +99,7 @@
                         <i class="fas fa-edit"></i> edit job
                     </a>
                     <a href="${conf.url('job','new', copy=job.id)}" class="btn btn-secondary" id="btn-copy" role="button"><i class="fas fa-copy"/> copy</a>
-                    <button class="btn btn-danger" id="btn-delete" role="button" py:if="job.author.username==user()"><i class="fas fa-trash"/> delete</button>
+                    <button class="btn btn-danger" id="btn-delete" role="button" py:if="job.author.username==user() or Level.my() >= Level.admin"><i class="fas fa-trash"/> delete</button>
                     <div class="show collapse container border rounded p-4" id="edit-div">
                         <form method="post" action=".">
                             <div class="form-group row">
@@ -187,6 +190,7 @@
                             </div>
                             <div class="form-group row">
                                 <button  id="edit-save" name="save" value="save"
+                                         py:if="can_edit"
                                          class="btn btn-secondary mr-1"
                                          type="submit"
                                          title="Saves the changes to the database"
@@ -197,7 +201,7 @@
                                     save changes
                                 </button>
                                 <button  id="edit-saveandown" name="save" value="own"
-                                         py:if="job.author.username!=user()"
+                                         py:if="job.author.username!=user() and can_edit"
                                          type="submit"
                                          class="btn btn-secondary mr-1"
                                          title="Saves the changes to the author and makes you to the author of the job"
@@ -206,10 +210,21 @@
                                 >
                                     become author
                                 </button>
+                                <button  id="edit-send-update" name="save" value="send"
+                                         py:if="can_edit and False"
+                                         type="submit"
+                                         class="btn btn-warning mr-1"
+                                         data-toggle="tooltip"
+                                         title="Save the changes and sends a mail to everyone who subscribed to the topics of this job"
+                                         py:attrs="prop(disabled=not can_edit)"
+                                >
+                                    <i class="fas fa-paper-plane"/> send update
+                                </button>
 
                                 <button  id="edit-savedone" name="save" value="done"
                                          type="submit"
-                                         class="btn btn-secondary mr-1"
+                                         py:if="can_edit"
+                                         class="btn btn-success mr-1"
                                          title="Saves changes and marks job as done"
                                          data-toggle="tooltip"
                                          py:attrs="prop(disabled=not can_edit)"

@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 class JobPage:
 
     def can_edit(self, job: db.Job):
-        return job._responsible == web.user() or job._author == web.user()
+        return job._responsible == web.user() or job._author == web.user() or Level.my() >= Level.admin
 
 
     def save_job(self, jobid, **kwargs):
@@ -137,7 +137,7 @@ class JobPage:
                 job = session.get(db.Job, jobid)
                 if not job:
                     raise web.redirect(conf.url('job', error=f'Job {jobid} not found'))
-                if not self.can_edit(job):
+                if not (job._author == web.user() or Level.my() >= Level.admin):
                     raise web.redirect(conf.url('job', error=f'Job {jobid} is not yours'))
                 success = f'{job} is deleted'
                 session.delete(job)
