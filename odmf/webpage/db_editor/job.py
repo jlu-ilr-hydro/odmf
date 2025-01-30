@@ -110,14 +110,15 @@ class JobPage:
             ).render()
 
     def list_jobs(self, **kwargs):
+        """Renders the job-list.html pagge"""
         with db.session_scope() as session:
             jobtypes=session.query(db.Job.type).order_by(db.Job.type).distinct()
             persons = set()
             sites = set()
             for j in session.query(db.Job):
-                persons.add(j.responsible)
-                persons.add(j.author)
+                persons.update((j.responsible, j.author))
                 sites.update((j.log or {}).get('sites', []))
+            persons -= {None}
             sites = session.query(db.Site).filter(db.Site.id.in_(sites)).order_by(db.Site.id)
             return web.render('job-list.html', jobtypes=sorted(jobtypes), persons=sorted(persons), sites=sites).render()
 
