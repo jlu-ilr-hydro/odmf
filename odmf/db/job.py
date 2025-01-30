@@ -80,7 +80,7 @@ class Job(Base):
         return self.id < other.id
 
     def is_due(self):
-        return (not self.done) and (self.due + timedelta(days=1) < datetime.today())
+        return self.due is not None and (not self.done) and (self.due + timedelta(days=1) < datetime.today())
 
 
 

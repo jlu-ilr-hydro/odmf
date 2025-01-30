@@ -181,7 +181,7 @@
                             <div class="form-group row">
                                 <label for="edit-logsites" class="col-form-label col-sm-4">for each site:</label>
                                 <select name="sites[]" id="edit-logsites" class="col-sm-8 form-control select2" multiple="multiple">
-                                    <option py:for="site in sites" value="${site.id}" py:attrs="markoption(site.id in (job.log or {}).get('sites', []))">${site}</option>-->
+                                    <option py:for="site in sites" value="${site.id}" py:attrs="markoption(site.id in (job.log or {}).get('sites', []))" title="${site.name}">${site}</option>-->
                                 </select>
                             </div>
                             <div class="form-group row">
