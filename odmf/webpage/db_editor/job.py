@@ -158,7 +158,7 @@ class JobPage:
 
     @expose_for(Level.logger)
     @web.mime.json
-    def json(self, start=None, end=None, persons=None, types=None, sites=None, onlyactive=False, fulltext=None):
+    def json(self, start=None, end=None, persons=None, types=None, sites=None, onlyactive=False, fulltext=None, **kwargs):
         with db.session_scope() as session:
             jobs = session.query(db.Job)
             if start:

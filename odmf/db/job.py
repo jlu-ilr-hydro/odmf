@@ -82,8 +82,6 @@ class Job(Base):
     def is_due(self):
         return self.due is not None and (not self.done) and (self.due + timedelta(days=1) < datetime.today())
 
-
-
     def log_to_sites(self, by=None, time=None):
         session = self.session()
         logsites = (self.log or {}).get('sites', [])

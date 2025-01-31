@@ -11,7 +11,7 @@
                     sites: $('#filter-sites').val(),
                     types: $('#filter-types').val(),
                     onlyactive: $('#filter-active').is(':checked'),
-                    fulltext: $('#filter-fulltext').val()
+                    fulltext: $('#filter-fulltext').val(),
                 }
             }
             document.addEventListener('DOMContentLoaded', function() {
@@ -29,7 +29,7 @@
                 }
                 var calendarEl = document.getElementById('calendar');
                 calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'listYear',
+                    initialView: localStorage.getItem('job-view') || 'listYear',
                     headerToolbar: { center: 'dayGridMonth,multiMonthYear,listYear' },
                     events: {
                         url: "${conf.url('job','json')}",
@@ -43,6 +43,10 @@
                     ))
                     calendar.refetchEvents()
                 })
+            });
+            window.addEventListener("beforeunload", (event) => {
+               localStorage.setItem('job-view', calendar.view.type)
+
             });
         </script>
     </py:block>
