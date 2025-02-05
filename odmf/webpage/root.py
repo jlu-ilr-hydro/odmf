@@ -43,6 +43,7 @@ class Root(object):
     instrument = dbe.DatasourcePage()
     project = dbe.ProjectPage()
     user = dbe.PersonPage()
+    mail = dbe.TopicPage()
     help = static.Help()
     api = api.API()
 

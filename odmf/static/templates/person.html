@@ -21,8 +21,8 @@
             <a class="btn btn-secondary w-100 mb-1"
                href="${conf.root_url}/user/new"
                py:if="is_member('supervisor')">
-                    <i class="fas fa-user-plus mr-3" />
-                    new user...
+                <i class="fas fa-user-plus mr-3" />
+                new user...
 
             </a>
             <hr/>
@@ -37,10 +37,10 @@
             </div>
             <div class="list-group" id="userList">
                 <a class="list-group-item list-group-item-action flexbox ${class_if(not pp.active,'list-group-item-light')} ${class_if(pp == active_person, 'active')}"
-                   py:for="pp in persons"
+                   py:for="pp in persons" py:if="is_member(Level.supervisor) or is_self(pp.username) or pp.access_level >= Level.supervisor"
                    href="${conf.root_url+ '/user/' + pp.username}">
                     <span>${pp}</span>
-                    <span><i class="fas fa-user" /></span>
+                    <span class="badge bg-warning">${Level(pp.access_level).name[0]}</span>
                 </a>
             </div>
         </div>
@@ -56,7 +56,8 @@
 
             </div>
             <form   class="card card-body"
-                    action="${conf.root_url}/user/saveitem" method="post" py:with="U=active_person">
+                    action="${conf.root_url}/user/saveitem" method="post"
+                    py:with="U=active_person; can_edit=is_member(Level.supervisor) or is_self(active_person.username)">
                 <div class="form-group row">
                     <label for="username" class="col-lg-2 col-form-label">username</label>
                     <div class="col-lg-4">
@@ -69,7 +70,7 @@
                     <label for="email" class="col-lg-2 col-form-label">email</label>
                     <div class="col-lg-4">
                         <input type="text" id="email" name="email"
-                               py:attrs="prop(disabled=not (is_member('supervisor')  or is_self(U.username)))"
+                               py:attrs="prop(disabled=not (can_edit))"
                                class="form-control"
                                value="${U.email}"
                         />
@@ -80,7 +81,7 @@
                     <label for="firstname" class="col-lg-2 col-form-label">firstname</label>
                     <div class="col-lg-4">
                         <input type="text" id="firstname" name="firstname"
-                               py:attrs="prop(disabled=not (is_member('supervisor')  or is_self(U.username)))"
+                               py:attrs="prop(disabled=not (can_edit))"
                                class="form-control"
                                value="${U.firstname}"
                         />
@@ -88,7 +89,7 @@
                     <label for="surname" class="col-lg-2 col-form-label">surname</label>
                     <div class="col-lg-4">
                         <input type="text" id="surname" name="surname"
-                               py:attrs="prop(disabled=not (is_member('supervisor')  or is_self(U.username)))"
+                               py:attrs="prop(disabled=not (can_edit))"
                                class="form-control"
                                value="${U.surname}"
                         />
@@ -98,7 +99,7 @@
                     <label for="password" class="col-lg-2 col-form-label">password</label>
                     <div class="col-lg-4">
                         <input type="password" id="password" name="password"
-                               py:attrs="prop(disabled=not (is_member('supervisor')  or is_self(U.username)))"
+                               py:attrs="prop(disabled=not (can_edit))"
                                class="form-control"
                                placeholder="password"
                         />
@@ -106,7 +107,7 @@
                     <label for="password_verify" class="col-lg-2 col-form-label">repeat</label>
                     <div class="col-lg-4">
                         <input type="password" id="password_verify" name="password_verify"
-                               py:attrs="prop(disabled=not (is_member('supervisor')  or is_self(U.username)))"
+                               py:attrs="prop(disabled=not (can_edit))"
                                class="form-control"
                                placeholder="password"
                         />
@@ -147,10 +148,25 @@
                               py:attrs="prop(disabled=not (is_member(Level.supervisor) or is_self(U.username)))"
                     />
                 </div>
+                <div class="form-group row">
+                    <label for="edit-subscribers" class="col-form-label col-sm-4">
+                        Topic subscriptions
+                        <a title="Get help for topics" data-toggle="tooltip" data-placement="top" class="ml-1 wiki-help" href="${conf.url('help', 'communication')}">
+                            <i class="fas fa-question-circle"/>
+                        </a>
+                    </label>
+
+                    <select py:attrs="prop(disabled=not (can_edit))"
+                            name="topics[]" id="edit-subscribers" 
+                            class="col-sm-8 form-control select2" 
+                            multiple="multiple">
+                        <option py:for="topic in topics" value="${topic.id}" py:attrs="markoption(topic in U.topics)" title="${topic}">${topic}</option>
+                    </select>
+                </div>
 
                 <div class="form-group row">
                     <button type="submit" class="col-lg-2 btn btn-primary w-100"
-                            py:attrs="prop(disabled=not (is_member(Level.supervisor) or is_self(U.username)))"
+                            py:attrs="prop(disabled=not (can_edit))"
                     >
                         save
                     </button>

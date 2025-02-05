@@ -8,7 +8,14 @@ from traceback import format_exc as traceback
 
 
 @web.show_in_nav_for(1, 'user')
+# @cherrypy.popargs('username')
 class PersonPage:
+
+    def index_get(self, username, error=None, msg=None):
+        ...
+
+    def index_post(self, username, **kwargs):
+        ...
 
     @expose_for(Level.logger)
     def default(self, act_user=None, error='', msg=''):
@@ -44,7 +51,7 @@ class PersonPage:
                     p for p, level in me.projects()
                     if level >= Level.admin and p not in user_projects
                 ]
-
+            topics = db.sql.select(db.message.Topic).order_by(db.message.Topic.id)
             return web.render(
                 'person.html',
                 persons=persons,
@@ -54,6 +61,7 @@ class PersonPage:
                 jobs=jobs,
                 act_user=act_user,
                 potential_projects=potential_projects,
+                topics = session.scalars(topics),
                 is_self=is_self
             ).render()
 
@@ -73,9 +81,6 @@ class PersonPage:
                 p_act.email = kwargs.get('email')
                 p_act.firstname = kwargs.get('firstname')
                 p_act.surname = kwargs.get('surname')
-                if 'supervisor' in kwargs:
-                    p_act.supervisor = session.query(
-                        db.Person).get(kwargs.get('supervisor'))
                 p_act.telephone = kwargs.get('telephone')
                 p_act.comment = kwargs.get('comment')
                 if kwargs.get('status') == 'on' or is_self(username):
@@ -84,8 +89,7 @@ class PersonPage:
                     p_act.active = False
 
                 # Simple Validation
-
-                if kwargs.get('password') and users.current.is_member(Level.admin) or is_self(username):
+                if kwargs.get('password') and (users.current.is_member(Level.admin) or is_self(username)):
                     pw = kwargs['password']
                     pw2 = kwargs.get('password_verify')
                     if len(pw) < 8:
@@ -94,10 +98,20 @@ class PersonPage:
                         p_act.password = hashpw(pw)
                     else:
                         error = 'Passwords not equal'
+
                 # Simple Validation
                 acl = web.conv(int, kwargs.get('access_level'))
                 if acl and acl <= users.current.level:
                     p_act.access_level = acl
+
+                #topics
+                topics = kwargs.get('topics[]')
+                if type(topics) is str: topics = [topics]
+                p_act.topics = session.scalars(
+                    db.sql.select(db.message.Topic)
+                    .where(db.message.Topic.id.in_(topics or []))
+                ).all()
+
 
                 if error:
                     raise web.redirect(username, error=error)

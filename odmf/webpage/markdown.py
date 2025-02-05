@@ -18,7 +18,7 @@ class PatternLink(Pattern):
     Creates a link from a specific Regular Expression pattern
     """
 
-    def __init__(self, md, pattern: str, href: typing.Union[str, typing.Callable], text: typing.Union[str, typing.Callable]):
+    def __init__(self, md, pattern: str, href: typing.Union[str, typing.Callable], text: typing.Union[str, typing.Callable], **kwargs):
         """
         Creates the rule to substitute a pattern with a link
         md: The MarkDown object
@@ -34,6 +34,7 @@ class PatternLink(Pattern):
         else:
             self.href = href
         self.text = text
+        self.kwargs = kwargs
 
     def handleMatch(self, m):
         try:
@@ -47,6 +48,8 @@ class PatternLink(Pattern):
         el = etree.Element("a")
         el.set('href', href)
         el.text = text
+        for k, v in self.kwargs.items():
+            el.set(k.rstrip('_'), v)
         return el
 
 
@@ -106,9 +109,14 @@ class ODMFExtension(markdown.Extension):
         from ..config import conf
         def user2name(s):
             return '!fa-user ' + ' '.join(S.title() for S in s.group(3).split('.'))
+
+        md.inlinePatterns.register(
+            PatternLink(md, r'(topic:)(\S+)', r'/mail/\3/', r'!fa-inbox \3'),
+        'link topics', 150
+        )
         md.inlinePatterns.register(PatternLink(md, r'(ds:)([0-9]+)', r'/dataset/\3/', r'!fa-clipboard \3'), 'link datasets', 100)
         md.inlinePatterns.register(PatternLink(md, r'(file:)(\S+)', r'/download/\3', r'!fa-file \3'), 'link files', 100)
-        md.inlinePatterns.register(PatternLink(md, r'(site:)([0-9]+)', r'/site/\3', r'!fa-map-location \3'), 'link sites', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(site:)([0-9]+)', r'/site/\3', r'!fa-map-location \3'), 'link sites', 200)
         md.inlinePatterns.register(PatternLink(md, r'(job:)([0-9]+)', r'/job/\3', r'!fa-list-check \3'), 'link job', 100)
         md.inlinePatterns.register(PatternLink(md, r'(project:)([0-9]+)', r'/project/\3', r'!fa-users \3'), 'link project', 100)
         md.inlinePatterns.register(PatternLink(md, r'(user:)([a-zA-Z\.]+)', r'/user/\3', user2name), 'link user', 100)

@@ -7,3 +7,5 @@ from .job import Job
 from .dataset import Dataset, DatasetGroup, Quality, ValueType, removedataset
 from .timeseries import Timeseries, MemRecord, Record
 from .transformed_timeseries import TransformedTimeseries
+
+from . import message
