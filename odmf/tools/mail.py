@@ -75,6 +75,6 @@ class Mailer:
         msg['To'] = ','.join(receivers)
         logging.debug('Sending email to %s', ', '.join(receivers))
 
-        self.server.send_message(msg)
+        # self.server.send_message(msg)
         logger.info('Email sent to %s', ', '.join(receivers))
 

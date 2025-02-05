@@ -49,7 +49,7 @@ class Topic(Base):
     _owner: orm.Mapped[str] = orm.mapped_column(sql.ForeignKey('person.username'))
     owner: orm.Mapped["Person"] = orm.relationship()
     subscribers: orm.Mapped[List[Person]] = orm.relationship(secondary=subscription_table, back_populates='topics')
-    messages: orm.Mapped[List['Message']] = orm.relationship(secondary=publishs_table)
+    messages: orm.Mapped[List['Message']] = orm.relationship(secondary=publishs_table, back_populates='topics')
 
     def __str__(self):
         return self.name
@@ -61,25 +61,55 @@ class Message(Base):
     and users can create messages on the website.
     """
     __tablename__ = 'message'
-    id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
-    date: orm.Mapped[datetime]
-    topics: orm.Mapped[List['Topic']] = orm.relationship(secondary=publishs_table)
+    id: orm.Mapped[int] = orm.mapped_column(primary_key=True, autoincrement=True)
+    date: orm.Mapped[Optional[datetime]]
+    topics: orm.Mapped[List['Topic']] = orm.relationship(secondary=publishs_table, back_populates='messages')
     subject: orm.Mapped[str]
     content: orm.Mapped[str]
-    data: orm.Mapped[NestedMutableJson] = orm.mapped_column(NestedMutableJson)
+    source: orm.Mapped[str]
 
-    def send(self):
-        """
-        Sends the message to all email addresses  subscribed to the topics. Resolves cross-posting
-        """
+    def footer(self):
+        """Returns a footer for the message."""
+        url = conf.url()
+        topics = ', '.join(t.name for t in self.topics)
+        text = ('\n---\n'
+                f'You receive this mail, because you are a user of the ODMF-Database {url}.\n'
+                f'You have subscribed to any of these topics: {topics}\n'
+                f'To change your subscriptions, go to your user page of the ODMF-Database {url}.\n'
+        )
+        return text
+
+    def receivers(self):
+        """Returns a list of all receivers of the messages"""
         receivers = set(chain(*[t.subscribers for t in self.topics]))
+        return sorted([r for r in receivers if r.active])
 
+    def send(self, with_footer=True):
+        """
+        Sends the message to all email addresses subscribed to the topics. Resolves cross-posting.
+        If date is not set, send will set the date to now
+        """
+        if with_footer:
+            self.content += '\n' + self.footer()
+        self.date = self.date or datetime.now()
+        receivers = self.receivers()
         with Mailer(conf.mailer_config) as mailer:
             mailer.send(
                 subject=self.subject,
                 body=self.content,
                 receivers=[r.email for r in receivers]
             )
+        return receivers
+
+    def __str__(self):
+        return '\n'.join([
+            '- **To:** ' + ', '.join('user: r.username' for r in self.receivers()),
+            '- **Subject**: ' + self.subject,
+            '- **Source**: ' + self.source,
+            '\n\n**Content**:\n' + self.content + self.footer(),
+            ])
+
+
 
 
 

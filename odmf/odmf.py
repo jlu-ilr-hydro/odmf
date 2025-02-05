@@ -192,12 +192,13 @@ def interactive():
     from . import db
     import pandas as pd
     import numpy as np
+    import datetime as dt
     greetings = dedent("""
         
         Imported modules
         ----------------
         
-        pd, np, conf, db
+        pd, np, conf, db, dt
         
         Defined symbols
         ---------------
@@ -221,7 +222,7 @@ def interactive():
             ds=db.base.ObjectGetter(db.Dataset, session),
             person=db.base.ObjectGetter(db.Person, session),
             site=db.base.ObjectGetter(db.Site, session),
-            pd=pd, np=np, conf=conf, db=db
+            pd=pd, np=np, conf=conf, db=db, dt=dt
         )
         print('\n\n================================================')
         print(f'  ODMF:{conf.root_url} {conf.version} interactive IPython shell')
