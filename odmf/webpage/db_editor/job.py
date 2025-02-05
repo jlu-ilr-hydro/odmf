@@ -17,7 +17,7 @@ class JobPage:
         return job._responsible == web.user() or job._author == web.user() or Level.my() >= Level.admin
 
 
-    def save_job(self, jobid, **kwargs):
+    def index_post(self, jobid, **kwargs):
         """Save a job with new properties. Called by index POST"""
         error = msg = ''
         try:
@@ -49,6 +49,15 @@ class JobPage:
                 job.repeat = web.conv(int, kwargs.get('repeat'))
                 job.type = kwargs.get('type')
 
+                if topics:=kwargs.get('topics[]'):
+                    if type(topics) is str: topics = [topics]
+                    msgwhen = kwargs.get('msgdates[]')
+                    if type(msgwhen) is str: msgwhen = [msgwhen]
+                    job.mailer = {
+                        'topics': topics,
+                        'when': [web.conv(int, s, s) for s in msgwhen]
+                    }
+
                 if kwargs['save'] == 'own':
                     p_user = session.get(db.Person, web.user())
                     job.author = p_user
@@ -56,10 +65,13 @@ class JobPage:
                 elif kwargs['save'] == 'done':
                     job.make_done(users.current.name)
                     msg = f'{job} is done'
+                elif kwargs['save'] == 'send':
+                    msg = job.as_message(web.user())
                 else:
                     msg = f'{job} saved'
 
                 if logsites:=kwargs.get('sites[]'):
+                    if type(logsites) == str: logsites = [logsites]
                     if not job.log:
                         job.log = dict()
                     job.log |= {'sites': [web.conv(int, sid) for sid in logsites]}
@@ -68,13 +80,11 @@ class JobPage:
                     job.log = None
 
 
-
-
         raise web.redirect(conf.url('job', jobid, error=error, success=msg))
 
 
     @expose_for(Level.logger)
-    def show_job(self, jobid, error=None, success=None, copy=None):
+    def index_get(self, jobid, error=None, success=None, copy=None):
         """Shows a single job, called by self.index"""
         with db.session_scope() as session:
             if jobid == 'new':
@@ -89,8 +99,9 @@ class JobPage:
                     job.type = oldjob.type
                     job.duration = oldjob.duration
                     job.repeat = oldjob.repeat
-                    job.responsible =  oldjob.responsible
+                    job.responsible = oldjob.responsible
                     job.link = oldjob.link
+                    job.mailer = oldjob.mailer
 
                 session.flush()
             else:
@@ -107,6 +118,7 @@ class JobPage:
                 my_jobs=session.query(db.Job).filter(db.Job._responsible == web.user(), ~db.Job.done).order_by(db.Job.due).all(),
                 my_jobs_author=session.query(db.Job).filter(db.Job._author == web.user(), ~db.Job.done).order_by(db.Job.due).all(),
                 sites=session.query(db.Site).order_by(db.Site.name),
+                topics=session.scalars(db.sql.select(db.message.Topic)).all()
             ).render()
 
     def list_jobs(self, **kwargs):
@@ -120,18 +132,24 @@ class JobPage:
                 sites.update((j.log or {}).get('sites', []))
             persons -= {None}
             sites = session.query(db.Site).filter(db.Site.id.in_(sites)).order_by(db.Site.id)
-            return web.render('job-list.html', jobtypes=sorted(jobtypes), persons=sorted(persons), sites=sites).render()
+            return web.render(
+                'job-list.html',
+                jobtypes=sorted(jobtypes),
+                persons=sorted(persons),
+                sites=sites,
+                topics=session.scalars(db.sql.select(db.message.Topic)).all(),
+            ).render()
 
 
     @expose_for(Level.logger)
     def index(self, jobid=None, error=None, success=None, **kwargs):
         if cherrypy.request.method == 'GET':
             if jobid:
-                return self.show_job(jobid, error, success, copy=kwargs.get('copy'))
+                return self.index_get(jobid, error, success, copy=kwargs.get('copy'))
             else:
                 return self.list_jobs()
         elif cherrypy.request.method == 'POST':
-            return self.save_job(jobid, **kwargs)
+            return self.index_post(jobid, **kwargs)
         elif cherrypy.request.method == 'DELETE':
             with db.session_scope() as session:
                 job = session.get(db.Job, jobid)
@@ -158,7 +176,8 @@ class JobPage:
 
     @expose_for(Level.logger)
     @web.mime.json
-    def json(self, start=None, end=None, persons=None, types=None, sites=None, onlyactive=False, fulltext=None, **kwargs):
+    def json(self, start=None, end=None, persons=None, types=None, sites=None, onlyactive=False, fulltext=None, topics=None, **kwargs):
+        """Returns the filtered jobs as fullcalendar events"""
         with db.session_scope() as session:
             jobs = session.query(db.Job)
             if start:
@@ -182,9 +201,14 @@ class JobPage:
                         db.Job.description.icontains(fulltext)
                     )
                 )
+            jobs = jobs.all()
             if sites:
                 sites = set(int(s) for s in sites.split(','))
-                jobs = [j for j in jobs.filter(db.Job.log.isnot(None)) if sites & set(j.log['sites'])]
+                jobs = [j for j in jobs if sites & set((j.log or {}).get('sites', []))]
+            if topics:
+                topics = set(s for s in topics.split(','))
+                jobs = [j for j in jobs if topics & set((j.mailer or {}).get('topics', []))]
+
             events = [self.as_event(job) for job in jobs]
             return web.json_out(events)
 
@@ -203,7 +227,6 @@ class JobPage:
             event['className'] = 'text-success alert-success'
         elif job.is_due():
             event['className'] = 'text-white bg-danger'
-
 
         return event
 

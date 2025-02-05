@@ -66,12 +66,12 @@ class Message(Base):
     topics: orm.Mapped[List['Topic']] = orm.relationship(secondary=publishs_table, back_populates='messages')
     subject: orm.Mapped[str]
     content: orm.Mapped[str]
-    source: orm.Mapped[str]
+    source: orm.Mapped[Optional[str]]
 
     def footer(self):
         """Returns a footer for the message."""
         url = conf.url()
-        topics = ', '.join(t.name for t in self.topics)
+        topics = ', '.join(f'topic:{t.id}' for t in self.topics)
         text = ('\n---\n'
                 f'You receive this mail, because you are a user of the ODMF-Database {url}.\n'
                 f'You have subscribed to any of these topics: {topics}\n'
@@ -103,9 +103,9 @@ class Message(Base):
 
     def __str__(self):
         return '\n'.join([
-            '- **To:** ' + ', '.join('user: r.username' for r in self.receivers()),
+            '- **To:** ' + ', '.join(f'user:{r.username}' for r in self.receivers()),
             '- **Subject**: ' + self.subject,
-            '- **Source**: ' + self.source,
+            f'- **Source**: {self.source}',
             '\n\n**Content**:\n' + self.content + self.footer(),
             ])
 

@@ -84,24 +84,16 @@
                         py:content="'done at ' + formatdate(job.donedate) if job.done else 'due at ' + formatdate(job.due)"/>
                 </div>
                 <div py:content="markdown(job.description)"/>
-                <div py:if="job.log and not job.done">
-                    <h5>When done create logs:</h5>
-                    <div>Message: ${job.log.get('message')}</div>
-                    <div>Sites:</div>
-                    <ul class="nav">
-                        <li py:for="s in job.log.get('sites')" class="nav-item nav-link mr-2">${markdown('site:' + str(s))}</li>
-                    </ul>
-                </div>
 
 
                 <div class="container mt-4">
-                    <a href="#edit-div" class="btn btn-secondary dropdown-toggle" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="edit-div">
-                        <i class="fas fa-edit"></i> edit job
-                    </a>
-                    <a href="${conf.url('job','new', copy=job.id)}" class="btn btn-secondary" id="btn-copy" role="button"><i class="fas fa-copy"/> copy</a>
-                    <button class="btn btn-danger" id="btn-delete" role="button" py:if="job.author.username==user() or Level.my() >= Level.admin"><i class="fas fa-trash"/> delete</button>
-                    <div class="show collapse container border rounded p-4" id="edit-div">
-                        <form method="post" action=".">
+                    <form method="post" action=".">
+                        <a href="#edit-div" class="btn btn-secondary dropdown-toggle" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="edit-div">
+                            <i class="fas fa-edit"></i> edit job
+                        </a>
+                        <a href="${conf.url('job','new', copy=job.id)}" class="btn btn-secondary" id="btn-copy" role="button"><i class="fas fa-copy"/> copy</a>
+                        <button class="btn btn-danger" id="btn-delete" role="button" py:if="job.author.username==user() or Level.my() >= Level.admin"><i class="fas fa-trash"/> delete</button>
+                        <div class="collapse container border rounded p-4" id="edit-div">
                             <div class="form-group row">
                                 <label for="edit-id" class="col-form-label col-sm-4">ID:</label>
                                 <input type="number"  id="edit-id" name="id" value="${job.id}" readonly="readonly" class="form-control col-sm-8"/>
@@ -177,64 +169,100 @@
                                 >${job.description}</textarea>
 
                             </div>
-                            <h4>Create logs when job is done</h4>
-                            <div class="form-group row">
-                                <label for="edit-logsites" class="col-form-label col-sm-4">for each site:</label>
-                                <select name="sites[]" id="edit-logsites" class="col-sm-8 form-control select2" multiple="multiple">
-                                    <option py:for="site in sites" value="${site.id}" py:attrs="markoption(site.id in (job.log or {}).get('sites', []))" title="${site.name}">${site}</option>-->
-                                </select>
+                        </div>
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h4>Create logs when job is done</h4>
                             </div>
-                            <div class="form-group row">
-                                <label for="edit-logmsg" class="col-form-label col-sm-4">message:</label>
-                                <input class="form-control col-sm-8" id="edit-logmsg" placeholder="${job.name}" name="logmsg" value="${(job.log or dict()).get('message')}"/>
+                            <div class="card-body">
+                                <div class="form-group row">
+                                    <label for="edit-logsites" class="col-form-label col-sm-4">for each site:</label>
+                                    <select name="sites[]" id="edit-logsites" class="col-sm-8 form-control select2" multiple="multiple">
+                                        <option py:for="site in sites" value="${site.id}" py:attrs="markoption(site.id in (job.log or {}).get('sites', []))" title="${site.name}">${site}</option>
+                                    </select>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="edit-logmsg" class="col-form-label col-sm-4">message:</label>
+                                    <input class="form-control col-sm-8" id="edit-logmsg" placeholder="${job.name}" name="logmsg" value="${(job.log or dict()).get('message')}"/>
+                                </div>
+                                </div>
+                            <div class="card-header">
+                                <h4>Send messages to topics</h4>
                             </div>
-                            <div class="form-group row">
-                                <button  id="edit-save" name="save" value="save"
-                                         py:if="can_edit"
-                                         class="btn btn-secondary mr-1"
-                                         type="submit"
-                                         title="Saves the changes to the database"
-                                         data-toggle="tooltip"
-                                         py:attrs="prop(disabled=not can_edit)"
-                                >
-                                    <i class="fas fa-check mr-1" />
-                                    save changes
-                                </button>
-                                <button  id="edit-saveandown" name="save" value="own"
-                                         py:if="job.author.username!=user() and can_edit"
-                                         type="submit"
-                                         class="btn btn-secondary mr-1"
-                                         title="Saves the changes to the author and makes you to the author of the job"
-                                         data-toggle="tooltip"
-                                         py:attrs="prop(disabled=not can_edit)"
-                                >
-                                    become author
-                                </button>
-                                <button  id="edit-send-update" name="save" value="send"
-                                         py:if="can_edit and False"
-                                         type="submit"
-                                         class="btn btn-warning mr-1"
-                                         data-toggle="tooltip"
-                                         title="Save the changes and sends a mail to everyone who subscribed to the topics of this job"
-                                         py:attrs="prop(disabled=not can_edit)"
-                                >
-                                    <i class="fas fa-paper-plane"/> send update
-                                </button>
-
-                                <button  id="edit-savedone" name="save" value="done"
-                                         type="submit"
-                                         py:if="can_edit"
-                                         class="btn btn-success mr-1"
-                                         title="Saves changes and marks job as done"
-                                         data-toggle="tooltip"
-                                         py:attrs="prop(disabled=not can_edit)"
-                                >
-                                    <i class="fas fa-check" />
-                                </button>
+                            <div class="card-body">
+                                <div class="form-group row">
+                                    <label for="edit-msgtopics" class="col-form-label col-sm-4">topics:</label>
+                                    <select name="topics[]" id="edit-msgtopics" class="col-sm-8 form-control select2" multiple="multiple">
+                                        <option py:for="topic in topics" value="${topic.id}"
+                                                py:attrs="markoption(topic.id in (job.mailer or {}).get('topics', []))"
+                                                title="${topic}">${topic.id}</option>
+                                    </select>
+                                </div>
+                                <div class="form-group row" data-toggle="tooltip" title="send message to topics when">
+                                    <label for="edit-logsites" class="col-form-label col-sm-4" >when:</label>
+                                    <select name="msgdates[]" id="edit-msgdates" class="col-sm-8 form-control select2" multiple="multiple">
+                                        <option value="done" title="send to topics message when done"
+                                                py:attrs="markoption('done' in (job.mailer or {}).get('when', []))"
+                                        >done</option>
+                                        <option py:for="d in [0, 1, 3, 7, 14, 28]" value="${d}"
+                                                py:attrs="markoption(d in (job.mailer or {}).get('when', []))"
+                                                title="${d} day before due">${d} days</option>
+                                    </select>
+                                </div>
 
                             </div>
-                        </form>
-                    </div>
+                            <div class="card-footer">
+                                <div class="form-group row">
+                                    <button  id="edit-save" name="save" value="save"
+                                             py:if="can_edit"
+                                             class="btn btn-secondary mr-1"
+                                             type="submit"
+                                             title="Saves the changes to the database"
+                                             data-toggle="tooltip"
+                                             py:attrs="prop(disabled=not can_edit)"
+                                    >
+                                        <i class="fas fa-check mr-1" />
+                                        save changes
+                                    </button>
+                                    <button  id="edit-saveandown" name="save" value="own"
+                                             py:if="job.author.username!=user() and can_edit"
+                                             type="submit"
+                                             class="btn btn-secondary mr-1"
+                                             title="Saves the changes to the author and makes you to the author of the job"
+                                             data-toggle="tooltip"
+                                             py:attrs="prop(disabled=not can_edit)"
+                                    >
+                                        become author
+                                    </button>
+                                    <button  id="edit-send-update" name="save" value="send"
+                                             py:if="can_edit"
+                                             type="submit"
+                                             class="btn btn-warning mr-1"
+                                             data-toggle="tooltip"
+                                             title="Save the changes and sends a mail to everyone who subscribed to the topics of this job"
+                                             py:attrs="prop(disabled=not can_edit)"
+                                    >
+                                        <i class="fas fa-paper-plane"/> send update
+                                    </button>
+
+                                    <button  id="edit-savedone" name="save" value="done"
+                                             type="submit"
+                                             py:if="can_edit"
+                                             class="btn btn-success mr-1"
+                                             title="Saves changes and marks job as done"
+                                             data-toggle="tooltip"
+                                             py:attrs="prop(disabled=not can_edit)"
+                                    >
+                                        <i class="fas fa-check" />
+                                    </button>
+
+                                </div>
+
+                            </div>
+                        </div>
+
+
+                    </form>
                 </div>
             </div>
 

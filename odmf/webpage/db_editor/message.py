@@ -1,5 +1,5 @@
 import cherrypy
-
+import re
 from ...config import conf
 from .. import lib as web
 from ..auth import users, Level, expose_for
@@ -29,6 +29,8 @@ class TopicPage:
         # do not save topic "new" that is nearly always wrong
         if not topicid or topicid == 'new' or kwargs.get('name') == 'new':
             error = 'No topic id given or topic id/name is "new"'
+        if re.search('[,\\s]', topicid):
+            error = 'The topic id may not contain commas or space'
         else:
             with db.session_scope() as session:
                 topic = session.get(Topic, topicid)
@@ -66,7 +68,7 @@ class TopicPage:
             me = session.get(db.Person, web.user())
             my_topics = db.sql.select(Topic).order_by(Topic.id).filter(
                 db.sql.or_(
-                    Topic.subscribers.contains(me),
+                    Topic.subscribers.any(db.Person.username == me.username),
                     Topic.owner == me
                 )
             )
