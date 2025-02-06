@@ -149,6 +149,13 @@ class TestJob:
     def test_due_time(self, job):
         assert job.due - datetime.timedelta(days=1) > datetime.datetime(2023, 3, 10)
 
+    def test_job_sites(self, job, site1_in_db):
+        job.sites.append(site1_in_db)
+        assert job.sites[0] == site1_in_db
+        job.sites.remove(site1_in_db)
+        assert not job.sites
+
+
 
 
 class TestProject:
