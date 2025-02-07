@@ -4,7 +4,7 @@ Tools to render html templates
 
 import inspect
 import kajiki
-
+import cherrypy
 from kajiki.template import literal
 from pathlib import Path
 
@@ -181,7 +181,7 @@ def context(**kwargs):
             context_from_module(render_tools) |
             context_from_module(conversion) |
             dict(
-                error=None, info=None, success=None,
+                error=cherrypy.session.pop('error'), info=cherrypy.session.pop('info'), success=cherrypy.session.pop('success'),
                 conf=conf,
                 nav_items=get_nav_entries()
             ) |

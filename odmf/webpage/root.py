@@ -43,7 +43,8 @@ class Root(object):
     instrument = dbe.DatasourcePage()
     project = dbe.ProjectPage()
     user = dbe.PersonPage()
-    mail = dbe.TopicPage()
+    topic = dbe.TopicPage()
+    message = dbe.MessagePage()
     help = static.Help()
     api = api.API()
 
@@ -60,7 +61,7 @@ class Root(object):
             with db.session_scope() as session:
                 user = session.get(db.Person, web.user())
                 if user and user.jobs.filter(~db.Job.done, db.Job.due - datetime.now() < timedelta(days=7)).count():
-                    raise web.redirect(conf.root_url + '/job')
+                    raise web.redirect(conf.url('/job'))
         return self.map.index()
 
     @expose_for()

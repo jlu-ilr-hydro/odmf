@@ -34,12 +34,12 @@ class JobPage:
                     jobid=job.id
                 elif not self.can_edit(job):
                     error = 'Only author and responsible person can edit a job'
-                    raise web.redirect(conf.url('job', job.id, error=error))
+                    raise web.redirect(conf.url('job', job.id), error=error)
 
                 if kwargs.get('due'):
                     job.due = web.parsedate(kwargs['due'])
                 if job.due is None:
-                    raise web.redirect(conf.url('job', jobid, error='No due date'))
+                    raise web.redirect(conf.url('job', jobid), error='No due date')
                 job.name = kwargs.get('name')
                 job.description = kwargs.get('description')
                 job.responsible = session.query(
@@ -66,7 +66,11 @@ class JobPage:
                     job.make_done(users.current.name)
                     msg = f'{job} is done'
                 elif kwargs['save'] == 'send':
-                    msg = job.as_message(web.user())
+
+                    msg_obj = job.as_message(web.user())
+                    # TODO: Make dict representation of new message and save in cherrypy.session
+                    # then redirect to message
+
                 else:
                     msg = f'{job} saved'
 
@@ -80,7 +84,7 @@ class JobPage:
                     job.log = None
 
 
-        raise web.redirect(conf.url('job', jobid, error=error, success=msg))
+        raise web.redirect(conf.url('job', jobid), error=error, success=msg)
 
 
     @expose_for(Level.logger)
@@ -107,7 +111,7 @@ class JobPage:
             else:
                 job = session.get(db.Job, web.conv(int, jobid))
                 if not job:
-                    raise web.redirect(conf.url('job', error=f'Job {jobid} not found'))
+                    raise web.redirect(conf.url('job'), error=f'Job {jobid} not found')
 
             return web.render(
                 'job.html', job=job, can_edit=self.can_edit(job),
@@ -154,12 +158,12 @@ class JobPage:
             with db.session_scope() as session:
                 job = session.get(db.Job, jobid)
                 if not job:
-                    raise web.redirect(conf.url('job', error=f'Job {jobid} not found'))
+                    raise web.redirect(conf.url('job'), error=f'Job {jobid} not found')
                 if not (job._author == web.user() or Level.my() >= Level.admin):
-                    raise web.redirect(conf.url('job', error=f'Job {jobid} is not yours'))
+                    raise web.redirect(conf.url('job'), error=f'Job {jobid} is not yours')
                 success = f'{job} is deleted'
                 session.delete(job)
-            raise web.redirect(conf.url('job', success=success))
+            raise web.redirect(conf.url('job'), success=success)
 
     @expose_for(Level.logger)
     @web.method.post

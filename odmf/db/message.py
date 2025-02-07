@@ -49,7 +49,7 @@ class Topic(Base):
     _owner: orm.Mapped[str] = orm.mapped_column(sql.ForeignKey('person.username'))
     owner: orm.Mapped["Person"] = orm.relationship()
     subscribers: orm.Mapped[List[Person]] = orm.relationship(secondary=subscription_table, back_populates='topics')
-    messages: orm.Mapped[List['Message']] = orm.relationship(secondary=publishs_table, back_populates='topics')
+    messages: orm.Mapped[List['Message']] = orm.relationship(secondary=publishs_table, back_populates='topics', order_by='desc(Message.date)')
 
     def __str__(self):
         return self.name
@@ -79,7 +79,7 @@ class Message(Base):
         )
         return text
 
-    def receivers(self):
+    def to(self):
         """Returns a list of all receivers of the messages"""
         receivers = set(chain(*[t.subscribers for t in self.topics]))
         return sorted([r for r in receivers if r.active])
@@ -92,7 +92,7 @@ class Message(Base):
         if with_footer:
             self.content += '\n' + self.footer()
         self.date = self.date or datetime.now()
-        receivers = self.receivers()
+        receivers = self.to()
         with Mailer(conf.mailer_config) as mailer:
             mailer.send(
                 subject=self.subject,
@@ -103,7 +103,7 @@ class Message(Base):
 
     def __str__(self):
         return '\n'.join([
-            '- **To:** ' + ', '.join(f'user:{r.username}' for r in self.receivers()),
+            '- **To:** ' + ', '.join(f'user:{r.username}' for r in self.to()),
             '- **Subject**: ' + self.subject,
             f'- **Source**: {self.source}',
             '\n\n**Content**:\n' + self.content + self.footer(),

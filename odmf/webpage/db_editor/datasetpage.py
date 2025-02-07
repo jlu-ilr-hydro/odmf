@@ -43,7 +43,7 @@ class DatasetPage:
         Returns the query page (datasetlist.html). Site logic is handled with ajax
         """
         if datasetid is None:
-            return web.render('datasetlist.html', error=error, message=message).render()
+            return web.render('datasetlist.html', error=error, success=message).render()
         else:
             with db.session_scope() as session:
                 active = get_ds(session, datasetid)
@@ -598,7 +598,7 @@ class DatasetPage:
                 raise web.HTTPError(403, 'Not allowed')
             time = web.parsedate(time)
             ds.addrecord(id, value, time, comment, sample, out_of_timescope_ok=True)
-        raise web.redirect(str(dataset) + '/#add-record', message='record added')
+        raise web.redirect(str(dataset) + '/#add-record', success='record added')
 
 
 

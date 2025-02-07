@@ -26,7 +26,7 @@ class TopicPage:
         # if no new topic id is given, use the one from the url
         topicid = kwargs.get('id', topicid)
 
-        # do not save topic "new" that is nearly always wrong
+        # do not save topic "new" that is  always wrong
         if not topicid or topicid == 'new' or kwargs.get('name') == 'new':
             error = 'No topic id given or topic id/name is "new"'
         if re.search('[,\\s]', topicid):
@@ -40,58 +40,69 @@ class TopicPage:
                     session.flush()
                 elif not self.can_edit(topic):
                     error = 'Only the owner and users with elevated privileges can edit this topic.'
-                    raise web.redirect(conf.url('mail', topicid, error=error))
+                    raise web.redirect(conf.url('mail', topicid), error=error)
 
                 topic.name = kwargs.get('name', topic.name)
                 topic.description = kwargs.get('description', topic.description)
-                topic._owner = kwargs.get('owner', topic._owner)
 
-                if subscribers := kwargs.get('subscribers[]'):
-                    if type(subscribers) is str: subscribers = [subscribers]
-                    stmt = db.sql.select(db.Person).filter(db.Person.username.in_(subscribers))
-                    topic.subscribers = session.scalars(stmt).all()
 
-        raise web.redirect(conf.url(self.url, topicid, error=error, success=msg))
+        raise web.redirect(conf.url(self.url, topicid), error=error, success=msg)
 
-    def index_get(self, topicid, error=None, success=None):
+    def index_get(self, topicid):
         can_edit_id = False
 
         with db.session_scope() as session:
-            if topicid == 'new':
+            topic = session.get(Topic, topicid)
+            if not topic:
                 owner = session.get(db.Person, web.user())
-                topic = Topic(id=topicid, owner=owner, _owner=owner.username, name=topicid)
+                topic = Topic(id=topicid, owner=owner, _owner=owner.username, name='new')
                 can_edit_id = True
-            else:
-                topic = session.get(Topic, topicid)
-                if not topic:
-                    raise web.redirect(conf.url(self.url, error=f'Topic {topicid} not found'))
+
             me = session.get(db.Person, web.user())
-            my_topics = db.sql.select(Topic).order_by(Topic.id).filter(
-                db.sql.or_(
-                    Topic.subscribers.any(db.Person.username == me.username),
-                    Topic.owner == me
-                )
-            )
+            my_topics = db.sql.select(Topic).order_by(Topic.id)
             return web.render(
-                'topic.html',
+                'message/topic.html',
                 topic=topic,
                 can_edit_id=can_edit_id,
-                can_edit=True,
+                can_edit=self.can_edit(topic),
                 persons=session.scalars(db.sql.select(db.Person).order_by(db.Person.surname).filter(db.Person.active)),
+                me = me,
                 subscribers=list(topic.subscribers),
                 topics=session.scalars(my_topics),
-                error=error,
-                success=success,
             ).render()
 
     def list(self):
-        ...
+        with db.session_scope() as session:
+            me = session.get(db.Person, web.user())
+            topics = session.scalars(db.sql.select(Topic).order_by(Topic.id))
+            return web.render('message/topic-list.html', topics=topics, me=me).render()
+
+    @web.method.post
+    @web.expose
+    def toggle_sub(self, topicid, subscribe:str):
+        """
+        Toggles the subscription for the current user
+        :param topicid: The topic
+        """
+        with db.session_scope() as session:
+            topic = session.get(Topic, topicid)
+            if not topic:
+                raise web.redirect(conf.url(self.url), error=f'Topic topic:{topicid} not found')
+            me = session.get(db.Person, web.user())
+            if me not in topic.subscribers and subscribe == 'on':
+                topic.subscribers.append(me)
+                msg = 'You follow topic:' + topic.name
+            elif me in topic.subscribers and subscribe == 'off':
+                topic.subscribers.remove(me)
+                msg = 'You unfollow topic:' + topic.name
+        raise web.redirect(conf.url(self.url, topicid), success=msg)
+
     @cherrypy.expose
-    def index(self, topicid=None, error=None, success=None, **kwargs):
+    def index(self, topicid=None, **kwargs):
 
         if cherrypy.request.method == 'GET':
             if topicid:
-                return self.index_get(topicid, error, success)
+                return self.index_get(topicid)
             else:
                 return self.list()
         elif cherrypy.request.method == 'POST':
@@ -100,11 +111,55 @@ class TopicPage:
             with db.session_scope() as session:
                 topic_ = session.get(Topic, topicid)
                 if not topic_:
-                    raise web.redirect(conf.url('job', error=f'Topic {topicid} not found'))
+                    raise web.redirect(conf.url('topic'), error=f'Topic {topicid} not found')
                 if not (topic_._owner == web.user() or Level.my() >= Level.admin):
-                    raise web.redirect(conf.url('job', error=f'Topic {topicid} is not yours'))
+                    raise web.redirect(conf.url('topic'), error=f'Topic {topicid} is not yours')
                 success = f'{topicid} is deleted'
                 session.delete(topicid)
-            raise web.redirect(conf.url('job', success=success))
+            raise web.redirect(conf.url('topic'), success=success)
+
+cherrypy.popargs('msgid')
+@web.show_in_nav_for(0, 'envelope')
+class MessagePage:
+
+    def index_get(self, msgid, **kwargs):
+        ...
+
+    def index_post(self, msgid, **kwargs):
+        ...
+
+    def index_list(self):
+        ...
+    @cherrypy.expose
+    def index(self, msgid=None, **kwargs):
+        if cherrypy.request.method == 'GET':
+            with db.session_scope() as session:
+                if msgid:
+                    msg = session.get(Message, msgid)
+                else:
+                    ...
+                if type(msg) == Message:
+                    ...
+                else:
+                    # Show message list
+                    topics = kwargs.get('topics[]', [])
+                    if type(topics) == str: topics = [topics]
+                    page = web.conv(int, kwargs.get('page'), 1)
+                    limit = web.conv(int, kwargs.get('limit'), 20)
+                    offset = (page - 1) * limit
+                    messages = session.query(Message)
+                    if topics:
+                        messages = messages.filter(Message.topics.any(Topic.id.in_(topics)))
+                    messages = messages.order_by(Message.date.desc()).limit(limit).offset(offset)
+                    cherrypy.session['new_message'] = messages.first()
+
+                    topics_sql = db.sql.select(Topic).order_by(Topic.id)
+                    return web.render(
+                        'message/message-list.html',
+                        messages=messages,
+                        topics=session.scalars(topics_sql),
+                        topics_selected=topics,
+
+                    ).render()
 
 

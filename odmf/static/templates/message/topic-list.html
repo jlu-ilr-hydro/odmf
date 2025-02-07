@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+<py:extends href="layout.html" xmlns:py="">
+    <py:block name="scripts">
+        <!-- insert additional scripts -->
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <!-- insert sidebar content -->
+    </py:block>
+    <py:block name="content">
+        <!-- insert main content -->
+        <div class="content w-100">
+            <div class="container">
+                <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-1">
+                    <div>
+                        <h2 class="display-4 mr-8 d-inline-block" >Topics</h2>
+                    </div>
+                    <div class="display-4 col-sm my-auto text-right">
+                        <i class="fas fa-inbox mr-4"/>
+                    </div>
+                </div>
+                <div class="list-group">
+                    <a href="./${t.id}"
+                       class="list-group-item list-group-item-action d-flex"
+                       title="${t.description}"
+                       py:for="t in topics">
+
+                        <div class="fas fa-inbox mr-2"></div>
+                        <div class="mr-2">${t.id}</div>
+                        <div class="">${t.name}</div>
+                        <div py:if="me in t.subscribers"
+                             class="ml-auto text-success"
+                             data-toggle="tooltip"
+                             title="you have subscribed to this topic">
+                            <i class="fas fa-check fa-2x"/>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </py:block>
+</py:extends>

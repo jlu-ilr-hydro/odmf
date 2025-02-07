@@ -39,6 +39,10 @@ def redirect(url, **kwargs):
 
     redirects to /xyz?a=2&b=Hallo
     """
+    cherrypy.session['error'] = kwargs.pop('error', None)
+    cherrypy.session['success'] = kwargs.pop('success', None)
+    cherrypy.session['info'] = kwargs.pop('info', None)
+
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
     qs = urlencode(kwargs)
     if qs:

@@ -7,4 +7,4 @@ from .pictures import PicturePage
 from .project import ProjectPage
 from .site import SitePage
 from .valuetype import VTPage
-from .message import TopicPage
+from .message import TopicPage, MessagePage
