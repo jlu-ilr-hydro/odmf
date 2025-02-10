@@ -11,7 +11,6 @@ from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 
 @cherrypy.popargs('topicid')
-@web.show_in_nav_for(0, 'inbox')
 class TopicPage:
     url = 'mail'
 
@@ -118,48 +117,132 @@ class TopicPage:
                 session.delete(topicid)
             raise web.redirect(conf.url('topic'), success=success)
 
-cherrypy.popargs('msgid')
+@cherrypy.popargs('msgid')
 @web.show_in_nav_for(0, 'envelope')
 class MessagePage:
 
     def index_get(self, msgid, **kwargs):
-        ...
+        with db.session_scope() as session:
+            if msgid:
+                msg = session.get(Message, msgid)
+            else:
+                # Try to retrieve message dict from cherrypy session
+                msg = cherrypy.session.pop('new-message', None)
+                if msg:
+                    msg = Message.from_dict(session, **msg)
+
+            if type(msg) == Message:
+                topics_sql = db.sql.select(Topic).order_by(Topic.id)
+                sources_sql = db.sql.select(Message.source).order_by(Message.source).distinct()
+                topics = session.scalars(topics_sql).all()
+                sources = session.scalars(sources_sql).all()
+                if msg.source not in sources:
+                    sources.insert(0, msg.source)
+
+                return web.render(
+                    'message/message-edit.html',
+                    title=msg.subject,
+                    topics=topics,
+                    sources=sources,
+                    message=msg,
+
+                ).render()
+
+            else:
+                return self.index_list(session, **kwargs)
 
     def index_post(self, msgid, **kwargs):
-        ...
+        with db.session_scope() as session:
+            msg = session.get(Message, msgid)
+            if not msg:
+                msg = Message(source='user:' + web.user())
+                session.add(msg)
 
-    def index_list(self):
-        ...
+
+            msg.subject = kwargs.get('subject', msg.subject)
+            msg.source = kwargs.get('source', msg.source)
+            msg.content = kwargs.get('content', msg.content)
+
+            if type(topics := kwargs.get('topics[]', [])) == str: topics = [topics]
+            topics_sql = db.sql.select(Topic).where(Topic.id.in_(topics)).order_by(Topic.id)
+            msg.topics = session.scalars(topics_sql).all()
+
+            receivers = msg.send()
+
+            report = f'Sent {msg.subject} to {msg.topics}, {len(receivers)} emails'
+        raise web.redirect(conf.url('message'), success=report)
+
+
+
+
+    def index_list(self, session, **kwargs):
+        """Shows the messages as list"""
+
+        # Get filters
+
+        if type(topics := kwargs.get('topics[]', [])) == str: topics = [topics]
+        if type(sources := kwargs.get('sources[]', [])) == str: sources = [sources]
+        page = web.conv(int, kwargs.get('page'), 1)
+        limit = web.conv(int, kwargs.get('limit'), 20)
+        offset = (page - 1) * limit
+
+        # Load messages
+        messages = session.query(Message)
+        if topics:
+            messages = messages.filter(Message.topics.any(Topic.id.in_(topics)))
+        if sources:
+            messages = messages.filter(Message.source.in_(sources))
+        if fulltext := kwargs.get('fulltext'):
+            messages = messages.filter(
+                db.sql.or_(
+                    Message.subject.icontains(fulltext),
+                    Message.content.icontains(fulltext),
+                )
+            )
+
+        messages = messages.order_by(Message.date.desc()).limit(limit).offset(offset)
+        pages = messages.count() // limit + 1
+
+
+
+        cherrypy.session['new_message'] = messages.first()
+
+        topics_sql = db.sql.select(Topic).order_by(Topic.id)
+        sources_sql = db.sql.select(Message.source).order_by(Message.source).distinct()
+        return web.render(
+            'message/message-list.html',
+            messages=messages,
+            topics=session.scalars(topics_sql),
+            sources=session.scalars(sources_sql),
+            topics_selected=topics,
+            sources_selected=sources,
+            fulltext=fulltext,
+            page=page,
+            limit=limit,
+            pages=pages
+
+        ).render()
+
     @cherrypy.expose
     def index(self, msgid=None, **kwargs):
+        """
+
+        :param msgid:
+        :param kwargs:
+        :return:
+        """
         if cherrypy.request.method == 'GET':
-            with db.session_scope() as session:
-                if msgid:
-                    msg = session.get(Message, msgid)
-                else:
-                    ...
-                if type(msg) == Message:
-                    ...
-                else:
-                    # Show message list
-                    topics = kwargs.get('topics[]', [])
-                    if type(topics) == str: topics = [topics]
-                    page = web.conv(int, kwargs.get('page'), 1)
-                    limit = web.conv(int, kwargs.get('limit'), 20)
-                    offset = (page - 1) * limit
-                    messages = session.query(Message)
-                    if topics:
-                        messages = messages.filter(Message.topics.any(Topic.id.in_(topics)))
-                    messages = messages.order_by(Message.date.desc()).limit(limit).offset(offset)
-                    cherrypy.session['new_message'] = messages.first()
+            return self.index_get(msgid, **kwargs)
+        elif cherrypy.request.method == 'POST':
+            return self.index_post(msgid, **kwargs)
 
-                    topics_sql = db.sql.select(Topic).order_by(Topic.id)
-                    return web.render(
-                        'message/message-list.html',
-                        messages=messages,
-                        topics=session.scalars(topics_sql),
-                        topics_selected=topics,
-
-                    ).render()
+    @cherrypy.expose
+    def subscribers(self, **kwargs):
+        with db.session_scope() as session:
+            if type(topics := kwargs.get('topics[]', [])) == str: topics = [topics]
+            topics_sql = db.sql.select(Topic).where(Topic.id.in_(topics))
+            topics = session.scalars(topics_sql)
+            web.mime.json.set()
+            return web.as_json(db.message.subscribers(topics)).encode('utf-8')
 
 

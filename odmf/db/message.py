@@ -51,8 +51,21 @@ class Topic(Base):
     subscribers: orm.Mapped[List[Person]] = orm.relationship(secondary=subscription_table, back_populates='topics')
     messages: orm.Mapped[List['Message']] = orm.relationship(secondary=publishs_table, back_populates='topics', order_by='desc(Message.date)')
 
-    def __str__(self):
-        return self.name
+    def __repr__(self):
+        return f"topic:{self.id}"
+
+    def __jdict__(self):
+        return dict(
+            id=self.id,
+            name=self.name,
+            description=self.description,
+            owner=self._owner,
+        )
+
+
+def subscribers(topics: List[Topic])-> List[Person]:
+    receivers = set(chain(*[t.subscribers for t in topics]))
+    return sorted([r for r in receivers if r.active])
 
 
 class Message(Base):
@@ -81,8 +94,8 @@ class Message(Base):
 
     def to(self):
         """Returns a list of all receivers of the messages"""
-        receivers = set(chain(*[t.subscribers for t in self.topics]))
-        return sorted([r for r in receivers if r.active])
+
+        return subscribers(self.topics)
 
     def send(self, with_footer=True):
         """
@@ -108,6 +121,27 @@ class Message(Base):
             f'- **Source**: {self.source}',
             '\n\n**Content**:\n' + self.content + self.footer(),
             ])
+
+    def __jdict__(self):
+        return dict(
+            id=self.id,
+            date=self.date,
+            subject=self.subject,
+            content=self.content,
+            source=self.source,
+            topics=[t.id for t in self.topics],
+        )
+
+    @classmethod
+    def from_dict(cls, session: orm.Session, **d):
+        topics = d.pop('topics', [])
+        stmt = sql.select(Topic).where(Topic.id.in_(topics))
+        topics = session.scalars(stmt).all()
+        d['topics'] = topics
+
+        return cls(**d)
+
+
 
 
 

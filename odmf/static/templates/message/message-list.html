@@ -9,16 +9,42 @@
     </py:block>
     <py:block name="sidebar">
         <!-- insert sidebar content -->
-        <div class="container">
-            <form method="GET" action=".">
-                <div class="form-group">
-                    <label for="topics">Topics:</label>
-                    <select class="select2 form-control filter" name="topics[]" multiple="multiple">
-                        <option py:for="t in topics" value="${t.id}" py:attrs="markoption(t.id in topics_selected)" >${t.name}</option>
-                    </select>
-                </div>
-                <button class="btn btn-primary" type="submit">Apply</button>
-            </form>
+        <div class="card">
+            <h4 class="card-header"><i class="fas fa-filter mr-4"/>Filter</h4>
+            <div class="card-body">
+                <form method="GET" action=".">
+                    <div class="form-group row">
+                        <label for="topics" class="col-3">Topics:</label>
+                        <select class="select2 form-control filter col" name="topics[]" multiple="multiple" id="topics">
+                            <option py:for="t in topics" value="${t.id}" py:attrs="markoption(t.id in topics_selected)" >${t.name}</option>
+                        </select>
+                    </div>
+                    <div class="form-group row">
+                        <label for="sources" class="col-3">Source:</label>
+                        <select class="select2 form-control filter col" name="sources[]" multiple="multiple" id="sources">
+                            <option py:for="s in sources" value="${s}" py:attrs="markoption(s in sources_selected)" >${s}</option>
+                        </select>
+                    </div>
+                    <div class="form-group row">
+                        <label for="fulltext" class="col-3">Text:</label>
+                        <input class="form-control filter col" placeholder="full text search" value="${fulltext}" name="fulltext" id="fulltext"/>
+
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="page" class="col-3">Page:</label>
+                        <select class="form-control filter col" name="page" id="page">
+                            <option py:for="p in range(pages)" value="${p+1}">page ${p+1}</option>
+                        </select>
+                        <select class="form-control filter col" name="limit" id="limit">
+                            <option py:for="l in [10,20,50,100,200]" value="${l}">${l} msg/page</option>
+                        </select>
+
+                    </div>
+                    <button class="btn btn-primary" type="submit">Apply</button>
+                </form>
+
+            </div>
         </div>
     </py:block>
     <py:block name="content">
@@ -35,13 +61,26 @@
                 </div>
                 <div class="container">
 
-                    <div class="list-group">
-                        <div
-                             class="list-group-item list-group-item-action d-flex row"
-                             py:for="msg in messages">
-                            <div class="col" py:content="markdown(msg.date.strftime('%Y-%m-%d %H:%M') if msg.date else '')"/>
-                            <a href="./${msg.id}" class="col" py:content="markdown(msg.subject)"/>
-                            <div class="col" py:content="markdown(' **From:** ' + (msg.source or 'no source'))"/>
+                    <div class="accordion" id="msg-accordion">
+                        <div class="card" py:for="msg in messages">
+                            <div class="card-header" id="msg-${msg.id}" data-target="#msg${msg.id}-content"  data-toggle="collapse">
+
+                                    <div class="row">
+                                        <div class="col" py:content="markdown(msg.date.strftime('%Y-%m-%d %H:%M') if msg.date else '')"/>
+                                        <div class="col" py:content="markdown(msg.subject)"/>
+                                        <div class="col" py:content="markdown(' **From:** ' + (msg.source or 'no source'))"/>
+                                    </div>
+
+
+                            </div>
+                            <div id="msg${msg.id}-content" class="collapse card-body" py:aria-labelledby="msg-${msg.id}">
+                                <div>
+                                    Topics: <a href="${conf.url('topic',t.id)}" class="btn btn-sm btn-light border mr-1" py:for="t in msg.topics" py:content="t"/>
+                                </div>
+                                <div py:content="markdown(msg.content)" class="border m-1 pl-1"/>
+                            </div>
+
+
                         </div>
                     </div>
                 </div>

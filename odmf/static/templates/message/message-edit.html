@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+
+<py:extends href="layout.html" xmlns:py="">
+    <py:block name="scripts">
+        <!-- insert additional scripts -->
+        <script>
+            //<![CDATA[
+            $(() => {
+                $('#new-source').on('change', event => {
+                    let newsource = $('#new-source').val()
+                    if (newsource) {
+                        $('#source').prepend('<option value="' + newsource +
+                            '">' + newsource + '</option>').val(newsource)
+                    }
+                })
+                $('#topics').on('change', event => {
+                    $.getJSON("${conf.url('message', 'subscribers')}", {topics:$('#topics').val()}, data =>{
+                        let text = ''
+
+                        for(p of data) {
+                            text += '<a href="${conf.url("person")}/' + p.username + '/" class="d-inline mr-1 btn btn-light">' + p.label + '</a>'
+                        }
+                        $('#subscribers').html(text)
+                    })
+                })
+            })
+
+            //]]>
+        </script>
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <!-- insert sidebar content -->
+    </py:block>
+    <py:block name="content">
+        <!-- insert main content -->
+        <div class="content w-100">
+            <div class="container">
+                <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-1">
+                    <div>
+                        <h2 class="display-4 mr-8 d-inline-block" >${message.subject}</h2>
+                    </div>
+                    <div class="display-4 col-sm my-auto text-right">
+                        <i class="fas fa-envelope mr-4"/>${message.id}
+                    </div>
+                </div>
+                <div class="container">
+                    <form method="POST" action=".">
+                        <div class="form-group row">
+                            <label for="topics" class="col-3">Topics:</label>
+                            <select class="select2 form-control filter col" name="topics[]" multiple="multiple" id="topics">
+                                <option py:for="t in topics" value="${t.id}" py:attrs="markoption(t in message.topics)">${t.name}</option>
+                            </select>
+                        </div>
+                        <div class="form-group row">
+                            <label for="subscribers" class="col-3">Subscribers:</label>
+                            <div id="subscribers" class="col">
+                                <a href="${conf.url('person', p.username)}" py:for="p in message.to()" py:content="p" class="d-inline mr-1 btn btn-light"/>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="sources" class="col-3">Source:</label>
+                            <div id="sources" py:content="markdown(message.source)" class="col"/>
+                            <input name="source" value="${message.source}" hidden="hidden" />
+
+                        </div>
+                        <div class="form-group row">
+                            <label for="subject" class="col-3">Subject:</label>
+                            <input class="form-control filter col" placeholder="message subject" value="${message.subject}" name="subject" id="subject"/>
+                        </div>
+                        <div class="form-group row">
+                            <label for="date" class="col-3">Date:</label>
+                            <input class="form-control filter col" type="datetime-local" value="${message.date}" name="date" id="date"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="content">Content: <a title="Get help for using links and formats" data-toggle="tooltip" data-placement="top" class="ml-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
+                                <i class="fas fa-question-circle"/>
+                            </a>
+                            </label>
+                            <textarea class="form-control filter col" placeholder="message subject" name="content" id="content">${message.content}</textarea>
+                        </div>
+
+                        <button class="btn btn-success" type="submit"><i class=" fas fa-check"/> submit</button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+    </py:block>
+</py:extends>

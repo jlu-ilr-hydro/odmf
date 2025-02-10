@@ -57,7 +57,7 @@ class JobPage:
                         'topics': topics,
                         'when': [web.conv(int, s, s) for s in msgwhen]
                     }
-
+                redirect = conf.url('job', jobid)
                 if kwargs['save'] == 'own':
                     p_user = session.get(db.Person, web.user())
                     job.author = p_user
@@ -65,12 +65,11 @@ class JobPage:
                 elif kwargs['save'] == 'done':
                     job.make_done(users.current.name)
                     msg = f'{job} is done'
+                    redirect = conf.url('job')
                 elif kwargs['save'] == 'send':
-
-                    msg_obj = job.as_message(web.user())
-                    # TODO: Make dict representation of new message and save in cherrypy.session
-                    # then redirect to message
-
+                    cherrypy.session['new-message'] = job.as_message(web.user()).__jdict__()
+                    msg = f'{job} sents new message'
+                    redirect = conf.url('message')
                 else:
                     msg = f'{job} saved'
 
@@ -84,7 +83,7 @@ class JobPage:
                     job.log = None
 
 
-        raise web.redirect(conf.url('job', jobid), error=error, success=msg)
+        raise web.redirect(redirect, error=error, success=msg)
 
 
     @expose_for(Level.logger)
