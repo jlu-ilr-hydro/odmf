@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 
 @cherrypy.popargs('topicid')
 class TopicPage:
-    url = 'mail'
+    url = 'topic'
 
     @staticmethod
     def can_edit(topic):
@@ -20,6 +20,7 @@ class TopicPage:
 
     def index_post(self, topicid, **kwargs):
         """Saves changes to a topic"""
+
         error = msg = ''
 
         # if no new topic id is given, use the one from the url
@@ -59,6 +60,7 @@ class TopicPage:
 
             me = session.get(db.Person, web.user())
             my_topics = db.sql.select(Topic).order_by(Topic.id)
+            messages = db.sql.select(Message).where(Message.topics.any(Topic.id == topicid)).order_by(Message.date.desc()).limit(50)
             return web.render(
                 'message/topic.html',
                 topic=topic,
@@ -68,6 +70,7 @@ class TopicPage:
                 me = me,
                 subscribers=list(topic.subscribers),
                 topics=session.scalars(my_topics),
+                messages = session.scalars(messages).all()
             ).render()
 
     def list(self):
@@ -123,7 +126,9 @@ class MessagePage:
 
     def index_get(self, msgid, **kwargs):
         with db.session_scope() as session:
-            if msgid:
+            if msgid == 'new':
+                msg = Message(source='user:' + web.user())
+            elif msgid:
                 msg = session.get(Message, msgid)
             else:
                 # Try to retrieve message dict from cherrypy session
@@ -141,7 +146,7 @@ class MessagePage:
 
                 return web.render(
                     'message/message-edit.html',
-                    title=msg.subject,
+                    title=msg.subject or 'new message',
                     topics=topics,
                     sources=sources,
                     message=msg,
@@ -179,41 +184,39 @@ class MessagePage:
         """Shows the messages as list"""
 
         # Get filters
-
-        if type(topics := kwargs.get('topics[]', [])) == str: topics = [topics]
-        if type(sources := kwargs.get('sources[]', [])) == str: sources = [sources]
+        topics = web.to_list(kwargs.get('topics[]'))
+        sources = web.to_list(kwargs.get('sources[]'))
+        fulltext = kwargs.get('fulltext')
         page = web.conv(int, kwargs.get('page'), 1)
         limit = web.conv(int, kwargs.get('limit'), 20)
         offset = (page - 1) * limit
 
-        # Load messages
+        # Load messages and apply filters
         messages = session.query(Message)
         if topics:
             messages = messages.filter(Message.topics.any(Topic.id.in_(topics)))
         if sources:
             messages = messages.filter(Message.source.in_(sources))
-        if fulltext := kwargs.get('fulltext'):
-            messages = messages.filter(
+        if fulltext:
+            messages = messages.where(
                 db.sql.or_(
                     Message.subject.icontains(fulltext),
                     Message.content.icontains(fulltext),
                 )
             )
+        message_count = messages.count()
+        pages = message_count // limit + 1
 
         messages = messages.order_by(Message.date.desc()).limit(limit).offset(offset)
-        pages = messages.count() // limit + 1
-
-
-
-        cherrypy.session['new_message'] = messages.first()
 
         topics_sql = db.sql.select(Topic).order_by(Topic.id)
         sources_sql = db.sql.select(Message.source).order_by(Message.source).distinct()
         return web.render(
             'message/message-list.html',
             messages=messages,
-            topics=session.scalars(topics_sql),
-            sources=session.scalars(sources_sql),
+            message_count=message_count,
+            topics=session.scalars(topics_sql).all(),
+            sources=session.scalars(sources_sql).all(),
             topics_selected=topics,
             sources_selected=sources,
             fulltext=fulltext,
@@ -238,8 +241,13 @@ class MessagePage:
 
     @cherrypy.expose
     def subscribers(self, **kwargs):
+        """
+        Returns a JSON list of users, who subscribed to topics
+        :param kwargs: Needs to contain a parameter topics[]
+        :return:
+        """
         with db.session_scope() as session:
-            if type(topics := kwargs.get('topics[]', [])) == str: topics = [topics]
+            topics = web.to_list(kwargs.get('topics[]'))
             topics_sql = db.sql.select(Topic).where(Topic.id.in_(topics))
             topics = session.scalars(topics_sql)
             web.mime.json.set()

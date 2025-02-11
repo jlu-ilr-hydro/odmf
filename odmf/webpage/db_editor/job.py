@@ -49,10 +49,8 @@ class JobPage:
                 job.repeat = web.conv(int, kwargs.get('repeat'))
                 job.type = kwargs.get('type')
 
-                if topics:=kwargs.get('topics[]'):
-                    if type(topics) is str: topics = [topics]
-                    msgwhen = kwargs.get('msgdates[]')
-                    if type(msgwhen) is str: msgwhen = [msgwhen]
+                if topics := web.to_list(kwargs.get('topics[]')):
+                    msgwhen = web.to_list(kwargs.get('msgdates[]'))
                     job.mailer = {
                         'topics': topics,
                         'when': [web.conv(int, s, s) for s in msgwhen]

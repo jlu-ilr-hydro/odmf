@@ -113,3 +113,22 @@ def conv(cls, s, default=None):
         return default
 
 
+def to_list(param, cls=None)->list:
+    """
+    Web parameters in this form abc[] contain a string if they have single parameter
+    or a list of strings if they have multiple parameters. This function ensures
+    a list.
+
+    :param param:
+    :param cls:  If a class is given, the content is converted to that class
+    :return: List[cls|str]
+    """
+    if not param:
+        return []
+    if type(param) is str: param=[param]
+    if cls is None:
+        return param
+    else:
+        return [conv(cls, p) for p in param]
+
+
