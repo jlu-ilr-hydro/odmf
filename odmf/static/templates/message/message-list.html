@@ -9,36 +9,45 @@
     </py:block>
     <py:block name="sidebar">
         <!-- insert sidebar content -->
-        <div class="card">
+        <div class="card m-1">
+            <h4 class="card-header"><i class="fas fa-inbox"/> Topics</h4>
+            <div class="list-group">
+                <a class="list-group-item list-group-item-action" href="${conf.url('topic')}"><i class="fas fa-inbox"/> list topics...</a>
+                <a class="list-group-item list-group-item-action" href="${conf.url('topic', 'new')}"><i class="fas fa-plus-circle"/> create topic...</a>
+                <a class="list-group-item list-group-item-action" href="${conf.url('message', 'new')}"><i class="fas fa-paper-plane"/> write message...</a>
+            </div>
+        </div>
+        <div class="card m-1">
             <h4 class="card-header"><i class="fas fa-filter mr-4"/>Filter</h4>
             <div class="card-body">
                 <form method="GET" action=".">
-                    <div class="form-group row">
-                        <label for="topics" class="col-3">Topics:</label>
-                        <select class="select2 form-control filter col" name="topics[]" multiple="multiple" id="topics">
+                    <div class="form-group">
+                        <label for="topics" >Topics:</label>
+                        <select class="select2 form-control filter" name="topics[]" multiple="multiple" id="topics">
                             <option py:for="t in topics" value="${t.id}" py:attrs="markoption(t.id in topics_selected)" >${t.name}</option>
                         </select>
                     </div>
-                    <div class="form-group row">
-                        <label for="sources" class="col-3">Source:</label>
-                        <select class="select2 form-control filter col" name="sources[]" multiple="multiple" id="sources">
+                    <div class="form-group">
+                        <label for="sources">Source:</label>
+                        <select class="select2 form-control filter" name="sources[]" multiple="multiple" id="sources">
                             <option py:for="s in sources" value="${s}" py:attrs="markoption(s in sources_selected)" >${s}</option>
                         </select>
                     </div>
-                    <div class="form-group row">
-                        <label for="fulltext" class="col-3">Text:</label>
-                        <input class="form-control filter col" placeholder="full text search" value="${fulltext}" name="fulltext" id="fulltext"/>
-
+                    <div class="form-group">
+                        <label for="fulltext">Text:</label>
+                        <input class="form-control filter" placeholder="full text search" value="${fulltext}" name="fulltext" id="fulltext"/>
                     </div>
 
-                    <div class="form-group row">
-                        <label for="page" class="col-3">Page:</label>
-                        <select class="form-control filter col" name="page" id="page">
-                            <option py:for="p in range(pages)" value="${p+1}">page ${p+1}</option>
-                        </select>
-                        <select class="form-control filter col" name="limit" id="limit">
-                            <option py:for="l in [10,20,50,100,200]" value="${l}">${l} msg/page</option>
-                        </select>
+                    <div class="form-group">
+                        <label for="page" >Page:</label>
+                        <div class="input-group">
+                            <select class="form-control filter" name="page" id="page">
+                                <option py:for="p in range(pages)" value="${p+1}" py:attrs="markoption(p+1 == page)">${p+1}/${pages}</option>
+                            </select>
+                            <select class="form-control filter" name="limit" id="limit">
+                                <option py:for="l in [10,20,50,100,200]" value="${l}" py:attrs="markoption(limit==l)">${l}/page</option>
+                            </select>
+                        </div>
 
                     </div>
                     <button class="btn btn-primary" type="submit">Apply</button>
@@ -53,7 +62,7 @@
             <div class="container">
                 <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-1">
                     <div>
-                        <h2 class="display-4 mr-8 d-inline-block" >Messages</h2>
+                        <h2 class="display-4 mr-8 d-inline-block" ><span class="badge badge-primary badge-pill">${message_count}</span> Messages</h2>
                     </div>
                     <div class="display-4 col-sm my-auto text-right">
                         <i class="fas fa-envelope mr-4"/>
@@ -65,17 +74,21 @@
                         <div class="card" py:for="msg in messages">
                             <div class="card-header" id="msg-${msg.id}" data-target="#msg${msg.id}-content"  data-toggle="collapse">
 
-                                    <div class="row">
-                                        <div class="col" py:content="markdown(msg.date.strftime('%Y-%m-%d %H:%M') if msg.date else '')"/>
-                                        <div class="col" py:content="markdown(msg.subject)"/>
-                                        <div class="col" py:content="markdown(' **From:** ' + (msg.source or 'no source'))"/>
+                                    <div class="row d-flex">
+                                        <div class="col-md" py:content="markdown(msg.date.strftime('%Y-%m-%d %H:%M') if msg.date else '')"/>
+                                        <div class="col-md" py:content="markdown(msg.subject)"/>
+                                        <div class="col-md" py:content="markdown(' **From:** ' + (msg.source or 'no source'))"/>
+                                        <a href="${msg.id}" class="btn btn-sm btn-secondary ml-auto">
+                                            <i class="fas fa-edit"/>
+                                        </a>
+
                                     </div>
 
 
                             </div>
                             <div id="msg${msg.id}-content" class="collapse card-body" py:aria-labelledby="msg-${msg.id}">
-                                <div>
-                                    Topics: <a href="${conf.url('topic',t.id)}" class="btn btn-sm btn-light border mr-1" py:for="t in msg.topics" py:content="t"/>
+                                <div class="d-flex">
+                                    <span class="mr-2">Topics:</span> <a href="${conf.url('topic',t.id)}" class="btn btn-sm btn-light border mr-1" py:for="t in msg.topics" py:content="t.name"/>
                                 </div>
                                 <div py:content="markdown(msg.content)" class="border m-1 pl-1"/>
                             </div>

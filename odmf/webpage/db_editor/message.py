@@ -45,7 +45,6 @@ class TopicPage:
                 topic.name = kwargs.get('name', topic.name)
                 topic.description = kwargs.get('description', topic.description)
 
-
         raise web.redirect(conf.url(self.url, topicid), error=error, success=msg)
 
     def index_get(self, topicid):
@@ -63,21 +62,22 @@ class TopicPage:
             messages = db.sql.select(Message).where(Message.topics.any(Topic.id == topicid)).order_by(Message.date.desc()).limit(50)
             return web.render(
                 'message/topic.html',
+                title=topic.name,
                 topic=topic,
                 can_edit_id=can_edit_id,
                 can_edit=self.can_edit(topic),
                 persons=session.scalars(db.sql.select(db.Person).order_by(db.Person.surname).filter(db.Person.active)),
-                me = me,
+                me=me,
                 subscribers=list(topic.subscribers),
                 topics=session.scalars(my_topics),
-                messages = session.scalars(messages).all()
+                messages=session.scalars(messages).all()
             ).render()
 
-    def list(self):
+    def index_list(self):
         with db.session_scope() as session:
             me = session.get(db.Person, web.user())
             topics = session.scalars(db.sql.select(Topic).order_by(Topic.id))
-            return web.render('message/topic-list.html', topics=topics, me=me).render()
+            return web.render('message/topic-list.html', title='topics', topics=topics, me=me).render()
 
     @web.method.post
     @web.expose
@@ -106,7 +106,7 @@ class TopicPage:
             if topicid:
                 return self.index_get(topicid)
             else:
-                return self.list()
+                return self.index_list()
         elif cherrypy.request.method == 'POST':
             return self.index_post(topicid, **kwargs)
         elif cherrypy.request.method == 'DELETE':
@@ -213,6 +213,7 @@ class MessagePage:
         sources_sql = db.sql.select(Message.source).order_by(Message.source).distinct()
         return web.render(
             'message/message-list.html',
+            title='messages',
             messages=messages,
             message_count=message_count,
             topics=session.scalars(topics_sql).all(),

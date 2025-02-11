@@ -9,6 +9,14 @@
     </py:block>
     <py:block name="sidebar">
         <!-- insert sidebar content -->
+        <div class="card m-1">
+            <h4 class="card-header"><i class="fas fa-inbox"/> Topics</h4>
+            <div class="list-group">
+                <a class="list-group-item list-group-item-action" href="${conf.url('message')}"><i class="fas fa-envelope"/> list messages...</a>
+                <a class="list-group-item list-group-item-action" href="${conf.url('topic', 'new')}"><i class="fas fa-plus-circle"/> create topic...</a>
+            </div>
+        </div>
+
     </py:block>
     <py:block name="content">
         <!-- insert main content -->

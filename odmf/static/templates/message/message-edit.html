@@ -6,23 +6,21 @@
         <script>
             //<![CDATA[
             $(() => {
-                $('#new-source').on('change', event => {
-                    let newsource = $('#new-source').val()
-                    if (newsource) {
-                        $('#source').prepend('<option value="' + newsource +
-                            '">' + newsource + '</option>').val(newsource)
-                    }
-                })
                 $('#topics').on('change', event => {
                     $.getJSON("${conf.url('message', 'subscribers')}", {topics:$('#topics').val()}, data =>{
                         let text = ''
-
                         for(p of data) {
                             text += '<a href="${conf.url("person")}/' + p.username + '/" class="d-inline mr-1 btn btn-light">' + p.label + '</a>'
                         }
                         $('#subscribers').html(text)
                     })
                 })
+                $('#subject').on('input', event => {
+                    let disabled = !($('#subject').val())
+                    $('#submit').prop('disabled', disabled)
+                })
+
+
             })
 
             //]]>
@@ -33,6 +31,15 @@
     </py:block>
     <py:block name="sidebar">
         <!-- insert sidebar content -->
+        <div class="card m-1">
+            <h4 class="card-header"><i class="fas fa-inbox"/> Topics</h4>
+            <div class="list-group">
+                <a class="list-group-item list-group-item-action" href="${conf.url('message')}"><i class="fas fa-envelope"/> list messages...</a>
+                <a class="list-group-item list-group-item-action" href="${conf.url('topic')}"><i class="fas fa-inbox"/> list topics...</a>
+                <a class="list-group-item list-group-item-action" href="${conf.url('topic', 'new')}"><i class="fas fa-plus-circle"/> create topic...</a>
+            </div>
+        </div>
+
     </py:block>
     <py:block name="content">
         <!-- insert main content -->
@@ -40,7 +47,7 @@
             <div class="container">
                 <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-1">
                     <div>
-                        <h2 class="display-4 mr-8 d-inline-block" >${message.subject}</h2>
+                        <h2 class="display-4 mr-8 d-inline-block" >${message.subject or 'new message'}</h2>
                     </div>
                     <div class="display-4 col-sm my-auto text-right">
                         <i class="fas fa-envelope mr-4"/>${message.id}
@@ -82,7 +89,8 @@
                             <textarea class="form-control filter col" placeholder="message subject" name="content" id="content">${message.content}</textarea>
                         </div>
 
-                        <button class="btn btn-success" type="submit"><i class=" fas fa-check"/> submit</button>
+                        <button id="submit" class="btn btn-success" type="submit" py:attrs="disabled(not message.subject)" name="send"><i class=" fas fa-paper-plane"/> send</button>
+
                     </form>
 
                 </div>

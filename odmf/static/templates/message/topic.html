@@ -9,27 +9,13 @@
     </py:block>
     <py:block name="sidebar">
         <!-- insert sidebar content -->
-        <div class="list-group mx-2" >
-            <a class="list-group-item list-group-item-action list-group-item-primary" href="../new">
-                <i class="fas fa-plus-circle mr-3" />
-                new topic
-            </a>
-            <a py:for="t in topics"
-               class="list-group-item list-group-item-action ${class_if(topic.id == t.id, 'active')} d-flex"
-               href="../${t.id}"
-            >
-                <i class="fas fa-inbox mr-3"/>
-                ${t}
-                <div py:if="me in t.subscribers"
-                     class="ml-auto text-success"
-                     data-toggle="tooltip"
-                     title="you have subscribed to this topic">
-                    <i class="fas fa-check fa-2x"/>
-                </div>
-
-            </a>
-        </div>
-        <div class="container-fluid">
+        <div class="card m-1">
+            <h4 class="card-header"><i class="fas fa-inbox"/> Topics</h4>
+            <div class="list-group">
+                <a class="list-group-item list-group-item-action" href="${conf.url('topic')}"><i class="fas fa-inbox"/> list topics...</a>
+                <a class="list-group-item list-group-item-action" href="${conf.url('message')}"><i class="fas fa-envelope"/> list messages...</a>
+                <a class="list-group-item list-group-item-action" href="${conf.url('message', 'new')}"><i class="fas fa-envelope-open"/> create message...</a>
+            </div>
         </div>
     </py:block>
     <py:block name="content">
@@ -71,8 +57,6 @@
                         <button py:if="me in topic.subscribers"
                                 class="btn btn-warning btn-subscription" name="subscribe" value="off" type="submit" data-toggle="tooltip" title="unsubscribe"><i class="fas fa-user-minus"/></button>
                     </form>
-                    <button class="btn btn-primary ml-2" id="btn-send" role="button" >
-                        <i class="fas fa-paper-plane"/> write message</button>
                     <a py:if="can_edit" href="#edit-div" class="btn btn-secondary dropdown-toggle ml-2" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="edit-div">
                         <i class="fas fa-edit"></i> edit topic
                     </a>
@@ -136,9 +120,10 @@
                 <div class="mt-4">
                     <h2 class="">Messages:</h2>
                     <div class="list-group">
-                        <div class="list-group-item d-flex row" py:for="msg in topic.messages">
+                        <div class="list-group-item d-flex row" py:for="msg in messages">
                             <div class="col" py:content="markdown(msg.date.strftime('%Y-%m-%d %H:%M') if msg.date else '')"/><div class="col" py:content="markdown(msg.subject)"/><div class="col" py:content="markdown(' **From:** ' + (msg.source or 'no source'))"/>
                         </div>
+                        <a href="${conf.url('message')}" py:if="len(messages) >= 50">Only the last 50 messages are shown, to see all messages click here</a>
                     </div>
                 </div>
             </div>
