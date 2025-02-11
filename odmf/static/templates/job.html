@@ -6,13 +6,6 @@
             //<![CDATA[
 
             $(() => {
-                $('#edit-new-type').on('change', event => {
-                    let newtype = $('#edit-new-type').val()
-                    if (newtype) {
-                        $('#edit-type').prepend('<option value="' + newtype +
-                            '">' + newtype + '</option>').val(newtype)
-                    }
-                })
                 $('#btn-delete').on('click', event => {
                     $.ajax({type: 'DELETE', url: '.'})
                         .fail(function(jqXHR, textStatus)  {
@@ -100,25 +93,13 @@
                             </div>
                             <div class="form-group row">
                                 <label for="edit-type" class="col-form-label col-sm-4">type</label>
-                                <select  id="edit-type" name="type" class="col-sm-6 form-control" py:attrs="prop(readonly=not can_edit)">
+                                <select  id="edit-type" name="type" class="col-sm form-control select2-tags" py:attrs="prop(readonly=not can_edit)">
                                     <option py:for="t in jobtypes"
                                             py:attrs="markoption(t[0]==job.type)"
                                             value="${t[0]}"
                                             py:content="t[0]">
                                     </option>
                                 </select>
-                                <div class="col-sm-2">
-                                    <div class="dropdown">
-                                        <button class="btn btn-secondary dropdown-toggle" type="button"
-                                                data-toggle="dropdown" aria-expanded="false"><i class="fas fa-plus-circle" /></button>
-                                        <div class="dropdown-menu">
-                                            <div class="dropdown-item" data-toggle="tooltip" title="Add a new type name">
-                                                <input class="form-control" placeholder="new type" id="edit-new-type" />
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
 
                             <div class="form-group row">
