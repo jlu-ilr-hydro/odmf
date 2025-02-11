@@ -49,7 +49,7 @@ class Topic(Base):
     _owner: orm.Mapped[str] = orm.mapped_column(sql.ForeignKey('person.username'))
     owner: orm.Mapped["Person"] = orm.relationship()
     subscribers: orm.Mapped[List[Person]] = orm.relationship(secondary=subscription_table, back_populates='topics')
-    messages: orm.Mapped[List['Message']] = orm.relationship(secondary=publishs_table, back_populates='topics', order_by='desc(Message.date)')
+    # messages: orm.Mapped[List['Message']] = orm.relationship(secondary=publishs_table, back_populates='topics', order_by='desc(Message.date)')
 
     def __repr__(self):
         return f"topic:{self.id}"
@@ -76,7 +76,7 @@ class Message(Base):
     __tablename__ = 'message'
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True, autoincrement=True)
     date: orm.Mapped[Optional[datetime]]
-    topics: orm.Mapped[List['Topic']] = orm.relationship(secondary=publishs_table, back_populates='messages')
+    topics: orm.Mapped[List['Topic']] = orm.relationship(secondary=publishs_table)
     subject: orm.Mapped[str]
     content: orm.Mapped[str]
     source: orm.Mapped[Optional[str]]
@@ -102,14 +102,15 @@ class Message(Base):
         Sends the message to all email addresses subscribed to the topics. Resolves cross-posting.
         If date is not set, send will set the date to now
         """
+        content = self.content
         if with_footer:
-            self.content += '\n' + self.footer()
+            content += '\n' + self.footer()
         self.date = self.date or datetime.now()
         receivers = self.to()
         with Mailer(conf.mailer_config) as mailer:
             mailer.send(
                 subject=self.subject,
-                body=self.content,
+                body=content,
                 receivers=[r.email for r in receivers]
             )
         return receivers
