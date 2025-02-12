@@ -49,12 +49,14 @@ class JobPage:
                 job.repeat = web.conv(int, kwargs.get('repeat'))
                 job.type = kwargs.get('type')
 
-                if topics := web.to_list(kwargs.get('topics[]')):
-                    msgwhen = web.to_list(kwargs.get('msgdates[]'))
-                    job.mailer = {
-                        'topics': topics,
-                        'when': [web.conv(int, s, s) for s in msgwhen]
-                    }
+                topics = web.to_list(kwargs.get('topics[]'))
+                msgwhen = web.to_list(kwargs.get('msgdates[]'))
+
+                job.mailer = {
+                    'topics': topics or None,
+                    'when': [web.conv(int, s, s) for s in msgwhen] or None
+                }
+
                 redirect = conf.url('job', jobid)
                 if kwargs['save'] == 'own':
                     p_user = session.get(db.Person, web.user())
@@ -71,14 +73,11 @@ class JobPage:
                 else:
                     msg = f'{job} saved'
 
-                if logsites:=kwargs.get('sites[]'):
-                    if type(logsites) == str: logsites = [logsites]
-                    if not job.log:
-                        job.log = dict()
-                    job.log |= {'sites': [web.conv(int, sid) for sid in logsites]}
-                    job.log['message'] = kwargs.get('logmsg')
-                elif job.log and 'sites' in job.log:
-                    job.log = None
+                logsites = web.to_list(kwargs.get('sites[]'))
+                job.log = {
+                    'sites': [web.conv(int, sid) for sid in logsites] or None,
+                    'message' : kwargs.get('logmsg')
+                }
 
 
         raise web.redirect(redirect, error=error, success=msg)
