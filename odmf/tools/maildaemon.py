@@ -10,6 +10,7 @@ import logging
 
 from odmf.db import session_scope, Job, sql
 from odmf.db.message import Message
+from odmf.db.timeseries import DatasetAlarm
 
 logger = logging.getLogger(__name__)
 
@@ -57,13 +58,36 @@ class MailDaemon(Timer):
                     # remove when entry
                     msg.send()
 
+    def handle_alarms(self):
+        """
+        Check all active dataset alarms and sent messages if necessary
+        """
+        with session_scope() as session:
+            # Get all active jobs with a mailer that has a when-list
+            alarms: typing.List[DatasetAlarm] = session.scalars(
+                sql.select(DatasetAlarm).where(DatasetAlarm.active)
+            )
+            for alarm in alarms:
+                date = datetime.now() - timedelta(days=alarm.message_repeat_time)
+                if msg_text := alarm.check() and not self.messages(session, date, alarm.msg_source()):
+                    msg = Message(
+                        subject='ODMF:' + alarm.title,
+                        topics=[alarm.topic],
+                        content=msg_text,
+                        source=alarm.msg_source()
+                    )
+                    session.add(msg)
+                    msg.send()
+
     def run(self):
         """
         Repeats the calls to handle_jobs until the timer expires.
         :return:
         """
         while not self.finished.wait(self.interval):
+            logger.info('MailDaemon: Check jobs & alarms')
             self.handle_jobs()
+            #self.handle_alarms()
 
 
 

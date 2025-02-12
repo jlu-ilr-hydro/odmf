@@ -1,14 +1,17 @@
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
-from datetime import datetime
+from datetime import datetime, timedelta
 import typing
 import numpy as np
 import pandas as pd
-
+from dataclasses import dataclass
 from .base import Base, newid
 from .dataset import Dataset
 
 from logging import getLogger
+
+from .message import Topic
+
 logger = getLogger(__name__)
 
 
@@ -294,3 +297,80 @@ class Timeseries(Dataset):
         values *= self.calibration_slope
         values += self.calibration_offset
         return values
+
+
+
+class DatasetAlarm(Base):
+    """
+    A dataset alarm is triggered if the aggregate values of a datasets are above or below a threshold.
+
+    Allowed aggregation funcions: count, mean, max, min, std, sum  (see https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.agg.html)
+
+    Examples:
+    Check if dataset 1 receives at least 5 values in the last hour, repeat this message daily:
+
+        DatasetAlarm(dsid=1, aggregation_time=1/24, aggregation_function='count', threshold_below=5, message_repeat_time=1, topic='ds:1')
+
+    Check for frost in dataset 2 hourly, repeat daily
+
+        DatasetAlarm(dsid=2, aggregation_time=1/24, aggregation_function='min', threshold_below=0, message_repeat_time=1, topic='ds:2')
+
+    Check for overheat (mean over 30 degC in 3 hours) in dataset 2, repeat weekly
+
+        DatasetAlarm(dsid=2, aggregation_time=3/24, aggregation_function='mean', threshold_above=30, message_repeat_time=7, topic='ds:2')
+
+    Parameters:
+    - dsid: id of timeseries
+    - dataset: the dataset
+    - active: Flag to activate alarm
+    - aggregation_time: time span of aggregation in days
+    - aggregation_function: aggregation function, one of count, mean, max, min, std, sum
+    - threshold_below: raise alarm if aggregated value is below this threshold
+    - threshold_above: raise alarm if aggregated value is above this threshold
+    - message_repeat_time: number of days between messages
+    - topic: topic of alarm
+    - use_now: Flag if the aggregetion time ends at time of the calling or at the end of the dataset (default=True)
+
+    """
+    __tablename__ = 'datasetalarm'
+    dsid: orm.Mapped[int] = sql.Column(sql.ForeignKey('dataset.id'), primary_key=True)
+    dataset: orm.Mapped[Dataset] = orm.relationship('Dataset')
+    title: orm.Mapped[typing.Optional[str]]
+    active: orm.Mapped[bool] = sql.Column(sql.Boolean, default=True)
+    aggregation_time: orm.Mapped[float] = sql.Column(sql.Float, default=1.0)
+    aggregation_function: orm.Mapped[str] = sql.Column(sql.String, default='count')
+    threshold_below: orm.Mapped[typing.Optional[float]]
+    threshold_above: orm.Mapped[typing.Optional[float]]
+    _topic: orm.Mapped[int] = sql.Column(sql.Integer, sql.ForeignKey('topic.id'))
+    topic: orm.Mapped[Topic] = orm.relationship('Topic')
+    message_repeat_time: orm.Mapped[float] = sql.Column(sql.Float, default=1.0)
+    use_now: orm.Mapped[bool] = sql.Column(sql.Boolean, default=True)
+
+    def msg_source(self):
+        return f'ds:{self.dsid}'
+
+    def check(self) -> typing.Optional[str]:
+        """
+        Check if the conditions aggregation_time days before endtime (default=now) until endtime are above or below
+        the thresholds. Uses the aggregation_function
+        :return:
+        """
+        if not self.active:
+            return None
+        if self.use_now:
+            now = datetime.now()
+        else:
+            now = self.dataset.end
+        start = now - timedelta(days=self.aggregation_time)
+        value = float(self.dataset.asseries(start, now).agg(self.aggregation_function))
+        msg = f'{self.aggregation_function}(ds:{self.dsid} last {self.aggregation_time:0.3g} days)'
+        if value < self.threshold_below:
+            return msg + f'< {self.threshold_below} {self.dataset.valuetype.unit}'
+        elif value > self.threshold_above:
+            return msg + f'> {self.threshold_above} {self.dataset.valuetype.unit}'
+        else:
+            return None
+
+
+
+
