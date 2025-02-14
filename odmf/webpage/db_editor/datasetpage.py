@@ -113,7 +113,9 @@ class DatasetPage:
             quality=session.query(db.Quality).order_by(db.Quality.id),
             datasources=session.query(db.Datasource),
             projects=session.query(db.Project),
-            same_time_ds=self.parallel_datasets(session, active)
+            same_time_ds=self.parallel_datasets(session, active),
+            alarms=session.query(db.timeseries.DatasetAlarm).filter_by(dsid=active.id),
+            topics=session.query(db.message.Topic).order_by(db.message.Topic.name),
         ).render()
 
     @staticmethod

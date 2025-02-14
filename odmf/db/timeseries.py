@@ -333,9 +333,9 @@ class DatasetAlarm(Base):
 
     """
     __tablename__ = 'datasetalarm'
-    dsid: orm.Mapped[int] = sql.Column(sql.ForeignKey('dataset.id'), primary_key=True)
+    id: orm.Mapped[int] = sql.Column(sql.Integer, primary_key=True)
+    dsid: orm.Mapped[int] = sql.Column(sql.ForeignKey('dataset.id'))
     dataset: orm.Mapped[Dataset] = orm.relationship('Dataset')
-    title: orm.Mapped[typing.Optional[str]]
     active: orm.Mapped[bool] = sql.Column(sql.Boolean, default=True)
     aggregation_time: orm.Mapped[float] = sql.Column(sql.Float, default=1.0)
     aggregation_function: orm.Mapped[str] = sql.Column(sql.String, default='count')
@@ -348,6 +348,20 @@ class DatasetAlarm(Base):
 
     def msg_source(self):
         return f'ds:{self.dsid}'
+
+    def to_string(self, value=None):
+        agg_time = timedelta(days=self.aggregation_time)
+        msg = f'{self.aggregation_function}(ds:{self.dsid} last {agg_time}h)'
+        if value is not None:
+            msg += f' = {value:0.4g} {self.dataset.valuetype.unit}'
+        if self.threshold_below is not None:
+            msg += f'< {self.threshold_below} {self.dataset.valuetype.unit}'
+        if self.threshold_above is not None:
+            msg += f'> {self.threshold_above} {self.dataset.valuetype.unit}'
+        return msg + ' ==> ' + str(self.topic)
+
+    def __str__(self):
+        return self.to_string()
 
     def check(self) -> typing.Optional[str]:
         """
@@ -364,13 +378,12 @@ class DatasetAlarm(Base):
         start = now - timedelta(days=self.aggregation_time)
         value = float(self.dataset.asseries(start, now).agg(self.aggregation_function))
         msg = f'{self.aggregation_function}(ds:{self.dsid} last {self.aggregation_time:0.3g} days)'
-        if value < self.threshold_below:
+
+        if value is None:
+            return None
+        elif self.threshold_below is not None and value < self.threshold_below:
             return msg + f'< {self.threshold_below} {self.dataset.valuetype.unit}'
-        elif value > self.threshold_above:
+        elif self.threshold_above is not None and value > self.threshold_above:
             return msg + f'> {self.threshold_above} {self.dataset.valuetype.unit}'
         else:
             return None
-
-
-
-

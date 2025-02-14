@@ -69,7 +69,7 @@ class MailDaemon(Timer):
             )
             for alarm in alarms:
                 date = datetime.now() - timedelta(days=alarm.message_repeat_time)
-                if msg_text := alarm.check() and not self.messages(session, date, alarm.msg_source()):
+                if (msg_text := alarm.check()) and not self.messages(session, date, alarm.msg_source()):
                     msg = Message(
                         subject='ODMF:' + alarm.title,
                         topics=[alarm.topic],
@@ -87,7 +87,7 @@ class MailDaemon(Timer):
         while not self.finished.wait(self.interval):
             logger.info('MailDaemon: Check jobs & alarms')
             self.handle_jobs()
-            #self.handle_alarms()
+            self.handle_alarms()
 
 
 
