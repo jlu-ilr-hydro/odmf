@@ -176,15 +176,15 @@ def context(**kwargs):
             for name, func in vars(module).items()
             if name[0] != '_'
         }
-
+    standards = context_from_module(render_tools) | context_from_module(conversion)
+    status = dict(
+        error=cherrypy.session.pop('error'), info=cherrypy.session.pop('info'), success=cherrypy.session.pop('success'),
+        conf=conf,
+        nav_items=get_nav_entries()
+    )
     return (
-            context_from_module(render_tools) |
-            context_from_module(conversion) |
-            dict(
-                error=cherrypy.session.pop('error'), info=cherrypy.session.pop('info'), success=cherrypy.session.pop('success'),
-                conf=conf,
-                nav_items=get_nav_entries()
-            ) |
+            standards |
+            status |
             kwargs
     )
 

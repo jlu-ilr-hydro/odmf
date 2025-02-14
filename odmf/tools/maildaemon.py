@@ -71,7 +71,7 @@ class MailDaemon(Timer):
                 date = datetime.now() - timedelta(days=alarm.message_repeat_time)
                 if (msg_text := alarm.check()) and not self.messages(session, date, alarm.msg_source()):
                     msg = Message(
-                        subject='ODMF:' + alarm.title,
+                        subject='ODMF:' + str(alarm),
                         topics=[alarm.topic],
                         content=msg_text,
                         source=alarm.msg_source()

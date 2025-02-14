@@ -387,3 +387,18 @@ class DatasetAlarm(Base):
             return msg + f'> {self.threshold_above} {self.dataset.valuetype.unit}'
         else:
             return None
+
+    def __jdict__(self):
+        return dict(
+            id=self.id,
+            dataset=self.dsid,
+            active=self.active,
+            aggregation_time=str(pd.Timedelta(days=self.aggregation_time)),
+            aggregation_function=self.aggregation_function,
+            threshold_below=self.threshold_below,
+            threshold_above=self.threshold_above,
+            message_repeat_time=self.message_repeat_time,
+            use_now=self.use_now,
+            topic=self.topic.id,
+            label=str(self)
+        )

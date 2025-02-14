@@ -15,6 +15,7 @@ from ...tools.calibration import Calibration, CalibrationSource
 from ...config import conf
 from pytz import common_timezones
 import cherrypy
+import pandas as pd
 
 
 def get_ds(session, datasetid):
@@ -43,7 +44,7 @@ class DatasetPage:
         Returns the query page (datasetlist.html). Site logic is handled with ajax
         """
         if datasetid is None:
-            return web.render('datasetlist.html', error=error, success=message).render()
+            return web.render('datasetlist.html').render()
         else:
             with db.session_scope() as session:
                 active = get_ds(session, datasetid)
@@ -90,18 +91,18 @@ class DatasetPage:
         Expects a valid dataset id, 'new' or 'last'. With new, a new dataset
         is created, if 'last' the last chosen dataset is taken   
         """
-        web.cherrypy.session['dataset'] = id  # @UndefinedVariable
+        if error:
+            web.session.error = error
+        if message:
+            web.session.success = message
 
         def access(level: Level=Level.guest):
             return has_access(active, level)
-
         # Render the resulting page
         return web.render(
             'dataset-edit.html',
             # activedataset is the current dataset (id or new)
             ds_act=active, n=active.size(), access=access,
-            # Render error messages
-            error=error, success=message,
             # All available timezones
             timezones=common_timezones + ['Fixed/60'],
             # The title of the page
@@ -126,6 +127,55 @@ class DatasetPage:
                 db.Dataset.start <= active.end, db.Dataset.end >= active.start).filter(db.Dataset.id != active.id)
         else:
             return []
+
+    @expose_for(Level.editor)
+    def alarm(self, datasetid, **kwargs):
+        """
+        Adds or changes DatasetAlarm objects to send messages when a condition is met.
+        """
+        from ...db.timeseries import DatasetAlarm
+        success = ''
+        with db.session_scope() as session:
+            ds = session.get(db.Dataset, datasetid)
+            if not ds:
+                error = f'Dataset {datasetid} not found'
+                raise web.redirect(conf.url('dataset'), error=error)
+            if cherrypy.request.method == 'GET':
+                alarms = session.scalars(db.sql.select(db.timeseries.DatasetAlarm).filter_by(dsid=ds.id)).all()
+                web.mime.json.set()
+                return web.as_json(alarms).encode('utf-8')
+            elif cherrypy.request.method == 'POST':
+                alarm = session.get(DatasetAlarm, kwargs.get('id'))
+                if not alarm:
+                    alarm = DatasetAlarm(dataset=ds)
+                    session.add(alarm)
+                    session.flush()
+                    success = 'New alarm: '
+                else:
+                    success = 'Alarm changed: '
+
+                alarm.active = web.conv(bool, kwargs.get('active'))
+                alarm.aggregation_function = web.conv(str, kwargs.get('aggregation_function'))
+                try:
+                    alarm.aggregation_time = pd.to_timedelta(kwargs.get('aggregation_time')).total_seconds() / 86400
+                except (ValueError, AttributeError):
+                    raise web.redirect(conf.url('dataset', datasetid, '#alarms'), error=str(kwargs.get('aggregation_time')) + ' is no timespan value')
+                if kwargs.get('threshold_value'):
+                    if kwargs.get('threshold_type') == 'above':
+                        alarm.threshold_above = web.conv(float, kwargs.get('threshold_value'))
+                    else:
+                        alarm.threshold_below = web.conv(float, kwargs.get('threshold_value'))
+
+                topic = session.get(db.message.Topic, kwargs.get('topic'))
+                if topic:
+                    alarm.topic = topic
+                session.flush()
+                if any(v is None for v in [alarm.aggregation_function, alarm.aggregation_time, alarm.topic, alarm.active, alarm.dataset]):
+                    raise web.redirect(conf.url('dataset', datasetid, '#alarms'), error='Alarm is missing values')
+                success += str(alarm)
+        raise web.redirect(conf.url('dataset', datasetid, '#alarms'), success=success)
+
+
 
 
     @expose_for(Level.editor)

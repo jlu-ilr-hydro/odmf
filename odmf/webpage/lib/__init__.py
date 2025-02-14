@@ -80,3 +80,17 @@ def show_in_nav_for(level=0, icon=None):
         f.exposed = True
         return f
     return decorate
+
+class _Session:
+
+    def __getattr__(self, name):
+        return cherrypy.session.get(name)
+    def __setattr__(self, name, value):
+        if value not in [None, '', [], {}]:
+            cherrypy.session[name] = value
+        elif name in cherrypy.session:
+            del cherrypy.session[name]
+
+
+
+session = _Session()

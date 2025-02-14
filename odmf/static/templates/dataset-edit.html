@@ -913,86 +913,92 @@
 
                 </div>
                 <div id="alarms" class="tab-pane" role="tabpanel" py:if="access(Level.supervisor)">
-                    <h3>Alarms</h3>
-                    <div class="mb-22">Alarms can be used to sent messages automatically to topics on recent events concerning this dataset</div>
-                    <div class="list-group" >
-                        <div class="list-group-item ${class_if(not alarm.active,'disabled')} d-flex" py:for="alarm in alarms">
-                            <div class="fas fa-bell mr-2 mt-1"/>
-                            ${markdown(str(alarm))}
-                            <a href="#alarm-edit" data-toggle="collapse" class="btn btn-sm btn-secondary ml-auto">
-                                <i class="fas fa-edit"/>
-                            </a>
-                        </div>
-                        <div class="list-group-item d-flex">
-                            <div class="fas fa-bell mr-2 mt-1"/><p>add alarm...</p>
-                            <a href="#alarm-edit" data-toggle="collapse" class="btn btn-sm btn-secondary ml-auto">
-                                <i class="fas fa-plus"/>
-                            </a>
-                        </div>
-                    </div>
+                    <div class="container">
+                        <h3>Alarms</h3>
+                        <div class="mb-22">Alarms can be used to sent messages automatically to topics on recent events concerning this dataset</div>
+                        <div class="list-group" >
+                            <div class="list-group-item list-group-item-active ${class_if(not alarm.active,'text-muted')} d-flex alarm-edit-btn" py:for="alarm in alarms" data-alarm-id="${alarm.id}">
+                                <div class="fas ${class_if(alarm.active, 'fa-bell', 'fa-bell-slash')} mr-2 mt-1"/>
+                                ${markdown(str(alarm))}
+                                <button class="btn btn-sm btn-secondary ml-auto"
 
-                    <div class="card mt-2 collapse" id="alarm-edit">
-                        <div class="card-header">
-                            <i class="fas fa-bell mr-2"/> <span id="alarm-header"> New alarm...</span>
+                                >
+                                    <i class="fas fa-edit"/>
+                                </button>
+                            </div>
+                            <div class="list-group-item list-group-item-active list-group-item-success d-flex alarm-edit-btn">
+                                <div class="fas fa-plus mr-2 mt-1"/><p>add alarm...</p>
+                                <button class="btn btn-sm btn-secondary ml-auto ">
+                                    <i class="fas fa-plus"/>
+                                </button>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <form action="alarm" method="POST">
-                                <input type="hidden" name="id" value=""/>
-                                <div class="custom-control custom-switch">
-                                    <input type="checkbox" class="custom-control-input" id="alarm-active" name="active"/>
-                                    <label class="custom-control-label" for="alarm-active">Activate alarm</label>
-                                </div>
-                                <div class="form-group">
-                                    <label for="alarm-aggregation">Aggregation</label>
-                                    <div class="input-group" id="alarm-aggregation">
-                                        <select class="form-control" id="alarm-aggregation_function" name="aggregation_function">
-                                            <option>count</option>
-                                            <option>mean</option>
-                                            <option>min</option>
-                                            <option>max</option>
-                                            <option>std</option>
-                                            <option>sum</option>
-                                        </select>
+
+                        <div class="card mt-2 collapse" id="alarm-edit">
+                            <div class="card-header">
+                                <i class="fas fa-bell mr-2"/> <span id="alarm-header"> New alarm...</span>
+                            </div>
+                            <div class="card-body">
+                                <form action="alarm" method="POST">
+                                    <input type="hidden" id="alarm-id" name="id" value="" class="form-control disabled"/>
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input" id="alarm-active" name="active"/>
+                                        <label class="custom-control-label" for="alarm-active">Activate alarm</label>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="alarm-aggregation">Aggregation</label>
+                                        <div class="input-group" id="alarm-aggregation">
+                                            <select class="form-control" id="alarm-aggregation_function" name="aggregation_function">
+                                                <option>count</option>
+                                                <option>mean</option>
+                                                <option>min</option>
+                                                <option>max</option>
+                                                <option>std</option>
+                                                <option>sum</option>
+                                            </select>
                                             <span class="input-group-text">for</span>
-                                        <select id="alarm-aggregation_time" name="aggregation_time" class="form-control">
-                                            <option>10min</option>
-                                            <option>30min</option>
-                                            <option>1h</option>
-                                            <option>3h</option>
-                                            <option>6h</option>
-                                            <option>12h</option>
-                                            <option>1d</option>
-                                            <option>3d</option>
-                                            <option>7d</option>
-                                            <option>30d</option>
-                                        </select>
+                                            <select id="alarm-aggregation_time" name="aggregation_time" class="form-control">
+                                                <option value="0 days 00:10:00">10min</option>
+                                                <option value="0 days 00:30:00">30min</option>
+                                                <option value="0 days 01:00:00">1h</option>
+                                                <option value="0 days 03:00:00">3h</option>
+                                                <option value="0 days 06:00:00">6h</option>
+                                                <option value="0 days 12:00:00">12h</option>
+                                                <option value="1 days 00:00:00">1d</option>
+                                                <option value="3 days 00:00:00">3d</option>
+                                                <option value="7 days 00:00:00">7d</option>
+                                                <option value="30 days 00:00:00">30d</option>
+                                            </select>
 
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="alarm-threshold">Condition</label>
-                                    <div class="input-group" id="alarm-threshold">
-                                        <select class="form-control" name="threshold_type">
-                                            <option>above</option>
-                                            <option>below</option>
+                                    <div class="form-group">
+                                        <label for="alarm-threshold">Condition</label>
+                                        <div class="input-group" id="alarm-threshold">
+                                            <select class="form-control" name="threshold_type">
+                                                <option>above</option>
+                                                <option>below</option>
+                                            </select>
+                                            <input type="number" name="threshold_value" class="form-control" />
+                                            <div class="input-group-append"><span class="input-group-text">${ds_act.valuetype.unit}</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="alarm-topic">Send to topic:</label>
+                                        <select class="form-control" name="topic" id="alarm-topic">
+                                            <option py:for="topic in topics" value="${topic.id}"
+                                                    py:content="topic.name"/>
                                         </select>
-                                        <input type="number" name="threshold" class="form-control" />
-                                        <div class="input-group-append"><span class="input-group-text">${ds_act.valuetype.unit}</span></div>
                                     </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="alarm-topic">Send to topic:</label>
-                                    <select class="form-control select2" name="topic" id="alarm-topic">
-                                        <option py:for="topic in topics" value="topic.id"
-                                                py:content="topic.name"/>
-                                    </select>
-                                </div>
-                            </form>
+                                    <div class="form-group">
+                                        <button class="btn btn-primary" type="submit"><i class="fas fa-check"/> save</button>
+                                    </div>
+                                </form>
 
+                            </div>
                         </div>
+
                     </div>
-
-
                 </div>
             </div>
 
