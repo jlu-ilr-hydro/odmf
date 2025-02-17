@@ -1,3 +1,3 @@
-# !fa-thermometer Instrument
+# !fa-thermometer-half Instrument
 
 ... to be written ...
