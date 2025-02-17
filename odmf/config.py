@@ -48,11 +48,11 @@ class Configuration:
     upload_max_size = 25000000
     server_port = 8080
     google_maps_api_key = ''
-    # woftester_receiver_mail = ['philipp.kraft@umwelt.uni-giessen.de']
-    # woftester_sender_mail = 'woftester@umwelt.uni-giessen.de'
-    # cuahsi_wsdl_endpoint = 'http://fb09-pasig.umwelt.uni-giessen.de/wof/index.php/cuahsi_1_1.asmx?WSDL'
     mailer_config = None
+    mailer_daemon_frequency = 300
     root_url = ''
+    hostname = 'http://localhost'
+    sandbox = False
     datafiles = './datafiles'
     preferences = './preferences'
     description = 'A server for data-management for quantitative field research'

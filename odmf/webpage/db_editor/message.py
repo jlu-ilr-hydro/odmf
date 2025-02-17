@@ -150,7 +150,6 @@ class MessagePage:
                     topics=topics,
                     sources=sources,
                     message=msg,
-
                 ).render()
 
             else:
@@ -210,13 +209,17 @@ class MessagePage:
         messages = messages.order_by(Message.date.desc()).limit(limit).offset(offset)
 
         topics_sql = db.sql.select(Topic).order_by(Topic.id)
+        my_topics = topics_sql.where(Topic.subscribers.any(db.Person.username == web.user()))
+        topics_sql = topics_sql.where(~Topic.subscribers.any(db.Person.username == web.user()))
+
         sources_sql = db.sql.select(Message.source).order_by(Message.source).distinct()
         return web.render(
             'message/message-list.html',
             title='messages',
             messages=messages,
             message_count=message_count,
-            topics=session.scalars(topics_sql).all(),
+            other_topics=session.scalars(topics_sql).all(),
+            my_topics=session.scalars(my_topics).all(),
             sources=session.scalars(sources_sql).all(),
             topics_selected=topics,
             sources_selected=sources,
@@ -224,7 +227,6 @@ class MessagePage:
             page=page,
             limit=limit,
             pages=pages
-
         ).render()
 
     @cherrypy.expose

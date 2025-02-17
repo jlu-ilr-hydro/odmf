@@ -31,6 +31,7 @@
                         <i class="fas fa-inbox mr-4"/>${topic.id}
                     </div>
                 </div>
+                <div class="alert alert-warning">The messenger is a new feature - bugs are quite likely</div>
                 <div py:content="markdown('by user:' + topic.owner.username)"/>
                 <div py:content="markdown(topic.description)"/>
                 <div py:if="topic.id == 'new'" class="card">

@@ -123,8 +123,8 @@ class Help:
         for p in path.parent.iterdir():
             if p.is_dir():
                 directories.append(p.name)
-            elif p.name != 'index.md':
-                files.append(p.name.strip('.md'))
+            elif p.name != 'index.md' and p.name.endswith('.md'):
+                files.append(p.name[:-3])
 
 
         return web.render(

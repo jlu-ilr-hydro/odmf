@@ -24,7 +24,12 @@
                     <div class="form-group">
                         <label for="topics" >Topics:</label>
                         <select class="select2 form-control filter" name="topics[]" multiple="multiple" id="topics">
-                            <option py:for="t in topics" value="${t.id}" py:attrs="markoption(t.id in topics_selected)" >${t.name}</option>
+                            <optgroup label="Your subscribed topics">
+                                <option py:for="t in my_topics" value="${t.id}" py:attrs="markoption(t.id in topics_selected)" >${t.name}</option>
+                            </optgroup>
+                            <optgroup label="Other topics">
+                                <option py:for="t in other_topics" value="${t.id}" py:attrs="markoption(t.id in topics_selected)" >${t.name}</option>
+                            </optgroup>
                         </select>
                     </div>
                     <div class="form-group">
@@ -68,12 +73,11 @@
                         <i class="fas fa-envelope mr-4"/>
                     </div>
                 </div>
+                <div class="alert alert-warning">The messenger is a new feature - bugs are quite likely</div>
                 <div class="container">
-
                     <div class="accordion" id="msg-accordion">
                         <div class="card" py:for="msg in messages">
                             <div class="card-header" id="msg-${msg.id}" data-target="#msg${msg.id}-content"  data-toggle="collapse">
-
                                     <div class="row d-flex">
                                         <div class="col-md" py:content="markdown(msg.date.strftime('%Y-%m-%d %H:%M') if msg.date else '')"/>
                                         <div class="col-md" py:content="markdown(msg.subject)"/>
