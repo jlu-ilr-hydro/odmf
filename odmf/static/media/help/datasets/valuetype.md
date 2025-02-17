@@ -1,0 +1,3 @@
+# !fa-ruler Value Type
+
+... to be written ...
