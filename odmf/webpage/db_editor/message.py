@@ -157,7 +157,7 @@ class MessagePage:
 
     def index_post(self, msgid, **kwargs):
         with db.session_scope() as session:
-            msg = session.get(Message, msgid)
+            msg = session.get(Message, web.conv(int, msgid))
             if not msg:
                 msg = Message(source='user:' + web.user())
                 session.add(msg)

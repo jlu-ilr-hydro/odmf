@@ -41,7 +41,7 @@ class MailDaemon(Timer):
         """
         with session_scope() as session:
             # Get all active jobs with a mailer that has a when-list
-            stmt = sql.select(Job).where(sql.not_(Job.done)).where(sql.not_(Job.mailer['when'] != sql.JSON.NULL))
+            stmt = sql.select(Job).where(sql.not_(Job.done)).where(Job.mailer.isnot(None))
             jobs: typing.List[Job] = session.scalars(stmt)
 
             for job in jobs:

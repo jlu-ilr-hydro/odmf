@@ -129,7 +129,8 @@ class JobPage:
             sites = set()
             for j in session.query(db.Job):
                 persons.update((j.responsible, j.author))
-                sites.update((j.log or {}).get('sites', []))
+                if j.log and j.log.get('sites'):
+                    sites.update(j.log.get('sites') )
             persons -= {None}
             sites = session.query(db.Site).filter(db.Site.id.in_(sites)).order_by(db.Site.id)
             return web.render(
@@ -193,7 +194,7 @@ class JobPage:
                 types = types.split(',')
                 jobs = jobs.filter(db.sql.or_(db.Job.type.in_(types)))
             if onlyactive == 'true':
-                jobs = jobs.filter(~db.Job.done)
+                jobs = jobs.filter(db.sql.not_(db.Job.done))
             if fulltext:
                 jobs = jobs.filter(
                     db.sql.or_(

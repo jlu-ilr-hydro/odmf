@@ -175,7 +175,7 @@
                                     <label for="edit-msgtopics" class="col-form-label col-sm-4">topics:</label>
                                     <select name="topics[]" id="edit-msgtopics" class="col-sm-8 form-control select2" multiple="multiple">
                                         <option py:for="topic in topics" value="${topic.id}"
-                                                py:attrs="markoption(job.mailer and job.mailer.get('topics) and topic.id in job.mailer.get('topics'))"
+                                                py:attrs="markoption(job.mailer and job.mailer.get('topics') and topic.id in job.mailer.get('topics'))"
                                                 title="${topic}">${topic.id}</option>
                                     </select>
                                 </div>
