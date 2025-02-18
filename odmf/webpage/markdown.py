@@ -109,7 +109,7 @@ class ODMFExtension(markdown.Extension):
         from ..config import conf
         def user2name(s):
             return '!fa-user ' + ' '.join(S.title() for S in s.group(3).split('.'))
-
+        md.inlinePatterns.register(PatternLink(md, r'(odmf):/(\S+)', r'/\3', r'!fa-link \3'), 'links', 155)
         md.inlinePatterns.register(PatternLink(md, r'(topic:)(\S+)', r'/topic/\3/', r'!fa-inbox \3'),'link topics', 110)
         md.inlinePatterns.register(PatternLink(md, r'(ds:)([0-9]+)', r'/dataset/\3/', r'!fa-clipboard \3'), 'link datasets', 100)
         md.inlinePatterns.register(PatternLink(md, r'(file:)(\S+)', r'/download/\3', r'!fa-file \3'), 'link files', 100)

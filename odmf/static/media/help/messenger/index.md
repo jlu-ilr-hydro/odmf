@@ -2,7 +2,7 @@
 
 The messenger system informs users of events. **Messages** are sent to topics and users can subscribe to **topics**. If a 
 message is sent, an email is sent to every user who subscribed to one of the topics of the message. The messages are
-also saved in the system for future reference [here](/message/). 
+also saved in the system for future reference here: odmf:/message/ . 
 
 ## !fa-inbox Topics and !fa-envelope Messages
 
@@ -10,7 +10,7 @@ A topic can be created by all "full" users, and users can subscribe to a topic o
 personal user page. After subscription, the user will receive all messages sent to that topic as an email. 
 All messages can be seen and filtered by topic and other means at the mail icon.
 
-While users can [send messages on their own](/message/new), other parts of the system can publish messages also.
+While users can send messages on their own (odmf:/message/new ), other parts of the system can publish messages also.
 
 ## !fa-tasks Jobs
 
