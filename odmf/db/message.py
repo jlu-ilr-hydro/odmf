@@ -67,6 +67,18 @@ def subscribers(topics: List[Topic])-> List[Person]:
     receivers = set(chain(*[t.subscribers for t in topics]))
     return sorted([r for r in receivers if r.active])
 
+def link2href(s: str) -> str:
+    """Return url from an ODMF-Markdown link, eg. `site:1` returns http://localhost/root_url/site/1"""
+    from ..webpage.markdown import MarkDown
+    import re
+    md = MarkDown()(s)
+    m = re.search('href="(.*?)"', md)
+    if m:
+        return m[1]
+    else:
+        return None
+
+
 
 class Message(Base):
     """
@@ -80,15 +92,19 @@ class Message(Base):
     subject: orm.Mapped[str]
     content: orm.Mapped[str]
     source: orm.Mapped[Optional[str]]
-
+    
     def footer(self):
         """Returns a footer for the message."""
-        url = conf.url()
+        from ..webpage.markdown import MarkDown
+        
+        url = conf.hostname + conf.url()
+        source = conf.hostname + link2href(self.source)
+
         topics = ', '.join(f'topic:{t.id}' for t in self.topics)
         text = ('\n---\n'
-                f'You receive this mail, because you are a user of the ODMF-Database {url}.\n'
-                f'You have subscribed to any of these topics: {topics}\n'
-                f'To change your subscriptions, go to your user page of the ODMF-Database {url}.\n'
+                f'This message is sent from ODMF: {source}\n'
+                f'to these topics: {topics}\n'
+                f'You can change your topics here: {url}user/\n'
         )
         return text
 
