@@ -159,12 +159,12 @@
                                 <div class="form-group row">
                                     <label for="edit-logsites" class="col-form-label col-sm-4">for each site:</label>
                                     <select name="sites[]" id="edit-logsites" class="col-sm-8 form-control select2" multiple="multiple">
-                                        <option py:for="site in sites" value="${site.id}" py:attrs="markoption(site.id in (job.log or {}).get('sites', []))" title="${site.name}">${site}</option>
+                                        <option py:for="site in sites" value="${site.id}" py:attrs="markoption(job.log and job.log.get('sites') and site.id in job.log['sites'])" title="${site.name}">${site}</option>
                                     </select>
                                 </div>
                                 <div class="form-group row">
                                     <label for="edit-logmsg" class="col-form-label col-sm-4">message:</label>
-                                    <input class="form-control col-sm-8" id="edit-logmsg" placeholder="${job.name}" name="logmsg" value="${(job.log or dict()).get('message')}"/>
+                                    <input class="form-control col-sm-8" id="edit-logmsg" placeholder="${job.name}" name="logmsg" value="${job.log and job.log.get('message')}"/>
                                 </div>
                                 </div>
                             <div class="card-header">
@@ -175,7 +175,7 @@
                                     <label for="edit-msgtopics" class="col-form-label col-sm-4">topics:</label>
                                     <select name="topics[]" id="edit-msgtopics" class="col-sm-8 form-control select2" multiple="multiple">
                                         <option py:for="topic in topics" value="${topic.id}"
-                                                py:attrs="markoption(topic.id in (job.mailer or {}).get('topics', []))"
+                                                py:attrs="markoption(job.mailer and job.mailer.get('topics) and topic.id in job.mailer.get('topics'))"
                                                 title="${topic}">${topic.id}</option>
                                     </select>
                                 </div>

@@ -28,7 +28,7 @@ class JobPage:
             with db. session_scope() as session:
                 job = session.get(db.Job, id)
                 if not job:
-                    job = db.Job(id=id, _author=web.user())
+                    job = db.Job(_author=web.user())
                     session.add(job)
                     session.flush()
                     jobid=job.id

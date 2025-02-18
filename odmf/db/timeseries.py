@@ -341,7 +341,7 @@ class DatasetAlarm(Base):
     aggregation_function: orm.Mapped[str] = sql.Column(sql.String, default='count')
     threshold_below: orm.Mapped[typing.Optional[float]]
     threshold_above: orm.Mapped[typing.Optional[float]]
-    _topic: orm.Mapped[int] = sql.Column(sql.Integer, sql.ForeignKey('topic.id'))
+    _topic: orm.Mapped[str] = sql.Column(sql.String, sql.ForeignKey('topic.id'))
     topic: orm.Mapped[Topic] = orm.relationship('Topic')
     message_repeat_time: orm.Mapped[float] = sql.Column(sql.Float, default=1.0)
     use_now: orm.Mapped[bool] = sql.Column(sql.Boolean, default=True)
