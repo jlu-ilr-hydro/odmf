@@ -200,13 +200,15 @@ def merge_series(
         return _merge_interpolation(index, series, interpolation_method, interpolation_limit)
 
 
-def export_dataframe(stream, data: pd.DataFrame, fileformat: str, index_label='time'):
+def export_dataframe(stream, data: pd.DataFrame, fileformat: str, index_label=None):
+    def nl(data):
+        return data.replace(to_replace=[r"\\t|\\n|\\r", "\t|\n|\r"], value=[" ", " "], regex=True)
     if fileformat == 'xlsx':
         data.to_excel(stream, engine='openpyxl', index=bool(index_label), index_label=index_label)
     elif fileformat == 'csv':
-        stream.write(data.to_csv(index=bool(index_label), index_label=index_label).encode('utf-8'))
+        stream.write(nl(data).to_csv(index=bool(index_label), index_label=index_label).encode('utf-8'))
     elif fileformat == 'tsv':
-        stream.write(data.to_csv(sep='\t', index=bool(index_label), index_label=index_label).encode('utf-8'))
+        stream.write(nl(data).replace('\n',' | ', regex=True).to_csv(sep='\t', index=bool(index_label), index_label=index_label).encode('utf-8'))
     elif fileformat == 'json':
         orient = 'columns' if index_label else 'records'
         stream.write(data.to_json(indent=2, orient=orient).encode('utf-8'))
@@ -231,7 +233,7 @@ def serve_dataframe(data: pd.DataFrame, name:str, index_label=None):
     from ..webpage import lib as web
     stream = BytesIO()
     fileformat = name.split('.')[-1]
-    export_dataframe(stream, data, fileformat, index_label or 'time')
+    export_dataframe(stream, data, fileformat, index_label)
     stream.seek(0)
     mime = web.mime.get(fileformat, web.mime.binary)
     return serve_fileobj(
