@@ -80,7 +80,7 @@ class TopicPage:
             return web.render('message/topic-list.html', title='topics', topics=topics, me=me).render()
 
     @web.method.post
-    @web.expose
+    @expose_for(Level.logger)
     def toggle_sub(self, topicid, subscribe:str):
         """
         Toggles the subscription for the current user
@@ -99,7 +99,7 @@ class TopicPage:
                 msg = 'You unfollow topic:' + topic.name
         raise web.redirect(conf.url(self.url, topicid), success=msg)
 
-    @cherrypy.expose
+    @expose_for(Level.logger)
     def index(self, topicid=None, **kwargs):
 
         if cherrypy.request.method == 'GET':
@@ -121,7 +121,7 @@ class TopicPage:
             raise web.redirect(conf.url('topic'), success=success)
 
 @cherrypy.popargs('msgid')
-@web.show_in_nav_for(0, 'envelope')
+@web.show_in_nav_for(Level.logger, 'envelope')
 class MessagePage:
 
     def index_get(self, msgid, **kwargs):
@@ -229,7 +229,7 @@ class MessagePage:
             pages=pages
         ).render()
 
-    @cherrypy.expose
+    @expose_for(Level.logger)
     def index(self, msgid=None, **kwargs):
         """
 
@@ -242,7 +242,7 @@ class MessagePage:
         elif cherrypy.request.method == 'POST':
             return self.index_post(msgid, **kwargs)
 
-    @cherrypy.expose
+    @expose_for(Level.logger)
     def subscribers(self, **kwargs):
         """
         Returns a JSON list of users, who subscribed to topics
