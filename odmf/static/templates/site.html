@@ -45,16 +45,16 @@
                         <a id="map-tab" class="nav-link border-top" data-toggle="pill" href='#map'><i class="fas fa-map mr-2"/> map</a>
                         <a id="edit-tab" class="nav-link border-top" data-toggle="pill" href="#edit"><i class="fas fa-edit mr-2"/>edit</a>
                         <a id="message-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#messagelist">
-                            <span><i class="fas fa-tags mr-2"/>messages</span><span class="badge badge-primary badge-pill" py:content="actualsite.logs.count()"/>
+                            <span><i class="fas fa-tags mr-2"/>messages</span><span class="badge bg-primary rounded-pill" py:content="actualsite.logs.count()"/>
                         </a>
                         <a id="pic-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#pictures">
-                            <span><i class="fas fa-camera mr-2"/>pictures</span><span class="badge badge-primary badge-pill" py:content="actualsite.images.count()"/>
+                            <span><i class="fas fa-camera mr-2"/>pictures</span><span class="badge bg-primary rounded-pill" py:content="actualsite.images.count()"/>
                         </a>
                         <a id="instrument-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#instrumentlist">
-                            <span><i class="fas fa-thermometer-half mr-2"/>instruments</span><span class="badge badge-primary badge-pill" py:content="actualsite.instruments.count()"/>
+                            <span><i class="fas fa-thermometer-half mr-2"/>instruments</span><span class="badge bg-primary rounded-pill" py:content="actualsite.instruments.count()"/>
                         </a>
                         <a id="dataset-tab" class="nav-link flexbox border-top" data-toggle="pill" href="#datasetlist">
-                            <span><i class="fas fa-clipboard mr-2"/>datasets</span><span class="badge badge-primary badge-pill" py:content="actualsite.datasets.count()"/>
+                            <span><i class="fas fa-clipboard mr-2"/>datasets</span><span class="badge bg-primary rounded-pill" py:content="actualsite.datasets.count()"/>
                         </a>
                     </div>
                 </div>
@@ -246,7 +246,7 @@
                         <a class="list-group-item list-group-item-action list-group-item-success" py:if="is_member('logger')" href="${conf.root_url}/log/new?siteid=${actualsite.id}" ><i class="fas fa-plus"></i> New message...</a>
                         <a href="${conf.root_url}/log/${log.id}" class="list-group-item list-group-item-action" py:for="log in actualsite.logs">
                             <div class="mb-3">
-                                <span class="badge badge-secondary log-type-badge" >${log.type}</span>
+                                <span class="badge bg-secondary log-type-badge" >${log.type}</span>
                                 <span class="alert alert-info">${formatdatetime(log.time)}</span>
                                 <span class="alert alert-secondary" >${log.user}<sup>log:${log.id}</sup></span>
                             </div>

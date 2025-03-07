@@ -43,7 +43,7 @@
                             <button class="btn btn-link btn-block text-left" type="button"
                                     data-toggle="collapse" data-target="#infolist"
                                     aria-expanded="true" aria-controls="infolist">
-                                <span class="badge badge-primary" >i</span> Info
+                                <span class="badge bg-primary" >i</span> Info
                             </button>
                         </h2>
                     </div>
@@ -59,7 +59,7 @@
                                 <a py:with="labconffile=filename.glob_up('*.labimport')" href="${labconffile.href}" class="list-group-item list-group-item-action active">Config file: ${labconffile}</a>
                                 <div py:for="info_name, info_msg in info_dict.items()" class="list-group-item d-flex justify-content-between align-items-center">
                                     <div>${info_name}</div>
-                                    <div class="badge badge-primary">${info_msg}</div>
+                                    <div class="badge bg-primary">${info_msg}</div>
                                 </div>
                             </div>
                         </div>
@@ -72,7 +72,7 @@
                             <button class="btn btn-link btn-block text-left" type="button"
                                     data-toggle="collapse" data-target="#config"
                                     aria-expanded="true" aria-controls="config">
-                                <span class="badge badge-secondary" >c</span> Config
+                                <span class="badge bg-secondary" >c</span> Config
                             </button>
                         </h2>
                     </div>
@@ -87,7 +87,7 @@
                             <button class="btn btn-link btn-block text-left" type="button"
                                     data-toggle="collapse" data-target="#errorlist"
                                     aria-expanded="false">
-                                Errors <span class="badge badge-danger" py:content="len(errors)"/>
+                                Errors <span class="badge bg-danger" py:content="len(errors)"/>
                             </button>
                         </h2>
                     </div>
@@ -111,7 +111,7 @@
                             <button class="btn btn-link btn-block text-left" type="button"
                                     data-toggle="collapse" data-target="#datasetlist"
                                     aria-expanded="false" aria-controls="datasetlist">
-                                Datasets <span class="badge badge-success" py:content="len(datasets)"/>
+                                Datasets <span class="badge bg-success" py:content="len(datasets)"/>
                             </button>
                         </h2>
                     </div>
@@ -120,7 +120,7 @@
                             <div class="list-group">
                                 <div class="list-group-item d-flex justify-content-between align-items-center" py:for="ds, rcount in datasets">
                                     <div>${ds}</div>
-                                    <div class="badge badge-primary">${rcount}</div>
+                                    <div class="badge bg-primary">${rcount}</div>
                                 </div>
                             </div>
                         </div>

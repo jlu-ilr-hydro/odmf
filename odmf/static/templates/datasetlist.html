@@ -57,7 +57,7 @@
 
                         function(data){
                             var items = [];
-                            var templ = '<a href="${conf.root_url}/dataset/ID" class="list-group-item list-group-item-action">LABEL <span class="badge badge-warning float-right">ACL</span></a>';
+                            var templ = '<a href="${conf.root_url}/dataset/ID" class="list-group-item list-group-item-action">LABEL <span class="badge bg-warning float-right">ACL</span></a>';
                             $.each( data.datasets, function( index, item ) {
                                 items.push(templ.replace(/ID/, item.id).replace(/LABEL/, item.label).replace(/ACL/, item.accesslevel));
                             });

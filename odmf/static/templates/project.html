@@ -58,7 +58,7 @@
                    href="${project.id}"
                    class="list-group-item list-group-item-action ${'' if Level.my(project.id)>Level.guest else 'disabled'}">
                     <span class="h3" py:content="project.name"/>
-                    <span class="col-sm-1 badge badge-info float-right" py:content="Level.my(project.id).name"/>
+                    <span class="col-sm-1 badge bg-info float-right" py:content="Level.my(project.id).name"/>
                 </a>
             </div>
             </py:if><py:else>
@@ -91,7 +91,7 @@
                                             <i class="fas fa-link mr-2"/>${actproject.name} homepage
                                         </a>
                                         by
-                                        <span class="badge badge-primary ml-2" py:content="actproject.organization"/>
+                                        <span class="badge bg-primary ml-2" py:content="actproject.organization"/>
 
                                     </div>
                                     <div class="container" py:with="p=actproject.person_responsible" py:content="markdown('Spokes person: user:' + (p.username if p else 'N/A'))"/>

@@ -21,7 +21,7 @@
                 let keywords = $('#keywords').val();
                 $.getJSON(odmf_ref('/log/json'),{until:until, days:days, siteid:siteid, keywords:keywords}, function(data) {
                     html='';
-                    templ='<a href="#href#" class="list-group-item list-group-item-action w-100"><span class="badge badge-secondary type-badge" >#type#</span><span class="alert alert-info">#date#</span>' +
+                    templ='<a href="#href#" class="list-group-item list-group-item-action w-100"><span class="badge bg-secondary type-badge" >#type#</span><span class="alert alert-info">#date#</span>' +
                         '<span class="alert alert-secondary" >#userid#@##siteid#</span>' +
                         '<span>#comment#</span>' +
                         '</a>';
@@ -136,7 +136,7 @@
                                             <img src="${conf.root_url}/media/mapicons/${actuallog.site.icon or 'unknown.png'}"/>
                                                 ${actuallog.site}
                                         </a>
-                                        <div class="badge badge-light mr-auto" py:content="actuallog.type" />
+                                        <div class="badge bg-light mr-auto" py:content="actuallog.type" />
 
                                     </div>
 

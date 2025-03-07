@@ -179,7 +179,7 @@
             <div class="list-group">
                 <a py:for="project, level in active_person.projects()" href="${f'{conf.root_url}/project/{project.id}'}" class="list-group-item list-group-item-action">
                     <span py:content="project.name"/>
-                    <span class="badge badge-warning float-right" py:content="level.name"/>
+                    <span class="badge bg-warning float-right" py:content="level.name"/>
                 </a>
             </div>
             <a href="#add-member" py:if="potential_projects"
