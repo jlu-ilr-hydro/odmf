@@ -10,10 +10,10 @@
     <py:block name="sidebar">
         <div class="container">
             <div class="list-group">
-                <a class="list-group-item list-group-item-action list-group-item-primary" data-toggle="tooltip" title="back to file" href="${filename.href}">
+                <a class="list-group-item list-group-item-action list-group-item-primary" data-bs-toggle="tooltip" title="back to file" href="${filename.href}">
                     <i class="fas fa-file"/> back to file
                 </a>
-                <a class="list-group-item list-group-item-action" data-toggle="tooltip" title="reload file" href="javascript:window.location.reload(true)">
+                <a class="list-group-item list-group-item-action" data-bs-toggle="tooltip" title="reload file" href="javascript:window.location.reload(true)">
                     <i class="fas fa-redo"/> reload
                 </a>
             </div>
@@ -36,21 +36,21 @@
             <div class="alert alert-success" py:if="not errors">
                 No errors in the file deteted.
             </div>
-            <div class="container">
-                <div class="card">
-                    <div class="card-header">
+            <div class="accordion" id="accordion">
+                <div class="accordion-item">
+                    <div class="accordion-header">
                         <h2>
-                            <button class="btn btn-link btn-block text-left" type="button"
-                                    data-toggle="collapse" data-target="#infolist"
+                            <button class="accordion-button" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#infolist"
                                     aria-expanded="true" aria-controls="infolist">
-                                <span class="badge bg-primary" >i</span> Info
+                                <span class="badge bg-primary me-2" >i</span> Info
                             </button>
                         </h2>
                     </div>
-                    <div id="infolist" class="collapse show">
-                        <div class="card-body">
+                    <div id="infolist" class="accordion-collapse collapse show" data-bs-parent="#accordion">
+                        <div class="accordion-body">
                             <div class="list-group">
-                                <div class="list-group-item text-info">
+                                <div class="list-group-item list-group-item-info">
                                     ${markdown('''This lab file is understood using a `.labimport` file, that describes the content (see config).
                                     To learn more about lab-import see here: help:import/lab , for general help about importing data into
                                     the database help:import .''')}
@@ -66,33 +66,33 @@
                     </div>
 
                 </div>
-                <div class="card" >
-                    <div class="card-header" >
+                <div class="accordion-item" >
+                    <div class="accordion-header" >
                         <h2>
-                            <button class="btn btn-link btn-block text-left" type="button"
-                                    data-toggle="collapse" data-target="#config"
+                            <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#config"
                                     aria-expanded="true" aria-controls="config">
-                                <span class="badge bg-secondary" >c</span> Config
+                                <span class="badge bg-secondary me-2" >c</span> Config
                             </button>
                         </h2>
                     </div>
-                    <div id="config" class="collapse">
-                        <div class="card-body" py:content="literal(dict_to_html(labconf))"/>
+                    <div id="config" class="accordion-collapse collapse"  data-bs-parent="#accordion">
+                        <div class="accordion-body" py:content="literal(dict_to_html(labconf))"/>
                     </div>
 
                 </div>
-                <div class="card">
-                    <div class="card-header">
+                <div class="accordion-item">
+                    <div class="accordion-header">
                         <h2>
-                            <button class="btn btn-link btn-block text-left" type="button"
-                                    data-toggle="collapse" data-target="#errorlist"
+                            <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#errorlist"
                                     aria-expanded="false">
-                                Errors <span class="badge bg-danger" py:content="len(errors)"/>
+                                Errors <span class="badge bg-danger ms-2" py:content="len(errors)"/>
                             </button>
                         </h2>
                     </div>
-                    <div id="errorlist" class="collapse">
-                        <div class="card-body">
+                    <div id="errorlist" class="accordion-collapse collapse" data-bs-parent="#accordion">
+                        <div class="accordion-body">
                             <div py:for="err in errors" class="row" >
                                 <div class="col">Sample: ${err['sample']}</div>
                                 <div class="col alert alert-danger">${err['error']}</div>
@@ -105,18 +105,18 @@
                         </div>
                     </div>
                 </div>
-                <div class="card mt-2">
-                    <div class="card-header">
+                <div class="accordion-item">
+                    <div class="accordion-header">
                         <h2>
-                            <button class="btn btn-link btn-block text-left" type="button"
-                                    data-toggle="collapse" data-target="#datasetlist"
+                            <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#datasetlist"
                                     aria-expanded="false" aria-controls="datasetlist">
-                                Datasets <span class="badge bg-success" py:content="len(datasets)"/>
+                                Datasets <span class="badge bg-success ms-2" py:content="len(datasets)"/>
                             </button>
                         </h2>
                     </div>
-                    <div id="datasetlist" class="collapse">
-                        <div class="card-body">
+                    <div id="datasetlist" class="accordion-collapse collapse" data-bs-parent="#accordion">
+                        <div class="accordion-body">
                             <div class="list-group">
                                 <div class="list-group-item d-flex justify-content-between align-items-center" py:for="ds, rcount in datasets">
                                     <div>${ds}</div>
@@ -126,20 +126,19 @@
                         </div>
                     </div>
                 </div>
-                <div class="card mt-2">
-                    <div class="card-header">
-                        <form action="" method="post" class="form-inline" >
-                            <button class="btn btn-success mr-5"
-                                    type="submit" name="commit" value="commit" py:attrs="prop(disabled=not cancommit)">
-                                <i class="fas fa-file-import"/> import
-                            </button>
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" value="err_ok" name="errors_ok" py:attrs="prop(checked=not bool(errors))" id="check_err_ok" />
-                                <label class="form-check-label" for="check_err_ok">Submit with errors</label>
-                            </div>
-                        </form>
+            </div>
+            <div class="container border rounded my-2 py-2">
+                <form action="" method="post" class="form-inline" >
+                    <button class="btn btn-success"
+                            type="submit" name="commit" value="commit" py:attrs="prop(disabled=not cancommit)">
+                        <i class="fas fa-file-import me-2"/> import
+                    </button>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" value="err_ok" name="errors_ok" py:attrs="prop(checked=not bool(errors))" id="check_err_ok" />
+                        <label class="form-check-label" for="check_err_ok">Submit with errors</label>
                     </div>
-                </div>
+                </form>
+
             </div>
         </div>
 

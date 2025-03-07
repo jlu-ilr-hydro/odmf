@@ -24,7 +24,7 @@ def dict_to_html(key='', value=None):
     def header(key):
         if key:
             return f'''
-                <a class="list-group-action" data-toggle="collapse" href="#c-{key}-list">{key}<i class="fas fa-caret-down ml-2"></i></a>
+                <a class="list-group-action" data-bs-toggle="collapse" href="#c-{key}-list">{key}<i class="fas fa-caret-down ms-2"></i></a>
                 <div class="collapse list-group" id="c-{key}-list">
             '''
         else:

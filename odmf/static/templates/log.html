@@ -102,7 +102,7 @@
             <div class="mb-2 w-100">
                 <button id="toggle-paste" type="button"
                         class="btn btn-secondary shadow w-100"
-                        data-toggle="modal" data-target="#pastediv"
+                        data-bs-toggle="modal" data-bs-target="#pastediv"
                 >
                     <i class="fas fa-paste" /> paste log from clipboard
                 </button>
@@ -126,7 +126,7 @@
                                         py:content="actuallog.user"/>)
                                 </h2>
                                 <div class="display-4 col-sm my-auto text-right">
-                                    <i class="fas fa-tag mr-4"/>${actuallog.id}
+                                    <i class="fas fa-tag me-4"/>${actuallog.id}
                                 </div>
                             </div>
                             <div class="row">
@@ -136,7 +136,7 @@
                                             <img src="${conf.root_url}/media/mapicons/${actuallog.site.icon or 'unknown.png'}"/>
                                                 ${actuallog.site}
                                         </a>
-                                        <div class="badge bg-light mr-auto" py:content="actuallog.type" />
+                                        <div class="badge bg-light me-auto" py:content="actuallog.type" />
 
                                     </div>
 
@@ -144,8 +144,8 @@
                                     <div class="container" py:content="markdown(actuallog.message)"/>
                                 </div>
                                 <div class="col-lg-2 mb-2">
-                                    <a class="btn btn-secondary dropdown-toggle" href="#edit" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="edit">
-                                        <i class="fas fa-edit mr-2"/> edit
+                                    <a class="btn btn-secondary dropdown-toggle" href="#edit" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="edit">
+                                        <i class="fas fa-edit me-2"/> edit
                                     </a>
                                 </div>
 
@@ -190,7 +190,7 @@
                             <div class="col-md-10">
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend">
-                                        <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">type:</button>
+                                        <button class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">type:</button>
 
                                         <div class="dropdown-menu">
                                             <a href="#" py:for="type in types" class="dropdown-item type-option" py:content="type" py:if="type"/>
@@ -207,7 +207,7 @@
 
                         </div>
                         <button py:if="is_member('logger')" type="submit" name="save" class="btn btn-success">
-                                <i class="fas fa-check mr-2"/>save
+                                <i class="fas fa-check me-2"/>save
                         </button>
                         <button class="btn btn-danger" id="log-remove" data-id="${actuallog.id}">
                             <i class="fas fa-trash-can" /> remove log
@@ -241,8 +241,8 @@
                         And with keywords (case sensitive) in comments
                         <input type="text" name="keywords" id="keywords" class="form-control get-logs"/>
 
-                        <button class="btn btn-secondary mt-1 get-logs"><i class="fas fa-tags mr-2"/>get logs</button>
-                        <button id="earlier" class="btn btn-secondary mt-1"><i class="fas fa-clock-rotate-left mr-2"/>earlier</button>
+                        <button class="btn btn-secondary mt-1 get-logs"><i class="fas fa-tags me-2"/>get logs</button>
+                        <button id="earlier" class="btn btn-secondary mt-1"><i class="fas fa-clock-rotate-left me-2"/>earlier</button>
                     </div>
 
                 </div>

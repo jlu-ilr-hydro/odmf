@@ -57,7 +57,7 @@
 
                         function(data){
                             var items = [];
-                            var templ = '<a href="${conf.root_url}/dataset/ID" class="list-group-item list-group-item-action">LABEL <span class="badge bg-warning float-right">ACL</span></a>';
+                            var templ = '<a href="${conf.root_url}/dataset/ID" class="list-group-item list-group-item-action">LABEL <span class="badge text-dark bg-warning float-right">ACL</span></a>';
                             $.each( data.datasets, function( index, item ) {
                                 items.push(templ.replace(/ID/, item.id).replace(/LABEL/, item.label).replace(/ACL/, item.accesslevel));
                             });
@@ -125,19 +125,19 @@
                     </button>
                 </div>
                 <input class="form-control" type="number" id="goto" tabindex="1" placeholder="dataset-id"
-                       title="Go directly to a dataset by entering the id" data-toggle="tooltip"/>
+                       title="Go directly to a dataset by entering the id" data-bs-toggle="tooltip"/>
             </div>
             <div class="">
                 <a href="${conf.root_url}/dataset/new#edit" class="btn btn-secondary w-100">
-                    <i class="fas fa-plus mr-1" />
+                    <i class="fas fa-plus me-1" />
                     new dataset
                 </a>
             </div>
             <hr/>
             <form id="filter" class="container" method="POST" action="to_excel">
                 <div class="mb-1 row border rounded">
-                    <h4 class="col-sm-10"><i class="fas fa-filter fa-sm mr-2" />Filter</h4>
-                    <a class="btn btn-secondary col-sm-2 border-circle text-light" onclick="clearFilter()" title="clear filter" data-toggle="tooltip">
+                    <h4 class="col-sm-10"><i class="fas fa-filter fa-sm me-2" />Filter</h4>
+                    <a class="btn btn-secondary col-sm-2 border-circle text-light" onclick="clearFilter()" title="clear filter" data-bs-toggle="tooltip">
                         <i class="fas fa-times" />
                     </a>
                 </div>
@@ -166,12 +166,12 @@
                 <div class="form-group mb-1 row">
                     <label for="vtselect" class="small m-0">Instrument / source</label>
                     <select id="instrumentselect" name="instrument" class="form-control select2 form-select filter" tabindex="6"
-                            title="Instument" data-toggle="tooltip"/>
+                            title="Instument" data-bs-toggle="tooltip"/>
                 </div>
                 <div class="form-group mb-1 row">
                     <label for="dateselect" class="small m-0">date</label>
                     <input id="dateselect" name="date" type="date" class="form-control form-select filter" value="" tabindex="7" placeholder="date..."
-                           title="Show only sites with a dataset for this date" data-toggle="tooltip"/>
+                           title="Show only sites with a dataset for this date" data-bs-toggle="tooltip"/>
                 </div>
                 <div class="form-group mt-4 row">
                     <label for="export-datasets" class="small m-0"><i class="fas fa-file-excel"/> Export dataset list as Excel file</label>

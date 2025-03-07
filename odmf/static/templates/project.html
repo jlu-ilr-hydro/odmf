@@ -15,11 +15,11 @@
         <!-- insert sidebar content -->
         <div class="container-fluid">
             <a class="btn btn-secondary w-100 mb-4" href="${conf.root_url}/project/">
-                <i class="fas fa-list mr-2"/>
+                <i class="fas fa-list me-2"/>
                 list
             </a>
             <a class="btn btn-secondary w-100 mb-4" href="${conf.root_url}/project/new" py:if="is_member(Level.admin)">
-                <i class="fas fa-plus mr-2"/>
+                <i class="fas fa-plus me-2"/>
                 new project
             </a>
             <div class="input-group mb-1">
@@ -29,7 +29,7 @@
                     </span>
 
                 </div>
-                <input class="form-control sidebar-list-filter" id="listSearch" type="text" placeholder="filter..." data-target="#projList"/>
+                <input class="form-control sidebar-list-filter" id="listSearch" type="text" placeholder="filter..." data-bs-target="#projList"/>
             </div>
             <div class="list-group" id="projList">
                 <a class="list-group-item list-group-item-action flexbox ${class_if(proj == actproject, 'active')}"
@@ -48,9 +48,9 @@
             <py:if test="(not actproject) or Level.my(actproject.id)==Level.guest">
             <div id="list-title-area"
                  class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4">
-                <h2 class="display-4 mr-8">Projects</h2>
+                <h2 class="display-4 me-8">Projects</h2>
                 <div class="display-4 col-sm my-auto text-right">
-                    <i class="fas fa-user-friends mr-4"/>
+                    <i class="fas fa-user-friends me-4"/>
                 </div>
             </div>
             <div class="list-group" id="project-list">
@@ -69,29 +69,29 @@
                             <div id="title-area"
                                  class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4">
                                 <div>
-                                    <h2 class="display-4 mr-8 d-inline-block" py:content="f'{actproject.name}'"/>
+                                    <h2 class="display-4 me-8 d-inline-block" py:content="f'{actproject.name}'"/>
                                     <div class="d-inline-block position-absolute top-0 end-0">
                                         <span class="badge bg-info text-bg-info" py:content="Level.my(actproject.id).name" />
                                     </div>
 
                                 </div>
                                 <div class="display-4 col-sm my-auto text-right">
-                                    <i class="fas fa-user-friends mr-4"/>${actproject.id}
+                                    <i class="fas fa-user-friends me-4"/>${actproject.id}
                                 </div>
                             </div>
                             <div>
                                 <div class="float-right" py:if="is_member(Level.admin, actproject.id)">
-                                    <a class="btn btn-secondary dropdown-toggle" href="#edit" data-toggle="collapse">
+                                    <a class="btn btn-secondary dropdown-toggle" href="#edit" data-bs-toggle="collapse">
                                         <i class="fas fa-edit"/>
                                     </a>
                                 </div>
                                 <div>
                                     <div class="container border-bottom">
                                         <a href="${actproject.sourcelink}">
-                                            <i class="fas fa-link mr-2"/>${actproject.name} homepage
+                                            <i class="fas fa-link me-2"/>${actproject.name} homepage
                                         </a>
                                         by
-                                        <span class="badge bg-primary ml-2" py:content="actproject.organization"/>
+                                        <span class="badge bg-primary ms-2" py:content="actproject.organization"/>
 
                                     </div>
                                     <div class="container" py:with="p=actproject.person_responsible" py:content="markdown('Spokes person: user:' + (p.username if p else 'N/A'))"/>
@@ -143,7 +143,7 @@
                         <div class="form-row mb-2">
 
                             <label for="comment">Description:</label>
-                            <a title="Get help for using links and formats" data-toggle="tooltip" data-placement="top" class="ml-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
+                            <a title="Get help for using links and formats" data-bs-toggle="tooltip" data-bs-placement="top" class="ms-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
                                 <i class="fas fa-question-circle"/>
                             </a>
 
@@ -152,7 +152,7 @@
                                       py:content="actproject.comment"/>
                         </div>
                         <button class="btn btn-success mb-2" type="submit" id="save">
-                            <i class="fas fa-check mr-2"/>
+                            <i class="fas fa-check me-2"/>
                             save changes
                         </button>
                     </form>
@@ -163,7 +163,7 @@
                         <li py:for="member, level in actproject.members(with_responsible=False)" class="form-row">
                             <div class="col-sm">
                                 <span class="badge rounded-pill bg-warning" py:content="Level(level).name" />
-                                <span py:content="member" class="ml-2 mr-4"/>
+                                <span py:content="member" class="ms-2 me-4"/>
 
                             </div>
 
@@ -173,7 +173,7 @@
                                         type="submit"
                                         class="btn btn-danger btn-sm col-sm-1 project-remove-member"
                                         name="member_name" value="${member.username}"
-                                        title="remove" data-toggle="tooltip"
+                                        title="remove" data-bs-toggle="tooltip"
                                 >
                                     <i class="fas fa-times"/>
                                 </button>
@@ -181,7 +181,7 @@
                             </form>
                         </li>
                     </ul>
-                    <a href="#add-member" py:if="is_member(Level.admin, actproject.id)" class="btn-sm btn-primary dropdown-toggle" data-toggle="collapse" aria-controls="add-member" aria-role="button"><i class="fas fa-plus"/> add member...</a>
+                    <a href="#add-member" py:if="is_member(Level.admin, actproject.id)" class="btn-sm btn-primary dropdown-toggle" data-bs-toggle="collapse" aria-controls="add-member" aria-role="button"><i class="fas fa-plus"/> add member...</a>
                     <div py:if="is_member(Level.admin, actproject.id)" class="collapse" id="add-member">
                         <form class="form-row border" method="post" action="add_member">
                             <select id="add_who" class="form-control col-sm-8 select2" name="member_name" >

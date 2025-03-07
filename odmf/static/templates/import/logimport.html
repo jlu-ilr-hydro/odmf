@@ -25,14 +25,14 @@
                 If no errors are present, you can commit the file.
             </div>
             <form action="" method="post" class="mb-4">
-                <button class="btn btn-success mr-2"
+                <button class="btn btn-success me-2"
                         type="submit" name="commit" value="commit" py:attrs="prop(disabled=not cancommit)">
                     <i class="fas fa-file-import"/>
                 </button> import
-                <a class="btn btn-warning mr-2" data-toggle="tooltip" title="back to folder" href="${filename.parent().href}">
+                <a class="btn btn-warning me-2" data-bs-toggle="tooltip" title="back to folder" href="${filename.parent().href}">
                     <i class="fas fa-folder"/>
                 </a> cancel
-                <a class="btn btn-outline-secondary" data-toggle="tooltip" title="reload file" href="javascript:window.location.reload(true)">
+                <a class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="reload file" href="javascript:window.location.reload(true)">
                     <i class="fas fa-redo"/>
                 </a> reload
 

@@ -8,7 +8,7 @@
         </script>
         <script>
             $(() =>{
-                $('[data-toggle="tooltip"]').tooltip()
+                $('[data-bs-toggle="tooltip"]').tooltip()
                 // Do not put anything map related here but in initMap in map.js
                 // The map is created async and takes a bit of time
             });
@@ -32,11 +32,11 @@
                 <span id="coordinates">Not in map</span>
             </div>
             <div class="container flexbox">
-                <div class="custom-control custom-switch col-sm" title="Use double click to create a new site" data-toggle="tooltip">
+                <div class="custom-control custom-switch col-sm" title="Use double click to create a new site" data-bs-toggle="tooltip">
                     <input type="checkbox" id="createsite" class="custom-control-input"/>
                     <label class="custom-control-label" for="createsite">new site</label>
                 </div>
-                <button title="Show all sites" data-toggle="tooltip" class="btn btn-outline-dark col-sm" id="zoom-home">
+                <button title="Show all sites" data-bs-toggle="tooltip" class="btn btn-outline-dark col-sm" id="zoom-home">
                     <i class="fas fa-home" />
                 </button>
             </div>
@@ -44,8 +44,8 @@
         </div>
         <div class="mt-3" id="filter-collapse">
             <a href="#filter" id="filter-toggle" class="btn btn-secondary flexbox h1 dropdown-toggle"
-               data-toggle="collapse">
-                <span><i class="fas fa-filter mr-2"/>Filter</span><span class="ml-auto badge rounded-pill bg-primary" id="site-count">0</span>
+               data-bs-toggle="collapse">
+                <span><i class="fas fa-filter me-2"/>Filter</span><span class="ms-auto badge rounded-pill bg-primary" id="site-count">0</span>
             </a>
             <div id="filter" class="collapse card card-body" >
                 <py:include href="site-filter.html"/>
