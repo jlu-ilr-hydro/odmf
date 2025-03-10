@@ -21,10 +21,12 @@
                 let keywords = $('#keywords').val();
                 $.getJSON(odmf_ref('/log/json'),{until:until, days:days, siteid:siteid, keywords:keywords}, function(data) {
                     html='';
-                    templ='<a href="#href#" class="list-group-item list-group-item-action w-100"><span class="badge bg-secondary type-badge" >#type#</span><span class="alert alert-info">#date#</span>' +
-                        '<span class="alert alert-secondary" >#userid#@##siteid#</span>' +
+                    templ='<a href="#href#" class="list-group-item list-group-item-action w-100"><div class="row">' +
+                        '<div class="col alert alert-secondary type-badge" >#type#</div>' +
+                        '<div class="col">#date#</div>' +
+                        '<div class="col">#userid#@##siteid#</div>' +
                         '<span>#comment#</span>' +
-                        '</a>';
+                        '</div></a>';
                     $.each(data,function(index,item) {
                         html += templ.replace(/#href#/,odmf_ref('/log/')+item.id)
                                 .replace(/#comment#/,item.message)

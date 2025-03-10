@@ -184,7 +184,7 @@
                     <h4>Current installation</h4>
                     <ul style="margin-top:0px;padding-top:0px;">
                         <li py:for="inst in actualinstrument.sites" >
-                            <div>
+                            <div class="flexbox">
                                 <a  href="${conf.root_url}/site/${inst.site.id}#instrumentlist"
                                     py:if="inst.active"
                                     py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
@@ -192,9 +192,9 @@
                                       py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
                                 <a href="javascript:removeinstrument(${inst.id},${inst.site.id})"
                                    py:if="is_member('editor') and inst.active"
-                                   class="btn btn-outline-danger btn-sm"
+                                   class="btn btn-danger btn-sm ms-auto"
                                    title="remove installation" data-bs-toggle="tooltip"
-                                ><i class="fas fa-minus"/></a>
+                                ><i class="fas fa-trash"/></a>
 
                             </div>
                             <div py:content="inst.comment"/>

@@ -245,10 +245,10 @@
                     <div class="list-group">
                         <a class="list-group-item list-group-item-action list-group-item-success" py:if="is_member('logger')" href="${conf.root_url}/log/new?siteid=${actualsite.id}" ><i class="fas fa-plus"></i> New message...</a>
                         <a href="${conf.root_url}/log/${log.id}" class="list-group-item list-group-item-action" py:for="log in actualsite.logs">
-                            <div class="mb-3">
-                                <span class="badge bg-secondary log-type-badge" >${log.type}</span>
-                                <span class="alert alert-info">${formatdatetime(log.time)}</span>
-                                <span class="alert alert-secondary" >${log.user}<sup>log:${log.id}</sup></span>
+                            <div class="mb-3 row">
+                                <div class="col alert alert-secondary log-type-badge" data-bs-toggle="tooltip" title="Type" >${log.type}</div>
+                                <div class="col" data-bs-toggle="tooltip" title="Date" >${formatdatetime(log.time)}</div>
+                                <div class="col" data-bs-toggle="tooltip" title="Author" >${log.user}<sup>log:${log.id}</sup></div>
                             </div>
                             <div>${markdown(log.message)}</div>
                         </a>
@@ -313,7 +313,7 @@
                         </form>
                         <ul class="mt-4 border">
                             <li py:for="inst in actualsite.instruments" >
-                                <div>
+                                <div class="flexbox">
                                     <a  href="${conf.root_url}/instrument/${inst.instrument.id}"
                                         py:if="inst.active"
                                         py:content="f'since {formatdate(inst.installdate)}: {inst.instrument}'" />
@@ -321,10 +321,10 @@
                                           py:content="f'until {formatdate(inst.removedate)}: {inst.instrument}'" />
                                     <button data-installation="${inst.id}" data-instrument="${inst.instrument.id}" data-site="${inst.site.id}"
                                             py:if="is_member('editor') and inst.active"
-                                            class="btn btn-outline-danger btn-sm installation-remove-button"
+                                            class="btn btn-danger btn-sm installation-remove-button ms-auto"
                                             title="remove installation" data-bs-toggle="tooltip"
                                     >
-                                        <i class="fas fa-minus"/>
+                                        <i class="fas fa-trash"/>
                                     </button>
 
                                 </div>
