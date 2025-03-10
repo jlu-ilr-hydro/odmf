@@ -1,8 +1,8 @@
 import datetime
 
 import pytest
-from . import  db, session, conf
-from .db_fixtures import site1_in_db, datasource1_in_db, log, job, project, person, installation, image
+from . import db, session, conf
+from .db_fixtures import site1_in_db, datasource1_in_db, log, job, job_repeat, project, person, installation, image
 
 
 class TestSite:
@@ -148,6 +148,53 @@ class TestJob:
 
     def test_due_time(self, job):
         assert job.due - datetime.timedelta(days=1) > datetime.datetime(2023, 3, 10)
+
+    def test_job_done(self, job, session, db):
+        """
+        Tests the make_done function of a normal job
+        """
+        job: db.Job
+        job.make_done(by=job._author)
+        session.commit()
+        job_1 = session.get(db.Job, 1)
+        assert job_1.done
+
+    def test_job_done_repeat(self, job_repeat, session, db):
+        """
+        Tests the make_done function of a job with repeat function
+        """
+        job_repeat.make_done(by=job_repeat._author)
+        session.commit()
+        job_1 = session.get(db.Job, 1)
+        assert job_1.done
+        job_2 = session.get(db.Job, 2)
+        assert not job_2.done
+        assert job_2.due == job_1.due + datetime.timedelta(days=3)
+
+    def test_job_done_log_no_msg(self, job, site1_in_db, session, db):
+        """
+        Tests the make_done function for a job with log on done behaviour
+        """
+
+        job.log = {'message': None, 'sites': [1]}
+        session.commit()
+        job.make_done(by=job._author)
+        log = session.scalars(db.sql.select(db.Log).where(db.Log.site == site1_in_db)).all()
+        assert len(log) == 1
+        assert log[0].type == job.type
+        assert log[0].message == job.description
+
+    def test_job_done_log_msg(self, job, site1_in_db, session, db):
+        """
+        Tests the make_done function for a job with log on done behaviour
+        """
+        job.log = {'message': 'Hallo Welt', 'sites': [1]}
+        session.commit()
+        job.make_done(by=job._author)
+        log = session.scalars(db.sql.select(db.Log).where(db.Log.site == site1_in_db)).all()
+        assert log[0].message == 'Hallo Welt'
+
+
 
 
 

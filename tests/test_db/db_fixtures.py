@@ -72,12 +72,26 @@ def job(db, session, person):
         db.Job(
             id=1, name='this is a name', description='this is a description',
             due=datetime.datetime(2023, 5, 20), author=person,
+            responsible=person, done=True, repeat=None,
+            link='/path/to/link', type='this is a type',
+            donedate=datetime.datetime(2023, 2,20)
+        ),
+        session) as job:
+        yield job
+
+@pytest.fixture()
+def job_repeat(db, session, person):
+    with temp_in_database(
+        db.Job(
+            id=1, name='this is a name', description='this is a description',
+            due=datetime.datetime(2023, 5, 20), author=person,
             responsible=person, done=True, repeat=3,
             link='/path/to/link', type='this is a type',
             donedate=datetime.datetime(2023, 2,20)
         ),
         session) as job:
         yield job
+
 
 
 @pytest.fixture()
