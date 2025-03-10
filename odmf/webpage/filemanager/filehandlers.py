@@ -128,7 +128,7 @@ class ConfFileHandler(TextFileHandler):
             source = source.replace('\r', '')
             value_sub = div(div('\\1', 'col') + div('= ', 'col') + div('\\2', 'col'), 'row')
             source = re.sub(r'(.*)\=(.*)', value_sub, source)
-            source = re.sub(r'^[#;](.*)', div('\\1', 'text-light bg-secondary small pl-2 font-italic'), source, flags=re.M)
+            source = re.sub(r'^[#;](.*)', div('\\1', 'text-light bg-secondary small ps-2 font-italic'), source, flags=re.M)
             source = re.sub(r'^\s*\[(.*)\]\s*$', r'<h3>[\1]</h3>', source, flags=re.M)
             return source
         except Exception:
@@ -247,7 +247,7 @@ class ZipFileHandler(BaseFileHandler):
         try:
             import zipfile
             z = zipfile.ZipFile(path.absolute)
-            li = ' '.join(f'<li class="list-group-item"><i class="fas fa-file mr-2"></i>{zi.filename}</li>' for zi in z.infolist())
+            li = ' '.join(f'<li class="list-group-item"><i class="fas fa-file me-2"></i>{zi.filename}</li>' for zi in z.infolist())
             header = '<h5>Content:</h5>'
             return header + '<ul class="list-group"> ' + li + '</ul>'
         except Exception as e:

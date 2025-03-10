@@ -592,7 +592,7 @@ class DatasetPage:
     def records(self, dataset, mindate, maxdate, minvalue, maxvalue,
                 threshold=None, limit=None, offset=None):
         """
-        Returns a html-table of filtered records
+        Returns a htms-table of filtered records
         TODO: This method should be replaced by records_json. 
         Needs change in dataset-edit.html to create DOM elements using
         jquery from the delivered JSON

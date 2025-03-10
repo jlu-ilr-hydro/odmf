@@ -21,7 +21,7 @@
             <a class="btn btn-secondary w-100 mb-1"
                href="${conf.root_url}/user/new"
                py:if="is_member('supervisor')">
-                <i class="fas fa-user-plus mr-3" />
+                <i class="fas fa-user-plus me-3" />
                 new user...
 
             </a>
@@ -138,7 +138,7 @@
                 </div>
                 <div class="form-group row">
                     <label for="comment">Description:</label>
-                    <a title="Get help for using links and formats" data-toggle="tooltip" data-placement="top" class="ml-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
+                    <a title="Get help for using links and formats" data-bs-toggle="tooltip" data-bs-placement="top" class="ms-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
                         <i class="fas fa-question-circle"/>
                     </a>
                     <textarea name="comment" id="comment"
@@ -152,7 +152,7 @@
                 <div class="form-group row">
                     <label for="edit-subscribers" class="col-form-label col-sm-4">
                         Topic subscriptions
-                        <a title="Get help for topics" data-toggle="tooltip" data-placement="top" class="ml-1 wiki-help" href="${conf.url('help', 'messenger')}">
+                        <a title="Get help for topics" data-bs-toggle="tooltip" data-bs-placement="top" class="ms-1 wiki-help" href="${conf.url('help', 'messenger')}">
                             <i class="fas fa-question-circle"/>
                         </a>
                     </label>
@@ -179,11 +179,11 @@
             <div class="list-group">
                 <a py:for="project, level in active_person.projects()" href="${f'{conf.root_url}/project/{project.id}'}" class="list-group-item list-group-item-action">
                     <span py:content="project.name"/>
-                    <span class="badge badge-warning float-right" py:content="level.name"/>
+                    <span class="badge bg-warning float-right" py:content="level.name"/>
                 </a>
             </div>
             <a href="#add-member" py:if="potential_projects"
-               class="btn-sm btn-primary dropdown-toggle" data-toggle="collapse"
+               class="btn-sm btn-primary dropdown-toggle" data-bs-toggle="collapse"
                aria-controls="add-member" aria-role="button">
                 <i class="fas fa-plus"/> add project ...
             </a>

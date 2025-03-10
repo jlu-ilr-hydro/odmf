@@ -8,7 +8,7 @@
     <py:block name="sidebar">
         <div class="container-fluid">
             <a class="btn btn-secondary w-100 mb-4" href="${conf.root_url}/valuetype/new" py:if="is_member('supervisor')">
-                <i class="fas fa-plus mr-2"/>
+                <i class="fas fa-plus me-2"/>
                 new valuetype
             </a>
             <div class="input-group mb-1">
@@ -18,7 +18,7 @@
                     </span>
 
                 </div>
-                <input class="form-control sidebar-list-filter" id="listSearch" type="text" placeholder="filter..." data-target="#vtList"/>
+                <input class="form-control sidebar-list-filter" id="listSearch" type="text" placeholder="filter..." data-bs-target="#vtList"/>
             </div>
             <div class="list-group" id="vtList">
                 <a class="list-group-item list-group-item-action flexbox ${class_if(v ==actualvaluetype, 'active')}"
@@ -41,7 +41,7 @@
                                  class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4">
                                 <h2 class="display-4" py:content="f'{vt_act.name} [{vt_act.unit}]'"/>
                                 <div class="display-4 col-sm my-auto text-right">
-                                    <i class="fas fa-ruler mr-4"/>${vt_act.id}
+                                    <i class="fas fa-ruler me-4"/>${vt_act.id}
                                 </div>
                             </div>
                             <div class="row">
@@ -52,8 +52,8 @@
                                     <div class="container" py:content="markdown(vt_act.comment)"/>
                                 </div>
                                 <div class="col-lg-2 mb-2">
-                                    <a class="btn btn-secondary dropdown-toggle" href="#edit" data-toggle="collapse">
-                                        <i class="fas fa-edit mr-2"/> edit
+                                    <a class="btn btn-secondary dropdown-toggle" href="#edit" data-bs-toggle="collapse">
+                                        <i class="fas fa-edit me-2"/> edit
                                     </a>
                                 </div>
 
@@ -102,7 +102,7 @@
                         <div class="form-row mb-2">
 
                             <label for="comment">Comment:</label>
-                            <a title="Get help for using links and formats" data-toggle="tooltip" data-placement="top" class="ml-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
+                            <a title="Get help for using links and formats" data-bs-toggle="tooltip" data-bs-placement="top" class="ms-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
                                 <i class="fas fa-question-circle"/>
                             </a>
                             <textarea id="comment" name="comment" class="form-control"
@@ -110,7 +110,7 @@
                                       py:content="actualvaluetype.comment"/>
                         </div>
                         <button class="btn btn-success mb-2" type="submit" id="save" name="save">
-                            <i class="fas fa-check mr-2"/>
+                            <i class="fas fa-check me-2"/>
                             save changes
                         </button>
                     </form>
