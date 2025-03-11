@@ -206,11 +206,13 @@
                                         <button class="btn btn-sm btn-light dropdown-toggle"
                                                 type="button" data-bs-toggle="dropdown"
                                                 aria-expanded="false" aria-haspopup="true"
-                                                py:if="modes[curdir]>=Mode.write">
-
+                                                py:if="modes[curdir]>=Mode.read">
                                         </button>
 
                                         <div class="dropdown-menu" >
+                                            <a class="dropdown-item" href="${d.href}?serve=True">
+                                                <i class="fas fa-file-zipper"></i> download as zip
+                                            </a>
                                             <a class="dropdown-item copy-button" data-name="${d.basename}" data-action="rename"
                                                py:if="modes[d]>=Mode.admin">
                                                 <i class="fas fa-edit" /> rename
