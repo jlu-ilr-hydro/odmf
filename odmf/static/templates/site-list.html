@@ -30,7 +30,7 @@
 
                         $.each(data.sites, (index, site) => {
                             html += '<a class="list-group-item list-group-item-action w-100" href="${conf.root_url}/site/' + site.id + '">' +
-                                '<i class="fas fa-map-marked mr-4"></i><span class="mr-4">#' + site.id + '</span>' + site.name + '</a>'
+                                '<i class="fas fa-map-marked me-4"></i><span class="me-4">#' + site.id + '</span>' + site.name + '</a>'
                         })
                         $('#site-list').html(html)
                         $('#site-list-count').html(data.count)
@@ -54,6 +54,11 @@
                 $('.page').on('click', pageChange)
                 $('#limit').on('change', applyFilter)
                 $('#page').on('change', applyFilter)
+                $('.export').on('click', event=>{
+                  let filter = new SiteFilter();
+                  filter.format=$(event.currentTarget).data('format')
+                  window.location = 'export?' + $.param(filter)
+                })
 
             })
             // ]]>
@@ -65,7 +70,7 @@
     <py:block name="sidebar">
         <div class="mt-3 h3 alert alert-secondary">
 
-            <i class="fas fa-filter mr-2"/>Filter
+            <i class="fas fa-filter me-2"/>Filter
 
         </div>
         <div id="filter" class="card card-body" >
@@ -78,16 +83,14 @@
 
         <div class="container">
             <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4" >
-                <h2 class="display-4 mr-8" >
+                <h2 class="display-4 me-8" >
                     Sites
                 </h2>
                 <div class="">
-                    <span class="badge badge-primary badge-pill" id="site-list-count">0</span>
+                    <span class="badge bg-primary rounded-pill" id="site-list-count">0</span>
                     sites
                 </div>
             </div>
-            <ul class="nav bg-light p-1 border mb-1 w-100 mt-4">
-            </ul>
             <div class="container collapse" id="import">
                 <h1>Import sites</h1>
                 <div class="alert alert-danger ">
@@ -126,11 +129,11 @@
 
                     </div>
                 </li>
-                <li class="nav-item ml-1">
-                    <a href="./new#edit" class="btn btn-success"><i class="fas fa-plus mr-2"/>new site</a>
+                <li class="nav-item ms-1">
+                    <a href="./new#edit" class="btn btn-success"><i class="fas fa-plus me-2"/>new site</a>
                 </li>
-                <li class="nav-item ml-1">
-                    <a href="#import" id="toggleimport"  data-toggle="collapse"
+                <li class="nav-item ms-1">
+                    <a href="#import" id="toggleimport"  data-bs-toggle="collapse"
                        class="btn btn-secondary dropdown-toggle"
                        aria-haspopup="true" aria-expanded="false"
                     >
@@ -138,25 +141,25 @@
                     </a>
 
                 </li>
-                <li class="nav-item dropdown ml-1">
-                    <button id="toggleexport"  data-toggle="dropdown"
+                <li class="nav-item dropdown ms-1">
+                    <button id="toggleexport"  data-bs-toggle="dropdown"
                             class="btn btn-secondary dropdown-toggle"
                             aria-haspopup="true" aria-expanded="false"
                     >
                         <i class="fas fa-file-export"/> export
                     </button>
                     <div class="dropdown-menu" id="exportdiv" aria-labelledby="toggleexport">
-                        <a href="export?format=xlsx" class="dropdown-item">
-                            <i class="fas fa-file-excel mr-4"/> Excel
+                        <a class="dropdown-item export" data-format="xlsx">
+                            <i class="fas fa-file-excel me-4"/> Excel
                         </a>
-                        <a href="export?format=csv" class="dropdown-item">
-                            <i class="fas fa-file-csv mr-4" /> CSV
+                        <a class="dropdown-item export" data-format="csv">
+                            <i class="fas fa-file-csv me-4" /> CSV
                         </a>
-                        <a href="export?format=tsv" class="dropdown-item">
-                            <i class="fas fa-file mr-4" /> TSV
+                        <a class="dropdown-item export" data-format="tsv">
+                            <i class="fas fa-file me-4" /> TSV
                         </a>
-                        <a href="export?format=json" class="dropdown-item">
-                            <i class="fas fa-file-code mr-4"/> JSON
+                        <a data-format="json" class="dropdown-item export">
+                            <i class="fas fa-file-code me-4"/> JSON
                         </a>
                     </div>
                 </li>

@@ -24,11 +24,11 @@
                 <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-1">
 
                     <div>
-                        <h2 class="display-4 mr-8 d-inline-block" >${markdown(topic.name)}</h2>
+                        <h2 class="display-4 me-8 d-inline-block" >${markdown(topic.name)}</h2>
 
                     </div>
                     <div class="display-4 col-sm my-auto text-right">
-                        <i class="fas fa-inbox mr-4"/>${topic.id}
+                        <i class="fas fa-inbox me-4"/>${topic.id}
                     </div>
                 </div>
                 <div class="alert alert-warning">The messenger is a new feature - bugs are quite likely</div>
@@ -54,11 +54,11 @@
                 <div class="mt-4 d-flex">
                     <form method="POST" action="toggle_sub">
                         <button py:if="me not in topic.subscribers"
-                                class="btn btn-success btn-subscription" name="subscribe" value="on" type="submit" data-toggle="tooltip" title="subscribe"><i class="fas fa-user-plus"/></button>
+                                class="btn btn-success btn-subscription" name="subscribe" value="on" type="submit" data-bs-toggle="tooltip" title="subscribe"><i class="fas fa-user-plus"/></button>
                         <button py:if="me in topic.subscribers"
-                                class="btn btn-warning btn-subscription" name="subscribe" value="off" type="submit" data-toggle="tooltip" title="unsubscribe"><i class="fas fa-user-minus"/></button>
+                                class="btn btn-warning btn-subscription" name="subscribe" value="off" type="submit" data-bs-toggle="tooltip" title="unsubscribe"><i class="fas fa-user-minus"/></button>
                     </form>
-                    <a py:if="can_edit" href="#edit-div" class="btn btn-secondary dropdown-toggle ml-2" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="edit-div">
+                    <a py:if="can_edit" href="#edit-div" class="btn btn-secondary dropdown-toggle ms-2" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="edit-div">
                         <i class="fas fa-edit"></i> edit topic
                     </a>
                 </div>
@@ -81,7 +81,7 @@
                             </div>
                             <label for="edit-description" class="markdown">
                                 Description:
-                                <a title="Get help for using links and formats" data-toggle="tooltip" data-placement="top" class="ml-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
+                                <a title="Get help for using links and formats" data-bs-toggle="tooltip" data-bs-placement="top" class="ms-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
                                     <i class="fas fa-question-circle"/>
                                 </a>
                             </label>
@@ -95,21 +95,21 @@
                             <div class="form-group row">
                                 <button  id="edit-save" name="save" value="save"
                                          py:if="can_edit"
-                                         class="btn btn-secondary mr-1"
+                                         class="btn btn-secondary me-1"
                                          type="submit"
                                          title="Saves the changes to the database"
-                                         data-toggle="tooltip"
+                                         data-bs-toggle="tooltip"
                                          py:attrs="prop(disabled=not can_edit)"
                                 >
-                                    <i class="fas fa-check mr-1" />
+                                    <i class="fas fa-check me-1" />
                                     save changes
                                 </button>
                                 <button  id="edit-saveandown" name="save" value="own"
                                          py:if="Level.my() >= Level.admin"
                                          type="submit"
-                                         class="btn btn-secondary mr-1"
+                                         class="btn btn-secondary me-1"
                                          title="Saves the changes and makes you the owner of the topic"
-                                         data-toggle="tooltip"
+                                         data-bs-toggle="tooltip"
                                          py:attrs="prop(disabled=not can_edit)"
                                 >
                                     become owner

@@ -88,7 +88,7 @@ class Job(Base):
     def log_to_sites(self, by=None, time=None):
         session = self.session()
         logsites = (self.log or {}).get('sites', [])
-        msg = (self.log or {}).get('messsage', '')
+        msg = (self.log or {}).get('message') or self.description
         logcount = 0
         sites = session.scalars(sql.select(Site).where(Site.id.in_(logsites)))
         for site in sites:
@@ -231,7 +231,8 @@ class Job(Base):
                 repeat=self.repeat,
                 link=self.link,
                 type=self.type,
-                data=self.data
+                log=self.log,
+                mailer=self.mailer
             )
             session.add(newjob)
             msg.append('Added new job %s' % newjob)

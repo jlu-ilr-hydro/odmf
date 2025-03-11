@@ -10,7 +10,7 @@
                     $.getJSON("${conf.url('message', 'subscribers')}", {topics:$('#topics').val()}, data =>{
                         let text = ''
                         for(p of data) {
-                            text += '<a href="${conf.url("person")}/' + p.username + '/" class="d-inline mr-1 btn btn-light">' + p.label + '</a>'
+                            text += '<a href="${conf.url("person")}/' + p.username + '/" class="d-inline me-1 btn btn-light">' + p.label + '</a>'
                         }
                         $('#subscribers').html(text)
                     })
@@ -47,10 +47,10 @@
             <div class="container">
                 <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-1">
                     <div>
-                        <h2 class="display-4 mr-8 d-inline-block" >${message.subject or 'new message'}</h2>
+                        <h2 class="display-4 me-8 d-inline-block" >${message.subject or 'new message'}</h2>
                     </div>
                     <div class="display-4 col-sm my-auto text-right">
-                        <i class="fas fa-envelope mr-4"/>${message.id}
+                        <i class="fas fa-envelope me-4"/>${message.id}
                     </div>
                 </div>
                 <div class="alert alert-warning">The messenger is a new feature - bugs are quite likely</div>
@@ -65,7 +65,7 @@
                         <div class="form-group row">
                             <label for="subscribers" class="col-3">Subscribers:</label>
                             <div id="subscribers" class="col">
-                                <a href="${conf.url('person', p.username)}" py:for="p in message.to()" py:content="p" class="d-inline mr-1 btn btn-light"/>
+                                <a href="${conf.url('person', p.username)}" py:for="p in message.to()" py:content="p" class="d-inline me-1 btn btn-light"/>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -83,7 +83,7 @@
                             <input class="form-control filter col" type="datetime-local" value="${message.date}" name="date" id="date"/>
                         </div>
                         <div class="form-group">
-                            <label for="content">Content: <a title="Get help for using links and formats" data-toggle="tooltip" data-placement="top" class="ml-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
+                            <label for="content">Content: <a title="Get help for using links and formats" data-bs-toggle="tooltip" data-bs-placement="top" class="ms-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
                                 <i class="fas fa-question-circle"/>
                             </a>
                             </label>

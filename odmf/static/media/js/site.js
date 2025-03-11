@@ -70,10 +70,10 @@ $(function() {
     })
     $('.installation-remove-button').on('click', e => {
         let t = $(e.currentTarget)
-        $.post(odmf_ref('/site/removeinstrument'),
+        $.post(odmf_ref('removeinstrument'),
             {
-                date:escape($('#installationdate').val()),
-                siteid:t.data('site'),
+                date:$('#installationdate').val(),
+                //siteid:t.data('site'),
                 installationid:t.data('installation'),
                 instrumentid: t.data('instrument')
             }
@@ -86,11 +86,11 @@ $(function() {
         })
     });
     $('#add-instrument-button').on('click', e => {
-        $.post(odmf_ref('/site/addinstrument'),
+        $.post(odmf_ref('addinstrument'),
             {
                 instrumentid:$('#instrumentselect').val(),
                 date:$('#installationdate').val(),
-                siteid:$('#actualsite-input').val(),
+                // siteid:$('#actualsite-input').val(),
                 comment:$('#instrument-comment').val(),
                 installationid:$(e.currentTarget).data('installation')
             }

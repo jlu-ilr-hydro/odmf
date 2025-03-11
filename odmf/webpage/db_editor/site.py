@@ -9,8 +9,6 @@ import datetime
 
 import cherrypy
 import pandas as pd
-import io
-from cherrypy.lib.static import serve_fileobj
 from traceback import format_exc as traceback
 from glob import glob
 import os.path as op
@@ -431,10 +429,12 @@ class SitePage:
 
     @expose_for(Level.logger)
     @web.method.get
-    def export(self, format='xlsx'):
+    def export(self, format='xlsx', valuetype=None, instrument=None, user=None, date=None, max_data_age=None, fulltext=None, project=None, **kwargs):
         from ...tools.exportdatasets import serve_dataframe
         with db.session_scope() as session:
-            q = session.query(db.Site)
+            sites, count = self.sites_filter(session, valuetype, instrument, user, date, max_data_age, fulltext, project)
+            site_id = [site.id for site in sites]
+            q = session.query(db.Site).filter(db.Site.id.in_(site_id)).order_by(db.Site.id)
             dataframe = pd.read_sql(q.statement, session.bind)
             name = f'sites-{datetime.datetime.now():%Y-%m-%d}'
             return serve_dataframe(dataframe, f'{name}.{format}')
