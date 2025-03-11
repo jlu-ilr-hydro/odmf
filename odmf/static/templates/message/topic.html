@@ -118,10 +118,18 @@
                             </div>
                         </form>
                     </div>
-                <div class="mt-4">
-                    <h2 class="">Messages:</h2>
+                <div class="card mt-4">
+                    <h4 class="card-header"><i class="fas fa-users mr-2"/>Subscribers</h4>
+                    <div class="card-body d-flex flex-wrap">
+                        <div class="border rounded p-1" py:for="user in topic.subscribers">
+                            <i class="fas fa-user mr-2"></i>${user}
+                        </div>
+                    </div>
+                </div>
+                <div class="card mt-4">
+                    <h4 class="card-header"><i class="fas fa-envelopes-bulk mr-2"></i>Messages</h4>
                     <div class="list-group">
-                        <div class="list-group-item d-flex row" py:for="msg in messages">
+                        <div class="list-group-item d-flex" py:for="msg in messages">
                             <div class="col" py:content="markdown(msg.date.strftime('%Y-%m-%d %H:%M') if msg.date else '')"/><div class="col" py:content="markdown(msg.subject)"/><div class="col" py:content="markdown(' **From:** ' + (msg.source or 'no source'))"/>
                         </div>
                         <a href="${conf.url('message')}" py:if="len(messages) >= 50">Only the last 50 messages are shown, to see all messages click here</a>
