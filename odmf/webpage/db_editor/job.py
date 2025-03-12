@@ -112,6 +112,7 @@ class JobPage:
             return web.render(
                 'job.html', job=job, can_edit=self.can_edit(job),
                 error=error, success=success, db=db,
+                me=session.get(db.Person, web.user()),
                 username=users.current, now=datetime.now(),
                 persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname).all(),
                 jobtypes=session.query(db.Job.type).order_by(db.Job.type).distinct().all(),
