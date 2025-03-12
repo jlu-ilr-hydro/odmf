@@ -90,20 +90,23 @@ class Job(Base):
         logsites = (self.log or {}).get('sites', [])
         msg = (self.log or {}).get('message') or self.description
         logcount = 0
-        sites = session.scalars(sql.select(Site).where(Site.id.in_(logsites)))
-        for site in sites:
-            session.add(
-                Log(
-                    id=newid(Log, session),
-                    _user=by or self.responsible.username,
-                    time=time or datetime.now(),
-                    message=msg,
-                    site=site,
-                    type=self.type
+        if logsites:
+            sites = session.scalars(sql.select(Site).where(Site.id.in_(logsites)))
+            for site in sites:
+                session.add(
+                    Log(
+                        id=newid(Log, session),
+                        _user=by or self.responsible.username,
+                        time=time or datetime.now(),
+                        message=msg,
+                        site=site,
+                        type=self.type
+                    )
                 )
-            )
-            logcount += 1
-        return [site.id for site in sites]
+                logcount += 1
+            return [site.id for site in sites]
+        else:
+            return []
 
     def parse_description(self, by=None, action='done', time=None):
         """Creates jobs, logs and mails from the description

@@ -9,6 +9,7 @@ class TestSite:
     """
     Unittest for db.Site
     """
+
     def test_create_site_lat_lon(self, db, session):
         site = db.Site(
             id=2, lat=50.5, lon=8.5, height=100,
@@ -49,7 +50,6 @@ class TestSite:
         assert 'id' in d
 
 
-
 class TestDatasource:
     def test_create_datasource(self, datasource1_in_db):
         assert str(datasource1_in_db).startswith(datasource1_in_db.name)
@@ -66,7 +66,6 @@ class TestDatasource:
         assert not datasource1_in_db < datasource
         with pytest.raises(TypeError):
             _ = datasource1_in_db < 2
-
 
 
 class TestInstallation:
@@ -130,7 +129,6 @@ class TestLog:
         assert not log < log
 
 
-
 class TestJob:
     def test_job(self, job):
         assert job
@@ -155,14 +153,17 @@ class TestJob:
         """
         job: db.Job
         job.make_done(by=job._author)
+        old_logcount = session.query(db.Log).count()
         session.commit()
         job_1 = session.get(db.Job, 1)
         assert job_1.done
+        assert old_logcount == session.query(db.Log).count()
 
     def test_job_done_repeat(self, job_repeat, session, db):
         """
         Tests the make_done function of a job with repeat function
         """
+        old_logcount = session.query(db.Log).count()
         job_repeat.make_done(by=job_repeat._author)
         session.commit()
         job_1 = session.get(db.Job, 1)
@@ -170,6 +171,7 @@ class TestJob:
         job_2 = session.get(db.Job, 2)
         assert not job_2.done
         assert job_2.due == job_1.due + datetime.timedelta(days=3)
+        assert old_logcount == session.query(db.Log).count()
 
     def test_job_done_log_no_msg(self, job, site1_in_db, session, db):
         """
@@ -194,8 +196,15 @@ class TestJob:
         log = session.scalars(db.sql.select(db.Log).where(db.Log.site == site1_in_db)).all()
         assert log[0].message == 'Hallo Welt'
 
-
-
+    def test_job_done_log_no_site(self, job, session, db):
+        """
+        Tests that no logs are written when 'sites' is empty in job.log
+        """
+        job.log = {'message': '', 'sites': None}
+        session.commit()
+        old_logcount = session.query(db.Log).count()
+        job.make_done(by=job._author)
+        assert session.query(db.Log).count() == old_logcount
 
 
 class TestProject:
@@ -213,18 +222,19 @@ class TestProject:
     def test_project_add_member(self, project, person):
         project.add_member(person, 2)
         members = list(project.members())
-        assert len(members) >= 1# , f'Added 1 one member to project, but project has {len(members)} member'
-        assert members[0][1] == 2# , f'Project member has unexpected access level of {members[0].access_level}!=1'
+        assert len(members) >= 1  # , f'Added 1 one member to project, but project has {len(members)} member'
+        assert members[0][1] == 2  # , f'Project member has unexpected access level of {members[0].access_level}!=1'
 
-        members2 = list(project.members(4)) # should contain the project owner
-        assert len(members2) == 1 , f'Added one member with al=2 to project, but project has {len(members2)} members above level 3'
+        members2 = list(project.members(4))  # should contain the project owner
+        assert len(
+            members2) == 1, f'Added one member with al=2 to project, but project has {len(members2)} members above level 3'
 
     def test_person_add_project(self, project, person):
         person.add_project(project, 1)
         projects = list(person.projects())
         print(projects)
-        assert len(projects) >= 1 , f'Added 1 one member to project, but project has {len(projects)} member'
-        assert projects[0][1] == 1 , f'Project member has unexpected access level of {projects[0][1]}!=1'
+        assert len(projects) >= 1, f'Added 1 one member to project, but project has {len(projects)} member'
+        assert projects[0][1] == 1, f'Project member has unexpected access level of {projects[0][1]}!=1'
 
 
 class TestImage:
