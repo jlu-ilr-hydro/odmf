@@ -243,7 +243,7 @@ class Job(Base):
             logsites = self.log_to_sites(by, time)
             if logsites:
                 msg.append(f'Added {len(logsites)} log messages to sites: ' + ', '.join(f'site:{s}' for s in logsites))
-        if self.mailer and 'done' in self.mailer.get('when'):
+        if self.mailer and self.mailer.get('when') and 'done' in self.mailer.get('when'):
             mail = self.as_message(by, time)
             self.session().add(mail)
             receivers = mail.send()
