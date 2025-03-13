@@ -31,20 +31,19 @@ class Root(object):
     } | errorhandler.html
 
     map = map.MapPage()
-    site = dbe.SitePage()
-    plot = plot.PlotPage()
     download = upload.DownloadPage()
+    plot = plot.PlotPage()
+    site = dbe.SitePage()
     dataset = dbe.DatasetPage()
-    picture = dbe.PicturePage()
-    job = dbe.JobPage()
+    # picture = dbe.PicturePage()
     log = dbe.LogPage()
-
     valuetype = dbe.VTPage()
     instrument = dbe.DatasourcePage()
     project = dbe.ProjectPage()
     user = dbe.PersonPage()
-    topic = dbe.TopicPage()
+    job = dbe.JobPage()
     message = dbe.MessagePage()
+    topic = dbe.TopicPage()
     help = static.Help()
     api = api.API()
 
