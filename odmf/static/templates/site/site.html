@@ -248,6 +248,7 @@
                             <div class="row">
                                 <div class="col">Date</div>
                                 <div class="col">Type</div>
+                                <div class="col">User</div>
                                 <div class="col">Site</div>
                                 <div class="col-6">Log text</div>
                                 <div class="col-1">
@@ -261,6 +262,7 @@
                             <div class="row">
                                 <div class="col">${formatdate(log.time)}</div>
                                 <div class="col">${log.type}</div>
+                                <div class="col"><a py:if="log.user" href="${conf.url('user', log.user.username)}" class="btn btn-light"><i class="fas fa-user me-2"/>${log.user}</a></div>
                                 <div class="col"><a py:if="log.site" href="${conf.url('site', log.site.id)}" class="btn btn-light"><i class="fas fa-map-location me-2"/>${log.site}</a></div>
                                 <div class="col-6">${markdown(log.message)}</div>
                                 <div class="col-1">
