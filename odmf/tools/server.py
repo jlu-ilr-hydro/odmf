@@ -82,7 +82,7 @@ def start(autoreload=False, browser=False):
     from ..webpage.root import Root
     root = Root()
     logger.info(f'start mailer daemon')
-    from .maildaemon import MailDaemon
+    from .mail.maildaemon import MailDaemon
     md = MailDaemon(conf.mailer_daemon_frequency)
     md.daemon = True
     md.start()

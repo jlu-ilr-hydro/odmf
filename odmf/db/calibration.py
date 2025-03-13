@@ -5,7 +5,7 @@ Created on 15.10.2012
 '''
 from math import sqrt
 
-from .. import db
+from odmf import db
 
 
 class Match:

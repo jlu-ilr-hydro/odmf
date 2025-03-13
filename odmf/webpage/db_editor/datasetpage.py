@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import io
 from ..auth import Level, expose_for, users
 import codecs
-from ...tools.calibration import Calibration, CalibrationSource
+from ...db.calibration import Calibration, CalibrationSource
 from ...config import conf
 from pytz import common_timezones
 import cherrypy

@@ -9,7 +9,7 @@ import pandas as pd
 import json
 
 from .. import lib as web
-from ..auth import users, expose_for, has_level, Level
+from ..auth import users, expose_for, Level
 from ... import db
 from ...config import conf
 from . import BaseAPI, get_help
@@ -326,7 +326,7 @@ class DatasetAPI(BaseAPI):
         data = cherrypy.request.body.read()
         instream = io.BytesIO(data)
         # Load dataframe
-        from ...tools.parquet_import import addrecords_parquet
+        from odmf.dataimport.parquet_import import addrecords_parquet
         datasets, records = addrecords_parquet(instream)
 
         return web.json_out(dict(status='success', datasets=list(datasets), records=records))
