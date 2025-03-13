@@ -19,7 +19,7 @@ class MapPage(object):
     @web.method.get
     def index(self, site=None):
 
-        return web.render('map.html', site=site).render()
+        return web.render('site/map.html', site=site).render()
 
     @web.expose
     @web.mime.json
@@ -34,4 +34,4 @@ class MapPage(object):
             return('<div class="error">Site %s not found</div>' % siteid)
         with db.session_scope() as session:
             site = session.get(db.Site, int(siteid))
-            return web.render('sitedescription.html', site=site).render()
+            return web.render('site/sitedescription.html', site=site).render()

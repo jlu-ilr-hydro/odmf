@@ -34,7 +34,7 @@ class SitePage:
         """
         siteid = web.conv(int, siteid)
         if not siteid:
-            return web.render('site-list.html', error=error)
+            return web.render('site/site-list.html', error=error)
 
         with db.session_scope() as session:
 
@@ -51,7 +51,7 @@ class SitePage:
             except:
                 error = traceback()
                 actualsite = None
-            return web.render('site.html', id=siteid, actualsite=actualsite, error=error,
+            return web.render('site/site.html', id=siteid, actualsite=actualsite, error=error,
                               datasets=datasets, icons=self.geticons(), instruments=instruments
                               ).render()
 
@@ -69,7 +69,7 @@ class SitePage:
                 error = traceback()
                 actualsite = None
 
-            return web.render('site.html', id=int(actualsite.id), actualsite=actualsite, error=error,
+            return web.render('site/site.html', id=int(actualsite.id), actualsite=actualsite, error=error,
                               datasets=datasets, icons=self.geticons(), instruments=instruments
                               ).render()
 
@@ -372,7 +372,7 @@ class SitePage:
             query = session.query(db.Site)
             if filter:
                 query = query.filter(sitefilter)
-            stream = web.render('sites.xml', sites=query.all(),
+            stream = web.render('site/sites.xml', sites=query.all(),
                                 actid=0, descriptor=SitePage.kml_description)
             return stream.render('xml')
 
