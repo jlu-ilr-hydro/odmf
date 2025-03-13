@@ -29,7 +29,7 @@ class VTPage:
                     # image=b64encode(self.sitemap.draw(sites.all()))
                     vt = None
 
-            return web.render('valuetype.html', valuetypes=valuetypes,
+            return web.render('dataset/valuetype.html', valuetypes=valuetypes,
                                 actualvaluetype=vt, error=error).render()
 
     @expose_for(Level.supervisor)

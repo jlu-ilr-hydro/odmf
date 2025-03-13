@@ -44,7 +44,7 @@ class DatasetPage:
         Returns the query page (datasetlist.html). Site logic is handled with ajax
         """
         if datasetid is None:
-            return web.render('datasetlist.html').render()
+            return web.render('dataset/datasetlist.html').render()
         else:
             with db.session_scope() as session:
                 active = get_ds(session, datasetid)
@@ -100,7 +100,7 @@ class DatasetPage:
             return has_access(active, level)
         # Render the resulting page
         return web.render(
-            'dataset-edit.html',
+            'dataset/dataset-edit.html',
             # activedataset is the current dataset (id or new)
             ds_act=active, n=active.size(), access=access,
             # All available timezones
@@ -627,7 +627,7 @@ class DatasetPage:
                     currentcount = records.count()
             except:
                 return web.literal('<div class="alert alert-danger">' + traceback() + '</div>')
-            return web.render('record.html', records=records, currentcount=currentcount,
+            return web.render('dataset/record.html', records=records, currentcount=currentcount,
                              totalrecords=totalcount, dataset=ds, actionname="split dataset",
                              action="/dataset/setsplit",
                              action_help=f'{conf.root_url}/download/wiki/dataset/split.wiki').render()

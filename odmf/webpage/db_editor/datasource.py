@@ -25,7 +25,7 @@ class DatasourcePage:
                     error = traceback()
                     inst = None
 
-            return web.render('instrument.html', instruments=instruments,
+            return web.render('dataset/instrument.html', instruments=instruments,
                             actualinstrument=inst, error=error).render()
 
     @expose_for(Level.editor)
