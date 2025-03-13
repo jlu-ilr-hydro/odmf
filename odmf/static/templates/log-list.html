@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+
+<py:extends href="layout.html" xmlns:py="">
+    <py:block name="scripts">
+        <!-- insert additional scripts -->
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <!-- insert sidebar content -->
+        <div class="card m-1">
+            <h4 class="card-header"><i class="fas fa-tags"/> Log book</h4>
+            <div class="list-group">
+                <a class="list-group-item list-group-item-action" href="${conf.url('site')}"><i class="fas fa-map-location"/> list sites...</a>
+                <a class="list-group-item list-group-item-action list-group-item-success" href="${conf.url('log', 'new')}"><i class="fas fa-plus-circle"/> create log entry...</a>
+            </div>
+        </div>
+        <div class="card m-1">
+            <h4 class="card-header"><i class="fas fa-filter"/> Filter</h4>
+            <div class="card-body">
+                <form method="GET" action=".">
+                    <div class="form-group">
+                        <label for="sites" >Sites:</label>
+                        <select class="select2 form-control filter" name="sites[]" multiple="multiple" id="sites">
+                            <option py:for="s in sites" value="${s.id}" py:attrs="markoption(s.id in sites_selected)" >${s}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="types">Types:</label>
+                        <select class="select2 form-control filter" name="types[]" multiple="multiple" id="types">
+                            <option py:for="t in types" value="${t}" py:attrs="markoption(t in types_selected)" >${t}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="fulltext">Text:</label>
+                        <input class="form-control filter" placeholder="full text search" value="${fulltext}" name="fulltext" id="fulltext"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="page" >Page:</label>
+                        <div class="input-group">
+                            <select class="form-control filter" name="page" id="page">
+                                <option py:for="p in range(pages)" value="${p+1}" py:attrs="markoption(p+1 == page)">${p+1}/${pages}</option>
+                            </select>
+                            <select class="form-control filter" name="limit" id="limit">
+                                <option py:for="l in [10,20,50,100,200]" value="${l}" py:attrs="markoption(limit==l)">${l}/page</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <div class="form-group mt-2">
+                        <button class="btn btn-primary" type="submit" title="apply filter" data-bs-toggle="tooltip"><i class="fas fa-filter me-1"/> </button>
+                        <button class="btn btn-secondary" name="export" type="submit" title="download logs as excel" data-bs-toggle="tooltip"><i class="fas fa-file-excel me-1"/> </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </py:block>
+    <py:block name="content">
+        <!-- insert main content -->
+        <div class="content w-100">
+            <div class="container-fluid">
+                <div id="title-area" class="container-fluid bg-dark text-white w-100 border rounded flexbox shadow mb-1">
+                    <div>
+                        <h2 class="display-4 me-8 d-inline-block" ><span class="badge bg-primary rounded-pill">${log_count}</span> Log entries</h2>
+                    </div>
+                    <div class="display-4 col-sm my-auto text-right">
+                        <i class="fas fa-tags me-4"/>
+                    </div>
+                </div>
+                <div class="list-group">
+                    <div class="list-group-item list-group-item-primary">
+                        <div class="row">
+                            <div class="col">Date</div>
+                            <div class="col">Type</div>
+                            <div class="col">Site</div>
+                            <div class="col-6">Log text</div>
+                            <div class="col-1">
+
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="list-group-item" py:for="log in logs">
+                        <div class="row">
+                            <div class="col">${formatdate(log.time)}</div>
+                            <div class="col">${log.type}</div>
+                            <div class="col"><a py:if="log.site" href="${conf.url('site', log.site.id)}" class="btn btn-light"><i class="fas fa-map-location me-2"/>${log.site}</a></div>
+                            <div class="col-6">${markdown(log.message)}</div>
+                            <div class="col-1">
+                                <a class="btn btn-secondary" href="${conf.url('log', log.id)}"><i class="fas fa-edit"/></a>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </py:block>
+</py:extends>

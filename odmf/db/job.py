@@ -88,7 +88,7 @@ class Job(Base):
     def log_to_sites(self, by=None, time=None):
         session = self.session()
         logsites = (self.log or {}).get('sites', [])
-        msg = (self.log or {}).get('message') or self.description
+        msg = (self.log or {}).get('message') or self.name
         logcount = 0
         if logsites:
             sites = session.scalars(sql.select(Site).where(Site.id.in_(logsites)))
@@ -108,89 +108,6 @@ class Job(Base):
         else:
             return []
 
-    def parse_description(self, by=None, action='done', time=None):
-        """Creates jobs, logs and mails from the description
-        The description is parsed by line. When a line "when done:" is encountered
-        scan the lines for a trailing "create".
-        to create a follow up job:
-        create job after 2 days:<job description>
-        create log at site 64:<message>
-        create mail to philipp:<message>
-        """
-        session = self.session()
-        lines = deque(self.description.lower().split('\n'))
-        while lines:
-            if lines.popleft().strip() == 'when %s:' % action:
-                break
-        errors = []
-        objects = []
-        msg = []
-        while lines:
-            try:
-                line = lines.popleft().strip(',.-;: ')
-                if line.startswith('when'):
-                    break
-                elif line.startswith('create'):
-                    if line.count(':'):
-                        cmdstr, text = line.split(':', 1)
-                        cmd = [w.strip(',.-;:_()#') for w in cmdstr.split()]
-                        if cmd[1] == 'log':  # log something
-                            try:  # find the site
-                                siteid = int(cmd[cmd.index('site') + 1])
-                            except:
-                                raise RuntimeError(
-                                    'Could not find a valid site in command "%s"' % cmdstr)
-                            objects.append(Log(id=newid(Log, session),
-                                               user=self.responsible,
-                                               time=time,
-                                               message=text,
-                                               _site=siteid,
-                                               type=self.type
-                                               ))
-                        # Create a follow up job
-                        elif cmd[1] == 'job':
-                            if 'after' in cmd:
-                                after = int(cmd[cmd.index('after') + 1])
-                            else:
-                                after = 0
-                            objects.append(
-                                Job(id=newid(Job, session),
-                                    name=text,
-                                    due=time + timedelta(days=after),
-                                    author=self.author,
-                                    responsible=self.responsible,
-                                    link=self.link,
-                                    type=self.type)
-                            )
-                        # Write a mail
-                        elif cmd[1] == 'mail':
-                            try:
-                                if by:
-                                    by = Person.get(session, by)
-                                else:
-                                    by = self.author
-                                to = cmd[cmd.index('to') + 1:]
-                                to = session.query(Person).filter(
-                                    Person.username.in_(to))
-                                to = to.all()
-                                msgdata = dict(id=self.id, action=action, text=text, name=str(self),
-                                               description=self.description, by=str(by))
-                                text = '''The job %(name)s is %(action)s by %(by)s
-                                        http://fb09-pasig.umwelt.uni-giessen.de:8081/job/%(id)s\n\n''' \
-                                       + '''%(text)s\n\n''' \
-                                       + '''%(description)s\n''' % msgdata
-                                subject = 'Studienlandschaft Schwingbach: job #%(id)s is %(action)s' % msgdata
-                                #EMail(by.email, list(set([you.email for you in to] + [
-                                #      self.responsible.email, self.author.email])), subject, text).send()
-                            except:
-                                raise RuntimeError(
-                                    '"%s" is not a valid mail, problem: %s' % (line, traceback()))
-                    else:
-                        raise RuntimeError(
-                            '"%s" is not an action, missing ":"' % line)
-            except Exception as e:
-                errors.append(e.message)
-        return objects, errors
 
     def as_message(self, by=None, time=None) -> Message:
         """Creates a message from this job"""

@@ -46,6 +46,14 @@ engine, Session = get_session_class()
 Session.newid = lambda self, cls: newid(cls, self)
 
 
+def count(session, stmt: sql.Select):
+    """SQLAlchemy 2.0 replacement for Query.count()
+
+    Usage:
+    >>> db.count(session, db.sql.select(...).where(...))
+    """
+    return session.scalar(sql.select(sql.func.count()).select_from(stmt.subquery()))
+
 @contextmanager
 def session_scope() -> orm.Session:
     """Provide a transactional scope around a series of operations."""
