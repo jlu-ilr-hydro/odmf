@@ -239,8 +239,7 @@
 
                 </div>
                 <div id="edit" class="tab-pane w-100 me-4 ${class_if(not ds_act.is_defined(), 'active')}" role="tabpanel" py:if="access(Level.editor)">
-                    <form action="save" method="post">
-                        <input type="hidden" name="id" value="${ds_act.id}"  />
+                    <form action="." method="post">
                         <div class="container w-100">
                             <div id="edit-name-user-vt" class="form-row">
                                 <div class="form-group col-lg">
@@ -980,7 +979,7 @@
                                                 <option>below</option>
                                             </select>
                                             <input type="number" name="threshold_value" class="form-control" />
-                                            <div class="input-group-append"><span class="input-group-text">${ds_act.valuetype.unit}</span></div>
+                                            <div class="input-group-append"><span class="input-group-text">${ds_act.valuetype and ds_act.valuetype.unit}</span></div>
                                         </div>
                                     </div>
                                     <div class="form-group">

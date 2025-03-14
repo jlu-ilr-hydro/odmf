@@ -45,7 +45,7 @@ class MailDaemon(Timer):
             jobs: typing.List[Job] = session.scalars(stmt)
 
             for job in jobs:
-                when = list(job.mailer.get('when', [])) if job.mailer else []
+                when = list(job.mailer.get('when') or []) if job.mailer else []
                 # Get all due dates of the job messages (only for int entries)
                 dates = [job.due - timedelta(days=days) for days in when if type(days) is int]
                 # Filter only the dates that are in the past

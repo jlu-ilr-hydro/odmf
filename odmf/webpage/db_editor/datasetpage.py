@@ -36,23 +36,98 @@ class DatasetPage:
     """
     exposed = True
 
+    def index_post(self, datasetid, **kwargs):
+        """
+        Saves a dataset or creates a new one
+        :param datasetid: The datasetid (or 'new')
+        :param kwargs: The dataset properties
+        """
+        errors = []
+        with db.session_scope() as session:
+            ds = session.get(db.Dataset, web.conv(int, datasetid))
+
+            if not ds:
+                ds = db.Timeseries(
+                    name='New Dataset',
+                    access=Level.admin,
+                    timezone=conf.datetime_default_timezone,
+                    calibration_offset=0,
+                    calibration_slope=1
+                )
+
+            elif not has_access(ds, Level.editor):
+                raise web.redirect(conf.url('dataset', datasetid), error='You are not allowed to write this dataset')
+
+            if not (pers :=session.get(db.Person, kwargs.get('measured_by'))):
+                errors.append('User ' + kwargs.get('measured_by') + ' not found')
+            if not (vt := session.get(db.ValueType, kwargs.get('valuetype'))):
+                errors.append('Value type ' + kwargs.get('valuetype') + ' not found')
+            if not (q := session.get(db.Quality, kwargs.get('quality'))):
+                errors.append('Quality ' + kwargs.get('quality') + ' not found')
+            if not (s := session.get(db.Site, kwargs.get('site'))):
+                errors.append('Site ' + kwargs.get('site') + ' not found')
+            if not (src := session.get(db.Datasource, kwargs.get('source'))):
+                errors.append('Datasource ' + kwargs.get('source') + ' not found')
+            if errors:
+                raise web.redirect(conf.url('dataset', datasetid), error='\n'.join(errors))
+
+            ds.site = s
+            ds.filename = kwargs.get('filename')
+            ds.name = kwargs.get('name')
+            ds.comment = kwargs.get('comment')
+            ds.measured_by = pers
+            ds.valuetype = vt
+            ds.quality = q
+
+            if ds.get_access_level(users.current) >= Level.admin:
+                project = session.get(db.Project, kwargs.get('project'))
+                ds.project = project
+
+            ds.timezone = kwargs.get('timezone')
+
+            if 'level' in kwargs:
+                ds.level = web.conv(float, kwargs.get('level'))
+            # Timeseries only arguments
+            if ds.is_timeseries():
+                if kwargs.get('start'):
+                    ds.start = web.parsedate(kwargs['start'])
+                if kwargs.get('end'):
+                    ds.end = web.parsedate(kwargs['end'])
+                ds.calibration_offset = web.conv(
+                    float, kwargs.get('calibration_offset'), 0.0)
+                ds.calibration_slope = web.conv(
+                    float, kwargs.get('calibration_slope'), 1.0)
+                ds.access = web.conv(int, kwargs.get('access'), 1)
+            # Transformation only arguments
+            if ds.is_transformed():
+                ds.expression = kwargs.get('expression')
+                ds.latex = kwargs.get('latex')
+
+            session.add(ds)
+            session.flush()
+
+            return conf.url('dataset', ds.id)
+
 
     @expose_for()
-    @web.method.get
-    def index(self, datasetid=None, error='', message=None):
+    def index(self, datasetid=None, **kwargs):
         """
         Returns the query page (datasetlist.html). Site logic is handled with ajax
         """
-        if datasetid is None:
-            return web.render('dataset/datasetlist.html').render()
-        else:
-            with db.session_scope() as session:
-                active = get_ds(session, datasetid)
-                if active:  # save requested dataset as 'last'
-                    web.cherrypy.session['dataset'] = datasetid  # @UndefinedVariable
-                    return self.render_dataset(session, active, error=error, message=message)
-                else:
-                    raise web.redirect(conf.root_url + '/dataset', error=f'No ds{datasetid} available')
+        if cherrypy.request.method == 'GET':
+            if datasetid is None:
+                return web.render('dataset/datasetlist.html').render()
+            else:
+                with db.session_scope() as session:
+                    active = get_ds(session, datasetid)
+                    if active:  # save requested dataset as 'last'
+                        return self.render_dataset(session, active)
+                    else:
+                        raise web.redirect(conf.root_url + '/dataset', error=f'No ds{datasetid} available')
+        elif cherrypy.request.method == 'POST':
+            redirect = self.index_post(datasetid, **kwargs)
+            raise web.redirect(redirect, success='Dataset saved')
+
     @expose_for(Level.editor)
     def new(self, site_id=None, vt_id=None, user=None, error='', _=None, template=None):
         active = None
@@ -175,82 +250,6 @@ class DatasetPage:
                 success += str(alarm)
         raise web.redirect(conf.url('dataset', datasetid, '#alarms'), success=success)
 
-
-
-
-    @expose_for(Level.editor)
-    @web.method.post
-    def save(self, **kwargs):
-        """
-        Saves the changes for an edited dataset
-        """
-        try:
-            # Get current dataset
-            id = web.conv(int, kwargs.get('id'), '')
-        except:
-            raise web.redirect(conf.root_url + f'/dataset/{id}', error=traceback())
-        # if save button has been pressed for submitting the dataset
-        if 'save' in kwargs:
-            # get database session
-            with db.session_scope() as session:
-                try:
-                    pers = session.get(db.Person, kwargs.get('measured_by'))
-                    vt = session.get(db.ValueType, kwargs.get('valuetype'))
-                    q = session.get(db.Quality, kwargs.get('quality'))
-                    s = session.get(db.Site, kwargs.get('site'))
-                    src = session.get(db.Datasource, kwargs.get('source'))
-
-                    # get the dataset
-                    ds = get_ds(session, id)
-                    if not ds:
-                        # If no ds with id exists, create a new one
-                        ds = db.Timeseries(id=id)
-                    # Get properties from the keyword arguments kwargs
-                    ds.site = s
-                    ds.filename = kwargs.get('filename')
-                    ds.name = kwargs.get('name')
-                    ds.comment = kwargs.get('comment')
-                    ds.measured_by = pers
-                    ds.valuetype = vt
-                    ds.quality = q
-
-                    if ds.get_access_level(users.current) >= Level.admin:
-                        project = session.get(db.Project, kwargs.get('project'))
-                        ds.project = project
-
-                    ds.timezone = kwargs.get('timezone')
-
-                    if src:
-                        ds.source = src
-                    if 'level' in kwargs:
-                        ds.level = web.conv(float, kwargs.get('level'))
-                    # Timeseries only arguments
-                    if ds.is_timeseries():
-                        if kwargs.get('start'):
-                            ds.start = web.parsedate(kwargs['start'])
-                        if kwargs.get('end'):
-                            ds.end = web.parsedate(kwargs['end'])
-                        ds.calibration_offset = web.conv(
-                            float, kwargs.get('calibration_offset'), 0.0)
-                        ds.calibration_slope = web.conv(
-                            float, kwargs.get('calibration_slope'), 1.0)
-                        ds.access = web.conv(int, kwargs.get('access'), 1)
-                    # Transformation only arguments
-                    if ds.is_transformed():
-                        ds.expression = kwargs.get('expression')
-                        ds.latex = kwargs.get('latex')
-
-                    session.add(ds)
-                    session.flush()
-                    if not has_access(ds, Level.editor):
-                        raise web.HTTPError(403, 'No sufficient rights to alter dataset')
-                except:
-                    # On error render the error message
-                    raise web.redirect(conf.root_url + f'/dataset/{id}', error=traceback())
-        elif 'new' in kwargs:
-            id = 'new'
-        # reload page
-        raise web.redirect(conf.root_url + f'/dataset/{id}')
 
     @expose_for()
     @web.method.get
