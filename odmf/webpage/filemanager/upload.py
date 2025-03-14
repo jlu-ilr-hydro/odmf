@@ -13,7 +13,7 @@ import shutil
 from traceback import format_exc as traceback
 from io import StringIO, BytesIO
 import cherrypy
-from cherrypy.lib.static import serve_file
+from cherrypy.lib.static import serve_file, serve_fileobj
 from urllib.parse import urlencode
 from ..auth import Level, expose_for, is_member, users
 from ...tools import Path
@@ -142,6 +142,19 @@ class DownloadPage(object):
         else:
             return {}
 
+    @staticmethod
+    def zip_folder(path: Path):
+        import zipfile, io
+        files = fa.walk(path, users.current)
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, 'a') as zf:
+            for f in files:
+                zf.write(f.absolute, f.relative_name(path))
+        buffer.seek(0)
+        return buffer
+
+
+
 
     @expose_for()
     @web.method.get
@@ -166,11 +179,15 @@ class DownloadPage(object):
             content = ''
             directories, files = path.listdir(hidden=modes[path]>=fa.Mode.admin)
 
-        if path.isfile():
-            if serve:
+        if serve:
+            if path.isfile():
                 return serve_file(path.absolute, disposition='attachment', name=path.basename)
             else:
-                content, error = self.render_file(path, error)
+                return serve_fileobj(self.zip_folder(path), content_type='application/zip', disposition='attachment', name=path.basename + '.zip')
+
+
+        elif path.isfile():
+            content, error = self.render_file(path, error)
 
         return web.render(
             'download.html',
@@ -183,6 +200,8 @@ class DownloadPage(object):
             curdir=path, import_history=self.get_import_history(path),
             max_size=conf.upload_max_size
         ).render()
+
+
 
     @expose_for(Level.editor)
     @web.method.post_or_put

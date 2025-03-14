@@ -80,8 +80,15 @@
         $(function () {
             $('[data-bs-toggle="tooltip"]').tooltip();
             $('[data-bs-toggle="popover"]').popover();
-            $('.select2').select2({theme: 'bootstrap-5'})
-            $('.select2-tags').select2({theme: 'bootstrap-5', tags:true})
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            })
+            $('.select2-tags').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                tags:true
+            })
 
             $('#login-logout').on('click', () => {
                 $.post('${conf.root_url}/api/logout').done(() => {
@@ -142,8 +149,6 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
                         <span py:content="resource.name" />
                         <i class="fas fa-${resource.icon or 'question_circle'} fa-lg" />
                     </a>
-    
-    
                 </div>
             </li>
         </ul>

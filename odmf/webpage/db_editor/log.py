@@ -13,10 +13,68 @@ from datetime import datetime, timedelta
 @web.show_in_nav_for(1, 'tags')
 class LogPage:
 
+    def filter_logs(self, session, **kwargs):
+        sites = web.to_list(kwargs.get('sites[]'), int)
+        types = web.to_list(kwargs.get('types[]'))
+        fulltext = kwargs.get('fulltext')
+        logs = db.sql.select(db.Log)
+        if sites:
+            logs = logs.where(db.Log._site.in_(sites))
+        if types:
+            logs = logs.where(db.Log.type.in_(types))
+        if fulltext:
+            logs = logs.where(db.Log.message.icontains(fulltext))
+
+        log_count = db.count(session, logs)
+        return logs, log_count, sites, types, fulltext
+
+    def export(self, session, logs):
+        import pandas as pd
+        from ...tools.exportdatasets import serve_dataframe
+        df = pd.read_sql_query(logs, session.connection(), index_col='id')
+        return serve_dataframe(df, 'logs.xlsx', 'id')
+
 
     @expose_for(Level.guest)
     @web.method.get
-    def index(self, logid=None, error=''):
+    def index_list(self, **kwargs):
+        page = web.conv(int, kwargs.get('page'), 1)
+        limit = web.conv(int, kwargs.get('limit'), 20)
+        offset = (page - 1) * limit
+
+        with db.session_scope() as session:
+            logs, log_count, sites, types, fulltext = self.filter_logs(session, **kwargs)
+            logs = logs.order_by(db.Log.time.desc()).limit(limit).offset(offset)
+
+            if 'export' in kwargs:
+                return self.export(session, logs)
+
+            pages = log_count // limit + 1
+
+
+            all_types = db.sql.select(db.Log.type).where(db.Log.type.isnot(None)).distinct()
+            all_sites = db.sql.select(db.Site).order_by(db.Site.id)
+
+            return web.render(
+                'log-list.html',
+                logs=session.scalars(logs),
+                types=sorted(session.scalars(all_types)),
+                types_selected=types,
+                sites=session.scalars(all_sites),
+                sites_selected=sites,
+                fulltext=fulltext,
+                log_count=log_count,
+                pages=pages,
+                page=page,
+                limit=limit,
+            ).render()
+
+    @expose_for(Level.guest)
+    def index(self, logid=None, error='', **kwargs):
+        if cherrypy.request.method == 'GET':
+            if not logid:
+                return self.index_list(**kwargs)
+
         with db.session_scope() as session:
             log = None
             if logid is not None:
@@ -26,9 +84,11 @@ class LogPage:
                     error = traceback()
             sitelist = session.query(db.Site).order_by(db.sql.asc(db.Site.id))
             personlist = session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname)
+            typelist = db.sql.select(db.Log.type).where(db.Log.type.isnot(None)).distinct()
+
             return web.render(
                 'log.html', actuallog=log, error=error,
-                types=session.scalars(db.sql.select(db.Log.type).distinct()),
+                types=sorted(session.scalars(typelist)),
                 sites=sitelist,
                 persons=personlist
             ).render()
@@ -155,56 +215,5 @@ class LogPage:
             return web.json_out(logs.all())
 
 
-    @expose_for(Level.logger)
-    @web.mime.html
-    def fromclipboard(self, paste):
-        lines = paste.splitlines()
-        class LogFromClipboardError(RuntimeError):
-            def __init__(self, line, errormsg):
-                super().__init__(f"Could not create log from:\n{line}\nReason:{errormsg}")
-
-        with db.session_scope() as session:
 
 
-            def parseline(line):
-                line = line.replace('\t', '|')
-                ls = line.split('|')
-                if len(ls) < 2:
-                    raise LogFromClipboardError(
-                        line, "At least a message and a siteid, seperated by a tab or | are needed to create a log")
-                msg = ls[0]
-                try:
-                    siteid = int(ls[1])
-                    site = session.get(db.Site, siteid)
-                    if not site:
-                        raise ValueError()
-                except (TypeError, ValueError):
-                    raise LogFromClipboardError(line, "%s is not a site id" % ls[1])
-                if len(ls) > 2:
-                    date = web.parsedate(ls[2])
-                else:
-                    date = datetime.today()
-                if len(ls) > 3:
-                    user = session.get(db.Person, ls[3])
-                    if not user:
-                        raise LogFromClipboardError(
-                            line, f"Username {ls[3]} is not in the database")
-                else:
-                    user = session.get(db.Person, web.user())
-                logid = db.newid(db.Log, session)
-                return db.Log(id=logid, site=site, user=user, success=msg, time=date)
-
-            errors = []
-            logs = []
-            for l in lines:
-                try:
-                    log = parseline(l)
-                    logs.append(log)
-                except Exception as e:
-                    errors.append(str(e))
-            if errors:
-                res = 'Import logs from Clipboard failed with the following errors:<ol>'
-                li = ''.join('<li>%s</li>' % e for e in errors)
-                return res + li + '</ol>'
-            else:
-                session.add_all(logs)

@@ -1,37 +1,11 @@
 <!DOCTYPE html>
 <py:extends href="layout.html" xmlns:py="">
     <py:block name="scripts">
-        <script>
+        <script py:if="actualinstrument">
             //<![CDATA[
-            function popSelect() {
-                $.getJSON(odmf_ref('/site/json'),[],function(data){
-                    var html='<option value=""><i>Please select...</i></option>';
-                    $.each(data.sites,function(index,item){
-                        html += '<option value="' + item.id + '">#' + item.id + ' ('+ item.name + ')' + '</option>';
-                    });
-                    $('#siteselect').html(html);
-                });
-            }
-            $(function() {
-                popSelect();
-            });
-            function addinstrument() {
-                data = {siteid:$('#siteselect').val(),
-                    date:escape($('#installationdate').val()),
-                    instrumentid:${actualinstrument.id},
-                    comment:$('#installation-comment').val()
-                };
-                $.post(odmf_ref('/site/addinstrument'),data,function (data,textStatus,jqHXR){
-                    if (data=='') {
-                        location.reload();
-                    } else {
-                        $('.error').html(data);
-                    }
-                });
-            }
             function removeinstrument(installationid,siteid) {
                 data = {instrumentid:${actualinstrument.id},
-                    date:escape($('#installationdate').val()),
+                    date:$('#installationdate').val(),
                     siteid:siteid,
                     installationid:installationid
                 };
@@ -43,6 +17,27 @@
                     }
                 });
             }
+
+            $(() => {
+                $('#add-instrument-button').on('click', e => {
+                    let siteid = $('#siteselect').val()
+                    $.post(odmf_ref('/site/' + siteid + '/addinstrument'),
+                        {
+                            instrumentid:${actualinstrument.id},
+                            date: $('#installationdate').val(),
+                            comment: $('#instrument-comment').val(),
+                            installationid: $(e.currentTarget).data('installation')
+                        }
+                    ).done(response => {
+                        console.debug(response)
+                        location.reload()
+                    }).fail(jqhxr => {
+                        console.warn(jqhxr.responseText)
+                        $('.error').html(jqhxr.responseText)
+                    })
+
+                })
+            })
 
             //]]>
         </script>
@@ -66,9 +61,9 @@
                 <input class="form-control sidebar-list-filter" id="listSearch" type="text" placeholder="filter..." data-bs-target="#instList"/>
             </div>
             <div class="list-group" id="instList">
-                <a class="list-group-item list-group-item-action flexbox ${class_if(inst.id==actualinstrument.id, 'active')}"
+                <a class="list-group-item list-group-item-action flexbox ${class_if(inst.id==(actualinstrument and actualinstrument.id), 'active')}"
                    py:for="inst in instruments"
-                   href="${f'{conf.root_url}/instrument/{inst.id}'}">
+                   href="${conf.url('instrument', inst.id)}">
                     <span>${inst}</span>
                     <span><i class="fas fa-thermometer-half" /></span>
                 </a>
@@ -78,8 +73,16 @@
     </py:block>
     <py:block name="content">
         <div class="container">
+            <div class="list-group" py:if="actualinstrument is None">
+                <a class="list-group-item list-group-item-action flexbox"
+                   py:for="inst in instruments"
+                   href="${conf.url('instrument', inst.id)}">
+                    <span>${inst}</span>
+                    <span><i class="fas fa-thermometer-half" /></span>
+                </a>
+            </div>
             <div class="container" py:if="actualinstrument" py:with="inst_act=actualinstrument">
-                <div id="description" py:if="inst_act">
+                <div id="description">
                     <div class="row mt-2 w-100">
                         <div class="container">
                             <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4" >
@@ -110,17 +113,11 @@
                     </div>
 
                 </div>
-                <div id="edit" class="container collapse border rounded px-4">
-                    <form action="${conf.root_url}/instrument/saveitem"
-                          method="post" py:if="is_member(Level.editor)"
-                    >
+                <div id="edit" class="container collapse border rounded px-4 ${class_if(not inst_act.name, 'show')}">
+                    <form action="" method="post" py:if="is_member(Level.editor)">
                         <div class="form-row mt-2">
                             <div class="form-group">
-                                <label for="">ID:</label>
-                                <input type="text" id="id" name="id" class="form-control" value="${inst_act.id}" readonly="readonly"/>
-                            </div>
-                            <div class="form-group">
-                                <label for="">Name:</label>
+                                <label for="name">Name:</label>
                                 <input type="text" id="name" name="name" class="form-control" value="${inst_act.name}" />
                             </div>
                         </div>
@@ -130,7 +127,7 @@
                                 <input type="text" id="sourcetype" name="sourcetype" class="form-control" value="${inst_act.sourcetype}" />
                             </div>
                             <div class="form-group">
-                                <label for="">Link to manual</label>
+                                <label for="manuallink">Link to manual</label>
                                 <input type="text" id="manuallink" name="manuallink" class="form-control" value="${inst_act.manuallink}"/>
                             </div>
                         </div>
@@ -152,39 +149,52 @@
                 </div>
                 <h2 class="border-bottom">Installations</h2>
                 <div id="installations" class="container">
-                    <h4>Add installation</h4>
-                    <div id="add-installation" class="input-group mb-2" py:if="is_member('editor')">
-                        <div class="input-group-prepend">
-                            <button py:if="is_member('editor')" onclick="addinstrument()" class="btn btn-outline-secondary">
-                                <i class="fas fa-plus"/>
-                            </button>
+                    <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#add-installation" aria-expanded="false" aria-controls="add-installation">
+                        add installation
+                    </button>
+                    <form class="container border py-4 collapse" id="add-installation" py:if="is_member('editor')">
+                        <input type="hidden" value="${actualinstrument.id}" id="instrumentid"/>
+                        <div class="form-group row" >
+                            <label class="col-lg-4" for="installationdate">Installation date</label>
+                            <div class="col-lg-8 ">
+                                <input type="date" class="form-control" id="installationdate" value="${datetime.today().strftime('%Y-%m-%d')}"
+                                       data-bs-toggle="tooltip"
+                                       title="When has the instrument been installed"
+                                />
+                            </div>
                         </div>
-                        <input type="date" class="form-control" id="installationdate" value="${formatdate()}"
-                               data-bs-toggle="tooltip"
-                               title="When has the instrument been installed"
-                        />
-                        <div class="input-group-prepend">
-                            <span class="input-group-text">
-                                <i class="fas fa-map-marker-alt"/>
-                            </span>
+                        <div class="form-group row" >
+                            <div class="col-lg-4">
+                                <label for="siteselect">Site</label>
+                            </div>
+                            <div class="col-lg-8 ">
+                                <select id="siteselect" class="form-control select2"
+                                        data-bs-toggle="tooltip"
+                                >
+                                    <option value="" disabled="disabled" selected="selected" >Please select a site</option>
+                                    <option py:for="site in sites" value="${site.id}">${site}</option>
+                                </select>
+                            </div>
                         </div>
-                        <select id="siteselect" class="form-control select2"
-                                data-bs-toggle="tooltip"
-                                title="Where has the instrument been installed"
-                        >
-                            <option disabled="disabled">select site...</option>
-                        </select>
-                        <div class="input-group-prepend">
-                            <span class="input-group-text"><i class="fas fa-comment-lines"/></span>
+                        <div class="form-group row">
+                            <div class="col-lg-4">
+                                <label for="instrument-comment">Comment</label>
+                            </div>
+                            <div class="col-lg-8">
+                                <input id="instrument-comment" class="form-control"/>
+                            </div>
                         </div>
-                        <input class="form-control" placeholder="installation comment"/>
-                    </div>
+                        <button id="add-instrument-button" class="btn btn-success">
+                            ok
+                        </button>
+                    </form>
+
                     <div class="input-group mb-2">
                     </div>
                     <h4>Current installation</h4>
                     <ul style="margin-top:0px;padding-top:0px;">
                         <li py:for="inst in actualinstrument.sites" >
-                            <div>
+                            <div class="flexbox">
                                 <a  href="${conf.root_url}/site/${inst.site.id}#instrumentlist"
                                     py:if="inst.active"
                                     py:content="'since %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
@@ -192,9 +202,9 @@
                                       py:content="'until %s: #%i (%s)' % (formatdate(inst.installdate),inst.site.id,inst.site.name)" />
                                 <a href="javascript:removeinstrument(${inst.id},${inst.site.id})"
                                    py:if="is_member('editor') and inst.active"
-                                   class="btn btn-outline-danger btn-sm"
+                                   class="btn btn-danger btn-sm ms-auto"
                                    title="remove installation" data-bs-toggle="tooltip"
-                                ><i class="fas fa-minus"/></a>
+                                ><i class="fas fa-trash"/></a>
 
                             </div>
                             <div py:content="inst.comment"/>

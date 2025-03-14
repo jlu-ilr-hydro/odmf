@@ -9,8 +9,6 @@ import datetime
 
 import cherrypy
 import pandas as pd
-import io
-from cherrypy.lib.static import serve_fileobj
 from traceback import format_exc as traceback
 from glob import glob
 import os.path as op
@@ -18,7 +16,7 @@ import typing
 
 from .. import lib as web
 from ... import db
-from ..auth import expose_for, Level
+from ..auth import expose_for, Level, users
 from io import BytesIO
 from ...db import projection as proj
 from ...config import conf
@@ -30,80 +28,66 @@ from ...config import conf
 class SitePage:
     url = conf.root_url + '/site/'
     @expose_for(Level.guest)
-    def index(self, siteid=None, error=''):
+    def index(self, siteid=None, **kwargs):
         """
         Shows the page for a single site.
         """
-        siteid = web.conv(int, siteid)
-        if not siteid:
-            return web.render('site-list.html', error=error)
+        error=''
+        if cherrypy.request.method == 'GET':
+            if not siteid:
+                return web.render('site/site-list.html', title='sites').render()
 
-        with db.session_scope() as session:
-
-            datasets = instruments = []
-            try:
+            with db.session_scope() as session:
+                datasets = []
                 instruments = session.query(db.Datasource).order_by(db.Datasource.name)
-                actualsite = session.get(db.Site, int(siteid))
-                if not actualsite:
-                    error = f'Site #{siteid} does not exist'
+
+                if siteid == 'new':
+                    actualsite = db.Site(id=db.newid(db.Site, session),
+                                         lon=web.conv(float, kwargs.get('lon')) or 8.55,
+                                         lat=web.conv(float, kwargs.get('lat')) or 50.5,
+                                         name=kwargs.get('name') or '<enter site name>')
+
                 else:
+                    actualsite = session.get(db.Site, int(siteid))
+                    if not actualsite:
+                        raise web.redirect(conf.url('site'), error=f'site {siteid} not found')
                     datasets = actualsite.datasets.join(db.ValueType).order_by(
                         db.ValueType.name, db.sql.desc(db.Dataset.end)
                     )
-            except:
-                error = traceback()
-                actualsite = None
-            return web.render('site.html', id=siteid, actualsite=actualsite, error=error,
-                              datasets=datasets, icons=self.geticons(), instruments=instruments
-                              ).render()
+                return web.render('site/site.html', actualsite=actualsite, error=error, title='site',
+                                  datasets=datasets, icons=self.geticons(), instruments=instruments, active=kwargs.get('active')
+                                  ).render()
+        elif cherrypy.request.method == 'POST':
+            if users.current.level >= Level.supervisor:
+                self.save(siteid, **kwargs)
+            elif siteid == 'new' and users.current.level >= Level.editor:
+                self.save(siteid, **kwargs)
+            else:
+                raise web.redirect(conf.url('site'), error=f'site {siteid} not editable for you')
 
-    @expose_for(Level.editor)
-    @web.method.get
-    def new(self, lat=None, lon=None, name=None, error=''):
-        with db.session_scope() as session:
-            datasets = instruments = []
-            try:
-                instruments = session.query(db.Datasource).order_by(db.Datasource.name)
-                actualsite = db.Site(id=db.newid(db.Site, session),
-                                     lon=web.conv(float, lon) or 8.55, lat=web.conv(float, lat) or 50.5,
-                                     name=name or '<enter site name>')
-            except:
-                error = traceback()
-                actualsite = None
 
-            return web.render('site.html', id=int(actualsite.id), actualsite=actualsite, error=error,
-                              datasets=datasets, icons=self.geticons(), instruments=instruments
-                              ).render()
 
-    @expose_for(Level.editor)
-    @web.method.post
     def save(self, siteid, lon=None, lat=None, name=None, height=None, icon=None, comment=None):
-        try:
-            siteid = web.conv(int, siteid)
-        except:
-            raise web.redirect(f'{self.url}/{siteid}', error=traceback())
-        with db.session_scope() as session:
-            try:
-                lon = web.conv(float, lon)
-                lat = web.conv(float, lat)
-                if lon > 180 or lat > 180:
-                    lat, lon = proj.UTMtoLL(23, lat, lon, conf.utm_zone)
-                if None in (lon, lat):
-                    raise web.redirect(f'../{siteid}', error='The site has no coordinates')
 
-                site = session.get(db.Site, siteid)
-                if not site:
-                    site = db.Site(id=siteid, lat=lat, lon=lon)
-                    session.add(site)
-                site.lat, site.lon = lat, lon
-                site.name = name or site.name
-                site.height = web.conv(float, height) or site.height
-                site.icon = icon or site.icon
-                site.comment = comment or site.comment
-            except Exception as e:
-                tb = traceback()
-                raise web.redirect(f'{self.url}/{siteid}', error=f'## {e}\n\n```{tb}```')
-        raise web.redirect(f'{self.url}/{siteid}')
+        with db.session_scope() as session:
+            lon = web.conv(float, lon)
+            lat = web.conv(float, lat)
+            if lon > 180 or lat > 180:
+                lat, lon = proj.UTMtoLL(23, lat, lon, conf.utm_zone)
+            if None in (lon, lat):
+                raise web.redirect(f'../{siteid}', error='The site has no coordinates')
+            site = session.get(db.Site, web.conv(int, siteid))
+            if not site:
+                site = db.Site(id=db.newid(db.Site, session), lat=lat, lon=lon, name=name)
+                session.add(site)
+                session.flush()
+            site.lat, site.lon = lat, lon
+            site.name = name
+            site.height = web.conv(float, height) or site.height
+            site.icon = icon
+            site.comment = comment
+            redirect = conf.url('site', site.id)
+        raise web.redirect(redirect, success='Site saved')
 
     @expose_for(Level.editor)
     @web.method.post
@@ -374,7 +358,7 @@ class SitePage:
             query = session.query(db.Site)
             if filter:
                 query = query.filter(sitefilter)
-            stream = web.render('sites.xml', sites=query.all(),
+            stream = web.render('site/sites.xml', sites=query.all(),
                                 actid=0, descriptor=SitePage.kml_description)
             return stream.render('xml')
 

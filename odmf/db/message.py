@@ -11,11 +11,10 @@ from sqlalchemy_json import NestedMutableJson
 from typing import Optional, List
 
 from ..config import conf
-from ..tools.mail import Mailer
+from ..tools.mail.mail import Mailer
 from .base import Base, newid
 from .person import Person
 
-from ..tools.migrate_db import new_column
 
 from logging import getLogger
 logger = getLogger(__name__)

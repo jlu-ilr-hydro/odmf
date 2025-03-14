@@ -87,10 +87,6 @@ def user():
     return __cp.request.login
 
 
-def not_external():
-    return not ("external" in __cp.url())
-
-
 def bool2js(b: bool) -> str:
     return str(b).lower()
 
@@ -102,3 +98,4 @@ def class_if(condition, class_name, else_class=''):
 
 def dnone_if(condition):
     return class_if(condition, 'd-none')
+

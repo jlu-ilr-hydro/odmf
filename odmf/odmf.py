@@ -170,11 +170,11 @@ def uri_tree(only_navigatable, level):
     Prints the tree of available resources of odmf
     """
     import yaml
-    from .webpage import Root
+    from .webpage.root import Root
     from .webpage.lib import Resource
     if not only_navigatable:
         level = None
-    res = Resource(Root()).create_tree(navigatable_for=level, recursive=True)
+    res = Resource('root', Root()).create_tree(navigatable_for=level, recursive=True)
     for r in res.walk():
         print(f'{r.uri}: {r.doc}')
 
