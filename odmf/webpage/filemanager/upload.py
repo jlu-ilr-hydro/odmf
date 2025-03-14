@@ -82,7 +82,7 @@ def check_access(mode: fa.Mode, dir: Path, no_raise=False):
     :return:
     """
     path = Path(dir)
-    if fa.check_directory(path, users.current) < mode:
+    if not path.islegal() or fa.check_directory(path, users.current) < mode:
         if no_raise:
             return False
         else:
@@ -469,6 +469,19 @@ class DownloadPage(object):
 
         with open(path.absolute, 'w') as f:
             f.write(text)
+    
+    @expose_for()
+    @web.method.post
+    def download_folder_as_zip(self, path):
+        import zipfile, io
+        path = Path(path)
+        check_access(fa.Mode.read, path)
+
+        if path.isdir():
+            zipstream = io.BytesIO()
+            with zipfile.ZipFile(zipstream, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                ...
+
 
     @expose_for()
     @web.method.post
