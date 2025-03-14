@@ -5,19 +5,6 @@
         <script>
             //<![CDATA[
 
-            $(() => {
-                $('#btn-delete').on('click', event => {
-                    $.ajax({type: 'DELETE', url: '.'})
-                        .fail(function(jqXHR, textStatus)  {
-                            $('#error').html(jqhxr.responseText)
-                            $('#error-row').removeClass('d-none')
-                        })
-                        .done(function(text) {
-                            location.href='${conf.url("job")}'
-                        })
-                })
-            })
-
             function reload(jobid) {
                 var params = {user:$('#filterresponsible').val(),
                     onlyactive:$('#filteractive').val(),
@@ -111,10 +98,6 @@
                             <div class="accordion-collapse collapse" id="edit-div">
                                 <div class="accordion-body">
                                     <div class="form-group row">
-                                        <label for="edit-id" class="col-form-label col-sm-4">ID:</label>
-                                        <input type="number"  id="edit-id" name="id" value="${job.id}" readonly="readonly" class="form-control col-sm-8"/>
-                                    </div>
-                                    <div class="form-group row">
                                         <label for="edit-type" class="col-form-label col-sm-4">type</label>
                                         <select  id="edit-type" name="type" class="col-sm form-control select2-tags" py:attrs="prop(readonly=not can_edit)">
                                             <option py:for="t in jobtypes"
@@ -124,7 +107,6 @@
                                             </option>
                                         </select>
                                     </div>
-
                                     <div class="form-group row">
                                         <label for="edit-name" class="col-form-label col-sm-4">Name:</label>
                                         <input type="text"  id="edit-name" name="name" value="${job.name}"
@@ -176,7 +158,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <div class="accordion-item">
                             <h4 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#logs-div" aria-expanded="true" aria-controls="edit-div">
@@ -271,7 +252,6 @@
                                 >
                                     <i class="fas fa-paper-plane"/> save &amp; update
                                 </button>
-
                                 <button  id="edit-savedone" name="save" value="done"
                                          type="submit"
                                          py:if="can_edit"
@@ -283,21 +263,16 @@
                                     <i class="fas fa-check" /> done
                                 </button>
                                 <a href="${conf.url('job','new', copy=job.id)}" class="btn btn-secondary me-1" id="btn-copy" role="button"><i class="fas fa-copy"/> copy</a>
-                                <button class="btn btn-danger me-1" id="btn-delete" role="button" py:if="job.author.username==user() or Level.my() >= Level.admin"><i class="fas fa-trash"/> delete</button>
-
-
+                                <button class="btn btn-danger me-1" name="save" value="delete"
+                                   id="btn-delete" role="button"
+                                   py:if="job.author.username==user() or Level.my() >= Level.admin">
+                                    <i class="fas fa-trash"/> delete
+                                </button>
                             </div>
-
                         </div>
-
-
-
                     </div>
                 </form>
-
             </div>
-
-
         </div>
     </py:block>
 

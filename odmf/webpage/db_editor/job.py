@@ -20,64 +20,62 @@ class JobPage:
     def index_post(self, jobid, **kwargs):
         """Save a job with new properties. Called by index POST"""
         error = msg = ''
-        try:
-            id = web.conv(int, kwargs.get('id'), '')
-        except (TypeError, ValueError):
-            error = 'The job id is not a number'
-        else:
-            with db. session_scope() as session:
-                job = session.get(db.Job, id)
-                if not job:
-                    job = db.Job(_author=web.user())
-                    session.add(job)
-                    session.flush()
-                    jobid=job.id
-                elif not self.can_edit(job):
-                    error = 'Only author and responsible person can edit a job'
-                    raise web.redirect(conf.url('job', job.id), error=error)
+        with db. session_scope() as session:
+            job = session.get(db.Job, web.conv(int, jobid))
+            if not job:
+                job = db.Job(_author=web.user())
+                session.add(job)
+                session.flush()
+            elif not self.can_edit(job):
+                error = 'Only author and responsible person can edit a job'
+                raise web.redirect(conf.url('job', job.id), error=error)
+            elif kwargs.get('save') == 'delete':
+                session.delete(job)
+                session.commit()
+                raise web.redirect(conf.url('job'))
 
-                if kwargs.get('due'):
-                    job.due = web.parsedate(kwargs['due'])
-                if job.due is None:
-                    raise web.redirect(conf.url('job', jobid), error='No due date')
-                job.name = kwargs.get('name')
-                job.description = kwargs.get('description')
-                job.responsible = session.query(
-                    db.Person).get(kwargs.get('responsible'))
-                job.link = kwargs.get('link')
-                job.duration = web.conv(int, kwargs.get('duration'))
-                job.repeat = web.conv(int, kwargs.get('repeat'))
-                job.type = kwargs.get('type')
+            if kwargs.get('due'):
+                job.due = web.parsedate(kwargs['due'])
+            if job.due is None:
+                raise web.redirect(conf.url('job', jobid), error='No due date')
+            job.name = kwargs.get('name')
+            job.description = kwargs.get('description')
+            job.responsible = session.query(
+                db.Person).get(kwargs.get('responsible'))
+            job.link = kwargs.get('link')
+            job.duration = web.conv(int, kwargs.get('duration'))
+            job.repeat = web.conv(int, kwargs.get('repeat'))
+            job.type = kwargs.get('type')
 
-                topics = web.to_list(kwargs.get('topics[]'))
-                msgwhen = web.to_list(kwargs.get('msgdates[]'))
+            topics = web.to_list(kwargs.get('topics[]'))
+            msgwhen = web.to_list(kwargs.get('msgdates[]'))
+            job.mailer = {
+                'topics': topics or None,
+                'when': [web.conv(int, s, s) for s in msgwhen] or None
+            }
 
-                job.mailer = {
-                    'topics': topics or None,
-                    'when': [web.conv(int, s, s) for s in msgwhen] or None
-                }
+            logsites = web.to_list(kwargs.get('sites[]'))
+            job.log = {
+                'sites': [web.conv(int, sid) for sid in logsites] or None,
+                'message' : kwargs.get('logmsg')
+            }
 
-                redirect = conf.url('job', jobid)
-                if kwargs['save'] == 'own':
-                    p_user = session.get(db.Person, web.user())
-                    job.author = p_user
-                    msg = f'{job.name} is now yours'
-                elif kwargs['save'] == 'done':
-                    job.make_done(users.current.name)
-                    msg = f'{job} is done'
-                    redirect = conf.url('job')
-                elif kwargs['save'] == 'send':
-                    cherrypy.session['new-message'] = job.as_message(web.user()).__jdict__()
-                    msg = f'{job} sents new message'
-                    redirect = conf.url('message')
-                else:
-                    msg = f'{job} saved'
+            if kwargs['save'] == 'own':
+                p_user = session.get(db.Person, web.user())
+                job.author = p_user
+                msg = f'{job.name} is now yours'
+            elif kwargs['save'] == 'done':
+                job.make_done(users.current.name)
+                msg = f'{job} is done'
+                redirect = conf.url('job')
+            elif kwargs['save'] == 'send':
+                cherrypy.session['new-message'] = job.as_message(web.user()).__jdict__()
+                msg = f'{job} sents new message'
+                redirect = conf.url('message')
+            else:
+                msg = f'{job} saved'
 
-                logsites = web.to_list(kwargs.get('sites[]'))
-                job.log = {
-                    'sites': [web.conv(int, sid) for sid in logsites] or None,
-                    'message' : kwargs.get('logmsg')
-                }
+            redirect = conf.url('job', job.id)
 
 
         raise web.redirect(redirect, error=error, success=msg)
@@ -125,7 +123,7 @@ class JobPage:
     def list_jobs(self, **kwargs):
         """Renders the job-list.html pagge"""
         with db.session_scope() as session:
-            jobtypes=session.query(db.Job.type).order_by(db.Job.type).distinct()
+            jobtypes=session.query(db.Job.type).order_by(db.Job.type).where(db.Job.type.isnot(None)).distinct()
             persons = set()
             sites = set()
             for j in session.query(db.Job):
@@ -152,16 +150,6 @@ class JobPage:
                 return self.list_jobs()
         elif cherrypy.request.method == 'POST':
             return self.index_post(jobid, **kwargs)
-        elif cherrypy.request.method == 'DELETE':
-            with db.session_scope() as session:
-                job = session.get(db.Job, jobid)
-                if not job:
-                    raise web.redirect(conf.url('job'), error=f'Job {jobid} not found')
-                if not (job._author == web.user() or Level.my() >= Level.admin):
-                    raise web.redirect(conf.url('job'), error=f'Job {jobid} is not yours')
-                success = f'{job} is deleted'
-                session.delete(job)
-            raise web.redirect(conf.url('job'), success=success)
 
     @expose_for(Level.logger)
     @web.method.post
