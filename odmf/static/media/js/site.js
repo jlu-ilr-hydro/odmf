@@ -86,11 +86,10 @@ $(function() {
         })
     });
     $('#add-instrument-button').on('click', e => {
-        $.post(odmf_ref('addinstrument'),
+        $.post('addinstrument',
             {
                 instrumentid:$('#instrumentselect').val(),
                 date:$('#installationdate').val(),
-                // siteid:$('#actualsite-input').val(),
                 comment:$('#instrument-comment').val(),
                 installationid:$(e.currentTarget).data('installation')
             }

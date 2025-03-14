@@ -121,7 +121,7 @@
                                py:content="f'{ds_act.valuetype.name} [{ds_act.valuetype.unit}]' if ds_act.valuetype else '?'"/>
                             <a class="d-block text-white text-right" href="${f'{conf.root_url}/site/{ds_act.site.id}' if ds_act.site else '#edit'}"
                                py:content="ds_act.site"/>
-                            <a class="d-block text-white text-right" href="${f'{conf.root_url}/person/{ds_act.measured_by.username}' if ds_act.measured_by else '#edit'}"
+                            <a class="d-block text-white text-right" href="${f'{conf.root_url}/user/{ds_act.measured_by.username}' if ds_act.measured_by else '#edit'}"
                                py:content="ds_act.measured_by"/>
                         </div>
                     </div>

@@ -1,54 +1,53 @@
+import cherrypy
 
+from ...config import conf
 from .. import lib as web
 from ..auth import Level, expose_for
-
 from ... import db
 
 from traceback import format_exc as traceback
 
 @web.show_in_nav_for(2, 'thermometer-half')
+@cherrypy.popargs('instid')
 class DatasourcePage:
 
     @expose_for(Level.guest)
-    def default(self, id='new'):
-        with db.session_scope() as session:
-            instruments = session.query(db.Datasource).order_by(db.Datasource.id)
-            error = ''
-            if id == 'new':
-                newid = db.newid(db.Datasource, session)
-                inst = db.Datasource(id=newid,
-                                     name='<Name>')
-            else:
-                try:
-                    inst = session.get(db.Datasource, int(id))
-                except:
-                    error = traceback()
-                    inst = None
+    def index(self, instid=None, **kwargs):
+        if cherrypy.request.method == 'GET':
+            with db.session_scope() as session:
+                instruments = db.sql.select(db.Datasource).order_by(db.Datasource.name)
+                if instid == 'new':
+                    instid = db.newid(db.Datasource, session)
+                    inst = db.Datasource(id=instid)
+                else:
+                    inst = session.get(db.Datasource, web.conv(int, instid))
+                sites = db.sql.select(db.Site).order_by(db.Site.id)
 
-            return web.render('dataset/instrument.html', instruments=instruments,
-                            actualinstrument=inst, error=error).render()
 
-    @expose_for(Level.editor)
-    def saveitem(self, **kwargs):
-        try:
-            id = web.conv(int, kwargs.get('id'), '')
-        except:
-            return web.render(error=traceback(), title='Datasource #%s' % kwargs.get('id'))
-        if 'save' in kwargs:
-            try:
-                with db.session_scope() as session:
-                    inst = session.get(db.Datasource, int(id))
-                    if not inst:
-                        inst = db.Datasource(id=id)
-                        session.add(inst)
-                    inst.name = kwargs.get('name')
-                    inst.sourcetype = kwargs.get('sourcetype')
-                    inst.comment = kwargs.get('comment')
-                    inst.manuallink = kwargs.get('manuallink')
-            except:
-                return web.render('empty.html', error=traceback(), title='valuetype #%s' % id
-                                  ).render()
-        raise web.redirect('./%s' % id)
+                return web.render(
+                    'dataset/instrument.html',
+                    instruments=session.scalars(instruments).all(),
+                    actualinstrument=inst,
+                    sites=session.scalars(sites),
+
+                ).render()
+
+        elif cherrypy.request.method == 'POST':
+            with db.session_scope() as session:
+                inst = session.get(db.Datasource, web.conv(int, instid))
+                if inst is None:
+                    inst = db.Datasource()
+                    session.add(inst)
+                    session.flush()
+
+                inst.name = kwargs.get('name')
+                inst.sourcetype = kwargs.get('sourcetype')
+                inst.comment = kwargs.get('comment')
+                inst.manuallink = kwargs.get('manuallink')
+
+                redirect = conf.url('instrument', inst.id)
+            raise web.redirect(redirect, success='Instrument saved')
+
 
     @expose_for()
     @web.mime.json

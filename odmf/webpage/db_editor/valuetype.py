@@ -18,7 +18,7 @@ class VTPage:
             with db.session_scope() as session:
                 valuetypes = session.query(
                     db.ValueType).order_by(db.ValueType.id).all()
-                error = ''
+
                 if vt_id == 'new':
                     id = db.newid(db.ValueType, session)
                     vt = db.ValueType(id=id)

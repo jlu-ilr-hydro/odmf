@@ -34,7 +34,7 @@
     <py:block name="content">
         <div class="container">
             <div class="list-group" py:if="not actualvaluetype">
-                <a class="list-group-item list-group-item-action flexbox ${class_if(v ==actualvaluetype, 'active')}"
+                <a class="list-group-item list-group-item-action flexbox"
                    py:for="v in valuetypes"
                    href="${f'{conf.root_url}/valuetype/{v.id}'}">
                     <span>${v}</span>
