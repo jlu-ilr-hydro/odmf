@@ -91,28 +91,36 @@
                     sites
                 </div>
             </div>
-            <div class="container collapse" id="import">
-                <h1>Import sites</h1>
-                <div class="alert alert-danger ">
-                    Importing sites is not implemented yet. You can upload tabular data (csv, excel, parquet) or
-                    geojson files into the filemanager and ask a site administrator to create sites using
-                    the programming interface. Note the hints below, though.
-                </div>
+            <div class="container collapse border rounded bg-light p-2 mb-4" id="import">
+                <h3>Import sites</h3>
                 <hr/>
-                <h2>Import tabular data</h2>
-                <div class="alert alert-warning">
+                <h4>Import tabular data</h4>
+                <div>
                     When you import sites, note that the tabular data <strong>must</strong> have the columns
                     <code>name, lat, long</code>. Optionally the column names <code>height, icon, comment</code>
                     are used.
                 </div>
-                <h2>Import geojson data</h2>
-                <div class="alert alert-warning">
+                <h4>Import geojson data</h4>
+                <div>
                     If you are importing geospatial data in geojson form, the projection
-                    of the data <strong>must</strong> be geographical with WGS84 ellipsoid (EPSG:4326). Each feature
+                    of the data <strong>must</strong> be given and translatable in WGS84 (EPSG:4326). Each feature
                     <strong>must</strong> have a <code>name</code> property. Optionally property names <code>height, icon, comment</code>
-                    are used. GeoJSON files can be created with QGIS from most geospatial data, tutorials are simple to find with
+                    are used to describe the site and <code>strokewidth, strokecolor, strokeopacity, fillcolor, fillopacity</code>
+                    can be given for the appearance of the geometry. GeoJSON files can be created with QGIS from most geospatial data, tutorials are simple to find with
                     common search machines, like this one: <a href="https://support.tygron.com/wiki/How_to_create_a_GeoJSON_in_QGIS">How_to_create_a_GeoJSON_in_QGIS</a>
                 </div>
+                <form method="post" action="bulkimport">
+                    <div class="row mt-3">
+                        <label for="file" class="col-sm-3 col-form-label" >Site file:</label>
+                        <div class="col-sm-8">
+                            <input type="file" class="custom-file-input form-control" 
+                                    name="sitefile" id="file" accept=".xlsx,.geojson,.csv,.parquet"/>
+                        </div>
+                        <div class="col-sm-1">
+                            <button type="submit" class="btn btn-success"><i class="fas fa-check"/></button>
+                        </div>
+                    </div>
+                </form>
             </div>
             <ul class="nav bg-light p-1 border mb-1 w-100">
                 <li class="nav-item my-auto mx-3">
@@ -134,10 +142,10 @@
                 </li>
                 <li class="nav-item ms-1">
                     <a href="#import" id="toggleimport"  data-bs-toggle="collapse"
-                       class="btn btn-secondary dropdown-toggle"
+                       class="btn btn-secondary"
                        aria-haspopup="true" aria-expanded="false"
                     >
-                        <i class="fas fa-file-import"/> import
+                        <i class="fas fa-file-import"/> import <i class="fas fa-caret-up"/>
                     </a>
 
                 </li>

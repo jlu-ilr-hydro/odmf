@@ -424,3 +424,29 @@ class SitePage:
             dataframe = pd.read_sql(q.statement, session.bind)
             name = f'sites-{datetime.datetime.now():%Y-%m-%d}'
             return serve_dataframe(dataframe, f'{name}.{format}')
+
+
+    @expose_for(Level.admin)
+    @web.method.post
+    def bulkimport(self, sitefile):
+        """
+        Creates sites in bulk from a table data source
+        """
+        from ...tools.import_objects import import_sites_from_stream, ObjectImportError
+
+        with db.session_scope() as session:
+            try:
+                sites = import_sites_from_stream(session, sitefile.filename, sitefile.file)
+            except ObjectImportError as e:
+                raise web.redirect(conf.url('site'), error=str(e))
+            cherrypy.session.setdefault('undo', []).append(
+                {
+                    'type': 'site-import', 
+                    'sites': sites, 
+                    'time': datetime.datetime.now(), 
+                    'user': web.user()
+                 }
+            )
+    
+        raise web.redirect(conf.url('site'), success=f'Added {len(sites)} sites site:{min(sites)} - site:{max(sites)} ')
+
