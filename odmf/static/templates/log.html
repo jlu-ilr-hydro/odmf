@@ -41,7 +41,7 @@
                                 <a class="fs-2 list-group-item list-group-item-action" href="${conf.url('user', actuallog.user.username)}">
                                     <i class="fas fa-user me-2"/>${actuallog.user}
                                 </a>
-                                <a class="fs-2 list-group-item list-group-item-action" href="${conf.url('site', actuallog.site.id, '#messagelist')}" py:if="actuallog.site">
+                                <a class="fs-2 list-group-item list-group-item-action" href="${conf.url('site', actuallog.site.id, '#logbook')}" py:if="actuallog.site">
                                     <img src="${conf.root_url}/media/mapicons/${actuallog.site.icon or 'unknown.png'}"/>
                                     ${actuallog.site}
                                 </a>
