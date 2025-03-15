@@ -1,5 +1,5 @@
 """
-This module provides functions to import database objects from tabular data.
+This module provides functions to bulk import database objects from tabular data.
 
 Mainly for sites and datasets, but eventually more like Users, Instruments, etc.
 """
@@ -12,12 +12,44 @@ from shapely import to_geojson
 from .. import db
 from io import BytesIO
 import warnings
+from dataclasses import dataclass, asdict
+from datetime import datetime
 
 class ObjectImportError(Exception):
     ...
 
+@dataclass
+class ObjectImportReport:
+    """
+    This class contains information about a bulk import action and can undo that action
+    """
+    name: str
+    tablename: str
+    keyname: str
+    keys: typing.List[str|int]
+    time: datetime
+
+    def undo(self, session: db.sql.Session):
+        tables = db.Base.metadata.tables
+        table = tables[self.tablename]
+        column = table.c[self.keyname]
+        stmt = db.sql.delete(table).where(column.in_(self.keys))
+        result = session.execute(stmt)
+        return result.rowcount
+    
+    def asdict(self):
+        return asdict(self)
+    
+    @classmethod
+    def fromdict(cls, data):
+        return cls(**data)
+
+
 
 def read_df_from_stream(filename: str, stream: typing.BinaryIO) -> pd.DataFrame:
+    """
+    Reads a dataframe from a stream, either in .xlsx, .csv or .parquet
+    """
     if filename.endswith('.xlsx'):
         return pd.read_excel(stream)
     elif filename.endswith('.csv'):
@@ -29,6 +61,9 @@ def read_df_from_stream(filename: str, stream: typing.BinaryIO) -> pd.DataFrame:
 
 
 def import_sites_from_stream(session: db.Session, filename: str, stream: typing.BinaryIO) -> typing.List[int]:
+    """
+    Imports sites from a stream containing tabular data
+    """
     if filename.endswith('.geojson'):
         df = gpd.read_file(stream)
         with warnings.catch_warnings():
@@ -40,8 +75,8 @@ def import_sites_from_stream(session: db.Session, filename: str, stream: typing.
     else:
         df = read_df_from_stream(filename, stream)
 
-    return import_sites_from_dataframe(session, df)
-
+    site_ids = import_sites_from_dataframe(session, df)
+    return ObjectImportReport(f'Bulk site import from {filename}', 'site', 'id', site_ids, datetime.now())
 
 def import_sites_from_dataframe(session, df: pd.DataFrame) -> typing.List[int]:
     """
@@ -92,11 +127,11 @@ def import_sites_from_dataframe(session, df: pd.DataFrame) -> typing.List[int]:
             df_geo[f] = df.get(f)
 
         df_geo.to_sql('site_geometry', session.connection(), if_exists='append', index=False)
-
+    
     return list(df['id'])
 
 
-def import_datasets_from_df(session: db.Session, df: pd.DataFrame) -> typing.List[db.Dataset]:
+def import_datasets_from_df(session: db.sql.Session, df: pd.DataFrame) -> typing.List[db.Dataset]:
     """
     Imports datasets from a table, perform various checks
     """

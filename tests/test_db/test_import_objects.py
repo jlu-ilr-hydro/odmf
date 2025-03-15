@@ -16,12 +16,12 @@ def as_polygon(lon: float, lat: float):
 
 @pytest.fixture
 def site_table():
-    def make_table_stream(format: str, *excluded_columns):
-        n= 10
+    def make_table_stream(format: str, *excluded_columns, n=10):
+        
         lat = np.random.uniform(50, 51, n)
-        lon = np.random.uniform(50, 51, n)
+        lon = np.random.uniform(8, 9, n)
         if format == 'geojson':
-            df = gpd.GeoDataFrame(geometry=[as_polygon(x, y) for x, y in zip(lon, lat)])
+            df = gpd.GeoDataFrame(geometry=[as_polygon(x, y) for x, y in zip(lon, lat)], crs='epsg:4326')
         else:
             df = pd.DataFrame(index=pd.RangeIndex(0, n))
         df['id'] = df.index
