@@ -13,6 +13,8 @@ from traceback import format_exc as traceback
 from glob import glob
 import os.path as op
 import typing
+import yaml
+from pathlib import Path
 
 from .. import lib as web
 from ... import db
@@ -27,6 +29,7 @@ from ...config import conf
 @cherrypy.popargs('siteid')
 class SitePage:
     url = conf.root_url + '/site/'
+    undo_path = Path(conf.home + '/sessions/undo')
     @expose_for(Level.guest)
     def index(self, siteid=None, **kwargs):
         """
@@ -54,9 +57,17 @@ class SitePage:
                     datasets = actualsite.datasets.join(db.ValueType).order_by(
                         db.ValueType.name, db.sql.desc(db.Dataset.end)
                     )
-                return web.render('site/site.html', actualsite=actualsite, error=error, title='site',
-                                  datasets=datasets, icons=self.geticons(), instruments=instruments, active=kwargs.get('active')
-                                  ).render()
+
+                undo_files = [{'filename': p.name} | yaml.safe_load(p.open()) for p in self.undo_path.glob('site-*.undo')]
+
+                return web.render(
+                    'site/site.html', actualsite=actualsite,
+                    error=error, title='site',
+                    datasets=datasets, icons=self.geticons(),
+                    instruments=instruments, active=kwargs.get('active'),
+                    undo_files=undo_files,
+                ).render()
+
         elif cherrypy.request.method == 'POST':
             if users.current.level >= Level.supervisor:
                 self.save(siteid, **kwargs)
@@ -428,16 +439,39 @@ class SitePage:
 
     @expose_for(Level.admin)
     @web.method.post
-    def bulkimport(self, sitefile):
+    def bulk_import(self, sitefile=None):
         """
         Creates sites in bulk from a table data source
         """
         from ...tools.import_objects import import_sites_from_stream, ObjectImportError
+        path = Path(self.undo_path)
         with db.session_scope() as session:
             try:
-                sites = import_sites_from_stream(session, sitefile.filename, sitefile.file)
+                result = import_sites_from_stream(session, sitefile.filename, sitefile.file)
             except ObjectImportError as e:
                 raise web.redirect(conf.url('site'), error=str(e))
-    
-        raise web.redirect(conf.url('site'), success=f'Added {len(sites)} sites site:{min(sites)} - site:{max(sites)} ')
+        result.user = web.user()
+
+        path.mkdir(parents=True, exist_ok=True)
+        with (self.undo_path / (str(result) + '.undo')).open('w') as f:
+            yaml.safe_dump(result, stream=f)
+        raise web.redirect(conf.url('site'), success=f'Added {len(result.keys)} sites site:{min(result.keys)} - site:{max(result.keys)} ')
+
+
+
+    @expose_for(Level.admin)
+    @web.method.post
+    def bulk_undo(self, undofile):
+        from ...tools.import_objects import ObjectImportReport
+
+        with (self.undo_path / undofile).open() as f:
+            data = yaml.safe_load(f)
+        result = ObjectImportReport(**data)
+        with db.session_scope() as session:
+            result.undo(session)
+        (self.undo_path / undofile).unlink()
+        raise web.redirect(conf.url('site'), success=f'Removed {len(result.keys)} sites site:{min(result.keys)} - site:{max(result.keys)} ')
+
+
+
 

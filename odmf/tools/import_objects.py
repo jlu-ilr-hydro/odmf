@@ -10,7 +10,7 @@ import pandas as pd
 import geopandas as gpd
 from shapely import to_geojson
 from .. import db
-from io import BytesIO
+from sqlalchemy import MetaData
 import warnings
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -28,14 +28,23 @@ class ObjectImportReport:
     keyname: str
     keys: typing.List[str|int]
     time: datetime
+    user: str = None
 
-    def undo(self, session: db.sql.Session):
-        tables = db.Base.metadata.tables
-        table = tables[self.tablename]
+    def undo(self, session: db.orm.Session):
+        metadata = MetaData()
+        metadata.reflect(bind=db.engine)
+        table = metadata.tables[self.tablename]
         column = table.c[self.keyname]
         stmt = db.sql.delete(table).where(column.in_(self.keys))
         result = session.execute(stmt)
-        return result.rowcount
+        n = result.rowcount
+        if self.tablename == 'site':
+            table = metadata.tables[self.tablename + '_geometry']
+            column = table.c[self.keyname]
+            stmt = db.sql.delete(table).where(column.in_(self.keys))
+            session.execute(stmt)
+
+        return n
     
     def asdict(self):
         return asdict(self)
@@ -43,7 +52,8 @@ class ObjectImportReport:
     @classmethod
     def fromdict(cls, data):
         return cls(**data)
-
+    def __str__(self):
+        return f'{self.tablename}-{self.user}-{self.time:%Y%m%d%H%M%S}'
 
 
 def read_df_from_stream(filename: str, stream: typing.BinaryIO) -> pd.DataFrame:
@@ -60,7 +70,7 @@ def read_df_from_stream(filename: str, stream: typing.BinaryIO) -> pd.DataFrame:
         raise ObjectImportError(f'{filename} is not a supported file type')
 
 
-def import_sites_from_stream(session: db.Session, filename: str, stream: typing.BinaryIO) -> typing.List[int]:
+def import_sites_from_stream(session: db.orm.Session, filename: str, stream: typing.BinaryIO) -> ObjectImportReport:
     """
     Imports sites from a stream containing tabular data
     """
@@ -78,9 +88,9 @@ def import_sites_from_stream(session: db.Session, filename: str, stream: typing.
     site_ids = import_sites_from_dataframe(session, df)
     return ObjectImportReport(f'Bulk site import from {filename}', 'site', 'id', site_ids, datetime.now())
 
-def import_sites_from_dataframe(session, df: pd.DataFrame) -> typing.List[int]:
+def import_sites_from_dataframe(session: db.orm.Session, df: pd.DataFrame) -> typing.List[int]:
     """
-    Imports sites from a pnadas DataFrame or a GeoDataFrame.
+    Imports sites from a pandas DataFrame or a GeoDataFrame.
 
     The input table needs to have a name column. If the table
     has no geometry column, the table needs to have a lat and lon column.
@@ -131,7 +141,7 @@ def import_sites_from_dataframe(session, df: pd.DataFrame) -> typing.List[int]:
     return list(df['id'])
 
 
-def import_datasets_from_df(session: db.sql.Session, df: pd.DataFrame) -> typing.List[db.Dataset]:
+def import_datasets_from_df(session: db.orm.Session, df: pd.DataFrame) -> typing.List[db.Dataset]:
     """
     Imports datasets from a table, perform various checks
     """

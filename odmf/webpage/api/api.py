@@ -75,7 +75,6 @@ class API(BaseAPI):
             raise web.APIError(400, f"'{fn}' is not legal")
         elif fn.exists() and not (overwrite or append):
             raise web.APIError(400, f"'{fn}' exists already and overwrite is not allowed, set overwrite")
-        from pathlib import Path as PyPath
         data = cherrypy.request.body.read()
         if append and fn.exists():
             with fn.to_pythonpath().open('ab') as f:

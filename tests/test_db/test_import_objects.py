@@ -56,7 +56,7 @@ def site_table():
 
     return make_table_stream
 
-fmts = ['xlsx', 'geojson', 'csv', 'parquet']
+fmts = ['xlsx',  'csv', 'parquet', 'geojson']
 site_table_params = (
     [[fmt, []] for fmt in fmts] +
     [[fmt, ['id']] for fmt in fmts] +
@@ -68,10 +68,12 @@ site_table_params = (
 def test_site_table(format, excluded_columns, db, session, site_table):
 
         fn, buffer = site_table(format, *excluded_columns)
-        site_ids = impo.import_sites_from_stream(session, fn, buffer)
+        report = impo.import_sites_from_stream(session, fn, buffer)
+        assert report.keyname == 'id'
+        assert report.tablename == 'site'
         session.commit()
-        sites = session.scalars(db.sql.select(db.Site).where(db.Site.id.in_(site_ids))).all()
-        assert len(sites) == len(site_ids)
+        sites = session.scalars(db.sql.select(db.Site).where(db.Site.id.in_(report.keys))).all()
+        assert len(sites) == len(report.keys)
         assert all(s.comment == format + '|' + '|'.join(excluded_columns) for s in sites)
 
 site_table_params_fail = (
@@ -86,6 +88,35 @@ def test_site_table_fail(format, excluded_columns, db, session, site_table):
     fn, buffer = site_table(format, *excluded_columns)
     with pytest.raises(impo.ObjectImportError, match=r'.*'):
         impo.import_sites_from_stream(session, fn, buffer)
+
+@pytest.mark.parametrize('format', fmts)
+def test_site_table_undo(format, db, site_table):
+    fn, buffer = site_table(format, 'id')
+    with db.session_scope() as sess:
+        report = impo.import_sites_from_stream(sess, fn, buffer)
+        assert report.keyname == 'id'
+        assert report.tablename == 'site'
+
+    report_dict = report.asdict()
+
+    report = impo.ObjectImportReport(**report_dict)
+
+    with db.session_scope() as sess:
+        sites = sess.scalars(db.sql.select(db.Site).where(db.Site.id.in_(report.keys))).all()
+        assert len(sites) == len(report.keys)
+        if format == 'geojson':
+            sgeo = pd.read_sql_table('site_geometry', sess.connection())
+            assert len(sgeo[sgeo.id.isin(report.keys)]) == len(report.keys)
+
+    with db.session_scope() as sess:
+        report.undo(sess)
+
+    with db.session_scope() as sess:
+        sites = sess.scalars(db.sql.select(db.Site).where(db.Site.id.in_(report.keys))).all()
+        assert len(sites) == 0
+        if format == 'geojson':
+            sgeo = pd.read_sql_table('site_geometry', sess.connection())
+            assert len(sgeo[sgeo.id.isin(report.keys)]) == 0
 
 
 
