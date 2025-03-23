@@ -9,6 +9,9 @@ import typing
 import pandas as pd
 import geopandas as gpd
 from shapely import to_geojson
+from pathlib import Path
+import yaml
+
 from .. import db
 from sqlalchemy import MetaData
 import warnings
@@ -49,11 +52,36 @@ class ObjectImportReport:
     def asdict(self):
         return asdict(self)
     
-    @classmethod
-    def fromdict(cls, data):
-        return cls(**data)
     def __str__(self):
-        return f'{self.tablename}-{self.user}-{self.time:%Y%m%d%H%M%S}'
+        return f'{self.tablename}-{self.user}-{self.time:%Y-%m-%d-%H-%M}'
+    
+    def filename(self):
+        return self.name + '.undo'
+    
+    def save(self, path: Path):
+        """
+        Saves the result as yaml file in path/tablename-user-2025-03-18-12-10.undo
+
+        path: PAth to directory. The filename is derived from self        
+        """
+        with (path / self.filename).open('w') as f:
+            yaml.safe_dump(self, f)
+
+def load_undo_file(path: Path):
+    """
+    Loads an undo file from the given path. The path should contain the whole filename
+    """
+    with path.open() as f:
+        data = yaml.safe_load(f)
+        return ObjectImportReport(**data)
+
+def list_undo_files(path: Path, tablename: str='*', user:str='*') -> typing.List[Path]:
+    """
+    Returns the .undo files in the directory, filtered by tablename and user
+    """
+    glob = f'{tablename}-{user}-*.undo'
+    return list(path.glob(glob))
+
 
 
 def read_df_from_stream(filename: str, stream: typing.BinaryIO) -> pd.DataFrame:

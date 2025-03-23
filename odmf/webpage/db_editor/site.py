@@ -22,6 +22,7 @@ from ..auth import expose_for, Level, users
 from io import BytesIO
 from ...db import projection as proj
 from ...config import conf
+from ...tools import import_objects as impo
 
 
 @web.expose
@@ -38,7 +39,8 @@ class SitePage:
         error=''
         if cherrypy.request.method == 'GET':
             if not siteid:
-                return web.render('site/site-list.html', title='sites').render()
+                undo_files = impo.list_undo_files(self.undo_path, 'site', web.user())
+                return web.render('site/site-list.html', title='sites', undo_files=undo_files).render()
 
             with db.session_scope() as session:
                 datasets = []
@@ -58,14 +60,12 @@ class SitePage:
                         db.ValueType.name, db.sql.desc(db.Dataset.end)
                     )
 
-                undo_files = [{'filename': p.name} | yaml.safe_load(p.open()) for p in self.undo_path.glob('site-*.undo')]
 
                 return web.render(
                     'site/site.html', actualsite=actualsite,
                     error=error, title='site',
                     datasets=datasets, icons=self.geticons(),
                     instruments=instruments, active=kwargs.get('active'),
-                    undo_files=undo_files,
                 ).render()
 
         elif cherrypy.request.method == 'POST':
@@ -437,13 +437,12 @@ class SitePage:
             return serve_dataframe(dataframe, f'{name}.{format}')
 
 
-    @expose_for(Level.admin)
+    @expose_for(Level.supervisor)
     @web.method.post
     def bulk_import(self, sitefile=None):
         """
         Creates sites in bulk from a table data source
         """
-        from ...tools.import_objects import import_sites_from_stream, ObjectImportError
         path = Path(self.undo_path)
         with db.session_scope() as session:
             try:
@@ -459,14 +458,13 @@ class SitePage:
 
 
 
-    @expose_for(Level.admin)
+    @expose_for(Level.supervisor)
     @web.method.post
     def bulk_undo(self, undofile):
-        from ...tools.import_objects import ObjectImportReport
 
         with (self.undo_path / undofile).open() as f:
             data = yaml.safe_load(f)
-        result = ObjectImportReport(**data)
+        result = impo.ObjectImportReport(**data)
         with db.session_scope() as session:
             result.undo(session)
         (self.undo_path / undofile).unlink()

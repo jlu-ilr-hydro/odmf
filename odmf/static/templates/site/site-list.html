@@ -97,7 +97,8 @@
                 <h4>Import tabular data</h4>
                 <div>
                     When you import sites, note that the tabular data <strong>must</strong> have the columns
-                    <code>name, lat, long</code>. Optionally the column names <code>height, icon, comment</code>
+                    <code>name, lat, lon</code>. Lat and lon are the geographic coordinates on a WGS84 reference ellipsoid. 
+                    Optionally the column names <code>height, icon, comment</code>
                     are used.
                 </div>
                 <h4>Import geojson data</h4>
@@ -109,7 +110,10 @@
                     can be given for the appearance of the geometry. GeoJSON files can be created with QGIS from most geospatial data, tutorials are simple to find with
                     common search machines, like this one: <a href="https://support.tygron.com/wiki/How_to_create_a_GeoJSON_in_QGIS">How_to_create_a_GeoJSON_in_QGIS</a>
                 </div>
-                <form method="post" action="bulkimport/" enctype="multipart/form-data">
+                <div py:if="not is_member(Level.supervisor)" class="alert alert-warning">
+                    For bulk import of sites you need to have have ${Level.supervisor.name} level. 
+                </div>
+                <form method="post" action="bulk_import/" enctype="multipart/form-data"  py:if="is_member(Level.supervisor)">
                     <div class="row mt-3">
                         <label for="file" class="col-sm-3 col-form-label" >Site file:</label>
                         <div class="col-sm-8">
@@ -118,6 +122,19 @@
                         </div>
                         <div class="col-sm-1">
                             <button type="submit" class="btn btn-success"><i class="fas fa-check"/></button>
+                        </div>
+                    </div>
+                </form>
+                
+                <form method="post" action="bulk_undo" py:if="is_member(Level.supervisor) and undo_files">
+                    <hr/>
+                    <h4>Undo your former site imports</h4>
+                    <div class="alert alert-warning">You can only undo a bulk import, if no other object references the new sites, like datasets</div>
+                    <div class="list-group">
+                        <div py:for="undofile in undo_files" class="list-group-item list-group-item-action">
+                            <button type="submit" class="btn btn-danger" name="undofile" value="${undofile.name}">
+                                ${undofile.name}
+                            </button>    
                         </div>
                     </div>
                 </form>
