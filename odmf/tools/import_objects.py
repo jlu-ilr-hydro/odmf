@@ -155,7 +155,7 @@ def import_sites_from_dataframe(session: db.orm.Session, df: pd.DataFrame) -> ty
 
     newid = db.newid(db.Site, session)
     df['id'] = newid + df.index
-    df_site = df[['id', 'lat', 'lon', 'height', 'name', 'comment']]
+    df_site = df[['id', 'lat', 'lon', 'height', 'name', 'comment', 'icon']]
     df_site.to_sql('site', index=False, con=session.connection(), if_exists='append')
 
     if type(df) is gpd.GeoDataFrame:
