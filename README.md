@@ -16,6 +16,16 @@
 The concept was presented as a poster at the EGU GA 2017 (Vienna) by Kraft et al 
 [![DOI](https://img.shields.io/badge/doi-10.13140%2FRG.2.2.32891.54563-blue)](https://doi.org/10.13140/RG.2.2.32891.54563)
 
+# What is ODMF?
+
+ODMF is a web app with database to manage environmental observatories. It was created from a hydrological persperctive but current development aims at agro-environmental observatories. The system is under constant development.
+
+ODMF stores data from various sources in **datasets**, from manual measurements, lab results, continuous data providers like LoRa networks or uploaded files from field data loggers with its spatial location. The **file manager** stores user files as a shared folder. The **messenger** provides tools for planning field activity, setting alarm conditions (frost in the potato barn, no incoming data from a LoRa network, etc) and saving past activities at a site in a log book.
+
+![data-flow](graphics/data-flow.svg)
+
+The basic idea is to upload and import data early and do curation, quality control, meta data annotation, calibration and verification on the server - and not wait for the users to decide when their data is ready.
+
 # Installation
 
 ## Recommended installation in a docker-container
