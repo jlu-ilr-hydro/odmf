@@ -62,7 +62,7 @@
 
                 <div id="edit" py:if="actuallog"
                      class="collapse border rounded p-4 ${class_if(not (actuallog.site and actuallog.type), 'show')}">
-                    <form id="logform" action="${conf.root_url}/log/saveitem" method="post"
+                    <form id="logform" action="" method="post"
                           py:if="actuallog and is_member('logger')">
                         <input class="d-none" value="${actuallog.id}" name="id"/>
                         <div class="form-group row">
@@ -108,7 +108,7 @@
                         <button py:if="is_member('logger')" type="submit" name="save" class="btn btn-success">
                             <i class="fas fa-check me-2"/>save
                         </button>
-                        <button class="btn btn-danger" id="log-remove" data-id="${actuallog.id}">
+                        <button class="btn btn-danger hidden" id="log-remove" name="remove" type="submit" py:if="is_member('supervisor') and actuallog.id is not None">
                             <i class="fas fa-trash-can" /> remove log
                         </button>
 

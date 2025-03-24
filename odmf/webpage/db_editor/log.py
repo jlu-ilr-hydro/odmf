@@ -5,7 +5,6 @@ from ..auth import Level, expose_for
 from ...config import conf
 from ... import db
 
-from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 
 
@@ -69,97 +68,78 @@ class LogPage:
                 limit=limit,
             ).render()
 
+    @staticmethod
+    def save(session, logid, **kwargs):
+        log = session.get(db.Log, logid)
+        if not log:
+            log = db.Log(id=logid)
+            session.add(log)
+            session.flush()
+        if kwargs.get('date'):
+            log.time = web.parsedate(kwargs['date'])
+        log.message = kwargs.get('message')
+        log.user = session.get(db.Person, kwargs.get('user'))
+        log.site = session.get(db.Site, kwargs.get('site'))
+        log.type = kwargs.get('type')
+        return 'Saved log book item', log.id
+
+    @staticmethod
+    def remove(session, logid, **kwargs):
+        log = session.get(db.Log, logid)
+        if log:
+            session.delete(log)
+            session.commit()
+            return f'Removed log {logid}', '.'
+        else:
+            return None, logid
+
     @expose_for(Level.guest)
-    def index(self, logid=None, error='', **kwargs):
+    def index(self, logid=None, **kwargs):
         if cherrypy.request.method == 'GET':
             if not logid:
                 return self.index_list(**kwargs)
 
-        with db.session_scope() as session:
-            log = None
-            if logid is not None:
-                try:
-                    log = session.get(db.Log, int(logid))
-                except:
-                    error = traceback()
-            sitelist = session.query(db.Site).order_by(db.sql.asc(db.Site.id))
-            personlist = session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname)
-            typelist = db.sql.select(db.Log.type).where(db.Log.type.isnot(None)).distinct()
-
-            return web.render(
-                'log.html', actuallog=log, error=error,
-                types=sorted(session.scalars(typelist)),
-                sites=sitelist,
-                persons=personlist
-            ).render()
-
-    @expose_for(Level.logger)
-    @web.method.get
-    def new(self, siteid=None, type=None, message=None):
-        with db.session_scope() as session:
-            log = db.Log(id=db.newid(db.Log, session),
-                         message='<Log Message>', time=datetime.today())
-            user = web.user()
-            if user:
-                log.user = session.get(db.Person, user)
-            if siteid:
-                log.site = session.get(db.Site, int(siteid))
-            if type:
-                log.type = type
-            if message:
-                log.message = message
-            log.time = datetime.today()
-            sitelist = session.query(db.Site).order_by(db.sql.asc(db.Site.id))
-            personlist = session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname)
-            typelist = session.scalars(db.sql.select(db.Log.type).distinct())
-            return web.render(
-                'log.html', actuallog=log,
-                types=typelist,
-                sites=sitelist,
-                persons=personlist
-            ).render()
-
-
-    @expose_for(Level.logger)
-    @web.method.post_or_put
-    def saveitem(self, **kwargs):
-        try:
-            id = web.conv(int, kwargs.get('id'), '')
-        except:
-            raise web.redirect('./', error=str(kwargs)).render()
-        if 'save' in kwargs:
             with db.session_scope() as session:
-                try:
-                    log = session.get(db.Log, id)
-                    if not log:
-                        log = db.Log(id=id)
-                        session.add(log)
-                        session.flush()
-                    if kwargs.get('date'):
-                        log.time = web.parsedate(kwargs['date'])
-                    log.message = kwargs.get('message')
-                    log.user = session.get(db.Person, kwargs.get('user'))
-                    log.site = session.get(db.Site, kwargs.get('site'))
-                    log.type = kwargs.get('type')
-                except:
-                    raise web.redirect(
-                        conf.root_url + '/log/' + str(id),
-                        error=('\n'.join('%s: %s' % it for it in kwargs.items())) + '\n' + traceback(),
-                        title='Log #%s' % id
-                    )
-        elif 'new' in kwargs:
-            id = 'new'
-        raise web.redirect(conf.root_url + '/log/' + str(id))
+                if logid == 'new':
+                    log = self.make_new(session, **kwargs)
+                else:
+                    logid = web.conv(int, logid)
+                    log = session.get(db.Log, logid)
 
-    @expose_for(Level.supervisor)
-    @web.method.post_or_put
-    def remove(self, id):
-        with db.session_scope() as session:
-            log = session.get(db.Log, id)
-            if log:
-                session.delete(log)
-                session.commit()
-            raise web.redirect('.')
+                sitelist = session.query(db.Site).order_by(db.sql.asc(db.Site.id))
+                personlist = session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname)
+                typelist = db.sql.select(db.Log.type).where(db.Log.type.isnot(None)).distinct()
+
+                return web.render(
+                    'log.html', actuallog=log,
+                    types=sorted(session.scalars(typelist)),
+                    sites=sitelist,
+                    persons=personlist
+                ).render()
+
+        elif cherrypy.request.method == 'POST':
+            logid = web.conv(int, logid)
+            with db.session_scope() as session:
+                if 'save' in kwargs:
+                    success, logid = self.save(session, logid, **kwargs)
+                elif 'remove' in kwargs:
+                    success, logid = self.remove(session, logid, **kwargs)
+            raise web.redirect(conf.url('log', logid), success=success)
+    @staticmethod
+    def make_new(session, siteid=None, type=None, message=None, **kwargs):
+        log = db.Log(time=datetime.today())
+        user = web.user()
+        if user:
+            log.user = session.get(db.Person, user)
+        if siteid:
+            log.site = session.get(db.Site, int(siteid))
+        if type:
+            log.type = type
+        if message:
+            log.message = message
+        log.time = datetime.today()
+        return log
+
 
     @expose_for(Level.logger)
     @web.mime.json
@@ -179,7 +159,6 @@ class LogPage:
                 until = web.parsedate(until)
                 logs = logs.filter(db.Log.time <= until)
             if keywords:
-                # TODO: Implement pgsql full text search
                 keywords = keywords.strip().split(" ")
                 for keyword in keywords:
                     logs = logs.filter(db.Log.message.like("%%%s%%" % keyword))
@@ -193,24 +172,6 @@ class LogPage:
                 else:
                     old = datetime.today() - timedelta(days=days)
                 logs = logs.filter(db.Log.time >= old)
-
-            return web.json_out(logs.all())
-
-
-
-    @expose_for()
-    @web.mime.json
-    def data(self, siteid=None, user=None, old=None, until=None, days=None,
-             _=None):
-
-        with db.session_scope() as session:
-
-            logs = session.query(db.Log, db.Person)\
-                .filter(db.Log._user== db.Person.username)
-
-            if until:
-                until = web.parsedate(until)
-                logs = logs.filter(db.Log.time <= until)
 
             return web.json_out(logs.all())
 
