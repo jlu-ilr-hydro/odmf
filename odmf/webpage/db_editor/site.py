@@ -39,9 +39,13 @@ class SitePage:
         error=''
         if cherrypy.request.method == 'GET':
             if not siteid:
+                if users.current.level >= Level.admin:
+                    user = '*'
+                else:
+                    user = web.user()
                 undos = [
                     impo.load_undo_file(p) for p in
-                    reversed(impo.list_undo_files(self.undo_path, 'site', web.user()))
+                    reversed(impo.list_undo_files(self.undo_path, 'site', user))
                 ]
                 return web.render('site/site-list.html', title='sites', undos=undos).render()
 
