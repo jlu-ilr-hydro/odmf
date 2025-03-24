@@ -19,10 +19,11 @@ markdown = MarkDown()
 
 def load_text_file(path: Path) -> str:
     with open(path.absolute, 'rb') as f:
-        data = f.read()
+        # read max 1 MB text
+        data = f.read(1024 ** 2)
         for enc in 'utf-8', 'latin1', 'windows-1252', None:
             try:
-                    return data.decode(enc)
+                return data.decode(enc)
             except UnicodeDecodeError:
                 continue
         else:

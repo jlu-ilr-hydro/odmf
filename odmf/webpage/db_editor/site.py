@@ -39,8 +39,11 @@ class SitePage:
         error=''
         if cherrypy.request.method == 'GET':
             if not siteid:
-                undo_files = impo.list_undo_files(self.undo_path, 'site', web.user())
-                return web.render('site/site-list.html', title='sites', undo_files=undo_files).render()
+                undos = [
+                    impo.load_undo_file(p) for p in
+                    reversed(impo.list_undo_files(self.undo_path, 'site', web.user()))
+                ]
+                return web.render('site/site-list.html', title='sites', undos=undos).render()
 
             with db.session_scope() as session:
                 datasets = []
@@ -446,14 +449,13 @@ class SitePage:
         path = Path(self.undo_path)
         with db.session_scope() as session:
             try:
-                result = import_sites_from_stream(session, sitefile.filename, sitefile.file)
-            except ObjectImportError as e:
+                result = impo.import_sites_from_stream(session, sitefile.filename, sitefile.file)
+            except impo.ObjectImportError as e:
                 raise web.redirect(conf.url('site'), error=str(e))
         result.user = web.user()
 
         path.mkdir(parents=True, exist_ok=True)
-        with (self.undo_path / (str(result) + '.undo')).open('w') as f:
-            yaml.safe_dump(result, stream=f)
+        result.save(path)
         raise web.redirect(conf.url('site'), success=f'Added {len(result.keys)} sites site:{min(result.keys)} - site:{max(result.keys)} ')
 
 
@@ -461,10 +463,12 @@ class SitePage:
     @expose_for(Level.supervisor)
     @web.method.post
     def bulk_undo(self, undofile):
+        """
 
-        with (self.undo_path / undofile).open() as f:
-            data = yaml.safe_load(f)
-        result = impo.ObjectImportReport(**data)
+        :param undofile:
+        :return:
+        """
+        result = impo.load_undo_file(self.undo_path / undofile)
         with db.session_scope() as session:
             result.undo(session)
         (self.undo_path / undofile).unlink()

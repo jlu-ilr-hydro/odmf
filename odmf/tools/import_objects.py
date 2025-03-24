@@ -53,10 +53,10 @@ class ObjectImportReport:
         return asdict(self)
     
     def __str__(self):
-        return f'{self.tablename}-{self.user}-{self.time:%Y-%m-%d-%H-%M}'
+        return 'Undo: ' + self.name
     
     def filename(self):
-        return self.name + '.undo'
+        return f'{self.tablename}-{self.user}-{self.time:%Y-%m-%d-%H-%M}.undo'
     
     def save(self, path: Path):
         """
@@ -64,8 +64,10 @@ class ObjectImportReport:
 
         path: PAth to directory. The filename is derived from self        
         """
-        with (path / self.filename).open('w') as f:
-            yaml.safe_dump(self, f)
+        if not path.exists():
+            path.mkdir(parents=True)
+        with (path / self.filename()).open('w') as f:
+            yaml.safe_dump(self.asdict(), f)
 
 def load_undo_file(path: Path):
     """
@@ -81,7 +83,6 @@ def list_undo_files(path: Path, tablename: str='*', user:str='*') -> typing.List
     """
     glob = f'{tablename}-{user}-*.undo'
     return list(path.glob(glob))
-
 
 
 def read_df_from_stream(filename: str, stream: typing.BinaryIO) -> pd.DataFrame:
@@ -158,13 +159,15 @@ def import_sites_from_dataframe(session: db.orm.Session, df: pd.DataFrame) -> ty
     df_site.to_sql('site', index=False, con=session.connection(), if_exists='append')
 
     if type(df) is gpd.GeoDataFrame:
-        df_geo = pd.DataFrame(index=df.index)
-        df_geo['id'] = df['id']
-        df_geo['geojson'] = df.geometry.apply(to_geojson)
-        for f in ['strokewidth', 'strokecolor', 'strokeopacity', 'fillcolor', 'fillopacity']:
-            df_geo[f] = df.get(f)
+        df_non_point = df[df.geometry.type != 'Point']
+        if len(df_non_point) > 0:
+            df_geo = pd.DataFrame(index=df_non_point.index)
+            df_geo['id'] = df_non_point['id']
+            df_geo['geojson'] = df_non_point.geometry.apply(to_geojson)
+            for f in ['strokewidth', 'strokecolor', 'strokeopacity', 'fillcolor', 'fillopacity']:
+                df_geo[f] = df_non_point.get(f)
 
-        df_geo.to_sql('site_geometry', session.connection(), if_exists='append', index=False)
+            df_geo.to_sql('site_geometry', session.connection(), if_exists='append', index=False)
     
     return list(df['id'])
 
