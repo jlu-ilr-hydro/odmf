@@ -235,7 +235,7 @@ class PlotPage(object):
 
         plotname = plot.name or f'export-{datetime.now():%Y-%m-%d_%H-%M}'
 
-        return serve_dataframe(dataframe, f'{plotname}.{fileformat}')
+        return serve_dataframe(dataframe, f'{plotname}.{fileformat}', index_label='time')
 
     @expose_for(plotgroup)
     @web.method.post
