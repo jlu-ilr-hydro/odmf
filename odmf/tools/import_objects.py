@@ -21,6 +21,10 @@ from datetime import datetime
 class ObjectImportError(Exception):
     ...
 
+
+def dbcount(session, column: db.sql.Column, where):
+    return session.scalar(db.sql.select(db.sql.func.count(column)).where(where))
+
 @dataclass
 class ObjectImportReport:
     """
@@ -32,6 +36,7 @@ class ObjectImportReport:
     keys: typing.List[str|int]
     time: datetime
     user: str = None
+    warnings: typing.List[str] = None
 
     def undo(self, session: db.orm.Session):
         metadata = MetaData()
@@ -114,8 +119,13 @@ def import_sites_from_stream(session: db.orm.Session, filename: str, stream: typ
     else:
         df = read_df_from_stream(filename, stream)
 
-    site_ids = import_sites_from_dataframe(session, df)
-    return ObjectImportReport(f'Bulk site import from {filename}', 'site', 'id', site_ids, datetime.now())
+    site_ids, warn = import_sites_from_dataframe(session, df)
+    return ObjectImportReport(
+        name=f'Bulk site import from {filename}', #
+        tablename='site', keyname='id', 
+        keys=site_ids, time=datetime.now(),
+        warnings=warn
+    )
 
 def import_sites_from_dataframe(session: db.orm.Session, df: pd.DataFrame) -> typing.List[int]:
     """
@@ -141,7 +151,7 @@ def import_sites_from_dataframe(session: db.orm.Session, df: pd.DataFrame) -> ty
     :param stream: Byte stream containing data (file like object)
     :return: List of new site ids
     """
-
+    warnings = []
     # Check for required fields and raise exception if missing
     missing = [cname for cname in ['lat', 'lon', 'name'] if cname not in df.columns]
     if missing:
@@ -150,8 +160,12 @@ def import_sites_from_dataframe(session: db.orm.Session, df: pd.DataFrame) -> ty
     # Add optional fields
     if 'icon' not in df.columns:
         df['icon'] = 'unknown.png'
+        warnings.append('icon column missing, using default icon')
+    
     if 'height' not in df.columns:
         df['height'] = None
+        warnings.append('height column missing, using NULL height') 
+    
 
     newid = db.newid(db.Site, session)
     df['id'] = newid + df.index
@@ -169,15 +183,97 @@ def import_sites_from_dataframe(session: db.orm.Session, df: pd.DataFrame) -> ty
 
             df_geo.to_sql('site_geometry', session.connection(), if_exists='append', index=False)
     
-    return list(df['id'])
+    return list(df['id']), warnings
 
 
-def import_datasets_from_df(session: db.orm.Session, df: pd.DataFrame) -> typing.List[db.Dataset]:
+def import_datasets_from_stream(session: db.orm.Session, filename: str, stream: typing.BinaryIO, user: str) -> ObjectImportReport:
+    """
+    Imports sites from a stream containing tabular data
+    """
+    df = read_df_from_stream(filename, stream)
+
+    ds_ids, warnings = import_datasets_from_dataframe(session, df, user)
+    return ObjectImportReport(
+        name=f'Bulk dataset import from {filename}', 
+        tablename='dataset', 
+        keyname='id', 
+        keys=ds_ids, 
+        time=datetime.now(),
+        user=user,
+        warnings=warnings
+    )
+
+
+def import_datasets_from_dataframe(session: db.orm.Session, df: pd.DataFrame, user: str) -> typing.List[db.Dataset]:
     """
     Imports datasets from a table, perform various checks
     """
+    errors = []
+    warnings = []
 
-    raise ObjectImportError('Importing datasets is not implemented yet')
+    def check_column(cname, default=pd.NA):
+        c = db.Dataset.__table__.c[cname]
+        # Add missing column
+        if cname not in df.columns:
+            df[cname] = default
+            warnings.append(cname + ' added with default value ' + str(default))
+        else:
+            # Use default for NA values
+            na = pd.isna(df[cname])
+            df.loc[na, cname] = default
+            if na.any():
+                warnings.append(f'{na.sum()} NA values in {cname} replaced with default {default}')
+
+    def check_fkey(c):
+        """
+        Check foreign key constraints for a column, appends to errors and warnings
+        if the column has no foreign key, it is ignored
+        """
+        if c.name in df.columns:
+            for fkey in c.foreign_keys:
+                keys = [int(k) for k in df[c.name].unique()]
+                na_count = df[c.name].isna().sum()
+                if pd.isna(keys).sum():
+                    if c.nullable:
+                        keys = keys.drop(pd.NA)
+                        warnings.append(f'{c.name} column has {na_count} NA values')
+                    else:
+                        errors.append(f'{c.name} column has {na_count} NULL values')
+                n = dbcount(session, fkey.column, fkey.column.in_(keys))
+                if n < len(keys):
+                    errors.append(f'{len(keys) - n} {c.name}s not found in database')
+        elif c.nullable:
+            warnings.append(f'{c.name} column missing, no references')
+        else:
+            errors.append(f'{c.name} column missing')
+
+    
+    if 'name' not in df.columns:
+        warnings.append('name column missing')
+    
+    # Use check foreign keys and apply db defaults
+    for c in db.Dataset.__table__.c.values():
+        if c.foreign_keys:
+            check_fkey(c)
+        if c.default:
+            check_column(c.name, c.default.arg)
+    
+    # Set other useful defaults
+    check_column('start', datetime.now())
+    check_column('end', datetime.now())
+    check_column('measured_by', user)
+    check_column('type', 'timeseries')
+    check_column('source')
+    check_column('level')
+    check_column('comment')
+
+    if errors:
+        raise ObjectImportError('Importing datasets failed: ' + ', '.join(errors))
+    
+    df['id'] = db.newid(db.Dataset, session) + df.index
+    df.to_sql('dataset', session.connection(), if_exists='append', index=False)
+
+    return list(df['id']), warnings
 
 
 
