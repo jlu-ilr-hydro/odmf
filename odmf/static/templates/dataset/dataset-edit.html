@@ -21,15 +21,20 @@
     </py:block>
     <py:block name="sidebar">
         <!-- insert sidebar content -->
-        <div class="container-fluid">
-            <div class="">
-                <a href="${conf.root_url}/dataset/" class="btn btn-primary w-100 flexbox mb-1">
-                    <span><i class="fas fa-arrow-left me-1" /></span>
-                    <span>list</span>
-                    <span><i class="fas fa-list-ul me-1"/></span>
-                </a>
+        <div class="nav d-flex justify-content-center border p-1 mb-2">
+            <div class="nav-item mb-2">
+                <div class="btn-group" role="group">
+                    <a href="../${ds_act.id - 1}" class="btn btn-secondary me-1" py:attrs="disabled(ds_act.id == 1)" data-bs-toggle="tooltip" title="dataset:${ds_act.id - 1}">
+                        <i class="fas fa-caret-left"/>
+                    </a>
+                    <a href="../" class="btn btn-primary me-1" type="button" data-bs-toggle="tooltip" title="site list" >
+                        ...
+                    </a>
+                    <a href="../new#edit" class="btn btn-success me-1" data-bs-toggle="tooltip" title="New dataset"><i class="fas fa-plus"/></a>
+                    <a href="../${ds_act.id + 1}" class="btn btn-secondary" data-bs-toggle="tooltip" title="dataset:${ds_act.id + 1}"><i class="fas fa-caret-right"/></a>
+                </div>
             </div>
-            <div class="">
+            <div class="nav-item">
                 <div class="input-group ">
                     <div class="input-group-prepend" >
                         <button class="btn btn-secondary" id="gotods-btn"
@@ -42,7 +47,8 @@
                 </div>
 
             </div>
-            <hr/>
+        </div>
+        <div class="container-fluid mt-3">
             <div class="row">
                 <div class="col">
                     <div class="nav flex-column nav-pills" role="tablist"  aria-orientation="vertical" id="tabs">

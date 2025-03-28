@@ -39,15 +39,7 @@ class SitePage:
         error=''
         if cherrypy.request.method == 'GET':
             if not siteid:
-                if users.current.level >= Level.admin:
-                    user = '*'
-                else:
-                    user = web.user()
-                undos = [
-                    impo.load_undo_file(p) for p in
-                    reversed(impo.list_undo_files(self.undo_path, 'site', user))
-                ]
-                return web.render('site/site-list.html', title='sites', undos=undos).render()
+                return web.render('site/site-list.html', title='sites').render()
 
             with db.session_scope() as session:
                 datasets = []
@@ -442,42 +434,4 @@ class SitePage:
             dataframe = pd.read_sql(q.statement, session.bind)
             name = f'sites-{datetime.datetime.now():%Y-%m-%d}'
             return serve_dataframe(dataframe, f'{name}.{format}')
-
-
-    @expose_for(Level.supervisor)
-    @web.method.post
-    def bulk_import(self, sitefile=None):
-        """
-        Creates sites in bulk from a table data source
-        """
-        path = Path(self.undo_path)
-        with db.session_scope() as session:
-            try:
-                result = impo.import_sites_from_stream(session, sitefile.filename, sitefile.file)
-            except impo.ObjectImportError as e:
-                raise web.redirect(conf.url('site'), error=str(e))
-        result.user = web.user()
-
-        path.mkdir(parents=True, exist_ok=True)
-        result.save(path)
-        raise web.redirect(conf.url('site'), success=f'Added {len(result.keys)} sites site:{min(result.keys)} - site:{max(result.keys)} ')
-
-
-
-    @expose_for(Level.supervisor)
-    @web.method.post
-    def bulk_undo(self, undofile):
-        """
-
-        :param undofile:
-        :return:
-        """
-        result = impo.load_undo_file(self.undo_path / undofile)
-        with db.session_scope() as session:
-            result.undo(session)
-        (self.undo_path / undofile).unlink()
-        raise web.redirect(conf.url('site'), success=f'Removed {len(result.keys)} sites site:{min(result.keys)} - site:{max(result.keys)} ')
-
-
-
 

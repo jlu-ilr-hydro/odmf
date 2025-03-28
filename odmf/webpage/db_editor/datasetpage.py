@@ -119,15 +119,7 @@ class DatasetPage:
         """
         if cherrypy.request.method == 'GET':
             if datasetid is None:
-                if users.current.level >= Level.admin:
-                    user = '*'
-                else:
-                    user = web.user()
-                undos = [
-                    impo.load_undo_file(p) for p in
-                    reversed(impo.list_undo_files(self.undo_path, 'dataset', user))
-                ]
-                return web.render('dataset/datasetlist.html', title='datasets', undos=undos).render()
+                return web.render('dataset/datasetlist.html', title='datasets').render()
             else:
                 with db.session_scope() as session:
                     active = get_ds(session, datasetid)
@@ -845,34 +837,4 @@ class DatasetPage:
         except:
             error = traceback()
         return error
-
-
-    @expose_for(Level.editor)
-    @web.method.post
-    def bulk_import(self, datasetfile=None):
-        """
-        Creates sites in bulk from a table data source
-        """
-        path = Path(self.undo_path)
-        with db.session_scope() as session:
-            try:
-                result = impo.import_datasets_from_stream(session, sitefile.filename, sitefile.file, web.user())
-            except impo.ObjectImportError as e:
-                raise web.redirect(conf.url('site'), error=str(e))
-        result.user = web.user()
-        path.mkdir(parents=True, exist_ok=True)
-        result.save(path)
-        raise web.redirect(conf.url('dataset'), success=f'Added {len(result.keys)} datasets ds:{min(result.keys)} - ds:{max(result.keys)} ')
-
-    @expose_for(Level.editor)
-    @web.method.post
-    def bulk_undo(self, undofile):
-        """
-        Removes datasets that where added by a bulk import
-        """
-        result = impo.load_undo_file(self.undo_path / undofile)
-        with db.session_scope() as session:
-            result.undo(session)
-        (self.undo_path / undofile).unlink()
-        raise web.redirect(conf.url('dataset'), success=f'Removed {len(result.keys)} dataset ds:{min(result.keys)} - ds:{max(result.keys)} ')
 

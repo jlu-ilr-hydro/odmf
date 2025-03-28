@@ -132,7 +132,7 @@
                     <i class="fas fa-plus me-1" />
                     new dataset
                 </a>
-                <a href="#import" class="btn btn-secondary w-100 d-none" data-bs-toggle="collapse">
+                <a href="#import" class="btn btn-secondary w-100" data-bs-toggle="collapse">
                     <i class="fas fa-file-import me-1" />
                     import datasets
                 </a>
@@ -216,7 +216,7 @@
             <div class="container collapse border rounded bg-light p-2 my-2" id="import">
                 <h3>Import datasets</h3>
                 <div>
-                    When you import sites, note that the tabular data <strong>must</strong> have the columns
+                    When you import datasets, note that the tabular data <strong>must</strong> have the columns
                     <code>site, valuetype</code>. These indicate where and what the data is about and must reference
                     existing sites and valuetypes. The other columns are optional and can be used to store additional
                     information, but you are strongly encouraged theses columns. Export a dataset list to get a template
@@ -238,46 +238,22 @@
                     </ul>
                 </div>
                 <div py:if="not is_member(Level.supervisor)" class="alert alert-warning">
-                    For bulk import of datasets you need to have have ${Level.supervisor.name} level. 
+                    For bulk import of datasets you need to have have ${Level.supervisor.name} level.
                 </div>
-                <form method="post" action="bulk_import/" enctype="multipart/form-data"  py:if="is_member(Level.supervisor)">
+                <form method="post" action="${conf.url('bulkimport')}" enctype="multipart/form-data"  py:if="is_member(Level.supervisor)">
                     <div class="row mt-3">
                         <label for="file" class="col-sm-3 col-form-label" >Dataset file:</label>
                         <div class="col-sm-8">
-                            <input type="file" class="custom-file-input form-control" 
-                                    name="datasetfile" id="file" accept=".xlsx,.csv,.parquet"/>
+                            <input type="file" class="custom-file-input form-control"
+                                    name="file" id="file" accept=".xlsx,.csv,.parquet"/>
                         </div>
-                        <div class="col-sm-1">
-                            <button type="submit" class="btn btn-success" data-bs-toggle="tooltip" title="Import datasetfile"><i class="fas fa-check"/></button>
-                        </div>
-                    </div>
-                </form>
-                
-                <form method="post" action="bulk_undo" py:if="is_member(Level.supervisor) and undos">
-                    <hr/>
-                    <h4>Undo your former site imports</h4>
-                    <div class="alert alert-warning">You can only undo a bulk import, if no other object references the new sites, like datasets</div>
-                    <div class="list-group">
-                        <div py:for="undo in undos[:10]" class="list-group-item list-group-item-action">
-                            <div class="d-flex">
-                                <button type="submit" class="btn btn-danger shadow me-4" name="undofile" value="${undo.filename()}" data-bs-toggle="tooltip" title="delete all imported sites">
-                                    <i class="fas fa-arrow-rotate-left"></i>
-                                </button>
-                                <div class="me-4 border rounded p-1">
-                                    <div>${undo}</div>
-                                    <div class="small">${formatdatetime(undo.time)} - by ${undo.user}</div>
-                                </div>
-                                <div class="border rounded p-1">
-                                    <div py:content="f'{len(undo.keys)} {undo.tablename}s'"/>
-                                    <div class="small" py:content="markdown(f'site:{min(undo.keys)} - site:{max(undo.keys)}')"/>
-                                </div>
-
-                            </div>
-
-
+                        <div class="col-sm-1 d-flex">
+                            <button type="submit" class="btn btn-success me-1" data-bs-toggle="tooltip" title="Import datasetfile" name="table" value="dataset"><i class="fas fa-check"/></button>
+                            <a href="${conf.url('bulkimport')}" class="btn btn-secondary" data-bs-toggle="tooltip" title="undo imports"><i class="fas fa-arrow-rotate-left"></i></a>
                         </div>
                     </div>
                 </form>
+
             </div>
             <div id="dslist" class="overflow-auto list-group">
             </div>

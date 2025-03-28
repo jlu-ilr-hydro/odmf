@@ -112,6 +112,7 @@ class ODMFExtension(markdown.Extension):
         md.inlinePatterns.register(PatternLink(md, r'(odmf):/(\S+)', r'/\3', r'!fa-link \3'), 'links', 155)
         md.inlinePatterns.register(PatternLink(md, r'(topic:)(\S+)', r'/topic/\3/', r'!fa-inbox \3'),'link topics', 110)
         md.inlinePatterns.register(PatternLink(md, r'(ds:)([0-9]+)', r'/dataset/\3/', r'!fa-clipboard \3'), 'link datasets', 100)
+        md.inlinePatterns.register(PatternLink(md, r'(dataset:)([0-9]+)', r'/dataset/\3/', r'!fa-clipboard \3'), 'link datasets', 100)
         md.inlinePatterns.register(PatternLink(md, r'(file:)(\S+)', r'/download/\3', r'!fa-file \3'), 'link files', 100)
         md.inlinePatterns.register(PatternLink(md, r'(site:)([0-9]+)', r'/site/\3', r'!fa-map-location \3'), 'link sites', 100)
         md.inlinePatterns.register(PatternLink(md, r'(job:)([0-9]+)', r'/job/\3', r'!fa-list-check \3'), 'link job', 100)
