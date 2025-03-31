@@ -105,6 +105,23 @@ class User(object):
             level = Level(level or 0)
         return self.get_level(project) >= level
 
+    def is_admin_of(self, other: typing.Self) -> bool:
+        """
+        Returns True if self is site admin or if self is admin in any of other's projects
+        :param other:
+        :return:
+        """
+        if self.level >= Level.admin:
+            return True
+        elif other:
+            return any(
+                [self.level >= Level.admin] +
+                [self.is_member(Level.admin, pr) for pr in other.projects]
+            )
+        else:
+            return False
+
+
     def get_level(self, project: int|None = None) -> Level:
         """
         Returns the level of this user. If a project is given, return the level for that project

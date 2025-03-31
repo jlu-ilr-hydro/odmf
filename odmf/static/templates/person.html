@@ -10,6 +10,10 @@
                         $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
                     });
                 });
+                $('.level-radio').on('change', event => {
+                    $('#level-btn').html('as ' + $(event.currentTarget).data('label'))
+                })
+                $('#level-guest').prop('checked', true)
             });
         </script>
     </py:block>
@@ -56,12 +60,12 @@
 
             </div>
             <form   class="card card-body"
-                    action="${conf.root_url}/user/saveitem" method="post"
+                    action="" method="post"
                     py:with="U=active_person; can_edit=is_member(Level.supervisor) or is_self(active_person.username)">
                 <div class="form-group row">
                     <label for="username" class="col-lg-2 col-form-label">username</label>
                     <div class="col-lg-4">
-                        <input type="text" id="username" name="username"
+                        <input type="text" id="username" name="newname"
                                py:attrs="prop(readonly=act_user!='new')"
                                class="form-control"
                                value="${U.username}"
@@ -75,7 +79,6 @@
                                value="${U.email}"
                         />
                     </div>
-
                 </div>
                 <div class="form-group row">
                     <label for="firstname" class="col-lg-2 col-form-label">firstname</label>
@@ -118,7 +121,7 @@
                     <label for="access_level" class="col-lg-2 col-form-label">access level</label>
                     <div class="col-lg-4">
                         <select id="access_level" name="access_level"
-                                py:attrs="prop(disabled=not (is_member('supervisor') or is_self(U.username)))"
+                                py:attrs="prop(disabled=not (is_member(Level.supervisor) or is_self(U.username)))"
                                 class="form-control"
                         >
                             <option py:for="l in Level"
@@ -148,7 +151,7 @@
                               py:attrs="prop(disabled=not (is_member(Level.supervisor) or is_self(U.username)))"
                     />
                 </div>
-                <div class="alert alert-warning">The messenger is a new feature - bugs are quite likely</div>
+                <hr/>
                 <div class="form-group row">
                     <label for="edit-subscribers" class="col-form-label col-sm-4">
                         Topic subscriptions
@@ -157,6 +160,7 @@
                         </a>
                     </label>
 
+                    <div class="alert alert-warning mt-2">The messenger is a new feature - bugs are quite likely</div>
                     <select py:attrs="prop(disabled=not (can_edit))"
                             name="topics[]" id="edit-subscribers" 
                             class="col-sm-8 form-control select2" 
@@ -165,15 +169,23 @@
                     </select>
                 </div>
 
-                <div class="form-group row">
-                    <button type="submit" class="col-lg-2 btn btn-primary w-100"
+                <div class="form-group mt-2">
+                    <button type="submit" class="btn btn-success"
                             py:attrs="prop(disabled=not (can_edit))"
                     >
-                        save
+                        <i class="fas fa-check me-2"/>save
                     </button>
 
                 </div>
             </form>
+
+            <h2>Home directory</h2>
+            <div py:if="has_home" py:content="markdown('file:users/' + active_person.username)"/>
+            <div py:if="not has_home and (users.current.is_admin_of(users.get(active_person.username)) or is_self(active_person.username))">
+                <form action="home" method="POST">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-home me-2"></i>create home directory</button>
+                </form>
+            </div>
 
             <h2 class="mt-4">Projects:</h2>
             <div class="list-group">
@@ -182,21 +194,21 @@
                     <span class="badge bg-warning float-right" py:content="level.name"/>
                 </a>
             </div>
-            <a href="#add-member" py:if="potential_projects"
-               class="btn-sm btn-primary dropdown-toggle" data-bs-toggle="collapse"
-               aria-controls="add-member" aria-role="button">
-                <i class="fas fa-plus"/> add project ...
-            </a>
-            <div id="add-member" class="collapse" py:if="potential_projects">
-                <form method="post" action="addproject" class="form-row">
-                    <input type="hidden" value="${active_person.username}" name="username"/>
+
+            <div id="add-member" class="card" py:if="potential_projects">
+                <h4 class="card-header"><i class="fas fa-plus me-2"/>add project... </h4>
+                <form method="post" action="addproject" class="input-group card-body">
                     <select id="add_project" class="form-control col-sm-8 " name="project">
                         <option py:for="p in potential_projects" value="${p.id}">${p}</option>
                     </select>
-                    <select id="add_level" class="form-control col-sm-3" name="level">
-                        <option py:for="l in Level" value="${l.value}" py:content="l.name"/>
-                    </select>
-                    <button class="btn btn-success btn-sm col-sm-1" type="submit" title="add record"><i class="fas fa-check"/></button>
+                    <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="level-btn">as guest</button>
+                    <ul class="dropdown-menu dropdown-menu-end p-1">
+                        <li py:for="l in Level">
+                            <input type="radio" name="level" value="${l.value}" id="level-${l.name}" class="form-check-input level-radio" data-label="${l.name}" />
+                            <label for="level-${l.name}" class="form-check-label">${l.name}</label>
+                        </li>
+                    </ul>
+                    <button class="btn btn-success btn-sm col-sm-1" type="submit" title="add project"><i class="fas fa-check"/></button>
                 </form>
 
             </div>
