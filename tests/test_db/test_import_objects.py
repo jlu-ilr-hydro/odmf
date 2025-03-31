@@ -50,6 +50,8 @@ def site_table():
             df.to_csv(buffer, index=False)
         elif format == 'xlsx':
             df.to_excel(buffer, index=False)
+        elif format == 'ods':
+            df.to_excel(buffer, index=False, engine='odf')
         elif format == 'parquet':
             df.to_parquet(buffer, index=False)
 
@@ -58,7 +60,7 @@ def site_table():
 
     return make_table_stream
 
-fmts = ['xlsx',  'csv', 'parquet', 'geojson']
+fmts = ['xlsx',  'csv', 'parquet', 'ods', 'geojson']
 site_table_params = (
     [[fmt, []] for fmt in fmts] +
     [[fmt, ['id']] for fmt in fmts] +
@@ -79,8 +81,8 @@ def test_site_table(format, excluded_columns, db, session, site_table):
 
 site_table_params_fail = (
     [[fmt, ['name']] for fmt in fmts] +
-    [[fmt, ['lon']] for fmt in ['xlsx', 'csv', 'parquet']] +
-    [[fmt, ['lat']] for fmt in ['xlsx', 'csv', 'parquet']] +
+    [[fmt, ['lon']] for fmt in ['xlsx', 'ods', 'csv', 'parquet']] +
+    [[fmt, ['lat']] for fmt in ['xlsx', 'ods', 'csv', 'parquet']] +
     [['oireuw', []]]
 )
 
@@ -150,6 +152,8 @@ def dataset_table():
             df.to_csv(buffer, index=False)
         elif format == 'xlsx':
             df.to_excel(buffer, index=False)
+        elif format == 'ods':
+            df.to_excel(buffer, index=False, engine='odf')
         elif format == 'parquet':
             df.to_parquet(buffer, index=False)
 

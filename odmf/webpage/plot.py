@@ -222,7 +222,7 @@ class PlotPage(object):
 
         """
         from ..tools.exportdatasets import merge_series, serve_dataframe
-        if fileformat not in ('xlsx', 'csv', 'tsv', 'pickle', 'json', 'msgpack', 'parquet'):
+        if fileformat not in ('xlsx', 'ods', 'csv', 'tsv', 'pickle', 'json', 'msgpack', 'parquet'):
             raise web.HTTPError(500, 'Unknown fileformat: ' + fileformat)
         plot_dict = web.json.loads(plot)
         plot: Plot = Plot(**plot_dict)

@@ -198,7 +198,7 @@ class Root(object):
                     if not r.level or is_member(r.level)
                 }
             )
-        elif format in ['xlsx', 'csv', 'tsv']:
+        elif format in ['xlsx', 'ods', 'csv', 'tsv']:
             import pandas as pd
             import io
             df = pd.DataFrame(
@@ -212,6 +212,11 @@ class Root(object):
             if format == 'xlsx':
                 buf = io.BytesIO()
                 df.to_excel(buf)
+                return buf.getvalue()
+
+            elif format == 'ods':
+                buf = io.BytesIO()
+                df.to_excel(buf, engine='odf')
                 return buf.getvalue()
 
             elif format == 'csv':

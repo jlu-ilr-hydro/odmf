@@ -16,6 +16,7 @@ scipy
 xlrd==2.0.1
 numba>=0.50.0
 openpyxl>=3.0.7
+odfpy
 asteval>=0.9.25
 pyarrow
 # database

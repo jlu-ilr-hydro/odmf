@@ -262,7 +262,7 @@ def load_dataframe(
         filepath = Path(filepath)
 
 
-    if re.match(r'.*\.xls[xmb]?$', filepath.name):
+    if re.match(r'.*\.xls[xmb]?$', filepath.name) or filepath.name.endswith('.ods'):
         df = _load_excel(idescr, filepath)
         if df.empty:
             raise DataImportError(

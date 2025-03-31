@@ -60,6 +60,7 @@ class Mime:
     pdf = MimeType('application/pdf')
     xls = MimeType('application/msexcel')
     xlsx = MimeType('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    ods = MimeType('application/vnd.oasis.opendocument.spreadsheet')
     svg = MimeType('image/svg+xml')
     tif = MimeType('image/tiff')
     kml = MimeType('application/vnd.google-earth.kml+xml')

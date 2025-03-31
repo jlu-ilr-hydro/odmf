@@ -174,9 +174,14 @@ class ExcelFileHandler(BaseFileHandler):
     icon = 'file-excel'
     actions = fa.ConfImportAction(), fa.LogImportAction(), fa.LabImportAction()
     def to_html(self, path: Path) -> str:
-
+        if path.name.endswith('.xlsx'):
+            engine='openpyxl'
+        elif path.name.endswith('.ods'):
+            engine='odf'
+        else:
+            engine=None
         with open(path.absolute, 'rb') as f:
-            df = pd.read_excel(f)
+            df = pd.read_excel(f, engine=engine)
             return table_to_html(df)
 
 
@@ -260,7 +265,7 @@ class MultiHandler(BaseFileHandler):
         MarkDownFileHandler(r'\.(md|wiki)$'),
         ConfFileHandler(r'\.conf$'),
         PlotFileHandler(r'\.plot$'),
-        ExcelFileHandler(r'\.xls.?$'),
+        ExcelFileHandler(r'\.(xls.?|ods)$'),
         DocxFileHandler(r'\.docx$'),
         CsvFileHandler(r'\.(csv|dat)$'),
         ParquetFileHandler(r'\.parquet$'),

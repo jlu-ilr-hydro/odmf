@@ -96,6 +96,8 @@ def read_df_from_stream(filename: str, stream: typing.BinaryIO) -> pd.DataFrame:
     """
     if filename.endswith('.xlsx'):
         return pd.read_excel(stream)
+    elif filename.endswith('ods'):
+        return pd.read_excel(stream, engine='odf')
     elif filename.endswith('.csv'):
         return pd.read_csv(stream)
     elif filename.endswith('.parquet'):

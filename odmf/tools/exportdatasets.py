@@ -205,6 +205,8 @@ def export_dataframe(stream, data: pd.DataFrame, fileformat: str, index_label=No
         return data.replace(to_replace=[r"\\t|\\n|\\r", "\t|\n|\r"], value=[" ", " "], regex=True)
     if fileformat == 'xlsx':
         data.to_excel(stream, engine='openpyxl', index=bool(index_label), index_label=index_label)
+    if fileformat == 'ods':
+        data.to_excel(stream, engine='odf', index=bool(index_label), index_label=index_label)
     elif fileformat == 'csv':
         stream.write(nl(data).to_csv(index=bool(index_label), index_label=index_label).encode('utf-8'))
     elif fileformat == 'tsv':

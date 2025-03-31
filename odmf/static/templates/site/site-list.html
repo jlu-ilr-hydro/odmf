@@ -104,6 +104,9 @@
                     <a class="dropdown-item export" data-format="xlsx">
                         <i class="fas fa-file-excel me-4"/> Excel
                     </a>
+                    <a class="dropdown-item export" data-format="ods">
+                        <i class="fas fa-file-excel me-4"/> ODS OpenDocument Table
+                    </a>
                     <a class="dropdown-item export" data-format="csv">
                         <i class="fas fa-file-csv me-4" /> CSV
                     </a>
@@ -175,7 +178,7 @@
                         <label for="file" class="col-sm-3 col-form-label" >Site file:</label>
                         <div class="col-sm-8">
                             <input type="file" class="custom-file-input form-control"
-                                   name="file" id="file" accept=".xlsx,.geojson,.csv,.parquet"/>
+                                   name="file" id="file" accept=".xlsx,.ods,.geojson,.csv,.parquet"/>
                         </div>
                         <div class="col-sm-1 d-flex">
                             <button type="submit" class="btn btn-success" name="table" value="site"><i class="fas fa-check"/></button>
