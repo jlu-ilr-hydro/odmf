@@ -69,7 +69,7 @@ site_table_params = (
 @pytest.mark.parametrize('format,excluded_columns',  site_table_params)
 def test_site_table(format, excluded_columns, db, session, site_table):
     fn, buffer = site_table(format, *excluded_columns)
-    report = impo.import_sites_from_stream(session, fn, buffer)
+    report = impo.import_sites_from_stream(session, fn, buffer, 'odmf.admin')
     assert report.keyname == 'id'
     assert report.tablename == 'site'
     session.commit()
@@ -88,13 +88,13 @@ site_table_params_fail = (
 def test_site_table_fail(format, excluded_columns, db, session, site_table):
     fn, buffer = site_table(format, *excluded_columns)
     with pytest.raises(impo.ObjectImportError, match=r'.*'):
-        impo.import_sites_from_stream(session, fn, buffer)
+        impo.import_sites_from_stream(session, fn, buffer, 'odmf.admin')
 
 @pytest.mark.parametrize('format', fmts)
 def test_site_table_undo(format, db, session, site_table):
     fn, buffer = site_table(format, 'id')
     with db.session_scope() as sess:
-        report = impo.import_sites_from_stream(sess, fn, buffer)
+        report = impo.import_sites_from_stream(sess, fn, buffer, 'odmf.admin')
         assert report.keyname == 'id'
         assert report.tablename == 'site'
 
