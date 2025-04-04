@@ -5,7 +5,7 @@ There are several ways to get data into the structured timeseries system.
 - **Direct input** (for a single record)
 - Import a list of records from an excel file with a special structure (so called **log import**) into exisiting datasets
 - Import a raw csv or excel file from a logger or other measurement intstrument using an extra file to describe the file organization (so called .conf-file, the **conf-import**)
-- You want to write a python script to upload data automatically, use the **API-import**
+- You want to write a python script to upload data automatically, use the [odmfclient](https://github.com/jlu-ilr-hydro/odmfclient)
 
 ## Which method is the right for me?
 
