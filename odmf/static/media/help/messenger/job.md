@@ -13,6 +13,9 @@ log-to-site-feature of the job.
 
 ## Messenges from jobs
 
+If a job is past due, reminders will be sent out. Select with the checkboxes in the "send message" part, who should get 
+the reminder, the job author (who created the job), the responsible user or 
+
 Jobs can send out messages automatically sometime before they are due. Just select the [topics](..) of the message 
 (or create a new topic) and when the messages will go out. If you change something important on your job, eg. the 
 due date, send an update directly out of the job page to everyone who subscribed to the topics of the job.

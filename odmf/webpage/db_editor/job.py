@@ -47,23 +47,32 @@ class JobPage:
             job.repeat = web.conv(int, kwargs.get('repeat'))
             job.type = kwargs.get('type')
 
+            reminder = web.to_list(kwargs.get('reminder[]'))
             topics = web.to_list(kwargs.get('topics[]'))
             msgwhen = web.to_list(kwargs.get('msgdates[]'))
-            job.mailer = {
-                'topics': topics or None,
-                'when': [web.conv(int, s, s) for s in msgwhen] or None
-            }
+            if any((reminder, topics, msgwhen)):
+                job.mailer = {
+                    'topics': topics or None,
+                    'when': [web.conv(int, s, s) for s in msgwhen] or None,
+                    'reminder': reminder or None
+                }
+            else:
+                job.mailer = None
 
             logsites = web.to_list(kwargs.get('sites[]'))
-            job.log = {
-                'sites': [web.conv(int, sid) for sid in logsites] or None,
-                'message' : kwargs.get('logmsg')
-            }
+            if any((logsites, kwargs.get('logmsg'))):
+                job.log = {
+                    'sites': [web.conv(int, sid) for sid in logsites] or None,
+                    'message' : kwargs.get('logmsg')
+                }
+            else:
+                job.log = None
 
             if kwargs['save'] == 'own':
                 p_user = session.get(db.Person, web.user())
                 job.author = p_user
                 msg = f'{job.name} is now yours'
+
             elif kwargs['save'] == 'done':
                 job.make_done(users.current.name)
                 msg = f'{job} is done'
@@ -74,8 +83,7 @@ class JobPage:
                 redirect = conf.url('message')
             else:
                 msg = f'{job} saved'
-
-            redirect = conf.url('job', job.id)
+                redirect = conf.url('job', job.id)
 
 
         raise web.redirect(redirect, error=error, success=msg)
