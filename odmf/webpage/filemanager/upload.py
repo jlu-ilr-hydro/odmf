@@ -161,6 +161,8 @@ class DownloadPage(object):
     def index(self, uri='.', error='', msg='', serve=False, _=None):
         path = Path(uri)
         modes = fa.check_children(path, users.current)
+        error = error or cherrypy.session.get('error')
+        msg = msg or cherrypy.session.get('success')
         check_access(fa.Mode.read, path)
         if not all(
                 (
