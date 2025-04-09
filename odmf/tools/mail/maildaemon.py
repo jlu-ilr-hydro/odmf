@@ -7,7 +7,7 @@ import typing
 from datetime import datetime, timedelta
 from threading import Timer
 import logging
-
+from odmf.config import conf
 from odmf.db import session_scope, Job, sql
 from odmf.db.message import Message
 from odmf.db.timeseries import DatasetAlarm
@@ -26,7 +26,8 @@ class MailDaemon(Timer):
         """
         super().__init__(interval, None)
 
-    def messages(self, session, date, source) -> int:
+    @staticmethod
+    def messages(session, date, source) -> int:
         """
         Returns the number of messages fired from a source after the given date. Use to figure out if a message
         is already sent. If no message has sent since it is due the function returns 0
@@ -35,7 +36,8 @@ class MailDaemon(Timer):
             Message.date >= date)
         return session.scalar(stmt)
 
-    def handle_jobs(self):
+    @staticmethod
+    def handle_jobs():
         """
         Gets all active jobs with a when-list in the mailer and checks if a message is due and not already sent.
         """
@@ -45,18 +47,25 @@ class MailDaemon(Timer):
             jobs: typing.List[Job] = session.scalars(stmt)
 
             for job in jobs:
-                when = list(job.mailer.get('when') or []) if job.mailer else []
-                # Get all due dates of the job messages (only for int entries)
-                dates = [job.due - timedelta(days=days) for days in when if type(days) is int]
-                # Filter only the dates that are in the past
-                dates = [d for d in dates if d < datetime.now()]
+                # Handle "when" messages of jobs
+                dates = job.message_dates()
                 # if there are due dates left, test if messages have been sent after the latest
-                if dates and not self.messages(session, max(dates), f'job:{job.id}'):
-                    # get the message
+                if dates and not MailDaemon.messages(session, max(dates), f'job:{job.id}'):
                     msg = job.as_message()
                     session.add(msg)
-                    # remove when entry
                     msg.send()
+
+                # Handle overdue jobs
+                yesterday = datetime.now() - timedelta(days=1)
+                if (
+                        job.mailer.get('reminder')
+                        and job.due < datetime.now()
+                        and 7 < yesterday.hour < 18
+                        and not MailDaemon.messages(session, yesterday, f'job:{job.id}')
+                ):
+                    msg, cc = job.as_overdue_message()
+                    session.add(msg)
+                    msg.send(*cc)
 
     def handle_alarms(self):
         """
