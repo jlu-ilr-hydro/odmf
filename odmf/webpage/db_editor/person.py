@@ -117,11 +117,7 @@ class PersonPage:
     @expose_for(Level.logger)
     def index(self, username=None, **kwargs):
         if cherrypy.request.method == 'GET':
-            if users.get(username) or username == 'new':
-                return self.index_get(username)
-
-            else:
-                raise web.redirect(conf.url('user', users.current.name))
+            return self.index_get(username)
         elif cherrypy.request.method == 'POST':
             return self.index_post(username, **kwargs)
 
