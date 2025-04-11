@@ -6,7 +6,7 @@ from sqlalchemy_json import NestedMutableJson
 from typing import Optional, List
 
 from ..config import conf
-from .base import Base, newid
+from .base import Base, newid, flex_get
 from .site import Log, Site
 from .person import Person
 from .message import Message, Topic
@@ -85,8 +85,8 @@ class Job(Base):
 
     def log_to_sites(self, by=None, time=None):
         session = self.session()
-        logsites = (self.log or {}).get('sites', [])
-        msg = (self.log or {}).get('message') or self.name
+        logsites = flex_get(self.log, 'sites', default=[])
+        msg = flex_get(self.log, 'message', default=self.name)
         logcount = 0
         if logsites:
             sites = session.scalars(sql.select(Site).where(Site.id.in_(logsites)))
@@ -115,7 +115,7 @@ class Job(Base):
             time = datetime.now()
 
         subject = f'ODMF-{conf.root_url}: {self.name}'
-        topics = (self.mailer or {}).get('topics')
+        topics = flex_get(self.mailer, 'topics', default=[])
         if self.done:
             content = (
                 f'Job {self.name} is finished at {self.donedate} by {by}\n'

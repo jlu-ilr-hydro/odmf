@@ -4,6 +4,7 @@ Tools to and from convert strings to numerous types
 
 import json
 from datetime import datetime
+from ...db import flex_get
 
 
 def jsonhandler(obj):
@@ -130,5 +131,4 @@ def to_list(param, cls=None)->list:
         return param
     else:
         return [conv(cls, p) for p in param]
-
 
