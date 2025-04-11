@@ -184,16 +184,15 @@ class Dataset(Base):
 
     @property
     def tzinfo(self):
-        if False:
-            if self.timezone in pytz.common_timezones:
-                return pytz.timezone(self.timezone)
-            elif self.timezone.startswith('Fixed/'):
-                return pytz.FixedOffset(int(self.timezone.split('/')[1]))
-            else:
-                return pytz.utc
+        from odmf.config import conf
+        if self.timezone in pytz.common_timezones:
+            return pytz.timezone(self.timezone)
+        elif self.timezone.startswith('Fixed/'):
+            return pytz.FixedOffset(int(self.timezone.split('/')[1]))
         else:
-            return tzberlin if self.uses_dst else tzwinter
-
+            return pytz.timezone(conf.datetime_default_timezone)
+        
+        
     def localizetime(self, time):
         return self.tzinfo.localize(time)
 
@@ -236,7 +235,7 @@ class Dataset(Base):
 
     @property
     def path(self):
-        from ..tools import Path as OPath
+        from odmf.tools import Path as OPath
         if self.filename:
             p = OPath(self.filename)
             if p.exists():
@@ -261,6 +260,8 @@ class Dataset(Base):
         datasets: orm.Query = session.query(cls)
         if user:
             datasets = datasets.filter_by(_measured_by=user)
+        if project:
+            datasets = datasets.filter_by(_project=project)
         if site and site != 'NaN':
             datasets = datasets.filter_by(_site=site)
         if date:
