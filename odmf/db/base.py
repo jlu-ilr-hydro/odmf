@@ -168,5 +168,30 @@ class ObjectGetter:
     def __iter__(self):
         return iter(self.q)
 
+def flex_get(obj, *args, default=None):
+    """
+    Returns from a dict or nested dict the value of the argument. If a key does not exist or the object is None,
+    it returns default. This is helpful for nested JSON objects stored in the db
+
+    exmpl1 = {'a': 1, 'b': 2}
+    exmpl2 = {'x': {'a': 1, 'b': 2, 'c': 3}}
+    exmpl3 = {'x': {'a': {'i': 1}, 'b': 2, 'c': 3}}
+    exmpl4 = {'x': None}
+    exmpl5 = None
+
+    flex_get(exmpl1, 'a') -> 1
+    flex_get(exmpl2, 'x', 'a') -> 1
+    flex_get(exmpl3, 'x', 'a', 'i') -> 1
+    flex_get(exmpl4, 'x', 'a', 'i') -> None
+    flex_get(exmpl5, 'x', 'a', 'i') -> None
+    """
+
+    if obj is None:
+        return default
+    elif not (args and hasattr(obj, 'get')):
+        return obj
+    else:
+        for arg in args:
+            return flex_get(obj.get(arg), *args[1:], default=default)
 
 

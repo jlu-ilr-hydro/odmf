@@ -6,7 +6,6 @@ from ..auth import users, Level, expose_for
 
 from ... import db
 
-from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 
 @cherrypy.popargs('jobid')
@@ -202,10 +201,10 @@ class JobPage:
             jobs = jobs.all()
             if sites:
                 sites = set(int(s) for s in sites.split(','))
-                jobs = [j for j in jobs if sites & set((j.log or {}).get('sites', []))]
+                jobs = [j for j in jobs if sites & set(db.flex_get(j.log, 'sites', default=[]))]
             if topics:
                 topics = set(s for s in topics.split(','))
-                jobs = [j for j in jobs if topics & set((j.mailer or {}).get('topics', []))]
+                jobs = [j for j in jobs if topics & set(db.flex_get(j.mailer,'topics', default=[]))]
 
             events = [self.as_event(job) for job in jobs]
             return web.json_out(events)

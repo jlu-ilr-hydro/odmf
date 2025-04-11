@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from threading import Timer
 import logging
 from odmf.config import conf
-from odmf.db import session_scope, Job, sql
+from odmf.db import session_scope, Job, sql, flex_get
 from odmf.db.message import Message
 from odmf.db.timeseries import DatasetAlarm
 
@@ -58,7 +58,7 @@ class MailDaemon(Timer):
                 # Handle overdue jobs
                 yesterday = datetime.now() - timedelta(days=1)
                 if (
-                        job.mailer.get('reminder')
+                        flex_get(job.mailer, 'reminder')
                         and job.due < datetime.now()
                         and 7 < yesterday.hour < 18
                         and not MailDaemon.messages(session, yesterday, f'job:{job.id}')
