@@ -2,11 +2,14 @@ import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from datetime import datetime, timedelta
 from functools import total_ordering
+
+from sqlalchemy.orm import Mapped, relationship
+from sqlalchemy.testing.schema import mapped_column
 from sqlalchemy_json import NestedMutableJson
 from typing import Optional, List
 
 from ..config import conf
-from .base import Base, newid, flex_get
+from .base import Base, newid, flex_get, primarykey
 from .site import Log, Site
 from .person import Person
 from .message import Message, Topic
@@ -49,6 +52,8 @@ class Job(Base):
     # Contains data to create logs on done
     log: orm.Mapped[NestedMutableJson] = sql.Column(NestedMutableJson)
     mailer: orm.Mapped[NestedMutableJson] = sql.Column(NestedMutableJson)
+    comments: Mapped[List['JobComment']] = relationship(back_populates='job', cascade='all, delete-orphan')
+
     def __str__(self):
         return "%s: %s %s" % (self.responsible, self.name, ' (Done)' if self.done else '')
 
@@ -200,4 +205,27 @@ class Job(Base):
 
     def end(self):
         return self.due + timedelta(days=self.duration or 0)
+
+    def add_comment(self,user:str|Person, text: str, date=None):
+        if not date:
+            date = datetime.now()
+        if type(user) is Person:
+            user = user.username
+        comment = JobComment(text=text, date=date, _user=user)
+        self.comments.append(comment)
+
+
+class JobComment(Base):
+    """
+    Users should be able to comment on jobs, to give additional input or ask questions. Site admins and job authors
+    might delete comments. A comment can produce a message to author, responsible person and topic subscribers
+    """
+    __tablename__ = 'jobcomment'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    _job: Mapped[int] = mapped_column('job', sql.ForeignKey('job.id'))
+    job: Mapped['Job'] = relationship(back_populates='comments')
+    _user: Mapped[int] = mapped_column('user', sql.ForeignKey('person.username'))
+    user: Mapped[Person] = relationship()
+    date: Mapped[datetime]
+    text: Mapped[Optional[str]]
 
