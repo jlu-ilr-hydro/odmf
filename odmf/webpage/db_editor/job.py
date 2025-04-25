@@ -22,7 +22,8 @@ class JobPage:
         with db. session_scope() as session:
             job = session.get(db.Job, web.conv(int, jobid))
             if not job:
-                job = db.Job(_author=web.user())
+                jobid = db.newid(db.Job, session)
+                job = db.Job(id=jobid, _author=web.user())
                 session.add(job)
                 session.flush()
             elif not self.can_edit(job):

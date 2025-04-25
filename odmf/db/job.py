@@ -126,12 +126,14 @@ class Job(Base):
                 f'{self.description}\n'
             )
         topics = self.session().scalars(sql.select(Topic).where(Topic.id.in_(topics or []))).all()
-
-        return Message(subject=subject, content=content, topics=topics, date=time, source=f'job:{self.id}')
+        msgid = newid(Message, self.session())
+        return Message(id=msgid, subject=subject, content=content, topics=topics, date=time, source=f'job:{self.id}')
 
     def as_overdue_message(self) -> (Message, list[Person]):
         reminder = self.mailer.get('reminder') or []
+        msgid = newid(Message, self.session())
         msg = Message(
+            id=msgid,
             subject=f'ODMF-{conf.root_url}: Reminder - {self.name}',
             content=f'{self.name} by {self.author} is due since {self.due:%d.%m.%Y} but not done yet. If nothing happens you will receive this email every day. '
                     f'To stop the reminder emails, you need to log into the ODMF database and change the job properties:\n\n'

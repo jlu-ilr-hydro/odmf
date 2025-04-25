@@ -20,7 +20,7 @@ records for this dataset.
 To record qualitative data, like event descriptions without numeric data or with a complex data structure, you are
 going to add [log-entries](log) to sites
 
-![dataset](/media/help/datasets/dataset.svg)
+![dataset](dataset.svg)
 
 ## Properties
 

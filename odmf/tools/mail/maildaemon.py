@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from threading import Timer
 import logging
 from odmf.config import conf
-from odmf.db import session_scope, Job, sql, flex_get
+from odmf.db import session_scope, Job, sql, flex_get, newid
 from odmf.db.message import Message
 from odmf.db.timeseries import DatasetAlarm
 
@@ -79,7 +79,9 @@ class MailDaemon(Timer):
             for alarm in alarms:
                 date = datetime.now() - timedelta(days=alarm.message_repeat_time)
                 if (msg_text := alarm.check()) and not self.messages(session, date, alarm.msg_source()):
+                    msgid = newid(Message, session)
                     msg = Message(
+                        id=msgid,
                         subject='ODMF:' + str(alarm),
                         topics=[alarm.topic],
                         content=msg_text,

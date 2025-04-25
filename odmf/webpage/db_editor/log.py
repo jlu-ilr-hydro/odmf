@@ -72,11 +72,14 @@ class LogPage:
     def save(session, logid, **kwargs):
         log = session.get(db.Log, logid)
         if not log:
+            logid=db.newid(db.Log, session)
             log = db.Log(id=logid)
             session.add(log)
             session.flush()
+        
         if kwargs.get('date'):
             log.time = web.parsedate(kwargs['date'])
+        
         log.message = kwargs.get('message')
         log.user = session.get(db.Person, kwargs.get('user'))
         log.site = session.get(db.Site, kwargs.get('site'))
@@ -125,6 +128,7 @@ class LogPage:
                 elif 'remove' in kwargs:
                     success, logid = self.remove(session, logid, **kwargs)
             raise web.redirect(conf.url('log', logid), success=success)
+    
     @staticmethod
     def make_new(session, siteid=None, type=None, message=None, **kwargs):
         log = db.Log(time=datetime.today())

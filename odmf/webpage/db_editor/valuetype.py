@@ -32,7 +32,8 @@ class VTPage:
             with db.session_scope() as session:
                 vt = session.get(db.ValueType, web.conv(int, vt_id))
                 if not vt:
-                    vt = db.ValueType()
+                    vtid = db.newid(db.ValueType, session)
+                    vt = db.ValueType(id=vtid)
                     session.add(vt)
                     session.flush()
                 vt.name = kwargs.get('name')
