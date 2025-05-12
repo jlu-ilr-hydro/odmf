@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, relationship
 from sqlalchemy.testing.schema import mapped_column
 from sqlalchemy_json import NestedMutableJson
 from typing import Optional, List
+from uuid import UUID, uuid4
 
 from ..config import conf
 from .base import Base, newid, flex_get, primarykey
@@ -52,7 +53,7 @@ class Job(Base):
     # Contains data to create logs on done
     log: orm.Mapped[NestedMutableJson] = sql.Column(NestedMutableJson)
     mailer: orm.Mapped[NestedMutableJson] = sql.Column(NestedMutableJson)
-    comments: Mapped[List['JobComment']] = relationship(back_populates='job', cascade='all, delete-orphan')
+    comments: Mapped[List['JobComment']] = relationship(back_populates='job', cascade='all, delete-orphan', order_by='JobComment.date')
 
     def __str__(self):
         return "%s: %s %s" % (self.responsible, self.name, ' (Done)' if self.done else '')
@@ -221,11 +222,12 @@ class JobComment(Base):
     might delete comments. A comment can produce a message to author, responsible person and topic subscribers
     """
     __tablename__ = 'jobcomment'
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     _job: Mapped[int] = mapped_column('job', sql.ForeignKey('job.id'))
     job: Mapped['Job'] = relationship(back_populates='comments')
     _user: Mapped[int] = mapped_column('user', sql.ForeignKey('person.username'))
     user: Mapped[Person] = relationship()
     date: Mapped[datetime]
     text: Mapped[Optional[str]]
+
 

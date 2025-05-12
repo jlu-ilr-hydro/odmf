@@ -113,6 +113,30 @@
                             <div>${job.log.get('message') or job.name}</div>
                         </div>
                     </div>
+                    <div class="row mb-1">
+                        <h5 class="col-lg-2">Comments: <span class="badge bg-primary pill">${len(job.comments)}</span></h5>
+                        <div class="col-lg border rounded">
+                            <div class="m-1 rounded bg-light"  py:for="comment in job.comments">
+                                <div class="small bg-secondary text-light rounded p-1 w-100" >${formatdatetime(comment.date)}: <i class="fas fa-user"></i> ${comment.user}</div>
+                                <div>${markdown(comment.text)}</div>
+
+                            </div>
+                            <form method="post" action="comment">
+                                <div class="m-1 p-1 rounded bg-light row">
+                                    <div class="col-lg-1">
+                                        <label for="comment-text"><i class="fas fa-plus"/></label>
+                                    </div>
+                                    <div class="col-lg-10">
+                                        <input type="text" name="text" id="comment-text" class="form-control" placeholder="add comment here"/>
+                                    </div>
+                                    <div class="col-lg-1">
+                                        <button class="btn btn-primary" type="submit"><i class="fas fa-paper-plane"/></button>
+                                    </div>
+
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
 
                 <form method="post" action=".">

@@ -157,9 +157,8 @@ class JobPage:
                 return self.list_jobs()
         elif cherrypy.request.method == 'POST':
             return self.index_post(jobid, **kwargs)
-
-    @expose_for(Level.logger)
-    @web.method.post
+        else:
+            raise web.HTTPError(405, message='Method not allowed')
 
     @expose_for(Level.logger)
     @web.method.post
@@ -169,6 +168,19 @@ class JobPage:
             if time:
                 time = web.parsedate(time)
             return job.make_done(users.current.name, time)
+
+    @expose_for(Level.logger)
+    @web.method.post
+    def comment(self, jobid, text: str):
+        if len(text)>10:
+            with db.session_scope() as session:
+                job = session.get(db.Job, int(jobid))
+                comment = db.job.JobComment(job=job, _user=web.user(), text=text, date=datetime.now())
+                session.add(comment)
+            raise web.redirect(conf.url('job', jobid), success=f'Comment added')
+        else:
+            raise web.redirect(conf.url('job', jobid), error=f'Comment to short')
+
 
 
     @expose_for(Level.logger)
