@@ -191,7 +191,7 @@ class DatasetAPI(BaseAPI):
                 s = session.get(db.Site, kwargs.get('site'))
                 src = session.get(db.Datasource, kwargs.get('source'))
 
-                ds = db.Timeseries()
+                ds = db.Timeseries(id=db.newid(db.Timeseries, session))
                 # Get properties from the keyword arguments kwargs
                 ds.site = s
                 ds.filename = kwargs.get('filename')

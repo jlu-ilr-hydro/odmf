@@ -50,13 +50,18 @@ class DatasetPage:
             ds = session.get(db.Dataset, web.conv(int, datasetid))
 
             if not ds:
+                dsid=db.newid(db.Dataset, session)
                 ds = db.Timeseries(
+                    id=dsid,
                     name='New Dataset',
                     access=Level.admin,
                     timezone=conf.datetime_default_timezone,
                     calibration_offset=0,
                     calibration_slope=1
                 )
+                session.add(ds)
+                session.flush()
+
 
             elif not has_access(ds, Level.editor):
                 raise web.redirect(conf.url('dataset', datasetid), error='You are not allowed to write this dataset')
@@ -106,8 +111,6 @@ class DatasetPage:
                 ds.expression = kwargs.get('expression')
                 ds.latex = kwargs.get('latex')
 
-            session.add(ds)
-            session.flush()
 
             return conf.url('dataset', ds.id)
 

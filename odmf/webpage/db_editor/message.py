@@ -127,7 +127,8 @@ class MessagePage:
     def index_get(self, msgid, **kwargs):
         with db.session_scope() as session:
             if msgid == 'new':
-                msg = Message(source='user:' + web.user())
+                msgid = db.newid(Message, session)
+                msg = Message(id=msgid, source='user:' + web.user())
             elif msgid:
                 msg = session.get(Message, msgid)
             else:
@@ -159,7 +160,8 @@ class MessagePage:
         with db.session_scope() as session:
             msg = session.get(Message, web.conv(int, msgid))
             if not msg:
-                msg = Message(source='user:' + web.user())
+                msgid = db.newid(Message, session)
+                msg = Message(id=msgid, source='user:' + web.user())
                 session.add(msg)
 
 

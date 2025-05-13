@@ -36,7 +36,8 @@ class DatasourcePage:
             with db.session_scope() as session:
                 inst = session.get(db.Datasource, web.conv(int, instid))
                 if inst is None:
-                    inst = db.Datasource()
+                    instid = db.newid(db.Datasource, session)
+                    inst = db.Datasource(id=instid)
                     session.add(inst)
                     session.flush()
 
