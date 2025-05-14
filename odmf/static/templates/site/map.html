@@ -3,7 +3,7 @@
     <py:block name="scripts">
         <script type="text/javascript" src="${conf.root_url}/media/js/site-filter.js"/>
         <script type="text/javascript" src="${conf.root_url}/media/js/map.js"></script>
-        <script type="text/javascript" async="async" defer="defer"
+        <script py:if="allow_google_maps" type="text/javascript" async="async" defer="defer"
                 src="${conf.google_maps_api('initMap')}">
         </script>
         <script>
@@ -64,7 +64,37 @@
         </div>
     </py:block>
     <py:block name="content">
-        <div id="map_canvas" class="mapCanvasShort row" data-site="${site}">Map</div>
+        <div py:if="not allow_google_maps" class="container">
+            <div class="card">
+                <div class="card-header">
+                    <h1 display="4">Google Maps disabled</h1>
+                </div>
+                <div class="card-body">
+                    <p class="lead">To use Google Maps you need to confirm the terms of service of Google LLC including their data privacy policies</p>
+                    <ul>
+                        <li>
+                            <a href="https://cloud.google.com/maps-platform/terms">Terms of services of Google:</a>
+                        </li>
+                        <li>
+                            <a href="https://policies.google.com/privacy">Privacy policies from Google</a>
+                        </li>
+                    </ul>
+                    <p>You must agree to these terms to use Google maps inside of ODMF</p>
+                </div>
+                <div class="card-footer">
+                    <form method="post" action="${conf.url('map', 'allow_google')}" class="d-flex">
+                        <div class="lead me-4">
+                            Allow Google Maps
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-success" name="allow" value="on"><i class="fas fa-thumbs-up"/></button>
+                            <button type="submit" class="btn btn-danger" name="allow" value=""><i class="fas fa-thumbs-down"/></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div py:if="allow_google_maps" id="map_canvas" class="mapCanvasShort row" data-site="${site}">Map</div>
 
     </py:block>
 
