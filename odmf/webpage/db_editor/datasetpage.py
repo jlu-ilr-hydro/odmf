@@ -226,7 +226,7 @@ class DatasetPage:
                 web.mime.json.set()
                 return web.as_json(alarms).encode('utf-8')
             elif cherrypy.request.method == 'POST':
-                alarm = session.get(DatasetAlarm, kwargs.get('id'))
+                alarm = session.get(DatasetAlarm, web.conv(int, kwargs.get('id')))
                 if not alarm:
                     alarm = DatasetAlarm(dataset=ds)
                     session.add(alarm)
