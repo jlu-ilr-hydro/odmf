@@ -4,6 +4,7 @@ import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from functools import total_ordering
 import typing as t
+from datetime import datetime
 
 from .base import Base
 
@@ -18,19 +19,12 @@ class Person(Base):
     email = sql.Column(sql.String)
     firstname = sql.Column(sql.String)
     surname = sql.Column(sql.String)
-    _supervisor = sql.Column('supervisor', sql.String,              # delete
-                             sql.ForeignKey('person.username'))
-    supervisor = orm.relationship('Person', remote_side=[username])   # delete
-    telephone = sql.Column(sql.String)                                          # delete
     comment = sql.Column(sql.String)
-    can_supervise = sql.Column(sql.Boolean, default=False)                      # delete
-    mobile = sql.Column(sql.String)                                             # delete
-    car_available = sql.Column(sql.Integer, default=0)                          # delete
     password = sql.Column(sql.VARCHAR)
     access_level = sql.Column(sql.INTEGER, nullable=False, default=0)
     active = sql.Column(sql.Boolean, default=True, nullable=False)
-    # orcid: orm.Mapped[t.Optional[str]]
-    # last_login: orm.Mapped[t.Optional[datetime.datetime]] = sql.Column(sql.DateTime, nullable=True)
+    orcid: orm.Mapped[t.Optional[str]]
+    last_login: orm.Mapped[t.Optional[datetime]]
 
     topics: orm.Mapped[t.List['Topic']] = orm.relationship(secondary='subscribes', back_populates='subscribers')
 

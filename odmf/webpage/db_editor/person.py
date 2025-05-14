@@ -74,8 +74,8 @@ class PersonPage:
                 p_act.email = kwargs.get('email')
                 p_act.firstname = kwargs.get('firstname')
                 p_act.surname = kwargs.get('surname')
-                p_act.telephone = kwargs.get('telephone')
                 p_act.comment = kwargs.get('comment')
+                p_act.orcid = kwargs.get('orcid')
                 if kwargs.get('status') == 'on' or is_self(username):
                     p_act.active = True
                 else:
