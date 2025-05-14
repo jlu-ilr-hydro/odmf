@@ -3,6 +3,8 @@ Created on 12.07.2012
 
 @author: philkraf
 '''
+import cherrypy
+
 from . import lib as web
 from .. import db
 from ..config import conf
@@ -20,6 +22,15 @@ class MapPage(object):
     def index(self, site=None):
 
         return web.render('site/map.html', site=site).render()
+
+    @web.expose
+    @web.method.post
+    def allow_google(self, allow):
+        cherrypy.session['allow_google_maps'] = allow == 'on'
+        referer = cherrypy.request.headers.get('Referer')
+        origin = cherrypy.request.headers.get('Origin')
+        url = referer.replace(origin, '')
+        raise web.redirect(url)
 
     @web.expose
     @web.mime.json
