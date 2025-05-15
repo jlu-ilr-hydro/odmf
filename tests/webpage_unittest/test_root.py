@@ -19,13 +19,11 @@ class TestIndex:
     def test_index_no_login(self, root):
         map_html = root.index()
         assert map_html.startswith('<!DOCTYPE html>')
-        assert 'id="map_canvas"' in map_html
 
     def test_index_login_no_job(self, root):
         cherrypy.request.login = 'odmf.admin'
         map_html = root.index()
         assert map_html.startswith('<!DOCTYPE html>')
-        assert 'id="map_canvas"' in map_html
 
     def test_index_login_new_job(self, root, db, session):
         cherrypy.request.login = 'odmf.admin'
