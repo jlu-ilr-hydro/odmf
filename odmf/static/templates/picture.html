@@ -71,20 +71,20 @@
            href="${conf.root_url}/picture"
            class="btn btn-primary flexbox h1"
         >
-            <span><i class="fas fa-angle-left mr-2"/>overview</span>
+            <span><i class="fas fa-angle-left me-2"/>overview</span>
             <span><i class="fas fa-eye"/></span>
         </a>
-        <a href="#filter" id="filter-toggle" class="btn btn-secondary flexbox h1" data-toggle="collapse">
-            <span><i class="fas fa-filter mr-2"/>Filter</span><span><i class="fas fa-plus-circle"/></span>
+        <a href="#filter" id="filter-toggle" class="btn btn-secondary flexbox h1" data-bs-toggle="collapse">
+            <span><i class="fas fa-filter me-2"/>Filter</span><span><i class="fas fa-plus-circle"/></span>
         </a>
         <div class="collapse card card-body" id="filter">
             <select id="siteselect" class="sites form-control select2" onchange="reload();"/>
             <select id="userselect" class="users col-lg form-control select2" onchange="reload();"/>
 
         </div>
-        <a href="#upload" class="btn btn-secondary flexbox h1" data-toggle="collapse"
+        <a href="#upload" class="btn btn-secondary flexbox h1" data-bs-toggle="collapse"
            py:if="is_member('logger')" >
-            <span><i class="fas fa-file-upload mr-2"/>Upload</span>
+            <span><i class="fas fa-file-upload me-2"/>Upload</span>
             <span><i class="fas fa-plus-circle"/></span>
         </a>
         <div class="collapse card card-body" id="upload">
@@ -92,7 +92,7 @@
                   py:if="is_member('logger')" id="uploadform">
                 <div class="form-group">
                     <select class="sites form-control select2" id="uploadsite"
-                            name="siteid" onchange="enableupload();" title="site" data-toggle="tooltip"/>
+                            name="siteid" onchange="enableupload();" title="site" data-bs-toggle="tooltip"/>
                     <select class="users form-control select2" id="uploaduser" name="user"
                             onchange="enableupload();" />
 
@@ -146,16 +146,16 @@
                         </li>
                         <li class="list-group-item" py:if="is_member(Level.editor)">
                             <div class="btn-group" role="group">
-                                <a href="#edit" class="btn btn-secondary dropdown-toggle" data-toggle="collapse" title="edit">
+                                <a href="#edit" class="btn btn-secondary dropdown-toggle" data-bs-toggle="collapse" title="edit">
                                     <i class="fas fa-edit"/>
                                 </a>
-                                <button class="btn btn-outline-primary rotate" data-id="${picture.id}" data-degrees="270" title="rotate right" data-toggle="tooltip" py:if="is_member(Level.editor)">
+                                <button class="btn btn-outline-primary rotate" data-id="${picture.id}" data-degrees="270" title="rotate right" data-bs-toggle="tooltip" py:if="is_member(Level.editor)">
                                     <i class="fas fa-rotate-right"/>
                                 </button>
-                                <button class="btn btn-outline-primary rotate" data-id="${picture.id}" data-degrees="90" title="rotate left" data-toggle="tooltip" py:if="is_member(Level.editor)">
+                                <button class="btn btn-outline-primary rotate" data-id="${picture.id}" data-degrees="90" title="rotate left" data-bs-toggle="tooltip" py:if="is_member(Level.editor)">
                                     <i class="fas fa-rotate-left"/>
                                 </button>
-                                <button class="btn btn-outline-danger delete" data-id="${picture.id}" title="delete" data-toggle="tooltip" py:if="is_member(Level.admin)">
+                                <button class="btn btn-outline-danger delete" data-id="${picture.id}" title="delete" data-bs-toggle="tooltip" py:if="is_member(Level.admin)">
                                     <i class="fas fa-times"/>
                                 </button>
                     
@@ -169,7 +169,7 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="edit-comment">Comment</label>
-                                        <a title="Get help for using links and formats" data-toggle="tooltip" data-placement="top" class="ml-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
+                                        <a title="Get help for using links and formats" data-bs-toggle="tooltip" data-bs-placement="top" class="ms-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
                                             <i class="fas fa-question-circle"/>
                                         </a>
 

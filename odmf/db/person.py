@@ -3,6 +3,7 @@ import typing
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from functools import total_ordering
+import typing as t
 
 from .base import Base
 
@@ -28,6 +29,8 @@ class Person(Base):
     password = sql.Column(sql.VARCHAR)
     access_level = sql.Column(sql.INTEGER, nullable=False, default=0)
     active = sql.Column(sql.Boolean, default=True, nullable=False)
+
+    topics: orm.Mapped[t.List['Topic']] = orm.relationship(secondary='subscribes', back_populates='subscribers')
 
     def __str__(self):
         return "%s %s" % (self.firstname, self.surname)

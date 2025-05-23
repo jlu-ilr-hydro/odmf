@@ -115,7 +115,7 @@ function set_content_tree_handlers() {
 
 class Plot {
 	constructor() {
-		let saved_plot = JSON.parse(sessionStorage.getItem('plot'))
+		let saved_plot = JSON.parse(localStorage.getItem('plot'))
 		if (saved_plot && !$.isEmptyObject(saved_plot)) {
 			this.name =   saved_plot.name || ''
 			this.path =   saved_plot.path || ''
@@ -245,7 +245,7 @@ class Plot {
 			$('#ct-new-subplot').before(obj);
 
 		})
-		sessionStorage.setItem('plot', txt_plot);
+		localStorage.setItem('plot', txt_plot);
 		$('#property-summary').html($('#prop-timeselect :selected').text() + ' / ' + $('#prop-aggregate :selected').text())
 		$('#json-row pre').html(txt_plot);
 		set_content_tree_handlers();

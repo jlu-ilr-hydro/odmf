@@ -1,6 +1,4 @@
 import pytest
-from pathlib import Path
-
 from . import conf
 
 def test_conf_create(conf):

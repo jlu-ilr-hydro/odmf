@@ -41,23 +41,18 @@
     <div class="form-group small mt-0 mb-0">
         <label class="col-form-label" for="filter-buttons">apply:</label>
         <div id="filter-buttons" class="">
-            <button id="apply-filter" title="Apply the filter" data-toggle="tooltip" class="btn btn-outline-dark">
+            <button id="apply-filter" title="Apply the filter" data-bs-toggle="tooltip" class="btn btn-outline-dark">
                 <i class="fas fa-filter"/>
             </button>
             <button id="clear-filter" title="Clear filter and show all sites"
-                    data-toggle="tooltip" data-placement="bottom"
+                    data-bs-toggle="tooltip" data-bs-placement="bottom"
                     class="btn btn-outline-dark">
                 <span class="fa-stack" style="font-size: 0.5em;" >
                     <i class="fas fa-filter fa-stack-2x"/>
                     <i class="fas fa-times fa-stack-2x" style="color:Tomato"/>
                 </span>
             </button>
-        </div>
-    </div>
-    <div class="form-group small mt-0 mb-0">
-        <div class="custom-control custom-switch" data-toggle="tooltip" title="Show only sites with datasets">
-            <input id="datasetsonly" type="checkbox" class="custom-control-input"/>
-            <label for="datasetsonly" class="custom-control-label">only datasets</label>
+            <button id="save-filter" title="Saves the filter in your browser" class="btn btn-light"><i class="fas fa-save"/></button>
         </div>
     </div>
 

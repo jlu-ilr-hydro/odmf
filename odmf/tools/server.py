@@ -81,6 +81,11 @@ def start(autoreload=False, browser=False):
     """
     from ..webpage.root import Root
     root = Root()
+    logger.info(f'start mailer daemon')
+    from .mail.maildaemon import MailDaemon
+    md = MailDaemon(conf.mailer_daemon_frequency)
+    md.daemon = True
+    md.start()
     logger.info(f'Starting server on http://127.0.0.1:{conf.server_port}{conf.root_url}')
     if browser:
         import webbrowser

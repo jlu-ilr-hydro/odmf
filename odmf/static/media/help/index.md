@@ -1,13 +1,14 @@
-![odmf-logo](/media/images/odmf.svg){width=750px}
+![odmf-logo](odmf.svg){width=750px}
 # ODMF - Observatory Data Management Framework
-
 
 The ODMF system is a web app and has three main functions:
 
 1. Share and annotate field data by **uploading** files using the help:file-manager
-2. Make structure timeseries findable, accessible, interoperable and researchable by **importing** data in help:datasets. 
+2. Make structured timeseries findable, accessible, interoperable and researchable by **importing** data in help:datasets. 
    The data can be presented in a help:plot
 3. Facilitate communication about field work coordination with help:messenger and jobs
+
+![odmf-data-flow](data-flow.svg){width=750px}
 
 ## help:file-manager !fa-file
 

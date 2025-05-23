@@ -104,6 +104,7 @@ def check_directory(path: Path, user: auth.User) -> Mode:
     rule = AccessRule.find_rule(path)
     return rule(user, owner)
 
+
 def check_children(path: Path, user: auth.User) -> typing.Dict[Path, Mode]:
     """
     Checks the path like check_directory and all children directories for existing access rules. If rules are present,
@@ -124,6 +125,23 @@ def check_children(path: Path, user: auth.User) -> typing.Dict[Path, Mode]:
         check_child(f)
         for f in path.iterdir()
     )
+
+
+def walk(path: Path, user: auth.User, mode=Mode.read) -> typing.List[Path]:
+    """
+    Walks recursively through all files and directories in path respecting the access rules
+    :param path: The parent path, should be a directory
+    :param user: the user requesting the access rules
+    :param mode: the minimal access mode, usually Mode.read
+    :return: list of paths
+    """
+    result = []
+    if check_directory(path, user) >= mode:
+        directories, files = path.listdir()
+        result.extend(files)
+        for d in directories:
+            result.extend(walk(d, user, mode))
+    return result
 
 
 

@@ -4,7 +4,7 @@
     <py:block name="scripts">
         <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
         <script type="text/javascript" py:if="plot">
-            sessionStorage.setItem('plot', JSON.stringify(${literal(as_json(plot))}, 4));
+            localStorage.setItem('plot', JSON.stringify(${literal(as_json(plot))}, 4));
         </script>
 
         <script type="text/javascript" src="${conf.root_url}/media/js/plot.js"/>
@@ -45,9 +45,9 @@
     <py:block name="sidebar">
         <div class="container-fluid ">
             <div class="dropdown mb-2">
-                <a class=" w-100 flexbox" href="#" role="button" id="file-menu-link" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="file-menu">
-                    <h4 id="plot-name" class="mr-auto">name...</h4>
-                    <div class="ml-auto btn btn-primary"><i class="fas fa-bars"/></div>
+                <a class=" w-100 flexbox" href="#" role="button" id="file-menu-link" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="file-menu">
+                    <h4 id="plot-name" class="me-auto">name...</h4>
+                    <div class="ms-auto btn btn-primary"><i class="fas fa-bars"/></div>
                 </a>
 
 
@@ -60,7 +60,7 @@
                             <input type="checkbox" class="custom-control-input" id="autoreload_switch" py:attrs="prop(checked=autoreload)"/>
                             <label class="custom-control-label flexbox"
                                    for="autoreload_switch"
-                                   data-toggle="tooltip"
+                                   data-bs-toggle="tooltip"
                                    title="Automatic reload of data, switches off automatically, if refresh takes longer than 1000 ms ">
                                 auto reload
                             </label>
@@ -75,29 +75,29 @@
                     <button class="dropdown-item dropdown-item-action" id="plot-save"><i class="fas fa-floppy-disk"/> save</button>
 
                     <a class="dropdown-item"
-                       id="toolbar-toggle" data-toggle="modal" data-target="#file-dialog"
+                       id="toolbar-toggle" data-bs-toggle="modal" data-bs-target="#file-dialog"
                        role="button" aria-controls="file-dialog">
                         <i class="fas fa-folder-open"/> load / save as ...
                     </a>
                     <a class="dropdown-item"
-                       id="export-toggle" data-toggle="modal" data-target="#export-dialog"
+                       id="export-toggle" data-bs-toggle="modal" data-bs-target="#export-dialog"
                        role="button" aria-controls="export-dialog">
                         <i class="fas fa-file-export"/> export data...
                     </a>
                     <a class="dropdown-item"
-                       id="json-toggle" data-toggle="modal" data-target="#json-dialog"
+                       id="json-toggle" data-bs-toggle="modal" data-bs-target="#json-dialog"
                        role="button" aria-controls="json-dialog">
                         {} show plot code
                     </a>
 
                     <div class="dropdown-divider"></div>
-                    <a data-format="png" class="dropdown-item figure-export" data-toggle="tooltip" title="Export as PNG" role="button">
+                    <a data-format="png" class="dropdown-item figure-export" data-bs-toggle="tooltip" title="Export as PNG" role="button">
                         <i class="fas fa-file-image"/> export as png
                     </a>
-                    <a data-format="svg" class="dropdown-item figure-export" data-toggle="tooltip" title="Export as SVG" role="button">
+                    <a data-format="svg" class="dropdown-item figure-export" data-bs-toggle="tooltip" title="Export as SVG" role="button">
                         <i class="fas fa-file-code"/> export as svg
                     </a>
-                    <a data-format="pdf" class="dropdown-item figure-export" data-toggle="tooltip" title="Export as PDF" role="button">
+                    <a data-format="pdf" class="dropdown-item figure-export" data-bs-toggle="tooltip" title="Export as PDF" role="button">
                         <i class="fas fa-file-pdf"/> export as pdf
                     </a>
 
@@ -107,7 +107,7 @@
             </div>
             <div class="card" >
                 <div class="card-header flexbox">
-                    <a class="list-group-item-action dropdown-toggle " href="#properties" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="properties">
+                    <a class="list-group-item-action dropdown-toggle " href="#properties" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="properties">
                         <i class="fas fa-cog" title="properties"/>
                         <span id="property-summary">properties</span>
                     </a>
@@ -181,7 +181,7 @@
                 <div id="ct-new-subplot" class="card mb-2 w-100">
                     <div class="card-body">
                         <div class="card-title">
-                            <button id="addsubplot" class="btn btn-primary mr-2">
+                            <button id="addsubplot" class="btn btn-primary me-2">
                                 <i class="fas fa-plus-circle"/>
                             </button>
                             add subplot
@@ -190,7 +190,7 @@
                 </div>
 
             </div>
-            <div class="mt-1 badge badge-secondary text-right" id="rendertime" data-toggle="tooltip" title="render-time"></div>
+            <div class="mt-1 badge bg-secondary text-right" id="rendertime" data-bs-toggle="tooltip" title="render-time"></div>
 
         </div>
     </py:block>
@@ -214,17 +214,17 @@
         <div class="d-none"  id="subplot-template" type="template" >
             <div class="subplot card mb-2 w-100">
                 <div class="card-header dropdown sp-tools" data-subplot="§position§">
-                    <h5 class="card-title dropdown-toggle" data-toggle="dropdown">
+                    <h5 class="card-title dropdown-toggle" data-bs-toggle="dropdown">
                         subplot §position§
                     </h5>
                     <div class="dropdown-menu"  id="sp_§position§_tools">
                         <a data-subplot="§position§"
-                           class="sp-remove-button dropdown-item dropdown-item-action text-danger" data-toggle="tooltip"
+                           class="sp-remove-button dropdown-item dropdown-item-action text-danger" data-bs-toggle="tooltip"
                            title="remove subplot §position§ from figure"
                         >
                             <i class="fas fa-trash"/> remove subplot
                         </a>
-                        <a class="sp-changeylimit-button dropdown-item dropdown-item-action " data-toggle="tooltip" data-subplot="§position§"
+                        <a class="sp-changeylimit-button dropdown-item dropdown-item-action " data-bs-toggle="tooltip" data-subplot="§position§"
                            title="change y axis limit"
                         >
                             <i>y</i>&#x2195; limit y axis
@@ -232,7 +232,7 @@
                         <div class="dropdown-divider"/>
                         <div class="dropdown-header "
                              data-subplot="§position§">
-                            <i class="fas fa-tags" data-toggle="tooltip" title="Show logged events at a site in the graph"/> log-events
+                            <i class="fas fa-tags" data-bs-toggle="tooltip" title="Show logged events at a site in the graph"/> log-events
                         </div>
                         <div class="dropdown-item">
                             <select class="form-control sp-logsite-list" data-subplot="§position§">
@@ -244,7 +244,7 @@
                 </div>
                 <ul id="line-list" class="list-group list-group-flush">
                     <li class="newline list-group-item">
-                        <button class="btn btn-sm btn-primary btn-outline shadow py-0" data-toggle="modal" data-target="#newline-dialog"
+                        <button class="btn btn-sm btn-primary btn-outline shadow py-0" data-bs-toggle="modal" data-bs-target="#newline-dialog"
                                 data-subplot="§position§" id="addline_§position§" data-replace="new">
                             <i class="fas fa-plus-circle"/> add line...
                         </button>
@@ -256,25 +256,25 @@
         </div>
         <ul class="d-none" id="line-template" type="template">
             <li class="line list-group-item">
-                <a class="list-group-item-action text-left d-flex"
-                   data-toggle="collapse" data-target="#linetools_§sp_pos§_§i§" aria-expanded="false" aria-controls="linetools_§sp_pos§_§i§">
-                    <span style="color:§color§; font-weight: bolder" >§linestyle§ §marker§</span> §linename§ <i class="fas fa-caret-down ml-auto"></i>
+                <a class="list-group-item-action text-start d-flex"
+                   data-bs-toggle="collapse" data-bs-target="#linetools_§sp_pos§_§i§" aria-expanded="false" aria-controls="linetools_§sp_pos§_§i§">
+                    <span style="color:§color§; font-weight: bolder" >§linestyle§ §marker§</span> §linename§ <i class="fas fa-caret-down ms-auto"></i>
                 </a>
                 <div class="collapse" id="linetools_§sp_pos§_§i§" style="transition: 50ms;" >
                     <div class="btn-group" >
                         <button title="remove line" class="btn btn-sm py-0 btn-danger removeline"
-                                data-toggle="tooltip"  data-html="true" data-lineno="§i§" data-subplot="§sp_pos§">
+                                data-bs-toggle="tooltip"  data-html="true" data-lineno="§i§" data-subplot="§sp_pos§">
                             <i class="fas fa-trash"/>
                         </button>
                         <button class="btn btn-sm py-0 btn-secondary showdataset"
                                 data-html="true"  title="show datasets of line" data-lineno="§i§" data-subplot="§sp_pos§">
                             <i class="fas fa-list"/>
                         </button>
-                        <button title="edit line" class="btn btn-sm py-0 btn-secondary editline" data-toggle="modal" data-target="#newline-dialog"
+                        <button title="edit line" class="btn btn-sm py-0 btn-secondary editline" data-bs-toggle="modal" data-bs-target="#newline-dialog"
                                 data-lineno="§i§" data-subplot="§sp_pos§" data-replace="replace">
                             <i class="fas fa-edit"/>
                         </button>
-                        <button title="copy line" class="btn btn-sm py-0 btn-secondary editline" data-toggle="modal" data-target="#newline-dialog" id="copyline_§position§_§i§"
+                        <button title="copy line" class="btn btn-sm py-0 btn-secondary editline" data-bs-toggle="modal" data-bs-target="#newline-dialog" id="copyline_§position§_§i§"
                                 data-lineno="§i§" data-subplot="§sp_pos§" data-replace="copy">
                             <i class="fas fa-copy"/>
                         </button>
@@ -301,7 +301,7 @@
                 <form action="export" method="post" id="export-form">
                     <div class="modal-content">
                         <div class="modal-header bg-primary text-light">
-                            <h5 class="modal-title"><i class="fas fa-file-export mr-2"/>Export data</h5>
+                            <h5 class="modal-title"><i class="fas fa-file-export me-2"/>Export data</h5>
                         </div>
 
                         <div class="modal-body">
@@ -331,7 +331,7 @@
                             <h6>Time steps</h6>
                             <div class="small">Use a number of time units, eg. 5D, 1W, 3h, 3h5m4s
                                 <a href="${conf.root_url}/help/export" class="wiki-help"
-                                   title="Help for time intervals" data-toggle="tooltip">
+                                   title="Help for time intervals" data-bs-toggle="tooltip">
                                     <i class="fas fa-question-circle" />
                                 </a>
                             </div>
@@ -370,8 +370,8 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                            <button id="export-start-button" type="submit" form="export-form" value="ok" class="btn btn-primary">Export</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button id="export-start-button" type="submit" form="export-form" value="ok" class="btn btn-primary" data-bs-dismiss="modal">Export</button>
                         </div>
 
                     </div>
@@ -485,8 +485,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button id="nl-OK" type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button id="nl-OK" type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
                     </div>
 
                 </div>
@@ -503,7 +503,7 @@
                         <pre></pre>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
                 </div>
 

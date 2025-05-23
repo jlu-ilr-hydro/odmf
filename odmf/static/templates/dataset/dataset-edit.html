@@ -21,15 +21,20 @@
     </py:block>
     <py:block name="sidebar">
         <!-- insert sidebar content -->
-        <div class="container-fluid">
-            <div class="">
-                <a href="${conf.root_url}/dataset/" class="btn btn-primary w-100 flexbox mb-1">
-                    <span><i class="fas fa-arrow-left mr-1" /></span>
-                    <span>list</span>
-                    <span><i class="fas fa-list-ul mr-1"/></span>
-                </a>
+        <div class="nav d-flex justify-content-center border p-1 mb-2">
+            <div class="nav-item mb-2">
+                <div class="btn-group" role="group">
+                    <a href="../${ds_act.id - 1}" class="btn btn-secondary me-1" py:attrs="disabled(ds_act.id == 1)" data-bs-toggle="tooltip" title="dataset:${ds_act.id - 1}">
+                        <i class="fas fa-caret-left"/>
+                    </a>
+                    <a href="../" class="btn btn-primary me-1" type="button" data-bs-toggle="tooltip" title="site list" >
+                        ...
+                    </a>
+                    <a href="../new#edit" class="btn btn-success me-1" data-bs-toggle="tooltip" title="New dataset"><i class="fas fa-plus"/></a>
+                    <a href="../${ds_act.id + 1}" class="btn btn-secondary" data-bs-toggle="tooltip" title="dataset:${ds_act.id + 1}"><i class="fas fa-caret-right"/></a>
+                </div>
             </div>
-            <div class="">
+            <div class="nav-item">
                 <div class="input-group ">
                     <div class="input-group-prepend" >
                         <button class="btn btn-secondary" id="gotods-btn"
@@ -38,42 +43,46 @@
                         </button>
                     </div>
                     <input class="form-control" type="text" id="goto" tabindex="1" placeholder="goto dataset-id"
-                           title="Go directly to a dataset by entering the id" data-toggle="tooltip"/>
+                           title="Go directly to a dataset by entering the id" data-bs-toggle="tooltip"/>
                 </div>
 
             </div>
-            <hr/>
+        </div>
+        <div class="container-fluid mt-3">
             <div class="row">
                 <div class="col">
                     <div class="nav flex-column nav-pills" role="tablist"  aria-orientation="vertical" id="tabs">
-                        <a id="description-tab" class="nav-link ${['', 'active'][ds_act.is_defined()]} border-top" data-toggle="pill" href="#description">dataset</a>
-                        <a id="edit-tab" class="nav-link ${['', 'active'][not ds_act.is_defined()]} border-top" data-toggle="pill" href="#edit"
+                        <a id="description-tab" class="nav-link ${['', 'active'][ds_act.is_defined()]} border-top" data-bs-toggle="pill" href="#description">dataset</a>
+                        <a id="edit-tab" class="nav-link ${['', 'active'][not ds_act.is_defined()]} border-top" data-bs-toggle="pill" href="#edit"
                            py:if="access(Level.editor)"
                         >edit</a>
 
                         <a id="transforms-tab" class="nav-link flexbox border-top"
-                           data-toggle="pill" href="#transforms"
+                           data-bs-toggle="pill" href="#transforms"
                            py:if="ds_act.is_defined() and ds_act.is_transformed()"
                         >
                             transforms
                         </a>
-                        <a id="plot-tab" class="nav-link flexbox border-top" data-toggle="pill"
+                        <a id="plot-tab" class="nav-link flexbox border-top" data-bs-toggle="pill"
                            py:if="access(Level.guest) and ds_act.is_defined()"
                            href="#plot"
                         >plot
                         </a>
-                        <a id="records-tab" class="nav-link flexbox border-top" data-toggle="pill"
+                        <a id="records-tab" class="nav-link flexbox border-top" data-bs-toggle="pill"
                            py:if="access(Level.editor) and ds_act.is_timeseries()"
                            href="#records">
                             records
                         </a>
-                        <a id="calibrate-tab" class="nav-link flexbox border-top" data-toggle="pill"
+                        <a id="calibrate-tab" class="nav-link flexbox border-top" data-bs-toggle="pill"
                            py:if="access(Level.editor)"
                            href="#calibrate"
-
                         >
                             calibrate
                         </a>
+                        <a id="alarms-tab" class="nav-link flexbox border-top"
+                           data-bs-toggle="pill" href="#alarms"
+                           py:if="access(Level.supervisor) and ds_act.is_defined()"
+                        >alarms</a>
                     </div>
                 </div>
 
@@ -81,7 +90,7 @@
             <hr/>
             <div class="" py:if="hasattr(ds_act, 'clone')">
                 <a href="${conf.root_url}/dataset/new" class="btn btn-warning w-100 flexbox">
-                    <span><i class="fas fa-clone mr-1" /></span>
+                    <span><i class="fas fa-clone me-1" /></span>
                     <span>clone dataset</span>
                     <span><i class="fas fa-clipboard"/></span>
                 </a>
@@ -118,7 +127,7 @@
                                py:content="f'{ds_act.valuetype.name} [{ds_act.valuetype.unit}]' if ds_act.valuetype else '?'"/>
                             <a class="d-block text-white text-right" href="${f'{conf.root_url}/site/{ds_act.site.id}' if ds_act.site else '#edit'}"
                                py:content="ds_act.site"/>
-                            <a class="d-block text-white text-right" href="${f'{conf.root_url}/person/{ds_act.measured_by.username}' if ds_act.measured_by else '#edit'}"
+                            <a class="d-block text-white text-right" href="${f'{conf.root_url}/user/{ds_act.measured_by.username}' if ds_act.measured_by else '#edit'}"
                                py:content="ds_act.measured_by"/>
                         </div>
                     </div>
@@ -137,7 +146,7 @@
             </div>
 
             <div id="tab-row" class="tab-content row w-100 mt-2">
-                <div id="description" class="tab-pane mx-auto ${['', 'active'][ds_act.is_defined()]}" role="tabpanel" >
+                <div id="description" class="tab-pane mx-auto ${class_if(ds_act.is_defined(), 'active')}" role="tabpanel" >
                     <table class="table mx-auto">
                         <tr>
                             <td class="bold">Project:</td>
@@ -197,8 +206,8 @@
                             <td class="bold">Data source:</td>
                             <td py:if="ds_act.source">
                                 <a href="${conf.root_url}/instrument/${ds_act.source.id}" py:content="ds_act.source" />
-                                <a py:if="ds_act.source.manuallink" href="${conf.root_url}/${ds_act.source.manuallink}" class="ml-4"
-                                   title="Open manual for ${ds_act.source}" data-toggle="tooltip"
+                                <a py:if="ds_act.source.manuallink" href="${conf.root_url}/${ds_act.source.manuallink}" class="ms-4"
+                                   title="Open manual for ${ds_act.source}" data-bs-toggle="tooltip"
                                 >
                                     <i class="fas fa-book-open"/>
                                 </a>
@@ -226,18 +235,17 @@
                         </tr>
                     </table>
                     <button py:if="ds_act.is_timeseries() and access(Level.editor)" id="create-transformation"
-                            class="btn btn-outline-primary mr-2" data-toggle="tooltip"
+                            class="btn btn-outline-primary me-2" data-bs-toggle="tooltip"
                             title="Create a transformed dataset for this">
                         $~f(x)~$ transform
                     </button>
-                    <a href="${conf.root_url}/dataset/new?template=${ds_act.id}#edit" class="btn btn-outline-primary mr-2" data-toggle="tooltip" title="Create a new dataset using this as a template">
+                    <a href="${conf.root_url}/dataset/new?template=${ds_act.id}#edit" class="btn btn-outline-primary me-2" data-bs-toggle="tooltip" title="Create a new dataset using this as a template">
                         <i class="fas fa-copy"/> copy
                     </a>
 
                 </div>
-                <div id="edit" class="tab-pane w-100 mr-4 ${['', 'active'][not ds_act.is_defined()]}" role="tabpanel" py:if="access(Level.editor)">
-                    <form action="save" method="post">
-                        <input type="hidden" name="id" value="${ds_act.id}"  />
+                <div id="edit" class="tab-pane w-100 me-4 ${class_if(not ds_act.is_defined(), 'active')}" role="tabpanel" py:if="access(Level.editor)">
+                    <form action="." method="post">
                         <div class="container w-100">
                             <div id="edit-name-user-vt" class="form-row">
                                 <div class="form-group col-lg">
@@ -252,13 +260,13 @@
                                         <div class="input-group-prepend">
                                             <a class="btn btn-outline-secondary"
                                                href="${conf.root_url}/user/${ds_act.measured_by.username}"
-                                               title="Edit ${ds_act.measured_by.username}" data-toggle="tooltip"
+                                               title="Edit ${ds_act.measured_by.username}" data-bs-toggle="tooltip"
                                             >
                                                 <i class="fas fa-user"/>
                                             </a>
                                             <a class="btn btn-outline-secondary"
                                                href="${conf.root_url}/user/new"
-                                               title="Add a new person" data-toggle="tooltip"
+                                               title="Add a new person" data-bs-toggle="tooltip"
                                             >
                                                 <i class="fas fa-plus"/>
                                             </a>
@@ -279,13 +287,13 @@
                                         <div class="input-group-prepend">
                                             <a class="btn btn-outline-secondary"
                                                href="${conf.root_url}/valuetype/${ds_act.valuetype.id if ds_act.valuetype else ''}"
-                                               title="Edit ${ds_act.valuetype}" data-toggle="tooltip"
+                                               title="Edit ${ds_act.valuetype}" data-bs-toggle="tooltip"
                                             >
                                                 <i class="fas fa-ruler"/>
                                             </a>
                                             <a class="btn btn-outline-secondary"
                                                href="${conf.root_url}/valuetype/new"
-                                               title="Add a new valuetype" data-toggle="tooltip"
+                                               title="Add a new valuetype" data-bs-toggle="tooltip"
                                             >
                                                 <i class="fas fa-plus"/>
                                             </a>
@@ -323,13 +331,13 @@
                                         <div class="input-group-prepend">
                                             <a class="btn btn-outline-secondary"
                                                href="${conf.root_url}/site/${ds_act.site.id if ds_act.site else ''}"
-                                               title="Edit ${ds_act.site}" data-toggle="tooltip"
+                                               title="Edit ${ds_act.site}" data-bs-toggle="tooltip"
                                             >
                                                 <i class="fas fa-map-marker-alt"/>
                                             </a>
                                             <a class="btn btn-outline-secondary"
                                                href="${conf.root_url}/site/new"
-                                               title="Add a new site" data-toggle="tooltip"
+                                               title="Add a new site" data-bs-toggle="tooltip"
                                             >
                                                 <i class="fas fa-plus"/>
                                             </a>
@@ -343,7 +351,7 @@
                                         </select></div>
                                 </div>
                                 <div class="form-group col-lg">
-                                    <label for="level" data-toggle="tooltip"
+                                    <label for="level" data-bs-toggle="tooltip"
                                            title="Measured level offset to site. Only for sites with multiple instruments in serveral depth. Use negative values for instruments below ground."
                                     >
                                         Level in m:
@@ -368,13 +376,13 @@
                                         <div class="input-group-prepend">
                                             <a class="btn btn-outline-secondary"
                                                href="${conf.root_url}/instrument/${ds_act.source.id if ds_act.source else ''}"
-                                               title="Edit ${ds_act.source}" data-toggle="tooltip"
+                                               title="Edit ${ds_act.source}" data-bs-toggle="tooltip"
                                             >
                                                 <i class="fas fa-thermometer-half"/>
                                             </a>
                                             <a class="btn btn-outline-secondary"
                                                href="${conf.root_url}/instrument/new"
-                                               title="Add a new instrument" data-toggle="tooltip"
+                                               title="Add a new instrument" data-bs-toggle="tooltip"
                                             >
                                                 <i class="fas fa-plus"/>
                                             </a>
@@ -390,7 +398,7 @@
                                     </div>
                                 </div>
                                 <div class="form-group col-lg">
-                                    <label for="access" data-toggle="tooltip"
+                                    <label for="access" data-bs-toggle="tooltip"
                                            title="Select the user level needed to see the content of the dataset. Default is logged in user">
                                         User level
                                     </label>
@@ -459,7 +467,7 @@
                             </div>
                             <div id="edit-transformation" class="form-row" py:if="ds_act.is_transformed()">
 
-                                <div class="form-group col-lg" data-toggle="tooltip" data-placement="bottom"
+                                <div class="form-group col-lg" data-bs-toggle="tooltip" data-bs-placement="bottom"
                                      title="Please enter a valid Python/numpy expression for the transformation. See below for guidance">
                                     <label for="expression">Python:</label>
                                     <div class="input-group">
@@ -471,7 +479,7 @@
                                         <input type="text" value="${ds_act.expression}" id="expression" name="expression" size="50" class="transhelpparent form-control"/>
                                     </div>
                                 </div>
-                                <div class="form-group col-lg" data-toggle="tooltip" data-placement="bottom"
+                                <div class="form-group col-lg" data-bs-toggle="tooltip" data-bs-placement="bottom"
                                      title="Please enter the latex description for the formula for printing">
                                     <label for="latex">Latex:</label>
                                     <div class="input-group">
@@ -540,7 +548,7 @@
                             <div class="form-row">
                                 <label for="comment">Comments:
                                 </label>
-                                <a title="Get help for using links and formats" data-toggle="tooltip" data-placement="top" class="ml-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
+                                <a title="Get help for using links and formats" data-bs-toggle="tooltip" data-bs-placement="top" class="ms-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
                                     <i class="fas fa-question-circle"/>
                                 </a>
 
@@ -551,13 +559,13 @@
                             </div>
                             <div id="edit-top-buttons" class="form-row mb-2">
 
-                                <button type="submit" id="save" name="save" class="btn btn-success mr-2" >
-                                    <i class="fas fa-check mr-2"/> save changes
+                                <button type="submit" id="save" name="save" class="btn btn-success me-2" >
+                                    <i class="fas fa-check me-2"/> save changes
                                 </button>
-                                <button py:if="access(Level.admin)" class="btn btn-danger mr-2" type="button"
-                                        title="remove dataset permanently" data-toggle="tooltip" id="removeds"
+                                <button py:if="access(Level.admin)" class="btn btn-danger me-2" type="button"
+                                        title="remove dataset permanently" data-bs-toggle="tooltip" id="removeds"
                                         data-dsid="${ds_act.id}" data-dsname="${str(ds_act)}" data-dssize="${ds_act.size()}">
-                                    <i class="fas fa-trash mr-2"/> delete dataset
+                                    <i class="fas fa-trash me-2"/> delete dataset
                                 </button>
                             </div>
                         </div>
@@ -567,32 +575,32 @@
                     <h3>This data set transforms the records of the following <span py:content="len(ds_act.sources)"/> data sets:</h3>
                     <ul style="list-style:none;">
                         <li py:for="source in ds_act.sources" class="mb-1">
-                            <button class="btn btn-danger btn-small mr-1"
+                            <button class="btn btn-danger btn-small me-1"
                                     onclick="$.post(odmf_ref('/dataset/transform_removesource/'),{transid:${ds_act.id},sourceid:${source.id}},reload)"
-                                    title="Remove source from transformation" data-toggle="tooltip"
+                                    title="Remove source from transformation" data-bs-toggle="tooltip"
                             >
                                 &times;
                             </button>
-                            <a class="ml-2" href="${source.id}" >
+                            <a class="ms-2" href="${source.id}" >
                                 <span py:content="source" />
-                                <span class="ml-2 badge badge-primary">${source.size()} records</span>
+                                <span class="ms-2 badge bg-primary">${source.size()} records</span>
                             </a>
                         </li>
                         <li class="flexbox">
-                            <button class="btn btn-success btn-small mr-1" id="trans_add_source"
+                            <button class="btn btn-success btn-small me-1" id="trans_add_source"
                                     onclick="$.post(odmf_ref('/dataset/transform_addsource/'),{transid:${ds_act.id},sourceid:$('#trans_sources').val()},reload)"
-                                    title="Adds the source for transformation" data-toggle="tooltip" disabled="disabled"
+                                    title="Adds the source for transformation" data-bs-toggle="tooltip" disabled="disabled"
                             >
                                 +
                             </button>
-                            <select id="trans_sources" class="form-control ml-1">
+                            <select id="trans_sources" class="form-control ms-1">
                                 <option value="" style="font-style: italic;" selected="selected">Please select</option>
                                 <option py:for="potsrc in ds_act.suitablesources()" value="${potsrc.id}">${potsrc}</option>
                             </select>
                         </li>
                     </ul>
                 </div>
-                <div id="plot" class="tab-pane w-100 mr-4" role="tabpanel" py:if="users.current.level>=ds_act.access">
+                <div id="plot" class="tab-pane w-100 me-4" role="tabpanel" py:if="users.current.level>=ds_act.access">
                     <div class="container mx-auto">
                         <div class="row">
                             <div class="col-xl input-group mb-1">
@@ -663,7 +671,7 @@
                         <div class="row">
                             <button class="btn btn-primary col-sm-3"
                                     onclick="plotds(${ds_act.id});">
-                                <i class="fas fa-chart-line mr-1"/>plot
+                                <i class="fas fa-chart-line me-1"/>plot
                             </button>
                             <div class="col-sm-3">
                                 <div class="custom-control custom-switch">
@@ -683,7 +691,7 @@
                 <div id="records" class="tab-pane" role="tabpanel"
                      py:if="ds_act.is_timeseries() and access(Level.editor)">
                     <div class="my-2">
-                        <a href="#add-record-div" class="btn btn-primary dropdown-toggle" data-toggle="collapse"><i class="fas fa-plus-circle"/> new record</a>
+                        <a href="#add-record-div" class="btn btn-primary dropdown-toggle" data-bs-toggle="collapse"><i class="fas fa-plus-circle"/> new record</a>
                         <div id="add-record-div" class="border collapse mb-2 py-2">
                             <form id="add-record-form" action="${conf.root_url}/dataset/add-record" method="post">
                                 <input type="hidden" name="dataset" value="${ds_act.id}" id="id-input" />
@@ -711,7 +719,7 @@
                         <div class="col-sm">
                             <button class="btn btn-primary w-100" id="find-records"><i class="fas fa-search"/> find records</button>
                         </div>
-                        <div class="col-sm input-group" title="limit the number of records" data-toggle="tooltip">
+                        <div class="col-sm input-group" title="limit the number of records" data-bs-toggle="tooltip">
                             <div class="input-group-prepend">
                                 <span class="input-group-text">
                                     limit:
@@ -719,8 +727,8 @@
                             </div>
                             <input type="number" class="form-control" value="100" id="recordlimit"/>
                         </div>
-                        <a href="#filter" class="col-sm dropdown-toggle btn btn-secondary dropdown-toggle " data-toggle="collapse" role="button">
-                            <i class="fas fa-filter mr-2"/>Filter
+                        <a href="#filter" class="col-sm dropdown-toggle btn btn-secondary dropdown-toggle " data-bs-toggle="collapse" role="button">
+                            <i class="fas fa-filter me-2"/>Filter
                         </a>
                     </div>
                     <div class="alert alert primary collapse w-100" id="filter">
@@ -748,7 +756,7 @@
                         </div>
                         <div class="input-group mb-1">
                             <div class="input-group-prepend">
-                                <span class="input-group-text" title="filter records that are in the given range" data-toggle="tooltip">range</span>
+                                <span class="input-group-text" title="filter records that are in the given range" data-bs-toggle="tooltip">range</span>
                             </div>
                             <input type="text" class="form-control" id="recordminvalue" placeholder="lower boundary" />
                             <input type="text" class="form-control" id="recordmaxvalue" placeholder="upper boundary" />
@@ -797,7 +805,7 @@
                         </div>
                         <div class="col-sm-1 text-right">
                             <button id="calibrate-button-start" class="btn btn-secondary ">
-                                <i class="fas fa-redo mr-2"/>
+                                <i class="fas fa-redo me-2"/>
                             </button>
                         </div>
 
@@ -826,10 +834,10 @@
                         <div class="">
                             <div class="border">
                                 <div  class="row">
-                                    <h4 class="col ml-2">Statistics</h4>
+                                    <h4 class="col ms-2">Statistics</h4>
                                 </div>
                                 <div  class="row">
-                                    <div class="col-6 text-right font-weight-bold" data-toggle="tooltip" title="Number or records in the source">n<sub>source</sub></div>
+                                    <div class="col-6 text-right font-weight-bold" data-bs-toggle="tooltip" title="Number or records in the source">n<sub>source</sub></div>
                                     <div id="calibration-result-count" class="col value">0</div>
                                     <div class="col"></div>
                                     <div class="col"></div>
@@ -855,9 +863,9 @@
                             </div>
                             <div class="border">
                                 <div class="row mt-2">
-                                    <h4 class="col ml-2">Linear regression $~y=a \cdot x + b~$</h4>
-                                    <div class="col text-right mr-2">
-                                        <button id="calibrate-apply-regression" class="btn btn-primary do-calibration"><i class="fas fa-check-circle mr-2"/>apply</button>
+                                    <h4 class="col ms-2">Linear regression $~y=a \cdot x + b~$</h4>
+                                    <div class="col text-right me-2">
+                                        <button id="calibrate-apply-regression" class="btn btn-primary do-calibration"><i class="fas fa-check-circle me-2"/>apply</button>
                                     </div>
                                 </div>
                                 <div class="row">
@@ -882,9 +890,9 @@
                             </div>
                             <div class="border">
                                 <div class="row mt-2">
-                                    <h4 class="col ml-2">Bias correction $~y = x + c~$</h4>
-                                    <div class="col text-right mr-2">
-                                        <button id="calibrate-apply-offset" class="btn btn-primary do-calibration"><i class="fas fa-check-circle mr-2"/>apply</button>
+                                    <h4 class="col ms-2">Bias correction $~y = x + c~$</h4>
+                                    <div class="col text-right me-2">
+                                        <button id="calibrate-apply-offset" class="btn btn-primary do-calibration"><i class="fas fa-check-circle me-2"/>apply</button>
                                     </div>
                                 </div>
                                 <div  class="row">
@@ -908,6 +916,94 @@
 
 
 
+                </div>
+                <div id="alarms" class="tab-pane" role="tabpanel" py:if="access(Level.supervisor)">
+                    <div class="container">
+                        <h3>Alarms</h3>
+                        <div class="mb-22">Alarms can be used to sent messages automatically to topics on recent events concerning this dataset</div>
+                        <div class="list-group" >
+                            <div class="list-group-item list-group-item-active ${class_if(not alarm.active,'text-muted')} d-flex alarm-edit-btn" py:for="alarm in alarms" data-alarm-id="${alarm.id}">
+                                <div class="fas ${class_if(alarm.active, 'fa-bell', 'fa-bell-slash')} me-2 mt-1"/>
+                                ${markdown(str(alarm))}
+                                <button class="btn btn-sm btn-secondary ms-auto"
+
+                                >
+                                    <i class="fas fa-edit"/>
+                                </button>
+                            </div>
+                            <div class="list-group-item list-group-item-active list-group-item-success d-flex alarm-edit-btn">
+                                <div class="fas fa-plus me-2 mt-1"/><p>add alarm...</p>
+                                <button class="btn btn-sm btn-secondary ms-auto ">
+                                    <i class="fas fa-plus"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card mt-2 collapse" id="alarm-edit">
+                            <div class="card-header">
+                                <i class="fas fa-bell me-2"/> <span id="alarm-header"> New alarm...</span>
+                            </div>
+                            <div class="card-body">
+                                <form action="alarm" method="POST">
+                                    <input type="hidden" id="alarm-id" name="id" value="" class="form-control disabled"/>
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input" id="alarm-active" name="active"/>
+                                        <label class="custom-control-label" for="alarm-active">Activate alarm</label>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="alarm-aggregation">Aggregation</label>
+                                        <div class="input-group" id="alarm-aggregation">
+                                            <select class="form-control" id="alarm-aggregation_function" name="aggregation_function">
+                                                <option>count</option>
+                                                <option>mean</option>
+                                                <option>min</option>
+                                                <option>max</option>
+                                                <option>std</option>
+                                                <option>sum</option>
+                                            </select>
+                                            <span class="input-group-text">for</span>
+                                            <select id="alarm-aggregation_time" name="aggregation_time" class="form-control">
+                                                <option value="0 days 00:10:00">10min</option>
+                                                <option value="0 days 00:30:00">30min</option>
+                                                <option value="0 days 01:00:00">1h</option>
+                                                <option value="0 days 03:00:00">3h</option>
+                                                <option value="0 days 06:00:00">6h</option>
+                                                <option value="0 days 12:00:00">12h</option>
+                                                <option value="1 days 00:00:00">1d</option>
+                                                <option value="3 days 00:00:00">3d</option>
+                                                <option value="7 days 00:00:00">7d</option>
+                                                <option value="30 days 00:00:00">30d</option>
+                                            </select>
+
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="alarm-threshold">Condition</label>
+                                        <div class="input-group" id="alarm-threshold">
+                                            <select class="form-control" name="threshold_type">
+                                                <option>above</option>
+                                                <option>below</option>
+                                            </select>
+                                            <input type="number" step="any" name="threshold_value" class="form-control" />
+                                            <div class="input-group-append"><span class="input-group-text">${ds_act.valuetype and ds_act.valuetype.unit}</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="alarm-topic">Send to topic:</label>
+                                        <select class="form-control" name="topic" id="alarm-topic">
+                                            <option py:for="topic in topics" value="${topic.id}"
+                                                    py:content="topic.name"/>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <button class="btn btn-primary" type="submit"><i class="fas fa-check"/> save</button>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
             </div>
 

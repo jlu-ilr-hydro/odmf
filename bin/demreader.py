@@ -4,8 +4,8 @@ Read from a geo raster the heights for sites using UTM coordinates
 import sys
 
 import rasterio as rio
-from .. import db
-from . import Path as OPath
+from odmf import db
+from odmf.tools import Path as OPath
 
 
 class RasterReader:

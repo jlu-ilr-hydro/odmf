@@ -113,6 +113,11 @@ class Help:
         path = home / uri
         if path.is_dir():
             path /= 'index.md'
+
+        if path.suffix in ['.svg', '.png', '.jpg', '.jpeg', '.gif']:
+            web.mime[path.suffix[1:]].set()
+            return path.read_bytes()
+
         path = path.with_suffix('.md')
 
         content = path.read_text()
@@ -123,8 +128,8 @@ class Help:
         for p in path.parent.iterdir():
             if p.is_dir():
                 directories.append(p.name)
-            elif p.name != 'index.md':
-                files.append(p.name.strip('.md'))
+            elif p.name != 'index.md' and p.name.endswith('.md'):
+                files.append(p.name[:-3])
 
 
         return web.render(

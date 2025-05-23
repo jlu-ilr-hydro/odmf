@@ -92,18 +92,24 @@ class PlotFileDialog:
             The path to show, if None defaults to $USER
 
         """
+        from .filemanager import file_auth as fa
         p = OPath(path or web.user())
+        user = users.current
         if not p.islegal():
             raise web.HTTPError(403, 'No access to ' + path)
         if not p.exists():
             p = OPath('.')
         directories, files = p.listdir()
+        directories = [d for d in directories
+                       if fa.check_directory(d, user) >= fa.Mode.read]
         files = [f for f in files if f.basename.endswith('.plot')]
+        mode = fa.check_directory(p, user)
         res = web.render(
             'plot/filedialog.html',
             path=p,
             directories=directories,
-            files=files
+            files=files,
+            can_write=mode >= fa.Mode.write
         ).render()
         return res
 
@@ -115,10 +121,15 @@ class PlotFileDialog:
 
         Usage: $.post('saveplot', {plot: JSON.stringify(window.plot, path: ${path}).fail(seterror);
         """
+        from .filemanager import file_auth as fa
         if not path:
             path = web.user()
         p = OPath(path)
-        if not p.islegal() or not p.parent().exists:
+        if not all((
+                p.islegal(),
+                p.parent().exists,
+                fa.check_directory(p.parent(), users.current) >= fa.Mode.write
+        )):
             raise web.HTTPError(403, 'No access to ' + path)
         with open(p.absolute, 'w') as f:
             f.write(plot)
@@ -235,7 +246,7 @@ class PlotPage(object):
 
         plotname = plot.name or f'export-{datetime.now():%Y-%m-%d_%H-%M}'
 
-        return serve_dataframe(dataframe, f'{plotname}.{fileformat}')
+        return serve_dataframe(dataframe, f'{plotname}.{fileformat}', index_label='time')
 
     @expose_for(plotgroup)
     @web.method.post

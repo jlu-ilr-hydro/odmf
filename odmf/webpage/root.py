@@ -31,18 +31,19 @@ class Root(object):
     } | errorhandler.html
 
     map = map.MapPage()
-    site = dbe.SitePage()
-    plot = plot.PlotPage()
     download = upload.DownloadPage()
+    plot = plot.PlotPage()
+    site = dbe.SitePage()
     dataset = dbe.DatasetPage()
-    picture = dbe.PicturePage()
-    job = dbe.JobPage()
+    # picture = dbe.PicturePage()
     log = dbe.LogPage()
-
     valuetype = dbe.VTPage()
     instrument = dbe.DatasourcePage()
     project = dbe.ProjectPage()
     user = dbe.PersonPage()
+    job = dbe.JobPage()
+    message = dbe.MessagePage()
+    topic = dbe.TopicPage()
     help = static.Help()
     api = api.API()
 
@@ -59,8 +60,60 @@ class Root(object):
             with db.session_scope() as session:
                 user = session.get(db.Person, web.user())
                 if user and user.jobs.filter(~db.Job.done, db.Job.due - datetime.now() < timedelta(days=7)).count():
-                    raise web.redirect(conf.root_url + '/job')
+                    raise web.redirect(conf.url('/job'))
         return self.map.index()
+
+    @expose_for(Level.supervisor)
+    def bulkimport(self,undo=None, table=None, file=None):
+        """
+        GET returns the list of formaer imports for undo. Use undo-Attribute (undo-filename) to show details of an undo
+        POST with undo-Attribute (undo-filename): Perform undo-action
+        POST with table and file attribute: table is a tablename (site, datasets, log) and file is a file upload object
+            that contains the tabular data as excel, parquet etc
+
+        """
+        from ..tools import import_objects as impo
+        from pathlib import Path
+        undo_path = Path(conf.home + '/sessions/undo')
+        result = None
+        success = None
+        error = None
+        if cherrypy.request.method == 'POST':
+            if undo:
+                try:
+                    result = impo.load_undo_file(undo_path / undo)
+                    with db.session_scope() as session:
+                        result.undo(session)
+                    (undo_path / undo).unlink()
+                except Exception as e:
+                    error = str(e)
+                else:
+                    success = str(result) + ' undone'
+                    result = None
+            elif table and file:
+                try:
+                    with db.session_scope() as session:
+                        result = impo.import_objects(session, table, file.filename, file.file, web.user())
+                except Exception as e:
+                    error = str(e)
+                    result = None
+                else:
+                    success = str(result) + ' imported'
+                    undo_path.mkdir(parents=True, exist_ok=True)
+                    result.save(undo_path)
+        elif undo:
+            result = impo.load_undo_file(undo_path / undo)
+
+        # Get all undo-files and show results
+        if users.current.level >= Level.admin:
+            user = '*'
+        else:
+            user = web.user()
+        undos = list(reversed(sorted([
+            impo.load_undo_file(p) for p in
+            impo.list_undo_files(undo_path, '*', user)
+        ], key=lambda undo: undo.time)))
+        return web.render('import/bulkimport.html', title='bulk import', undos=undos, result=result, error=error, success=success).render()
 
     @expose_for()
     @web.show_in_nav_for(icon='key')

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+
+<py:extends href="layout.html" xmlns:py="">
+    <py:block name="scripts">
+        <!-- insert additional scripts -->
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <!-- insert sidebar content -->
+        <div class="card m-1">
+            <h4 class="card-header"><i class="fas fa-inbox"/> Topics</h4>
+            <div class="list-group">
+                <a class="list-group-item list-group-item-action" href="${conf.url('topic')}"><i class="fas fa-inbox"/> list topics...</a>
+                <a class="list-group-item list-group-item-action" href="${conf.url('topic', 'new')}"><i class="fas fa-plus-circle"/> create topic...</a>
+                <a class="list-group-item list-group-item-action" href="${conf.url('message', 'new')}"><i class="fas fa-paper-plane"/> write message...</a>
+            </div>
+        </div>
+        <div class="card m-1">
+            <h4 class="card-header"><i class="fas fa-filter me-4"/>Filter</h4>
+            <div class="card-body">
+                <form method="GET" action=".">
+                    <div class="form-group">
+                        <label for="topics" >Topics:</label>
+                        <select class="select2 form-control filter" name="topics[]" multiple="multiple" id="topics">
+                            <optgroup label="Your subscribed topics">
+                                <option py:for="t in my_topics" value="${t.id}" py:attrs="markoption(t.id in topics_selected)" >${t.name}</option>
+                            </optgroup>
+                            <optgroup label="Other topics">
+                                <option py:for="t in other_topics" value="${t.id}" py:attrs="markoption(t.id in topics_selected)" >${t.name}</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="sources">Source:</label>
+                        <select class="select2 form-control filter" name="sources[]" multiple="multiple" id="sources">
+                            <option py:for="s in sources" value="${s}" py:attrs="markoption(s in sources_selected)" >${s}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="fulltext">Text:</label>
+                        <input class="form-control filter" placeholder="full text search" value="${fulltext}" name="fulltext" id="fulltext"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="page" >Page:</label>
+                        <div class="input-group">
+                            <select class="form-control filter" name="page" id="page">
+                                <option py:for="p in range(pages)" value="${p+1}" py:attrs="markoption(p+1 == page)">${p+1}/${pages}</option>
+                            </select>
+                            <select class="form-control filter" name="limit" id="limit">
+                                <option py:for="l in [10,20,50,100,200]" value="${l}" py:attrs="markoption(limit==l)">${l}/page</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <button class="btn btn-primary" type="submit">Apply</button>
+                </form>
+
+            </div>
+        </div>
+    </py:block>
+    <py:block name="content">
+        <!-- insert main content -->
+        <div class="content w-100">
+            <div class="container">
+                <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-1">
+                    <div>
+                        <h2 class="display-4 me-8 d-inline-block" ><span class="badge bg-primary rounded-pill">${message_count}</span> Messages</h2>
+                    </div>
+                    <div class="display-4 col-sm my-auto text-right">
+                        <i class="fas fa-envelope me-4"/>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="accordion" id="msg-accordion">
+                        <div class="card" py:for="msg in messages" py:if="msg.topics">
+                            <div class="card-header" id="msg-${msg.id}" data-bs-target="#msg${msg.id}-content"  data-bs-toggle="collapse">
+                                    <div class="row ">
+                                        <div class="col-md" py:content="markdown(msg.date.strftime('%Y-%m-%d %H:%M') if msg.date else '')"/>
+                                        <div class="col-md" py:content="markdown(msg.subject)"/>
+                                        <div class="col-md" py:content="markdown(' **From:** ' + (msg.source or 'no source'))"/>
+                                        <a href="${msg.id}" class="btn btn-sm btn-secondary col-md-1">
+                                            <i class="fas fa-edit"/>
+                                        </a>
+
+                                    </div>
+
+
+                            </div>
+                            <div id="msg${msg.id}-content" class="collapse card-body" py:aria-labelledby="msg-${msg.id}">
+                                <div class="d-flex">
+                                    <span class="me-2">Topics:</span> <a href="${conf.url('topic',t.id)}" class="btn btn-sm btn-light border me-1" py:for="t in msg.topics" py:content="t.name"/>
+                                </div>
+                                <div py:content="markdown(msg.content)" class="border m-1 ps-1"/>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </py:block>
+</py:extends>

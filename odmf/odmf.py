@@ -170,11 +170,11 @@ def uri_tree(only_navigatable, level):
     Prints the tree of available resources of odmf
     """
     import yaml
-    from .webpage import Root
+    from .webpage.root import Root
     from .webpage.lib import Resource
     if not only_navigatable:
         level = None
-    res = Resource(Root()).create_tree(navigatable_for=level, recursive=True)
+    res = Resource('root', Root()).create_tree(navigatable_for=level, recursive=True)
     for r in res.walk():
         print(f'{r.uri}: {r.doc}')
 
@@ -192,12 +192,13 @@ def interactive():
     from . import db
     import pandas as pd
     import numpy as np
+    import datetime as dt
     greetings = dedent("""
         
         Imported modules
         ----------------
         
-        pd, np, conf, db
+        pd, np, conf, db, dt
         
         Defined symbols
         ---------------
@@ -221,7 +222,7 @@ def interactive():
             ds=db.base.ObjectGetter(db.Dataset, session),
             person=db.base.ObjectGetter(db.Person, session),
             site=db.base.ObjectGetter(db.Site, session),
-            pd=pd, np=np, conf=conf, db=db
+            pd=pd, np=np, conf=conf, db=db, dt=dt
         )
         print('\n\n================================================')
         print(f'  ODMF:{conf.root_url} {conf.version} interactive IPython shell')

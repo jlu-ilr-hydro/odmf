@@ -219,15 +219,19 @@ class LogbookImport:
                 row, f'Log for {time} at {site} exists already')
 
         else:
-            log = db.Log(user=user,
-                         time=time,
-                         message=data.get('message'),
-                         type=data.get('logtype'),
-                         site=site)
+            logid = db.newid(db.Log, session)
+            log = db.Log(
+                id=logid,
+                user=user,
+                time=time,
+                message=data.get('message'),
+                type=data.get('logtype'),
+                site=site
+            )
 
         return log, f'Log: {log}'
 
-    def importrow(self, session: db.Session, row, data, commit=False):
+    def importrow(self, session: db.orm.Session, row, data, commit=False):
         """
         Imports a row from the log-excelfile, either as record to a dataset
         or as a log entry. The decision is made on the basis of the data given.

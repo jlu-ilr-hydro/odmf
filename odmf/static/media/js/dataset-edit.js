@@ -14,7 +14,8 @@ function loadrecords(dsid) {
         threshold = $('#splitthreshold').val();
     }
 
-    var params={dataset:dsid,
+    var params={
+        dataset:dsid,
         mindate:$('#recordmindate').val() + 'T' + $('#recordmintime').val(),
         maxdate:$('#recordmaxdate').val() + 'T' + $('#recordmaxtime').val(),
         minvalue:$('#recordminvalue').val(),
@@ -23,6 +24,7 @@ function loadrecords(dsid) {
         limit:limit
     };
     $('#recordlist').load(odmf_ref('/dataset/records'),params);
+
 }
 
 function timerange(step)
@@ -111,7 +113,7 @@ function do_calibration(targetid, sourceid, limit, ask_to_calibrate=false) {
 }
 
 function apply_calibration(targetid, sourceid, slope, offset) {
-        $.post(
+    $.post(
         odmf_ref('/dataset/apply_calibration'),
         {
             targetid: targetid,
@@ -162,7 +164,7 @@ $(function() {
     $('#removeds').on('click', e => {
         let btn = $(e.target)
         var msg = 'Are you absolutly sure to delete ' + btn.data('dsname') + '?' +
-        'It has ' + btn.data('dssize') + ' records!'
+            'It has ' + btn.data('dssize') + ' records!'
         var really=confirm(msg)
         if (really) {
             $.post('remove', data => {
@@ -173,7 +175,7 @@ $(function() {
                     window.location.href = odmf_ref('/dataset/?message=ds' + btn.data('dsid') + ' deleted');
                 }
             });
-    }
+        }
 
     })
     $('#trans_help').hide();
@@ -194,7 +196,7 @@ $(function() {
         window.location.href=odmf_ref('/dataset/') + $('#goto').val();;
     });
     $('#find-records').on('click', function() {
-       loadrecords(dsid);
+        loadrecords(dsid);
     });
     // Javascript to enable link to tab
     if (window.location.hash) {
@@ -245,6 +247,37 @@ $(function() {
         }
         apply_calibration(dsid, sourceid, slope, offset);
     });
+    $('.alarm-edit-btn').on('click', event => {
+        let alarm_id = $(event.currentTarget).data('alarm-id') + 0
+        $('#alarm-edit').addClass('show')
+        $.get('alarm', data =>{
+            for (let alarm of data) {
+                if (alarm.id === alarm_id) {
+                    $('#alarm-header').html(alarm.label)
+                    if (alarm.threshold_above) {
+                        alarm['threshold_type'] = 'above'
+                        alarm['threshold_value'] = alarm.threshold_above
+                    } else {
+                        alarm['threshold_type'] = 'below'
+                        alarm['threshold_value'] = alarm.threshold_below
+                    }
+                    $('#alarm-active').prop('checked', alarm.active)
+                    for (let param in alarm) {
+                        let elem = $('#alarm-edit [name='+ param + ']')
+                        elem.val(alarm[param])
+                    }
+                    return alarm_id;
+                }
+            }
+            $('#alarm-header').html('New alarm...')
+            $('#alarm-active').prop('checked', true)
+            $('#alarm-edit [name]').val(null)
+            return alarm_id;
+
+
+        })
+    })
+
 
 });
 
