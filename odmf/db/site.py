@@ -24,7 +24,7 @@ class Site(Base):
     name = sql.Column(sql.String)
     comment = sql.Column(sql.String)
     icon = sql.Column(sql.String(30))
-    geometry = orm.relationship("SiteGeometry", back_populates='site', uselist=False, cascade="save-update, merge, delete, delete-orphan")
+    geometry = orm.relationship("SiteGeometry", back_populates='site', uselist=False, cascade="all,delete-orphan")
 
     def __init__(self, id:int, lat:float=None, lon:float=None,
                  height:float = None, name:str=None, comment:str=None, icon:str=None,
@@ -125,8 +125,10 @@ class SiteGeometry(Base):
     """
     __tablename__ = 'site_geometry'
 
-    id = sql.Column(sql.Integer, sql.ForeignKey('site.id'), primary_key=True, )
-    site = orm.relationship('Site', back_populates='geometry')
+    id = sql.Column(sql.Integer, sql.ForeignKey('site.id', ondelete='CASCADE'), primary_key=True)
+    site = orm.relationship(
+        'Site', back_populates='geometry', uselist=False, single_parent=True
+    )
     geojson = sql.Column(sql.JSON)  # Contains coordinates in GeoJSON notation
     strokewidth = sql.Column(sql.Float)
     strokeopacity = sql.Column(sql.Float)
@@ -139,18 +141,14 @@ class SiteGeometry(Base):
         return self.geojson
 
     def get_style(self):
-        res = {}
-        if self.strokewidth:
-            res['strokeWidth'] = self.strokewidth
-        if self.strokecolor:
-            res['strokeColor'] = self.strokecolor
-        if self.strokeopacity:
-            res['strokeOpacity'] = self.strokeopacity
-        if self.fillcolor:
-            res['fillColor'] = self.fillcolor
-        if self.fillopacity:
-            res['fillOpacity'] = self.fillopacity
-        return res
+        return {
+            'strokeWidth': self.strokewidth if self.strokewidth is not None else 3,
+            'strokeColor': self.strokecolor if self.strokecolor is not None else '#FFF',
+            'strokeOpacity': self.strokeopacity  if self.strokeopacity is not None else 1.0,
+            'fillColor': self.fillcolor  if self.fillcolor is not None else '#FFF',
+            'fillOpacity': self.fillopacity if self.fillopacity is not None else 0.3
+        }
+
     def as_feature(self) -> dict:
         """
         Returns the geometry as a GeoJson feature. Style is a nested property
@@ -186,11 +184,11 @@ class SiteGeometry(Base):
             if k.lower() != k:
                 properties[k.lower()] = properties[k]
 
-        geometry.strokewidth = properties.get('strokewidth')
-        geometry.strokecolor = properties.get('strokecolor')
-        geometry.strokeopacity = properties.get('strokeopacity')
-        geometry.fillcolor = properties.get('fillcolor')
-        geometry.fillopacity = properties.get('fillopacity')
+        geometry.strokewidth = properties.get('strokewidth', 3)
+        geometry.strokecolor = properties.get('strokecolor', '#FFF')
+        geometry.strokeopacity = properties.get('strokeopacity', 1.0)
+        geometry.fillcolor = properties.get('fillcolor', '#FFF')
+        geometry.fillopacity = properties.get('fillopacity', 0.3)
 
         return geometry
 

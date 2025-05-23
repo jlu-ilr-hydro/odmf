@@ -6,7 +6,7 @@ import pytest
 import sqlalchemy.orm
 import sqlalchemy.exc
 from contextlib import contextmanager
-from tests.test_db.test_dbobjects import person, site1_in_db, datasource1_in_db
+from .test_dbobjects import person, site1_in_db, datasource1_in_db
 from .. import conf
 
 

@@ -44,7 +44,7 @@ class FileAction:
         is_action_button = 'action-button' if hasattr(self, 'post') else ''
         return f'''
             <a href="{self.href(path)}" class="btn btn-secondary {is_action_button}"
-               data-toggle="tooltip" title="{self.tooltip}"
+               data-bs-toggle="tooltip" title="{self.tooltip}"
                data-actionid="{self.name}" data-path="{path}">
                     <i class="fas fa-{self.icon}" ></i> {self.title}
             </a>'''

@@ -9,14 +9,17 @@ let fmt = {
 }
 
 class SiteFilter {
-    constructor(project, valuetype, user, max_data_age, instrument, date, fulltext) {
-        this.project = project || $('#prjselect').val()
-        this.valuetype = valuetype || $('#vtselect').val()
-        this.user =  user || $('#userselect').val()
-        this.max_data_age = max_data_age || $('#max_data_age').val()
-        this.instrument =  instrument || $('#instrumentselect').val()
-        this.date =  date || $('#dateselect').val()
-        this.fulltext =  fulltext || $('#fulltext').val()
+    constructor(storage_item) {
+        // site-filter save / load is still buggy - needs more testing
+        // let data = JSON.parse(localStorage.getItem(storage_item)) || {}
+        let data = {}
+        this.project = data.project || $('#prjselect').val()
+        this.valuetype =  data.project || $('#vtselect').val()
+        this.user =   data.project || $('#userselect').val()
+        this.max_data_age = data.project || $('#max_data_age').val()
+        this.instrument =   data.project || $('#instrumentselect').val()
+        this.date =   data.project || $('#dateselect').val()
+        this.fulltext = data.project || $('#fulltext').val()
     }
 
     populate_form() {
@@ -58,7 +61,13 @@ class SiteFilter {
     apply(callback, source) {
         source = source || odmf_ref('/site/json')
         $.getJSON(source, this, callback)
+        this.save()
     }
+    save() {
+        // Site filter save is not really working
+        // localStorage.setItem('site-filter', JSON.stringify(this))
+    }
+
 }
 
 function clearFilter() {
@@ -70,6 +79,7 @@ function clearFilter() {
 
 }
 $(()=>{
+
     $('#clear-filter').on('click', () => {
         clearFilter()
         $('.filter').first().trigger('change')

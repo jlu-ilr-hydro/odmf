@@ -13,8 +13,8 @@
            py:for="resource in nav_items"
            href="${resource.uri}"
            title="${resource.doc}"
-           data-toggle="tooltip"
-           data-placement="right"
+           data-bs-toggle="tooltip"
+           data-bs-placement="right"
         >
             <span py:content="resource.name" />
             <i class="fas fa-${resource.icon or 'question_circle'} fa-lg"/>

@@ -38,7 +38,6 @@ function clearmarker() {
 }
 
 function selectsite(id) {
-	localStorage.setItem('map-selected-site', id)
 	if (id) {
 		$('#infotext').load(odmf_ref('/map/sitedescription/') + id,
 			function(response, status, xhr) {
@@ -68,9 +67,11 @@ function selectsite(id) {
 
 			}
 		});
+		localStorage.setItem('map-selected-site', id)
 
 	} else {
 		selected_marker = null
+		localStorage.removeItem('map-selected-site')
 		$('#infotext').html('<h3>No site selected</h3>')
 	}
 
@@ -170,17 +171,17 @@ function initMap(site) {
 	google.maps.event.addListener(map, 'bounds_changed', saveOptions)
 	map.data.setStyle(feature => {
 		return {
-			strokeWeight: feature.getProperty('strokeWidth') || 2,
-			strokeColor: feature.getProperty('strokeColor') || '#FFF',
-			strokeOpacity: feature.getProperty('strokeOpacity') || 0.8,
-			fillColor: feature.getProperty('fillColor') || '#FFF',
-			fillOpacity: feature.getProperty('fillOpacity') || 0.3,
+			strokeWeight: feature.getProperty('strokeWidth'),
+			strokeColor: feature.getProperty('strokeColor'),
+			strokeOpacity: feature.getProperty('strokeOpacity'),
+			fillColor: feature.getProperty('fillColor'),
+			fillOpacity: feature.getProperty('fillOpacity'),
 			zIndex: 10
 		}
 	})
 	markers = [];
-	function applyFilter() {
-		filter = new SiteFilter().populate_form()
+	function applyFilter(item) {
+		filter = new SiteFilter(item).populate_form()
 		filter.apply((data)=>{
 			setmarkers(data)
 			$('#site-count').html(data.features.length)
@@ -188,8 +189,7 @@ function initMap(site) {
 	}
 	$('.filter').on('change', applyFilter)
 	$('#zoom-home').on('click', zoomToMarkers)
-	clearFilter()
-	applyFilter()
+	applyFilter('site-filter')
 	if (!mapOptions ||!mapOptions.center) {
 		zoomToMarkers()
 	}

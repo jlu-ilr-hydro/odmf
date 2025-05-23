@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<py:extends href="layout.html" xmlns:py="">
+    <py:block name="scripts">
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <div class="container-fluid">
+            <a class="btn btn-secondary w-100 mb-4" href="${conf.root_url}/valuetype/new" py:if="is_member('supervisor')">
+                <i class="fas fa-plus me-2"/>
+                new valuetype
+            </a>
+            <div class="input-group mb-1">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">
+                        <i class=" fas fa-search" />
+                    </span>
+
+                </div>
+                <input class="form-control sidebar-list-filter" id="listSearch" type="text" placeholder="filter..." data-bs-target="#vtList"/>
+            </div>
+            <div class="list-group" id="vtList">
+                <a class="list-group-item list-group-item-action flexbox ${class_if(v ==actualvaluetype, 'active')}"
+                   py:for="v in valuetypes"
+                   href="${f'{conf.root_url}/valuetype/{v.id}'}">
+                    <span>${v}</span>
+                    <span><i class="fas fa-ruler" /></span>
+                </a>
+            </div>
+
+        </div>
+    </py:block>
+    <py:block name="content">
+        <div class="container">
+            <div class="list-group" py:if="not actualvaluetype">
+                <a class="list-group-item list-group-item-action flexbox"
+                   py:for="v in valuetypes"
+                   href="${f'{conf.root_url}/valuetype/{v.id}'}">
+                    <span>${v}</span>
+                    <span><i class="fas fa-ruler" /></span>
+                </a>
+            </div>
+
+            <div class="container" py:if="actualvaluetype" py:with="vt_act=actualvaluetype">
+                <div id="description" py:if="vt_act">
+                    <div class="row mt-2 w-100">
+                        <div class="container">
+                            <div id="title-area"
+                                 class="container bg-dark text-white w-100 border rounded flexbox mb-4">
+                                <h2 class="display-4" py:content="f'{vt_act.name} [{vt_act.unit}]'"/>
+                                <div class="display-4 ms-auto">
+                                    <i class="fas fa-ruler me-4"/>${vt_act.id}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-10">
+                                    <div class="container"
+                                         py:content="f'Allowed range: {vt_act.minvalue} - {vt_act.maxvalue} {vt_act.unit}'"/>
+                                    <hr/>
+                                    <div class="container" py:content="markdown(vt_act.comment)"/>
+                                </div>
+                                <div class="col-lg-2 mb-2">
+                                    <a class="btn btn-secondary dropdown-toggle" href="#edit" data-bs-toggle="collapse">
+                                        <i class="fas fa-edit me-2"/> edit
+                                    </a>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+                <div id="edit" class="container collapse border rounded px-4 ${class_if(not vt_act.name, 'show')}" py:if="vt_act">
+                    <form action=""
+                          method="post"
+                          py:if="is_member('supervisor')"
+                    >
+                        <div class="form-row mt-2">
+                            <div class="form-group">
+                                <label for="name">Name:</label>
+                                <input type="text" id="name" name="name" class="form-control"
+                                       value="${actualvaluetype.name}"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="unit">Unit:</label>
+                                <input type="text" id="unit" name="unit" class="form-control"
+                                       value="${actualvaluetype.unit}"/>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="minvalue">Lowest value:</label>
+                                <input type="text" id="minvalue" name="minvalue" class="form-control"
+                                       value="${actualvaluetype.minvalue}"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="maxvalue">Highest value:</label>
+                                <input type="text" id="maxvalue" name="maxvalue" class="form-control"
+                                       value="${actualvaluetype.maxvalue}"/>
+                            </div>
+                        </div>
+                        <div class="form-row mb-2">
+                            <label for="comment">Comment:</label>
+                            <a title="Get help for using links and formats" data-bs-toggle="tooltip" data-bs-placement="top" class="ms-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
+                                <i class="fas fa-question-circle"/>
+                            </a>
+                            <textarea id="comment" name="comment" class="form-control"
+                                      rows="4" py:content="actualvaluetype.comment"/>
+                        </div>
+                        <button class="btn btn-success mb-2" type="submit" id="save" name="save">
+                            <i class="fas fa-check me-2"/>
+                            save changes
+                        </button>
+                    </form>
+                </div>
+                <div id="dataset-list" class="container" py:if="actualvaluetype">
+                    <h1>Datasets</h1>
+                    <div class="list-group">
+                        <a href="${conf.url('dataset','new', vt_id=actualvaluetype.id)}" class="list-group-item list-group-item-action list-group-item-success">
+                            <i class="fas fa-plus"/> new dataset
+                        </a>
+                        <a href="${conf.url('dataset', ds.id)}" class="list-group-item list-group-item-action" py:for="ds in actualvaluetype.datasets">
+                            <i class="fas fa-clipboard"></i> ${ds}
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </py:block>
+</py:extends>

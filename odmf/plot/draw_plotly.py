@@ -79,7 +79,7 @@ def _make_figure(plot: Plot) -> go.Figure:
                 )
 
     fig.update_yaxes()
-    fig.update_layout(width=plot.size[0], height=plot.size[1], template='none')
+    fig.update_layout(width=plot.size[0], height=plot.size[1], template='none', showlegend=plot.legend)
     return fig
 
 

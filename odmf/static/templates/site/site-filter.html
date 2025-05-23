@@ -1,0 +1,60 @@
+<xhtml py:strip="True">
+    <div class="form-group small mt-0 mb-0">
+        <label for="prjselect" class="col-form-label">Project:</label>
+        <select id="prjselect" class="form-control filter select2">
+            <option class="firstoption" value="">Project...</option>
+        </select>
+    </div>
+    <div class="form-group small mt-0 mb-0">
+        <label for="vtselect" class="col-form-label">value type:</label>
+        <select id="vtselect" class="form-control filter select2">
+            <option class="firstoption" value="">value type...</option>
+        </select>
+    </div>
+    <div class="form-group small mt-0 mb-0">
+        <label for="userselect" class="col-form-label">user:</label>
+        <select id="userselect" class="form-control filter select2">
+            <option class="firstoption" value="">user...</option>
+        </select>
+    </div>
+    <div class="form-group small  mt-0 mb-0">
+        <label for="instrumentselect" class="col-form-label">instrument:</label>
+        <select id="instrumentselect" class="form-control filter select2">
+            <option class="firstoption" value="">Please select...</option>
+        </select>
+    </div>
+    <div class="form-group small mt-0 mb-0">
+        <label for="max_data_age" class="col-form-label">Max. data age in years:</label>
+        <input id="max_data_age" type="number" class="form-control filter" value=""
+               title="Show only sites, where measurements in the last x years have been performed"/>
+    </div>
+    <div class="form-group small mt-0 mb-0">
+        <label for="dateselect" class="col-form-label">date:</label>
+        <input id="dateselect" type="date" class="form-control filter" value=""
+               title="Show only sites with a dataset for this date"/>
+    </div>
+    <div class="form-group small mt-0 mb-0">
+        <label for="fulltext" class="col-form-label">search term in name and comments of site:</label>
+        <input id="fulltext" type="text" class="form-control filter" value="" placeholder="fulltext search"
+               title="Show only sites with a dataset for this date"/>
+    </div>
+    <div class="form-group small mt-0 mb-0">
+        <label class="col-form-label" for="filter-buttons">apply:</label>
+        <div id="filter-buttons" class="">
+            <button id="apply-filter" title="Apply the filter" data-bs-toggle="tooltip" class="btn btn-outline-dark">
+                <i class="fas fa-filter"/>
+            </button>
+            <button id="clear-filter" title="Clear filter and show all sites"
+                    data-bs-toggle="tooltip" data-bs-placement="bottom"
+                    class="btn btn-outline-dark">
+                <span class="fa-stack" style="font-size: 0.5em;" >
+                    <i class="fas fa-filter fa-stack-2x"/>
+                    <i class="fas fa-times fa-stack-2x" style="color:Tomato"/>
+                </span>
+            </button>
+            <button id="save-filter" title="Saves the filter in your browser" class="btn btn-light"><i class="fas fa-save"/></button>
+        </div>
+    </div>
+
+
+</xhtml>

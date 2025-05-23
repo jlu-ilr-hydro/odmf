@@ -7,7 +7,6 @@ from ...config import conf
 from ... import db
 
 @cherrypy.popargs('id')
-@web.show_in_nav_for(0, 'camera')
 class PicturePage:
     """
     Navigation and search for photos from the observatory

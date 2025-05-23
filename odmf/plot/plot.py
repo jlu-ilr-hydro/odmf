@@ -244,6 +244,7 @@ class Plot:
         self.path = path or ''
         self.aggregate = aggregate or ''
         self.description = description or ''
+        self.legend = kwargs.get('legend', True)
 
         self.columns = columns or 1
         self.subplots = []
@@ -281,7 +282,7 @@ class Plot:
         Creates a dictionary with all properties of the plot, the subplots and their lines
         """
         return dict(
-            width=self.size[0], height=self.size[1], columns=self.columns,
+            width=self.size[0], height=self.size[1], columns=self.columns, legend=self.legend,
             start=self.start, end=self.end, aggregate=self.aggregate,
             name=self.name, path=self.path,
             description=self.description,

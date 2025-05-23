@@ -1,28 +1,19 @@
-import typing
-
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from datetime import datetime, timedelta
-from collections import deque
-from traceback import format_exc as traceback
 from functools import total_ordering
+from sqlalchemy_json import NestedMutableJson
+from typing import Optional, List
 
-# from ..tools.mail import EMail
-from .base import Base, newid
+from ..config import conf
+from .base import Base, newid, flex_get
 from .site import Log, Site
 from .person import Person
+from .message import Message, Topic
 from ..tools.migrate_db import new_column
 
 from logging import getLogger
 logger = getLogger(__name__)
-
-
-job_at_sites = sql.Table(
-    'job_is_at_site',
-    Base.metadata,
-    sql.Column('job', sql.ForeignKey('job.id'), primary_key=True),
-    sql.Column('site', sql.ForeignKey('site.id'), primary_key=True),
-)
 
 @total_ordering
 class Job(Base):
@@ -44,24 +35,20 @@ class Job(Base):
                                    backref=orm.backref('jobs', lazy='dynamic'))
     # Marks the job as done
     done = sql.Column("done", sql.Boolean, default=False)
+    # Job duration in days after due
+    duration: orm.Mapped[int] = new_column(sql.Column(sql.Integer))
     # Number of days to repeat this job, if NULL, negetative or zero, the job is not repeated
     # The new job is generated when this job is done, due date is the number of days after this due date
     repeat = sql.Column(sql.Integer)
-    # Job duration in days after due date
-    duration = new_column(sql.Column(sql.Integer))
     # A http link to help with the execution of the job
     link = sql.Column(sql.String)
     # A job type
     type = sql.Column(sql.String)
     # The date the job was done
     donedate = sql.Column(sql.DateTime)
-
-    sites: orm.Mapped[typing.List[Site]] = orm.relationship(
-        secondary=job_at_sites
-    )
-
-
-
+    # Contains data to create logs on done
+    log: orm.Mapped[NestedMutableJson] = sql.Column(NestedMutableJson)
+    mailer: orm.Mapped[NestedMutableJson] = sql.Column(NestedMutableJson)
     def __str__(self):
         return "%s: %s %s" % (self.responsible, self.name, ' (Done)' if self.done else '')
 
@@ -71,6 +58,7 @@ class Job(Base):
     def __jdict__(self):
         return dict(id=self.id,
                     name=self.name,
+                    type=self.type,
                     description=self.description,
                     due=self.due,
                     donedate=self.donedate,
@@ -93,93 +81,81 @@ class Job(Base):
         return self.id < other.id
 
     def is_due(self):
-        return (not self.done) and (self.due + timedelta(days=1) < datetime.today())
+        return self.due is not None and (not self.done) and (self.due + timedelta(days=1) < datetime.today())
 
-    def parse_description(self, by=None, action='done', time=None):
-        """Creates jobs, logs and mails from the description
-        The description is parsed by line. When a line "when done:" is encountered
-        scan the lines for a trailing "create".
-        to create a follow up job:
-        create job after 2 days:<job description>
-        create log at site 64:<message>
-        create mail to philipp:<message>
-        """
+    def log_to_sites(self, by=None, time=None):
         session = self.session()
-        lines = deque(self.description.lower().split('\n'))
-        while lines:
-            if lines.popleft().strip() == 'when %s:' % action:
-                break
-        errors = []
-        objects = []
-        msg = []
-        while lines:
-            try:
-                line = lines.popleft().strip(',.-;: ')
-                if line.startswith('when'):
-                    break
-                elif line.startswith('create'):
-                    if line.count(':'):
-                        cmdstr, text = line.split(':', 1)
-                        cmd = [w.strip(',.-;:_()#') for w in cmdstr.split()]
-                        if cmd[1] == 'log':  # log something
-                            try:  # find the site
-                                siteid = int(cmd[cmd.index('site') + 1])
-                            except:
-                                raise RuntimeError(
-                                    'Could not find a valid site in command "%s"' % cmdstr)
-                            objects.append(Log(id=newid(Log, session),
-                                               user=self.responsible,
-                                               time=time,
-                                               message=text,
-                                               _site=siteid,
-                                               type=self.type
-                                               ))
-                        # Create a follow up job
-                        elif cmd[1] == 'job':
-                            if 'after' in cmd:
-                                after = int(cmd[cmd.index('after') + 1])
-                            else:
-                                after = 0
-                            objects.append(Job(id=newid(Job, session),
-                                               name=text,
-                                               due=time +
-                                               timedelta(days=after),
-                                               author=self.author,
-                                               responsible=self.responsible,
-                                               link=self.link,
-                                               type=self.type))
-                        # Write a mail
-                        elif cmd[1] == 'mail':
-                            try:
-                                if by:
-                                    by = Person.get(session, by)
-                                else:
-                                    by = self.author
-                                to = cmd[cmd.index('to') + 1:]
-                                to = session.query(Person).filter(
-                                    Person.username.in_(to))
-                                to = to.all()
-                                msgdata = dict(id=self.id, action=action, text=text, name=str(self),
-                                               description=self.description, by=str(by))
-                                text = '''The job %(name)s is %(action)s by %(by)s
-                                        http://fb09-pasig.umwelt.uni-giessen.de:8081/job/%(id)s\n\n'''\
-                                    + '''%(text)s\n\n'''\
-                                    + '''%(description)s\n''' % msgdata
-                                subject = 'Studienlandschaft Schwingbach: job #%(id)s is %(action)s' % msgdata
-                                #EMail(by.email, list(set([you.email for you in to] + [
-                                #      self.responsible.email, self.author.email])), subject, text).send()
-                            except:
-                                raise RuntimeError(
-                                    '"%s" is not a valid mail, problem: %s' % (line, traceback()))
-                    else:
-                        raise RuntimeError(
-                            '"%s" is not an action, missing ":"' % line)
-            except Exception as e:
-                errors.append(e.message)
-        return objects, errors
+        logsites = flex_get(self.log, 'sites', default=[])
+        msg = flex_get(self.log, 'message', default=self.name)
+        logcount = 0
+        if logsites:
+            sites = session.scalars(sql.select(Site).where(Site.id.in_(logsites)))
+            for site in sites:
+                session.add(
+                    Log(
+                        id=newid(Log, session),
+                        _user=by or self.responsible.username,
+                        time=time or datetime.now(),
+                        message=msg,
+                        site=site,
+                        type=self.type
+                    )
+                )
+                logcount += 1
+            return [site.id for site in sites]
+        else:
+            return []
+
+
+    def as_message(self, by=None, time=None) -> Message:
+        """Creates a message from this job"""
+
+        by = by or self.author
+        if not time:
+            time = datetime.now()
+
+        subject = f'ODMF-{conf.root_url}: {self.name}'
+        topics = flex_get(self.mailer, 'topics', default=[])
+        if self.done:
+            content = (
+                f'Job {self.name} is finished at {self.donedate} by {by}\n'
+            )
+        else:
+            content = (
+                f'{self.name} is due at {self.due}\n\n'
+                f'{self.description}\n'
+            )
+        topics = self.session().scalars(sql.select(Topic).where(Topic.id.in_(topics or []))).all()
+        msgid = newid(Message, self.session())
+        return Message(id=msgid, subject=subject, content=content, topics=topics, date=time, source=f'job:{self.id}')
+
+    def as_overdue_message(self) -> (Message, list[Person]):
+        reminder = self.mailer.get('reminder') or []
+        msgid = newid(Message, self.session())
+        msg = Message(
+            id=msgid,
+            subject=f'ODMF-{conf.root_url}: Reminder - {self.name}',
+            content=f'{self.name} by {self.author} is due since {self.due:%d.%m.%Y} but not done yet. If nothing happens you will receive this email every day. '
+                    f'To stop the reminder emails, you need to log into the ODMF database and change the job properties:\n\n'
+                    f'- if you have finished the job, mark it as done\n'
+                    f'- if it is delayed, change the due date\n'
+                    f'- if you delegate the job, change the responsible person (they will get the emails)\n'
+                    f'- if the job is obsolete, remove it\n'
+                    f'- if the job is still valid, but you do not need any reminders, change the reminder settings\n'
+                    f'- if you need any help, contact {self.author.email} or one of the ODMF admins (see login page)\n',
+            source=f'job:{self.id}',
+            topics=self.mailer.get('topics') if 'subscribers' in reminder else []
+        )
+        cc = []
+        if 'author' in reminder:
+            cc.append(self.author)
+        if 'responsible' in reminder:
+            cc.append(self.responsible)
+
+        return msg, cc
 
     def make_done(self, by, time=None):
-        "Marks the job as done and performs effects of the job"
+        """Marks the job as done and performs effects of the job"""
         self.done = True
         if not time:
             time = datetime.now()
@@ -187,37 +163,43 @@ class Job(Base):
         msg = []
         session = self.session()
         if self.repeat:
-            newjob = Job(id=newid(Job, session),
-                         name=self.name,
-                         description=self.description,
-                         due=self.due + timedelta(days=self.repeat),
-                         author=self.author,
-                         responsible=self.responsible,
-                         repeat=self.repeat,
-                         link=self.link,
-                         type=self.type)
+            newjob = Job(
+                id=newid(Job, session),
+                name=self.name,
+                description=self.description,
+                due=self.due + timedelta(days=self.repeat),
+                author=self.author,
+                duration=self.duration,
+                responsible=self.responsible,
+                repeat=self.repeat,
+                link=self.link,
+                type=self.type,
+                log=self.log,
+                mailer=self.mailer
+            )
             session.add(newjob)
             msg.append('Added new job %s' % newjob)
-        if self.description:
-            objects, errors = self.parse_description('done', by, time)
-            session.add_all(objects)
-            session.commit()
-            msg.extend(str(o) for o in objects)
-            if errors:
-                msg.append('ERRORS:')
-                msg.extend(errors)
+        if self.log:
+            logsites = self.log_to_sites(by, time)
+            if logsites:
+                msg.append(f'Added {len(logsites)} log messages to sites: ' + ', '.join(f'site:{s}' for s in logsites))
+        if self.mailer and self.mailer.get('when') and 'done' in self.mailer.get('when'):
+            mail = self.as_message(by, time)
+            self.session().add(mail)
+            receivers = mail.send(self.author, self.responsible)
+            msg.append(f'send {len(receivers)} mails')
         return '\n'.join(msg)
 
-    @property
-    def color(self):
-        if self.done:
-            return '#FFF'
-        dt = (self.due - datetime.now()).days
-        if dt < 0:
-            return '#F00'
-        elif dt == 0:
-            return '#F80'
-        elif dt < 2:
-            return '#8F4'
-        else:
-            return '#8F8'
+    def message_dates(self) -> List[datetime]:
+        """
+        Returns the dates in the past, where messages should have been sent out
+        """
+        when = list(self.mailer.get('when') or []) if self.mailer else []
+        # Get all due dates of the job messages (only for int entries)
+        dates = [self.due - timedelta(days=days) for days in when if type(days) is int]
+        # Filter only the dates that are in the past
+        return [d for d in dates if d < datetime.now()]
+
+    def end(self):
+        return self.due + timedelta(days=self.duration or 0)
+

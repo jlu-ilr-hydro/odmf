@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+
+<py:extends href="layout.html" xmlns:py="">
+    <py:block name="scripts">
+        <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+        <script>
+            let calendar;
+            function get_filter() {
+                return {
+                    persons: $('#filter-persons').val(),
+                    sites: $('#filter-sites').val(),
+                    topics: $('#filter-topics').val(),
+                    types: $('#filter-types').val(),
+                    onlyactive: $('#filter-active').is(':checked'),
+                    fulltext: $('#filter-fulltext').val(),
+                }
+            }
+            document.addEventListener('DOMContentLoaded', function() {
+                let filter = JSON.parse(localStorage.getItem('job-filter'))
+                if (filter) {
+                    $('#filter-persons').val(filter.persons)
+                    $('#filter-sites').val(filter.sites)
+                    $('#filter-topics').val(filter.topics)
+                    $('#filter-types').val(filter.types)
+                    $('#filter-active').prop('checked', filter.onlyactive)
+                    $('#filter-fulltext').val(filter.fulltext)
+
+                } else {
+                    $('#filter-persons').val(`${user()}`)
+                    $('#filter-active').prop('checked', true)
+                }
+                var calendarEl = document.getElementById('calendar');
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: localStorage.getItem('job-view') || 'listYear',
+                    headerToolbar: { center: 'dayGridMonth,multiMonthYear,listYear' },
+                    events: {
+                        url: "${conf.url('job','json')}",
+                        extraParams: get_filter
+                    }
+                });
+                calendar.render();
+                $('.filter').on('change', event => {
+                    localStorage.setItem('job-filter', JSON.stringify(
+                        get_filter()
+                    ))
+                    calendar.refetchEvents()
+                })
+            });
+            window.addEventListener("beforeunload", (event) => {
+               localStorage.setItem('job-view', calendar.view.type)
+
+            });
+        </script>
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <!-- insert sidebar content -->
+        <div class="container-fluid" >
+            <a class="btn btn-primary w-100 mb-4" href="new">
+                <i class="fas fa-plus-circle me-3" />
+                new job
+            </a>
+        </div>
+        <div class="card m-2">
+            <div class="card-header">
+                <i class="fas fa-filter"></i> filter
+            </div>
+            <div class="card-body">
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input filter" id="filter-active"/>
+                    <label class="custom-control-label" for="filter-active">show only active elements</label>
+                </div>
+                <div class="form-group">
+                    <label for="filter-types">types</label>
+                    <select class="select2 form-control filter" id="filter-types" multiple="multiple" name="type[]">
+                        <option py:for="t, in jobtypes" value="${t}">${t}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filter-persons">persons</label>
+                    <select class="select2 form-control filter" id="filter-persons" multiple="multiple">
+                        <option py:for="p in persons" value="${p.username}">${p}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filter-sites">sites</label>
+                    <select class="select2 form-control filter" id="filter-sites" multiple="multiple">
+                        <option py:for="s in sites" value="${s.id}">${s}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filter-topics">topics</label>
+                    <select class="select2 form-control filter" id="filter-topics" multiple="multiple">
+                        <option py:for="t in topics" value="${t.id}">${t}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filter-fulltext">text search</label>
+                    <input class="form-control filter" id="filter-fulltext" placeholder="search text"/>
+                </div>
+            </div>
+        </div>
+
+    </py:block>
+    <py:block name="content">
+        <!-- insert main content -->
+        <div class="container">
+            <div id="calendar" class="w100 h100"></div>
+        </div>
+
+    </py:block>
+</py:extends>

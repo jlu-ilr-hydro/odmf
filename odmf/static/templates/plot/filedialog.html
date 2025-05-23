@@ -68,19 +68,19 @@
             <div id="load-plot-container" class="container border p-3 mt-1">
                 <div class=""><i class="fas fa-folder-open"/> load</div>
                 <div class="file-list d-flex border-bottom mt-1" py:if="path.absolute != path.datapath">
-                    <button class="btn change-dir mr-auto" data-path="${path.parent()}">
-                        <i class="fas fa-folder fa-lg mr-2"/>..
+                    <button class="btn change-dir me-auto" data-path="${path.parent()}">
+                        <i class="fas fa-folder fa-lg me-2"/>..
                     </button>
                 </div>
                 <div class="file-list d-flex border-bottom mt-1" py:for="fn in directories">
-                    <button class="btn change-dir mr-auto" data-path="${fn}">
-                        <i class="fas fa-folder fa-lg mr-2"/>
+                    <button class="btn change-dir me-auto" data-path="${fn}">
+                        <i class="fas fa-folder fa-lg me-2"/>
                             ${fn.basename}
                     </button>
                 </div>
                 <div class="file-list d-flex border-bottom mt-1" py:for="fn in files" >
-                    <button class="btn load-file mr-auto" data-href="${fn}">
-                        <i class="fas fa-file-alt fa-lg mr-2"/>
+                    <button class="btn load-file me-auto" data-href="${fn}">
+                        <i class="fas fa-file-alt fa-lg me-2"/>
                             ${fn.basename}
                     </button>
                     <button class="btn btn-danger btn-sm delete-button" data-path="${fn}">
@@ -90,16 +90,18 @@
             </div>
         </div>
         <div class="modal-body">
-            <div><i class="fas fa-floppy-disk"/> save to /${path}/</div>
-            <div id="save-plot-container" class="flexbox border p-3">
-                <label class="mr-2" for="plotname">name:</label>
+            <div ><i class="fas fa-floppy-disk"/> save to /${path}/</div>
+            <div py:if="not can_write" class="alert alert-warning"><i class="fas fa-ban me-2"/>no write permission at /${path}/, choose another directory</div>
+            <div id="save-plot-container" class="flexbox border p-3" py:if="can_write">
+                <label class="me-2" for="plotname">name:</label>
                 <input type="text" class="form-control" value="" id="plotname"/>
-                <button id="save-button" type="button" class="btn btn-success" data-dismiss="modal"><i class="fas fa-check"/></button>
+                <button id="save-button" type="button" class="btn btn-success" data-bs-dismiss="modal"><i class="fas fa-check"/></button>
             </div>
+
 
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         </div>
     </div>
 </html>

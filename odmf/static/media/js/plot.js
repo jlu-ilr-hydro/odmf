@@ -115,12 +115,13 @@ function set_content_tree_handlers() {
 
 class Plot {
 	constructor() {
-		let saved_plot = JSON.parse(sessionStorage.getItem('plot'))
+		let saved_plot = JSON.parse(localStorage.getItem('plot'))
 		if (saved_plot && !$.isEmptyObject(saved_plot)) {
 			this.name =   saved_plot.name || ''
 			this.path =   saved_plot.path || ''
 			this.start =  saved_plot.start || gettime('start')
 			this.end =  saved_plot.end || gettime('end')
+			this.legend = saved_plot.legend
 			this.columns =  saved_plot.columns || 1
 			this.aggregate =  saved_plot.aggregate ||''
 			this.height =  saved_plot.height || 640
@@ -132,6 +133,7 @@ class Plot {
 			this.path =  ''
 			this.start = gettime('start')
 			this.end =  gettime('end')
+			this.legend = true
 			this.columns =  1
 			this.aggregate = ''
 			this.height =  640
@@ -219,6 +221,7 @@ class Plot {
 		}
 		$('#prop-columns').val(plot.columns).attr('max', Math.max(1, plot.subplots.length))
 		$('#prop-aggregate').val(plot.aggregate || '')
+		$('#prop-legend').prop('checked', plot.legend)
 		$('#prop-description').val(plot.description)
 
 		$('#content-tree .subplot').remove();
@@ -242,7 +245,7 @@ class Plot {
 			$('#ct-new-subplot').before(obj);
 
 		})
-		sessionStorage.setItem('plot', txt_plot);
+		localStorage.setItem('plot', txt_plot);
 		$('#property-summary').html($('#prop-timeselect :selected').text() + ' / ' + $('#prop-aggregate :selected').text())
 		$('#json-row pre').html(txt_plot);
 		set_content_tree_handlers();
@@ -594,6 +597,10 @@ $(() => {
 	})
 	$('#prop-columns').on('change', () => {
 		plot.columns = parseInt($('#prop-columns').val())
+		plot.apply()
+	})
+	$('#prop-legend').on('change', () => {
+		plot.legend = $('#prop-legend').prop('checked')
 		plot.apply()
 	})
 	$('#prop-description').on('change', () => {

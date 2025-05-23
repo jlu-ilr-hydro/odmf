@@ -9,7 +9,7 @@ import pandas as pd
 import json
 
 from .. import lib as web
-from ..auth import users, expose_for, has_level, Level
+from ..auth import users, expose_for, Level
 from ... import db
 from ...config import conf
 from . import BaseAPI, get_help
@@ -191,7 +191,7 @@ class DatasetAPI(BaseAPI):
                 s = session.get(db.Site, kwargs.get('site'))
                 src = session.get(db.Datasource, kwargs.get('source'))
 
-                ds = db.Timeseries()
+                ds = db.Timeseries(id=db.newid(db.Timeseries, session))
                 # Get properties from the keyword arguments kwargs
                 ds.site = s
                 ds.filename = kwargs.get('filename')
@@ -326,10 +326,36 @@ class DatasetAPI(BaseAPI):
         data = cherrypy.request.body.read()
         instream = io.BytesIO(data)
         # Load dataframe
-        from ...tools.parquet_import import addrecords_parquet
+        from odmf.dataimport.parquet_import import addrecords_parquet
         datasets, records = addrecords_parquet(instream)
 
         return web.json_out(dict(status='success', datasets=list(datasets), records=records))
+
+    @expose_for(Level.editor)
+    @web.method.get
+    def end_times(self, datasets):
+        """
+        Returns the end timestamps for each of the given datasets
+        :param datasets: A comma-separated list of dataset ids
+        :return: JSON object with dataset id's (in ds:XXX form) as key and timestamp as value and 'max' and 'min' as newest and oldest value
+        """
+        web.mime.json.set()
+        datasets = [
+            web.conv(float, f)
+            for f in datasets.split(',')
+            if web.conv(float, f)
+        ]
+        with db.session_scope() as session:
+            stmt = db.sql.select(db.Timeseries.id, db.Timeseries.end).where(db.Dataset.id.in_(datasets))
+            ds: db.Timeseries
+            result = {
+                f'ds:{id}': end.isoformat()
+                for id, end in session.execute(stmt)
+            }
+            result['min'] = min(result.values())
+            result['max'] = max(result.values())
+            return web.json_out(result)
+
 
     @expose_for(Level.editor)
     @web.method.post_or_put

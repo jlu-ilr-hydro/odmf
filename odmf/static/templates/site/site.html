@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<py:extends href="layout.html" xmlns:py="">
+    <py:block name="scripts">
+        <script type="text/javascript" py:if="actualsite">
+            const site = ${literal(as_json(actualsite))};
+            const site_geometry = ${literal(as_json(actualsite.as_feature()))}
+        </script>
+        <script type="text/javascript" src="${conf.root_url}/media/js/site.js"></script>
+        <script py:if="allow_google_maps" type="text/javascript" async="async" defer="defer"
+                src="${conf.google_maps_api('createMap')}">
+        </script>
+
+    </py:block>
+    <py:block name="style">
+        <style>
+            .removed {
+                color: grey;
+            }
+            .log-type-badge {
+                min-width: 10em
+            }
+        </style>
+    </py:block>
+    <py:block name="sidebar">
+        <div class="container-fluid">
+            <div class="nav d-flex justify-content-center border p-1 mb-2">
+                <div class="nav-item">
+                    <div class="btn-group" role="group">
+                        <a href="../${actualsite.id - 1}" class="btn btn-secondary me-1" py:attrs="disabled(actualsite.id == 1)" data-bs-toggle="tooltip" title="site:${actualsite.id - 1}">
+                            <i class="fas fa-caret-left"/>
+                        </a>
+                        <a href="../" class="btn btn-primary me-1" type="button" data-bs-toggle="tooltip" title="site list" >
+                            ...
+                        </a>
+                        <a href="../new#edit" class="btn btn-success me-1" data-bs-toggle="tooltip" title="New site"><i class="fas fa-plus"/></a>
+                        <a href="../${actualsite.id + 1}" class="btn btn-secondary" data-bs-toggle="tooltip" title="site:${actualsite.id + 1}"><i class="fas fa-caret-right"/></a>
+                    </div>
+                </div>
+                <div class="nav-item">
+                    <h4>
+                        <img src="${conf.root_url}/media/mapicons/${actualsite.icon or 'unknown.png'}" height="24px" class="me-2" />${actualsite}
+                    </h4>
+
+                </div>
+            </div>
+            <div class="nav flex-column nav-pills" role="tablist"  aria-orientation="vertical">
+                <a id="site-tab" class="nav-link active border-top" data-bs-toggle="pill" href='#sitedescription'><i class="fas fa-info me-2"/>site</a>
+                <a id="map-tab" class="nav-link border-top" data-bs-toggle="pill" href='#map'><i class="fas fa-map me-2"/> map</a>
+                <a id="edit-tab" class="nav-link border-top" data-bs-toggle="pill" href="#edit"><i class="fas fa-edit me-2"/>edit</a>
+                <a id="logbook-tab" class="nav-link flexbox border-top" data-bs-toggle="pill" href="#logbook">
+                    <span><i class="fas fa-tags me-2"/>log book</span><span class="badge bg-primary rounded-pill" py:content="actualsite.logs.count()"/>
+                </a>
+                <a id="instrument-tab" class="nav-link flexbox border-top" data-bs-toggle="pill" href="#instrumentlist">
+                    <span><i class="fas fa-thermometer-half me-2"/>instruments</span><span class="badge bg-primary rounded-pill" py:content="actualsite.instruments.count()"/>
+                </a>
+                <a id="dataset-tab" class="nav-link flexbox border-top" data-bs-toggle="pill" href="#datasetlist">
+                    <span><i class="fas fa-clipboard me-2"/>datasets</span><span class="badge bg-primary rounded-pill" py:content="actualsite.datasets.count()"/>
+                </a>
+
+            </div>
+
+        </div>
+    </py:block>
+    <py:block name="content">
+        <div class="container-fluid">
+            <div class="tab-content" id="tab" py:if="actualsite" >
+                <div class="tab-pane active" id ="sitedescription" role="tabpanel">
+                    <div class="container">
+                        <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-4" >
+                            <h2 class="display-4 me-8" >
+                                <span py:content="actualsite.name" />
+
+                            </h2>
+                            <div class="display-4 col-sm my-auto text-right" >
+                                <img src="${conf.root_url}/media/mapicons/${actualsite.icon or 'unknown.png'}" height="48px" />
+                                #${actualsite.id}
+                            </div>
+                        </div>
+                        <div class="container">
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <a class="btn btn-outline-primary rounded-pill"
+                                       href="${conf.root_url}/map?site=${actualsite.id}"
+                                       title="show on map..." data-bs-toggle="tooltip"
+                                    >
+                                        <i class="fas fa-map"/> show on map
+                                    </a>
+                                </div>
+                                <div class="list-group-item" py:content="actualsite.as_coordinatetext()"/>
+                                <div class="list-group-item" py:content="'UTM(%s) x=%0.1f/y=%0.1f' % actualsite.as_UTM()"/>
+                                <div class="list-group-item" py:if="actualsite.height is not None" py:content="f'{actualsite.height:0.2f} m a.s.l.'"/>
+                                <div class="list-group-item" py:content="markdown(actualsite.comment)"/>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="tab-pane" id="map" role="tabpanel">
+                    <div py:if="not allow_google_maps" class="container">
+                        <div class="card">
+                            <div class="card-header">
+                                <h1 display="4">Google Maps disabled</h1>
+                            </div>
+                            <div class="card-body">
+                                <p class="lead">To use Google Maps you need to confirm the terms of service of Google LLC including their data privacy policies</p>
+                                <ul>
+                                    <li>
+                                        <a href="https://cloud.google.com/maps-platform/terms">Terms of services of Google:</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://policies.google.com/privacy">Privacy policies from Google</a>
+                                    </li>
+                                </ul>
+                                <p>You must agree to these terms to use Google maps inside of ODMF</p>
+                            </div>
+                            <div class="card-footer">
+                                <form method="post" action="${conf.url('map', 'allow_google')}" class="d-flex">
+                                    <div class="lead me-4">
+                                        Allow Google Maps
+                                    </div>
+                                    <div>
+                                        <button type="submit" class="btn btn-success" name="allow" value="on"><i class="fas fa-thumbs-up"/></button>
+                                        <button type="submit" class="btn btn-danger" name="allow" value=""><i class="fas fa-thumbs-down"/></button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div py:if="allow_google_maps" id="map_canvas" style="width:100%;height:512px"></div>
+                </div>
+                <div class="tab-pane" id ="edit" role="tabpanel">
+                    <div py:if="not is_member('editor')" class="jumbotron">
+                        <h1>Sorry,</h1>
+                        <p class="lead">
+                            Editing sites is only available for users with <b>editor</b> status, you are a <b>${users.current.group}</b>.
+                        </p>
+                        <hr class="my-4"/>
+                        <p>If you need to edit sites, please ask the site-administrators to elevate your privileges.</p>
+                    </div>
+                    <div class="container">
+                        <form py:if="is_member('editor')"
+                              action="" method="post"
+                              class="container-fluid mt-3">
+                            <div class="form-group row">
+                                <label for="lon" class="col-sm-4 col-form-label">Longitude:</label>
+                                <div class="col-sm-8 input-group">
+                                    <input type="text" id="lon" name="lon" value="${actualsite.lon}"  class="form-control"/>
+                                    <div class="input-group-append"><span class="input-group-text">° E</span></div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="lat" class="col-sm-4 col-form-label">Latitude:</label>
+                                <div class="col-sm-8 input-group">
+                                    <input type="text" id="lat" name="lat" value="${actualsite.lat}"  class="form-control"/>
+                                    <div class="input-group-append"><span class="input-group-text">° N</span></div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="height" class="col-sm-4 col-form-label">Height:</label>
+                                <div class="col-sm-8 input-group">
+                                    <input type="text" id="height" name="height" value="${actualsite.height}"  class="form-control"/>
+                                    <div class="input-group-append"><span class="input-group-text">m a.s.l.</span></div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="name" class="col-sm-4 col-form-label">Name:</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="name" name="name" value="${actualsite.name}"  class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-4">
+                                    <label for="iconfile" class="col-form-label">Icon:</label>
+                                    <img src="${conf.root_url}/media/mapicons/${actualsite.icon if actualsite.icon else 'unknown.png'}" id="currenticon" />
+                                </div>
+                                <div class="col-sm-8">
+                                    <div class="">
+                                        <button type="button" class="icon-button btn btn-outline-primary me-1 mb-1"
+                                                data-icon="${icon}"
+                                                py:for="icon in icons"
+                                        >
+                                            <img src="${conf.root_url}/media/mapicons/${icon}"/>
+                                        </button>
+                                        <input name="icon" type="hidden" id="iconfile" value="${actualsite.icon}" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-4">
+                                    <label for="comment">Comment</label>
+                                    <a title="Get help for using links and formats" data-bs-toggle="tooltip" data-bs-placement="top" class="ms-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
+                                        <i class="fas fa-question-circle"/>
+                                    </a>
+                                </div>
+                                <div class="col-sm">
+                                <textarea id="comment" name="comment"
+                                          class="form-control"
+                                          rows="10" py:content="actualsite.comment"/>
+                                </div>
+                            </div>
+                            <button type="submit" id="save" class="btn btn-success" >save</button>
+                        </form>
+                        <hr/>
+                        <a class="btn btn-small btn-secondary dropdown-toggle" href="#geoForm" role="button" id="geoFormButton" data-bs-toggle="collapse" aria-expanded="false">
+                            <i class="fas fa-draw-polygon me-2"/><py:if test="actualsite.geometry">edit</py:if><py:else>add</py:else> geometry
+                        </a>
+                        <form id="geoForm" py:if="is_member('editor')" action="savegeo" method="post" aria-labelledby="geoFormButton"
+                              class="collapse container-fluid mt-3" py:with="geo=actualsite.geometry">
+                            <div class="form-group row">
+                                <div class="col-sm-4">
+                                    <label for="geojson">Geometry in geojson notation</label>
+                                </div>
+                                <div class="col-sm">
+                                <textarea id="geojson" name="geojson"
+                                          class="form-control"
+                                          rows="2" py:content="as_json(geo.geojson) if geo else ''"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="geo-strokeWidth" class="col-sm-4 col-form-label">stroke width</label>
+                                <div class="col-sm-8">
+                                    <input type="range" id="geo-strokeWidth" name="strokewidth" min="1" max="10" value="${(geo and geo.strokewidth)}"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="geo-strokeOpacity" class="col-sm-4 col-form-label">stroke opacity</label>
+                                <div class="col-sm-8">
+                                    <input type="range" id="geo-strokeOpacity" name="strokeopacity" min="0" max="1.0" step="0.05" value="${(geo and geo.strokeopacity)}"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="geo-strokeColor" class="col-sm-4 col-form-label">stroke color</label>
+                                <div class="col-sm-8">
+                                    <input type="color" id="geo-strokeColor" name="strokecolor" value="${(geo and geo.strokecolor) or '#FFFFFF'}"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="geo-fillOpacity" class="col-sm-4 col-form-label">fill opacity</label>
+                                <div class="col-sm-8">
+                                    <input type="range" id="geo-fillOpacity" name="fillopacity" min="0" max="1.0" step="0.05" value="${(geo and geo.fillopacity)}"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="geo-fillColor" class="col-sm-4 col-form-label">fill color</label>
+                                <div class="col-sm-8">
+                                    <input type="color" id="geo-fillColor" name="fillcolor" value="${(geo and geo.fillcolor) or '#FFFFFF'}"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <button type="submit" id="geo-save" class="btn btn-success" value="${actualsite.id}">save geometry</button>
+
+
+                        </form>
+                    </div>
+                </div>
+                <div class="tab-pane" id="logbook" role="tabpanel">
+                    <h1><i class="fas fa-tags"/> Log book</h1>
+                    <p>
+                        Please report briefly any actions you have performed on this site, or if you observed something unusual.
+                    </p>
+                    <div class="list-group">
+                        <a class="list-group-item list-group-item-action list-group-item-success" py:if="is_member('logger')" href="${conf.root_url}/log/new?siteid=${actualsite.id}" ><i class="fas fa-plus"></i> New log book entry...</a>
+                        <div class="list-group-item list-group-item-primary">
+                            <div class="row">
+                                <div class="col">Date</div>
+                                <div class="col">Type</div>
+                                <div class="col">User</div>
+                                <div class="col">Site</div>
+                                <div class="col-6">Log text</div>
+                                <div class="col-1">
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="list-group-item" py:for="log in actualsite.logs">
+                            <div class="row">
+                                <div class="col">${formatdate(log.time)}</div>
+                                <div class="col">${log.type}</div>
+                                <div class="col"><a py:if="log.user" href="${conf.url('user', log.user.username)}" class="btn btn-light"><i class="fas fa-user me-2"/>${log.user}</a></div>
+                                <div class="col"><a py:if="log.site" href="${conf.url('site', log.site.id)}" class="btn btn-light"><i class="fas fa-map-location me-2"/>${log.site}</a></div>
+                                <div class="col-6">${markdown(log.message)}</div>
+                                <div class="col-1">
+                                    <a class="btn btn-secondary" href="${conf.url('log', log.id)}"><i class="fas fa-edit"/></a>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="tab-pane" id="instrumentlist" role="tabpanel" >
+                    <div id="installations" class="container">
+                        <h1>Installations</h1>
+                        <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#add-installation" aria-expanded="false" aria-controls="add-installation">
+                            add installation
+                        </button>
+                        <form class="container border py-4 collapse" id="add-installation" py:if="is_member('editor')">
+                            <input type="hidden" value="${actualsite.id}" id="actualsite-input"/>
+                            <div class="form-group row" >
+                                <label class="col-lg-4" for="installationdate">Installation date</label>
+                                <div class="col-lg-8 ">
+                                    <input type="date" class="form-control" id="installationdate" value="${datetime.today().strftime('%Y-%m-%d')}"
+                                           data-bs-toggle="tooltip"
+                                           title="When has the instrument been installed"
+                                    />
+                                </div>
+                            </div>
+                            <div class="form-group row" >
+                                <div class="col-lg-4">
+                                    <label for="instrumentselect">Instrument</label>
+                                    <a href="${conf.root_url}/instrument/new" class="btn btn-outline-secondary btn-sm" title="create a new instrument" data-bs-toggle="tooltip"><i class="fas fa-plus me-2" /><i class="fas fa-thermometer-half" /></a>
+                                </div>
+                                <div class="col-lg-8 ">
+                                    <select id="instrumentselect" class="form-control"
+                                            data-bs-toggle="tooltip"
+                                    >
+                                        <option value="" disabled="disabled" selected="selected" >Please select an instrument to add</option>
+                                        <option py:for="inst in instruments" value="${inst.id}">${inst} (${inst.id})</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-4">
+                                    <label for="instrument-comment">Comment</label>
+                                </div>
+                                <div class="col-lg-8">
+                                    <input id="instrument-comment" class="form-control"/>
+                                </div>
+                            </div>
+                            <button id="add-instrument-button" class="btn btn-success">
+                                ok
+                            </button>
+                        </form>
+                        <ul class="mt-4 border">
+                            <li py:for="inst in actualsite.instruments" >
+                                <div class="flexbox">
+                                    <a  href="${conf.root_url}/instrument/${inst.instrument.id}"
+                                        py:if="inst.active"
+                                        py:content="f'since {formatdate(inst.installdate)}: {inst.instrument}'" />
+                                    <span py:if="not inst.active" class="removed"
+                                          py:content="f'until {formatdate(inst.removedate)}: {inst.instrument}'" />
+                                    <button data-installation="${inst.id}" data-instrument="${inst.instrument.id}" data-site="${inst.site.id}"
+                                            py:if="is_member('editor') and inst.active"
+                                            class="btn btn-danger btn-sm installation-remove-button ms-auto"
+                                            title="remove installation" data-bs-toggle="tooltip"
+                                    >
+                                        <i class="fas fa-trash"/>
+                                    </button>
+
+                                </div>
+                                <div py:content="inst.comment" />
+
+
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="tab-pane" id="datasetlist" role="tabpanel"  >
+                    <h1>Datasets at site #${actualsite.id}</h1>
+                    <div class="list-group">
+                        <a href="${conf.url('dataset','new', site_id=actualsite.id)}" class="list-group-item list-group-item-action list-group-item-success">
+                            <i class="fas fa-plus"/> new dataset
+                        </a>
+                        <a href="${conf.url('dataset', ds.id)}" class="list-group-item list-group-item-action" py:for="ds in datasets">
+                            <i class="fas fa-clipboard"></i> ${ds}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </py:block>
+
+</py:extends>

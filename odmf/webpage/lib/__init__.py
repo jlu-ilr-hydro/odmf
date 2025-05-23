@@ -39,9 +39,15 @@ def redirect(url, **kwargs):
 
     redirects to /xyz?a=2&b=Hallo
     """
+    cherrypy.session['error'] = kwargs.pop('error', None)
+    cherrypy.session['success'] = kwargs.pop('success', None)
+    cherrypy.session['info'] = kwargs.pop('info', None)
+
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
     qs = urlencode(kwargs)
-    return cherrypy.HTTPRedirect(url + '?' + qs)
+    if qs:
+        url += '?' + qs
+    return cherrypy.HTTPRedirect(url)
 
 
 def json_out(obj=None, **kwargs):
@@ -74,3 +80,17 @@ def show_in_nav_for(level=0, icon=None):
         f.exposed = True
         return f
     return decorate
+
+class _Session:
+
+    def __getattr__(self, name):
+        return cherrypy.session.get(name)
+    def __setattr__(self, name, value):
+        if value not in [None, '', [], {}]:
+            cherrypy.session[name] = value
+        elif name in cherrypy.session:
+            del cherrypy.session[name]
+
+
+
+session = _Session()

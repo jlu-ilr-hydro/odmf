@@ -25,11 +25,11 @@ function createMap() {
         map.data.addGeoJson(site_geometry);
         map.data.setStyle(feature => {
             return {
-                strokeWeight: feature.getProperty('strokeWidth') || 2,
-                strokeColor: feature.getProperty('strokeColor') || '#FFF',
-                strokeOpacity: feature.getProperty('strokeOpacity') || 0.8,
-                fillColor: feature.getProperty('fillColor') || '#FFF',
-                fillOpacity: feature.getProperty('fillOpacity') || 0.3,
+                strokeWeight: feature.getProperty('strokeWidth'),
+                strokeColor: feature.getProperty('strokeColor'),
+                strokeOpacity: feature.getProperty('strokeOpacity'),
+                fillColor: feature.getProperty('fillColor'),
+                fillOpacity: feature.getProperty('fillOpacity'),
             }
         })
     
@@ -70,10 +70,10 @@ $(function() {
     })
     $('.installation-remove-button').on('click', e => {
         let t = $(e.currentTarget)
-        $.post(odmf_ref('/site/removeinstrument'),
+        $.post(odmf_ref('removeinstrument'),
             {
-                date:escape($('#installationdate').val()),
-                siteid:t.data('site'),
+                date:$('#installationdate').val(),
+                //siteid:t.data('site'),
                 installationid:t.data('installation'),
                 instrumentid: t.data('instrument')
             }
@@ -86,11 +86,10 @@ $(function() {
         })
     });
     $('#add-instrument-button').on('click', e => {
-        $.post(odmf_ref('/site/addinstrument'),
+        $.post('addinstrument',
             {
                 instrumentid:$('#instrumentselect').val(),
-                date:escape($('#installationdate').val()),
-                siteid:$('#actualsite-input').val(),
+                date:$('#installationdate').val(),
                 comment:$('#instrument-comment').val(),
                 installationid:$(e.currentTarget).data('installation')
             }
