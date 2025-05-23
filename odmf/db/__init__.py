@@ -1,4 +1,4 @@
-from .base import Base, Session, engine, session_scope, orm, conf, sql, newid, ObjectGetter, count
+from .base import Base, Session, engine, session_scope, orm, conf, sql, newid, ObjectGetter, count, flex_get
 from .person import Person
 from .image import Image
 from .project import Project

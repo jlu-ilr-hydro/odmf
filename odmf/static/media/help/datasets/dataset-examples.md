@@ -2,9 +2,9 @@
 
 ## Example 1 - weather station
 
-So, you have a cheap compact weather station that measures air temp, humidity, wind speed and rain.
+A cheap compact weather station measures air temp, humidity, wind speed and rain.
 You have 1 site, 1 person responsible, 1 instrument, 1 quality, 1 accessability rules, but 4 different value types.
-So you need 4 datasets, for each value type its own. To create your datasets, go to dataset / new and type your
+You need 4 datasets, for each value type its own. To create your datasets, go to dataset / new and type your
 information in. The station is mounted in 2m height, so use a level of "2" in each dataset. Click save and the first one is created. If you click on copy, you need only change what is different
 for the next dataset, this is easier. 
 
@@ -17,7 +17,7 @@ If you have an offline logger, upload your data tables from the logger to the fi
 
 ## Example 2 - Soil moisture network
 
-So you have 20 locations with soil moisture profiles with 3 depths each (eg. TEROS 12 in 10, 30 and 60cm depth), in total 60 sensors. 
+20 locations are equipped with soil moisture profiles with 3 depths each (eg. TEROS 12 in 10, 30 and 60cm depth), in total 60 sensors. 
 Each sensor measures 3 values, soil moisture RAW, soil temperature, electric conductivity. You need to create 180 datasets
 all a bit similar but not always.
 
@@ -27,10 +27,9 @@ to convert the raw soil moisture data into something meaningful.
 
 Export the dataset meta data on the dataset list page for the 3 new datasets. Use a spreadsheet software (Excel, LibreOffice Calc etc.)
 to fill all missing 177 rows for the missing datasets - copy & paste is your friend here. Make sure every column stays intact
-and do not change the column headers. Then import the datasets from your spreadsheet. This is currently only possible
-using the interactive Python backend.
+and do not change the column headers. Then import the datasets from your spreadsheet. 
 
-Afterwards create either .conf files to import your logger data or write a script to use telemetry. The ODMF authors
+Afterwards create either [.conf files](../../import/conf.md) to import your logger data or write a script to use telemetry. The ODMF authors
 can provide examples for integration with the Chirpstack Lora-Server, Campbell-Loggers and OTT Adcon-Telemetry systems.
 
 ## Example 3 - Saving direct field observations

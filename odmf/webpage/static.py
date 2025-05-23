@@ -113,6 +113,11 @@ class Help:
         path = home / uri
         if path.is_dir():
             path /= 'index.md'
+
+        if path.suffix in ['.svg', '.png', '.jpg', '.jpeg', '.gif']:
+            web.mime[path.suffix[1:]].set()
+            return path.read_bytes()
+
         path = path.with_suffix('.md')
 
         content = path.read_text()

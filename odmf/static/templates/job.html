@@ -21,11 +21,11 @@
     </py:block>
     <py:block name="sidebar">
         <div class="container-fluid" >
-            <a class="btn btn-secondary w-100 mb-4" href="..">
+            <a class="btn btn-secondary w-100 mb-1" href="..">
                 <i class="fas fa-calendar me-3" />
                 calendar
             </a>
-            <a class="btn btn-primary w-100 mb-4" href="../new">
+            <a class="btn btn-primary w-100 mb-1" href="../new">
                 <i class="fas fa-plus-circle me-3" />
                 new job
             </a>
@@ -49,46 +49,74 @@
                         <div class="badge bg-danger" py:if="job.is_due()"><i class="fas fa-exclamation-circle"/></div>
                         <div class="badge bg-secondary" py:if="not job.is_due() and not job.done"><i class="fas fa-clock-rotate-left"></i></div>
                         <div class="badge bg-success" py:if="job.done"><i class="fas fa-check"></i></div>
+                        <a class="badge bg-primary rounded-pill align-top fs-5" data-bs-toggle="tooltip" title="Help for jobs" href="${conf.url('help', 'messenger', 'job')}"><i class="fas fa-question-circle"/></a>
                     </div>
-
                     <div>
                         <h2 class="display-4 me-8 d-inline-block" py:content="f'{job.name}'"/>
 
                     </div>
-                    <div class="display-4 col-sm my-auto text-right">
+
+                    <div class="display-4 ms-auto my-auto text-right">
                         <i class="fas fa-tasks me-4"/>${job.id}
+
                     </div>
+
                 </div>
                 <div class="alert py-0 ${class_if(job.done,'alert-success')} ${class_if(job.is_due(),'alert-danger')}${class_if(not(job.is_due() or job.done) ,'alert-primary')}">
                     <h5 class="col-sm-8"
                         py:content="'done at ' + formatdate(job.donedate) if job.done else 'due at ' + formatdate(job.due)"/>
                 </div>
-                <div class="container" py:content="markdown(job.description)"/>
-                <div class="container" py:if="job.log and job.log.get('sites')">
-                    <h5>Log on done to sites</h5>
-                    <div class="small">sites:</div>
-                    <div class="d-flex">
-                        <a class="me-2 btn btn-light" py:for="s_id in job.log['sites']" href="${conf.url('site', s_id)}"><i class="fas fa-map-location me-2"/>${s_id}</a>
-                    </div>
-                    <div>${job.log.get('message') or '...'}</div>
-                </div>
-                <div class="container" py:if="job.mailer and job.mailer.get('topics')">
-                    <h5>Mailer</h5>
-                    <div class="small">topics:</div>
-                    <div class="d-flex">
-                        <a class="me-2 btn btn-light" py:for="t in (job.mailer.get('topics') or [])" href="${conf.url('topic', t)}"><i class="fas fa-inbox me-2"/>${t}</a>
-                    </div>
-                    <div class="small">when:</div>
-                    <div class="d-flex mt-1">
-                        <div py:for="d in (job.mailer.get('when') or [])" class="ms-1 px-1 bg-light border rounded">${d}<span class="ms-1 small" py:if="type(d) is int">days</span></div>
 
+                <div class="container mt-2">
+                    <div class="row mb-1" py:if="job.responsible">
+                        <h5 class="col-lg-2">Responsible: </h5>
+                        <div class="col-lg">
+                            <a href="${conf.url('job', job.responsible.username)}" class="btn btn-light"><i class="fas fa-user me-2"/>${job.responsible}</a>
+                        </div>
                     </div>
+                    <div class="row mb-1" py:if="job.author">
+                        <h5 class="col-lg-2">Author: </h5>
+                        <div class="col-lg">
+                            <a href="${conf.url('job', job.author.username)}" class="btn btn-light"><i class="fas fa-user me-2"/>${job.author}</a>
+                        </div>
+                    </div>
+                    <div class="row mb-1" py:if="job.description">
+                        <h5 class="col-lg-2">Description: </h5>
+                        <div class="col-lg border rounded" py:content="markdown(job.description)"/>
+                    </div>
+                    <div class="row mb-1" py:if="job.mailer">
+                        <h5 class="col-lg-2">Messages:</h5>
+                        <div class="col-lg border rounded" >
+                            <div class="small">reminder:</div>
+                            <div class="d-flex mt-1">
+                                <div py:for="r in flex_get(job.mailer, 'reminder', default=[])" class="ms-1 px-1 bg-light border rounded">${r}</div>
+                            </div>
+                            <div class="small">topics:</div>
+                            <div class="d-flex">
+                                <a class="me-2 btn btn-light" py:for="t in flex_get(job.mailer, 'topics', default=[])" href="${conf.url('topic', t)}"><i class="fas fa-inbox me-2"/>${t}</a>
+                            </div>
+                            <div class="small">when:</div>
+                            <div class="d-flex mt-1">
+                                <div py:for="d in flex_get(job.mailer, 'when', default=[])" class="ms-1 px-1 bg-light border rounded">${d}<span class="ms-1 small" py:if="type(d) is int">days</span></div>
+                            </div>
 
-
+                        </div>
+                    </div>
+                    <div class="row mb-1" py:if="flex_get(job.log, 'sites')">
+                        <h5 class="col-lg-2">Log to sites</h5>
+                        <div class="col-lg border rounded">
+                            <div class="small">sites:</div>
+                            <div class="d-flex">
+                                <a class="me-2 btn btn-light" py:for="s_id in flex_get(job.log, 'sites', default=[])" href="${conf.url('site', s_id)}"><i class="fas fa-map-location me-2"/>${s_id}</a>
+                            </div>
+                            <div class="small">log-message:</div>
+                            <div>${job.log.get('message') or job.name}</div>
+                        </div>
+                    </div>
                 </div>
 
                 <form method="post" action=".">
-                    <div class="accordion mt-4" id="accordion">
+                    <div py:if="can_edit" class="accordion mt-4" id="accordion">
                         <div class="accordion-item">
                             <h4 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#edit-div" aria-expanded="true" aria-controls="edit-div">
@@ -169,12 +197,12 @@
                                     <div class="form-group row">
                                         <label for="edit-logsites" class="col-form-label col-sm-4">for each site:</label>
                                         <select name="sites[]" id="edit-logsites" class="col-sm-8 form-control select2" multiple="multiple">
-                                            <option py:for="site in sites" value="${site.id}" py:attrs="markoption(job.log and job.log.get('sites') and site.id in job.log['sites'])" title="${site.name}">${site}</option>
+                                            <option py:for="site in sites" value="${site.id}" py:attrs="markoption(site.id in flex_get(job.log, 'sites', default=[]))" title="${site.name}">${site}</option>
                                         </select>
                                     </div>
                                     <div class="form-group row">
                                         <label for="edit-logmsg" class="col-form-label col-sm-4">message:</label>
-                                        <input class="form-control col-sm-8" id="edit-logmsg" placeholder="${job.name}" name="logmsg" value="${job.log and job.log.get('message')}"/>
+                                        <input class="form-control col-sm-8" id="edit-logmsg" placeholder="${job.name}" name="logmsg" value="${flex_get(job.log, 'message')}"/>
                                     </div>
                                 </div>
                             </div>
@@ -188,30 +216,38 @@
                             <div class="accordion-collapse collapse" id="mail-div">
                                 <div class="accordion-body">
                                     <div class="form-group row">
+                                        <div class="form-group row">
+                                            <div class="col-sm" data-bs-toggle="tooltip" title="send daily reminder message past due date">Send reminder to:</div>
+                                            <div class="col-sm" py:for="role in ['author', 'responsible', 'subscriber']">
+                                                <input type="checkbox" name="reminder[]" value="${role}" id="reminder-check"  py:attrs="prop(checked=role in flex_get(job.mailer, 'reminder', default=[]))"/>
+                                                <label for="reminder-check">${role}</label>
+                                            </div>
+
+                                        </div>
                                         <label for="edit-msgtopics" class="col-form-label col-sm-4">topics:</label>
                                         <select name="topics[]" id="edit-msgtopics" class="col-sm-8 form-control select2" multiple="multiple">
                                             <optgroup label="Your subscribed topics">
                                                 <option py:for="topic in topics" value="${topic.id}"
-                                                        py:attrs="markoption(job.mailer and job.mailer.get('topics') and topic.id in job.mailer.get('topics'))"
+                                                        py:attrs="markoption(topic.id in flex_get(job.mailer, 'topics', default=[]))"
                                                         py:if="me in topic.subscribers"
                                                         title="${topic}">${topic.id}</option>
                                             </optgroup>
                                             <optgroup label="Other topics">
                                                 <option py:for="topic in topics" value="${topic.id}"
-                                                        py:attrs="markoption(job.mailer and job.mailer.get('topics') and topic.id in job.mailer.get('topics'))"
+                                                        py:attrs="markoption(topic.id in flex_get(job.mailer, 'topics', default=[]))"
                                                         py:if="me not in topic.subscribers" class=""
                                                         title="${topic}">${topic.id}</option>
                                             </optgroup>
                                         </select>
                                     </div>
                                     <div class="form-group row" data-bs-toggle="tooltip" title="send message to topics when">
-                                        <label for="edit-logsites" class="col-form-label col-sm-4" >when:</label>
+                                        <label for="edit-msgdates" class="col-form-label col-sm-4" >when:</label>
                                         <select name="msgdates[]" id="edit-msgdates" class="col-sm-8 form-control select2" multiple="multiple">
                                             <option value="done" title="send to topics message when done"
-                                                    py:attrs="markoption('done' in ((job.mailer or {}).get('when') or []))"
+                                                    py:attrs="markoption('done' in flex_get(job.mailer, 'when', default=[]))"
                                             >done</option>
                                             <option py:for="d in [0, 1, 3, 7, 14, 28]" value="${d}"
-                                                    py:attrs="markoption(d in ((job.mailer or {}).get('when') or []))"
+                                                    py:attrs="markoption(d in flex_get(job.mailer, 'when', default=[]))"
                                                     title="${d} day before due">${d} days</option>
                                         </select>
                                     </div>
@@ -219,56 +255,56 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-footer">
-                            <div class="btn-group">
-                                <button  id="edit-save" name="save" value="save"
-                                         py:if="can_edit"
-                                         class="btn btn-secondary me-1"
-                                         type="submit"
-                                         title="Saves the changes to the database"
-                                         data-bs-toggle="tooltip"
-                                         py:attrs="prop(disabled=not can_edit)"
-                                >
-                                    <i class="fas fa-save me-1" />
-                                    save
-                                </button>
-                                <button  id="edit-saveandown" name="save" value="own"
-                                         py:if="job.author.username!=user() and can_edit"
-                                         type="submit"
-                                         class="btn btn-secondary me-1"
-                                         title="Saves the changes to the author and makes you to the author of the job"
-                                         data-bs-toggle="tooltip"
-                                         py:attrs="prop(disabled=not can_edit)"
-                                >
-                                    become author
-                                </button>
-                                <button  id="edit-send-update" name="save" value="send"
-                                         py:if="can_edit"
-                                         type="submit"
-                                         class="btn btn-warning me-1"
-                                         data-bs-toggle="tooltip"
-                                         title="Save the changes and sends a mail to everyone who subscribed to the topics of this job"
-                                         py:attrs="prop(disabled=not can_edit)"
-                                >
-                                    <i class="fas fa-paper-plane"/> save &amp; update
-                                </button>
-                                <button  id="edit-savedone" name="save" value="done"
-                                         type="submit"
-                                         py:if="can_edit"
-                                         class="btn btn-success me-1"
-                                         title="Saves changes and marks job as done"
-                                         data-bs-toggle="tooltip"
-                                         py:attrs="prop(disabled=not can_edit)"
-                                >
-                                    <i class="fas fa-check" /> done
-                                </button>
-                                <a href="${conf.url('job','new', copy=job.id)}" class="btn btn-secondary me-1" id="btn-copy" role="button"><i class="fas fa-copy"/> copy</a>
-                                <button class="btn btn-danger me-1" name="save" value="delete"
-                                   id="btn-delete" role="button"
-                                   py:if="job.author.username==user() or Level.my() >= Level.admin">
-                                    <i class="fas fa-trash"/> delete
-                                </button>
-                            </div>
+                    </div>
+                    <div class="mt-2">
+                        <div class="btn-group">
+                            <button  id="edit-save" name="save" value="save"
+                                     py:if="can_edit"
+                                     class="btn btn-secondary me-1"
+                                     type="submit"
+                                     title="Saves the changes to the database"
+                                     data-bs-toggle="tooltip"
+                                     py:attrs="prop(disabled=not can_edit)"
+                            >
+                                <i class="fas fa-save me-1" />
+                                save
+                            </button>
+                            <button  id="edit-saveandown" name="save" value="own"
+                                     py:if="job.author.username!=user() and can_edit"
+                                     type="submit"
+                                     class="btn btn-secondary me-1"
+                                     title="Saves the changes to the author and makes you to the author of the job"
+                                     data-bs-toggle="tooltip"
+                                     py:attrs="prop(disabled=not can_edit)"
+                            >
+                                become author
+                            </button>
+                            <button  id="edit-send-update" name="save" value="send"
+                                     py:if="can_edit"
+                                     type="submit"
+                                     class="btn btn-warning me-1"
+                                     data-bs-toggle="tooltip"
+                                     title="Save the changes and sends a mail to everyone who subscribed to the topics of this job"
+                                     py:attrs="prop(disabled=not can_edit)"
+                            >
+                                <i class="fas fa-paper-plane"/> save &amp; update
+                            </button>
+                            <button  id="edit-savedone" name="save" value="done"
+                                     type="submit"
+                                     py:if="can_edit"
+                                     class="btn btn-success me-1"
+                                     title="Saves changes and marks job as done"
+                                     data-bs-toggle="tooltip"
+                                     py:attrs="prop(disabled=not can_edit)"
+                            >
+                                <i class="fas fa-check" /> done
+                            </button>
+                            <a href="${conf.url('job','new', copy=job.id)}" class="btn btn-secondary me-1" id="btn-copy" role="button"><i class="fas fa-copy"/> copy</a>
+                            <button class="btn btn-danger me-1" name="save" value="delete"
+                                    id="btn-delete" role="button"
+                                    py:if="job.author.username==user() or Level.my() >= Level.admin">
+                                <i class="fas fa-trash"/> delete
+                            </button>
                         </div>
                     </div>
                 </form>

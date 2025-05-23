@@ -73,16 +73,15 @@
                         <i class="fas fa-envelope me-4"/>
                     </div>
                 </div>
-                <div class="alert alert-warning">The messenger is a new feature - bugs are quite likely</div>
                 <div class="container">
                     <div class="accordion" id="msg-accordion">
-                        <div class="card" py:for="msg in messages">
+                        <div class="card" py:for="msg in messages" py:if="msg.topics">
                             <div class="card-header" id="msg-${msg.id}" data-bs-target="#msg${msg.id}-content"  data-bs-toggle="collapse">
-                                    <div class="row d-flex">
+                                    <div class="row ">
                                         <div class="col-md" py:content="markdown(msg.date.strftime('%Y-%m-%d %H:%M') if msg.date else '')"/>
                                         <div class="col-md" py:content="markdown(msg.subject)"/>
                                         <div class="col-md" py:content="markdown(' **From:** ' + (msg.source or 'no source'))"/>
-                                        <a href="${msg.id}" class="btn btn-sm btn-secondary ms-auto">
+                                        <a href="${msg.id}" class="btn btn-sm btn-secondary col-md-1">
                                             <i class="fas fa-edit"/>
                                         </a>
 

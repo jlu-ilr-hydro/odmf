@@ -62,8 +62,10 @@ class Topic(Base):
         )
 
 
-def subscribers(topics: List[Topic])-> List[Person]:
+def subscribers(topics: List[Topic], cc: Optional[List[Person]] = None) -> List[Person]:
     receivers = set(chain(*[t.subscribers for t in topics]))
+    if cc:
+        receivers.update(cc)
     return sorted([r for r in receivers if r.active])
 
 def link2href(s: str) -> str:
@@ -107,12 +109,12 @@ class Message(Base):
         )
         return text
 
-    def to(self):
+    def to(self, cc: Optional[List[Person]]=None):
         """Returns a list of all receivers of the messages"""
 
-        return subscribers(self.topics)
+        return subscribers(self.topics, cc)
 
-    def send(self, with_footer=True):
+    def send(self, *cc: Optional[List[Person]], with_footer=True):
         """
         Sends the message to all email addresses subscribed to the topics. Resolves cross-posting.
         If date is not set, send will set the date to now
@@ -121,12 +123,12 @@ class Message(Base):
         if with_footer:
             content += '\n' + self.footer()
         self.date = self.date or datetime.now()
-        receivers = self.to()
+        receivers = [r.email for r in self.to(cc)]
         with Mailer(conf.mailer_config) as mailer:
             mailer.send(
                 subject=self.subject,
                 body=content,
-                receivers=[r.email for r in receivers]
+                receivers=receivers
             )
         return receivers
 

@@ -1,14 +1,12 @@
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from datetime import datetime, timedelta
-from collections import deque
-from traceback import format_exc as traceback
 from functools import total_ordering
 from sqlalchemy_json import NestedMutableJson
-from typing import Optional
+from typing import Optional, List
 
 from ..config import conf
-from .base import Base, newid
+from .base import Base, newid, flex_get
 from .site import Log, Site
 from .person import Person
 from .message import Message, Topic
@@ -87,8 +85,8 @@ class Job(Base):
 
     def log_to_sites(self, by=None, time=None):
         session = self.session()
-        logsites = (self.log or {}).get('sites', [])
-        msg = (self.log or {}).get('message') or self.name
+        logsites = flex_get(self.log, 'sites', default=[])
+        msg = flex_get(self.log, 'message', default=self.name)
         logcount = 0
         if logsites:
             sites = session.scalars(sql.select(Site).where(Site.id.in_(logsites)))
@@ -117,7 +115,7 @@ class Job(Base):
             time = datetime.now()
 
         subject = f'ODMF-{conf.root_url}: {self.name}'
-        topics = (self.mailer or {}).get('topics', [])
+        topics = flex_get(self.mailer, 'topics', default=[])
         if self.done:
             content = (
                 f'Job {self.name} is finished at {self.donedate} by {by}\n'
@@ -127,9 +125,34 @@ class Job(Base):
                 f'{self.name} is due at {self.due}\n\n'
                 f'{self.description}\n'
             )
-        topics = self.session().scalars(sql.select(Topic).where(Topic.id.in_(topics))).all()
+        topics = self.session().scalars(sql.select(Topic).where(Topic.id.in_(topics or []))).all()
+        msgid = newid(Message, self.session())
+        return Message(id=msgid, subject=subject, content=content, topics=topics, date=time, source=f'job:{self.id}')
 
-        return Message(subject=subject, content=content, topics=topics, date=time, source=f'job:{self.id}')
+    def as_overdue_message(self) -> (Message, list[Person]):
+        reminder = self.mailer.get('reminder') or []
+        msgid = newid(Message, self.session())
+        msg = Message(
+            id=msgid,
+            subject=f'ODMF-{conf.root_url}: Reminder - {self.name}',
+            content=f'{self.name} by {self.author} is due since {self.due:%d.%m.%Y} but not done yet. If nothing happens you will receive this email every day. '
+                    f'To stop the reminder emails, you need to log into the ODMF database and change the job properties:\n\n'
+                    f'- if you have finished the job, mark it as done\n'
+                    f'- if it is delayed, change the due date\n'
+                    f'- if you delegate the job, change the responsible person (they will get the emails)\n'
+                    f'- if the job is obsolete, remove it\n'
+                    f'- if the job is still valid, but you do not need any reminders, change the reminder settings\n'
+                    f'- if you need any help, contact {self.author.email} or one of the ODMF admins (see login page)\n',
+            source=f'job:{self.id}',
+            topics=self.mailer.get('topics') if 'subscribers' in reminder else []
+        )
+        cc = []
+        if 'author' in reminder:
+            cc.append(self.author)
+        if 'responsible' in reminder:
+            cc.append(self.responsible)
+
+        return msg, cc
 
     def make_done(self, by, time=None):
         """Marks the job as done and performs effects of the job"""
@@ -163,41 +186,19 @@ class Job(Base):
         if self.mailer and self.mailer.get('when') and 'done' in self.mailer.get('when'):
             mail = self.as_message(by, time)
             self.session().add(mail)
-            receivers = mail.send()
+            receivers = mail.send(self.author, self.responsible)
             msg.append(f'send {len(receivers)} mails')
         return '\n'.join(msg)
 
-    def create_message_by_time(self) -> Optional[Message]:
+    def message_dates(self) -> List[datetime]:
         """
-        Creates a message for this job if needed by the when flag of the mailer
-
-        Will be called by a periodic process
+        Returns the dates in the past, where messages should have been sent out
         """
-        if self.done:
-            return None
-        session = self.session()
-        now = datetime.now()
-        # Get timedeltas for each 'when' entry, that is a number
-        when_dates = [timedelta(days=when) for when in (self.mailer or {}).get('when', []) if type(when) is int]
-        # Remove entries, that are not yet due
-        when_dates = [when for when in when_dates if now + when >= self.due]
-
-        if not when_dates:
-            return None
-
-        # Remove when-dates for each existing message of this job
-        messages = session.scalars(sql.select(Message).where(Message.source == f'job:{self.id}'))
-        for msg in messages:
-            when_dates = [when for when in when_dates if not msg.date + when >= self.due]
-
-        if when_dates:
-            return self.as_message()
-        else:
-            return None
-
-
-
-
+        when = list(self.mailer.get('when') or []) if self.mailer else []
+        # Get all due dates of the job messages (only for int entries)
+        dates = [self.due - timedelta(days=days) for days in when if type(days) is int]
+        # Filter only the dates that are in the past
+        return [d for d in dates if d < datetime.now()]
 
     def end(self):
         return self.due + timedelta(days=self.duration or 0)

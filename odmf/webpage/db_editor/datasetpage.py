@@ -50,13 +50,18 @@ class DatasetPage:
             ds = session.get(db.Dataset, web.conv(int, datasetid))
 
             if not ds:
+                dsid=db.newid(db.Dataset, session)
                 ds = db.Timeseries(
+                    id=dsid,
                     name='New Dataset',
                     access=Level.admin,
                     timezone=conf.datetime_default_timezone,
                     calibration_offset=0,
                     calibration_slope=1
                 )
+                session.add(ds)
+                session.flush()
+
 
             elif not has_access(ds, Level.editor):
                 raise web.redirect(conf.url('dataset', datasetid), error='You are not allowed to write this dataset')
@@ -81,6 +86,7 @@ class DatasetPage:
             ds.measured_by = pers
             ds.valuetype = vt
             ds.quality = q
+            ds.source = src
 
             if ds.get_access_level(users.current) >= Level.admin:
                 project = session.get(db.Project, kwargs.get('project'))
@@ -106,8 +112,6 @@ class DatasetPage:
                 ds.expression = kwargs.get('expression')
                 ds.latex = kwargs.get('latex')
 
-            session.add(ds)
-            session.flush()
 
             return conf.url('dataset', ds.id)
 
@@ -223,7 +227,7 @@ class DatasetPage:
                 web.mime.json.set()
                 return web.as_json(alarms).encode('utf-8')
             elif cherrypy.request.method == 'POST':
-                alarm = session.get(DatasetAlarm, kwargs.get('id'))
+                alarm = session.get(DatasetAlarm, web.conv(int, kwargs.get('id')))
                 if not alarm:
                     alarm = DatasetAlarm(dataset=ds)
                     session.add(alarm)

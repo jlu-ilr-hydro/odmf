@@ -50,8 +50,10 @@ class ProjectPage:
                     if project_id:
                         project = db.Project.get(session, project_id)
                     else:
-                        project = db.Project()
+                        project_id = db.newid(db.Project, session)
+                        project = db.Project(id=project_id)
                         session.add(project)
+                        session.flush()
 
                     person = session.get(db.Person, person)
                     project.name = name
@@ -61,8 +63,6 @@ class ProjectPage:
                     project.person_responsible = person
                     if person is None:
                         raise RuntimeError('Spokesperson not found')
-                    session.flush()
-                    project_id = project.id
             except RuntimeError as e:
                 error = f'Save failed: {e}'
             users.load()
@@ -73,12 +73,12 @@ class ProjectPage:
 
     @expose_for(Level.supervisor)
     @web.method.post
-    def add_member(self, project_id, member_name, access_level):
+    def add_member(self, project_id, member_name, level):
         error = None
         try:
             with db.session_scope() as session:
                 project = db.Project.get(session, project_id)
-                project.add_member(member_name, int(access_level))
+                project.add_member(member_name, int(level))
         except (RuntimeError, ValueError) as e:
             error = f'### Save failed: \n\n{e}'
         users.load()

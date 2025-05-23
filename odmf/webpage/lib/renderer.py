@@ -180,6 +180,7 @@ def context(**kwargs):
     status = dict(
         error=cherrypy.session.pop('error'), info=cherrypy.session.pop('info'), success=cherrypy.session.pop('success'),
         conf=conf,
+        allow_google_maps=cherrypy.session.get('allow_google_maps', False),
         nav_items=get_nav_entries()
     )
     return (

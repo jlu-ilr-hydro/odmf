@@ -6,7 +6,6 @@ from ..auth import users, Level, expose_for
 
 from ... import db
 
-from traceback import format_exc as traceback
 from datetime import datetime, timedelta
 
 @cherrypy.popargs('jobid')
@@ -23,7 +22,8 @@ class JobPage:
         with db. session_scope() as session:
             job = session.get(db.Job, web.conv(int, jobid))
             if not job:
-                job = db.Job(_author=web.user())
+                jobid = db.newid(db.Job, session)
+                job = db.Job(id=jobid, _author=web.user())
                 session.add(job)
                 session.flush()
             elif not self.can_edit(job):
@@ -47,23 +47,32 @@ class JobPage:
             job.repeat = web.conv(int, kwargs.get('repeat'))
             job.type = kwargs.get('type')
 
+            reminder = web.to_list(kwargs.get('reminder[]'))
             topics = web.to_list(kwargs.get('topics[]'))
             msgwhen = web.to_list(kwargs.get('msgdates[]'))
-            job.mailer = {
-                'topics': topics or None,
-                'when': [web.conv(int, s, s) for s in msgwhen] or None
-            }
+            if any((reminder, topics, msgwhen)):
+                job.mailer = {
+                    'topics': topics or None,
+                    'when': [web.conv(int, s, s) for s in msgwhen] or None,
+                    'reminder': reminder or None
+                }
+            else:
+                job.mailer = None
 
             logsites = web.to_list(kwargs.get('sites[]'))
-            job.log = {
-                'sites': [web.conv(int, sid) for sid in logsites] or None,
-                'message' : kwargs.get('logmsg')
-            }
+            if any((logsites, kwargs.get('logmsg'))):
+                job.log = {
+                    'sites': [web.conv(int, sid) for sid in logsites] or None,
+                    'message' : kwargs.get('logmsg')
+                }
+            else:
+                job.log = None
 
             if kwargs['save'] == 'own':
                 p_user = session.get(db.Person, web.user())
                 job.author = p_user
                 msg = f'{job.name} is now yours'
+
             elif kwargs['save'] == 'done':
                 job.make_done(users.current.name)
                 msg = f'{job} is done'
@@ -74,8 +83,7 @@ class JobPage:
                 redirect = conf.url('message')
             else:
                 msg = f'{job} saved'
-
-            redirect = conf.url('job', job.id)
+                redirect = conf.url('job', job.id)
 
 
         raise web.redirect(redirect, error=error, success=msg)
@@ -194,10 +202,10 @@ class JobPage:
             jobs = jobs.all()
             if sites:
                 sites = set(int(s) for s in sites.split(','))
-                jobs = [j for j in jobs if sites & set((j.log or {}).get('sites', []))]
+                jobs = [j for j in jobs if sites & set(db.flex_get(j.log, 'sites', default=[]))]
             if topics:
                 topics = set(s for s in topics.split(','))
-                jobs = [j for j in jobs if topics & set((j.mailer or {}).get('topics', []))]
+                jobs = [j for j in jobs if topics & set(db.flex_get(j.mailer,'topics', default=[]))]
 
             events = [self.as_event(job) for job in jobs]
             return web.json_out(events)

@@ -48,6 +48,8 @@ class Mailer:
         if filename:
             with open(filename) as f:
                 self.config = yaml.safe_load(f)
+        else:
+            self.config = {}
         self.config.update(kwargs)
         self.server = None
 
