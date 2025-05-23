@@ -73,12 +73,12 @@ class ProjectPage:
 
     @expose_for(Level.supervisor)
     @web.method.post
-    def add_member(self, project_id, member_name, access_level):
+    def add_member(self, project_id, member_name, level):
         error = None
         try:
             with db.session_scope() as session:
                 project = db.Project.get(session, project_id)
-                project.add_member(member_name, int(access_level))
+                project.add_member(member_name, int(level))
         except (RuntimeError, ValueError) as e:
             error = f'### Save failed: \n\n{e}'
         users.load()
