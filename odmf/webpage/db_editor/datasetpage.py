@@ -86,6 +86,7 @@ class DatasetPage:
             ds.measured_by = pers
             ds.valuetype = vt
             ds.quality = q
+            ds.source = src
 
             if ds.get_access_level(users.current) >= Level.admin:
                 project = session.get(db.Project, kwargs.get('project'))
