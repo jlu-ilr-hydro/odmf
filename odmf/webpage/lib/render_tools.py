@@ -24,7 +24,7 @@ def dict_to_html(key='', value=None):
     def header(key):
         if key:
             return f'''
-                <a class="list-group-action" data-toggle="collapse" href="#c-{key}-list">{key}<i class="fas fa-caret-down ml-2"></i></a>
+                <a class="list-group-action" data-bs-toggle="collapse" href="#c-{key}-list">{key}<i class="fas fa-caret-down ms-2"></i></a>
                 <div class="collapse list-group" id="c-{key}-list">
             '''
         else:
@@ -87,18 +87,15 @@ def user():
     return __cp.request.login
 
 
-def not_external():
-    return not ("external" in __cp.url())
-
-
 def bool2js(b: bool) -> str:
     return str(b).lower()
 
-def class_if(condition, class_name):
+def class_if(condition, class_name, else_class=''):
     if condition:
         return class_name
     else:
-        return ''
+        return else_class
 
 def dnone_if(condition):
     return class_if(condition, 'd-none')
+

@@ -11,22 +11,11 @@
 
     <link rel="icon" type="image/png" href="${conf.root_url}/media/ilr-favicon.png"/>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.1/css/bootstrap.min.css"
-          integrity="sha512-T584yQ/tdRR5QwOpfvDfVQUidzfgc2339Lc8uBDtcp/wYu80d7jwBgAxbyMh0a9YM9F8N3tdErpFI8iaGx6x5g=="
-          crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"
-    />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css"
-          integrity="sha512-nMNlpuaDPrqlEls3IX/Q56H36qvBASwb3ipuo3MxeWbsQB1881ox0cRv7UPTgBlriqoynt35KjEwgGUeUXIPnw=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"
-    />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css"/>
-
-    <link rel="stylesheet"
-          type="text/css" href="${conf.root_url}/media/css/bootstrap-odmf.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/fontawesome.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4/dist/css/select2.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1/dist/select2-bootstrap-5-theme.min.css"/>
+    <link rel="stylesheet" type="text/css" href="${conf.root_url}/media/css/bootstrap-odmf.css"/>
 
     <style py:block="style"/>
 
@@ -42,24 +31,14 @@
             }
         };
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.min.js"
-            integrity="sha512-T8xxpazDtODy3WOP/c6hvQI2O9UPdARlDWE0CvH1Cfqc0TXZF6GZcEKL7tIR8VbfS/7s/J6C+VOqrD6hIo++vQ=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.min.js"></script>
     <!-- JQuery -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-            integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
 
-    <!-- # Bootstrap 4 .js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"
-            integrity="sha512-ubuT8Z88WxezgSqf3RLuNi5lmjstiJcyezx34yIU2gAHonIi27Na7atqzUZCOoY4CExaoFumzOsFQ2Ch+I/HCw=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.1/js/bootstrap.min.js"
-            integrity="sha512-UR25UO94eTnCVwjbXozyeVd6ZqpaAE9naiEUBK/A+QDbfSTQFhPGj5lOR6d8tsgbBk84Ggb5A3EkjsOgPRPcKA=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"
-            integrity="sha512-2ImtlRlf2VVmiGZsjm9bEyhjGW4dU7B6TNwh/hx/iSByxNENtj3WVE6o/9Lj4TJeVXPi4bnOIMXFIJJAeufa0A=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- # Bootstrap 5 .js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4/dist/js/select2.min.js"></script>
     <script>
         //<![CDATA[
         function datetime_local_now() {
@@ -82,18 +61,18 @@
         set_success = msg => {return set_message('success', msg)}
 
         $(function () {
-            $('[data-toggle="tooltip"]').tooltip();
-            $('[data-toggle="popover"]').popover();
-            $('.select2').each(function () {
-                $(this).select2({
-                    theme: 'bootstrap4',
-                    width: $(this).data('width') ? $(this).data('width') : $(this).hasClass('w-100') ? '100%' : 'style',
-                    placeholder: $(this).data('placeholder'),
-                    allowClear: Boolean($(this).data('allow-clear')),
-                    closeOnSelect: !$(this).attr('multiple'),
-                });
-            });
-            $('.select2').select2({theme:'bootstrap4'})
+            $('[data-bs-toggle="tooltip"]').tooltip();
+            $('[data-bs-toggle="popover"]').popover();
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            })
+            $('.select2-tags').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                tags:true
+            })
+
             $('#login-logout').on('click', () => {
                 $.post('${conf.root_url}/api/logout').done(() => {
                     window.location.reload()
@@ -138,84 +117,67 @@
 <!-- Horizontal navbar
 Template: https://getbootstrap.com/docs/4.4/components/navbar/
 -->
+
 <nav class="navbar navbar-dark navbar-expand-md sticky-top bg-dark navbar-for-all">
-    <ul class="navbar-nav mr-2">
-        <li class="nav-item my-auto">
-            <button class="btn btn-dark btn-outline-light" onclick="window.location.reload();" title="Reload page" data-toggle="tooltip">
-                <i class="fas fa-redo"/>
-            </button>
-        </li>
-        <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle h4"
-               href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown"
-               aria-haspopup="true" aria-expanded="false">
-                ${title}
-            </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                <a class="dropdown-item flexbox"
-                   py:for="resource in nav_items"
-                   href="${resource.uri}"
-                   title="${resource.doc}"
-                   data-toggle="tooltip"
-                   data-placement="right"
-                >
-                    <span py:content="resource.name" />
-                    <i class="fas fa-${resource.icon or 'question_circle'} fa-lg"/>
+    <div class="container-fluid">
+        <ul class="navbar-nav me-2">
+            <li class="nav-item dropdown h4">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button"
+                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    ${title}
                 </a>
-
-
-            </div>
-        </li>
-    </ul>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#nav-icons"
-            aria-controls="nav-icons" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div id="nav-icons" class="collapse navbar-collapse">
-        <div class="ml-auto mr-auto text-light btn-group" >
-            <a py:for="resource in nav_items"
-               py:if="resource.icon"
-               href="${resource.uri}"
-               title="${resource.name}"
-               class="nav-link btn btn-secondary "
-               data-toggle="tooltip"
-               data-placement="bottom"
-            >
-                <i class="fas fa-${resource.icon}"/>
-            </a>
-        </div>
-        <ul class="navbar-nav">
-            <li class="nav-item dropdown">
-                <a class="nav-link h4 dropdown-toggle"
-                   id="login-link"
-                   href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                   py:content="users.current or 'login'" title="login">
-                </a>
-                <div class="dropdown-menu bg-dark dropdown-menu-right" aria-labelledby="login-link" style="min-width: 15rem;">
-                    <form id="login-form" class="m-2 p-2 bg-light border-rounded" >
-                        <label for="login-username">Username</label>
-                        <input type="text" class="form-control" id="login-username" name="username" />
-                        <label for="login-password">Password:</label>
-                        <input type="password" name="password" id="login-password" class="form-control"/>
-                    </form>
-                    <div id="login-error" />
-                    <div class="row p-2">
-                        <div class="container">
-                            <button id="login-btn"  class="btn btn-primary col mr-1">log in</button>
-                            <button id="login-logout" class="btn btn-secondary col ml-1">log out</button>
-                        </div>
-
-                    </div>
-
-                </div>
-            </li>
-            <li class="nav-item">
-                <div class="">
-                    <img src="${conf.url(conf.nav_left_logo)}"
-                         alt="${conf.url(conf.nav_left_logo)}"  class="logo mt-2"/>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                    <a class="dropdown-item flexbox" py:for="resource in nav_items" href="${resource.uri}"
+                        title="${resource.doc}" data-bs-toggle="tooltip" data-bs-placement="right">
+                        <span py:content="resource.name" />
+                        <i class="fas fa-${resource.icon or 'question_circle'} fa-lg" />
+                    </a>
                 </div>
             </li>
         </ul>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav-icons"
+            aria-controls="nav-icons" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="nav-icons" class="collapse navbar-collapse">
+            <div class="ms-auto me-auto text-light btn-group">
+                <a py:for="resource in nav_items" py:if="resource.icon" href="${resource.uri}" title="${resource.name}"
+                    class="btn btn-secondary" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="fas fa-${resource.icon} " />
+                </a>
+            </div>
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown h4">
+                    <a class="nav-link dropdown-toggle" id="login-link" href="#" data-bs-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false" py:content="users.current or 'login'" title="login">
+                    </a>
+                    <div class="dropdown-menu bg-dark dropdown-menu-right" aria-labelledby="login-link"
+                        style="min-width: 15rem;">
+                        <form id="login-form" class="m-2 p-2 bg-light border-rounded">
+                            <label for="login-username">Username</label>
+                            <input type="text" class="form-control" id="login-username" name="username" />
+                            <label for="login-password">Password:</label>
+                            <input type="password" name="password" id="login-password" class="form-control" />
+                        </form>
+                        <div id="login-error" />
+                        <div class="row p-2">
+                            <div class="container">
+                                <button id="login-btn" class="btn btn-primary col me-1">log in</button>
+                                <button id="login-logout" class="btn btn-secondary col ms-1">log out</button>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <div class="">
+                        <img src="${conf.url(conf.nav_left_logo)}" alt="${conf.url(conf.nav_left_logo)}"
+                            class="logo mt-2" />
+                    </div>
+                </li>
+            </ul>
+        </div>
     </div>
 </nav>
 
@@ -229,43 +191,45 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
 
             </div>
         </nav>
-        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 p-0 h-100">
+        <main role="main" class="col-md-9 ms-sm-auto col-lg-10 p-0 h-100">
             <div class="container-fluid">
+                <div py:if="conf.sandbox" class="alert alert-danger">
+                    <h1 class="display-6"><i class="fas fa-exclamation-circle me-4"/>Sandbox, not for real data!</h1>
+                </div>
+
                 <div id="error-msg" class="alert alert-danger w-100 ${dnone_if(not error)}" role="alert">
                     <div class="d-flex flex-row">
-                        <div class="mr-2">
+                        <div class="me-2">
                             <i class="fas fa-exclamation-circle fa-3x"/>
                         </div>
                         <div class="">
                             <p class="lead" id="errortext" py:content="markdown(error)"/>
                         </div>
-                        <a class="ml-auto close-button">
-                            <i class="fas fa-times"/>
-                        </a>
+                        <a class="ms-auto btn-close close-button" aria-label="close"></a>
                     </div>
                 </div>
                 <div id="info-msg" class="alert alert-info w-100 ${dnone_if(not info)}" role="alert"  >
                     <div class="d-flex flex-row">
-                        <div class="mr-2">
+                        <div class="me-2">
                             <i class="fas fa-info-circle fa-3x"/>
                         </div>
                         <div class="">
                             <p class="lead" py:content="markdown(info)"/>
                         </div>
-                        <a class="ml-auto close-button">
+                        <a class="ms-auto close-button">
                             <i class="fas fa-times"/>
                         </a>
                     </div>
                 </div>
                 <div id="success-msg" class="alert alert-success w-100 ${dnone_if(not success)}" role="alert"  >
                     <div class="d-flex flex-row">
-                        <div class="mr-2">
+                        <div class="me-2">
                             <i class="fas fa-info-circle fa-3x"/>
                         </div>
                         <div class="">
                             <p class="lead" py:content="markdown(success)"/>
                         </div>
-                        <a class="ml-auto close-button">
+                        <a class="ms-auto close-button">
                             <i class="fas fa-times"/>
                         </a>
                     </div>

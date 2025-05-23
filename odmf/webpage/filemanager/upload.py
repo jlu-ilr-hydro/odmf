@@ -13,10 +13,11 @@ import shutil
 from traceback import format_exc as traceback
 from io import StringIO, BytesIO
 import cherrypy
-from cherrypy.lib.static import serve_file
+from cherrypy.lib.static import serve_file, serve_fileobj
 from urllib.parse import urlencode
 from ..auth import Level, expose_for, is_member, users
 from ...tools import Path
+from ... import db
 
 from ...config import conf
 
@@ -82,7 +83,7 @@ def check_access(mode: fa.Mode, dir: Path, no_raise=False):
     :return:
     """
     path = Path(dir)
-    if fa.check_directory(path, users.current) < mode:
+    if not path.islegal() or fa.check_directory(path, users.current) < mode:
         if no_raise:
             return False
         else:
@@ -92,6 +93,7 @@ def check_access(mode: fa.Mode, dir: Path, no_raise=False):
 
 
 @web.show_in_nav_for(0, 'file')
+
 class DownloadPage(object):
     """The file management system. Used to upload, import and find files"""
 
@@ -99,6 +101,7 @@ class DownloadPage(object):
         cherrypy.request.params['uri'] = '/'.join(vpath)
         vpath.clear()
         return self
+
 
     to_db = DbImportPage()
     filehandler = fh.MultiHandler()
@@ -142,12 +145,24 @@ class DownloadPage(object):
         else:
             return {}
 
+    @staticmethod
+    def zip_folder(path: Path):
+        import zipfile, io
+        files = fa.walk(path, users.current)
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, 'a') as zf:
+            for f in files:
+                zf.write(f.absolute, f.relative_name(path))
+        buffer.seek(0)
+        return buffer
 
     @expose_for()
     @web.method.get
     def index(self, uri='.', error='', msg='', serve=False, _=None):
         path = Path(uri)
         modes = fa.check_children(path, users.current)
+        error = error or cherrypy.session.get('error')
+        msg = msg or cherrypy.session.get('success')
         check_access(fa.Mode.read, path)
         if not all(
                 (
@@ -166,23 +181,39 @@ class DownloadPage(object):
             content = ''
             directories, files = path.listdir(hidden=modes[path]>=fa.Mode.admin)
 
-        if path.isfile():
-            if serve:
+        if serve:
+            if path.isfile():
                 return serve_file(path.absolute, disposition='attachment', name=path.basename)
             else:
-                content, error = self.render_file(path, error)
+                return serve_fileobj(self.zip_folder(path), content_type='application/zip', disposition='attachment', name=path.basename + '.zip')
+
+        elif path.isfile():
+            content, error = self.render_file(path, error)
+
+        rule = fa.AccessRule.find_rule(path)
+        with db.session_scope() as session:
+            project_names = dict((i, n) for i, n in session.execute(db.sql.select(db.Project.id, db.Project.name)))
+        named_rule = {
+            'read': fa.Mode(rule.read),
+            'write': fa.Mode(rule.write),
+            'projects': rule.projects,
+            'project_names': project_names,
+
+        }
 
         return web.render(
             'download.html',
             error=error, success=msg,
             modes=modes, Mode=fa.Mode, owner=fa.get_owner(path),
-            content = content,
+            content=content, rule=named_rule,
             files=sorted(files),
             directories=sorted(directories),
             handler=self.filehandler,
             curdir=path, import_history=self.get_import_history(path),
             max_size=conf.upload_max_size
         ).render()
+
+
 
     @expose_for(Level.editor)
     @web.method.post_or_put
@@ -341,17 +372,20 @@ class DownloadPage(object):
 
     @expose_for(Level.editor)
     @web.method.post_or_put
-    def newtextfile(self, dir, newfilename):
+    def newtextfile(self, dir, newfilename, content=None):
         check_access(fa.Mode.write, dir)
         if newfilename:
             try:
                 path = Path(dir, newfilename)
 
-                if not path.basename.endswith('.wiki') or path.basename.endswith('.md'):
-                    path = Path(str(path) + '.wiki')
+                if not path.basename.endswith('.md'):
+                    path = Path(str(path) + '.md')
                 if not path.exists() and path.islegal():
                     with open(path.absolute, 'w') as f:
-                        f.write(newfilename + '\n' + '=' * len(newfilename) + '\n\n')
+                        if content:
+                            f.write(content + '\n')
+                        else:
+                            f.write(newfilename + '\n' + '=' * len(newfilename) + '\n\n')
                     raise goto(path.name, msg=f"{path.href} created")
                 else:
                     raise goto(dir, error=f"File {newfilename} exists already")
@@ -452,6 +486,45 @@ class DownloadPage(object):
             raise DownloadPageError(path, status=403, message='Only admins can create access files')
 
     @expose_for(Level.editor)
+    def access(self, uri, read=None, write=None, projects=None, newowner=None):
+        """
+        - On GET, access returns the access rules as JSON
+        - On POST, access sets a new access rule using the parameters
+        :param uri: Path to ressource
+        :param read: int, Level in one of the projects needed to read files in this folder
+        :param write: int, Level in one of the projects needed to write files in this folder
+        :param projects: List[int], projects owning this folder, if empty the Levels for read and write are the site-Levels
+        :param newowner: username of the new owner
+        :return:
+        """
+        path = Path(uri)
+        rule = fa.AccessRule.find_rule(path)
+        owner = fa.get_owner(path)
+        if cherrypy.request.method == 'POST':
+            if rule(users.current, owner) >= fa.Mode.admin:
+                if newowner:
+                    fa.set_owner(path, newowner)
+                rule.read = web.conv(int, read, rule.read)
+                rule.write = web.conv(int, write, rule.write)
+                rule.projects = web.to_list(projects, int)
+                rule.save(path)
+                raise goto(path, msg=f'Saved access rules for {path}')
+            else:
+                raise DownloadPageError(path, status=403, message='Only admins and owners can change access files')
+        else:
+            from ... import db
+            import json
+            web.mime.json.set()
+            with db.session_scope() as session:
+                projects_names = [(i,n) for i,n in session.execute(db.sql.select(db.Project.id, db.Project.name))]
+            return json.dumps({
+                'read': fa.Mode(rule.read).name,
+                'write': fa.Mode(rule.write).name,
+                'projects': projects_names
+            }).encode('utf-8')
+
+
+    @expose_for(Level.editor)
     @web.method.post
     def write_to_file(self, path, text):
         path = Path(path)
@@ -469,6 +542,19 @@ class DownloadPage(object):
 
         with open(path.absolute, 'w') as f:
             f.write(text)
+    
+    @expose_for()
+    @web.method.post
+    def download_folder_as_zip(self, path):
+        import zipfile, io
+        path = Path(path)
+        check_access(fa.Mode.read, path)
+
+        if path.isdir():
+            zipstream = io.BytesIO()
+            with zipfile.ZipFile(zipstream, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                ...
+
 
     @expose_for()
     @web.method.post

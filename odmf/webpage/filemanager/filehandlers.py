@@ -19,10 +19,11 @@ markdown = MarkDown()
 
 def load_text_file(path: Path) -> str:
     with open(path.absolute, 'rb') as f:
-        data = f.read()
+        # read max 1 MB text
+        data = f.read(1024 ** 2)
         for enc in 'utf-8', 'latin1', 'windows-1252', None:
             try:
-                    return data.decode(enc)
+                return data.decode(enc)
             except UnicodeDecodeError:
                 continue
         else:
@@ -128,7 +129,7 @@ class ConfFileHandler(TextFileHandler):
             source = source.replace('\r', '')
             value_sub = div(div('\\1', 'col') + div('= ', 'col') + div('\\2', 'col'), 'row')
             source = re.sub(r'(.*)\=(.*)', value_sub, source)
-            source = re.sub(r'^[#;](.*)', div('\\1', 'text-light bg-secondary small pl-2 font-italic'), source, flags=re.M)
+            source = re.sub(r'^[#;](.*)', div('\\1', 'text-light bg-secondary small ps-2 font-italic'), source, flags=re.M)
             source = re.sub(r'^\s*\[(.*)\]\s*$', r'<h3>[\1]</h3>', source, flags=re.M)
             return source
         except Exception:
@@ -247,7 +248,7 @@ class ZipFileHandler(BaseFileHandler):
         try:
             import zipfile
             z = zipfile.ZipFile(path.absolute)
-            li = ' '.join(f'<li class="list-group-item"><i class="fas fa-file mr-2"></i>{zi.filename}</li>' for zi in z.infolist())
+            li = ' '.join(f'<li class="list-group-item"><i class="fas fa-file me-2"></i>{zi.filename}</li>' for zi in z.infolist())
             header = '<h5>Content:</h5>'
             return header + '<ul class="list-group"> ' + li + '</ul>'
         except Exception as e:

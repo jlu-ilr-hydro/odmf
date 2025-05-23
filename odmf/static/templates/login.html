@@ -59,19 +59,32 @@
                         </h2>
                         <div class="list-group">
                             <div class="list-group-item d-flex" py:for="admin in admins">
-                                ${admin} <a href="mailto:${admin.email}" class="btn btn-primary ml-auto"><i class="fas fa-envelope"></i> ${admin.email}</a>
+                                ${admin} <a href="mailto:${admin.email}" class="btn btn-primary ms-auto"><i class="fas fa-envelope"></i> ${admin.email}</a>
                             </div>
                         </div>
 
                     </div>
                     <h2 class="my-4">
-                        ODMF <span class="badge badge-primary" py:content="conf.version"/>
+                        ODMF <span class="badge bg-primary" py:content="conf.version"/>
                     </h2>
                     <div>
                         This site is built using ODMF (Observatory data management framework) an
                         open source data management system for field observatories to collect, manage
                         and share quantitative measurements in the open environment
                     </div>
+                    <h2 class="my-4">
+                        Privacy settings
+                    </h2>
+                    <form method="post" action="${conf.url('map', 'allow_google')}" class="d-flex">
+                        <div class="lead me-4">
+                            Allow Google Maps
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-success" name="allow" value="on"><i class="fas fa-thumbs-up"/></button>
+                            <button type="submit" class="btn btn-danger" name="allow" value=""><i class="fas fa-thumbs-down"/></button>
+                        </div>
+                    </form>
+
 
                     <h3 class="my-4">
                         <i class="fab fa-github"/> Development

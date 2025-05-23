@@ -5,9 +5,9 @@ Example config file:
 """
 import typing
 import pandas as pd
-import yaml
 from .. import db
-from ..tools import Path, parquet_import
+from ..tools import Path
+from .parquet_import import addrecords_dataframe
 from .sample_parser import SampleParser
 
 example=r"""
@@ -256,7 +256,7 @@ def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typin
         'aggregated' : len(df_agg),
     }
     if not dryrun:
-        _, record_count = parquet_import.addrecords_dataframe(df_agg)
+        _, record_count = addrecords_dataframe(df_agg)
         info['imported'] = record_count
     datasets = {
         int(i) : (df_agg.dataset == i).sum()

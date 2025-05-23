@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<py:extends href="layout.html" xmlns:py="">
+    <py:block name="scripts">
+        <!-- insert additional scripts -->
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <!-- insert sidebar content -->
+        <div class="card m-1">
+            <h4 class="card-header"><i class="fas fa-inbox"/> Topics</h4>
+            <div class="list-group">
+                <a class="list-group-item list-group-item-action" href="${conf.url('topic')}"><i class="fas fa-inbox"/> list topics...</a>
+                <a class="list-group-item list-group-item-action" href="${conf.url('message')}"><i class="fas fa-envelope"/> list messages...</a>
+                <a class="list-group-item list-group-item-action" href="${conf.url('message', 'new')}"><i class="fas fa-envelope-open"/> create message...</a>
+            </div>
+        </div>
+    </py:block>
+    <py:block name="content">
+        <div class="content w-100">
+            <div class="container">
+                <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-1">
+
+                    <div>
+                        <h2 class="display-4 me-8 d-inline-block" >${markdown(topic.name)}</h2>
+
+                    </div>
+                    <div class="display-4 col-sm my-auto text-right">
+                        <i class="fas fa-inbox me-4"/>${topic.id}
+                    </div>
+                </div>
+                <div py:content="markdown('by user:' + topic.owner.username)"/>
+                <div py:content="markdown(topic.description)"/>
+                <div py:if="topic.id == 'new'" class="card">
+                    <h3 class="card-header bg-info text-white ">
+                        How to create a new topic
+                    </h3>
+                    <div class="card-body bg-light text-info">
+                        <p>
+                            Messenges are sent about topics - topics can be sites, datasets but also generic descriptions
+                            like field-operation, name of a region or similar. Please check first if a fitting topic exists
+                            before you create a new one. To create a topic for a database object use its
+                            <a href="/help/odmf-markdown"><i class="fas fa-info-circle"/> markdown</a>,
+                            representation as id. Eg. for site 1234 use <code>site:1234</code>.
+                        </p>
+                        <p>
+                            Topics can be edited by the creator of the topic and all users with elevated priviledges.
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-4 d-flex">
+                    <form method="POST" action="toggle_sub">
+                        <button py:if="me not in topic.subscribers"
+                                class="btn btn-success btn-subscription" name="subscribe" value="on" type="submit" data-bs-toggle="tooltip" title="subscribe"><i class="fas fa-user-plus"/></button>
+                        <button py:if="me in topic.subscribers"
+                                class="btn btn-warning btn-subscription" name="subscribe" value="off" type="submit" data-bs-toggle="tooltip" title="unsubscribe"><i class="fas fa-user-minus"/></button>
+                    </form>
+                    <a py:if="can_edit" href="#edit-div" class="btn btn-secondary dropdown-toggle ms-2" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="edit-div">
+                        <i class="fas fa-edit"></i> edit topic
+                    </a>
+                </div>
+
+                <div py:if="can_edit" class="collapse container border rounded p-4 ${class_if(can_edit_id, 'show')}" id="edit-div">
+                        <form method="post" action=".">
+                            <div class="form-group row" py:if="can_edit_id">
+                                <label for="edit-id" class="col-form-label col-sm-4">ID:</label>
+                                <input id="edit-id" name="id" value="${topic.id}" class="form-control col-sm-8"/>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="edit-name" class="col-form-label col-sm-4">Name:</label>
+                                <input type="text"  id="edit-name" name="name" value="${topic.name}"
+                                       class="form-control col-sm-8" py:attrs="prop(readonly=not can_edit)"/>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-4">Owner:</div>
+                                <div class="col-sm-8">${topic.owner}</div>
+                            </div>
+                            <label for="edit-description" class="markdown">
+                                Description:
+                                <a title="Get help for using links and formats" data-bs-toggle="tooltip" data-bs-placement="top" class="ms-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
+                                    <i class="fas fa-question-circle"/>
+                                </a>
+                            </label>
+                            <div class="form-group row">
+                                <textarea  id="edit-description" name="description"
+                                           class="markdown form-control"
+                                           py:attrs="prop(readonly=not can_edit)" rows="5"
+                                >${topic.description}</textarea>
+
+                            </div>
+                            <div class="form-group row">
+                                <button  id="edit-save" name="save" value="save"
+                                         py:if="can_edit"
+                                         class="btn btn-secondary me-1"
+                                         type="submit"
+                                         title="Saves the changes to the database"
+                                         data-bs-toggle="tooltip"
+                                         py:attrs="prop(disabled=not can_edit)"
+                                >
+                                    <i class="fas fa-check me-1" />
+                                    save changes
+                                </button>
+                                <button  id="edit-saveandown" name="save" value="own"
+                                         py:if="Level.my() >= Level.admin"
+                                         type="submit"
+                                         class="btn btn-secondary me-1"
+                                         title="Saves the changes and makes you the owner of the topic"
+                                         data-bs-toggle="tooltip"
+                                         py:attrs="prop(disabled=not can_edit)"
+                                >
+                                    become owner
+                                </button>
+
+                            </div>
+                        </form>
+                    </div>
+                <div class="card mt-4">
+                    <h4 class="card-header"><i class="fas fa-users mr-2"/>Subscribers</h4>
+                    <div class="card-body d-flex flex-wrap">
+                        <div class="border rounded p-1" py:for="user in topic.subscribers">
+                            <i class="fas fa-user mr-2"></i>${user}
+                        </div>
+                    </div>
+                </div>
+                <div class="card mt-4">
+                    <h4 class="card-header"><i class="fas fa-envelopes-bulk mr-2"></i>Messages</h4>
+                    <div class="list-group">
+                        <div class="list-group-item d-flex" py:for="msg in messages">
+                            <div class="col" py:content="markdown(msg.date.strftime('%Y-%m-%d %H:%M') if msg.date else '')"/><div class="col" py:content="markdown(msg.subject)"/><div class="col" py:content="markdown(' **From:** ' + (msg.source or 'no source'))"/>
+                        </div>
+                        <a href="${conf.url('message')}" py:if="len(messages) >= 50">Only the last 50 messages are shown, to see all messages click here</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </py:block>
+</py:extends>

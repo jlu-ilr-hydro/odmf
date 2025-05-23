@@ -11,10 +11,13 @@ from datetime import datetime, timedelta
 import io
 from ..auth import Level, expose_for, users
 import codecs
-from ...tools.calibration import Calibration, CalibrationSource
+from ...db.calibration import Calibration, CalibrationSource
 from ...config import conf
+from pathlib import Path
+from ...tools import import_objects as impo
 from pytz import common_timezones
 import cherrypy
+import pandas as pd
 
 
 def get_ds(session, datasetid):
@@ -34,24 +37,104 @@ class DatasetPage:
     Serves the direct dataset manipulation and querying
     """
     exposed = True
+    undo_path = Path(conf.home + '/sessions/undo')
+
+    def index_post(self, datasetid, **kwargs):
+        """
+        Saves a dataset or creates a new one
+        :param datasetid: The datasetid (or 'new')
+        :param kwargs: The dataset properties
+        """
+        errors = []
+        with db.session_scope() as session:
+            ds = session.get(db.Dataset, web.conv(int, datasetid))
+
+            if not ds:
+                dsid=db.newid(db.Dataset, session)
+                ds = db.Timeseries(
+                    id=dsid,
+                    name='New Dataset',
+                    access=Level.admin,
+                    timezone=conf.datetime_default_timezone,
+                    calibration_offset=0,
+                    calibration_slope=1
+                )
+                session.add(ds)
+                session.flush()
+
+
+            elif not has_access(ds, Level.editor):
+                raise web.redirect(conf.url('dataset', datasetid), error='You are not allowed to write this dataset')
+
+            if not (pers :=session.get(db.Person, kwargs.get('measured_by'))):
+                errors.append('User ' + kwargs.get('measured_by') + ' not found')
+            if not (vt := session.get(db.ValueType, kwargs.get('valuetype'))):
+                errors.append('Value type ' + kwargs.get('valuetype') + ' not found')
+            if not (q := session.get(db.Quality, kwargs.get('quality'))):
+                errors.append('Quality ' + kwargs.get('quality') + ' not found')
+            if not (s := session.get(db.Site, kwargs.get('site'))):
+                errors.append('Site ' + kwargs.get('site') + ' not found')
+            if not (src := session.get(db.Datasource, kwargs.get('source'))):
+                errors.append('Datasource ' + kwargs.get('source') + ' not found')
+            if errors:
+                raise web.redirect(conf.url('dataset', datasetid), error='\n'.join(errors))
+
+            ds.site = s
+            ds.filename = kwargs.get('filename')
+            ds.name = kwargs.get('name')
+            ds.comment = kwargs.get('comment')
+            ds.measured_by = pers
+            ds.valuetype = vt
+            ds.quality = q
+            ds.source = src
+
+            if ds.get_access_level(users.current) >= Level.admin:
+                project = session.get(db.Project, kwargs.get('project'))
+                ds.project = project
+
+            ds.timezone = kwargs.get('timezone')
+
+            if 'level' in kwargs:
+                ds.level = web.conv(float, kwargs.get('level'))
+            # Timeseries only arguments
+            if ds.is_timeseries():
+                if kwargs.get('start'):
+                    ds.start = web.parsedate(kwargs['start'])
+                if kwargs.get('end'):
+                    ds.end = web.parsedate(kwargs['end'])
+                ds.calibration_offset = web.conv(
+                    float, kwargs.get('calibration_offset'), 0.0)
+                ds.calibration_slope = web.conv(
+                    float, kwargs.get('calibration_slope'), 1.0)
+                ds.access = web.conv(int, kwargs.get('access'), 1)
+            # Transformation only arguments
+            if ds.is_transformed():
+                ds.expression = kwargs.get('expression')
+                ds.latex = kwargs.get('latex')
+
+
+            return conf.url('dataset', ds.id)
 
 
     @expose_for()
-    @web.method.get
-    def index(self, datasetid=None, error='', message=None):
+    def index(self, datasetid=None, **kwargs):
         """
         Returns the query page (datasetlist.html). Site logic is handled with ajax
         """
-        if datasetid is None:
-            return web.render('datasetlist.html', error=error, message=message).render()
-        else:
-            with db.session_scope() as session:
-                active = get_ds(session, datasetid)
-                if active:  # save requested dataset as 'last'
-                    web.cherrypy.session['dataset'] = datasetid  # @UndefinedVariable
-                    return self.render_dataset(session, active, error=error, message=message)
-                else:
-                    raise web.redirect(conf.root_url + '/dataset', error=f'No ds{datasetid} available')
+        if cherrypy.request.method == 'GET':
+            if datasetid is None:
+                return web.render('dataset/datasetlist.html', title='datasets').render()
+            else:
+                with db.session_scope() as session:
+                    active = get_ds(session, datasetid)
+                    if active:  # save requested dataset as 'last'
+                        return self.render_dataset(session, active)
+                    else:
+                        raise web.redirect(conf.root_url + '/dataset', error=f'No ds{datasetid} available')
+        elif cherrypy.request.method == 'POST':
+            redirect = self.index_post(datasetid, **kwargs)
+            raise web.redirect(redirect, success='Dataset saved')
+
     @expose_for(Level.editor)
     def new(self, site_id=None, vt_id=None, user=None, error='', _=None, template=None):
         active = None
@@ -90,18 +173,18 @@ class DatasetPage:
         Expects a valid dataset id, 'new' or 'last'. With new, a new dataset
         is created, if 'last' the last chosen dataset is taken   
         """
-        web.cherrypy.session['dataset'] = id  # @UndefinedVariable
+        if error:
+            web.session.error = error
+        if message:
+            web.session.success = message
 
         def access(level: Level=Level.guest):
             return has_access(active, level)
-
         # Render the resulting page
         return web.render(
-            'dataset-edit.html',
+            'dataset/dataset-edit.html',
             # activedataset is the current dataset (id or new)
             ds_act=active, n=active.size(), access=access,
-            # Render error messages
-            error=error, success=message,
             # All available timezones
             timezones=common_timezones + ['Fixed/60'],
             # The title of the page
@@ -113,7 +196,9 @@ class DatasetPage:
             quality=session.query(db.Quality).order_by(db.Quality.id),
             datasources=session.query(db.Datasource),
             projects=session.query(db.Project),
-            same_time_ds=self.parallel_datasets(session, active)
+            same_time_ds=self.parallel_datasets(session, active),
+            alarms=session.query(db.timeseries.DatasetAlarm).filter_by(dsid=active.id),
+            topics=session.query(db.message.Topic).order_by(db.message.Topic.name),
         ).render()
 
     @staticmethod
@@ -125,80 +210,53 @@ class DatasetPage:
         else:
             return []
 
-
     @expose_for(Level.editor)
-    @web.method.post
-    def save(self, **kwargs):
+    def alarm(self, datasetid, **kwargs):
         """
-        Saves the changes for an edited dataset
+        Adds or changes DatasetAlarm objects to send messages when a condition is met.
         """
-        try:
-            # Get current dataset
-            id = web.conv(int, kwargs.get('id'), '')
-        except:
-            raise web.redirect(conf.root_url + f'/dataset/{id}', error=traceback())
-        # if save button has been pressed for submitting the dataset
-        if 'save' in kwargs:
-            # get database session
-            with db.session_scope() as session:
-                try:
-                    pers = session.get(db.Person, kwargs.get('measured_by'))
-                    vt = session.get(db.ValueType, kwargs.get('valuetype'))
-                    q = session.get(db.Quality, kwargs.get('quality'))
-                    s = session.get(db.Site, kwargs.get('site'))
-                    src = session.get(db.Datasource, kwargs.get('source'))
-
-                    # get the dataset
-                    ds = get_ds(session, id)
-                    if not ds:
-                        # If no ds with id exists, create a new one
-                        ds = db.Timeseries(id=id)
-                    # Get properties from the keyword arguments kwargs
-                    ds.site = s
-                    ds.filename = kwargs.get('filename')
-                    ds.name = kwargs.get('name')
-                    ds.comment = kwargs.get('comment')
-                    ds.measured_by = pers
-                    ds.valuetype = vt
-                    ds.quality = q
-
-                    if ds.get_access_level(users.current) >= Level.admin:
-                        project = session.get(db.Project, kwargs.get('project'))
-                        ds.project = project
-
-                    ds.timezone = kwargs.get('timezone')
-
-                    if src:
-                        ds.source = src
-                    if 'level' in kwargs:
-                        ds.level = web.conv(float, kwargs.get('level'))
-                    # Timeseries only arguments
-                    if ds.is_timeseries():
-                        if kwargs.get('start'):
-                            ds.start = web.parsedate(kwargs['start'])
-                        if kwargs.get('end'):
-                            ds.end = web.parsedate(kwargs['end'])
-                        ds.calibration_offset = web.conv(
-                            float, kwargs.get('calibration_offset'), 0.0)
-                        ds.calibration_slope = web.conv(
-                            float, kwargs.get('calibration_slope'), 1.0)
-                        ds.access = web.conv(int, kwargs.get('access'), 1)
-                    # Transformation only arguments
-                    if ds.is_transformed():
-                        ds.expression = kwargs.get('expression')
-                        ds.latex = kwargs.get('latex')
-
-                    session.add(ds)
+        from ...db.timeseries import DatasetAlarm
+        success = ''
+        with db.session_scope() as session:
+            ds = session.get(db.Dataset, datasetid)
+            if not ds:
+                error = f'Dataset {datasetid} not found'
+                raise web.redirect(conf.url('dataset'), error=error)
+            if cherrypy.request.method == 'GET':
+                alarms = session.scalars(db.sql.select(db.timeseries.DatasetAlarm).filter_by(dsid=ds.id)).all()
+                web.mime.json.set()
+                return web.as_json(alarms).encode('utf-8')
+            elif cherrypy.request.method == 'POST':
+                alarm = session.get(DatasetAlarm, web.conv(int, kwargs.get('id')))
+                if not alarm:
+                    alarm = DatasetAlarm(dataset=ds)
+                    session.add(alarm)
                     session.flush()
-                    if not has_access(ds, Level.editor):
-                        raise web.HTTPError(403, 'No sufficient rights to alter dataset')
-                except:
-                    # On error render the error message
-                    raise web.redirect(conf.root_url + f'/dataset/{id}', error=traceback())
-        elif 'new' in kwargs:
-            id = 'new'
-        # reload page
-        raise web.redirect(conf.root_url + f'/dataset/{id}')
+                    success = 'New alarm: '
+                else:
+                    success = 'Alarm changed: '
+
+                alarm.active = web.conv(bool, kwargs.get('active'))
+                alarm.aggregation_function = web.conv(str, kwargs.get('aggregation_function'))
+                try:
+                    alarm.aggregation_time = pd.to_timedelta(kwargs.get('aggregation_time')).total_seconds() / 86400
+                except (ValueError, AttributeError):
+                    raise web.redirect(conf.url('dataset', datasetid, '#alarms'), error=str(kwargs.get('aggregation_time')) + ' is no timespan value')
+                if kwargs.get('threshold_value'):
+                    if kwargs.get('threshold_type') == 'above':
+                        alarm.threshold_above = web.conv(float, kwargs.get('threshold_value'))
+                    else:
+                        alarm.threshold_below = web.conv(float, kwargs.get('threshold_value'))
+
+                topic = session.get(db.message.Topic, kwargs.get('topic'))
+                if topic:
+                    alarm.topic = topic
+                session.flush()
+                if any(v is None for v in [alarm.aggregation_function, alarm.aggregation_time, alarm.topic, alarm.active, alarm.dataset]):
+                    raise web.redirect(conf.url('dataset', datasetid, '#alarms'), error='Alarm is missing values')
+                success += str(alarm)
+        raise web.redirect(conf.url('dataset', datasetid, '#alarms'), success=success)
+
 
     @expose_for()
     @web.method.get
@@ -540,7 +598,7 @@ class DatasetPage:
     def records(self, dataset, mindate, maxdate, minvalue, maxvalue,
                 threshold=None, limit=None, offset=None):
         """
-        Returns a html-table of filtered records
+        Returns a htms-table of filtered records
         TODO: This method should be replaced by records_json. 
         Needs change in dataset-edit.html to create DOM elements using
         jquery from the delivered JSON
@@ -575,7 +633,7 @@ class DatasetPage:
                     currentcount = records.count()
             except:
                 return web.literal('<div class="alert alert-danger">' + traceback() + '</div>')
-            return web.render('record.html', records=records, currentcount=currentcount,
+            return web.render('dataset/record.html', records=records, currentcount=currentcount,
                              totalrecords=totalcount, dataset=ds, actionname="split dataset",
                              action="/dataset/setsplit",
                              action_help=f'{conf.root_url}/download/wiki/dataset/split.wiki').render()
@@ -598,7 +656,7 @@ class DatasetPage:
                 raise web.HTTPError(403, 'Not allowed')
             time = web.parsedate(time)
             ds.addrecord(id, value, time, comment, sample, out_of_timescope_ok=True)
-        raise web.redirect(str(dataset) + '/#add-record', message='record added')
+        raise web.redirect(str(dataset) + '/#add-record', success='record added')
 
 
 
@@ -783,5 +841,4 @@ class DatasetPage:
         except:
             error = traceback()
         return error
-
 

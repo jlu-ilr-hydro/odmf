@@ -56,7 +56,7 @@ class DbImportPage:
             li = importlog.LogbookImport(path.absolute, web.user())
             logs, cancommit = li('commit' in kwargs)
         except importlog.LogImportError as e:
-            raise web.redirect(path.parent().href, error=str(e))
+            raise web.redirect(path.href, error=str(e))
 
         if cherrypy.request.method=='POST' and 'commit' in kwargs and cancommit:
             di.savetoimports(path.absolute, web.user(), ["_various_as_its_manual"])

@@ -38,7 +38,6 @@ function clearmarker() {
 }
 
 function selectsite(id) {
-	localStorage.setItem('map-selected-site', id)
 	if (id) {
 		$('#infotext').load(odmf_ref('/map/sitedescription/') + id,
 			function(response, status, xhr) {
@@ -68,9 +67,11 @@ function selectsite(id) {
 
 			}
 		});
+		localStorage.setItem('map-selected-site', id)
 
 	} else {
 		selected_marker = null
+		localStorage.removeItem('map-selected-site')
 		$('#infotext').html('<h3>No site selected</h3>')
 	}
 
@@ -179,8 +180,8 @@ function initMap(site) {
 		}
 	})
 	markers = [];
-	function applyFilter() {
-		filter = new SiteFilter().populate_form()
+	function applyFilter(item) {
+		filter = new SiteFilter(item).populate_form()
 		filter.apply((data)=>{
 			setmarkers(data)
 			$('#site-count').html(data.features.length)
@@ -188,8 +189,7 @@ function initMap(site) {
 	}
 	$('.filter').on('change', applyFilter)
 	$('#zoom-home').on('click', zoomToMarkers)
-	clearFilter()
-	applyFilter()
+	applyFilter('site-filter')
 	if (!mapOptions ||!mapOptions.center) {
 		zoomToMarkers()
 	}

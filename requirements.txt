@@ -1,5 +1,6 @@
 setuptools>=39.0
 wheel>=0.30
+python-dateutil
 
 charset_normalizer
 PyYAML>=5.1
@@ -21,6 +22,7 @@ pyarrow
 pytz
 
 sqlalchemy>=2.0.0
+sqlalchemy-json
 bcrypt
 bleach>=3.1.0
 

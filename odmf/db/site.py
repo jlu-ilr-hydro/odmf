@@ -24,7 +24,7 @@ class Site(Base):
     name = sql.Column(sql.String)
     comment = sql.Column(sql.String)
     icon = sql.Column(sql.String(30))
-    geometry = orm.relationship("SiteGeometry", back_populates='site', uselist=False, cascade="save-update, merge, delete, delete-orphan")
+    geometry = orm.relationship("SiteGeometry", back_populates='site', uselist=False, cascade="all,delete-orphan")
 
     def __init__(self, id:int, lat:float=None, lon:float=None,
                  height:float = None, name:str=None, comment:str=None, icon:str=None,
@@ -125,8 +125,10 @@ class SiteGeometry(Base):
     """
     __tablename__ = 'site_geometry'
 
-    id = sql.Column(sql.Integer, sql.ForeignKey('site.id'), primary_key=True, )
-    site = orm.relationship('Site', back_populates='geometry')
+    id = sql.Column(sql.Integer, sql.ForeignKey('site.id', ondelete='CASCADE'), primary_key=True)
+    site = orm.relationship(
+        'Site', back_populates='geometry', uselist=False, single_parent=True
+    )
     geojson = sql.Column(sql.JSON)  # Contains coordinates in GeoJSON notation
     strokewidth = sql.Column(sql.Float)
     strokeopacity = sql.Column(sql.Float)
