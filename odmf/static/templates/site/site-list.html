@@ -30,7 +30,7 @@
 
                         $.each(data.sites, (index, site) => {
                             html += '<a class="list-group-item list-group-item-action w-100" href="${conf.root_url}/site/' + site.id + '">' +
-                                '<i class="fas fa-map-marked me-4"></i><span class="me-4">#' + site.id + '</span>' + site.name + '</a>'
+                                '<img src="${conf.root_url}/media/mapicons/' + site.icon + '"><span class="ms-4 me-4">#' + site.id + '</span>' + site.name + '</a>'
                         })
                         $('#site-list').html(html)
                         $('#site-list-count').html(((data.page - 1) * data.limit) + ' - ' + (data.page * data.limit) + ' of ' + data.count + ' sites');

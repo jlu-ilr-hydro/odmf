@@ -16,6 +16,7 @@ import typing
 import yaml
 from pathlib import Path
 
+
 from .. import lib as web
 from ... import db
 from ..auth import expose_for, Level, users
@@ -170,7 +171,30 @@ class SitePage:
         except Exception as e:
             raise web.AJAXError(500, str(e))
 
+    @expose_for(Level.editor)
+    @web.method.post
+    def addicon(self, iconfiles):
+        """
+        Adds a new icon to the media/mapicons folder
+        """
+        referer = cherrypy.request.headers.get('Referer', '') + '#edit'
+        success = []
+        for iconfile in (list(iconfiles) or [iconfiles]):
+            if not iconfile:
+                raise web.redirect(referer, error='No icon file given')
+            if not iconfile.filename.endswith('.png'):
+                raise web.redirect(referer, error='Icon file must be a .png file')
+            icondir = Path('media/mapicons')
+            icondir.mkdir(parents=True, exist_ok=True)
+            path = icondir / op.basename(iconfile.filename)
+            if path.exists():
+                raise web.redirect(referer, error='Icon file already exists')
+            else:
+                path.write_bytes(iconfile.file.read())
+                success.append(iconfile.filename)
+        raise web.redirect(referer, success=f'{len(success)} icon(s) added successfully: {", ".join(success)}')
 
+    
     @expose_for(Level.editor)
     @web.method.post
     def removeinstrument(self, siteid, instrumentid, installationid, date=None):
