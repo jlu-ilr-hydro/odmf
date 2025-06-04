@@ -162,8 +162,10 @@
                 <div>
                     If you are importing geospatial data in geojson form, the projection
                     of the data <strong>must</strong> be given and translatable in WGS84 (EPSG:4326). Each feature
-                    <strong>must</strong> have a <code>name</code> property. Optionally property names <code>height, icon, comment</code>
-                    are used to describe the site and <code>strokewidth, strokecolor, strokeopacity, fillcolor, fillopacity</code>
+                    <strong>must</strong> have a <code>name</code> property. You should provide an <code>icon</code> property giving a name of an icon file.
+                    If no icon is fitting, please create new ones and ask a site administrator to install them.
+                    Optionally property names <code>height, comment</code>
+                    are used to describe the site. <code>strokewidth, strokecolor, strokeopacity, fillcolor, fillopacity</code>
                     can be given for the appearance of the geometry. GeoJSON files can be created with QGIS from most geospatial data, tutorials are simple to find with
                     common search machines, like this one: <a href="https://support.tygron.com/wiki/How_to_create_a_GeoJSON_in_QGIS">How_to_create_a_GeoJSON_in_QGIS</a>
                 </div>
@@ -179,9 +181,12 @@
                         </div>
                         <div class="col-sm-1 d-flex">
                             <button type="submit" class="btn btn-success" name="table" value="site"><i class="fas fa-check"/></button>
-                            <a href="${conf.url('bulkimport')}" class="ms-1 btn btn-secondary" data-bs-toggle="tooltip" title="undo imports"><i class="fas fa-arrow-rotate-left"></i></a>
                         </div>
                     </div>
+                    <div class="alert alert-warning mt-2">
+                        <strong>If something went wrong:</strong> <a href="${conf.url('bulkimport')}" class="ms-1 btn btn-warning" data-bs-toggle="tooltip" title="undo imports"><i class="fas fa-arrow-rotate-left"></i> undo bulk import</a>
+                    </div>
+
                 </form>
             </div>
 
