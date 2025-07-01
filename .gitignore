@@ -11,3 +11,5 @@ instances
 dist
 build
 /*instance*/
+node_modules
+bower_components
