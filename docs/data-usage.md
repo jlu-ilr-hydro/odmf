@@ -1,7 +1,7 @@
 # Use of personal data
 
 The ODMF software uses personal data only for functional reasons. The system is designed to facilitate research 
-data management, to enable users to claim their copyrights and for correct scientific attribution, personal data must 
+data management. To enable users to claim their copyrights and for correct scientific attribution, personal data must 
 be collected. It is strictly forbidden to use personal data from the ODMF system to share personal data with third parties,
 assess work performance or to use for academic grading.
 
@@ -16,9 +16,9 @@ assess work performance or to use for academic grading.
 - The comment section of a user can include additional personal information.
 - The date and time of the last login is saved and used for automatic deactivation of users and eventually removal of
   user accounts.
-- The password is transmitted to ODMF but saved as encrypted with the encryption library bcrypt2. The password cannot not be 
-  retrieved from the encrypted form according to current knowledge. The ODMF system should always be used with the secure
-  https protocol.
+- The password is transmitted to ODMF but only an encrypted version is saved using the algorithm bcrypt2 implemented by 
+  the python library with the same name. The password cannot not be retrieved from the encrypted form according to current 
+  knowledge. The ODMF system should always be used with the secure https protocol.
 
 Users are allowed and encouraged to edit their personal information to adjust their needs for privacy. However, the username
 and the last login date are not writeable for the user. For correct scientific attribution, please do not try to use 
@@ -38,7 +38,7 @@ ODMF itself uses a cookie to identify a logged in user over several page views, 
 after each link. The session cookie saves additionally if the user has consented to use google maps.
 ODMF saves additional information in the users webbrowser in clear text in the local storage about filters, 
 map view properties and the latest plot. This information can be safely deleted and is not transferred to any 
-third party.
+third party. Therefore no consent to store cookies is necessary.
 
 ## What personal data does ODMF exchange with external parties
 The ODMF server does not send personal data to any external parties. However, the ODMF frontend system lets the user's browser
@@ -53,14 +53,6 @@ https://policies.google.com/privacy
 Google may use additional information, like your IP address and more data if you are logged in with your Google Account.
 ODMF can not control this data exchange, it is the same as a visit on the Google Maps web app.
 
-### Additional libraries
-
-Additional functional libraries are retrieved using CDN services. As for the mapping system, the user's browser
-downloads these libraries from a service. ODMF uses the following services:
-
- - jsdelivr: https://www.jsdelivr.com/terms/privacy-policy
-
-
 ## How to delete personal information (right to be forgotten)
 
 ### Deleting the user profile without data ownership 
@@ -69,7 +61,7 @@ admins or starting 2025 deleted automatically 1 year after the last log in. Jobs
 to an anonymous user.
 
 ### Deleting the user profile for users with data ownership
-If you are data owner in the filemanager, owner of datasets or author of logbook entries, please request what needs to happen
+If you are data owner in the filemanager, owner of datasets or author of logbook entries, please inform the site admins what needs to happen
 with your data. In most cases, the ownership of the data is transferred to the spokesperson of the project, the data belongs to.
 If the data is to be deleted, the handling site admin will ask the project admin for permission. In both cases you will lose the
 ability to be correctly attributed for your work. One year after your last login, you will receive an email, how to proceed
