@@ -37,8 +37,6 @@
     <script src="${conf.url('node_modules')}/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="${conf.url('node_modules')}/@fortawesome/fontawesome-free/js/all.min.js"></script>
     <script src="${conf.url('node_modules')}/select2/dist/js/select2.min.js"></script>
-    <script>var root_url = '${conf.root_url}';</script>
-    
 
     <script>
         //<![CDATA[
@@ -161,11 +159,13 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
                             <input type="password" name="password" id="login-password" class="form-control" />
                         </form>
                         <div id="login-error" />
-                        <div class="row p-2">
-                            <div class="container">
-                                <button id="login-btn" class="btn btn-primary col me-1">log in</button>
-                                <button id="login-logout" class="btn btn-secondary col ms-1">log out</button>
-                            </div>
+                        <div class="p-2 d-flex flex-row justify-content-between align-items-center">
+                                <button id="login-btn" class="btn btn-primary">log in</button>
+                                <button id="login-logout" class="btn btn-secondary  ms-1">log out</button>
+                                <a href="${conf.url('help', 'data-usage')}" class="btn btn-dark ms-1"
+                                    title="Data usage policy" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                                    <i class="fas fa-user-shield"></i>
+                                </a>
 
                         </div>
 

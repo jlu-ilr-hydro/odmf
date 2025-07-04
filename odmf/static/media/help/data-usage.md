@@ -1,4 +1,4 @@
-# Use of personal data
+# !fa-user-shield Use of personal data
 
 The ODMF software uses personal data only for functional reasons. The system is designed to facilitate research 
 data management. To enable users to claim their copyrights and for correct scientific attribution, personal data must 
@@ -41,8 +41,7 @@ map view properties and the latest plot. This information can be safely deleted 
 third party. Therefore no consent to store cookies is necessary.
 
 ## What personal data does ODMF exchange with external parties
-The ODMF server does not send personal data to any external parties. However, the ODMF frontend system lets the user's browser
-download data from external parties with their own data protection policies. 
+The ODMF server does not send personal data to any external parties without consent. 
 
 ### Google Maps
 ODMF uses the Google Maps API, after the user consents. The users web browser retrieves map data directly from Google Maps using their Javascript
