@@ -1,7 +1,7 @@
 # Use of personal data
 
 The ODMF software uses personal data only for functional reasons. The system is designed to facilitate research 
-data management, to enable users to claim their copyrights and for correct scientific attribution, personal data must 
+data management. To enable users to claim their copyrights and for correct scientific attribution, personal data must 
 be collected. It is strictly forbidden to use personal data from the ODMF system to share personal data with third parties,
 assess work performance or to use for academic grading.
 
@@ -16,7 +16,7 @@ assess work performance or to use for academic grading.
 - The comment section of a user can include additional personal information.
 - The date and time of the last login is saved and used for automatic deactivation of users and eventually removal of
   user accounts.
-- The password is transmitted to ODMF but saved as encrypted with the encryption library bcrypt2. The password cannot not be 
+- The password is transmitted to ODMF but saved encrypted with the encryption alghorithm bcrypt2. The password cannot not be 
   retrieved from the encrypted form according to current knowledge. The ODMF system should always be used with the secure
   https protocol.
 
@@ -45,7 +45,7 @@ The ODMF server does not send personal data to any external parties. However, th
 download data from external parties with their own data protection policies. 
 
 ### Google Maps
-ODMF uses the Google Maps API, after the user consents. The users web browser retrieves map data directly from Google Maps using their Javascript
+ODMF uses the Google Maps API, after the user consents. The user's web browser retrieves map data directly from Google Maps using Google's Javascript
 API. Google sets cookies and provides the map data according to their terms and services that can be viewed here:
 
 https://policies.google.com/privacy
