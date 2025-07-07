@@ -17,7 +17,7 @@ assess work performance or to use for academic grading.
 - The date and time of the last login is saved and used for automatic deactivation of users and eventually removal of
   user accounts.
 - The password is transmitted to ODMF but only an encrypted version is saved using the algorithm bcrypt2 implemented by 
-  the python library with the same name. The password cannot not be retrieved from the encrypted form according to current 
+  the python library with the same name. The password can not be retrieved from the encrypted form according to current 
   knowledge. The ODMF system should always be used with the secure https protocol.
 
 Users are allowed and encouraged to edit their personal information to adjust their needs for privacy. However, the username
@@ -44,7 +44,7 @@ third party. Therefore no consent to store cookies is necessary.
 The ODMF server does not send personal data to any external parties without consent. 
 
 ### Google Maps
-ODMF uses the Google Maps API, after the user consents. The users web browser retrieves map data directly from Google Maps using their Javascript
+ODMF uses the Google Maps API, after the user consents. The user's web browser retrieves map data directly from Google Maps using Google's Javascript
 API. Google sets cookies and provides the map data according to their terms and services that can be viewed here:
 
 https://policies.google.com/privacy

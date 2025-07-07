@@ -82,10 +82,10 @@ function setmarkers(data) {
 		map.data.remove(feature)
 	})
 	let selectedsite = $('#map_canvas').data('site')
-
 	$.each(data.features, (index,feature) => {
 		if (feature.geometry.type != 'Point')
 			map.data.addGeoJson(feature)
+
 
 		let item = feature.properties
 		if (!item.icon) {
@@ -135,6 +135,7 @@ function setmarkers(data) {
 		})
 		markers.push(marker)
 	});
+	map.data.setStyle({clickable: false})
 
 }
 

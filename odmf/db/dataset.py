@@ -179,6 +179,9 @@ class Dataset(Base):
     def is_transformed(self):
         return self.type == 'transformed_timeseries'
 
+    def is_filedataset(self):
+        return self.type == 'filedataset'
+
     def is_geodataset(self):
         return self.type == 'geodataset'
 
@@ -319,6 +322,12 @@ def removedataset(*args):
                 reccount = 0
             session.delete(ds)
             logger.info(f"Deleted ds{dsid:04d} and {reccount} records")
+
+
+
+class FileDataset(Dataset):
+    __mapper_args__ = dict(polymorphic_identity='filedataset')
+
 
 
 class DatasetGroup(object):
