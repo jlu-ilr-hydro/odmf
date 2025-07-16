@@ -137,7 +137,6 @@ function setmarkers(data) {
 		markers.push(marker)
 	});
 
-
 }
 
 function zoomToMarkers() {

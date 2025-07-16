@@ -79,14 +79,6 @@ def configure(db_url, port, root_url, default_timezone):
     logger.info('config.yml written')
 
 
-@cli.command()
-def systemd_unit():
-    """
-    Creates a systemd service file and a /etc/sudoers.d file to allow non-sudoers to start / restart / stop the service
-    """
-    from .tools.systemctl import make_service
-    # Writes the service files and returns a text explaining how to install the systemd service
-    print(make_service())
 
 
 @cli.command()
@@ -246,3 +238,17 @@ def version(verbose: bool):
 
 if __name__ == '__main__':
     cli(auto_envvar_prefix='ODMF')
+
+
+@cli.command()
+@click.option('--update', '-u', is_flag=True, default=False,
+              help='Install the npm packages in the static directory')
+def npm(update: bool):
+    """
+    Installs or updates the npm packages in the static directory.
+    """
+    from .tools import npm
+    if update:
+        npm.update()
+    else:
+        npm.install()
