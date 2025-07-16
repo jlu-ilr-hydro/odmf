@@ -83,7 +83,7 @@ function setmarkers(data) {
 	})
 	let selectedsite = $('#map_canvas').data('site')
 	$.each(data.features, (index,feature) => {
-		if (feature.geometry.type != 'Point')
+		if (feature.geometry.type !== 'Point')
 			map.data.addGeoJson(feature)
 
 
@@ -133,9 +133,10 @@ function setmarkers(data) {
 				map.setCenter(marker.getPosition());
 				map.setZoom(map.getZoom()+2);
 		})
+		google.maps.event.addListener(marker, 'mouseover', (event) => {map_mousemove(event.latLng)})
 		markers.push(marker)
 	});
-	map.data.setStyle({clickable: false})
+
 
 }
 
@@ -170,6 +171,8 @@ function initMap(site) {
 		map_mousemove(event.latLng);
 	});
 	google.maps.event.addListener(map, 'bounds_changed', saveOptions)
+
+	// Sets the style function for polygon sites
 	map.data.setStyle(feature => {
 		return {
 			strokeWeight: feature.getProperty('strokeWidth'),
@@ -177,7 +180,8 @@ function initMap(site) {
 			strokeOpacity: feature.getProperty('strokeOpacity'),
 			fillColor: feature.getProperty('fillColor'),
 			fillOpacity: feature.getProperty('fillOpacity'),
-			zIndex: 10
+			zIndex: 10,
+			clickable: false,  // - needed to let mouseevents to be handled by the map's listener for the mousemove / dblclick event
 		}
 	})
 	markers = [];
