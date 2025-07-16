@@ -249,8 +249,11 @@
                         </div>
                         <div class="col-sm-1 d-flex">
                             <button type="submit" class="btn btn-success me-1" data-bs-toggle="tooltip" title="Import datasetfile" name="table" value="dataset"><i class="fas fa-check"/></button>
-                            <a href="${conf.url('bulkimport')}" class="btn btn-secondary" data-bs-toggle="tooltip" title="undo imports"><i class="fas fa-arrow-rotate-left"></i></a>
                         </div>
+
+                    </div>
+                    <div class="alert alert-warning mt-2">
+                        <strong>If something went wrong:</strong> <a href="${conf.url('bulkimport')}" class="ms-1 btn btn-warning" data-bs-toggle="tooltip" title="undo imports"><i class="fas fa-arrow-rotate-left"></i> undo bulk import</a>
                     </div>
                 </form>
 

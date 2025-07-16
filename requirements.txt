@@ -48,3 +48,5 @@ lxml
 coloredlogs
 
 geopandas
+
+nodejs-bin

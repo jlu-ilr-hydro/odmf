@@ -9,6 +9,7 @@ from .. import db
 from ..tools import Path
 from .parquet_import import addrecords_dataframe
 from .sample_parser import SampleParser
+import yaml
 
 example=r"""
 driver: read_excel   # pandas function to read the table. See: https://pandas.pydata.org/docs/reference/io.html

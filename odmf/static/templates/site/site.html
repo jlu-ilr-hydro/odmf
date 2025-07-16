@@ -179,10 +179,15 @@
                                     <div class="">
                                         <button type="button" class="icon-button btn btn-outline-primary me-1 mb-1"
                                                 data-icon="${icon}"
+                                                data-toggle="tooltip"
+                                                title="${icon}"
                                                 py:for="icon in icons"
                                         >
                                             <img src="${conf.root_url}/media/mapicons/${icon}"/>
                                         </button>
+                                        <a class="btn btn-outline-secondary ms-0 mb-1" href="#icon-modal" data-bs-toggle="modal" title="add a new icon">
+                                            <i class="fas fa-plus me-2"/>add icon
+                                        </a>
                                         <input name="icon" type="hidden" id="iconfile" value="${actualsite.icon}" />
                                     </div>
                                 </div>
@@ -381,6 +386,33 @@
         </div>
 
 
+    </py:block>
+    <py:block name="extrahtml">
+        <div id="icon-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="icon-modal-label" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="icon-modal-label"><i class="fas fa-map-marked me-2"/>Add a map icon</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            Map icons should be 32x32 pixels in size and point in the lower left corner. You can use 
+                            <a href="https://github.com/jlu-ilr-hydro/odmf/blob/master/odmf/static/media/mapicons/mapicons.svg"> this file</a>
+                            as a template to create your own icons.	The usage of the free software inkscape is recommended. Export the icon as a 
+                            PNG file with a transparent background and save it under a short but clear name and upload it here.
+                        </p>
+                        <p>
+                            You can select multiple icons at once.
+                        </p>
+                        <form method="POST" action="../addicon" enctype="multipart/form-data" id="iconform">
+                            <input type="file" name="iconfiles" id="iconfile" class="form-control mb-2" accept=".png" required="required" multiple="multiple"/>
+                            <button type="submit" class="btn btn-success mt-3">Upload icon</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </py:block>
 
 </py:extends>
