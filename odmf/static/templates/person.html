@@ -181,7 +181,7 @@
             <div class="container mt-2 border rounded" id="user-dependencies" py:if="active_person.username" >
 
                 <h2>Home directory</h2>
-                <div py:if="has_home" py:content="markdown('file:users/' + active_person.username)"/>
+                <div py:if="has_home" py:content="markdown(f'file:users/{active_person.username}')"/>
                 <div py:if="not has_home and (users.current.is_admin_of(users.get(active_person.username)) or is_self(active_person.username))">
                     <form action="home" method="POST">
                         <button type="submit" class="btn btn-primary"><i class="fas fa-home me-2"></i>create home directory</button>
