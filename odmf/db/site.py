@@ -1,3 +1,4 @@
+import numpy as np
 import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from datetime import datetime
@@ -18,12 +19,12 @@ class Site(Base):
     """
     __tablename__ = 'site'
     id = sql.Column(sql.Integer, primary_key=True)
-    lat = sql.Column(sql.Float)
-    lon = sql.Column(sql.Float)
-    height = sql.Column(sql.Float)
-    name = sql.Column(sql.String)
-    comment = sql.Column(sql.String)
-    icon = sql.Column(sql.String(30))
+    lat = sql.Column(sql.Float, nullable=False)
+    lon = sql.Column(sql.Float, nullable=False)
+    height = sql.Column(sql.Float, nullable=True)
+    name = sql.Column(sql.String, nullable=False)
+    comment = sql.Column(sql.String, nullable=True)
+    icon = sql.Column(sql.String(30), nullable=True)
     geometry = orm.relationship("SiteGeometry", back_populates='site', uselist=False, cascade="all,delete-orphan")
 
     def __init__(self, id:int, lat:float=None, lon:float=None,
@@ -35,9 +36,6 @@ class Site(Base):
             self.lon = lon
         elif x and y:
             self.lat, self.lon = UTMtoLL(23, y, x, conf.utm_zone)
-        else:
-            raise ValueError('Creating a site needs the position in geographical coordinates '
-                             '(lat/lon) or as UTM coordinates (x/y)')
         self.height = height
         self.name = name
         self.comment = comment
@@ -86,12 +84,18 @@ class Site(Base):
         """Returns a tuple (x,y) as UTM/WGS84 of the site position
         If withzone is True it returns the name of the UTM zone as a third argument
         """
-        return LLtoUTM(23, self.lat, self.lon)
+        if all((self.lat, self.lon)):
+            return LLtoUTM(23, self.lat, self.lon)
+        else:
+            return 'No Zone', np.nan, np.nan
 
     def as_coordinatetext(self):
-        lat = dd_to_dms(self.lat)
-        lon = dd_to_dms(self.lon)
-        return ("%i° %i' %0.2f''N - " % lat) + ("%i° %i' %0.2f''E" % lon)
+        if all((self.lat, self.lon)):
+            lat = dd_to_dms(self.lat)
+            lon = dd_to_dms(self.lon)
+            return ("%i° %i' %0.2f''N - " % lat) + ("%i° %i' %0.2f''E" % lon)
+        else:
+            return 'Coordinates not set'
 
     @property
     def __geo_interface__(self):

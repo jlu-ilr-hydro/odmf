@@ -142,35 +142,36 @@
                     <div class="container">
                         <form py:if="is_member('editor')"
                               action="" method="post"
-                              class="container-fluid mt-3">
-                            <div class="form-group row">
-                                <label for="lon" class="col-sm-4 col-form-label">Longitude:</label>
-                                <div class="col-sm-8 input-group">
-                                    <input type="text" id="lon" name="lon" value="${actualsite.lon}"  class="form-control"/>
-                                    <div class="input-group-append"><span class="input-group-text">° E</span></div>
+                              class="container-fluid mt-3 needs-validation">
+                            <div class="form-group row mb-1">
+                                <label for="lon" class="col-sm-4 col-form-label">Longitude in °E:</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="lon" name="lon" value="${actualsite.lon}" placeholder="longitude in °E" class="form-control" required="required"/>
+                                    <div class="invalid-feedback">Name and coordinates are required</div>
                                 </div>
                             </div>
-                            <div class="form-group row">
-                                <label for="lat" class="col-sm-4 col-form-label">Latitude:</label>
-                                <div class="col-sm-8 input-group">
-                                    <input type="text" id="lat" name="lat" value="${actualsite.lat}"  class="form-control"/>
-                                    <div class="input-group-append"><span class="input-group-text">° N</span></div>
+                            <div class="form-group row mb-1">
+                                <label for="lat" class="col-sm-4 col-form-label">Latitude in °N:</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="lat" name="lat" value="${actualsite.lat}" placeholder="latitude in °N" class="form-control" required="required"/>
+                                    <div class="invalid-feedback">Name and coordinates are required</div>
                                 </div>
                             </div>
-                            <div class="form-group row">
-                                <label for="height" class="col-sm-4 col-form-label">Height:</label>
-                                <div class="col-sm-8 input-group">
-                                    <input type="text" id="height" name="height" value="${actualsite.height}"  class="form-control"/>
-                                    <div class="input-group-append"><span class="input-group-text">m a.s.l.</span></div>
+                            <div class="form-group row mb-1">
+                                <label for="height" class="col-sm-4 col-form-label">Height in m a.s.l.:</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="height" name="height" value="${actualsite.height}" placeholder="height a.s.l. in m"  class="form-control"/>
                                 </div>
+
                             </div>
-                            <div class="form-group row">
+                            <div class="form-group row mb-1">
                                 <label for="name" class="col-sm-4 col-form-label">Name:</label>
                                 <div class="col-sm-8">
-                                    <input type="text" id="name" name="name" value="${actualsite.name}"  class="form-control"/>
+                                    <input type="text" id="name" name="name" value="${actualsite.name}"  class="form-control" required="required"/>
+                                    <div class="invalid-feedback">Name and coordinates are required</div>
                                 </div>
                             </div>
-                            <div class="form-group row">
+                            <div class="form-group row mb-1">
                                 <div class="col-sm-4">
                                     <label for="iconfile" class="col-form-label">Icon:</label>
                                     <img src="${conf.root_url}/media/mapicons/${actualsite.icon if actualsite.icon else 'unknown.png'}" id="currenticon" />
@@ -192,7 +193,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group row">
+                            <div class="form-group row mb-1">
                                 <div class="col-sm-4">
                                     <label for="comment">Comment</label>
                                     <a title="Get help for using links and formats" data-bs-toggle="tooltip" data-bs-placement="top" class="ms-1 wiki-help" href="${conf.root_url}/help/odmf-markdown">
@@ -207,62 +208,64 @@
                             </div>
                             <button type="submit" id="save" class="btn btn-success" >save</button>
                         </form>
-                        <hr/>
-                        <a class="btn btn-small btn-secondary dropdown-toggle" href="#geoForm" role="button" id="geoFormButton" data-bs-toggle="collapse" aria-expanded="false">
-                            <i class="fas fa-draw-polygon me-2"/><py:if test="actualsite.geometry">edit</py:if><py:else>add</py:else> geometry
-                        </a>
-                        <form id="geoForm" py:if="is_member('editor')" action="savegeo" method="post" aria-labelledby="geoFormButton"
-                              class="collapse container-fluid mt-3" py:with="geo=actualsite.geometry">
-                            <div class="form-group row">
-                                <div class="col-sm-4">
-                                    <label for="geojson">Geometry in geojson notation</label>
-                                </div>
-                                <div class="col-sm">
+                        <div class="container border rounded mt-1" py:if="is_member('editor') and actualsite.lat and actualsite.lon and actualsite.name">
+                            <a class="btn btn-small btn-secondary dropdown-toggle" href="#geoForm" role="button" id="geoFormButton" data-bs-toggle="collapse" aria-expanded="false">
+                                <i class="fas fa-draw-polygon me-2"/><py:if test="actualsite.geometry">edit</py:if><py:else>add</py:else> geometry
+                            </a>
+                            <form id="geoForm"  action="savegeo" method="post" aria-labelledby="geoFormButton"
+                                  class="collapse container-fluid mt-3" py:with="geo=actualsite.geometry">
+                                <div class="form-group row">
+                                    <div class="col-sm-4">
+                                        <label for="geojson">Geometry in geojson notation</label>
+                                    </div>
+                                    <div class="col-sm">
                                 <textarea id="geojson" name="geojson"
                                           class="form-control"
                                           rows="2" py:content="as_json(geo.geojson) if geo else ''"/>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="form-group row">
-                                <label for="geo-strokeWidth" class="col-sm-4 col-form-label">stroke width</label>
-                                <div class="col-sm-8">
-                                    <input type="range" id="geo-strokeWidth" name="strokewidth" min="1" max="10" value="${(geo and geo.strokewidth)}"
-                                           class="form-control"/>
+                                <div class="form-group row">
+                                    <label for="geo-strokeWidth" class="col-sm-4 col-form-label">stroke width</label>
+                                    <div class="col-sm-8">
+                                        <input type="range" id="geo-strokeWidth" name="strokewidth" min="1" max="10" value="${(geo and geo.strokewidth)}"
+                                               class="form-control"/>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="form-group row">
-                                <label for="geo-strokeOpacity" class="col-sm-4 col-form-label">stroke opacity</label>
-                                <div class="col-sm-8">
-                                    <input type="range" id="geo-strokeOpacity" name="strokeopacity" min="0" max="1.0" step="0.05" value="${(geo and geo.strokeopacity)}"
-                                           class="form-control"/>
+                                <div class="form-group row">
+                                    <label for="geo-strokeOpacity" class="col-sm-4 col-form-label">stroke opacity</label>
+                                    <div class="col-sm-8">
+                                        <input type="range" id="geo-strokeOpacity" name="strokeopacity" min="0" max="1.0" step="0.05" value="${(geo and geo.strokeopacity)}"
+                                               class="form-control"/>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="form-group row">
-                                <label for="geo-strokeColor" class="col-sm-4 col-form-label">stroke color</label>
-                                <div class="col-sm-8">
-                                    <input type="color" id="geo-strokeColor" name="strokecolor" value="${(geo and geo.strokecolor) or '#FFFFFF'}"
-                                           class="form-control"/>
+                                <div class="form-group row">
+                                    <label for="geo-strokeColor" class="col-sm-4 col-form-label">stroke color</label>
+                                    <div class="col-sm-8">
+                                        <input type="color" id="geo-strokeColor" name="strokecolor" value="${(geo and geo.strokecolor) or '#FFFFFF'}"
+                                               class="form-control"/>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="form-group row">
-                                <label for="geo-fillOpacity" class="col-sm-4 col-form-label">fill opacity</label>
-                                <div class="col-sm-8">
-                                    <input type="range" id="geo-fillOpacity" name="fillopacity" min="0" max="1.0" step="0.05" value="${(geo and geo.fillopacity)}"
-                                           class="form-control"/>
+                                <div class="form-group row">
+                                    <label for="geo-fillOpacity" class="col-sm-4 col-form-label">fill opacity</label>
+                                    <div class="col-sm-8">
+                                        <input type="range" id="geo-fillOpacity" name="fillopacity" min="0" max="1.0" step="0.05" value="${(geo and geo.fillopacity)}"
+                                               class="form-control"/>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="form-group row">
-                                <label for="geo-fillColor" class="col-sm-4 col-form-label">fill color</label>
-                                <div class="col-sm-8">
-                                    <input type="color" id="geo-fillColor" name="fillcolor" value="${(geo and geo.fillcolor) or '#FFFFFF'}"
-                                           class="form-control"/>
+                                <div class="form-group row">
+                                    <label for="geo-fillColor" class="col-sm-4 col-form-label">fill color</label>
+                                    <div class="col-sm-8">
+                                        <input type="color" id="geo-fillColor" name="fillcolor" value="${(geo and geo.fillcolor) or '#FFFFFF'}"
+                                               class="form-control"/>
+                                    </div>
                                 </div>
-                            </div>
-                            <button type="submit" id="geo-save" class="btn btn-success" value="${actualsite.id}">save geometry</button>
+                                <button type="submit" id="geo-save" class="btn btn-success" value="${actualsite.id}">save geometry</button>
 
 
-                        </form>
+                            </form>
+                        </div>
+
                     </div>
                 </div>
                 <div class="tab-pane" id="logbook" role="tabpanel">
@@ -397,9 +400,9 @@
                     </div>
                     <div class="modal-body">
                         <p>
-                            Map icons should be 32x32 pixels in size and point in the lower left corner. You can use 
+                            Map icons should be 32x32 pixels in size and point in the lower left corner. You can use
                             <a href="https://github.com/jlu-ilr-hydro/odmf/blob/master/odmf/static/media/mapicons/mapicons.svg"> this file</a>
-                            as a template to create your own icons.	The usage of the free software inkscape is recommended. Export the icon as a 
+                            as a template to create your own icons.	The usage of the free software inkscape is recommended. Export the icon as a
                             PNG file with a transparent background and save it under a short but clear name and upload it here.
                         </p>
                         <p>
