@@ -218,16 +218,25 @@ class DatasetPage:
         from ...db.timeseries import DatasetAlarm
         success = ''
         with db.session_scope() as session:
+            alarmid = web.conv(int, kwargs.get('id'))
+            alarm = session.get(DatasetAlarm, alarmid)
             ds = session.get(db.Dataset, datasetid)
             if not ds:
                 error = f'Dataset {datasetid} not found'
                 raise web.redirect(conf.url('dataset'), error=error)
+
             if cherrypy.request.method == 'GET':
                 alarms = session.scalars(db.sql.select(db.timeseries.DatasetAlarm).filter_by(dsid=ds.id)).all()
                 web.mime.json.set()
                 return web.as_json(alarms).encode('utf-8')
+
+            elif cherrypy.request.method == 'DELETE' or (cherrypy.request.method == 'POST' and kwargs.get('delete')):
+                if not alarm:
+                    raise web.redirect(conf.url('dataset', datasetid, '#alarms'), error=f'Cannot delete alarm: {alarmid} not found')
+                else:
+                    session.delete(alarm)
+                    success = f'Dataset {alarmid} deleted'
             elif cherrypy.request.method == 'POST':
-                alarm = session.get(DatasetAlarm, web.conv(int, kwargs.get('id')))
                 if not alarm:
                     alarm = DatasetAlarm(dataset=ds)
                     session.add(alarm)

@@ -925,9 +925,7 @@
                             <div class="list-group-item list-group-item-active ${class_if(not alarm.active,'text-muted')} d-flex alarm-edit-btn" py:for="alarm in alarms" data-alarm-id="${alarm.id}">
                                 <div class="fas ${class_if(alarm.active, 'fa-bell', 'fa-bell-slash')} me-2 mt-1"/>
                                 ${markdown(str(alarm))}
-                                <button class="btn btn-sm btn-secondary ms-auto"
-
-                                >
+                                <button class="btn btn-sm btn-secondary ms-auto" aria-label="edit alarm">
                                     <i class="fas fa-edit"/>
                                 </button>
                             </div>
@@ -995,9 +993,16 @@
                                                     py:content="topic.name"/>
                                         </select>
                                     </div>
-                                    <div class="form-group">
-                                        <button class="btn btn-primary" type="submit"><i class="fas fa-check"/> save</button>
+                                    <div class="form-group mt-1">
+                                        <button class="btn btn-success me-1" type="submit" title="save alarm" data-toggle="tooltip">
+                                            <i class="fas fa-check"/>
+                                        </button>
+                                        <button class="btn btn-danger" title="delete alarm" data-toggle="tooltip" name="delete" value="delete" type="submit">
+                                            <i class="fas fa-trash"/>
+                                        </button>
+
                                     </div>
+
                                 </form>
 
                             </div>
