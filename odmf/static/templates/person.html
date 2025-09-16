@@ -59,7 +59,7 @@
                 </p>
 
             </div>
-            <form   class="card card-body"
+            <form   class="card card-body needs-validation"
                     action="" method="post"
                     py:with="U=active_person; can_edit=is_member(Level.supervisor) or is_self(active_person.username)">
                 <div class="form-group row">
@@ -68,7 +68,7 @@
                         <input type="text" id="username" name="newname"
                                py:attrs="prop(readonly=act_user!='new')"
                                class="form-control"
-                               value="${U.username}"
+                               value="${U.username}" required="required"
                         />
                     </div>
                     <label for="email" class="col-lg-2 col-form-label">email</label>
@@ -76,7 +76,7 @@
                         <input type="text" id="email" name="email"
                                py:attrs="prop(disabled=not (can_edit))"
                                class="form-control"
-                               value="${U.email}"
+                               value="${U.email}" required="required"
                         />
                     </div>
                 </div>
@@ -86,7 +86,7 @@
                         <input type="text" id="firstname" name="firstname"
                                py:attrs="prop(disabled=not (can_edit))"
                                class="form-control"
-                               value="${U.firstname}"
+                               value="${U.firstname}" required="required"
                         />
                     </div>
                     <label for="surname" class="col-lg-2 col-form-label">surname</label>
@@ -94,7 +94,7 @@
                         <input type="text" id="surname" name="surname"
                                py:attrs="prop(disabled=not (can_edit))"
                                class="form-control"
-                               value="${U.surname}"
+                               value="${U.surname}" required="required"
                         />
                     </div>
                 </div>
@@ -105,7 +105,7 @@
                                py:attrs="prop(disabled=not can_edit)"
                                class="form-control"
                                value="${U.orcid}"
-                               />
+                        />
                     </div>
                     <div class="col-lg-2"></div>
                     <div class="col-lg-4" py:if="U.orcid">
@@ -176,8 +176,8 @@
 
                     <div class="alert alert-warning mt-2">The messenger is a new feature - bugs are quite likely</div>
                     <select py:attrs="prop(disabled=not (can_edit))"
-                            name="topics[]" id="edit-subscribers" 
-                            class="col-sm-8 form-control select2" 
+                            name="topics[]" id="edit-subscribers"
+                            class="col-sm-8 form-control select2"
                             multiple="multiple">
                         <option py:for="topic in topics" value="${topic.id}" py:attrs="markoption(topic in U.topics)" title="${topic}">${topic}</option>
                     </select>
@@ -192,39 +192,41 @@
 
                 </div>
             </form>
+            <div class="container mt-2 border rounded" id="user-dependencies" py:if="active_person.username" >
 
-            <h2>Home directory</h2>
-            <div py:if="has_home" py:content="markdown('file:users/' + active_person.username)"/>
-            <div py:if="not has_home and (users.current.is_admin_of(users.get(active_person.username)) or is_self(active_person.username))">
-                <form action="home" method="POST">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-home me-2"></i>create home directory</button>
-                </form>
-            </div>
+                <h2>Home directory</h2>
+                <div py:if="has_home" py:content="markdown('file:users/' + active_person.username)"/>
+                <div py:if="not has_home and (users.current.is_admin_of(users.get(active_person.username)) or is_self(active_person.username))">
+                    <form action="home" method="POST">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-home me-2"></i>create home directory</button>
+                    </form>
+                </div>
 
-            <h2 class="mt-4">Projects:</h2>
-            <div class="list-group">
-                <a py:for="project, level in active_person.projects()" href="${f'{conf.root_url}/project/{project.id}'}" class="list-group-item list-group-item-action">
-                    <span py:content="project.name"/>
-                    <span class="badge bg-warning float-right" py:content="level.name"/>
-                </a>
-            </div>
+                <h2 class="mt-4">Projects:</h2>
+                <div class="list-group">
+                    <a py:for="project, level in active_person.projects()" href="${f'{conf.root_url}/project/{project.id}'}" class="list-group-item list-group-item-action">
+                        <span py:content="project.name"/>
+                        <span class="badge bg-warning float-right" py:content="level.name"/>
+                    </a>
+                </div>
 
-            <div id="add-member" class="card" py:if="potential_projects">
-                <h4 class="card-header"><i class="fas fa-plus me-2"/>add project... </h4>
-                <form method="post" action="addproject" class="input-group card-body">
-                    <select id="add_project" class="form-control col-sm-8 " name="project">
-                        <option py:for="p in potential_projects" value="${p.id}">${p}</option>
-                    </select>
-                    <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="level-btn">as guest</button>
-                    <ul class="dropdown-menu dropdown-menu-end p-1">
-                        <li py:for="l in Level">
-                            <input type="radio" name="level" value="${l.value}" id="level-${l.name}" class="form-check-input level-radio" data-label="${l.name}" />
-                            <label for="level-${l.name}" class="form-check-label">${l.name}</label>
-                        </li>
-                    </ul>
-                    <button class="btn btn-success btn-sm col-sm-1" type="submit" title="add project"><i class="fas fa-check"/></button>
-                </form>
+                <div id="add-member" class="card" py:if="potential_projects">
+                    <h4 class="card-header"><i class="fas fa-plus me-2"/>add project... </h4>
+                    <form method="post" action="addproject" class="input-group card-body">
+                        <select id="add_project" class="form-control col-sm-8 " name="project">
+                            <option py:for="p in potential_projects" value="${p.id}">${p}</option>
+                        </select>
+                        <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="level-btn">as guest</button>
+                        <ul class="dropdown-menu dropdown-menu-end p-1">
+                            <li py:for="l in Level">
+                                <input type="radio" name="level" value="${l.value}" id="level-${l.name}" class="form-check-input level-radio" data-label="${l.name}" />
+                                <label for="level-${l.name}" class="form-check-label">${l.name}</label>
+                            </li>
+                        </ul>
+                        <button class="btn btn-success btn-sm col-sm-1" type="submit" title="add project"><i class="fas fa-check"/></button>
+                    </form>
 
+                </div>
             </div>
 
 
