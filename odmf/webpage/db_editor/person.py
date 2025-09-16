@@ -67,6 +67,8 @@ class PersonPage:
             with db.session_scope() as session:
                 p_act = session.get(db.Person, username)
                 if not p_act and is_new_user:
+                    if not username:
+                        error += 'No username provided.'
                     p_act = db.Person(username=username, active=False, access_level=0)
                     session.add(p_act)
                     session.flush()
