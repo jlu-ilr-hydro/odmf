@@ -37,7 +37,6 @@ class SitePage:
         """
         Shows the page for a single site.
         """
-        error=''
         if cherrypy.request.method == 'GET':
             if not siteid:
                 return web.render('site/site-list.html', title='sites').render()
@@ -48,9 +47,9 @@ class SitePage:
 
                 if siteid == 'new':
                     actualsite = db.Site(id=db.newid(db.Site, session),
-                                         lon=web.conv(float, kwargs.get('lon')) or 8.55,
-                                         lat=web.conv(float, kwargs.get('lat')) or 50.5,
-                                         name=kwargs.get('name') or '<enter site name>')
+                                         lon=web.conv(float, kwargs.get('lon')),
+                                         lat=web.conv(float, kwargs.get('lat')),
+                                         name=kwargs.get('name'))
 
                 else:
                     actualsite = session.get(db.Site, int(siteid))
@@ -63,7 +62,7 @@ class SitePage:
 
                 return web.render(
                     'site/site.html', actualsite=actualsite,
-                    error=error, title='site',
+                    title='site',
                     datasets=datasets, icons=self.geticons(),
                     instruments=instruments, active=kwargs.get('active'),
                 ).render()
@@ -83,15 +82,15 @@ class SitePage:
         with db.session_scope() as session:
             lon = web.conv(float, lon)
             lat = web.conv(float, lat)
-            if lon > 180 or lat > 180:
-                lat, lon = proj.UTMtoLL(23, lat, lon, conf.utm_zone)
-            if None in (lon, lat):
-                raise web.redirect(f'../{siteid}', error='The site has no coordinates')
+            if not all((lon, lat, name)):
+                raise web.redirect(conf.url(f'site/{siteid}'), error='Name and coordinates are required')
             site = session.get(db.Site, web.conv(int, siteid))
             if not site:
                 site = db.Site(id=db.newid(db.Site, session), lat=lat, lon=lon, name=name)
                 session.add(site)
                 session.flush()
+            if lon > 180 or lat > 180:
+                lat, lon = proj.UTMtoLL(23, lat, lon, conf.utm_zone)
             site.lat, site.lon = lat, lon
             site.name = name
             site.height = web.conv(float, height) or site.height
