@@ -125,7 +125,7 @@ site id's, that map can be left out.
 The level is derived from group 3 in our example and can be transformed with a factor. In the example the level 60 for
 60cm depth, we use the factor -0.01 to translate it as depth (negative number) and in m. '60' -> -0.6.
 
-If additional markers are needed, please post an issue in github (https://github.com/jlu-ilr-hydro/odmf/issues)
+If additional markers are needed, please [post an issue in github](https://github.com/jlu-ilr-hydro/odmf/issues)
 
 ### type: row-factor
 
