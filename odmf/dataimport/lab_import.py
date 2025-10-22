@@ -240,7 +240,7 @@ def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typin
     elif samplecolumn:= get_type_column('samplename', labcolumns):
         df.rename(columns={samplecolumn: 'sample'}, inplace=True)
     else:
-        df['sample'] = None
+        df = df.drop('sample', axis=1)
 
     df_melt = melt_table(df, labcolumns)
     datasets, errors = find_datasets(df_melt)

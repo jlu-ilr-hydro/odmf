@@ -352,8 +352,8 @@ class DatasetAPI(BaseAPI):
                 f'ds:{id}': end.isoformat()
                 for id, end in session.execute(stmt)
             }
-            result['min'] = min(result.values())
-            result['max'] = max(result.values())
+            result['min'] = min(end for end in result.values() if end)
+            result['max'] = max(end for end in result.values() if end)
             return web.json_out(result)
 
 
