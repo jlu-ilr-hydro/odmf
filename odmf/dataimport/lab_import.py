@@ -203,6 +203,8 @@ def rename_column_by_type(table: pd.DataFrame, labcolumns, *coltypes):
         if column := get_type_column(coltype, labcolumns):
             table.rename(columns={column: coltype}, inplace=True)
 
+  
+
 def clean_df_melt(df_melt: pd.DataFrame):
     """Removes unused columns and aggregates dataframe"""
     keep_cols = ['dataset', 'time', 'value', 'sample']
@@ -229,6 +231,7 @@ def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typin
     try:
         read = getattr(pd, labconf.get('driver', 'read_excel'))
         df: pd.DataFrame = read(filename.absolute, **labconf.get('driver-options', {}))
+        df = df[labconf['columns']]
         labcolumns = check_columns(df, labconf.get('columns', {}))
         rename_column_by_type(df, labcolumns, 'time', 'dataset', 'site', 'level')
 
@@ -239,8 +242,6 @@ def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typin
         apply_sample_column(df, labcolumns, samplecolumn)
     elif samplecolumn:= get_type_column('samplename', labcolumns):
         df.rename(columns={samplecolumn: 'sample'}, inplace=True)
-    else:
-        df = df.drop('sample', axis=1)
 
     df_melt = melt_table(df, labcolumns)
     datasets, errors = find_datasets(df_melt)
