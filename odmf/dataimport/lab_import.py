@@ -119,7 +119,7 @@ def find_datasets(df_melt: pd.DataFrame):
                 ds = find_dataset(session, **dict(row))  # This line is slow!
                 result[index] = ds.id
             except ValueError as e:
-                errors.append(dict(row) | {'error': str(e)})
+                errors.append({'row': index} | dict(row) | {'error': str(e)})
     return result, errors
 
 def check_columns(table: pd.DataFrame, labcolumns: dict):
@@ -231,7 +231,7 @@ def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typin
     try:
         read = getattr(pd, labconf.get('driver', 'read_excel'))
         df: pd.DataFrame = read(filename.absolute, **labconf.get('driver-options', {}))
-        df = df[labconf['columns']]
+        df = df[labconf['columns'].keys()]
         labcolumns = check_columns(df, labconf.get('columns', {}))
         rename_column_by_type(df, labcolumns, 'time', 'dataset', 'site', 'level')
 
