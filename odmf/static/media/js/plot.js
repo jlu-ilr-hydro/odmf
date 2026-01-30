@@ -5,7 +5,7 @@
  */
 
 
-function seterror(jqhxr ,textStatus, errorThrown) {
+function seterror(jqhxr, textStatus, errorThrown) {
 	set_error(jqhxr.responseText)
 }
 
@@ -14,16 +14,16 @@ function gettime(startOrEnd) {
 	if (timespan < 0) {
 		return timespan * 1;
 	}
-	let res = $('#prop-'+ startOrEnd + 'date').val();
+	let res = $('#prop-' + startOrEnd + 'date').val();
 	if (res) {
-		res += ' ' + ($('#prop-'+ startOrEnd + 'time').val() || '00:00:00');
+		res += ' ' + ($('#prop-' + startOrEnd + 'time').val() || '00:00:00');
 	} else {
 		return -90
 	}
 	return res;
 }
 
-function download_on_post(url,  data) {
+function download_on_post(url, data) {
 	let form = $('<form>').attr("action", url).attr("method", "POST").attr("target", "_blank")
 	$.each(data, (key, value) => {
 		let input = $('<input>').attr("type", "hidden").attr("name", key).val(value)
@@ -51,15 +51,18 @@ function set_content_tree_handlers() {
 					valuetype: l.valuetype,
 					site: l.site,
 					instrument: l.instrument,
-					level:l.level,
+					level: l.level,
 					start: window.plot.start,
 					end: window.plot.end,
 				},
 				data => {
 					let home = odmf_ref('/dataset')
 					let html = ''
-					if (data)
+					if (data && data.length > 0) {
 						html += data.map(item => `<li><a href="${home}/${item.id}">${item.label}</a></li>`).reduce((acc, v) => acc + '\n' + v);
+					} else {
+						html = '<li>No datasets found</li>'
+					}
 					$(`#datasetlist_${sp}_${line}`).html(html)
 				}
 			);
@@ -69,12 +72,12 @@ function set_content_tree_handlers() {
 
 	})
 
-	$('.moveline').on('click', event =>{
+	$('.moveline').on('click', event => {
 		let btn = $(event.currentTarget)
 		let sp = plot.subplots[btn.data('subplot')]
 		let lineno = +btn.data('lineno')
-		let target_lineno =  +lineno + (+btn.data('move'))
-		if (target_lineno>=0 && target_lineno<=sp.lines.length) {
+		let target_lineno = +lineno + (+btn.data('move'))
+		if (target_lineno >= 0 && target_lineno <= sp.lines.length) {
 			let line = sp.lines[lineno]
 			sp.lines.splice(lineno, 1)
 			sp.lines.splice(target_lineno, 0, line)
@@ -82,19 +85,19 @@ function set_content_tree_handlers() {
 		}
 
 	})
-	$('.sp-logsite-list').on('change', event =>{
+	$('.sp-logsite-list').on('change', event => {
 		let div = $(event.currentTarget)
-		let subplot=div.data('subplot');
+		let subplot = div.data('subplot');
 		let site = div.val() * 1;
 		window.plot.subplots[subplot].logsite = site || null;
 		window.plot.apply()
 	});
-	$('.sp-tools').on('show.bs.dropdown', event =>{
-		let subplot=$(event.currentTarget).data('subplot');
+	$('.sp-tools').on('show.bs.dropdown', event => {
+		let subplot = $(event.currentTarget).data('subplot');
 		let act_site = window.plot.subplots[subplot].logsite
 		let html = `<option class="sp-logsite-item" data-subplot="${subplot}" value="">no logs</option>\n`
 		let sites = window.plot.get_sites(subplot).map(value => `<option class="sp-logsite-item" data-subplot="${subplot}" value="${value}">#${value}</option>`)
-		if (sites.length) html += sites.reduce((acc, v)=>acc + '\n' + v)
+		if (sites.length) html += sites.reduce((acc, v) => acc + '\n' + v)
 
 		let sp_select = $(`.sp-logsite-list[data-subplot=${subplot}]`)
 		sp_select.html(html)
@@ -102,14 +105,35 @@ function set_content_tree_handlers() {
 
 	});
 
-	$('.sp-remove-button').on('click', event=>{
+	$('.sp-remove-button').on('click', event => {
 		window.plot.removesubplot(
 			$(event.currentTarget).data('subplot')
 		);
 	})
-	$('.sp-changeylimit-button').on('click', event=>{
+	$('.sp-changeylimit-button').on('click', event => {
 		window.plot.changeylimit($(event.currentTarget).data('subplot'))
 	})
+	$('.editline').on('click', (event) => {
+		let dlg = $('#line-editor')
+		dlg.show();
+		let button = $(event.currentTarget);
+		let sp = button.data('subplot')
+		let ln = button.data('lineno')
+		dlg.data('subplot', sp);
+		dlg.data('lineno', ln);
+		dlg.data('replace', button.data('replace'));
+		let plot = window.plot;
+		let line = { linestyle: '-' }
+		if (!(sp >= 0)) {
+			$('#error').html('#' + button.id + ' has no subplot').parent().parent().fadeIn()
+		}
+		else if (ln >= 0) {
+			line = plot.subplots[sp].lines[ln]
+		}
+		lineDialogPopSelect(line.valuetype, line.site, () => { line_to_dialog(line) })
+
+	});
+
 
 }
 
@@ -117,27 +141,27 @@ class Plot {
 	constructor() {
 		let saved_plot = JSON.parse(localStorage.getItem('plot'))
 		if (saved_plot && !$.isEmptyObject(saved_plot)) {
-			this.name =   saved_plot.name || ''
-			this.path =   saved_plot.path || ''
-			this.start =  saved_plot.start || gettime('start')
-			this.end =  saved_plot.end || gettime('end')
+			this.name = saved_plot.name || ''
+			this.path = saved_plot.path || ''
+			this.start = saved_plot.start || gettime('start')
+			this.end = saved_plot.end || gettime('end')
 			this.legend = saved_plot.legend
-			this.columns =  saved_plot.columns || 1
-			this.aggregate =  saved_plot.aggregate ||''
-			this.height =  saved_plot.height || 640
-			this.width =  saved_plot.width || 480
-			this.subplots =  saved_plot.subplots || []
+			this.columns = saved_plot.columns || 1
+			this.aggregate = saved_plot.aggregate || ''
+			this.height = saved_plot.height || 640
+			this.width = saved_plot.width || 480
+			this.subplots = saved_plot.subplots || []
 
 		} else {
-			this.name =  'Unnamed plot'
-			this.path =  ''
+			this.name = 'Unnamed plot'
+			this.path = ''
 			this.start = gettime('start')
-			this.end =  gettime('end')
+			this.end = gettime('end')
 			this.legend = true
-			this.columns =  1
+			this.columns = 1
 			this.aggregate = ''
-			this.height =  640
-			this.width =  480
+			this.height = 640
+			this.width = 480
 			this.subplots = []
 
 		}
@@ -151,7 +175,7 @@ class Plot {
 		this.render()
 		return this
 	}
-	render(do_apply=true) {
+	render(do_apply = true) {
 		$('#plot').html('Loading image...');
 		let startTime = Date.now()
 		$.ajax({
@@ -183,7 +207,7 @@ class Plot {
 	}
 
 	addsubplot() {
-		this.subplots.push({lines: [], ylim: null, logsite: null});
+		this.subplots.push({ lines: [], ylim: null, logsite: null });
 		return this.apply()
 	}
 
@@ -216,7 +240,7 @@ class Plot {
 			$('#timeselect').val('')
 			$('#startdate').val(plot.start.split(/[T,\s]/)[0])
 		}
-		if (plot.end && !(plot.end <0)) {
+		if (plot.end && !(plot.end < 0)) {
 			$('#enddate').val(plot.end.split(/[T,\s]/)[0])
 		}
 		$('#prop-columns').val(plot.columns).attr('max', Math.max(1, plot.subplots.length))
@@ -243,7 +267,6 @@ class Plot {
 				nl.before(line_html);
 			})
 			$('#ct-new-subplot').before(obj);
-
 		})
 		localStorage.setItem('plot', txt_plot);
 		$('#property-summary').html($('#prop-timeselect :selected').text() + ' / ' + $('#prop-aggregate :selected').text())
@@ -252,7 +275,7 @@ class Plot {
 		if (autoreload) {
 			return this.render(false);
 		} else {
-			$('#plot-reload-button').css('top',this.height / 2).css('left', this.width / 3).removeClass('d-none')
+			$('#plot-reload-button').css('top', this.height / 2).css('left', this.width / 3).removeClass('d-none')
 			$('#plot').addClass('semitransparent')
 			return this
 		}
@@ -285,7 +308,7 @@ class Plot {
 
 	// *********************************************
 	// Line management
-	removeline(subplot,line) {
+	removeline(subplot, line) {
 		let sp = this.subplots[subplot];
 		if (sp && line >= 0)
 			sp.lines.splice(line, 1);
@@ -294,19 +317,19 @@ class Plot {
 
 	toString() {
 		if (this.start < 0) {
-			let txt = 'last ' + (this.start*-1) + ' days'
+			let txt = 'last ' + (this.start * -1) + ' days'
 			if (this.aggregate) txt += ' agg: ' + this.aggregate
 			return txt
 		}
-		return this.start.toString().slice(0,10) + ' - ' + this.end.toString().slice(0,10) + ', agg: ' + this.aggregate
+		return this.start.toString().slice(0, 10) + ' - ' + this.end.toString().slice(0, 10) + ', agg: ' + this.aggregate
 	}
 }
 
 function line_from_dialog() {
-	let get_name_from_line_dialog = function() {
+	let get_name_from_line_dialog = function () {
 		let name = $('#nl-name').val();
 		if (!name) {
-			name = 	$('#nl-value option:selected').text() + ' at #' + $('#nl-site').val()
+			name = $('#nl-value option:selected').text() + ' at #' + $('#nl-site').val()
 			let level = $('#nl-level').val();
 			if (level) {
 				name += '(' + level + ' m)'
@@ -328,17 +351,17 @@ function line_from_dialog() {
 		valuetype: parseInt($('#nl-value').val()),
 		site: parseInt($('#nl-site').val()),
 		instrument: parseInt($('#nl-instrument').val()),
-		level:parseFloat($('#nl-level').val()),
-		color:$('#nl-color').val(),
-		linestyle:$('#nl-linestyle').val(),
-		marker:$('#nl-marker').val(),
-		linewidth:parseInt($('#nl-linewidth').val()),
-		aggregatefunction:$('#nl-aggregation').val()
+		level: parseFloat($('#nl-level').val()),
+		color: $('#nl-color').val(),
+		linestyle: $('#nl-linestyle').val(),
+		marker: $('#nl-marker').val(),
+		linewidth: parseInt($('#nl-linewidth').val()),
+		aggregatefunction: $('#nl-aggregation').val()
 	}
 }
 
 function line_to_dialog(line) {
-	let dlg =$('#newline-dialog')
+	let dlg = $('#line-editor')
 	let sp = dlg.data('subplot')
 	let ln = dlg.data('lineno')
 	let repl = dlg.data('replace')
@@ -356,31 +379,31 @@ function line_to_dialog(line) {
 }
 
 function make_option_html(data, get_value, get_name) {
-	let html='<option class="firstoption" value="">Please select...</option>\n';
-	$.each(data,function(index,item){
-		html+=`<option value="${get_value(item)}">${get_name(item)}</option>\n`;
+	let html = '<option class="firstoption" value="">Please select...</option>\n';
+	$.each(data, function (index, item) {
+		html += `<option value="${get_value(item)}">${get_name(item)}</option>\n`;
 	});
 	return html
 }
 
 function lineDialogPopSelect(valuetype, site, set_values) {
-	$('#newline-dialog .form-control').prop('disabled', true)
+	$('#line-editor .form-control').prop('disabled', true)
 	$.getJSON(
 		odmf_ref('/dataset/attributes'),
 		{
 			valuetype: valuetype,
 			site: site,
-			onlyaccess:true,
+			onlyaccess: true,
 		},
 		(data) => {
 			$('#nl-value').html(
-				make_option_html(data.valuetype,x => x ? x.id: null, x => x ? x.name: '')
+				make_option_html(data.valuetype, x => x ? x.id : null, x => x ? x.name : '')
 			);
 			$('#nl-instrument').html(
-				make_option_html(data.source, x => x ? x.id: null, x => x ? x.name: '')
+				make_option_html(data.source, x => x ? x.id : null, x => x ? x.name : '')
 			)
 			$('#nl-site').html(
-				make_option_html(data.site, x => x ? x.id: null, x => `#${x.id} (${x.name})`)
+				make_option_html(data.site, x => x ? x.id : null, x => `#${x.id} (${x.name})`)
 			)
 
 			let nl_level = $('#nl-level')
@@ -389,15 +412,15 @@ function lineDialogPopSelect(valuetype, site, set_values) {
 				nl_level.html(
 					make_option_html(data.level, x => x ? x.toString() : null, x => x ? x.toString() : 'N/A')
 				)
-				nl_level.parents('.row').show(200)
+				nl_level.parent('.row').show(200)
 			} else {
-				nl_level.parents('.row').hide(200)
+				nl_level.parent('.row').hide(200)
 			}
 
 			if (set_values) {
 				set_values()
 			}
-			$('#newline-dialog .form-control').prop('disabled', false)
+			$('#line-editor .form-control').prop('disabled', false)
 
 		}
 	);
@@ -407,32 +430,11 @@ function lineDialogPopSelect(valuetype, site, set_values) {
 
 
 function set_line_dialog_handlers() {
-	$('#newline-dialog').on('show.bs.modal', (event) => {
-		let button = $(event.relatedTarget);
-		let dlg =$('#newline-dialog')
-		let sp = button.data('subplot')
-		let ln = button.data('lineno')
-		dlg.data('subplot', sp);
-		dlg.data('lineno', ln);
-		dlg.data('replace', button.data('replace'));
-		let plot = window.plot;
-		let line = {linestyle: '-'}
-		if (!(sp >= 0)) {
-			$('#error').html('#' + button.id + ' has no subplot').parent().parent().fadeIn()
-		}
-		else if (ln >= 0) {
-			line = plot.subplots[sp].lines[ln]
-		}
-		lineDialogPopSelect(line.valuetype, line.site, ()=>{line_to_dialog(line)})
-
-	});
-
-	$('#newline-dialog .dataset-select').on('change', () => {
-		let dlg =$('#newline-dialog')
+	$('#line-editor .dataset-select').on('change', () => {
 		let line = line_from_dialog()
-		let	valuetype = parseInt($('#nl-value').val())
+		let valuetype = parseInt($('#nl-value').val())
 		let site = parseInt($('#nl-site').val())
-		lineDialogPopSelect(valuetype, site, () => {line_to_dialog(line)})
+		lineDialogPopSelect(valuetype, site, () => { line_to_dialog(line) })
 
 		if (site && valuetype && (line.linestyle || line.marker)) {
 			$('#nl-OK').prop('disabled', false);
@@ -442,8 +444,8 @@ function set_line_dialog_handlers() {
 
 	});
 
-	$('#newline-dialog .nl-style').on('change', () => {
-		let	valuetype = parseInt($('#nl-value').val())
+	$('#line-editor .nl-style').on('change', () => {
+		let valuetype = parseInt($('#nl-value').val())
 		let site = parseInt($('#nl-site').val())
 		let linestyle = $('#nl-linestyle').val()
 		let marker = $('#nl-marker').val()
@@ -454,15 +456,18 @@ function set_line_dialog_handlers() {
 		}
 
 	})
-
+	$('.nl-cancel').on('click', () => {
+		let dlg = $('#line-editor')
+		dlg.hide();
+	});
 	$('#nl-OK').on('click', () => {
-		let dlg =$('#newline-dialog')
+		let dlg = $('#line-editor')
 		let plot = window.plot
 		let line = line_from_dialog()
 		let sp_no = dlg.data('subplot')
 		let line_no = dlg.data('lineno')
 		let replace = dlg.data('replace')
-		if (!(sp_no >=0)) console.warn('Somehow the dialog was opened but received no subplot')
+		if (!(sp_no >= 0)) console.warn('Somehow the dialog was opened but received no subplot')
 
 		let sp = plot.subplots[sp_no]
 
@@ -471,6 +476,7 @@ function set_line_dialog_handlers() {
 		} else {
 			sp.lines.push(line)
 		}
+		dlg.hide();
 		plot.apply()
 	});
 
@@ -511,7 +517,7 @@ $(() => {
 	// $(".date").datetimepicker({format: 'YYYY-MM-DD HH:mm'})
 	$('#addsubplot').prop('disabled', false);
 
-	$('#btn-clf').on('click', function() {
+	$('#btn-clf').on('click', function () {
 		if (confirm('Are you sure to delete the plot?')) {
 			let plot = window.plot
 			plot.subplots = [];
@@ -550,40 +556,40 @@ $(() => {
 			plot: JSON.stringify(window.plot, null, 4),
 			path: window.plot.path + '/' + window.plot.name + '.plot'
 		})
-			.done(() => {window.plot.apply()})
+			.done(() => { window.plot.apply() })
 			.fail(seterror)
 	})
 
 
 	$('.figure-export').on('click', event => {
-		let fmt=$(event.currentTarget).data('format');
+		let fmt = $(event.currentTarget).data('format');
 		if (fmt) {
-			download_on_post('image', {format: fmt, plot: JSON.stringify(window.plot, null, 4)})
+			download_on_post('image', { format: fmt, plot: JSON.stringify(window.plot, null, 4) })
 		}
 	})
 
 
 	$('#file-dialog').on('show.bs.modal', event => {
-		let path= encodeURIComponent(window.plot.path)
+		let path = encodeURIComponent(window.plot.path)
 		$('#file-dialog-content').load('filedialog/?path=' + path)
 	})
 	$('#export-dialog').on('show.bs.modal', makeExportDialog)
-	$('#autoreload_switch').on('change', event=> {
+	$('#autoreload_switch').on('change', event => {
 		if ($(event.currentTarget).prop('checked')) {
 			window.plot.render()
 		}
 	})
-	$('.killplotfn').on('click', function() {
+	$('.killplotfn').on('click', function () {
 		var fn = $(this).html();
 		if (confirm('Do you really want to delete your plot "' + fn + '" from the server'))
-			$.post('deleteplotfile',{filename:fn},seterror);
+			$.post('deleteplotfile', { filename: fn }, seterror);
 	});
 
 	$('#manualTimeControl').toggleClass('d-none', plot.start < 0)
 
 	$('.prop-time').on('change', event => {
 		let start = $('#prop-timeselect').val()
-		$('#manualTimeControl').toggleClass('d-none', !(start==='manual'))
+		$('#manualTimeControl').toggleClass('d-none', !(start === 'manual'))
 
 		plot.start = gettime('start')
 		plot.end = gettime('end')
@@ -616,5 +622,5 @@ $(() => {
 
 });
 
-	    
-	   
+
+

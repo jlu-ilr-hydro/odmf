@@ -196,15 +196,127 @@
     </py:block>
     <py:block name="content">
         <div class="container-fluid m-0 p-0">
+
             <div id="plot-row" class="">
                 <div id="plot" class="bg-light border">
                     PLOT
                 </div>
-                <div id="plot-reload-button" class="position-absolute" style="top: 10em; left: 10em">
+                <div id="plot-reload-button" class="position-absolute top-50 start-50 translate-middle" >
                     <button class="btn btn-outline-primary bg-light shadow transition do-reload">
                         <h3><i class="fas fa-sync-alt"/> reload plot</h3>
                     </button>
                 </div>
+            <div id="line-editor" class="collapse position-absolute top-0 start-0 p-3 z-index-3">
+                <div class="card" style="max-width: 30em;">
+                    <div class="card-header bg-primary text-light d-flex">
+                        <h5 class="card-title">Subplot <span id="newline-subplot">0</span></h5>
+                        <button type="button" class="btn-close ms-auto text-light nl-cancel" aria-label="Close" data-bs-toggle="collapse" data-bs-target="#line-editor"></button>
+                    </div>
+                
+                    <div class="card-body">
+                        <div class="form-group row">
+                            <label for="nl-name" class="col-sm-3 col-form-label">Name:</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="nl-name" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="nl-value" class="col-sm-3 col-form-label">value:</label>
+                            <div class="col-sm-9">
+                                <select id="nl-value" class="form-control select2 dataset-select">
+                                    <option value="" class="firstoption">Please select...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="nl-site" class="col-sm-3 col-form-label">site:</label>
+                            <div class="col-sm-9">
+                                <select id="nl-site"  class="form-control select2 dataset-select">
+                                    <option value="" class="firstoption">Please select...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="nl-level" class="col-sm-3 col-form-label">level:</label>
+                            <div class="col-sm-9">
+                                <select id="nl-level"  class="form-control dataset-select">
+                                    <option value="" class="firstoption">Please select...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+
+                            <label for="nl-instrument" class="col-sm-3 col-form-label">instrument:</label>
+                            <div class="col-sm-9">
+                                <select id="nl-instrument" class="form-control select2 dataset-select">
+                                    <option value="" class="firstoption">Please select...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="nl-aggregation" class="col-sm-3 col-form-label">aggregate:</label>
+                            <div class="col-sm-9">
+                                <select id="nl-aggregation" class="form-control">
+                                    <option value="mean">mean</option>
+                                    <option value="min">min</option>
+                                    <option value="max">max</option>
+                                    <option value="std">std</option>
+                                    <option value="sum">&Sigma;</option>
+                                    <option value="count">count</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <div class="form-group row">
+                            <label for="nl-marker" class="col-sm-3 col-form-label">marker:</label>
+                            <div class="col-sm-9">
+                                <select id="nl-marker" class="form-control nl-style">
+                                    <option value="">no marker</option>
+                                    <option value="x">x</option>
+                                    <option value="o">o</option>
+                                    <option value=".">.</option>
+                                    <option value="|">|</option>
+                                    <option value="+">+</option>
+                                    <option value="*">*</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+
+                            <label for="nl-linestyle" class="col-sm-3 col-form-label">line:</label>
+                            <div class="col-sm-9">
+                                <select id="nl-linestyle" class="form-control nl-style">
+                                    <option value="-">&mdash; solid line</option>
+                                    <option value="">no line</option>
+                                    <option value=":">&#x2509; dashed line</option>
+                                    <option value="--">&#x254D; dotted</option>
+                                    <option value="-.">&ndash; &centerdot; dash-dot line</option>
+                                    <option value="bar">&marker; bar marker</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="nl-marker" class="col-sm-3 col-form-label">line width:</label>
+                            <div class="col-sm-9">
+                                <input id="nl-linewidth" class="form-control nl-style" type="number" min="1" max="15" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+
+                            <label for="nl-color" class="col-sm-3 col-form-label">color:</label>
+                            <div class="col-sm-9">
+                                <input type="color" id="nl-color" class="form-control nl-style" value="" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="button" class="btn btn-secondary nl-cancel">Cancel</button>
+                        <button id="nl-OK" type="button" class="btn btn-primary">OK</button>
+                    </div>
+                </div>
+            </div>
 
             </div>
         </div>
@@ -244,7 +356,7 @@
                 </div>
                 <ul id="line-list" class="list-group list-group-flush">
                     <li class="newline list-group-item">
-                        <button class="btn btn-sm btn-primary btn-outline shadow py-0" data-bs-toggle="modal" data-bs-target="#newline-dialog"
+                        <button class="btn btn-sm btn-primary btn-outline shadow py-0 editline"
                                 data-subplot="§position§" id="addline_§position§" data-replace="new">
                             <i class="fas fa-plus-circle"/> add line...
                         </button>
@@ -270,11 +382,11 @@
                                 data-html="true"  title="show datasets of line" data-lineno="§i§" data-subplot="§sp_pos§">
                             <i class="fas fa-list"/>
                         </button>
-                        <button title="edit line" class="btn btn-sm py-0 btn-secondary editline" data-bs-toggle="modal" data-bs-target="#newline-dialog"
+                        <button title="edit line" class="btn btn-sm py-0 btn-secondary editline" 
                                 data-lineno="§i§" data-subplot="§sp_pos§" data-replace="replace">
                             <i class="fas fa-edit"/>
                         </button>
-                        <button title="copy line" class="btn btn-sm py-0 btn-secondary editline" data-bs-toggle="modal" data-bs-target="#newline-dialog" id="copyline_§position§_§i§"
+                        <button title="copy line" class="btn btn-sm py-0 btn-secondary editline"  id="copyline_§position§_§i§"
                                 data-lineno="§i§" data-subplot="§sp_pos§" data-replace="copy">
                             <i class="fas fa-copy"/>
                         </button>
@@ -377,119 +489,6 @@
                     </div>
                 </form>
 
-            </div>
-        </div>
-
-        <div id="newline-dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog" id="line-dialog-content">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-light">
-                        <h5 class="modal-title">Subplot <span id="newline-subplot">0</span></h5>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group row">
-                            <label for="nl-name" class="col-sm-3 col-form-label">Name:</label>
-                            <div class="col-sm-9">
-                                <input type="text" id="nl-name" class="form-control"/>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="nl-value" class="col-sm-3 col-form-label">value:</label>
-                            <div class="col-sm-9">
-                                <select id="nl-value" class="form-control select2 dataset-select">
-                                    <option value="" class="firstoption">Please select...</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="nl-site" class="col-sm-3 col-form-label">site:</label>
-                            <div class="col-sm-9">
-                                <select id="nl-site"  class="form-control select2 dataset-select">
-                                    <option value="" class="firstoption">Please select...</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="nl-level" class="col-sm-3 col-form-label">level:</label>
-                            <div class="col-sm-9">
-                                <select id="nl-level"  class="form-control dataset-select">
-                                    <option value="" class="firstoption">Please select...</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-
-                            <label for="nl-instrument" class="col-sm-3 col-form-label">instrument:</label>
-                            <div class="col-sm-9">
-                                <select id="nl-instrument" class="form-control select2 dataset-select">
-                                    <option value="" class="firstoption">Please select...</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="nl-aggregation" class="col-sm-3 col-form-label">aggregate:</label>
-                            <div class="col-sm-9">
-                                <select id="nl-aggregation" class="form-control">
-                                    <option value="mean">mean</option>
-                                    <option value="min">min</option>
-                                    <option value="max">max</option>
-                                    <option value="std">std</option>
-                                    <option value="sum">&Sigma;</option>
-                                    <option value="count">count</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <hr/>
-
-                        <div class="form-group row">
-                            <label for="nl-marker" class="col-sm-3 col-form-label">marker:</label>
-                            <div class="col-sm-9">
-                                <select id="nl-marker" class="form-control nl-style">
-                                    <option value="">no marker</option>
-                                    <option value="x">x</option>
-                                    <option value="o">o</option>
-                                    <option value=".">.</option>
-                                    <option value="|">|</option>
-                                    <option value="+">+</option>
-                                    <option value="*">*</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-
-                            <label for="nl-linestyle" class="col-sm-3 col-form-label">line:</label>
-                            <div class="col-sm-9">
-                                <select id="nl-linestyle" class="form-control nl-style">
-                                    <option value="-">&mdash; solid line</option>
-                                    <option value="">no line</option>
-                                    <option value=":">&#x2509; dashed line</option>
-                                    <option value="--">&#x254D; dotted</option>
-                                    <option value="-.">&ndash; &centerdot; dash-dot line</option>
-                                    <option value="bar">&marker; bar marker</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="nl-marker" class="col-sm-3 col-form-label">line width:</label>
-                            <div class="col-sm-9">
-                                <input id="nl-linewidth" class="form-control nl-style" type="number" min="1" max="15" />
-                            </div>
-                        </div>
-                        <div class="form-group row">
-
-                            <label for="nl-color" class="col-sm-3 col-form-label">color:</label>
-                            <div class="col-sm-9">
-                                <input type="color" id="nl-color" class="form-control nl-style" value="" />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button id="nl-OK" type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-                    </div>
-
-                </div>
             </div>
         </div>
 

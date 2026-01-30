@@ -6,6 +6,7 @@
 venv*
 **/.pytest_cache/**
 .idea
+.coverage
 *.log
 instances
 dist
