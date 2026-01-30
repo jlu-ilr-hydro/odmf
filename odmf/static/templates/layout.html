@@ -119,6 +119,13 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
 
 <nav class="navbar navbar-dark navbar-expand-md sticky-top bg-dark navbar-for-all">
     <div class="container-fluid">
+        <div class="nav-item d-md-none">
+            <button class="btn btn-dark" id="sidebarToggle" type="button" data-bs-toggle="collapse"
+                data-bs-target=".sidebar" aria-controls="sidebar" aria-expanded="false"
+                aria-label="Toggle sidebar navigation">
+                <i class="fas fa-caret-right fa-lg"></i>
+            </button>
+        </div>
         <ul class="navbar-nav me-2">
             <li class="nav-item dropdown h4">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button"
@@ -184,8 +191,8 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
 
 <div class="container-fluid">
     <div class="row h-100">
-        <nav class="col-md-2 d-none d-md-block sidebar bg-light">
-            <div class="sidebar-sticky ">
+        <nav class="col-md-2 collapse collapse-horizontal d-md-block sidebar bg-light">
+            <div class="sidebar-sticky">
                 <div class="nav flex-column">
                     <div py:block="sidebar"></div>
                 </div>
@@ -237,7 +244,7 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
                 </div>
 
             </div>
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom position-relative">
                 <p py:block="content">
 
                 </p>
