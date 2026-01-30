@@ -199,7 +199,7 @@ class Renderer(object):
              for p in conf.static
              if (Path(p) / 'templates').exists()
              ],
-             reload=False
+             reload=conf.sandbox
         )
         self.root = None
 
