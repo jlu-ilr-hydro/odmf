@@ -40,9 +40,16 @@ ODMF is not a repository - data in the database is not licenced to be used in an
 You must always contact the data owner prior to usage in a publication. It is best practice to publish data 
 in a repository like [zenodo.org](https://zenodo.org) and let your colleagues cite that data with a doi.
 
+The filename should contain a link to where the raw data or information about how the data imported from
+a datalogger is stored in ODMF. The comment section can contain e.g. a device id of the data logger, the crop
+species which was sampled, links to a protocols how the measurements where taken, 
+important information how to use the data (e.g. to be aware of repeated measurements), ...
+
 ## How many datasets do I need?
 
-This is heavily depending on your use case. See [examples](dataset-examples)
+This is heavily depending on your use case. See [examples](dataset-examples). New datasets should be created as soon as
+anything relevant changed during the time series of one valuetype (e.g. a new instrument is used, 
+a different crop is grown,...).
 
 ## How do I create new datasets?
 
