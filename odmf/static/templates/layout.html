@@ -41,6 +41,12 @@
 
     <script>
         //<![CDATA[
+        function toggleSidebar() {
+            const sidebar = new bootstrap.Collapse('#sidebar');
+            sidebar.toggle();
+            $('#sidebarToggle').toggleClass('collapsed');
+        }
+
         function datetime_local_now() {
             // https://stackoverflow.com/a/60884408/3032680
             var now = new Date();
@@ -105,6 +111,13 @@
                     $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
                 });
             });
+            $('#sidebarToggle').on('click', function () {
+                toggleSidebar();
+            });
+            $('.sidebar').on('focusout', function () {
+                const sidebar = new bootstrap.Collapse('#sidebar');
+                sidebar.hide();
+            });
 
         });
         //]]>
@@ -121,13 +134,10 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
 
     <nav class="navbar navbar-dark navbar-expand-md sticky-top bg-dark navbar-for-all">
         <div class="container-fluid">
-            <div id="sidebar-toggler-div" class="nav-item d-lg-none">
-                <button class="btn btn-dark" id="sidebarToggle" type="button" data-bs-toggle="collapse"
-                    data-bs-target=".sidebar" aria-controls="sidebar" aria-expanded="false"
-                    aria-label="Toggle sidebar navigation">
-                    <i class="fas fa-caret-right fa-lg"></i>
-                </button>
-            </div>
+            <button class="nav-item toggle-btn d-lg-none" id="sidebarToggle" type="button" aria-controls="sidebar" aria-expanded="false" title="toggle sidebar"
+                aria-label="Toggle sidebar navigation">
+                <i class="fas fa-caret-right fa-lg"></i>
+            </button>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav-icons"
                 aria-controls="nav-icons" aria-expanded="false" aria-label="Toggle navigation">
                 <i class="fas fa-bars fa-lg" />
@@ -143,7 +153,7 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
                 <div class="nav-item dropdown">
                     <a class="btn btn-dark dropdown-toggle " id="login-link" href="#" data-bs-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false" title="login">
-                        <i class="fas fa-user-circle me-2"/><span py:content="users.current or 'login'"></span>
+                        <i class="fas fa-user-circle me-2" /><span py:content="users.current or 'login'"></span>
                     </a>
                     <div class="dropdown-menu bg-dark dropdown-menu-right text-light" aria-labelledby="login-link"
                         style="min-width: 15rem;">
@@ -180,7 +190,8 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
 
     <div class="container-fluid">
         <div class="row h-100">
-            <nav class="col-lg-3 col-md-6 col-9 collapse collapse-horizontal d-lg-block sidebar bg-light">
+            <nav class="col-lg-3 col-md-6 col-9 collapse collapse-horizontal d-lg-block bg-light position-fixed sidebar"
+                id="sidebar">
                 <div class="sidebar-sticky">
                     <div class="nav flex-column">
                         <div py:block="sidebar"></div>
