@@ -2,48 +2,52 @@
 
 <py:extends href="layout.html" xmlns:py="">
     <py:block name="sidebar">
-        <div class="container bg-secondary">
-            <h1 class="text-light">${users.current}</h1>
-            <form method="post" action="${conf.root_url}/login">
-                <input type="hidden" name="frompage" id="frompage" value="${frompage}"/>
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <datalist id="users">
-                        <option py:for="u in users" value="${u}" py:content="u" />
-                    </datalist>
-                    <input type="text" class="form-control" id="username" name="username" list="users"/>
-                    <label for="password">Password:</label>
-                    <input type="password" name="password" id="password" class="form-control"/>
-                </div>
-                <div class="form-group">
-                    <input type="submit" value="Log in" class="btn btn-primary"/>
-                    <input type="submit" value="Log out" name="logout" class="btn btn-secondary"/>
-                </div>
-            </form>
-        </div>
     </py:block>
     <py:block name="content">
         <div class="container mt-1">
-            <div class="card mx-auto" style="max-width: 50rem;">
-                <div class="card-img-top"
-                        style="
+            <div class="card">
+                <h1 class="card-title bg-secondary text-light p-2">${users.current}</h1>
+                <div class="card-body">
+                    <form method="post" action="${conf.root_url}/login">
+                        <input type="hidden" name="frompage" id="frompage" value="${frompage}" />
+                        <div class="form-floating">
+                            <datalist id="users">
+                                <option py:for="u in users" value="${u}" py:content="u" />
+                            </datalist>
+                            <input type="text" class="form-control" id="username" name="username" list="users" />
+                            <label for="username">Username</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="password" name="password" id="password" class="form-control" />
+                            <label for="password">Password:</label>
+                        </div>
+                        <div class="form-group">
+                            <input type="submit" value="Log in" class="btn btn-primary" />
+                            <input type="submit" value="Log out" name="logout" class="btn btn-secondary" />
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+            <div class="card mt-4 mb-4">
+                <div class="card-img-top" style="
                         background: url(${conf.root_url}/${conf.nav_background})
-                        no-repeat 50% 50%; width: 100%; height: 25rem; background-size: cover;"/>
+                        no-repeat 50% 50%; width: 100%; height: 25rem; background-size: cover;" />
                 <!--img src="${conf.root_url}/${conf.nav_background}" class="card-img-top"
                      style="max-height:20rem; max-width: 48rem; width:auto; height:auto" /-->
                 <div class="card-body">
                     <h1 class="display-4">About</h1>
                     <div class="mt-8">
                         <a href="https://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/ilr-frede">
-                            <img src="${conf.root_url}/media/images/ilr-logo_4_klein_RGB.png" alt="ILR"/>
+                            <img src="${conf.root_url}/media/images/ilr-logo_4_klein_RGB.png" alt="ILR" />
                         </a>
                         <a href="https://www.uni-giessen.de">
-                            <img src="${conf.root_url}/media/images/jlu-logo-150.png" alt="University Giessen"/>
+                            <img src="${conf.root_url}/media/images/jlu-logo-150.png" alt="University Giessen" />
                         </a>
                     </div>
                     <div class="mt-4">
                         This page is used as a database frontend for the measured data at the agro-environmental
-                        research facilities of the Justus-Liebig University Giessen. <br/>
+                        research facilities of the Justus-Liebig University Giessen. <br />
 
                     </div>
                     <h2 class="my-4">
@@ -51,27 +55,29 @@
                     </h2>
                     <div>
                         The database contains raw and unpublished data,
-                        any usage beyond pure curiosity, especially the publication of data and derived products is not allowed without prior permission. For any questions, please write to the site admins
+                        any usage beyond pure curiosity, especially the publication of data and derived products is not
+                        allowed without prior permission. For any questions, please write to the site admins
                     </div>
                     <div class="mt-4">
                         <a href="${conf.url('help', 'data-usage')}" class="btn btn-dark" title="Data usage policy"
-                           data-bs-toggle="tooltip" data-bs-placement="bottom">
+                            data-bs-toggle="tooltip" data-bs-placement="bottom">
                             <i class="fas fa-user-shield"></i> Data usage policy
                         </a>
                     </div>
-                    <div  py:if="admins">
+                    <div py:if="admins">
                         <h2 class="my-4">
                             Site admins
                         </h2>
                         <div class="list-group">
                             <div class="list-group-item d-flex" py:for="admin in admins">
-                                ${admin} <a href="mailto:${admin.email}" class="btn btn-primary ms-auto"><i class="fas fa-envelope"></i> ${admin.email}</a>
+                                ${admin} <a href="mailto:${admin.email}" class="btn btn-primary ms-auto"><i
+                                        class="fas fa-envelope"></i> ${admin.email}</a>
                             </div>
                         </div>
 
                     </div>
                     <h2 class="my-4">
-                        ODMF <span class="badge bg-primary" py:content="conf.version"/>
+                        ODMF <span class="badge bg-primary" py:content="conf.version" />
                     </h2>
                     <div>
                         This site is built using ODMF (Observatory data management framework) an
@@ -86,28 +92,33 @@
                             Allow Google Maps
                         </div>
                         <div>
-                            <button type="submit" class="btn btn-success" name="allow" value="on"><i class="fas fa-thumbs-up"/></button>
-                            <button type="submit" class="btn btn-danger" name="allow" value=""><i class="fas fa-thumbs-down"/></button>
+                            <button type="submit" class="btn btn-success" name="allow" value="on"><i
+                                    class="fas fa-thumbs-up" /></button>
+                            <button type="submit" class="btn btn-danger" name="allow" value=""><i
+                                    class="fas fa-thumbs-down" /></button>
                         </div>
                     </form>
 
 
                     <h3 class="my-4">
-                        <i class="fab fa-github"/> Development
+                        <i class="fab fa-github" /> Development
                     </h3>
                     <div>
-                        Bug reports, enhancement proposals, etc can be posted here: <br/>
+                        Bug reports, enhancement proposals, etc can be posted here: <br />
                         <a href="https://github.com/jlu-ilr-hydro/odmf">
-                            <i class="fab fa-github"/> ODMF on GitHub
+                            <i class="fab fa-github" /> ODMF on GitHub
                         </a>
                     </div>
                     <div py:if="is_member('admin')" class="mt-4">
                         <h2>Configuration</h2>
-                        <table class="table"><tbody>                
-                            <tr py:for="k, v in conf.to_dict().items()" py:if=" not ('key' in k or 'pass' in k)">
-                                <th py:content="k" scope="row"/><td py:content="v"/>
-                            </tr>
-                        </tbody></table>
+                        <table class="table">
+                            <tbody>
+                                <tr py:for="k, v in conf.to_dict().items()" py:if=" not ('key' in k or 'pass' in k)">
+                                    <th py:content="k" scope="row" />
+                                    <td py:content="v" />
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
