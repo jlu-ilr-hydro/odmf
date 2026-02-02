@@ -116,6 +116,7 @@ function set_content_tree_handlers() {
 	$('.editline').on('click', (event) => {
 		let dlg = $('#line-editor')
 		dlg.show();
+		$('#nl-name').focus();
 		let button = $(event.currentTarget);
 		let sp = button.data('subplot')
 		let ln = button.data('lineno')
