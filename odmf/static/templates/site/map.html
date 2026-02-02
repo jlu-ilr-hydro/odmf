@@ -3,17 +3,16 @@
     <py:block name="scripts">
         <script type="text/javascript" src="${conf.root_url}/media/js/site-filter.js" />
         <script type="text/javascript" src="${conf.root_url}/media/js/map.js"></script>
-        <script py:if="site">
-            let canvas = $('#map_canvas')
-            localStorage.setItem('map-selected-site', '${site}')
-            canvas.data('site', '${site}')
-            canvas.data('zoom', 'site');
-        </script>
         <script py:if="allow_google_maps" type="text/javascript" async="async" defer="defer"
             src="${conf.google_maps_api('initMap')}">
             </script>
         <script>
             $(() => {
+                if ('${site}') {
+                    let canvas = $('#map_canvas')
+                    canvas.data('site', '${site}')
+                    canvas.data('zoom', 'site');
+                }
                 $('[data-bs-toggle="tooltip"]').tooltip()
                 // Do not put anything map related here but in initMap in map.js
                 // The map is created async and takes a bit of time
@@ -54,8 +53,8 @@
             </div>
 
         </div>
-        <div class="mt-3" id="filter-collapse">
-            <a href="#filter" id="filter-toggle" class="btn btn-secondary flexbox h1 dropdown-toggle"
+        <div class="mt-3 mx-1 card" id="filter-collapse">
+            <a href="#filter" id="filter-toggle" class="btn btn-secondary card-title flexbox h1 dropdown-toggle"
                 data-bs-toggle="collapse">
                 <span><i class="fas fa-filter me-2" />Filter</span><span class="ms-auto badge rounded-pill bg-primary"
                     id="site-count">0</span>

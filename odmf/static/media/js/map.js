@@ -38,6 +38,7 @@ function clearmarker() {
 }
 
 function selectsite(id) {
+	let canvas = $('#map_canvas')
 	if (id) {
 		$('#infotext').load(odmf_ref('/map/sitedescription/') + id,
 			function (response, status, xhr) {
@@ -46,36 +47,20 @@ function selectsite(id) {
 					$("#infotext").html(msg + xhr.status + " " + xhr.statusText);
 				}
 			});
-		$('#map_canvas').data('site', id);
-		let zoom = $('#map_canvas').data('zoom')
+		canvas.data('site', id);
 		$.each(markers, function (index, item) {
 			if (item.get('id') == id) {
-				if (selected_marker) {
-					selected_marker.set('position', new google.maps.LatLng(item.position.lat(), item.position.lng()))
-				} else {
-					selected_marker = new google.maps.Marker({
-						position: new google.maps.LatLng(item.position.lat(), item.position.lng()),
-						map: map,
-						icon: {
-							url: odmf_ref('/media/mapicons/selection.png'),
-							size: new google.maps.Size(37, 37),
-							origin: new google.maps.Point(0, 0),
-							anchor: new google.maps.Point(6, 30)
-						}
-					})
-				}
-
+				selected_marker.set('position', new google.maps.LatLng(item.position.lat(), item.position.lng()))
+				selected_marker.setVisible(true)
 			}
 		});
-		if (selected_marker && zoom == 'site') {
+		if (selected_marker && canvas.data('zoom') == 'site') {
 			map.setCenter(selected_marker.getPosition());
 			map.setZoom(15);
+			canvas.removeData('zoom');
 		}
-
-
 	} else {
-		selected_marker = null
-		localStorage.removeItem('map-selected-site')
+		selected_marker.setVisible(false)
 		$('#infotext').html('<h3>No site selected</h3>')
 	}
 
@@ -85,12 +70,22 @@ function setmarkers(data) {
 	map.data.forEach(feature => {
 		map.data.remove(feature)
 	})
+	selected_marker = new google.maps.Marker({
+		position: new google.maps.LatLng(0, 0),
+		map: map,
+		icon: {
+			url: odmf_ref('/media/mapicons/selection.png'),
+			size: new google.maps.Size(37, 37),
+			origin: new google.maps.Point(0, 0),
+			anchor: new google.maps.Point(6, 30)
+		}
+	})
+	selected_marker.setVisible(false)
 	let selectedsite = $('#map_canvas').data('site')
+	console.log('setmarkers - map_canvas.data()' + JSON.stringify($('#map_canvas').data()))
 	$.each(data.features, (index, feature) => {
 		if (feature.geometry.type !== 'Point')
 			map.data.addGeoJson(feature)
-
-
 		let item = feature.properties
 		if (!item.icon) {
 			icon = 'unknown.png';
@@ -141,7 +136,7 @@ function setmarkers(data) {
 		markers.push(marker)
 	});
 	selectsite(selectedsite)
-	
+
 
 }
 
@@ -206,8 +201,4 @@ function initMap(site) {
 		}
 	})
 	applyFilter('site-filter')
-	if (!mapOptions || !mapOptions.center) {
-		zoomToMarkers()
-	}
-	//selectsite(localStorage.getItem('map-selected-site'))
 }
