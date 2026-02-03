@@ -141,7 +141,7 @@
                     </div>
                     <div class="container">
                         <form py:if="is_member('editor')"
-                              action="" method="post"
+                              action="${conf.url('site', siteid)}" method="post"
                               class="container-fluid mt-3 needs-validation">
                             <div class="form-group row mb-1">
                                 <label for="lon" class="col-sm-4 col-form-label">Longitude in °E:</label>
