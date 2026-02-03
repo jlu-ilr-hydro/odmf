@@ -133,9 +133,13 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
 -->
 
     <nav class="navbar navbar-dark navbar-expand-md sticky-top bg-dark navbar-for-all">
-        <div class="container-fluid">
-            <button class="nav-item toggle-btn d-lg-none" id="sidebarToggle" type="button" aria-controls="sidebar" aria-expanded="false" title="toggle sidebar"
-                aria-label="Toggle sidebar navigation">
+        <div py:if="conf.sandbox" class="text-danger text-nowrap w-100 position-absolute top-0 start-0" style="background-color: #600;z-index: 1">
+            <h1>Sandbox, not for real data! Sandbox, not for real data! Sandbox, not for real data! Sandbox, not for real data! Sandbox, not for real data! Sandbox, not for real data! Sandbox, not for real data! Sandbox, not for real data! </h1>
+        </div>
+
+        <div class="container-fluid" style="z-index: 100;">
+            <button class="nav-item toggle-btn d-lg-none" id="sidebarToggle" type="button" aria-controls="sidebar"
+                aria-expanded="false" title="toggle sidebar" aria-label="Toggle sidebar navigation">
                 <i class="fas fa-caret-right fa-lg"></i>
             </button>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav-icons"
@@ -201,10 +205,6 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
             </nav>
             <main role="main" class="ms-sm-auto col-lg-9 p-0 h-100">
                 <div class="container-fluid">
-                    <div py:if="conf.sandbox" class="alert alert-warning">
-                        <h1 class="display-6"><i class="fas fa-exclamation-circle me-4" />Sandbox, not for real data!
-                        </h1>
-                    </div>
 
                     <div id="error-msg" class="alert alert-danger w-100 ${dnone_if(not error)}" role="alert">
                         <div class="d-flex flex-row">
