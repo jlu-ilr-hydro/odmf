@@ -166,6 +166,22 @@ class DbImportPage:
                 info_dict=info,
                 errors=errors
             ).render()
+    
+    @expose_for(Level.editor)
+    def record(self, filename, **kwargs):
+        """
+        Shows dbimport.html with the datafile loaded and ready for import
+        """
+        path = Path(filename.strip('/'))
+        error = di.checkimport(path)
+
+        # - Load df from parquet, csv or excel
+        # - check columns, remove nan
+        # - load all unique datasets
+        # - count all records per datasets and show value ranges
+        # - on GET, show datasets with their info
+        # - on POST, import the records
+
 
 
 

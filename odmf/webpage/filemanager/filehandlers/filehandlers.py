@@ -101,6 +101,7 @@ class CsvFileHandler(BaseFileHandler):
 class ParquetFileHandler(BaseFileHandler):
 
     icon = 'table'
+    actions = fa.RecordImportAction(),
     def to_html(self, path, **kwargs) -> str:
 
         with open(path.absolute, 'rb') as f:
