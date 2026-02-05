@@ -22,7 +22,7 @@ from ... import db
 from ...config import conf
 
 from .dbimport import DbImportPage
-from . import filehandlers as fh
+from .filehandlers import filehandlers as fh
 from . import file_auth as fa
 
 
@@ -107,10 +107,11 @@ class DownloadPage(object):
     filehandler = fh.MultiHandler()
 
 
-    def render_file(self, path, error=None):
+    def render_file(self, path, error=None, **kwargs):
         content = ''
+        error = error or ''
         try:
-            content = self.filehandler(path)
+            content = self.filehandler(path, **kwargs)
         except ValueError as e:
             content = f'<div class="alert bg-warning"><h3>{e}</h3></div>'
 
@@ -158,7 +159,7 @@ class DownloadPage(object):
 
     @expose_for()
     @web.method.get
-    def index(self, uri='.', error='', msg='', serve=False, _=None):
+    def index(self, uri='.', error='', msg='', serve=False, _=None, **kwargs):
         path = Path(uri)
         modes = fa.check_children(path, users.current)
         error = error or cherrypy.session.get('error')
@@ -188,7 +189,7 @@ class DownloadPage(object):
                 return serve_fileobj(self.zip_folder(path), content_type='application/zip', disposition='attachment', name=path.basename + '.zip')
 
         elif path.isfile():
-            content, error = self.render_file(path, error)
+            content, error = self.render_file(path, error, **kwargs)
 
         rule = fa.AccessRule.find_rule(path)
         with db.session_scope() as session:
