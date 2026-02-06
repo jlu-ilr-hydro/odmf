@@ -86,7 +86,7 @@ class MarkDownFileHandler(TextFileHandler):
 class CsvFileHandler(BaseFileHandler):
 
     icon = 'file-csv'
-    actions = fa.ConfImportAction(),
+    actions = fa.ConfImportAction(), fa.RecordImportAction(),
     def to_html(self, path: Path, **kwargs) -> str:
 
         text_io = load_text_stream(path)

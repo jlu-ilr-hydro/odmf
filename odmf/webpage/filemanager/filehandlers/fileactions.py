@@ -142,16 +142,18 @@ class RecordImportAction(FileAction):
     title = 'record'
     tooltip = 'Import to database from a record table'
 
-    def href(self, path: Path):
+    def href(self, path: Path, **kwargs):
         return conf.url('/download/to_db/record', filename=path.name)
 
-    def check(self, path: Path):
+    def check(self, path: Path, **kwargs):
         try:
-            if path.basename.endswith('.parquet'):
+            if re.match(r'.*\.parquet$', path.name, re.IGNORECASE):
                 import pyarrow.dataset as ds
                 df = ds.dataset(path.absolute).scanner().head(1).to_pandas()
             elif re.match(r'.*\.xls.?$', path.name, re.IGNORECASE):
-                df = pd.read_excel(path.absolute, nrows=1)
+                df = pd.read_excel(path.absolute, nrows=1, sheet_name=kwargs.get('sheet',0))
+            elif re.match(r'.*\.csv$', path.name, re.IGNORECASE):
+                df = pd.read_csv(path.absolute, nrows=1, sep=None, engine='python')
             if len(df):
                 columns = [c.lower() for c in df.columns]
                 return all(c in columns for c in 'time|dataset|value'.split('|'))
