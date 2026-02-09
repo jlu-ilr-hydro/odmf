@@ -56,11 +56,11 @@ class DownloadPageError(cherrypy.HTTPError):
         text = web.render(
             'download.html',
             error=error, success='', modes=modes, Mode=fa.Mode,
-            files=[],
+            files=[], rule=self.get_named_rules(self.path), owner=fa.get_owner(self.path),
             directories=[],
             curdir=self.path,
             content='',
-            max_size=conf.upload_max_size
+            max_size=conf.upload_max_size, kwargs=kwargs
         ).render()
 
         return text.encode('utf-8')
@@ -156,6 +156,17 @@ class DownloadPage(object):
                 zf.write(f.absolute, f.relative_name(path))
         buffer.seek(0)
         return buffer
+    
+    def get_named_rules(self, path: Path):
+        rule = fa.AccessRule.find_rule(path)
+        with db.session_scope() as session:
+            project_names = dict((i, n) for i, n in session.execute(db.sql.select(db.Project.id, db.Project.name)))
+        return {
+            'read': fa.Mode(rule.read),
+            'write': fa.Mode(rule.write),
+            'projects': rule.projects,
+            'project_names': project_names,
+        }
 
     @expose_for()
     @web.method.get
@@ -191,27 +202,17 @@ class DownloadPage(object):
         elif path.isfile():
             content, error = self.render_file(path, error, **kwargs)
 
-        rule = fa.AccessRule.find_rule(path)
-        with db.session_scope() as session:
-            project_names = dict((i, n) for i, n in session.execute(db.sql.select(db.Project.id, db.Project.name)))
-        named_rule = {
-            'read': fa.Mode(rule.read),
-            'write': fa.Mode(rule.write),
-            'projects': rule.projects,
-            'project_names': project_names,
-
-        }
 
         return web.render(
             'download.html',
             error=error, success=msg,
             modes=modes, Mode=fa.Mode, owner=fa.get_owner(path),
-            content=content, rule=named_rule,
+            content=content, rule=self.get_named_rules(path),
             files=sorted(files),
             directories=sorted(directories),
             handler=self.filehandler,
             curdir=path, import_history=self.get_import_history(path),
-            max_size=conf.upload_max_size
+            max_size=conf.upload_max_size, kwargs=kwargs
         ).render()
 
 
@@ -335,7 +336,7 @@ class DownloadPage(object):
             'download.html',
             error='', success=msg,
             modes=modes, Mode=fa.Mode, owner=fa.get_owner(path),
-            content=None,
+            content=None, rule=self.get_named_rules(path),
             files=[p for p, msg in path_list],
             directories=[],
             handler=self.filehandler,

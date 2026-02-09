@@ -90,11 +90,8 @@ class BaseFileHandler:
     def __call__(self, path: Path, **kwargs) -> str:
         return self.to_html(path, **kwargs)
 
-    def get_action_buttons(self, path: Path):
-        for action in self.actions:
-            print(action)
-            action.check(path)
-        return '\n'.join(action.html(path) for action in self.actions if action.check(path))
+    def get_action_buttons(self, path: Path, **kwargs):
+        return '\n'.join(action.html(path, **kwargs) for action in self.actions if action.check(path, **kwargs))
 
     def post_action(self, actionname: str, path: str, userlevel: Level):
         for action in self.actions:

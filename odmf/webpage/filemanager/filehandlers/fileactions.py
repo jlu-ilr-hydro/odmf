@@ -43,7 +43,7 @@ class FileAction:
     def html(self, path: Path, **kwargs) -> str:
         is_action_button = 'action-button' if hasattr(self, 'post') else ''
         return f'''
-            <a href="{self.href(path)}" class="btn btn-secondary {is_action_button}"
+            <a href="{self.href(path, **kwargs)}" class="btn btn-secondary {is_action_button}"
                data-bs-toggle="tooltip" title="{self.tooltip}"
                data-actionid="{self.name}" data-path="{path}">
                     <i class="fas fa-{self.icon}" ></i> {self.title}
@@ -103,10 +103,10 @@ class LogImportAction(FileAction):
     tooltip = 'Import to database with log table'
 
     def href(self, path: Path, **kwargs):
-        return conf.url('/download/to_db/log', filename=path.name)
+        return conf.url('/download/to_db/log', filename=path.name, **kwargs)
 
     def check(self, path: Path, **kwargs):
-        df = pd.read_excel(path.absolute, sheet_name=kwargs.get('sheet',0), nrows=5)
+        df = pd.read_excel(path.absolute, sheet_name=kwargs.get('sheet',0), nrows=1)
         columns = [c.lower() for c in df.columns]
         return all(c in columns for c in 'time|site|dataset|value|logtype|message'.split('|'))
 
@@ -143,7 +143,7 @@ class RecordImportAction(FileAction):
     tooltip = 'Import to database from a record table'
 
     def href(self, path: Path, **kwargs):
-        return conf.url('/download/to_db/record', filename=path.name)
+        return conf.url('/download/to_db/record', filename=path.name, **kwargs)
 
     def check(self, path: Path, **kwargs):
         try:

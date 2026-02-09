@@ -185,6 +185,8 @@ class DbImportPage:
             df = pd.read_excel(path.absolute, sheet_name=kwargs.get('sheet',0))
         elif re.match(r'.*\.[ct]sv$', path.name, re.IGNORECASE):
             df = pd.read_csv(path.absolute, sep=None, engine='python')
+        
+        df.columns = df.columns.str.lower()
 
         # - check columns, remove nan
         if not all(c in df.columns.str.lower() for c in 'time|dataset|value'.split('|')):
