@@ -90,18 +90,21 @@ def list_undo_files(path: Path, tablename: str='*', user:str='*') -> typing.List
     return list(path.glob(glob))
 
 
-def read_df_from_stream(filename: str, stream: typing.BinaryIO) -> pd.DataFrame:
+def read_df_from_stream(filename: str, stream: typing.BinaryIO, lower_case_columns=False) -> pd.DataFrame:
     """
     Reads a dataframe from a stream, either in .xlsx, .csv or .parquet
     """
     if filename.endswith('.xlsx'):
-        return pd.read_excel(stream)
+        df = pd.read_excel(stream)
     elif filename.endswith('.csv'):
-        return pd.read_csv(stream)
+        df = pd.read_csv(stream, sep=None, engine='python')
     elif filename.endswith('.parquet'):
-        return pd.read_parquet(stream)
+        df = pd.read_parquet(stream)
     else:
         raise ObjectImportError(f'{filename} is not a supported file type')
+    if lower_case_columns:
+        df.columns = [c.lower() for c in df.columns] 
+    return df
 
 
 def import_sites_from_stream(session: db.orm.Session, filename: str, stream: typing.BinaryIO, user:str) -> ObjectImportReport:
@@ -110,6 +113,7 @@ def import_sites_from_stream(session: db.orm.Session, filename: str, stream: typ
     """
     if filename.endswith('.geojson'):
         df = gpd.read_file(stream)
+        df.columns = [c.lower() for c in df.columns] 
         with warnings.catch_warnings():
             df['centroid'] = df.geometry.centroid.to_crs(epsg=4326)
         df = df.to_crs(epsg=4326)
@@ -117,7 +121,7 @@ def import_sites_from_stream(session: db.orm.Session, filename: str, stream: typ
             df['lon'] = df.centroid.x
             df['lat'] = df.centroid.y
     else:
-        df = read_df_from_stream(filename, stream)
+        df = read_df_from_stream(filename, stream, lower_case_columns=True)
 
     site_ids, warn = import_sites_from_dataframe(session, df)
     return ObjectImportReport(
@@ -236,7 +240,7 @@ def import_datasets_from_stream(session: db.orm.Session, filename: str, stream: 
     """
     Imports sites from a stream containing tabular data
     """
-    df = read_df_from_stream(filename, stream)
+    df = read_df_from_stream(filename, stream, lower_case_columns=True)
 
     ds_ids, warnings = import_datasets_from_dataframe(session, df, user)
     return ObjectImportReport(
@@ -287,7 +291,7 @@ def import_datasets_from_dataframe(session: db.orm.Session, df: pd.DataFrame, us
 
 
 def import_log_from_stream(session: db.orm.Session, filename: str, stream: typing.BinaryIO, user:str) -> ObjectImportReport:
-    df = read_df_from_stream(filename, stream)
+    df = read_df_from_stream(filename, stream, lower_case_columns=True)
 
     log_ids, warnings = import_log_from_dataframe(session, df, user)
     return ObjectImportReport(
