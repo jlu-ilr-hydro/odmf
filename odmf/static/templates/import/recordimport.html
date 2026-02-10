@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+
+<py:extends href="layout.html" xmlns:py="">
+    <py:block name="scripts">
+        <!-- insert additional scripts -->
+    </py:block>
+    <py:block name="style">
+        <!-- insert additional styles -->
+    </py:block>
+    <py:block name="sidebar">
+        <!-- insert sidebar content -->
+
+    </py:block>
+    <py:block name="content">
+        <div class="container m-0 p-0">
+            <h1 class="mt-4" py:content="markdown(f'Record table import for {filename.markdown}')"></h1>
+            <div class="alert alert-danger" py:if="bool(error)" py:content="markdown(error)" />
+            <div class="mt-4">
+                <ul class="list-group">
+                    <li py:for="dsid in datasets" class="list-group-item d-flex">
+                        <a href="${conf.url('dataset', dsid)}" class="list-group-item list-group-item-action me-4">
+                            ${datasets[dsid]}
+                        </a>
+                        <div class="d-flex flex-column align-items-end" py:content="dataset_description[dsid]">
+
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="container border rounded my-2 py-2">
+                <form action="" method="post" class="form-inline">
+                    <button class="btn btn-success" type="submit" name="commit" value="commit"
+                        py:attrs="prop(disabled=not can_commit)">
+                        <i class="fas fa-file-import me-2" /> import
+                    </button>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" value="err_ok" name="errors_ok"
+                            py:attrs="prop(checked=not bool(error))" id="check_err_ok" />
+                        <label class="form-check-label" for="check_err_ok">Submit with errors</label>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </py:block>
+</py:extends>

@@ -198,7 +198,8 @@ class Renderer(object):
             [str(Path(p).absolute() / 'templates')
              for p in conf.static
              if (Path(p) / 'templates').exists()
-             ]
+             ],
+             reload=conf.sandbox
         )
         self.root = None
 

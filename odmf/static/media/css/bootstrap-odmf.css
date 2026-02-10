@@ -24,10 +24,6 @@ body {
 }
 
 .sidebar {
-    position: fixed;
-    top: 3rem;
-    bottom: 0;
-    left: 0;
     z-index: 100; /* Behind the navbar */
     padding: 0;
     box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
@@ -47,6 +43,21 @@ body {
   font-weight: 500;
   color: #333;
 }
+.toggle-btn {
+    background: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+.collapsed .toggle-btn {
+    transform: rotate(180deg);
+}
+
 
 .flexbox {
     display: flex;

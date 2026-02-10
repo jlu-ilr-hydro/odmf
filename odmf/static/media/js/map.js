@@ -3,7 +3,7 @@ let markers = []
 let selected_marker = null
 let map = null
 function toggle(id) {
-	$('#'+id).slideToggle('fast');
+	$('#' + id).slideToggle('fast');
 }
 function seterror(text) {
 	$('#map-error').html(text).removeClass('d-none')
@@ -38,40 +38,29 @@ function clearmarker() {
 }
 
 function selectsite(id) {
+	let canvas = $('#map_canvas')
 	if (id) {
 		$('#infotext').load(odmf_ref('/map/sitedescription/') + id,
-			function(response, status, xhr) {
+			function (response, status, xhr) {
 				if (status == "error") {
 					var msg = "Sorry but there was an error: ";
 					$("#infotext").html(msg + xhr.status + " " + xhr.statusText);
 				}
 			});
-		$('#map_canvas').data('site', id);
-		$.each(markers,function(index,item) {
+		canvas.data('site', id);
+		$.each(markers, function (index, item) {
 			if (item.get('id') == id) {
-				if (selected_marker) {
-					selected_marker.set('position', new google.maps.LatLng(item.position.lat(), item.position.lng()))
-				} else {
-					selected_marker = new google.maps.Marker({
-						position: new google.maps.LatLng(item.position.lat(), item.position.lng()),
-						map: map,
-						icon: {
-							url: odmf_ref('/media/mapicons/selection.png'),
-							size: new google.maps.Size(37,37),
-							origin: new google.maps.Point(0,0),
-							anchor: new google.maps.Point(6,30)
-						}
-
-					})
-				}
-
+				selected_marker.set('position', new google.maps.LatLng(item.position.lat(), item.position.lng()))
+				selected_marker.setVisible(true)
 			}
 		});
-		localStorage.setItem('map-selected-site', id)
-
+		if (selected_marker && canvas.data('zoom') == 'site') {
+			map.setCenter(selected_marker.getPosition());
+			map.setZoom(15);
+			canvas.removeData('zoom');
+		}
 	} else {
-		selected_marker = null
-		localStorage.removeItem('map-selected-site')
+		selected_marker.setVisible(false)
 		$('#infotext').html('<h3>No site selected</h3>')
 	}
 
@@ -81,33 +70,43 @@ function setmarkers(data) {
 	map.data.forEach(feature => {
 		map.data.remove(feature)
 	})
+	selected_marker = new google.maps.Marker({
+		position: new google.maps.LatLng(0, 0),
+		map: map,
+		icon: {
+			url: odmf_ref('/media/mapicons/selection.png'),
+			size: new google.maps.Size(37, 37),
+			origin: new google.maps.Point(0, 0),
+			anchor: new google.maps.Point(6, 30)
+		}
+	})
+	selected_marker.setVisible(false)
 	let selectedsite = $('#map_canvas').data('site')
-	$.each(data.features, (index,feature) => {
+	console.log('setmarkers - map_canvas.data()' + JSON.stringify($('#map_canvas').data()))
+	$.each(data.features, (index, feature) => {
 		if (feature.geometry.type !== 'Point')
 			map.data.addGeoJson(feature)
-
-
 		let item = feature.properties
 		if (!item.icon) {
-			icon='unknown.png';
+			icon = 'unknown.png';
 		} else {
 			icon = item.icon;
 		}
 		let marker = new google.maps.Marker(
 			{
-				position: new google.maps.LatLng(item.lat,item.lon),
-				title:'#' + item.id + '(' + item.name + ')',
-				map:map,
-				icon:{
+				position: new google.maps.LatLng(item.lat, item.lon),
+				title: '#' + item.id + '(' + item.name + ')',
+				map: map,
+				icon: {
 					url: odmf_ref('/media/mapicons/') + icon,
 					size: new google.maps.Size(24, 24),
-					origin: new google.maps.Point(0,0),
+					origin: new google.maps.Point(0, 0),
 					anchor: new google.maps.Point(0, 24)
 				},
 				zIndex: 100,
 			}
 		);
-		marker.set('id',item.id);
+		marker.set('id', item.id);
 		if (item.id == selectedsite) {
 			if (selected_marker) {
 				selected_marker.position = new google.maps.LatLng(item.lat, item.lon)
@@ -117,31 +116,33 @@ function setmarkers(data) {
 					map: map,
 					icon: {
 						url: odmf_ref('/media/mapicons/selection.png'),
-						size: new google.maps.Size(37,37),
-						origin: new google.maps.Point(0,0),
-						anchor: new google.maps.Point(6,30)
+						size: new google.maps.Size(37, 37),
+						origin: new google.maps.Point(0, 0),
+						anchor: new google.maps.Point(6, 30)
 					}
 
 				})
 			}
 
 		}
-		google.maps.event.addListener(marker,'click',function() {
+		google.maps.event.addListener(marker, 'click', function () {
 			selectsite(item.id);
 		});
-		google.maps.event.addListener(marker,'dblclick',function() {
-				map.setCenter(marker.getPosition());
-				map.setZoom(map.getZoom()+2);
+		google.maps.event.addListener(marker, 'dblclick', function () {
+			map.setCenter(marker.getPosition());
+			map.setZoom(map.getZoom() + 2);
 		})
-		google.maps.event.addListener(marker, 'mouseover', (event) => {map_mousemove(event.latLng)})
+		google.maps.event.addListener(marker, 'mouseover', (event) => { map_mousemove(event.latLng) })
 		markers.push(marker)
 	});
+	selectsite(selectedsite)
+
 
 }
 
 function zoomToMarkers() {
 	var latlngbounds = new google.maps.LatLngBounds();
-	$.each(markers,function(index,item){
+	$.each(markers, function (index, item) {
 		latlngbounds.extend(item.getPosition());
 	});
 	map.setCenter(latlngbounds.getCenter());
@@ -163,10 +164,10 @@ function initMap(site) {
 
 	mapOptions = JSON.parse(localStorage.getItem('map'))
 	map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
-	google.maps.event.addListener(map,'dblclick',function(event) {
+	google.maps.event.addListener(map, 'dblclick', function (event) {
 		map_dblclick(event.latLng);
 	});
-	google.maps.event.addListener(map,'mousemove',function(event) {
+	google.maps.event.addListener(map, 'mousemove', function (event) {
 		map_mousemove(event.latLng);
 	});
 	google.maps.event.addListener(map, 'bounds_changed', saveOptions)
@@ -186,17 +187,18 @@ function initMap(site) {
 	markers = [];
 	function applyFilter(item) {
 		filter = new SiteFilter(item).populate_form()
-		filter.apply((data)=>{
+		filter.apply((data) => {
 			setmarkers(data)
 			$('#site-count').html(data.features.length)
 		}, odmf_ref('/site/geojson'))
 	}
 	$('.filter').on('change', applyFilter)
 	$('#zoom-home').on('click', zoomToMarkers)
+	$('.zoom-marker').on('click', event => {
+		if (selected_marker) {
+			map.setCenter(selected_marker.getPosition());
+			map.setZoom(15);
+		}
+	})
 	applyFilter('site-filter')
-	if (!mapOptions ||!mapOptions.center) {
-		zoomToMarkers()
-	}
-	selectsite(localStorage.getItem('map-selected-site'))
-
 }
