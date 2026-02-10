@@ -26,7 +26,7 @@ going to add [log-entries](log) to sites
 
 [Valuetype](valuetype), [location](site) and [instrument/ data source](instrument) are described on their subpages.
 The level is a vertical offset of the given location, eg. if you have a soil moisture sensor profile in 10, 30 and 60 cm
-depth, tag the datasets with the levels in m below ground as -0.1, -0.3 and -0.6 respectively.
+depth, tag the datasets with the levels in m below ground as -0.1, -0.3 and -0.6 respectively (can be left empty).
 
 Please indicate the data quality as one of the possible values: 0: raw, 1: formal checked, 2: quality checked, 
 3: calibrated, 4: derived value
@@ -34,8 +34,9 @@ Please indicate the data quality as one of the possible values: 0: raw, 1: forma
 The start and end time is adjusted when adding records.
 
 The access level is used to prevent users of the database to see your data, if they are from another project or
-do not have enough privileges to see the data: 0: public dataset, 1: only known users and project members, 
-2: only users with editing privileges, 3: only employees and data managers, 4: only administrators 
+do not have enough privileges to see the data: 0: public dataset, 1: only known users and project members 
+(enter the project id of your project in the project field), 2: only users with editing privileges, 
+3: only employees and data managers, 4: only administrators.
 ODMF is not a repository - data in the database is not licenced to be used in any publication. 
 You must always contact the data owner prior to usage in a publication. It is best practice to publish data 
 in a repository like [zenodo.org](https://zenodo.org) and let your colleagues cite that data with a doi.
@@ -44,6 +45,8 @@ The filename should contain a link to where the raw data or information about ho
 a datalogger is stored in ODMF. The comment section can contain e.g. a device id of the data logger, the crop
 species which was sampled, links to a protocols how the measurements where taken, 
 important information how to use the data (e.g. to be aware of repeated measurements), ...
+
+If applicable, you can add a calibration regression by its offset and slope, otherwise keep the defaults.
 
 ## How many datasets do I need?
 
@@ -55,6 +58,6 @@ a different crop is grown,...).
 
 For adding one or few datasets, click the "new dataset" button on the !fa-clipboard page and enter the metadata.
 If you have many similar datasets, for example when the same measurement is taken at multiple sites, you can create
-an excel list of dataset info and import them. Export a dataset list to get a template. Delete the "id" column 
-as the ids will be given automatically. All other columns must be maintained and filled with default values.
-You can get more information about the format after clicking the "import datasets" button.
+an excel list of datasets import it. Export a dataset list to get a template. Delete the "id" column 
+as the ids will be given automatically. The columns measured_by, start, end, type, level and comment are optional.
+A table describing all columns of the dataset import excel sheet can be found by clicking "import datasets".
