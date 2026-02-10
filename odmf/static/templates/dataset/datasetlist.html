@@ -221,20 +221,25 @@
                     existing sites and valuetypes. The other columns are optional and can be used to store additional
                     information, but you are strongly encouraged theses columns. Export a dataset list to get a template
                     <ul class="mt-2">
-                        <li class="row border-bottom"><div class="col-2 mark">name</div><div class="col">the name of dataset, use for full text search</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">filename</div><div class="col">a reference to a file in the file manager</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">start</div><div class="col">date of first record, leave empty for today. Use YYYY-MM-DD format</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">end</div><div class="col">date of last record, leave empty for today. Use YYYY-MM-DD format</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">project</div><div class="col">references the project of the dataset</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">measured_by</div><div class="col">the user who is the author of the dataset, if missing, you become the author</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">access</div><div class="col">the access level - 0 for public, 1 for project members, 2 for project editors, 3 for priviledged project memebers and 4 for admins (project / or whole database)</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">quality</div><div class="col">references the quality level, 1 (default) for raw data, 4 for calibrated</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">level</div><div class="col">the vertical distance from the site in m, positive for upwards. Leave empty if it does not apply</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">source</div><div class="col">references the instrument id used, can be blank or an existing instrument</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">comment</div><div class="col">a text describing the dataset, you can use markdown</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">timezone</div><div class="col">the timezone for record timings. Any timezone string from pytz is allowed. Otherwise the configured default is used, eg. Europe/Berlin</div></li>
+                        <li class="row border-bottom"><div class="col-2 mark">id</div><div class="col">will be added automatically, delete the column from your template</div></li>
+			<li class="row border-bottom"><div class="col-2 mark">name</div><div class="col">the name of dataset, use for full text search</div></li>
+                        <li class="row border-bottom"><div class="col-2 mark">filename</div><div class="col">a reference to a file in the file manager (e.g. raw data) </div></li>
+                        <li class="row border-bottom"><div class="col-2 mark">start</div><div class="col">date of first record, leave empty for today. Use YYYY-MM-DD format. Optional.</div></li>
+                        <li class="row border-bottom"><div class="col-2 mark">end</div><div class="col">date of last record, leave empty for today. Use YYYY-MM-DD format. Optional.</div></li>
+			<li class="row border-bottom"><div class="col-2 mark">site</div><div class="col">id of site where the data was collected</div></li>
+			<li class="row border-bottom"><div class="col-2 mark">valuetype</div><div class="col">id of the valuetype</div></li>
+			<li class="row border-bottom"><div class="col-2 mark">measured_by</div><div class="col">ODMF user name of the author of the dataset, if missing, you become the author</div></li>
+			<li class="row border-bottom"><div class="col-2 mark">quality</div><div class="col">references the quality level, 1 (default) for raw data, 4 for calibrated</div></li>
+			<li class="row border-bottom"><div class="col-2 mark">source</div><div class="col">references the instrument id used, can be blank or an existing instrument</div></li>
+			<li class="row border-bottom"><div class="col-2 mark">access</div><div class="col">the access level - 0 for public, 1 for project members, 2 for project editors, 3 for priviledged project memebers and 4 for admins (project / or whole database)</div></li>
+			<li class="row border-bottom"><div class="col-2 mark">timezone</div><div class="col">the timezone for record timings. Any timezone string from pytz is allowed. Otherwise the configured default is used, eg. Europe/Berlin</div></li>
+                        <li class="row border-bottom"><div class="col-2 mark">project</div><div class="col">project id of the dataset</div></li>
                         <li class="row border-bottom"><div class="col-2 mark">calibration_offset</div><div class="col">the offset is added to the raw record value on output, default 0</div></li>
                         <li class="row border-bottom"><div class="col-2 mark">calibration_slope</div><div class="col">a factor multiplied with the raw record value on output, default 1</div></li>
+                        <li class="row border-bottom"><div class="col-2 mark">comment</div><div class="col">a text describing the dataset, you can use markdown</div></li>
+                        <li class="row border-bottom"><div class="col-2 mark">type</div><div class="col">e.g. timeseries. Optional.</div></li>
+                        <li class="row border-bottom"><div class="col-2 mark">level</div><div class="col">the vertical distance from the site in m, positive for upwards. Leave empty if it does not apply.</div></li>
+                        <li class="row border-bottom"><div class="col-2 mark">uses_dst</div><div class="col">default FALSE</div></li>
                     </ul>
                 </div>
                 <div py:if="not is_member(Level.supervisor)" class="alert alert-warning">
