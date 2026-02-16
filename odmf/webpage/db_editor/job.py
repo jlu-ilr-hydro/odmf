@@ -120,7 +120,7 @@ class JobPage:
                 db=db,
                 me=session.get(db.Person, web.user()),
                 username=users.current, now=datetime.now(),
-                persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname).all(),
+                persons=session.query(db.Person).order_by(db.Person.surname).all(),
                 jobtypes=session.query(db.Job.type).order_by(db.Job.type).distinct().all(),
                 my_jobs=session.query(db.Job).filter(db.Job._responsible == web.user(), ~db.Job.done).order_by(db.Job.due).all(),
                 my_jobs_author=session.query(db.Job).filter(db.Job._author == web.user(), ~db.Job.done).order_by(db.Job.due).all(),
