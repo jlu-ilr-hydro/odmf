@@ -103,7 +103,7 @@ def read_df_from_stream(filename: str, stream: typing.BinaryIO, lower_case_colum
     else:
         raise ObjectImportError(f'{filename} is not a supported file type')
     if lower_case_columns:
-        df.columns = [c.lower() for c in df.columns] 
+        df.columns = [c.lower() for c in df.columns]
     return df
 
 
@@ -273,10 +273,12 @@ def import_datasets_from_dataframe(session: db.orm.Session, df: pd.DataFrame, us
             check_fkey(session, df, c, errors, warnings)
         if c.default:
             check_column(df, c.name, c.default.arg, warnings)
+        if c.type.python_type == datetime:
+            if c.name in df.columns:
+                df[c.name] = pd.to_datetime(df[c.name], errors='coerce')
+            check_column(df, c.name, datetime.now(), warnings)
     
     # Set other useful defaults
-    check_column(df,'start', datetime.now(), warnings)
-    check_column(df,'end', datetime.now(), warnings)
     check_column(df,'type', 'timeseries', warnings)
     check_column(df, 'level', warnings=warnings)
     check_column(df, 'comment', warnings=warnings)

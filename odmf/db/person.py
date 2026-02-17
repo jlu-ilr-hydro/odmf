@@ -36,12 +36,12 @@ class Person(Base):
                     email=self.email,
                     firstname=self.firstname,
                     surname=self.surname,
-                    supervisor=str(self.supervisor),
-                    telephone=self.telephone,
-                    mobile=self.mobile,
                     comment=self.comment,
-                    car_available=self.car_available,
                     label="%s %s" % (self.firstname, self.surname),
+                    active=self.active,
+                    access_level=self.access_level,
+                    orcid=self.orcid,
+                    last_login=self.last_login
                     )
 
     def __lt__(self, other):
