@@ -61,7 +61,7 @@ class SitePage:
 
 
                 return web.render(
-                    'site/site.html', actualsite=actualsite,
+                    'site/site.html', actualsite=actualsite, siteid=siteid,
                     title='site',
                     datasets=datasets, icons=self.geticons(),
                     instruments=instruments, active=kwargs.get('active'),

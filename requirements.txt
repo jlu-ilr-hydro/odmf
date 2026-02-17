@@ -29,8 +29,7 @@ bleach>=3.1.0
 click>=7.0
 humanize
 # using plotly backend
-plotly
-kaleido
+plotly[kaleido]
 
 # file handlers
 mammoth   # converts docx files to html

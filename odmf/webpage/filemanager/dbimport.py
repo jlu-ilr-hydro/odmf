@@ -53,7 +53,7 @@ class DbImportPage:
         if error:
             raise web.redirect(path.parent().href, error=error)
         try:
-            li = importlog.LogbookImport(path.absolute, web.user())
+            li = importlog.LogbookImport(path.absolute, web.user(), sheetname=kwargs.get('sheet', 0))
             logs, cancommit = li('commit' in kwargs)
         except importlog.LogImportError as e:
             raise web.redirect(path.href, error=str(e))
@@ -166,7 +166,72 @@ class DbImportPage:
                 info_dict=info,
                 errors=errors
             ).render()
+    
+    @expose_for(Level.editor)
+    def record(self, filename, **kwargs):
+        """
+        Imports records from a file and shows the result. On POST, imports the data to the database
+        """
+        import re
+        path = Path(filename.strip('/'))
+        errors = []
+        if error:=di.checkimport(path):
+            errors.append(error)
+        
+        # - Load df from parquet, csv or excel
+        if re.match(r'.*\.parquet$', path.name, re.IGNORECASE):
+            df = pd.read_parquet(path.absolute)
+        elif re.match(r'.*\.xls.?$', path.name, re.IGNORECASE):
+            df = pd.read_excel(path.absolute, sheet_name=kwargs.get('sheet',0))
+        elif re.match(r'.*\.[ct]sv$', path.name, re.IGNORECASE):
+            df = pd.read_csv(path.absolute, sep=None, engine='python')
+        
+        df.columns = df.columns.str.lower()
 
+        # - check columns, remove nan
+        if not all(c in df.columns.str.lower() for c in 'time|dataset|value'.split('|')):
+            errors.append('File must contain at least the columns time, dataset and value')
+        else:
+            df = df[~(pd.isna(df['time']) | pd.isna(df['value']) | pd.isna(df['dataset']))]
+            # - count all records per datasets and show value ranges
+            df_agg = df.groupby('dataset').agg({'value': ['count', 'min', 'mean', 'max'],'time': ['min', 'max']})
+            # - load all unique datasets
+            with db.session_scope() as session:
+                sql = db.sql.select(db.Dataset).where(db.Dataset.id.in_(df_agg.index))
+                datasets = {
+                    ds.id: ds 
+                    for ds, in session.execute(sql)
+                }
+                dataset_description = {
+                    ds_id: f'n: {row[("value", "count")]}, value: {row[("value", "min")]:04g}..{row[("value", "max")]:0.4g} {datasets[ds_id].valuetype.unit}, time: {row[("time", "min")]:%Y-%m-%d}..{row[("time", "max")]:%Y-%m-%d}'
+                    for ds_id, row in df_agg.iterrows()
+                    if ds_id in datasets
+                }
+                for ds_id in df_agg.index:
+                    if ds_id not in datasets:
+                        errors.append(f'Dataset {ds_id} not found in database')
+        
+                # - on GET, show datasets with their info
+                if cherrypy.request.method == 'GET':
+                    return web.render(
+                        'import/recordimport.html',
+                        error= '\n'.join(errors),
+                        filename=path,
+                        datasets=datasets,
+                        dataset_description=dataset_description,
+                        can_commit=not errors
+                    ).render()
+                
+                # - on POST, import data to db and redirect to dataset page
+                elif cherrypy.request.method == 'POST':
+                    from odmf.dataimport.parquet_import import addrecords_dataframe
+                    try:
+                        ds_ids, n_records = addrecords_dataframe(df)
+                    except Exception as e:
+                        raise web.redirect(path.href, error=str(e))
+                    else:
+                        di.savetoimports(path.absolute, web.user(), ds_ids)
+                        raise web.redirect(path.parent().href, msg=f'File import successful: added {n_records} records in {len(ds_ids)} datasets')
 
 
 
