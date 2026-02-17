@@ -8,14 +8,14 @@
     [TOC]
 
 Analysis carried out in a lab usually result in Excel files with a somewhat encoded sample name with multiple values per sample. If multiple values for the same dataset and the same time exist, this method is building the mean value
-The samples in one batch can origin from multiple sites. Such files can be described with `.labimport` file. This import 
+The samples in one batch can origin from multiple sites. Such files can be described with `.labimport` file, that follow the [YAML](https://yaml.org/) format. This import 
 is ment for rather small datafiles, like a couple of hundred rows, as it is rather slow. 
 
 
 
 The `.labimport` file consists of two main parts: 
 1. The description of the **file format** eg. how to interprete the file as a table
-2. the description of each column. For each value in the table a fitting dataset **must** exist. 
+2. the description of **each column**. For each value in the table a fitting **dataset must exist**. 
    If you create new datasets, the start and end must be set to a timerange inside the time range covered by the data.
 
 Creating a `.labimport` file is difficult and should be mentored by a person with programming experience.
@@ -60,7 +60,8 @@ records.
 
 ## columns
 
-Each column is addressed by its name or by postion. The columns are treated differently by its type.
+Each column is addressed by its name or by postion. The columns are treated differently by its type. The data file can contain more columns than
+specified in the .labimport file, which will be ignored during the import.
 
 ### type: value
 
@@ -90,7 +91,7 @@ A column indicating the level (eg. depth) of a sampling. If the dataset is given
 
 ### type: sample [optional]
 
-This is a very complex type and can be used to derive metadata like site, time, depth from a sample name (this is called parsing). 
+This is a very complex type and can be used to derive metadata like site, time, level from a sample name (this is called parsing). 
 If additional columns for this information exists already, use the type `samplename`, then no parsing takes place and the
 name is only copied. This is not easy - if you are no programmer, you might need help from someone with programming knowledge
 
@@ -132,6 +133,16 @@ If additional markers are needed, please [post an issue in github](https://githu
 #### NOTE: Not implemented yet, do not use
 
 If the samples have been diluted, the row-factor in this column can be used to scale all values in that row. 
+
+## steps towards the import
+
+Upload your data to a folder within the downloads section of ODMF. Only data that can be imported with the same .labimport
+file can be in the same folder. Create the labimport file according to the examples below and the information above in an IDE 
+(e.g. visual studio code with YAMl plugin) or text editor (e.g. notepad) and save it with the extension .labimport 
+(select all files as type and enter something.labimport as filename). Upload the labimport file into the same folder 
+(or a higher order folder) as your data. Click the data file in ODMF and click the "lab" button on the top right. 
+If unexpected errors or warnings are displayed or you are unsure whether you did everything correctly, contact an experience person, 
+because after import errors are difficult to correct. When you are sure that everything is fine, click the import button.
 
 # Example 1
 
