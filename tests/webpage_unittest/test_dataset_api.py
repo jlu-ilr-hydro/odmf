@@ -152,7 +152,7 @@ class TestDatasetAPI:
 
     def test_end_times(self, apilogin, timeseries):
         res = response_to_json(apilogin.dataset.end_times(datasets='1'))
-        assert len(res) == 3, f'Expected 3 entries, ds:1, min, max. Got {len(res)}'
+        assert len(res) == 4, f'Expected 4 entries, ds:1, min, max, missing Got {len(res)}'
         assert res['ds:1'] == timeseries.end.isoformat()
         assert res['ds:1'] == res['min'] == res['max']
 
