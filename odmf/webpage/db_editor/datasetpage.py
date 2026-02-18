@@ -51,8 +51,9 @@ class DatasetPage:
 
             if not ds:
                 dsid=db.newid(db.Dataset, session)
-                ds = db.Timeseries(
+                ds = db.Dataset(
                     id=dsid,
+                    type=kwargs.get('type', 'timeseries'),
                     name='New Dataset',
                     access=Level.admin,
                     timezone=conf.datetime_default_timezone,
