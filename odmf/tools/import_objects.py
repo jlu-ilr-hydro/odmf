@@ -114,12 +114,12 @@ def import_sites_from_stream(session: db.orm.Session, filename: str, stream: typ
     if filename.endswith('.geojson'):
         df = gpd.read_file(stream)
         df.columns = [c.lower() for c in df.columns] 
-        with warnings.catch_warnings():
-            df['centroid'] = df.geometry.centroid.to_crs(epsg=4326)
-        df = df.to_crs(epsg=4326)
+        df = df.to_crs('+proj=cea')
+        df['centroid'] = df.geometry.centroid
         if 'lat' not in df.columns or 'lon' not in df.columns:
-            df['lon'] = df.centroid.x
-            df['lat'] = df.centroid.y
+            df['lon'] = df.centroid.to_crs(epsg=4326).x
+            df['lat'] = df.centroid.to_crs(epsg=4326).y
+        df = df.to_crs(epsg=4326)
     else:
         df = read_df_from_stream(filename, stream, lower_case_columns=True)
 
@@ -277,7 +277,7 @@ def import_datasets_from_dataframe(session: db.orm.Session, df: pd.DataFrame, us
             if c.name in df.columns:
                 df[c.name] = pd.to_datetime(df[c.name], errors='coerce')
             check_column(df, c.name, datetime.now(), warnings)
-    
+
     # Set other useful defaults
     check_column(df,'type', 'timeseries', warnings)
     check_column(df, 'level', warnings=warnings)

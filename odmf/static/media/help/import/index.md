@@ -4,14 +4,16 @@ There are several ways to get data into the structured timeseries system.
 
 - **Direct input** (for a single record)
 - Import a list of records from an excel file with a special structure (so called **log import**) into exisiting datasets
-- Import a raw csv or excel file from a logger or other measurement intstrument using an extra file to describe the file organization (so called .conf-file, the **conf-import**)
+- Import a raw csv or excel file for one site from a logger or other measurement instrument using an extra file to describe the file organization: so called .conf-file, the **conf-import**
+- Import a csv or excel file with few (<1000) records for several sites (e.g.result lab analysis or handheld sensor measurements): so called .labimport file, the **lab-import**
 - You want to write a python script to upload data automatically, use the [odmfclient](https://github.com/jlu-ilr-hydro/odmfclient)
 
 ## Which method is the right for me?
 
 The methods are described in detail below.
 
-### For manual measurements:
+### For manual measurements
+
 If you need to write down a single record (or very few) and you have online access, use **direct input**. 
 If you have a field computer but no online access, note your records in an excel sheet with a special structure, to use 
 help:import/log.
@@ -29,6 +31,18 @@ dataframe directly to the ODMF database via the **API** using the
 Python package
 [odmfclient](https://github.com/jlu-ilr-hydro/odmfclient)
 [![PyPI](https://img.shields.io/pypi/v/odmfclient?logo=pypi)](https://pypi.org/project/odmfclient/)
+
+### For measurements recorded for several sites within the same table (e.g. excel output of lab anayser)
+
+If you have the possibility to define the structure of the table in the simple way required by the **log import**,
+you can use this. If you have a different structure and/or a combined column for site/date/level, the **lab import**
+can be a good choice.
+
+## What do I need to do before I can import data?
+
+Make sure that all sites (help: datasets/site), at which you recorded your data, all valuetypes (help: datasets/valuetype) 
+you recorded, all instruments you used (help: datasets/instrument), and (for direct import, log-import and lab-import), 
+the corresponding dataset (help: datasets) have been created in ODMF.
 
 # Direct import
 
