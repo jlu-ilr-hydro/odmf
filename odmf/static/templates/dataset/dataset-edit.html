@@ -24,7 +24,7 @@
     <py:block name="sidebar">
         <!-- insert sidebar content -->
         <div class="nav d-flex justify-content-center border p-1 mb-2">
-            <div class="nav-item mb-2">
+            <div class="nav-item me-2">
                 <div class="btn-group" role="group">
                     <a href="../${ds_act.id - 1}" class="btn btn-secondary me-1" py:attrs="disabled(ds_act.id == 1)"
                         data-bs-toggle="tooltip" title="dataset:${ds_act.id - 1}">
@@ -40,13 +40,11 @@
                 </div>
             </div>
             <div class="nav-item">
-                <div class="input-group ">
-                    <div class="input-group-text">
-                        <button class="btn btn-secondary" id="gotods-btn">
-                            <i class="fas fa-rocket" />
-                        </button>
-                    </div>
-                    <input class="form-control" type="text" id="goto" tabindex="1" placeholder="goto dataset-id"
+                <div class="input-group">
+                    <button class="btn btn-secondary" id="gotods-btn">
+                        <i class="fas fa-rocket" />
+                    </button>
+                    <input class="form-control" type="text" id="goto" tabindex="1" placeholder="goto" size="10"
                         title="Go directly to a dataset by entering the id" data-bs-toggle="tooltip" />
                 </div>
 
@@ -147,6 +145,10 @@
             <div id="tab-row" class="tab-content row w-100 mt-2">
                 <div id="description" class="tab-pane mx-auto ${class_if(ds_act.is_defined(), 'active')}"
                     role="tabpanel">
+                    <a py:if="ds_act.is_filedataset() and ds_act.path" class="btn btn-outline-primary mb-2" href="${ds_act.path.href}" >
+                        <i class="fas fa-file me-1" />
+                        open ${ds_act.path.basename}
+                    </a>
                     <table class="table mx-auto">
                         <tr>
                             <td class="bold">Project:</td>
