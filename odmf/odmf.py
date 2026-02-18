@@ -43,6 +43,7 @@ def start(workdir, autoreload: bool, browser: bool):
 
 
 @cli.command()
+@click.argument('workdir', default='.')
 @click.argument('db_url')
 @click.option('--port', default=8080, type=int, envvar='ODMF_PORT',
               help='Port to run the standalone server')
@@ -50,7 +51,7 @@ def start(workdir, autoreload: bool, browser: bool):
               help='URL of the root')
 @click.option('--default_timezone', default='Europe/Berlin', envvar='ODMF_DEFAULT_TIMEZONE',
               help='Default timezone for all dates')
-def configure(db_url, port, root_url, default_timezone):
+def configure(workdir, db_url, port, root_url, default_timezone):
     """
     Creates a new configuraton file (./config.yml) using the given database url and a port to run the server on
 
@@ -66,7 +67,7 @@ def configure(db_url, port, root_url, default_timezone):
             Access to a database over a network works generally like this:
             - postgresql://odmf-NAME:ThePassword@example.com:5432/odmf-NAME
     """
-
+    os.chdir(workdir)
     from odmf.config import conf
     conf.database_url = db_url
     conf.server_port = port
@@ -82,23 +83,27 @@ def configure(db_url, port, root_url, default_timezone):
 
 
 @cli.command()
+@click.argument('workdir', default='.')
 @click.option('--admin-pw', '-p', envvar='ODMF_ADMIN_PW', help='Password of the new odmf.admin')
 @click.option('--db_waittime', '-t', envvar='ODMF_DB_WAITTIME', type=float, default=20,
               help='Seconds to wait for the database')
-def db_create(admin_pw, db_waittime):
+def db_create(workdir, admin_pw, db_waittime):
     """
     Creates in the database: all tables, a user odmf.admin
     and fills the data-quality table with some usable input
     """
+    os.chdir(workdir)
     from .tools import create_db as cdb
     cdb.init_db(admin_pw, db_waittime)
 
 
 @cli.command()
-def db_test():
+@click.argument('workdir', default='.')
+def db_test(workdir):
     """
     Tests if the system can be connected to the database
     """
+    os.chdir(workdir)
     from . import db
     import sqlalchemy.orm as orm
     with db.session_scope() as session:
@@ -117,27 +122,33 @@ def db_test():
 
 
 @cli.command()
-def db_tables():
+@click.argument('workdir', default='.')
+@click.argument('workdir', default='.')
+def db_tables(workdir):
     """
     Returns the tables in the ORM system as a space seperated list
     """
-
+    os.chdir(workdir)
     from . import db
     print(' '.join(db.Base.metadata.tables))
 
 
 @cli.command()
-def test_config():
+@click.argument('workdir', default='.')
+def test_config(workdir):
     """
     Tests the configuration and prints it, if it works
     """
+    os.chdir(workdir)
     from .config import conf
     conf.to_yaml()
 
 
 
 @cli.command()
-def test_static():
+@click.argument('workdir', default='.')
+def test_static(workdir):
+    os.chdir(workdir)
     from pathlib import Path
     from .config import conf
     candidates = Path(sys.prefix), Path(__file__).parents[2], Path(conf.static)
@@ -155,12 +166,14 @@ def test_static():
 
 
 @cli.command()
+@click.argument('workdir', default='.')
 @click.option('--only_navigatable/--any', '-n', default=False)
 @click.option('--level', '-l', type=int, help='Admission level (0-4)', default=0)
-def uri_tree(only_navigatable, level):
+def uri_tree(workdir, only_navigatable, level):
     """
     Prints the tree of available resources of odmf
     """
+    os.chdir(workdir)
     import yaml
     from .webpage.root import Root
     from .webpage.lib import Resource
@@ -170,12 +183,13 @@ def uri_tree(only_navigatable, level):
     for r in res.walk():
         print(f'{r.uri}: {r.doc}')
 
-
 @cli.command()
-def interactive():
+@click.argument('workdir', default='.')
+def interactive(workdir):
     """
     Launches an IPython shell with odmf related symbols. Needs IPython
     """
+    os.chdir(workdir)
     from textwrap import dedent
     from IPython import start_ipython
     # https://stackoverflow.com/a/36699427/3032680
