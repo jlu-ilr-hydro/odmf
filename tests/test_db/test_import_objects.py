@@ -161,7 +161,8 @@ def dataset_table():
 dataset_table_params = (
     [[fmt, []] for fmt in fmts[:-1]] +
     [[fmt, ['id']] for fmt in fmts[:-1]] +
-    [[fmt, ['start', 'end']] for fmt in fmts[:-1]]
+    [[fmt, ['start', 'end']] for fmt in fmts[:-1]] +
+    [[fmt, [ 'source', 'project', 'quality']] for fmt in fmts[:-1]]
 )
 
 @pytest.fixture
