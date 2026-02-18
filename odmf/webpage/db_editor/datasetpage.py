@@ -363,7 +363,7 @@ class DatasetPage:
                 source = session.get(db.Datasource, int(instrument))
             datasets = datasets.filter_by(source=source)
         if dstype:
-            datasets = datasets.filter_by(type=type)
+            datasets = datasets.filter_by(type=dstype)
         if level is not None:
             datasets = datasets.filter_by(level=level)
         if onlyaccess:

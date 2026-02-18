@@ -41,7 +41,7 @@
             </div>
             <div class="nav-item">
                 <div class="input-group ">
-                    <div class="input-group-prepend">
+                    <div class="input-group-text">
                         <button class="btn btn-secondary" id="gotods-btn">
                             <i class="fas fa-rocket" />
                         </button>
@@ -64,7 +64,8 @@
                     transforms
                 </a>
                 <a id="plot-tab" class="nav-link flexbox border-top" data-bs-toggle="pill"
-                    py:if="access(Level.guest) and ds_act.is_defined() and not ds_act.is_filedataset()" href="#plot">plot
+                    py:if="access(Level.guest) and ds_act.is_defined() and not ds_act.is_filedataset()"
+                    href="#plot">plot
                 </a>
                 <a id="records-tab" class="nav-link flexbox border-top" data-bs-toggle="pill"
                     py:if="access(Level.editor) and ds_act.is_timeseries()" href="#records">
@@ -98,7 +99,8 @@
                         py:if="ds_act" py:with="n=ds_act.size()">
                         <div class="col-sm row">
                             <h2 class="display-3 col-sm"><i class="fas ${type.get(ds_act.type, 'fa-question')} me-2" />
-                                <span id="dsid" py:content="ds_act.id" /></h2>
+                                <span id="dsid" py:content="ds_act.id" />
+                            </h2>
                             <div class="col-sm">
                                 <div class="badge bg-info text-bg-info "
                                     py:content="ds_act.get_access_level(users.current).name" />
@@ -258,58 +260,30 @@
                                         value="${ds_act.name}" />
                                 </div>
                                 <div class="form-group col-lg">
+                                    <label for="measured_by"><i class="fas fa-user fa-lg me-1"></i>Measured by:</label>
+                                    <select class="select2 border-0" id="measured_by" name="measured_by"
+                                        py:attrs="disabled(not access(Level.admin))">
+                                        <option value="" disabled="disabled">Please select...</option>
+                                        <option py:for="p in persons" py:attrs="markoption(p is ds_act.measured_by)"
+                                            py:content="p" value="${p.username}" />
+                                    </select>
 
-                                    <label for="measured_by">Measured by:</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <a class="btn btn-outline-secondary"
-                                                href="${conf.root_url}/user/${ds_act.measured_by.username}"
-                                                title="Edit ${ds_act.measured_by.username}" data-bs-toggle="tooltip">
-                                                <i class="fas fa-user" />
-                                            </a>
-                                            <a class="btn btn-outline-secondary" href="${conf.root_url}/user/new"
-                                                title="Add a new person" data-bs-toggle="tooltip">
-                                                <i class="fas fa-plus" />
-                                            </a>
-                                        </div>
-                                        <select class="form-control select2 border-secondary" id="measured_by"
-                                            name="measured_by" py:attrs="disabled(not access(Level.admin))">
-                                            <option value="" disabled="disabled">Please select...</option>
-                                            <option py:for="p in persons" py:attrs="markoption(p is ds_act.measured_by)"
-                                                py:content="p" value="${p.username}" />
-                                        </select>
-                                    </div>
                                 </div>
                                 <div class="form-group col-lg">
-                                    <label for="valuetype">Value type:</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <a class="btn btn-outline-secondary"
-                                                href="${conf.root_url}/valuetype/${ds_act.valuetype.id if ds_act.valuetype else ''}"
-                                                title="Edit ${ds_act.valuetype}" data-bs-toggle="tooltip">
-                                                <i class="fas fa-ruler" />
-                                            </a>
-                                            <a class="btn btn-outline-secondary" href="${conf.root_url}/valuetype/new"
-                                                title="Add a new valuetype" data-bs-toggle="tooltip">
-                                                <i class="fas fa-plus" />
-                                            </a>
-                                        </div>
-                                        <select class="form-control select2 border-secondary" id="valuetype"
-                                            name="valuetype">
-                                            <option value="" disabled="disabled">Please select...</option>
-                                            <option py:for="vt in valuetypes"
-                                                py:attrs="markoption(vt is ds_act.valuetype)" py:content="vt"
-                                                value="${vt.id}" />
-                                        </select>
-
-                                    </div>
-
+                                    <label for="valuetype"><i class="fas fa-ruler fa-lg me-1"></i>Value type:</label>
+                                    <select class="form-control select2 border-secondary" id="valuetype"
+                                        name="valuetype">
+                                        <option value="" disabled="disabled">Please select...</option>
+                                        <option py:for="vt in valuetypes"
+                                            py:attrs="markoption(vt is ds_act.valuetype)" py:content="vt"
+                                            value="${vt.id}" />
+                                    </select>
                                 </div>
                             </div>
                             <div id="edit-project-site-level" class="form-row">
                                 <div class="form-group col-lg">
                                     <label for="project">
-                                        Project
+                                        <i class="fas fa-people-roof fa-lg me-1"></i>Project
                                     </label>
                                     <select py:attrs="disabled(not access(Level.admin))" id="project" name="project"
                                         class="form-control">
@@ -321,25 +295,12 @@
                                 </div>
 
                                 <div class="form-group col-lg">
-                                    <label for="site">Site:</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <a class="btn btn-outline-secondary"
-                                                href="${conf.url('/site/',ds_act.site.id if ds_act.site else '')}"
-                                                title="Edit ${ds_act.site}" data-bs-toggle="tooltip">
-                                                <i class="fas fa-map-marker-alt" />
-                                            </a>
-                                            <a class="btn btn-outline-secondary" href="${conf.root_url}/site/new"
-                                                title="Add a new site" data-bs-toggle="tooltip">
-                                                <i class="fas fa-plus" />
-                                            </a>
-                                        </div>
-                                        <select id="site" name="site" class="form-control border-secondary select2">
-                                            <option value="" disabled="disabled">Please select...</option>
-                                            <option py:for="s in sites" py:attrs="markoption(s is ds_act.site)"
-                                                py:content="s" value="${s.id}" />
-                                        </select>
-                                    </div>
+                                    <label for="site"><i class="fas fa-map-marker-alt fa-lg me-1"></i>Site:</label>
+                                    <select id="site" name="site" class="form-control border-secondary select2">
+                                        <option value="" disabled="disabled">Please select...</option>
+                                        <option py:for="s in sites" py:attrs="markoption(s is ds_act.site)"
+                                            py:content="s" value="${s.id}" />
+                                    </select>
                                 </div>
                                 <div class="form-group col-lg">
                                     <label for="level" data-bs-toggle="tooltip"
@@ -360,31 +321,18 @@
                                     </select>
                                 </div>
                                 <div class="form-group col-lg">
-                                    <label for="source">Data source (eg. instrument):</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <a class="btn btn-outline-secondary"
-                                                href="${conf.root_url}/instrument/${ds_act.source.id if ds_act.source else ''}"
-                                                title="Edit ${ds_act.source}" data-bs-toggle="tooltip">
-                                                <i class="fas fa-thermometer-half" />
-                                            </a>
-                                            <a class="btn btn-outline-secondary" href="${conf.root_url}/instrument/new"
-                                                title="Add a new instrument" data-bs-toggle="tooltip">
-                                                <i class="fas fa-plus" />
-                                            </a>
-                                        </div>
-
-                                        <select id="source" name="source" class="form-control select2 border-secondary">
-                                            <option value="" disabled="disabled">Please select...</option>
-                                            <option py:for="datasource in datasources"
-                                                py:attrs="markoption(datasource is ds_act.source)"
-                                                py:content="datasource" value="${datasource.id}" />
-                                        </select>
-                                    </div>
+                                    <label for="source"><i class="fas fa-thermometer-half fa-lg me-1"></i>Data source (eg. instrument):</label>
+                                    <select id="source" name="source" class="form-control select2 border-secondary">
+                                        <option value="" disabled="disabled">Please select...</option>
+                                        <option py:for="datasource in datasources"
+                                            py:attrs="markoption(datasource is ds_act.source)"
+                                            py:content="datasource" value="${datasource.id}" />
+                                    </select>
                                 </div>
                                 <div class="form-group col-lg">
                                     <label for="access" data-bs-toggle="tooltip"
                                         title="Select the user level needed to see the content of the dataset. Default is logged in user">
+                                        <i class="fas fa-key fa-lg me-1"/>
                                         User level
                                     </label>
                                     <select id="access" name="access" class="form-control">
@@ -436,13 +384,13 @@
                                             href="${conf.root_url}/dataset/calibration?targetid=${ds_act.id}">Calibration</a>:
                                     </label>
                                     <div class="input-group">
-                                        <div class="input-group-prepend">
+                                        <div class="input-group-text">
                                             <span class="input-group-text">$~x\prime = ~$</span>
                                         </div>
                                         <input class="form-control" type="text"
                                             value="${formatfloat(ds_act.calibration_slope)}" id="calibration_slope"
                                             name="calibration_slope" size="5" style="text-align: right;" />
-                                        <div class="input-group-prepend">
+                                        <div class="input-group-text">
                                             <span class="input-group-text">$~\cdot\ x\ +\ ~$</span>
                                         </div>
 
@@ -458,7 +406,7 @@
                                     title="Please enter a valid Python/numpy expression for the transformation. See below for guidance">
                                     <label for="expression">Python:</label>
                                     <div class="input-group">
-                                        <div class="input-group-prepend">
+                                        <div class="input-group-text">
                                             <span class="input-group-text">
                                                 $~f(x)=~$
                                             </span>
@@ -471,7 +419,7 @@
                                     title="Please enter the latex description for the formula for printing">
                                     <label for="latex">Latex:</label>
                                     <div class="input-group">
-                                        <div class="input-group-prepend">
+                                        <div class="input-group-text">
                                             <span class="input-group-text">
                                                 $~f(x)=~$
                                             </span>
@@ -592,12 +540,12 @@
                         </li>
                     </ul>
                 </div>
-                <div id="plot" class="tab-pane w-100 me-4" role="tabpanel" 
+                <div id="plot" class="tab-pane w-100 me-4" role="tabpanel"
                     py:if="users.current.level>=ds_act.access and not ds_act.is_filedataset()">
                     <div class="container mx-auto">
                         <div class="row">
                             <div class="col-xl input-group mb-1">
-                                <div class="input-group-prepend">
+                                <div class="input-group-text">
                                     <span class="input-group-text">from:</span>
                                 </div>
                                 <input type="date" class="form-control" id="plotstart" size="10"
@@ -606,7 +554,7 @@
                                     value="${formatdate(ds_act.start, '%H:%M')}" />
                             </div>
                             <div class="col-xl input-group mb-1">
-                                <div class="input-group-prepend">
+                                <div class="input-group-text">
                                     <span class="input-group-text">until:</span>
                                 </div>
                                 <input type="date" class="form-control" id="plotend" size="10"
@@ -618,7 +566,7 @@
                         </div>
                         <div class="row">
                             <div class="col-lg input-group mb-1">
-                                <div class="input-group-prepend">
+                                <div class="input-group-text">
                                     <span class="input-group-text">marker:</span>
                                 </div>
 
@@ -631,7 +579,7 @@
                                     <option value="+">+</option>
                                     <option value="*">*</option>
                                 </select>
-                                <div class="input-group-prepend">
+                                <div class="input-group-text">
                                     <span class="input-group-text">line:</span>
                                 </div>
                                 <select id="linepicker" class="form-control">
@@ -641,7 +589,7 @@
                                     <option value="--">--</option>
                                     <option value="-.">-.</option>
                                 </select>
-                                <div class="input-group-prepend">
+                                <div class="input-group-text">
                                     <span class="input-group-text">color:</span>
                                 </div>
                                 <select id="colorpicker" class="form-control">
@@ -714,7 +662,7 @@
                                 records</button>
                         </div>
                         <div class="col-sm input-group" title="limit the number of records" data-bs-toggle="tooltip">
-                            <div class="input-group-prepend">
+                            <div class="input-group-text">
                                 <span class="input-group-text">
                                     limit:
                                 </span>
@@ -728,7 +676,7 @@
                     </div>
                     <div class="alert alert primary collapse w-100" id="filter">
                         <div class="input-group mb-1">
-                            <div class="input-group-prepend">
+                            <div class="input-group-text">
                                 <span class="input-group-text">from:</span>
                             </div>
                             <input type="date" class="form-control" id="recordmindate" size="10"
@@ -737,7 +685,7 @@
                                 value="${formatdate(ds_act.start, '%H:%M')}" />
                         </div>
                         <div class="input-group mb-1">
-                            <div class="input-group-prepend">
+                            <div class="input-group-text">
                                 <span class="input-group-text">until:</span>
                             </div>
                             <input type="date" class="form-control" id="recordmaxdate" size="10"
@@ -746,7 +694,7 @@
                                 value="${formatdate(ds_act.end, '%H:%M')}" />
                         </div>
                         <div class="input-group mb-1">
-                            <div class="input-group-prepend">
+                            <div class="input-group-text">
                                 <span class="input-group-text" title="filter records that are in the given range"
                                     data-bs-toggle="tooltip">range</span>
                             </div>
@@ -759,7 +707,7 @@
 
                         </div>
                         <div class="input-group mb-1">
-                            <div class="input-group-prepend">
+                            <div class="input-group-text">
                                 <span class="input-group-text">use jump size</span>
                                 <span class="input-group-text">
                                     <input type="checkbox" id="splitUseThreshold" />
@@ -905,7 +853,8 @@
                         </div>
                     </div>
                 </div>
-                <div id="alarms" class="tab-pane" role="tabpanel" py:if="access(Level.editor) and ds_act.is_timeseries()">
+                <div id="alarms" class="tab-pane" role="tabpanel"
+                    py:if="access(Level.editor) and ds_act.is_timeseries()">
                     <div class="container">
                         <h3>Alarms</h3>
                         <div class="mb-22">Alarms can be used to sent messages automatically to topics on recent events
