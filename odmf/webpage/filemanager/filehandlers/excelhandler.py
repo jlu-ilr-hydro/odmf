@@ -15,7 +15,7 @@ class ExcelFileHandler(BaseFileHandler):
             buttons = []
             active_sheet = kwargs.get('sheet', xls.sheet_names[0])
             for sheet_name in xls.sheet_names:
-                href = conf.url(path.href, sheet=sheet_name)
+                href = f'{path.href}?sheet={sheet_name}'
                 buttons.append(Button(href=href, label=sheet_name, icon='table', title=f'View sheet {sheet_name}', active=(sheet_name == active_sheet)))
             
             buttons_html = Button.render_buttons(buttons)
