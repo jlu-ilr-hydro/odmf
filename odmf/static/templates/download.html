@@ -53,38 +53,38 @@
                     $('.upload').prop('disabled', !$(this).val());
                 });
 
-                $('.help').on('click', function () {
-                    $('#help-edit').collapse('show');
+                $('.readme').on('click', function () {
+                    $('#readme-edit').collapse('show');
                 });
 
-                $('#help').load(odmf_ref('/download/getindex?dir=${curdir}'));
+                $('#readme').load(odmf_ref('/download/getindex?dir=${curdir}'));
 
-                $('#help-edit').on('show.bs.collapse', function () {
+                $('#readme-edit').on('show.bs.collapse', function () {
                     // Load current file in textarea
                     $.get({
                         url: '${curdir.raw_url}/.readme.md',
                         cache: false
                     }).then(function (text) {
-                        $('#help-edit textarea').val(text);
+                        $('#readme-edit textarea').val(text);
                     });
-                    $('#help-edit-save').prop('disabled', !${ bool2js(is_member('editor'))});
+                    $('#readme-edit-save').prop('disabled', !${ bool2js(is_member('editor'))});
                 // Save file on click
             });
-            $('#help-edit-save').on('click', function () {
-                var text = $('#help-edit textarea').val();
+            $('#readme-edit-save').on('click', function () {
+                var text = $('#readme-edit textarea').val();
                 $.post(
                     odmf_ref('/download/saveindex/'),
                     { dir: '${curdir}', s: text },
                     function (text) {
-                        $('#help').load(odmf_ref('/download/getindex?dir=${curdir}'));
-                        $('#help-edit').collapse('hide');
+                        $('#readme').load(odmf_ref('/download/getindex?dir=${curdir}'));
+                        $('#readme-edit').collapse('hide');
                     }
                 );
 
             });
-            $('#help-edit-cancel').on('click', function () {
-                $('#help').load(odmf_ref('/download/getindex?dir=${curdir}'));
-                $('#help-edit').collapse('hide');
+            $('#readme-edit-cancel').on('click', function () {
+                $('#readme').load(odmf_ref('/download/getindex?dir=${curdir}'));
+                $('#readme-edit').collapse('hide');
             });
 
             $('#hiddenFiles').on('change', () => {
@@ -105,7 +105,7 @@
                 text-decoration: none;
             }
 
-            #help textarea {
+            #readme textarea {
                 width: 100%;
                 font-family: monospace;
                 cursor: auto;
@@ -471,29 +471,29 @@
                     </div>
                 </div>
                 <div id="info-box-right-side" class="col-xl">
-                    <div class="card help">
+                    <div class="card readme">
                         <div class="card-header">
                             <h3 class="card-title flexbox">
                                 <span>
                                     <i class="fas fa-info-circle fa-lg" />
                                     ${curdir.basename.title()}
                                 </span>
-                                <a href="#help-edit" data-bs-toggle="collapse" class="btn btn-secondary help">
+                                <a href="#readme-edit" data-bs-toggle="collapse" class="btn btn-secondary readme">
                                     <i class="fas fa-edit" title="Click to edit..." data-bs-toggle="tooltip" />
                                 </a>
                             </h3>
                             <div py:content="markdown('folder created by user:' + str(owner))" />
 
                         </div>
-                        <div id="help" class="card-body  card-text" />
-                        <div id="help-edit" class="card-footer collapse">
+                        <div id="readme" class="card-body card-text" />
+                        <div id="readme-edit" class="card-footer collapse">
                             <textarea rows="20" class="form-control" />
                             <br />
-                            <button id="help-edit-save" class="btn btn-success me-1">
+                            <button id="readme-edit-save" class="btn btn-success me-1">
                                 <i class="fas fa-check me-1" />
                                 save
                             </button>
-                            <button id="help-edit-cancel" class="btn btn-secondary me-1">
+                            <button id="readme-edit-cancel" class="btn btn-secondary me-1">
                                 <i class="fas fa-times-circle me-1" />
                                 cancel
                             </button>
