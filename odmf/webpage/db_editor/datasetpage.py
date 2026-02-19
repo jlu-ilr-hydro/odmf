@@ -14,7 +14,7 @@ import codecs
 from ...db.calibration import Calibration, CalibrationSource
 from ...config import conf
 from pathlib import Path
-from ...tools import import_objects as impo
+from ...tools import import_objects as impo, Path as OPath
 from pytz import common_timezones
 import cherrypy
 import pandas as pd
@@ -51,8 +51,9 @@ class DatasetPage:
 
             if not ds:
                 dsid=db.newid(db.Dataset, session)
-                ds = db.Timeseries(
+                ds = db.Dataset(
                     id=dsid,
+                    type=kwargs.get('type', 'timeseries'),
                     name='New Dataset',
                     access=Level.admin,
                     timezone=conf.datetime_default_timezone,
@@ -136,6 +137,7 @@ class DatasetPage:
             raise web.redirect(redirect, success='Dataset saved')
 
     @expose_for(Level.editor)
+    @web.method.get
     def new(self, site_id=None, vt_id=None, user=None, error='', _=None, template=None):
         active = None
         with db.session_scope() as session:
@@ -166,6 +168,35 @@ class DatasetPage:
                 calibration_slope=1
             )
             return self.render_dataset(session, active, error=error)
+        
+    @expose_for(Level.editor)
+    @web.method.get
+    def fromfile(self, file=None, **kwargs):
+        """
+        Creates a file dataset from a referenced file. 
+        
+        :param self: Description
+        :param file: Description
+        :param kwargs: Description
+        """
+        file = OPath(file)
+        if not file.exists() or not file.islegal():
+            raise web.redirect(conf.url('dataset', 'new'), error=f'File {file} not found')
+
+        with db.session_scope() as session:
+            user: db.Person = session.get(db.Person, kwargs.get('user', web.user()))    
+            ds = db.FileDataset(
+                id=db.newid(db.Dataset, session),
+                name=file.basename,
+                filename=str(file),
+                measured_by=user,
+                access=Level.editor,
+                start=datetime.now(),
+                end=datetime.now(),
+                timezone=conf.datetime_default_timezone,
+            )
+            
+            return self.render_dataset(session, ds)
 
     def render_dataset(self, session, active: db.Dataset, message='', error=''):
         """
@@ -333,7 +364,7 @@ class DatasetPage:
                 source = session.get(db.Datasource, int(instrument))
             datasets = datasets.filter_by(source=source)
         if dstype:
-            datasets = datasets.filter_by(type=type)
+            datasets = datasets.filter_by(type=dstype)
         if level is not None:
             datasets = datasets.filter_by(level=level)
         if onlyaccess:

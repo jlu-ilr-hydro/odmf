@@ -26,25 +26,25 @@
 
                 }
 
-                let f=get_filter()
+                let f = get_filter()
                 let fmt = {
-                    id: x=>x ? x.id : '',
-                    name: x=>x ? x.name : '',
+                    id: x => x ? x.id : '',
+                    name: x => x ? x.name : '',
                     site: x => x ? '#' + x.id + ' (' + x.name + ')' : '#???',
-                    user: x=>x.firstname + ' ' + x.surname,
+                    user: x => x.firstname + ' ' + x.surname,
                     self: x => x
                 }
                 $.getJSON(
-                        odmf_ref('/dataset/attributes'),f,
-                        data => {
-                            $('#userselect').html(options(data.measured_by, x=>x.username, fmt.user))
-                            $('#prselect').html(options(data.project, fmt.id, fmt.name)).val(f.project);
-                            $('#vtselect').html(options(data.valuetype, fmt.id, fmt.name)).val(f.valuetype);
-                            $('#siteselect').html(options(data.site, fmt.id, fmt.site)).val(f.site);
-                            $('#instrumentselect').html(options(data.source, fmt.id, fmt.name)).val(f.instrument)
-                            $('#typeselect').html(options(data.type, fmt.self, fmt.self)).val(f.type)
+                    odmf_ref('/dataset/attributes'), f,
+                    data => {
+                        $('#userselect').html(options(data.measured_by, x => x.username, fmt.user))
+                        $('#prselect').html(options(data.project, fmt.id, fmt.name)).val(f.project);
+                        $('#vtselect').html(options(data.valuetype, fmt.id, fmt.name)).val(f.valuetype);
+                        $('#siteselect').html(options(data.site, fmt.id, fmt.site)).val(f.site);
+                        $('#instrumentselect').html(options(data.source, fmt.id, fmt.name)).val(f.instrument)
+                        $('#typeselect').html(options(data.type, fmt.self, fmt.self)).val(f.type)
 
-                        }
+                    }
                 );
                 setFilter();
             }
@@ -55,22 +55,22 @@
                 f.limit = $('#limit').val()
                 $.getJSON(odmf_ref('/dataset/json'), f,
 
-                        function(data){
-                            var items = [];
-                            var templ = '<a href="${conf.root_url}/dataset/ID" class="list-group-item list-group-item-action">LABEL <span class="badge text-dark bg-warning float-right">ACL</span></a>';
-                            $.each( data.datasets, function( index, item ) {
-                                items.push(templ.replace(/ID/, item.id).replace(/LABEL/, item.label).replace(/ACL/, item.accesslevel));
-                            });
-                            $('#dscount').html(((data.page - 1) * data.limit) + ' - ' + (data.page * data.limit) + ' of ' + data.count + ' datasets');
-                            $('#dslist').html(items.join('\n'));
-                            let pages = Math.ceil(data.count / data.limit)
-                            let options = ''
-                            for (let i = 1; i <= pages; i++) {
-                                options += '<option value="' + i + '">' + i + ' / ' + pages + '</option>'
-                            }
-                            $('#page').html(options)
-                            $('#page').val(data.page)
+                    function (data) {
+                        var items = [];
+                        var templ = '<a href="${conf.root_url}/dataset/ID" class="list-group-item list-group-item-action">LABEL <span class="badge text-dark bg-warning float-right">ACL</span></a>';
+                        $.each(data.datasets, function (index, item) {
+                            items.push(templ.replace(/ID/, item.id).replace(/LABEL/, item.label).replace(/ACL/, item.accesslevel));
+                        });
+                        $('#dscount').html(((data.page - 1) * data.limit) + ' - ' + (data.page * data.limit) + ' of ' + data.count + ' datasets');
+                        $('#dslist').html(items.join('\n'));
+                        let pages = Math.ceil(data.count / data.limit)
+                        let options = ''
+                        for (let i = 1; i <= pages; i++) {
+                            options += '<option value="' + i + '">' + i + ' / ' + pages + '</option>'
                         }
+                        $('#page').html(options)
+                        $('#page').val(data.page)
+                    }
                 );
             }
             function clearFilter() {
@@ -92,16 +92,16 @@
                 setFilter();
             }
 
-            $(function() {
+            $(function () {
                 $('#goto').on('change', () => {
-                    window.location.href=odmf_ref('/dataset/') + $('#goto').val();
+                    window.location.href = odmf_ref('/dataset/') + $('#goto').val();
                 });
-                $('#gotods-btn').on('click', () =>  {
-                    window.location.href=odmf_ref('/dataset/') + $('#goto').val();
+                $('#gotods-btn').on('click', () => {
+                    window.location.href = odmf_ref('/dataset/') + $('#goto').val();
                 });
                 $('.filter').on('change', popSelect)
                 $('.page').on('click', pageChange)
-                $('#export-datasets').on('click', () =>{
+                $('#export-datasets').on('click', () => {
 
                 })
 
@@ -118,14 +118,13 @@
 
         <div class="container-fluid" id="filter-collapse">
             <div class="input-group mb-2">
-                <div class="input-group-prepend" >
-                    <button class="btn btn-secondary" id="gotods-btn"
-                    >
+                <div class="input-group-prepend">
+                    <button class="btn btn-secondary" id="gotods-btn">
                         <i class="fas fa-rocket" />
                     </button>
                 </div>
                 <input class="form-control" type="number" id="goto" tabindex="1" placeholder="dataset-id"
-                       title="Go directly to a dataset by entering the id" data-bs-toggle="tooltip"/>
+                    title="Go directly to a dataset by entering the id" data-bs-toggle="tooltip" />
             </div>
             <div class="">
                 <a href="${conf.root_url}/dataset/new#edit" class="btn btn-primary w-100 mb-1">
@@ -137,53 +136,54 @@
                     import datasets
                 </a>
             </div>
-            <hr/>
+            <hr />
             <form id="filter" class="container" method="POST" action="to_excel">
                 <div class="mb-1 row border rounded">
                     <h4 class="col-sm-10"><i class="fas fa-filter fa-sm me-2" />Filter</h4>
-                    <a class="btn btn-secondary col-sm-2 border-circle text-light" onclick="clearFilter()" title="clear filter" data-bs-toggle="tooltip">
+                    <a class="btn btn-secondary col-sm-2 border-circle text-light" onclick="clearFilter()"
+                        title="clear filter" data-bs-toggle="tooltip">
                         <i class="fas fa-times" />
                     </a>
                 </div>
                 <div class="form-group mb-1 row">
                     <label for="prselect" class="small m-0">Project</label>
-                    <select id="prselect" name="project" class="form-control select2 form-select filter" tabindex="2"/>
+                    <select id="prselect" name="project" class="form-control select2 filter" tabindex="1    " />
                 </div>
                 <div class="form-group mb-1 row">
                     <label for="vtselect" class="small m-0">Value type</label>
-                    <select id="vtselect" name="valuetype" class="form-control select2 form-select filter" tabindex="2"/>
+                    <select id="vtselect" name="valuetype" class="form-control select2 filter"
+                        tabindex="2" />
                 </div>
                 <div class="form-group mb-1 row">
                     <label for="siteselect" class="small m-0">Site</label>
-                    <select id="siteselect" name="site" class="form-control select2 form-select filter" tabindex="3"/>
+                    <select id="siteselect" name="site" class="form-control select2 filter" tabindex="3" />
                 </div>
 
                 <div class="form-group mb-1 row">
                     <label for="userselect" class="small m-0">Creator</label>
-                    <select id="userselect" name="user" class="form-control select2 form-select filter" tabindex="4"/>
+                    <select id="userselect" name="user" class="form-control select2 filter" tabindex="4" />
                 </div>
                 <div class="form-group mb-1 row">
                     <label for="typeselect" class="small m-0">Type</label>
-                    <select id="typeselect" name="dstype" class="form-control form-select filter" tabindex="5"/>
+                    <select id="typeselect" name="dstype" class="form-control select2 filter" tabindex="5" />
                 </div>
 
                 <div class="form-group mb-1 row">
                     <label for="vtselect" class="small m-0">Instrument / source</label>
-                    <select id="instrumentselect" name="instrument" class="form-control select2 form-select filter" tabindex="6"
-                            title="Instument" data-bs-toggle="tooltip"/>
+                    <select id="instrumentselect" name="instrument" class="form-control select2 filter"
+                        tabindex="6" title="Instument" data-bs-toggle="tooltip" />
                 </div>
                 <div class="form-group mb-1 row">
                     <label for="dateselect" class="small m-0">date</label>
-                    <input id="dateselect" name="date" type="date" class="form-control form-select filter" value="" tabindex="7" placeholder="date..."
-                           title="Show only sites with a dataset for this date" data-bs-toggle="tooltip"/>
+                    <input id="dateselect" name="date" type="date" class="form-control filter" value=""
+                        tabindex="7" placeholder="date..." title="Show only sites with a dataset for this date"
+                        data-bs-toggle="tooltip" />
                 </div>
                 <div class="form-group mt-4 row">
-                    <label for="export-datasets" class="small m-0"><i class="fas fa-file-excel"/> Export dataset list as Excel file</label>
-                    <button  id="export-datasets"
-                             class="btn btn-secondary form-control"
-                             type="submit"
-                    >
-                        <i class="fas fa-file-export"/> export list
+                    <label for="export-datasets" class="small m-0"><i class="fas fa-file-excel" /> Export dataset list
+                        as Excel file</label>
+                    <button id="export-datasets" class="btn btn-secondary form-control" type="submit">
+                        <i class="fas fa-file-export" /> export list
                     </button>
 
                 </div>
@@ -195,7 +195,8 @@
     <py:block name="content">
         <!-- insert main content -->
 
-        <div class="container">
+        <div class="container"
+            py:with="type=dict(filedataset='fa-file', timeseries='fa-chart-line', transformed_timeseries='fa-calculator')">
 
             <ul class="nav bg-light p-1 border mb-1">
                 <li id="dscount" class="nav-item my-auto mx-3 h4">0 datasets</li>
@@ -205,7 +206,7 @@
                         <input class="form-control" type="number" id="limit" value="50" title="Datasets per page" />
                         <span class="input-group-text">page:</span>
                         <button class="btn btn-secondary page" data-dir="-" title="previous page">&lt;</button>
-                        <select class="form-control form-select page" type="number" id="page" title="Datasets per page" >
+                        <select class="form-control form-select page" type="number" id="page" title="Datasets per page">
                             <option value="1">1 / 1</option>
                         </select>
                         <button class="btn btn-secondary page" data-dir="+" title="next page">&gt;</button>
@@ -221,43 +222,111 @@
                     existing sites and valuetypes. The other columns are optional and can be used to store additional
                     information, but you are strongly encouraged theses columns. Export a dataset list to get a template
                     <ul class="mt-2">
-                        <li class="row border-bottom"><div class="col-2 mark">id</div><div class="col">will be added automatically, delete the column from your template</div></li>
-			<li class="row border-bottom"><div class="col-2 mark">name</div><div class="col">the name of dataset, use for full text search</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">filename</div><div class="col">a reference to a file in the file manager (e.g. raw data) </div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">start</div><div class="col">date of first record, leave empty for today. Use YYYY-MM-DD format. Optional.</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">end</div><div class="col">date of last record, leave empty for today. Use YYYY-MM-DD format. Optional.</div></li>
-			<li class="row border-bottom"><div class="col-2 mark">site</div><div class="col">id of site where the data was collected</div></li>
-			<li class="row border-bottom"><div class="col-2 mark">valuetype</div><div class="col">id of the valuetype</div></li>
-			<li class="row border-bottom"><div class="col-2 mark">measured_by</div><div class="col">ODMF user name of the author of the dataset, if missing, you become the author</div></li>
-			<li class="row border-bottom"><div class="col-2 mark">quality</div><div class="col">references the quality level, 1 (default) for raw data, 4 for calibrated</div></li>
-			<li class="row border-bottom"><div class="col-2 mark">source</div><div class="col">references the instrument id used, can be blank or an existing instrument</div></li>
-			<li class="row border-bottom"><div class="col-2 mark">access</div><div class="col">the access level - 0 for public, 1 for project members, 2 for project editors, 3 for priviledged project memebers and 4 for admins (project / or whole database)</div></li>
-			<li class="row border-bottom"><div class="col-2 mark">timezone</div><div class="col">the timezone for record timings. Any timezone string from pytz is allowed. Otherwise the configured default is used, eg. Europe/Berlin</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">project</div><div class="col">project id of the dataset</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">calibration_offset</div><div class="col">the offset is added to the raw record value on output, default 0</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">calibration_slope</div><div class="col">a factor multiplied with the raw record value on output, default 1</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">comment</div><div class="col">a text describing the dataset, you can use markdown</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">type</div><div class="col">e.g. timeseries. Optional.</div></li>
-                        <li class="row border-bottom"><div class="col-2 mark">level</div><div class="col">the vertical distance from the site in m, positive for upwards. Leave empty if it does not apply.</div></li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">id</div>
+                            <div class="col">will be added automatically, delete the column from your template</div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">name</div>
+                            <div class="col">the name of dataset, use for full text search</div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">filename</div>
+                            <div class="col">a reference to a file in the file manager (e.g. raw data) </div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">start</div>
+                            <div class="col">date of first record, leave empty for today. Use YYYY-MM-DD format.
+                                Optional.</div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">end</div>
+                            <div class="col">date of last record, leave empty for today. Use YYYY-MM-DD format.
+                                Optional.</div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">site</div>
+                            <div class="col">id of site where the data was collected</div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">valuetype</div>
+                            <div class="col">id of the valuetype</div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">measured_by</div>
+                            <div class="col">ODMF user name of the author of the dataset, if missing, you become the
+                                author</div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">quality</div>
+                            <div class="col">references the quality level, 1 (default) for raw data, 4 for calibrated
+                            </div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">source</div>
+                            <div class="col">references the instrument id used, can be blank or an existing instrument
+                            </div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">access</div>
+                            <div class="col">the access level - 0 for public, 1 for project members, 2 for project
+                                editors, 3 for priviledged project memebers and 4 for admins (project / or whole
+                                database)</div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">timezone</div>
+                            <div class="col">the timezone for record timings. Any timezone string from pytz is allowed.
+                                Otherwise the configured default is used, eg. Europe/Berlin</div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">project</div>
+                            <div class="col">project id of the dataset</div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">calibration_offset</div>
+                            <div class="col">the offset is added to the raw record value on output, default 0</div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">calibration_slope</div>
+                            <div class="col">a factor multiplied with the raw record value on output, default 1</div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">comment</div>
+                            <div class="col">a text describing the dataset, you can use markdown</div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">type</div>
+                            <div class="col">e.g. timeseries. Optional.</div>
+                        </li>
+                        <li class="row border-bottom">
+                            <div class="col-2 mark">level</div>
+                            <div class="col">the vertical distance from the site in m, positive for upwards. Leave empty
+                                if it does not apply.</div>
+                        </li>
                     </ul>
                 </div>
                 <div py:if="not is_member(Level.supervisor)" class="alert alert-warning">
                     For bulk import of datasets you need to have have ${Level.supervisor.name} level.
                 </div>
-                <form method="post" action="${conf.url('bulkimport')}" enctype="multipart/form-data"  py:if="is_member(Level.supervisor)">
+                <form method="post" action="${conf.url('bulkimport')}" enctype="multipart/form-data"
+                    py:if="is_member(Level.supervisor)">
                     <div class="row mt-3">
-                        <label for="file" class="col-sm-3 col-form-label" >Dataset file:</label>
+                        <label for="file" class="col-sm-3 col-form-label">Dataset file:</label>
                         <div class="col-sm-8">
-                            <input type="file" class="custom-file-input form-control"
-                                    name="file" id="file" accept=".xlsx,.csv,.parquet"/>
+                            <input type="file" class="custom-file-input form-control" name="file" id="file"
+                                accept=".xlsx,.csv,.parquet" />
                         </div>
                         <div class="col-sm-1 d-flex">
-                            <button type="submit" class="btn btn-success me-1" data-bs-toggle="tooltip" title="Import datasetfile" name="table" value="dataset"><i class="fas fa-check"/></button>
+                            <button type="submit" class="btn btn-success me-1" data-bs-toggle="tooltip"
+                                title="Import datasetfile" name="table" value="dataset"><i
+                                    class="fas fa-check" /></button>
                         </div>
 
                     </div>
                     <div class="alert alert-warning mt-2">
-                        <strong>If something went wrong:</strong> <a href="${conf.url('bulkimport')}" class="ms-1 btn btn-warning" data-bs-toggle="tooltip" title="undo imports"><i class="fas fa-arrow-rotate-left"></i> undo bulk import</a>
+                        <strong>If something went wrong:</strong> <a href="${conf.url('bulkimport')}"
+                            class="ms-1 btn btn-warning" data-bs-toggle="tooltip" title="undo imports"><i
+                                class="fas fa-arrow-rotate-left"></i> undo bulk import</a>
                     </div>
                 </form>
 
@@ -269,4 +338,3 @@
     </py:block>
 
 </py:extends>
-

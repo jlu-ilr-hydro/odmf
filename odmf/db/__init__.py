@@ -4,7 +4,7 @@ from .image import Image
 from .project import Project
 from .site import Site, Datasource, Log, Installation
 from .job import Job
-from .dataset import Dataset, DatasetGroup, Quality, ValueType, removedataset
+from .dataset import Dataset, FileDataset, DatasetGroup, Quality, ValueType, removedataset
 from .timeseries import Timeseries, MemRecord, Record
 from .transformed_timeseries import TransformedTimeseries
 

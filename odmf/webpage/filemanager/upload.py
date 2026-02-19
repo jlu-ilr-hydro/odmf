@@ -6,6 +6,7 @@ Created on 15.02.2012
 @author: philkraf
 '''
 
+from odmf.db.dataset import FileDataset
 from .. import lib as web
 import datetime
 import os
@@ -55,7 +56,7 @@ class DownloadPageError(cherrypy.HTTPError):
 
         text = web.render(
             'download.html',
-            error=error, success='', modes=modes, Mode=fa.Mode,
+            error=error, success='', modes=modes, Mode=fa.Mode, dataset=None,
             files=[], rule=self.get_named_rules(self.path), owner=fa.get_owner(self.path),
             directories=[],
             curdir=self.path,
@@ -167,6 +168,23 @@ class DownloadPage(object):
             'projects': rule.projects,
             'project_names': project_names,
         }
+    
+    def get_dataset(self, path: Path):
+        from ...db import Dataset
+        with db.session_scope() as session:
+            dataset = session.query(Dataset).filter_by(filename=str(path)).first()
+            if dataset:
+                return {
+                    'id': dataset.id,
+                    'name': dataset.name,
+                    'site': f'site:{dataset._site}',
+                    'owner': f'user:{dataset._measured_by}',
+                    'start': str(dataset.start),
+                    'end': str(dataset.end),
+                    'level': dataset.level,
+                }
+            else:
+                return None
 
     @expose_for()
     @web.method.get
@@ -205,7 +223,7 @@ class DownloadPage(object):
 
         return web.render(
             'download.html',
-            error=error, success=msg,
+            error=error, success=msg, dataset=self.get_dataset(path),
             modes=modes, Mode=fa.Mode, owner=fa.get_owner(path),
             content=content, rule=self.get_named_rules(path),
             files=sorted(files),
@@ -334,7 +352,7 @@ class DownloadPage(object):
 
         return web.render(
             'download.html',
-            error='', success=msg,
+            error='', success=msg, dataset=None,
             modes=modes, Mode=fa.Mode, owner=fa.get_owner(path),
             content=None, rule=self.get_named_rules(path),
             files=[p for p, msg in path_list],
