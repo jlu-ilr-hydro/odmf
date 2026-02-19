@@ -267,7 +267,7 @@ class DownloadPage(object):
         path = Path(dir)
         check_access(fa.Mode.write, path)
         s = s.replace('\r', '')
-        open((path / '.readme.md').absolute, 'w').write(s)
+        open((path / '.readme.md').absolute, 'w', encoding='utf-8').write(s)
         return web.markdown(s)
 
     @expose_for(Level.logger)
@@ -277,7 +277,7 @@ class DownloadPage(object):
         io = StringIO()
         for indexfile in ['.readme.md', 'README.md', 'index.html']:
             if (index:=Path(dir, indexfile)).exists():
-                text = open(index.absolute).read()
+                text = open(index.absolute, encoding='utf-8').read()
                 io.write(text)
 
         return web.markdown(io.getvalue())
