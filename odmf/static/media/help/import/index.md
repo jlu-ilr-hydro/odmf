@@ -1,12 +1,12 @@
-# Importing records
+# !fa-upload Importing records
 
-There are several ways to get data into the structured timeseries system.
+**Import** in ODMF means to add records to [timeseries datasets](../datasets). Most import methods need alerady existing datasets. Datasets are created with the "new dataset" button in the dataset list or imported from a table.
 
 - **Direct input** (for a single record)
-- Import a list of records from an excel file with a special structure (so called **log import**) into exisiting datasets
-- Import a raw csv or excel file for one site from a logger or other measurement instrument using an extra file to describe the file organization: so called .conf-file, the **conf-import**
-- Import a csv or excel file with few (<1000) records for several sites (e.g.result lab analysis or handheld sensor measurements): so called .labimport file, the **lab-import**
-- You want to write a python script to upload data automatically, use the [odmfclient](https://github.com/jlu-ilr-hydro/odmfclient)
+- Import a list of records from an excel file with a special structure into exisiting datasets, see help:import/log
+- Import a raw csv or excel file for one site from a logger or other measurement instrument using an extra file to describe the file organization: so called .conf-file, see help:import/conf
+- Import a csv or excel file with few (<1000) records for several sites (e.g.result lab analysis or handheld sensor measurements): so called .labimport file, see help:import/lab
+- Import large prepared datalists from a workflow help:import/record
 
 ## Which method is the right for me?
 
@@ -29,7 +29,7 @@ soilmoisture sensors with soilmoisture and soiltemperature data that is
 logged by a recorder, you can use .conf-files to describe the files
 produced by the logger. Refer to the help:import/conf.
 
-### For measurements recorded for several sites within the same table (e.g. excel output of lab anayser)
+### For measurements recorded for several sites within the same table (e.g. excel output of lab analyser)
 
 If you have the possibility to define the structure of the table in the simple way required by the **log import**,
 you can use this. If you have a different structure and/or a combined column for site/date/level, the **lab import**
