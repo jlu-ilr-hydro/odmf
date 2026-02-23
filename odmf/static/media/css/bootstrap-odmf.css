@@ -98,3 +98,27 @@ blockquote p {
 textarea {
   font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
 }
+
+.admonition {
+    padding: 1em;
+    margin: 1em 0;
+    border-left: 5px solid;
+}
+.admonition.warning {
+    background-color: #fff3cd;
+    border-left-color: #ffc108;
+}
+.admonition.note {
+    background-color: #d1ecf1;
+    border-left-color: #17a2b8;
+}
+
+.admonition.error {
+    background-color: #ffb4ba;
+    border-left-color: #dc3545;
+    color: rgb(88, 0, 0);
+}
+.admonition-title {
+    font-weight: bold;
+    font-size: larger;
+}

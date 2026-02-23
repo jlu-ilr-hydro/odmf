@@ -10,19 +10,34 @@ Datasets are the core feature of the structured database in ODMF. A dataset is a
 - !fa-key Who can use the data? 
 - !fa-clock When?
 
-In most cases, datasets are timeseries with their own records. You can create transformed timeseries, which uses
-a measured timeseries, applies some mathematical equation and returns the transformed data. Eg. you have a timeseries
-of groundwater depth below ground, you can create a transformed dataset with groundwater head above sea level.
+## Dataset types
 
-And you can use datasets to annotate files, then you enter every information in the dataset, but you will never import 
-records for this dataset.
+### Timeseries
+
+The standard type, useful numerical values at a site. The timeseries dataset owns records, that can be plotted, calibrated and transformed. Timeseries datasets are created with the "new dataset" button or via tabular import.
+
+### File dataset
+
+File datasets have the same meta data as timeseries, but never have record. Instead, they have a link to a file that contains the data of the
+dataset. This data can have any form, qualitative, array, images, text etc. Use long term open formats for the files. Data from file datasets cannot be 
+plotted and mixed with other data. If your data has a form of timeseries, always import the data as records (see: help:import). File datasets are created using the !fa-clipboard !fa-plus button in the file-manager.
+
+### Transformed timeseries
+
+If you want to derive data from measured timeseries, you can apply any function to timeseries to create a transformation as an additional form. Until now, only one valuetype can be transformed. Transformed timeseries are created from the source timeseries with the [$f(x)$ transform] button.
+
+Example: you have a timeseries dataset showing the level of a slurry tank below the edge in m and you want to have the information of stored m³. If the base area is 10m² and the storage height is 3m, the transformation would be 
+
+$$V [m^3] = 10 [m^2] \cdot (3 [m] - x [m]) $$
+
+### Log book entries (logs) for qualitative data
 
 To record qualitative data, like event descriptions without numeric data or with a complex data structure, you are
 going to add [log-entries](log) to sites
 
-![dataset](dataset.svg)
+## Dataset properties
 
-## Properties
+![dataset](dataset.svg)
 
 [Valuetype](valuetype), [location](site) and [instrument/ data source](instrument) are described on their subpages.
 The level is a vertical offset of the given location, eg. if you have a soil moisture sensor profile in 10, 30 and 60 cm
