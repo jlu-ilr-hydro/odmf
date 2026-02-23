@@ -1,6 +1,6 @@
 <div class="mb-2">
-    <div class="btn-group" role="group">
-        <a py:for="button in buttons" class="btn btn-outline-primary${' active' if button.active else ''}" 
+    <div class="nav nav-tabs" role="group">
+        <a py:for="button in buttons" class="nav-item nav-link ${' active' if button.active else ''}" 
             href="${button.href}" title="${button.title}">
             <i py:if="button.icon" class="fa fa-${button.icon}"></i> ${button.label}
         </a>
