@@ -20,6 +20,6 @@ When you open the file, a button [!fa-upload log] is there, to start the import.
     Only completely correct files can be used for import. If any row is not suitable, you **MUST** correct or delete that row for import. Because **log import** can scatter values around in the database, errors are very difficult to correct.
 
 !!! note "Note:"
-    Tables for log-import (help:import/log) are also valid record import tables. Log import does more checking for typing errors etc.
+    Tables for log-import are also valid record import (help:import/record ) tables. Log import does more checking for typing errors and should be preferred for shorter sheets, that are manually prepared.
 
     
