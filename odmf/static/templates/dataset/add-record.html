@@ -12,26 +12,32 @@
     </py:block>
     <py:block name="content">
         <!-- insert main content -->
-        <form id="add-record-form" action="${conf.root_url}/dataset/add-record" method="post">
-            <input type="hidden" name="dataset" value="${ds_act.id}" id="id-input" />
-            <div class="container w-100">
-                <div class="form-group">
-                    <label for="add-record-value">value in ${ds_act.valuetype.unit if ds_act.valuetype else '?'}</label>
-                    <input id="add-record-value" type="number" name="value" class="form-control" step="any"/>
-                </div>
-                <div class="form-group">
-                    <label for="add-record-time">time</label>
-                    <input id="add-record-time" type="datetime-local" name="time" class="form-control datetime-local-now"/>
-                </div>
-                <div class="form-group">
-                    <label for="add-record-comment">comment</label>
-                    <input id="add-record-comment" type="text" name="comment"  class="form-control"/>
-                </div>
-                <button type="submit" class="btn btn-success"><i class="fas fa-check"/> add</button>
+        <div class="container">
+            <div class="p-4 border rounded shadow m-4">
+                <form id="add-record-form" action="${conf.root_url}/dataset/add-record" method="post">
+                    <input type="hidden" name="dataset" value="${ds_act.id}" id="id-input" />
+                    <div class="container w-100">
+                        <div class="form-group">
+                            <label for="add-record-value">
+                                value in ${ds_act.valuetype.unit if ds_act.valuetype else '?'}
+                            </label>
+                            <input id="add-record-value" type="number" name="value" class="form-control" step="any" />
+                        </div>
+                        <div class="form-group">
+                            <label for="add-record-time">time</label>
+                            <input id="add-record-time" type="datetime-local" name="time"
+                                class="form-control datetime-local-now" />
+                        </div>
+                        <div class="form-group">
+                            <label for="add-record-comment">comment</label>
+                            <input id="add-record-comment" type="text" name="comment" class="form-control" />
+                        </div>
+                        <button type="submit" class="btn btn-success mt-2"><i class="fas fa-check" /> add</button>
 
+                    </div>
+
+                </form>
             </div>
-
-        </form>
-
+        </div>
     </py:block>
 </py:extends>

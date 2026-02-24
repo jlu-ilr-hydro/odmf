@@ -679,8 +679,7 @@ class DatasetPage:
                              action_help=f'{conf.root_url}/download/wiki/dataset/split.wiki').render()
 
     @expose_for(Level.logger)
-    @web.method.post
-    def add_record(self, dataset, time, value, id=None, sample=None, comment=None):
+    def add_record(self, dataset, time=None, value=None, id=None, sample=None, comment=None):
         """
         Adds a single record to a dataset, great for connected fieldwork
         :param dataset: Dataset id
@@ -695,7 +694,10 @@ class DatasetPage:
             if not has_access(ds, Level.editor):
                 raise web.HTTPError(403, 'Not allowed')
             time = web.parsedate(time)
-            ds.addrecord(id, value, time, comment, sample, out_of_timescope_ok=True)
+            if cherrypy.request.method == 'GET':
+                return web.render('dataset/add-record.html', ds_act=ds).render()
+            elif cherrypy.request.method == 'POST':
+                ds.addrecord(id, value, time, comment, sample, out_of_timescope_ok=True)
         raise web.redirect(str(dataset) + '/#add-record', success='record added')
 
 
