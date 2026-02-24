@@ -20,7 +20,7 @@ The standard type, useful numerical values at a site. The timeseries dataset own
 
 File datasets have the same meta data as timeseries, but never have record. Instead, they have a link to a file that contains the data of the
 dataset. This data can have any form, qualitative, array, images, text etc. Use long term open formats for the files. Data from file datasets cannot be 
-plotted and mixed with other data. If your data has a form of timeseries, always import the data as records (see: help:import). File datasets are created using the !fa-clipboard !fa-plus button in the file-manager.
+plotted and mixed with other data. If your data has a form of timeseries, always import the data as records (see: help:import). File datasets are created using the !fa-clipboard !fa-plus button in the  [!fa-folder-open file-manager](../../download).
 
 ### Transformed timeseries
 
