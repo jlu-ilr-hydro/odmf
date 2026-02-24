@@ -1,7 +1,7 @@
 # Import large prepared datasets with a record table
 
 If you can design a workflow (eg. in Python or R) to assemble measurements in a predefined form, you can create
-a table that is exactly like the the internal **record** table to import data into **existing datasets**. The tabular format can be Excel, CSV or Parquet (recommended). The method assumes your workflow applies sanity checks etc. 
+a table that is exactly like the internal **record** table to import data into **existing datasets**. The tabular format can be Excel, CSV or Parquet (recommended). The method assumes your workflow applies sanity checks etc. 
 
 !!! warning "Warning!"
     Only completely correct files can be used for import Because **record import** can scatter values around in the database, errors are very difficult to correct and usually only resolved with the site admin and the the programming backdoor.
@@ -11,7 +11,7 @@ a table that is exactly like the the internal **record** table to import data in
 
 - dataset (int), references existing datasets
 - time (datetime), timestamp of the measurement, in CSV files use ISO format YYYY-mm-dd HH:MM:SS
-- value (float), actual value in the unit of the valuetype of the target dataset. Check if 
+- value (float), actual value in the unit of the valuetype of the target dataset prior to the calibration.
 
 ### Optional columns
 
@@ -25,7 +25,7 @@ a table that is exactly like the the internal **record** table to import data in
 The table can be imported from the file-manager using the *record-import* button for fitting Excel, CSV or Parquet (recommended) files. If the table can be read and has the necessary columns, the button appears in the tabular view. CSV files can only be imported in the international format, `,` as seperator and `.` as decimal point.
 
 !!! note "Note:"
-    Tables for log-import (help:import/log) are also valid record import tables. Log import does more checking for typing errors etc.
+    Tables for log-import (help:import/log ) are also valid record import tables. Log import does more checking for typing errors etc.
 
 ## Import via the API
 
@@ -33,7 +33,7 @@ It is also possible to post the table in Parquet format to the API. You need to:
 
 - create a http session with your login
 - write the table data to a parquet stream
-- post the stream to https://<base>/api/dataset/add_records_parquet. 
+- post the stream to ../api/dataset/add_records_parquet. 
 
 If you are a Python programmer, you can use the Python package
 [odmfclient](https://github.com/jlu-ilr-hydro/odmfclient)
