@@ -239,6 +239,11 @@
                             </td>
                         </tr>
                     </table>
+                    <a href="${conf.url('dataset','add-record', ds_act.id)}" py:if="ds_act.is_timeseries()"
+                        class="btn btn-primary me-2" data-bs-toggle="tooltip"
+                        title="add a record to this dataset">
+                        <i class="fas fa-circle-plus"/> add record
+                    </a>
                     <button py:if="ds_act.is_timeseries() and access(Level.editor)" id="create-transformation"
                         class="btn btn-outline-primary me-2" data-bs-toggle="tooltip"
                         title="Create a transformed dataset for this">
@@ -629,36 +634,6 @@
                 </div>
                 <div id="records" class="tab-pane" role="tabpanel"
                     py:if="ds_act.is_timeseries() and access(Level.editor)">
-                    <div class="my-2">
-                        <a href="#add-record-div" class="btn btn-primary dropdown-toggle" data-bs-toggle="collapse"><i
-                                class="fas fa-plus-circle" /> new record</a>
-                        <div id="add-record-div" class="border collapse mb-2 py-2">
-                            <form id="add-record-form" action="${conf.root_url}/dataset/add-record" method="post">
-                                <input type="hidden" name="dataset" value="${ds_act.id}" id="id-input" />
-                                <div class="container w-100">
-                                    <div class="form-group">
-                                        <label for="add-record-value">value in ${ds_act.valuetype.unit if ds_act.valuetype else '?'}</label>
-                                        <input id="add-record-value" type="number" name="value" class="form-control"
-                                            step="any" />
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="add-record-time">time</label>
-                                        <input id="add-record-time" type="datetime-local" name="time"
-                                            class="form-control datetime-local-now" />
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="add-record-comment">comment</label>
-                                        <input id="add-record-comment" type="text" name="comment"
-                                            class="form-control" />
-                                    </div>
-                                    <button type="submit" class="btn btn-success"><i class="fas fa-check" />
-                                        add</button>
-
-                                </div>
-
-                            </form>
-                        </div>
-                    </div>
                     <div class="row w-100">
                         <div class="col-sm">
                             <button class="btn btn-primary w-100" id="find-records"><i class="fas fa-search" /> find

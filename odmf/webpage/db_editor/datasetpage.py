@@ -679,7 +679,7 @@ class DatasetPage:
                              action_help=f'{conf.root_url}/download/wiki/dataset/split.wiki').render()
 
     @expose_for(Level.logger)
-    def add_record(self, dataset, time=None, value=None, id=None, sample=None, comment=None):
+    def add_record(self, dataset, time=None, value=None, sample=None, comment=None):
         """
         Adds a single record to a dataset, great for connected fieldwork
         :param dataset: Dataset id
@@ -695,10 +695,20 @@ class DatasetPage:
                 raise web.HTTPError(403, 'Not allowed')
             time = web.parsedate(time)
             if cherrypy.request.method == 'GET':
+                
+                if refferer := cherrypy.request.headers.get('Referer'):
+                    cherrypy.session[f'add-record-referer-{dataset}'] = refferer
                 return web.render('dataset/add-record.html', ds_act=ds).render()
             elif cherrypy.request.method == 'POST':
-                ds.addrecord(id, value, time, comment, sample, out_of_timescope_ok=True)
-        raise web.redirect(str(dataset) + '/#add-record', success='record added')
+                try:
+                    ds.addrecord(None, value, time, comment, sample, out_of_timescope_ok=True)
+                except ValueError as e:
+                    return web.render('dataset/add-record.html', ds_act=ds, error=str(e)).render()
+        if refferer := cherrypy.session.get(f'add-record-referer-{dataset}'):
+            del cherrypy.session[f'add-record-referer-{dataset}']
+            raise web.redirect(refferer, success=f'record added to ds:{dataset}')
+        else:
+            raise web.redirect(conf.url('dataset', dataset), success=f'record added to ds:{dataset}')
 
 
 

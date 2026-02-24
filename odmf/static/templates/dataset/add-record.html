@@ -9,13 +9,74 @@
     </py:block>
     <py:block name="sidebar">
         <!-- insert sidebar content -->
+        <div class="nav d-flex justify-content-center border p-1 mb-2">
+            <div class="nav-item me-2">
+                <div class="btn-group" role="group">
+                    <a href="../${ds_act.id - 1}" class="btn btn-secondary me-1" py:attrs="disabled(ds_act.id == 1)"
+                        data-bs-toggle="tooltip" title="dataset:${ds_act.id - 1}">
+                        <i class="fas fa-caret-left" />
+                    </a>
+                    <a href="../" class="btn btn-primary me-1" type="button" data-bs-toggle="tooltip" title="site list">
+                        ...
+                    </a>
+                    <a href="../new#edit" class="btn btn-success me-1" data-bs-toggle="tooltip" title="New dataset"><i
+                            class="fas fa-plus" /></a>
+                    <a href="../${ds_act.id + 1}" class="btn btn-secondary" data-bs-toggle="tooltip"
+                        title="dataset:${ds_act.id + 1}"><i class="fas fa-caret-right" /></a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <div class="input-group">
+                    <button class="btn btn-secondary" id="gotods-btn">
+                        <i class="fas fa-rocket" />
+                    </button>
+                    <input class="form-control" type="text" id="goto" tabindex="1" placeholder="goto" size="10"
+                        title="Go directly to a dataset by entering the id" data-bs-toggle="tooltip" />
+                </div>
+
+            </div>
+        </div>
+
     </py:block>
     <py:block name="content">
         <!-- insert main content -->
-        <div class="container">
-            <div class="p-4 border rounded shadow m-4">
-                <form id="add-record-form" action="${conf.root_url}/dataset/add-record" method="post">
-                    <input type="hidden" name="dataset" value="${ds_act.id}" id="id-input" />
+        <div class="container mt-2">
+            <div id="title-area" class="bg-dark text-white row border rounded shadow" py:if="ds_act"
+                py:with="n=ds_act.size()">
+                <div class="col-sm row">
+                    <h2 class="display-3 col-sm"><i class="fas fa-chart-line me-2" />
+                        <span id="dsid" py:content="ds_act.id" />
+                    </h2>
+                    <div class="col-sm">
+                        <div class="badge bg-info text-bg-info "
+                            py:content="ds_act.get_access_level(users.current).name" />
+                        <div class="" py:content="ds_act.project" />
+                    </div>
+                </div>
+
+                <div class="col-sm my-auto">
+                    <h3>
+                        <span py:content="formatdate(ds_act.start)" /> -
+                        <span py:content="formatdate(ds_act.end)" />
+                    </h3>
+                    <h3 py:content="ds_act.name" />
+                </div>
+                <div class="lead col-sm my-auto">
+                    <a class="d-block text-white text-right"
+                        href="${f'{conf.root_url}/valuetype/{ds_act.valuetype.id}' if ds_act.valuetype else '#edit'}"
+                        py:content="f'{ds_act.valuetype.name} [{ds_act.valuetype.unit}]' if ds_act.valuetype else '?'" />
+                    <a class="d-block text-white text-right"
+                        href="${f'{conf.root_url}/site/{ds_act.site.id}' if ds_act.site else '#edit'}"
+                        py:content="ds_act.site" />
+                    <a class="d-block text-white text-right"
+                        href="${f'{conf.root_url}/user/{ds_act.measured_by.username}' if ds_act.measured_by else '#edit'}"
+                        py:content="ds_act.measured_by" />
+                </div>
+            </div>
+
+
+            <div class="p-4 border rounded row mt-4">
+                <form id="add-record-form" action="" method="post">
                     <div class="container w-100">
                         <div class="form-group">
                             <label for="add-record-value">
@@ -29,10 +90,20 @@
                                 class="form-control datetime-local-now" />
                         </div>
                         <div class="form-group">
-                            <label for="add-record-comment">comment</label>
-                            <input id="add-record-comment" type="text" name="comment" class="form-control" />
+                            <label for="add-record-sample">sample name</label>
+                            <input id="add-record-comment" type="text" name="sample" class="form-control" />
                         </div>
-                        <button type="submit" class="btn btn-success mt-2"><i class="fas fa-check" /> add</button>
+                        <div class="form-group">
+                            <label for="add-record-comment">comment</label>
+                            <textarea id="add-record-comment" type="text" name="comment" class="form-control" ></textarea>
+                        </div>
+                        <div class="mt-2">
+                            <button type="submit" class="btn btn-success me-2"><i class="fas fa-check" /> add</button>
+                            <a href="${conf.url('dataset', ds_act.id)}" class="btn btn-secondary" title="open dataset" data-bs-toggle="tooltip">
+                                <i class="fas fa-clipboard" /> ds:${ds_act.id}
+                            </a>
+
+                        </div>
 
                     </div>
 
