@@ -329,6 +329,12 @@ def removedataset(*args):
 
 class FileDataset(Dataset):
     __mapper_args__ = dict(polymorphic_identity='filedataset')
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if not self.filename:
+            raise ValueError('A file dataset needs a filename')
+        if not self.name:
+            self.name = self.filename
 
 
 

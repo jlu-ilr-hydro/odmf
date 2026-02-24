@@ -9,23 +9,26 @@
     </py:block>
     <py:block name="sidebar">
         <!-- insert sidebar content -->
-        <div class="list-group">
-            <a href=".." class="list-group-item list-group-item-action ${class_if(path.name=='index.md', 'active')}" >
-                <i class="fas fa-folder-open"/> ..
-            </a>
-            <a href="${('./' if path.name=='index.md' else '../') + dir}/" py:for="dir in directories" class="list-group-item list-group-item-action">
-                <i class="fas fa-folder"/> ${dir}
-            </a>
-            <a href="${('./' if path.name=='index.md' else '../') + file}" py:for="file in files" class="list-group-item list-group-item-action ${class_if(path.name.strip('.md')==file, 'active')}">
-                <i class="fas fa-file-lines"/> ${file}
-            </a>
+        <div class="container-fluid p-2">
+            <h2 class="alert alert-primary"><i class="fas fa-question-circle"/> Help</h2>
+            <div class="list-group">
+                <a href=".." class="list-group-item list-group-item-action ${class_if(path.name=='index.md', 'active')}" >
+                    <i class="fas fa-folder-open"/> ..
+                </a>
+                <a href="${('./' if path.name=='index.md' else '../') + dir}/" py:for="dir in directories" class="list-group-item list-group-item-action">
+                    <i class="fas fa-folder"/> ${dir}
+                </a>
+                <a href="${('./' if path.name=='index.md' else '../') + file}" py:for="file in files" class="list-group-item list-group-item-action ${class_if(path.name.strip('.md')==file, 'active')}">
+                    <i class="fas fa-file-lines"/> ${file}
+                </a>
 
+            </div>
         </div>
 
     </py:block>
     <py:block name="content">
         <div class="container">
-                <div class="container" py:content="markdown(content)">
+                <div class="container mt-4 p-4 border rounded shadow" py:content="markdown(content)">
 
                 </div>
 

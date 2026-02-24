@@ -20,7 +20,7 @@
 
     <style py:block="style" />
 
-    <script>function odmf_ref(s) { return '${conf.root_url}' + s; }</script>
+    <script>function odmf_ref(s) { return encodeURI('${conf.root_url}' + s); }</script>
     <!-- # MathJax 3 - newest plotly might work with it -->
     <script>
         MathJax = {

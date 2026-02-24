@@ -120,7 +120,7 @@ class Help:
 
         path = path.with_suffix('.md')
 
-        content = path.read_text()
+        content = path.read_text(encoding='utf-8') if path.exists() else 'Help page not found'
 
         directories = []
         files = []

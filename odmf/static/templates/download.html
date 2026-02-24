@@ -53,38 +53,38 @@
                     $('.upload').prop('disabled', !$(this).val());
                 });
 
-                $('.help').on('click', function () {
-                    $('#help-edit').collapse('show');
+                $('.readme').on('click', function () {
+                    $('#readme-edit').collapse('show');
                 });
 
-                $('#help').load(odmf_ref('/download/getindex?dir=${curdir}'));
+                $('#readme').load(odmf_ref('/download/getindex?dir=${curdir}'));
 
-                $('#help-edit').on('show.bs.collapse', function () {
+                $('#readme-edit').on('show.bs.collapse', function () {
                     // Load current file in textarea
                     $.get({
                         url: '${curdir.raw_url}/.readme.md',
                         cache: false
                     }).then(function (text) {
-                        $('#help-edit textarea').val(text);
+                        $('#readme-edit textarea').val(text);
                     });
-                    $('#help-edit-save').prop('disabled', !${ bool2js(is_member('editor'))});
+                    $('#readme-edit-save').prop('disabled', !${ bool2js(is_member('editor'))});
                 // Save file on click
             });
-            $('#help-edit-save').on('click', function () {
-                var text = $('#help-edit textarea').val();
+            $('#readme-edit-save').on('click', function () {
+                var text = $('#readme-edit textarea').val();
                 $.post(
                     odmf_ref('/download/saveindex/'),
                     { dir: '${curdir}', s: text },
                     function (text) {
-                        $('#help').load(odmf_ref('/download/getindex?dir=${curdir}'));
-                        $('#help-edit').collapse('hide');
+                        $('#readme').load(odmf_ref('/download/getindex?dir=${curdir}'));
+                        $('#readme-edit').collapse('hide');
                     }
                 );
 
             });
-            $('#help-edit-cancel').on('click', function () {
-                $('#help').load(odmf_ref('/download/getindex?dir=${curdir}'));
-                $('#help-edit').collapse('hide');
+            $('#readme-edit-cancel').on('click', function () {
+                $('#readme').load(odmf_ref('/download/getindex?dir=${curdir}'));
+                $('#readme-edit').collapse('hide');
             });
 
             $('#hiddenFiles').on('change', () => {
@@ -105,7 +105,7 @@
                 text-decoration: none;
             }
 
-            #help textarea {
+            #readme textarea {
                 width: 100%;
                 font-family: monospace;
                 cursor: auto;
@@ -170,21 +170,54 @@
     </py:block>
     <py:block name="content">
         <div class="container-fluid p-3">
-            <div class="row" py:if="curdir.isdir() and modes[curdir]">
+            <h5 class="container-fluid d-inline-flex">
+                <i class="fas fa-folder-open me-2" />
+                <div class="">
+                    <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}" py:content="bc.basename" /></span>
+                </div>
+                <div class="badge bg-warning text-dark nav-item ms-4" py:content="modes[curdir].name" />
+                <div py:if="dataset" class="btn-group ms-auto">
+                    <a href="${conf.url('dataset', dataset['id'])}" class="btn btn-secondary" data-bs-toggle="tooltip" title="View and edit dataset details" >
+                        <i class="fas fa-clipboard me-1"></i>ds:${dataset['id']}
+                    </a>
+                    <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-circle-info"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <a class="dropdown-item" href="${conf.url('dataset', dataset['id'])}">
+                            <i class="fas fa-clipboard me-1"></i> View details
+                        </a>
+                        <div class="dropdown-item d-flex" py:for="key, value in dataset.items()">
+                            <p class="me-auto">${key}</p>
+                            <p>${markdown(str(value))}</p>
+                        </div>
+                    </div>
+                </div>
+                <a py:if="not dataset" class="btn btn-secondary ms-auto" href="${conf.url('dataset', 'fromfile', file=str(curdir))}" data-bs-toggle="tooltip" title="Create dataset from this file / folder">
+                    <i class="fas fa-clipboard"></i> 
+                    <i class="fas fa-plus"></i>
+                </a>
+                <div class="ms-1" py:if="content">
+                    <button py:if="curdir.basename in import_history" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#import-history-modal"
+                        title="Already imported">
+                        <i class="fas fa-check" />
+                    </button>
+                    ${literal(handler[curdir].get_action_buttons(curdir, **kwargs))}
+                    <a class="btn btn-primary"  title="download" data-bs-toggle="tooltip" href="./?serve=True">
+                        <i class="fas fa-file-download"/>
+                    </a>
+                    <a class="btn btn-outline-primary" href="${curdir.parent().href}">
+                        <i class="fas fa-folder-open me-4" />..</a>
+                </div>
 
+        
+            </h5>
+            <div class="row" py:if="curdir.isdir() and modes[curdir]">
+    
                 <div class="col-xl">
                     <div class="card p-3">
-                        <h5 class="card-title nav">
-                            <i class="fas fa-folder-open me-2" />
-                            <div class="">
-                                <span py:for="bc in curdir.breadcrumbs()">/<a href="${bc.href}"
-                                        py:content="bc.basename" /></span>
-                            </div>
-                            <div class="badge bg-warning text-dark nav-item ms-auto" py:content="modes[curdir].name" />
-
-                        </h5>
                         <div class="card-body">
-
+    
                             <div py:if="Mode.write>modes[curdir]" class="alert alert-light nav-item">
                                 <span class="fa-stack fa-1x">
                                     <i class="fa-solid fa-pen fa-stack-1x"></i>
@@ -194,8 +227,8 @@
                             </div>
                             <nav py:if="modes[curdir]>=Mode.write">
                                 <div class="nav nav-tabs">
-                                    <button class="nav-link active" id="close-tab-toggle" data-bs-toggle="tab"
-                                        type="button" role="tab" aria-controls="upload-tab" aria-selected="true">
+                                    <button class="nav-link active" id="close-tab-toggle" data-bs-toggle="tab" type="button"
+                                        role="tab" aria-controls="upload-tab" aria-selected="true">
                                         <i class="fas fa-times" data-bs-toggle="tooltip" title="close edit tabs" />
                                     </button>
                                     <button class="nav-link" id="upload-tab-toggle" data-bs-toggle="tab"
@@ -211,8 +244,8 @@
                                         new folder
                                     </button>
                                     <button class="nav-link" id="newfile-tab-toggle" data-bs-toggle="tab"
-                                        data-bs-target="#newfile-tab" type="button" role="tab"
-                                        aria-controls="newfile-tab" aria-selected="false">
+                                        data-bs-target="#newfile-tab" type="button" role="tab" aria-controls="newfile-tab"
+                                        aria-selected="false">
                                         <i class="fa fa-file-circle-plus" data-bs-toggle="tooltip"
                                             title="create new text file"></i>
                                         new text file
@@ -316,8 +349,8 @@
                                                 Folder owner
                                             </label>
                                             <select id="set-owner" class="form-control select2" name="newowner">
-                                                <option py:for="u in users" value="${u}"
-                                                    py:attrs="markoption(u == owner)">${u}</option>
+                                                <option py:for="u in users" value="${u}" py:attrs="markoption(u == owner)">
+                                                    ${u}</option>
                                             </select>
                                         </div>
                                         <div class="form-group mt-2">
@@ -348,9 +381,9 @@
                                         <button class="btn btn-primary mt-4" type="submit" name="uri" value="${curdir}">
                                             <i class="fas fa-save" /> save access rule
                                         </button>
-
+    
                                     </form>
-
+    
                                 </div>
                             </div>
                             <div class="list-group flex-column card-text mb-3" id="files">
@@ -374,7 +407,7 @@
                                                 data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"
                                                 py:if="modes[curdir]>=Mode.read">
                                             </button>
-
+    
                                             <div class="dropdown-menu">
                                                 <a class="dropdown-item" href="${d.href}?serve=True">
                                                     <i class="fas fa-file-zipper"></i> download as zip
@@ -399,7 +432,7 @@
                                             <span py:content="f.relative_name(curdir)" class="me-auto" />
                                             <span class="ms-4 badge bg-secondary" py:content="f.formatsize()" />
                                         </a>
-
+    
                                         <div class="nav-item dropdown">
                                             <a py:if="f.basename in import_history" class="text-success" href="#"
                                                 aria-expanded="false" aria-controls="import-history-${f.basename}"
@@ -410,9 +443,9 @@
                                             <button class="btn btn-sm btn-light dropdown-toggle" type="button"
                                                 data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"
                                                 py:if="modes[curdir]>=Mode.write">
-
+    
                                             </button>
-
+    
                                             <div class="dropdown-menu">
                                                 <a class="dropdown-item copy-button" data-name="${f.basename}"
                                                     py:if="modes[curdir]>=Mode.write" data-action="copy">
@@ -426,11 +459,11 @@
                                                     py:if="modes[curdir]>=Mode.admin">
                                                     <i class="fas fa-trash-can" /> delete
                                                 </a>
-
+    
                                             </div>
-
+    
                                         </div>
-
+    
                                     </nav>
                                 </div>
                             </div>
@@ -438,29 +471,29 @@
                     </div>
                 </div>
                 <div id="info-box-right-side" class="col-xl">
-                    <div class="card help">
+                    <div class="card readme">
                         <div class="card-header">
                             <h3 class="card-title flexbox">
                                 <span>
                                     <i class="fas fa-info-circle fa-lg" />
                                     ${curdir.basename.title()}
                                 </span>
-                                <a href="#help-edit" data-bs-toggle="collapse" class="btn btn-secondary help">
+                                <a href="#readme-edit" data-bs-toggle="collapse" class="btn btn-secondary readme">
                                     <i class="fas fa-edit" title="Click to edit..." data-bs-toggle="tooltip" />
                                 </a>
                             </h3>
                             <div py:content="markdown('folder created by user:' + str(owner))" />
 
                         </div>
-                        <div id="help" class="card-body  card-text" />
-                        <div id="help-edit" class="card-footer collapse">
+                        <div id="readme" class="card-body card-text" />
+                        <div id="readme-edit" class="card-footer collapse">
                             <textarea rows="20" class="form-control" />
                             <br />
-                            <button id="help-edit-save" class="btn btn-success me-1">
+                            <button id="readme-edit-save" class="btn btn-success me-1">
                                 <i class="fas fa-check me-1" />
                                 save
                             </button>
-                            <button id="help-edit-cancel" class="btn btn-secondary me-1">
+                            <button id="readme-edit-cancel" class="btn btn-secondary me-1">
                                 <i class="fas fa-times-circle me-1" />
                                 cancel
                             </button>
@@ -470,22 +503,6 @@
                             </a>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="d-flex" py:if="content and modes[curdir]">
-                <h5 class="">
-                    <i class="fas fa-${handler[curdir].icon} fa-lg me-2" /><span py:for="bc in curdir.breadcrumbs()">/<a
-                            href="${bc.href}" py:content="bc.basename" /></span>
-                </h5>
-                <div class="ms-auto">
-                    <button py:if="curdir.basename in import_history" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#import-history-modal"
-                        title="Already imported">
-                        <i class="fas fa-check" />
-                    </button>
-                    ${literal(handler[curdir].get_action_buttons(curdir, **kwargs))}
-                    <a class="btn btn-primary" href="./?serve=True"><i class="fas fa-file-download me-4" />download</a>
-                    <a class="btn btn-outline-primary" href="${curdir.parent().href}"><i
-                            class="fas fa-folder-open me-4" />..</a>
                 </div>
             </div>
             <div class="" py:if="content and modes[curdir]">

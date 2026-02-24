@@ -15,8 +15,12 @@ The methods are described in detail below.
 ### For manual measurements
 
 If you need to write down a single record (or very few) and you have online access, use **direct input**. 
-If you have a field computer but no online access, note your records in an excel sheet with a special structure, to use 
-help:import/log.
+If you have a field computer but no online access, note your records in an excel sheet with a special structure, to use help:import/log to import into **existing datasets**. Note that the **log-import** allows also the import of log messages and provides extensive sanity checks.
+
+### Import large prepared datasets with a record table
+
+If you can design a workflow (eg. in Python or R) to assemble measurements in a predefined form, you can create
+a table that is exactly like the the internal help:import/record table to import data into **existing datasets**. The tabular format can be Excel, CSV or Parquet (recommended). The method assumes your workflow applies sanity checks etc. 
 
 ### For sensors / instruments with tabular output
 
@@ -24,13 +28,6 @@ If your sensors produces many values in a uniform way, like eg.
 soilmoisture sensors with soilmoisture and soiltemperature data that is
 logged by a recorder, you can use .conf-files to describe the files
 produced by the logger. Refer to the help:import/conf.
-
-If you are a Python programmer, you can very simply write a program 
-that creates a pandas dataframe in a special format and send the
-dataframe directly to the ODMF database via the **API** using the
-Python package
-[odmfclient](https://github.com/jlu-ilr-hydro/odmfclient)
-[![PyPI](https://img.shields.io/pypi/v/odmfclient?logo=pypi)](https://pypi.org/project/odmfclient/)
 
 ### For measurements recorded for several sites within the same table (e.g. excel output of lab anayser)
 
