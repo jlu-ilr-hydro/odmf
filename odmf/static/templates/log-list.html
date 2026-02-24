@@ -66,10 +66,7 @@
             <div class="container">
                 <div id="title-area" class="container-fluid bg-dark text-white w-100 border rounded flexbox shadow mb-1">
                     <div>
-                        <h2 class="display-4 me-8 d-inline-block" ><span class="badge bg-primary rounded-pill">${log_count}</span> Log entries</h2>
-                    </div>
-                    <div class="display-4 col-sm my-auto text-right">
-                        <i class="fas fa-tags me-4"/>
+                        <h2 class="display-4 me-8 d-inline-block" ><span class="badge bg-primary rounded-pill">${log_count}</span><i class="fas fa-tags mx-4"/> Log entries</h2>
                     </div>
                 </div>
                 <div class="container collapse border rounded bg-light p-2 my-2" id="import">
@@ -90,7 +87,7 @@
                                        name="file" id="file" accept=".xlsx,.csv,.parquet"/>
                             </div>
                             <div class="col-sm-1 d-flex">
-                                <button type="submit" class="btn btn-success me-1" data-bs-toggle="tooltip" title="Import datasetfile" name="table" value="log"><i class="fas fa-check"/></button>
+                                <button type="submit" class="btn btn-success me-1" data-bs-toggle="tooltip" title="Import logs from file" name="table" value="log"><i class="fas fa-check"/></button>
                                 <a href="${conf.url('bulkimport')}" class="btn btn-secondary" data-bs-toggle="tooltip" title="undo imports"><i class="fas fa-arrow-rotate-left"></i></a>
                             </div>
                         </div>
@@ -118,7 +115,17 @@
                             <div class="col">${log.type}</div>
                             <div class="col"><a py:if="log.user" href="${conf.url('user', log.user.username)}" class="btn btn-light"><i class="fas fa-user me-2"/>${log.user}</a></div>
                             <div class="col"><a py:if="log.site" href="${conf.url('site', log.site.id)}" class="btn btn-light"><i class="fas fa-map-location me-2"/>${log.site}</a></div>
-                            <div class="col-6">${markdown(log.message)}</div>
+                            <div class="col-6">
+                                <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" >
+                                    ${firstline(log.message)}
+                                </button>
+                                <div class="dropdown-menu" >
+                                    <div class="p-2">
+                                        ${markdown(log.message)}
+                                    </div>
+                                </div>
+                    
+                            </div>
                             <div class="col-1">
                                 <a class="btn btn-secondary" href="${conf.url('log', log.id)}"><i class="fas fa-edit"/></a>
                             </div>

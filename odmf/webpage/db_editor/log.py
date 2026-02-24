@@ -110,7 +110,7 @@ class LogPage:
                     log = session.get(db.Log, logid)
 
                 sitelist = session.query(db.Site).order_by(db.sql.asc(db.Site.id))
-                personlist = session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname)
+                personlist = session.query(db.Person).order_by(db.Person.access_level.desc(), db.Person.surname)
                 typelist = db.sql.select(db.Log.type).where(db.Log.type.isnot(None)).distinct()
 
                 return web.render(

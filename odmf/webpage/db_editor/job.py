@@ -60,10 +60,11 @@ class JobPage:
                 job.mailer = None
 
             logsites = web.to_list(kwargs.get('sites[]'))
-            if any((logsites, kwargs.get('logmsg'))):
+            if any((logsites, kwargs.get('logmsg'), kwargs.get('logtime'))):
                 job.log = {
                     'sites': [web.conv(int, sid) for sid in logsites] or None,
-                    'message' : kwargs.get('logmsg')
+                    'message' : kwargs.get('logmsg'),
+                    'time': kwargs.get('logtime')
                 }
             else:
                 job.log = None

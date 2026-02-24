@@ -15,6 +15,7 @@ from .site import Log, Site
 from .person import Person
 from .message import Message, Topic
 from ..tools.migrate_db import new_column
+from dateutil.parser import parse as parsedate
 
 from logging import getLogger
 logger = getLogger(__name__)
@@ -92,7 +93,16 @@ class Job(Base):
     def log_to_sites(self, by=None, time=None):
         session = self.session()
         logsites = flex_get(self.log, 'sites', default=[])
-        msg = flex_get(self.log, 'message', default=self.name)
+        msg = flex_get(self.log, 'message') or self.name + '\n\n' + self.description
+        logtime = flex_get(self.log, 'time', default='due')
+        if logtime == 'done' and self.donedate:
+            time = self.donedate
+        elif logtime == 'due' and self.due:
+            time = self.due
+        elif time:=parsedate(logtime, False):
+            pass
+        else:
+            time = datetime.now()
         logcount = 0
         if logsites:
             sites = session.scalars(sql.select(Site).where(Site.id.in_(logsites)))
@@ -101,7 +111,7 @@ class Job(Base):
                     Log(
                         id=newid(Log, session),
                         _user=by or self.responsible.username,
-                        time=time or datetime.now(),
+                        time=time,
                         message=msg,
                         site=site,
                         type=self.type

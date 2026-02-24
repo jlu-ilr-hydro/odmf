@@ -4,7 +4,7 @@
     <py:block name="scripts">
         <script>
             //<![CDATA[
-
+        
             function reload(jobid) {
                 var params = {user:$('#filterresponsible').val(),
                     onlyactive:$('#filteractive').val(),
@@ -13,6 +13,22 @@
                 var uri = loc + jQuery.param(params)
                 window.location=uri;
             }
+            $(() => {
+                let set_logtime_other = (time) => {
+                    let label = $('label[for="logtime-other"]');
+                    let radio = $('#logtime-other');
+                    label.html(time.toLocaleString());
+                    radio.val(time.toISOString());
+                }
+                
+                set_logtime_other(new Date(${flex_get(job.mailer, 'logtime', default='')}));
+                $('#logtime-other-modal').on('shown.bs.modal', () => {
+                    $('#logtime-other-input').val(new Date().toISOString().slice(0, 16));
+                });
+                $('#logtime-other-submit').on('click', () => {
+                    set_logtime_other(new Date($('#logtime-other-input').val()));
+                });
+            })
             //]]>
         </script>
     </py:block>
@@ -43,7 +59,7 @@
     </py:block>
     <py:block name="content">
         <div class="content w-100">
-            <div class="container">
+            <div class="container-xl">
                 <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox shadow mb-1">
                     <div class="display-4 d-inline-block me-4" py:if="job.due">
                         <div class="badge bg-danger" py:if="job.is_due()"><i class="fas fa-exclamation-circle"/></div>
@@ -63,7 +79,7 @@
 
                 </div>
                 <div class="alert py-0 ${class_if(job.done,'alert-success')} ${class_if(job.is_due(),'alert-danger')}${class_if(not(job.is_due() or job.done) ,'alert-primary')}">
-                    <h5 class="col-sm-8"
+                    <h5 class="alert-heading"
                         py:content="'done at ' + formatdate(job.donedate) if job.done else 'due at ' + formatdate(job.due)"/>
                 </div>
 
@@ -111,6 +127,8 @@
                             </div>
                             <div class="small">log-message:</div>
                             <div>${job.log.get('message') or job.name}</div>
+                            <div class="small">log-time:</div>
+                            <div>${flex_get(job.log, 'time') or 'due'}</div>
                         </div>
                     </div>
                     <div class="row mb-1">
@@ -141,7 +159,7 @@
 
                 <form method="post" action=".">
                     <div py:if="can_edit" class="accordion mt-4" id="accordion">
-                        <div class="accordion-item">
+                        <div class="accordion-item" id="job-edit-accordion">
                             <h4 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#edit-div" aria-expanded="true" aria-controls="edit-div">
                                     <i class="fas fa-edit me-2"></i> edit job
@@ -150,49 +168,61 @@
                             <div class="accordion-collapse collapse" id="edit-div">
                                 <div class="accordion-body">
                                     <div class="form-group row">
-                                        <label for="edit-type" class="col-form-label col-sm-4">type</label>
-                                        <select  id="edit-type" name="type" class="col-sm form-control select2-tags" py:attrs="prop(readonly=not can_edit)">
-                                            <option py:for="t in jobtypes"
-                                                    py:attrs="markoption(t[0]==job.type)"
-                                                    value="${t[0]}"
-                                                    py:content="t[0]">
-                                            </option>
-                                        </select>
+                                        <label for="edit-type" class="col-form-label col-sm-3">type</label>
+                                        <div class="col-sm">
+                                            <select  id="edit-type" name="type" class="form-control select2-tags" py:attrs="prop(readonly=not can_edit)">
+                                                <option py:for="t in jobtypes"
+                                                        py:attrs="markoption(t[0]==job.type)"
+                                                        value="${t[0]}"
+                                                        py:content="t[0]">
+                                                </option>
+                                            </select>
+                                        </div>
                                     </div>
                                     <div class="form-group row">
-                                        <label for="edit-name" class="col-form-label col-sm-4">Name:</label>
-                                        <input type="text"  id="edit-name" name="name" value="${job.name}"
-                                               class="form-control col-sm-8" py:attrs="prop(readonly=not can_edit)"/>
+                                        <label for="edit-name" class="col-form-label col-sm-3">Name:</label>
+                                        <div class="col-sm">
+                                            <input type="text"  id="edit-name" name="name" value="${job.name}"
+                                                class="form-control" py:attrs="prop(readonly=not can_edit)"/>
+                                        </div>
                                     </div>
                                     <div class="form-group row">
-                                        <label for="edit-due" class="col-form-label col-sm-4">Due:</label>
-                                        <input type="date"  id="edit-due" name="due" value="${formatdate(job.due, '%Y-%m-%d')}"
-                                               class="form-control col-sm-8" py:attrs="prop(readonly=not can_edit)" />
+                                        <label for="edit-due" class="col-form-label col-sm-3">Due:</label>
+                                        <div class="col-sm">
+                                            <input type="date"  id="edit-due" name="due" value="${formatdate(job.due, '%Y-%m-%d')}"
+                                               class="form-control" py:attrs="prop(readonly=not can_edit)" />
+                                        </div>
                                     </div>
                                     <div class="form-group row">
-                                        <label for="edit-duration" class="col-form-label col-sm-4">Duration in days</label>
-                                        <input  id="edit-duration" name="duration" type="number" value="${job.duration}"
-                                                class="form-control col-sm-8" py:attrs="prop(readonly=not can_edit)"/>
+                                        <label for="edit-duration" class="col-form-label col-sm-3">Duration in days</label>
+                                        <div class="col-sm">
+                                            <input  id="edit-duration" name="duration" type="number" value="${job.duration}"
+                                                    class="form-control" py:attrs="prop(readonly=not can_edit)"/>
+                                        </div>
                                     </div>
                                     <div class="form-group row">
-                                        <label for="edit-repeat" class="col-form-label col-sm-4">Repeat in days</label>
-                                        <input  id="edit-repeat" name="repeat" type="number" value="${job.repeat}"
-                                                class="form-control col-sm-8" py:attrs="prop(readonly=not can_edit)"/>
+                                        <label for="edit-repeat" class="col-form-label col-sm-3">Repeat in days</label>
+                                        <div class="col-sm">
+                                            <input  id="edit-repeat" name="repeat" type="number" value="${job.repeat}"
+                                                class="form-control" py:attrs="prop(readonly=not can_edit)"/>
+                                        </div>
                                     </div>
                                     <div class="form-group row">
-                                        <div class="col-sm-4">Author:</div>
-                                        <div class="col-sm-8">${job.author}</div>
+                                        <div class="col-sm-3">Author:</div>
+                                        <div class="col-sm">${job.author}</div>
                                     </div>
                                     <div class="form-group row">
-                                        <label for="edit-responsible" class="col-form-label col-sm-4">Responsible:</label>
-                                        <select  id="edit-responsible" name="responsible"
-                                                 class="col-sm-8 form-control select2" py:attrs="prop(disabled=not can_edit)">
-                                            <option value=""><i> &lt;Please select...&gt;</i></option>
-                                            <option py:for="p in persons"
-                                                    py:attrs="markoption(p is job.responsible)"
-                                                    py:content="p"
-                                                    value="${p.username}" />
-                                        </select>
+                                        <label for="edit-responsible" class="col-form-label col-sm-3">Responsible:</label>
+                                        <div class="col-sm">    
+                                            <select  id="edit-responsible" name="responsible"
+                                                 class="form-control select2" py:attrs="prop(disabled=not can_edit)">
+                                                <option value=""><i> &lt;Please select...&gt;</i></option>
+                                                <option py:for="p in persons"
+                                                        py:attrs="markoption(p is job.responsible)"
+                                                        py:content="p"
+                                                        value="${p.username}" />
+                                            </select>
+                                        </div>
                                     </div>
                                     <label for="edit-description" class="markdown">
                                         Description:
@@ -210,7 +240,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-item">
+                        <div class="accordion-item" id="job-log-accordion">
                             <h4 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#logs-div" aria-expanded="true" aria-controls="edit-div">
                                     <i class="fas fa-tags me-2"></i> create logs
@@ -218,20 +248,43 @@
                             </h4>
                             <div class="accordion-collapse collapse" id="logs-div">
                                 <div class="accordion-body">
-                                    <div class="form-group row">
-                                        <label for="edit-logsites" class="col-form-label col-sm-4">for each site:</label>
-                                        <select name="sites[]" id="edit-logsites" class="col-sm-8 form-control select2" multiple="multiple">
-                                            <option py:for="site in sites" value="${site.id}" py:attrs="markoption(site.id in flex_get(job.log, 'sites', default=[]))" title="${site.name}">${site}</option>
-                                        </select>
+                                    <div class="row">
+                                        <label for="edit-logtime" class="col-form-label col-sm-3" title="which time stamp should be used for the newly created log" data-bs-toggle="tooltip">log time:</label>
+                                        <div class="col-sm">
+                                            <input type="radio" class="btn-check" name="logtime" value="due" id="logtime-due" py:attrs="prop(checked=flex_get(job.log, 'time', default='due') == 'due')"/>
+                                            <label class="btn btn-outline-secondary" for="logtime-due" title="due date" data-bs-toggle="tooltip">at due date</label>
+                                            <input type="radio" class="btn-check" name="logtime" value="done" id="logtime-done" py:attrs="prop(checked= flex_get(job.log, 'time', default='due') == 'done')"/>
+                                            <label class="btn btn-outline-secondary ms-2" for="logtime-done" title="done date" data-bs-toggle="tooltip">at done date</label>
+                                            
+                                            <input type="radio" class="btn-check" id="logtime-other" name="logtime" py:attrs="prop(checked=parsedate(flex_get(job.log, 'time'), False) is not None)"/>
+                                            <label class="btn btn-outline-secondary ms-2" for="logtime-other" title="current time" data-bs-toggle="tooltip">other</label>
+                                            <span class="" data-bs-toggle="tooltip" title="set log time">
+                                                <button class="btn btn-secondary" type="button" data-bs-toggle="modal" data-bs-target="#logtime-other-modal" title="set log time">
+                                                    <i class="fas fa-calendar-alt"/>
+                                                </button>
+                                            </span>
+
+                                        </div>
                                     </div>
                                     <div class="form-group row">
-                                        <label for="edit-logmsg" class="col-form-label col-sm-4">message:</label>
-                                        <input class="form-control col-sm-8" id="edit-logmsg" placeholder="${job.name}" name="logmsg" value="${flex_get(job.log, 'message')}"/>
+                                        <label for="edit-logsites" class="col-form-label col-sm-3">for each site:</label>
+                                        <div class="col-sm" data-bs-toggle="tooltip" title="create log for each site of the job">
+                                            <select name="sites[]" id="edit-logsites" class="form-control select2" multiple="multiple">
+                                                <option py:for="site in sites" value="${site.id}" py:attrs="markoption(site.id in flex_get(job.log, 'sites', default=[]))" title="${site.name}">${site}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="edit-logmsg" class="col-form-label col-sm-3">message:</label>
+                                        <div class="col-sm">
+                                            <textarea class="form-control col-sm" id="edit-logmsg" placeholder="job name and description" name="logmsg">${flex_get(job.log, 'message')}</textarea>
+                                        </div>
+                                        
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-item">
+                        <div class="accordion-item" id="job-msg-accordion">
                             <h4 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mail-div" aria-expanded="true" aria-controls="edit-div">
                                     <i class="fas fa-envelope me-2"></i> send messages
@@ -248,32 +301,36 @@
                                             </div>
 
                                         </div>
-                                        <label for="edit-msgtopics" class="col-form-label col-sm-4">topics:</label>
-                                        <select name="topics[]" id="edit-msgtopics" class="col-sm-8 form-control select2" multiple="multiple">
-                                            <optgroup label="Your subscribed topics">
-                                                <option py:for="topic in topics" value="${topic.id}"
-                                                        py:attrs="markoption(topic.id in flex_get(job.mailer, 'topics', default=[]))"
-                                                        py:if="me in topic.subscribers"
-                                                        title="${topic}">${topic.id}</option>
-                                            </optgroup>
-                                            <optgroup label="Other topics">
-                                                <option py:for="topic in topics" value="${topic.id}"
-                                                        py:attrs="markoption(topic.id in flex_get(job.mailer, 'topics', default=[]))"
-                                                        py:if="me not in topic.subscribers" class=""
-                                                        title="${topic}">${topic.id}</option>
-                                            </optgroup>
-                                        </select>
+                                        <label for="edit-msgtopics" class="col-form-label col-sm-3">topics:</label>
+                                        <div class="col-sm" data-bs-toggle="tooltip" title="send message to topics when job is due or done">
+                                            <select name="topics[]" id="edit-msgtopics" class="form-control select2" multiple="multiple">
+                                                <optgroup label="Your subscribed topics">
+                                                    <option py:for="topic in topics" value="${topic.id}"
+                                                            py:attrs="markoption(topic.id in flex_get(job.mailer, 'topics', default=[]))"
+                                                            py:if="me in topic.subscribers"
+                                                            title="${topic}">${topic.id}</option>
+                                                </optgroup>
+                                                <optgroup label="Other topics">
+                                                    <option py:for="topic in topics" value="${topic.id}"
+                                                            py:attrs="markoption(topic.id in flex_get(job.mailer, 'topics', default=[]))"
+                                                            py:if="me not in topic.subscribers" class=""
+                                                            title="${topic}">${topic.id}</option>
+                                                </optgroup>
+                                            </select>
+                                        </div>
                                     </div>
                                     <div class="form-group row" data-bs-toggle="tooltip" title="send message to topics when">
-                                        <label for="edit-msgdates" class="col-form-label col-sm-4" >when:</label>
-                                        <select name="msgdates[]" id="edit-msgdates" class="col-sm-8 form-control select2" multiple="multiple">
-                                            <option value="done" title="send to topics message when done"
-                                                    py:attrs="markoption('done' in flex_get(job.mailer, 'when', default=[]))"
-                                            >done</option>
-                                            <option py:for="d in [0, 1, 3, 7, 14, 28]" value="${d}"
-                                                    py:attrs="markoption(d in flex_get(job.mailer, 'when', default=[]))"
-                                                    title="${d} day before due">${d} days</option>
-                                        </select>
+                                        <label for="edit-msgdates" class="col-form-label col-sm-3" >when:</label>
+                                        <div class="col-sm">
+                                            <select name="msgdates[]" id="edit-msgdates" class="form-control select2" multiple="multiple">
+                                                <option value="done" title="send to topics message when done"
+                                                        py:attrs="markoption('done' in flex_get(job.mailer, 'when', default=[]))"
+                                                >done</option>
+                                                <option py:for="d in [0, 1, 3, 7, 14, 28]" value="${d}"
+                                                        py:attrs="markoption(d in flex_get(job.mailer, 'when', default=[]))"
+                                                        title="${d} day before due">${d} days</option>
+                                            </select>
+                                        </div>
                                     </div>
 
                                 </div>
@@ -332,6 +389,22 @@
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+    </py:block>
+    <py:block name="extrahtml">
+        <div class="modal" id="logtime-other-modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Select log date</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="datetime-local" id="logtime-other-input" class="form-control"/>
+                        <button class="btn btn-primary mt-2" id="logtime-other-submit" data-bs-dismiss="modal">Submit</button>
+                    </div>
+                </div>
             </div>
         </div>
     </py:block>
