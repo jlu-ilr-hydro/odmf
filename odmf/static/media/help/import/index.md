@@ -7,7 +7,7 @@ Most import methods need alerady existing datasets. Datasets are created with th
 
 ### Using direct input
 
-If you need to write down a single record (or very few) and you have online access, use **direct input**. Goto the [!fa-clipboard -dataset page](/dataset) and navigate to the dataset, you want to add the record. Goto record --> add record, put in date, time and value, and you are done.
+If you need to write down a single record (or very few) and you have online access, use **direct input**. Goto the [!fa-clipboard -dataset page](/dataset) and navigate to the dataset, you want to add the record. Click on add record and add your value. For tricks to make this convinient see: help:import/direct
 
 ### Using log-import Excel template
 
