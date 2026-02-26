@@ -149,7 +149,7 @@ Template: https://getbootstrap.com/docs/4.4/components/navbar/
             <div id="nav-icons" class="collapse navbar-collapse">
                 <div class="ms-auto me-auto text-light btn-group">
                     <a py:for="resource in nav_items" py:if="resource.icon" href="${resource.uri}"
-                        title="${resource.name}" class="btn btn-secondary" data-bs-toggle="tooltip"
+                        title="${resource.title}" class="btn btn-secondary" data-bs-toggle="tooltip"
                         data-bs-placement="bottom">
                         <i class="fas fa-${resource.icon} " />
                     </a>

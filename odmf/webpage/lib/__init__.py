@@ -65,7 +65,7 @@ def json_out(obj=None, **kwargs):
     ).encode('utf-8')
 
 
-def show_in_nav_for(level=0, icon=None):
+def show_in_nav_for(level=0, icon=None, title=None):
     """
     Use as a class / method decorator to flag an exposed object in the site navigation
 
@@ -78,6 +78,7 @@ def show_in_nav_for(level=0, icon=None):
         f.show_in_nav = level
         f.icon = icon
         f.exposed = True
+        f.title = title
         return f
     return decorate
 

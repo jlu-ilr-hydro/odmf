@@ -16,7 +16,10 @@ template here file:template/import-template-log.xlsx folder
 
 When you open the file, a button [!fa-upload log] is there, to start the import. 
 
-#### NOTE: 
+!!! warning "Warning!"
+    Only completely correct files can be used for import. If any row is not suitable, you **MUST** correct or delete that row for import. Because **log import** can scatter values around in the database, errors are very difficult to correct.
 
-Only completely correct files can be used for import. If any row is not suitable, you **MUST** correct or delete that row for import. Because **log import** can scatter values around in the database, errors are very difficult to correct.
-#### BE CAREFUL!
+!!! note "Note:"
+    Tables for log-import are also valid record import (help:import/record ) tables. Log import does more checking for typing errors and should be preferred for shorter sheets, that are manually prepared.
+
+    

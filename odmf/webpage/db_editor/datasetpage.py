@@ -14,7 +14,7 @@ import codecs
 from ...db.calibration import Calibration, CalibrationSource
 from ...config import conf
 from pathlib import Path
-from ...tools import import_objects as impo
+from ...tools import import_objects as impo, Path as OPath
 from pytz import common_timezones
 import cherrypy
 import pandas as pd
@@ -51,8 +51,9 @@ class DatasetPage:
 
             if not ds:
                 dsid=db.newid(db.Dataset, session)
-                ds = db.Timeseries(
+                ds = db.Dataset(
                     id=dsid,
+                    type=kwargs.get('type', 'timeseries'),
                     name='New Dataset',
                     access=Level.admin,
                     timezone=conf.datetime_default_timezone,
@@ -136,6 +137,7 @@ class DatasetPage:
             raise web.redirect(redirect, success='Dataset saved')
 
     @expose_for(Level.editor)
+    @web.method.get
     def new(self, site_id=None, vt_id=None, user=None, error='', _=None, template=None):
         active = None
         with db.session_scope() as session:
@@ -166,6 +168,35 @@ class DatasetPage:
                 calibration_slope=1
             )
             return self.render_dataset(session, active, error=error)
+        
+    @expose_for(Level.editor)
+    @web.method.get
+    def fromfile(self, file=None, **kwargs):
+        """
+        Creates a file dataset from a referenced file. 
+        
+        :param self: Description
+        :param file: Description
+        :param kwargs: Description
+        """
+        file = OPath(file)
+        if not file.exists() or not file.islegal():
+            raise web.redirect(conf.url('dataset', 'new'), error=f'File {file} not found')
+
+        with db.session_scope() as session:
+            user: db.Person = session.get(db.Person, kwargs.get('user', web.user()))    
+            ds = db.FileDataset(
+                id=db.newid(db.Dataset, session),
+                name=file.basename,
+                filename=str(file),
+                measured_by=user,
+                access=Level.editor,
+                start=datetime.now(),
+                end=datetime.now(),
+                timezone=conf.datetime_default_timezone,
+            )
+            
+            return self.render_dataset(session, ds)
 
     def render_dataset(self, session, active: db.Dataset, message='', error=''):
         """
@@ -333,7 +364,7 @@ class DatasetPage:
                 source = session.get(db.Datasource, int(instrument))
             datasets = datasets.filter_by(source=source)
         if dstype:
-            datasets = datasets.filter_by(type=type)
+            datasets = datasets.filter_by(type=dstype)
         if level is not None:
             datasets = datasets.filter_by(level=level)
         if onlyaccess:
@@ -648,8 +679,7 @@ class DatasetPage:
                              action_help=f'{conf.root_url}/download/wiki/dataset/split.wiki').render()
 
     @expose_for(Level.logger)
-    @web.method.post
-    def add_record(self, dataset, time, value, id=None, sample=None, comment=None):
+    def add_record(self, dataset, time=None, value=None, sample=None, comment=None):
         """
         Adds a single record to a dataset, great for connected fieldwork
         :param dataset: Dataset id
@@ -663,9 +693,28 @@ class DatasetPage:
             ds: db.Timeseries = session.get(db.Dataset, int(dataset))
             if not has_access(ds, Level.editor):
                 raise web.HTTPError(403, 'Not allowed')
-            time = web.parsedate(time)
-            ds.addrecord(id, value, time, comment, sample, out_of_timescope_ok=True)
-        raise web.redirect(str(dataset) + '/#add-record', success='record added')
+            if cherrypy.request.method == 'GET':
+                
+                if refferer := cherrypy.request.headers.get('Referer'):
+                    cherrypy.session[f'add-record-referer-{dataset}'] = refferer
+                return web.render(
+                    'dataset/add-record.html', ds_act=ds, 
+                    time=time, value=value, sample=sample, comment=comment
+                    ).render()
+            elif cherrypy.request.method == 'POST':
+                try:
+                    ds.addrecord(None, value, time, comment, sample, out_of_timescope_ok=True)
+                except ValueError as e:
+                    return web.render(
+                        'dataset/add-record.html', ds_act=ds, 
+                        error=str(e), 
+                        time=time, value=value, sample=sample, comment=comment
+                    ).render()
+        if refferer := cherrypy.session.get(f'add-record-referer-{dataset}'):
+            del cherrypy.session[f'add-record-referer-{dataset}']
+            raise web.redirect(refferer, success=f'record added to ds:{dataset}')
+        else:
+            raise web.redirect(conf.url('dataset', dataset), success=f'record added to ds:{dataset}')
 
 
 
