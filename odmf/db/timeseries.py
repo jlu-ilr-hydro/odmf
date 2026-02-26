@@ -252,24 +252,29 @@ class Timeseries(Dataset):
     def size(self):
         return self.records.count()
 
-    def iterrecords(self, witherrors=False, start=None, end=None):
+    def iterrecords(self, witherrors=False, start=None, end=None, limit: typing.Optional[int] = None, descending=False):
         session = self.session()
         records = session.query(Record).filter(
-            Record._dataset == self.id).order_by(Record.time)
+            Record._dataset == self.id)
+        if descending:
+            records = records.order_by(Record.time.desc())
+        else:
+            records = records.order_by(Record.time)
         if start:
             records = records.filter(Record.time >= start)
         if end:
             records = records.filter(Record.time <= end)
-        records = records.order_by(Record.time)
         if not witherrors:
             records = records.filter(~Record.is_error)
+        if limit is not None:
+            records = records.limit(limit)
         for r in records:
             yield MemRecord(id=r.id, dataset=r.dataset,
                             time=r.time, value=r.calibrated,
                             sample=r.sample, comment=r.comment,
                             rawvalue=r.value, is_error=r.is_error)
 
-    def asseries(self, start: typing.Optional[datetime] = None, end: typing.Optional[datetime] = None, with_errors=False)->pd.Series:
+    def asseries(self, start: typing.Optional[datetime] = None, end: typing.Optional[datetime] = None, with_errors=False, limit: typing.Optional[int] = None, descending=False)->pd.Series:
         """
         Returns a pandas series of the calibrated non-error
         :param start: A start time for the series
@@ -277,12 +282,18 @@ class Timeseries(Dataset):
         """
         query = self.session().query
         records = query(Record.time, Record.value).filter_by(_dataset=self.id)
+        if descending:
+            records = records.order_by(Record.time.desc())
+        else:
+            records = records.order_by(Record.time)
         if not with_errors:
             records = records.filter(~Record.is_error)
         if start:
             records = records.filter(Record.time >= start)
         if end:
             records = records.filter(Record.time <= end)
+        if limit is not None:
+            records = records.limit(limit)
 
         # Load data from database into dataframe and get the value-Series
         values = pd.read_sql(records.statement, self.session().bind, index_col='time')['value']
@@ -291,8 +302,6 @@ class Timeseries(Dataset):
         if values.empty:
             return pd.Series([], index=pd.to_datetime([]), dtype=float)
 
-        # Sort by time ascending
-        values.sort_index(inplace=True)
         # Do calibration
         values *= self.calibration_slope
         values += self.calibration_offset

@@ -693,17 +693,23 @@ class DatasetPage:
             ds: db.Timeseries = session.get(db.Dataset, int(dataset))
             if not has_access(ds, Level.editor):
                 raise web.HTTPError(403, 'Not allowed')
-            time = web.parsedate(time)
             if cherrypy.request.method == 'GET':
                 
                 if refferer := cherrypy.request.headers.get('Referer'):
                     cherrypy.session[f'add-record-referer-{dataset}'] = refferer
-                return web.render('dataset/add-record.html', ds_act=ds).render()
+                return web.render(
+                    'dataset/add-record.html', ds_act=ds, 
+                    time=time, value=value, sample=sample, comment=comment
+                    ).render()
             elif cherrypy.request.method == 'POST':
                 try:
                     ds.addrecord(None, value, time, comment, sample, out_of_timescope_ok=True)
                 except ValueError as e:
-                    return web.render('dataset/add-record.html', ds_act=ds, error=str(e)).render()
+                    return web.render(
+                        'dataset/add-record.html', ds_act=ds, 
+                        error=str(e), 
+                        time=time, value=value, sample=sample, comment=comment
+                    ).render()
         if refferer := cherrypy.session.get(f'add-record-referer-{dataset}'):
             del cherrypy.session[f'add-record-referer-{dataset}']
             raise web.redirect(refferer, success=f'record added to ds:{dataset}')

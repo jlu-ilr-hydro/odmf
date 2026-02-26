@@ -1,6 +1,6 @@
 # !fa-file File manager
 
-The  [file manager !fa-folder](../../download) is a simple tool to share files concerning the observatory. The site-admins
+The  [!fa-folder-open file manager](../../download) is a simple tool to share files concerning the observatory. The site-admins
 create meaningful directory structures and uses `.readme.md` files (can be created by clicking on the
 right pane in the file manager) to explain the directory structure. Please use them for **unstructured** meta data in any form.
 

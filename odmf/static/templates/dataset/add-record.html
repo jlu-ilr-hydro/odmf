@@ -2,7 +2,45 @@
 
 <py:extends href="layout.html" xmlns:py="">
     <py:block name="scripts">
-        <!-- insert additional scripts -->
+        <script>
+             //<![CDATA[
+            function updateLinks() {
+                const normalLink = document.getElementById('normal-link');
+                const prefilledLink = document.getElementById('prefilled-link');
+                const baseUrl = window.location.origin + window.location.pathname;
+                normalLink.href = baseUrl;
+                normalLink.textContent = baseUrl
+            
+                const time = encodeURIComponent(document.getElementById('add-record-time').value);
+                const value = encodeURIComponent(document.getElementById('add-record-value').value);
+                const sample = encodeURIComponent(document.getElementById('add-record-sample').value);
+                const comment = encodeURIComponent(document.getElementById('add-record-comment').value);
+
+                prefilledLink.href = baseUrl + '?time=' + time + '&value=' + value + '&sample=' + sample + '&comment=' + comment;
+                prefilledLink.textContent = prefilledLink.href; 
+
+            }
+
+            $(()=>{
+                updateLinks();
+                $('input, textarea').on('input', updateLinks);
+                $('.to-clipboard').click(function(e){
+                    e.preventDefault();
+                    const url = $(this).attr('href');
+                    navigator.clipboard.writeText(url).then(()=>{
+                        $(this).tooltip('hide')
+                            .attr('data-bs-original-title', 'copied!')
+                            .tooltip('show');
+                        setTimeout(() => {
+                            $(this).tooltip('hide')
+                                .attr('data-bs-original-title', 'Copy link to clipboard');
+                        }, 1000);
+                    });
+                });
+
+            })
+            //]]>
+        </script>
     </py:block>
     <py:block name="style">
         <!-- insert additional styles -->
@@ -41,7 +79,7 @@
     <py:block name="content">
         <!-- insert main content -->
         <div class="container mt-2">
-            <div id="title-area" class="bg-dark text-white row border rounded shadow" py:if="ds_act"
+            <div id="title-area" class="bg-dark text-white row border rounded shadow mx-1" py:if="ds_act"
                 py:with="n=ds_act.size()">
                 <div class="col-sm row">
                     <h2 class="display-3 col-sm"><i class="fas fa-chart-line me-2" />
@@ -74,28 +112,27 @@
                 </div>
             </div>
 
-
-            <div class="p-4 border rounded row mt-4">
+            <div class="p-2 border rounded row mt-4 mx-1">
                 <form id="add-record-form" action="" method="post">
                     <div class="container w-100">
                         <div class="form-group">
                             <label for="add-record-value">
                                 value in ${ds_act.valuetype.unit if ds_act.valuetype else '?'}
                             </label>
-                            <input id="add-record-value" type="number" name="value" class="form-control" step="any" />
+                            <input id="add-record-value" type="number" name="value" class="form-control" step="any" value="${value or ''}"/>
                         </div>
                         <div class="form-group">
                             <label for="add-record-time">time</label>
-                            <input id="add-record-time" type="datetime-local" name="time"
+                            <input id="add-record-time" type="datetime-local" name="time" value="${time}"
                                 class="form-control datetime-local-now" />
                         </div>
                         <div class="form-group">
                             <label for="add-record-sample">sample name</label>
-                            <input id="add-record-comment" type="text" name="sample" class="form-control" />
+                            <input id="add-record-sample" type="text" name="sample" class="form-control" value="${sample or ''}" />
                         </div>
                         <div class="form-group">
                             <label for="add-record-comment">comment</label>
-                            <textarea id="add-record-comment" type="text" name="comment" class="form-control" ></textarea>
+                            <textarea id="add-record-comment" type="text" name="comment" class="form-control" >${comment or ''}</textarea>
                         </div>
                         <div class="mt-2">
                             <button type="submit" class="btn btn-success" title="submit measurement" data-bs-toggle="tooltip"><i class="fas fa-check" /> add</button>
@@ -108,6 +145,35 @@
                         </div>
                     </div>
                 </form>
+            </div>
+
+            <div class="p-2 border rounded row mt-2 mx-1">
+                <a href="#history-table" class="h3 d-flex link" data-bs-toggle="collapse"><i class="fas fa-clock me-2" />History <i class="fas fa-chevron-down ms-auto"></i></a>
+                <table class="table collapse" id="history-table">
+                    <tr>
+                        <th>time</th>
+                        <th>value</th>
+                        <th>sample</th>
+                        <th>comment</th>
+                        <th>Status</th>
+                    </tr>
+                    <tr py:for="record in ds_act.iterrecords(witherrors=True, limit=10, descending=True)" class="${'table-danger' if record.is_error else ''}">
+                        <td py:content="formatdate(record.time)" />
+                        <td py:content="record.value" />
+                        <td py:content="record.sample" />
+                        <td py:content="record.comment" />
+                        <td py:content="'error' if record.is_error else 'ok'" />
+                    </tr>
+                </table>
+
+            </div>
+            <div class="p-2 border rounded row mt-2 mx-1">
+                <h3><i class="fas fa-copy" /> Copy links</h3>
+                <div class="list-group">
+
+                    <a href="" class="list-group-item list-group-item-action to-clipboard" id="normal-link" title="Copy link to clipboard"></a>
+                    <a href="" class="list-group-item list-group-item-action to-clipboard" id="prefilled-link" title="Copy link with prefilled entries to clipboard"></a>
+                </div>
             </div>
         </div>
     </py:block>
