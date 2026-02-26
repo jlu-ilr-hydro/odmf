@@ -2,6 +2,48 @@
 
 <py:extends href="layout.html" xmlns:py="">
     <py:block name="scripts">
+        <script>
+            //<![CDATA[
+            function updateLink() {
+                const link = document.getElementById('log-new-link');
+                const baseUrl = '${conf.url('log', 'new')}';
+
+                const time = encodeURIComponent($('#date').val());
+                
+                const site = encodeURIComponent(document.getElementById('site').value);
+                const type = encodeURIComponent(document.getElementById('type').value);
+                const comment = encodeURIComponent(document.getElementById('message').value);
+
+
+                link.href = baseUrl + '?'
+                if (site) link.href += 'site=' + site + '&';
+                if (type) link.href += 'type=' + type + '&';
+                if (comment) link.href += 'message=' + comment + '&';
+                link.textContent = link.href;
+
+            }
+
+            $(() => {
+                updateLink();
+                $('select, input, textarea').on('input', updateLink);
+                $('.to-clipboard').click(function (e) {
+                    e.preventDefault();
+                    const url = $('#log-new-link').attr('href');
+                    navigator.clipboard.writeText(url).then(() => {
+                        $(this).tooltip('hide')
+                            .attr('data-bs-original-title', 'copied!')
+                            .tooltip('show');
+                        setTimeout(() => {
+                            $(this).tooltip('hide')
+                                .attr('data-bs-original-title', 'Copy link to clipboard');
+                        }, 1000);
+                    });
+                });
+
+            })
+            //]]>
+        </script>
+
     </py:block>
     <py:block name="style">
     </py:block>
@@ -9,11 +51,12 @@
         <!-- insert sidebar content -->
         <div class="container-fluid">
             <div class="list-group">
-                <a href="${conf.root_url}/log/new#edit" class="list-group-item list-group-item-action list-group-item-success" id="log-add">
+                <a href="${conf.root_url}/log/new#edit"
+                    class="list-group-item list-group-item-action list-group-item-success" id="log-add">
                     <i class="fas fa-plus" /> add new log
                 </a>
                 <a href="${conf.url('log')}" class="list-group-item list-group-item-action list-group-item-primary">
-                    <i class="fas fa-tags"/> log list
+                    <i class="fas fa-tags" /> log list
                 </a>
 
             </div>
@@ -23,97 +66,105 @@
     <py:block name="content">
         <div class="container">
 
-            <div class="container" >
-                <div id="description" py:if="actuallog">
-                    <div class="row mt-2 w-100">
-                        <div class="container">
-                            <div id="title-area"
-                                 class="container bg-dark text-white w-100 border rounded flexbox mb-4">
-                                <h2 class="display-4">Log book entry</h2>
-                                <div class="display-4 ms-auto">
-                                    <i class="fas fa-tag me-4"/>${actuallog.id}
-                                </div>
-                            </div>
-                            <div class="list-group">
-                                <div class="fs-2 list-group-item flexbox">
-                                    <i class="fas fa-clock me-2"/>${formatdate(actuallog.time)} <div class="badge bg-secondary ms-auto">${actuallog.type}</div>
-                                </div>
-                                <a class="fs-2 list-group-item list-group-item-action" href="${conf.url('user', actuallog.user.username)}">
-                                    <i class="fas fa-user me-2"/>${actuallog.user}
-                                </a>
-                                <a class="fs-2 list-group-item list-group-item-action" href="${conf.url('site', actuallog.site.id, '#logbook')}" py:if="actuallog.site">
-                                    <img src="${conf.root_url}/media/mapicons/${actuallog.site.icon or 'unknown.png'}"/>
-                                    ${actuallog.site}
-                                </a>
 
+            <div id="description" py:if="actuallog">
+                <div class="row mt-2 w-100">
+                    <div class="container">
+                        <div id="title-area" class="container bg-dark text-white w-100 border rounded flexbox mb-4">
+                            <h2 class="display-4">${actuallog.type}@${actuallog.site}</h2>
+                            <div class="display-4 ms-auto">
+                                <i class="fas fa-tag me-4" />${actuallog.id}
+                            </div>
+                        </div>
+                        <div class="list-group">
+                            <div class="fs-2 list-group-item flexbox">
+                                <i class="fas fa-clock me-2" />${formatdate(actuallog.time)} <div
+                                    class="badge bg-secondary ms-auto">${actuallog.type}</div>
+                            </div>
+                            <a class="fs-2 list-group-item list-group-item-action"
+                                href="${conf.url('user', actuallog.user.username)}">
+                                <i class="fas fa-user me-2" />${actuallog.user}
+                            </a>
+                            <a class="fs-2 list-group-item list-group-item-action"
+                                href="${conf.url('site', actuallog.site.id, '#logbook')}" py:if="actuallog.site">
+                                <img src="${conf.root_url}/media/mapicons/${actuallog.site.icon or 'unknown.png'}" />
+                                ${actuallog.site}
+                            </a>
 
-                            </div>
-                            <div class="container" py:content="markdown(actuallog.message)"/>
-                            <div class="col-lg-2 mb-2">
-                                <a class="btn btn-secondary dropdown-toggle" href="#edit" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="edit">
-                                    <i class="fas fa-edit me-2"/> edit
-                                </a>
-                            </div>
 
                         </div>
-                    </div>
+                        <div class="container" py:content="markdown(actuallog.message)" />
 
+                    </div>
                 </div>
 
-                <div id="edit" py:if="actuallog"
-                     class="collapse border rounded p-4 ${class_if(not (actuallog.site and actuallog.type), 'show')}">
-                    <form id="logform" action="" method="post"
-                          py:if="actuallog and is_member('logger')">
-                        <input class="d-none" value="${actuallog.id}" name="id"/>
-                        <div class="form-group row">
-                            <label for="user" class="col-form-label col-md-2">Who?</label>
-                            <select id="user" name="user" class="form-control select2 col-md-10">
-                                <option py:for="p in persons"
-                                        py:attrs="markoption(p is actuallog.user)"
-                                        py:content="p"
-                                        value="${p.username}" />
-                            </select>
+            </div>
+
+            <div class="col-lg-2 my-2">
+                <a class="btn btn-secondary dropdown-toggle" href="#edit" data-bs-toggle="collapse" role="button"
+                    aria-expanded="false" aria-controls="edit">
+                    <i class="fas fa-edit me-2" /> edit
+                </a>
+            </div>
+            <div id="edit" py:if="actuallog"
+                class="collapse border rounded p-4 ${class_if(not (actuallog.id), 'show')}">
+                <form id="logform" action="" method="post" py:if="actuallog and is_member('logger')">
+                    <input class="d-none" value="${actuallog.id}" name="id" />
+                    <div class="form-group row">
+                        <label for="user" class="col-form-label col-md-2">Who?</label>
+                        <select id="user" name="user" class="form-control select2 col-md-10">
+                            <option py:for="p in persons" py:attrs="markoption(p is actuallog.user)" py:content="p"
+                                value="${p.username}" />
+                        </select>
+
+                    </div>
+                    <div class="form-group">
+                        <label for="date" class="">When?</label>
+                        <input id="date" name="date" class="form-control" type="date"
+                            value="${formatdate(actuallog.time, '%Y-%m-%d')}" />
+
+                    </div>
+                    <div class="form-group">
+                        <label for="site" class="">Where?</label>
+                        <select id="site" name="site" class="select2 form-control">
+                            <option value=""><i>&lt;Please select...&gt;</i></option>
+                            <option py:for="s in sites" py:attrs="markoption(s is actuallog.site)" py:content="s"
+                                value="${s.id}" />
+                        </select>
+
+                    </div>
+                    <div class="form-group">
+                        <label for="message" class="">What?</label>
+                        <select class="select2-tags form-control" name="type" id="type">
+                            <option py:for="t in types" value="${t}" py:attrs="markoption(t == actuallog.type)">${t}
+                            </option>
+                        </select>
+                        <div class="mt-1">
+
+                            <textarea name="message" id="message" class="form-control" rows="10"
+                                py:content="actuallog.message" />
 
                         </div>
-                        <div class="form-group">
-                            <label for="date" class="">When?</label>
-                            <input id="date" name="date" class="form-control" type="date" value="${formatdate(actuallog.time, '%Y-%m-%d')}"/>
 
-                        </div>
-                        <div class="form-group">
-                            <label for="site" class="">Where?</label>
-                            <select id="site" name="site" class="select2 form-control">
-                                <option value=""><i>&lt;Please select...&gt;</i></option>
-                                <option py:for="s in sites"
-                                        py:attrs="markoption(s is actuallog.site)"
-                                        py:content="s"
-                                        value="${s.id}" />
-                            </select>
-
-                        </div>
-                        <div class="form-group">
-                            <label for="message" class="">What?</label>
-                            <select class="select2-tags form-control" name="type">
-                                <option py:for="t in types" value="${t}" py:attrs="markoption(t == actuallog.type)">${t}</option>
-                            </select>
-                            <div class="">
-
-                                <textarea name="message" id="message"
-                                          class="form-control"
-                                          rows="10" py:content="actuallog.message" />
-
-                            </div>
-
-                        </div>
+                    </div>
+                    <div class="from-group mt-1">
                         <button py:if="is_member('logger')" type="submit" name="save" class="btn btn-success">
-                            <i class="fas fa-check me-2"/>save
+                            <i class="fas fa-check me-2" />save
                         </button>
-                        <button class="btn btn-danger hidden" id="log-remove" name="remove" type="submit" py:if="is_member('supervisor') and actuallog.id is not None">
+                        <button class="btn btn-danger hidden" id="log-remove" name="remove" type="submit"
+                            py:if="is_member('supervisor') and actuallog.id is not None">
                             <i class="fas fa-trash-can" /> remove log
                         </button>
+                        <button class="btn btn-secondary to-clipboard" id="log-new-link-copy" type="button" data-bs-target="#edit"
+                            aria-expanded="false" aria-controls="edit"
+                            title="copies a link to create more logs of this type including the current settings">
+                            <i class="fas fa-link me-2" /> get link
+                        </button>
+                        <a href="" id="log-new-link"></a>
 
-                    </form>
-                </div>
+                    </div>
+                </form>
+
 
             </div>
         </div>
