@@ -145,8 +145,6 @@ class Dataset(Base):
     comment = sql.Column(sql.String)
     type = sql.Column(sql.String)
     level = sql.Column(sql.Float)
-    # TODO: Remove uses_dst
-    uses_dst = sql.Column(sql.Boolean, default=False, nullable=False)
     __mapper_args__ = dict(polymorphic_identity=None,
                            polymorphic_on=type)
 

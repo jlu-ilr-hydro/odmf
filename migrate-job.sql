@@ -18,3 +18,9 @@ ALTER TABLE person
     DROP COLUMN car_available,
     ADD COLUMN orcid VARCHAR NULL,
     ADD COLUMN last_login TIMESTAMP NULL;
+
+/* Update dataset #257 and #191*/
+ALTER TABLE dataset
+    ADD COLUMN license VARCHAR NULL,
+    ADD COLUMN doi VARCHAR NULL;
+    DROP COLUMN uses_dst;
