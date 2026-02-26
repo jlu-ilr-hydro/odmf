@@ -68,13 +68,9 @@ class SitePage:
                 ).render()
 
         elif cherrypy.request.method == 'POST':
-            if users.current.level >= Level.supervisor:
-                self.save(siteid, **kwargs)
-            elif siteid == 'new' and users.current.level >= Level.editor:
-                self.save(siteid, **kwargs)
-            else:
-                raise web.redirect(conf.url('site'), error=f'site {siteid} not editable for you')
-
+            if users.current.level < Level.editor:
+                raise web.redirect(conf.url(f'site/{siteid}'), error='You do not have permission to edit sites')
+            self.save(siteid, **kwargs)
 
 
     def save(self, siteid, lon=None, lat=None, name=None, height=None, icon=None, comment=None):
@@ -91,6 +87,13 @@ class SitePage:
                 session.flush()
             if lon > 180 or lat > 180:
                 lat, lon = proj.UTMtoLL(23, lat, lon, conf.utm_zone)
+            # No saving of coordinates if site has datasets and user is not supervisor
+            if (
+                    session.query(db.Dataset).filter_by(_site=site.id).filter(db.Dataset._measured_by!=users.current.name).count() 
+                and (site.lat != lat or site.lon != lon)
+                and users.current.level < Level.supervisor
+            ):
+                raise web.redirect(conf.url(f'site/{siteid}'), error='Site has datasets from others and coordinates can only be changed by a supervisor')
             site.lat, site.lon = lat, lon
             site.name = name
             site.height = web.conv(float, height) or site.height
