@@ -11,5 +11,5 @@ can follow optionally (see help:import ).
 
 Viewers are implemented for CSV, Excel, Word, PDF, Image-Files and a couple of special cases. 
 
-You can annotate files and directories with as **structured** 
+You can annotate files and directories with *structured** 
 metadata, by creating [file datasets](../datasets#file-dataset) with the !fa-clipboard !fa-plus button.

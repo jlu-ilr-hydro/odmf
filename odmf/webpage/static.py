@@ -134,5 +134,5 @@ class Help:
 
         return web.render(
             'help.html', title='Help', path=path,
-            content=content, directories=directories, files=files
+            content=content, directories=sorted(directories), files=sorted(files)
         ).render()
