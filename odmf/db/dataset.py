@@ -145,6 +145,8 @@ class Dataset(Base):
     comment = sql.Column(sql.String)
     type = sql.Column(sql.String)
     level = sql.Column(sql.Float)
+    license = sql.Column(sql.String, nullable=True)
+    doi = sql.Column(sql.String, nullable=True)
     __mapper_args__ = dict(polymorphic_identity=None,
                            polymorphic_on=type)
 

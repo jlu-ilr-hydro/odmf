@@ -336,6 +336,8 @@ class DatasetAlarm(Base):
     id: orm.Mapped[int] = sql.Column(sql.Integer, primary_key=True)
     dsid: orm.Mapped[int] = sql.Column(sql.ForeignKey('dataset.id'))
     dataset: orm.Mapped[Dataset] = orm.relationship('Dataset')
+    name: orm.Mapped[str] = sql.Column(sql.String, nullable=True)
+    message: orm.Mapped[str] = sql.Column(sql.String, nullable=True)
     active: orm.Mapped[bool] = sql.Column(sql.Boolean, default=True)
     aggregation_time: orm.Mapped[float] = sql.Column(sql.Float, default=1.0)
     aggregation_function: orm.Mapped[str] = sql.Column(sql.String, default='count')
@@ -393,6 +395,8 @@ class DatasetAlarm(Base):
             id=self.id,
             dataset=self.dsid,
             active=self.active,
+            name=self.name,
+            message=self.message,
             aggregation_time=str(pd.Timedelta(days=self.aggregation_time)),
             aggregation_function=self.aggregation_function,
             threshold_below=self.threshold_below,
