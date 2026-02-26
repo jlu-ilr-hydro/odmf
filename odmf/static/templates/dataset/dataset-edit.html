@@ -89,10 +89,9 @@
 
     </py:block>
     <py:block name="content">
-        <div class="container">
+        <div class="container" py:with="type=dict(filedataset='fa-file', timeseries='fa-chart-line', transformed_timeseries='fa-calculator')">
             <div id="title-row" class="row mt-2 w-100">
-                <div class="container"
-                    py:with="type=dict(filedataset='fa-file', timeseries='fa-chart-line', transformed_timeseries='fa-calculator')">
+                <div class="container">
                     <div id="title-area" class="container bg-dark text-white row w-100 border rounded shadow"
                         py:if="ds_act" py:with="n=ds_act.size()">
                         <div class="col-sm row">
@@ -149,15 +148,16 @@
                         <i class="fas fa-file me-1" />
                         open ${ds_act.path.basename}
                     </a>
+
                     <table class="table mx-auto">
                         <tr>
                             <td class="bold">Project:</td>
-                            <td py:with="prj=ds_act.project"><a py:if="prj"
-                                    href="${f'{conf.root_url}/project/{prj.id}'}" py:content="prj.name" /></td>
+                            <td py:with="prj=ds_act.project"><a py:if="prj" class="btn btn-light"
+                                    href="${conf.url('project',prj.id)}" ><i class="fas fa-people-line me-2"/>${prj.name}</a></td>
                         </tr>
                         <tr>
                             <td class="bold">Type:</td>
-                            <td>${ds_act.type}</td>
+                            <td><i class="fas ${type.get(ds_act.type, 'fa-question')} me-2" />: ${ds_act.type}</td>
                         </tr>
                         <tr>
                             <td class="bold">Name:</td>
@@ -171,20 +171,32 @@
 
                             </td>
                         </tr>
-                        <tr id="desc_valuetype" py:if="not ds_act.is_filedataset()">
+                        <tr id="desc_valuetype" >
                             <td class="bold">Data:</td>
                             <td py:if="ds_act.valuetype">
                                 <a href="${conf.root_url}/valuetype/${ds_act.valuetype.id}" class="tooltip">
                                     ${ds_act.valuetype.name}
                                     <span>${ds_act.valuetype.comment}</span>
                                 </a>
-                                <span id="statistics">
+                                <span id="statistics" py:if="not ds_act.is_filedataset()">
                                     <span id="mean">?</span>
                                     &plusmn;
                                     <span id="std">?</span>
                                     ${ds_act.valuetype.unit if ds_act.valuetype else '?'},
                                     n=<span id="n">${n}</span>
                                 </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="bold d-flex">
+                                <div class="me-auto">Timespan</div>
+                                <form action="${conf.url('dataset', 'fix-timespan', ds_act.id)}" method="post">
+                                    <button class="btn btn-sm btn-secondary" py:if="n!=0" title="adjust time span to data"><i class="fas fa-left-right"/></button>
+                                </form>
+                            </td>
+                            <td>
+                                <span py:content="formatdate(ds_act.start)" /> -
+                                <span py:content="formatdate(ds_act.end)" />
                             </td>
                         </tr>
                         <tr>
@@ -214,13 +226,6 @@
                                     class="ms-4" title="Open manual for ${ds_act.source}" data-bs-toggle="tooltip">
                                     <i class="fas fa-book-open" />
                                 </a>
-                            </td>
-                        </tr>
-                        <tr id="desc-project">
-                            <td class="bold">Project:</td>
-                            <td py:if="ds_act.project">
-                                <a href="${conf.root_url}/project/${ds_act.project.id}"
-                                    py:content="ds_act.project.name"></a>
                             </td>
                         </tr>
                         <tr py:if="ds_act.is_timeseries() and ds_act.quality and ds_act.quality.id>=3">

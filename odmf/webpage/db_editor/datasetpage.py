@@ -703,6 +703,10 @@ class DatasetPage:
                     ).render()
             elif cherrypy.request.method == 'POST':
                 try:
+                    time = web.parsedate(time)
+                    value = web.conv(float, value)
+                    comment = web.conv(str, comment)
+                    sample = web.conv(str, sample)
                     ds.addrecord(None, value, time, comment, sample, out_of_timescope_ok=True)
                 except ValueError as e:
                     return web.render(
@@ -715,6 +719,20 @@ class DatasetPage:
             raise web.redirect(refferer, success=f'record added to ds:{dataset}')
         else:
             raise web.redirect(conf.url('dataset', dataset), success=f'record added to ds:{dataset}')
+    
+    @expose_for(Level.editor)
+    @web.method.post
+    def fix_timespan(self, datasetid):
+        """
+        Fixes the timespan of a timeseries dataset by setting it to the time of the first and last record
+        """
+        with db.session_scope() as session:
+            ds: db.Timeseries = session.get(db.Dataset, int(datasetid))
+            if not has_access(ds, Level.editor):
+                raise web.HTTPError(403, 'Not allowed')
+            ds.adjusttimespan(hard=True)
+            success = 'Timespan fixed to ' + web.formatdate(ds.start) + ' - ' + web.formatdate(ds.end)
+        raise web.redirect(conf.url('dataset', datasetid), success=success)
 
 
 

@@ -241,13 +241,22 @@ class Timeseries(Dataset):
         session.add(result)
         return result
 
-    def adjusttimespan(self):
+    def adjusttimespan(self, hard=False):
         """
         Adjusts the start and end properties to match the timespan of the records
+
+        hard: If True, the timespan is adjusted to the timespan of the records, even if it is smaller than the current timespan. If False, only adjust the timespan if it is larger than the current timespan (default=False)
         """
         Q = self.session().query
-        self.start = min(Q(sql.func.min(Record.time)).filter_by(_dataset=self.id).scalar(), self.start)
-        self.end = max(Q(sql.func.max(Record.time)).filter_by(_dataset=self.id).scalar(), self.end)
+        n, s, e = Q(sql.func.count(Record.time), sql.func.min(Record.time), sql.func.max(Record.time)).filter_by(_dataset=self.id).first()
+        if n == 0:
+            return
+        if hard:
+            self.start = s
+            self.end = e
+        else:
+            self.start = min(s, self.start)
+            self.end = max(e, self.end)
 
     def size(self):
         return self.records.count()
