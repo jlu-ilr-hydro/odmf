@@ -102,7 +102,12 @@ textarea {
 .admonition {
     padding: 1em;
     margin: 1em 0;
-    border-left: 5px solid;
+    border-left: 5px solid #888;
+}
+
+.admonition.light {
+    background-color: #f8f9fa;
+    border-left-color: #6c757d;
 }
 .admonition.warning {
     background-color: #fff3cd;

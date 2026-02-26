@@ -16,11 +16,11 @@ Datasets are the core feature of the structured database in ODMF. A dataset is a
 
 The standard type, useful numerical values at a site. The timeseries dataset owns records, that can be plotted, calibrated and transformed. Timeseries datasets are created with the "new dataset" button or via tabular import.
 
-### File dataset
+### File-dataset
 
 File datasets have the same meta data as timeseries, but never have record. Instead, they have a link to a file that contains the data of the
-dataset. This data can have any form, qualitative, array, images, text etc. Use long term open formats for the files. Data from file datasets cannot be 
-plotted and mixed with other data. If your data has a form of timeseries, always import the data as records (see: help:import). File datasets are created using the !fa-clipboard !fa-plus button in the file-manager.
+dataset. This data can have any form, qualitative data, arrays, images, text etc, as long as the value type can be definetly described. Use long term open formats for the files. Data from file datasets cannot be plotted and mixed with other data. If your data has a form of numerical timeseries, import as records (see: help:import) is stongly encouraged for plotting, aggregation, interpolation and mixing. File datasets are created from an uploaded file using the !fa-clipboard !fa-plus button in the  help:file-manager .
+
 
 ### Transformed timeseries
 

@@ -676,8 +676,7 @@ class DatasetPage:
                              action_help=f'{conf.root_url}/download/wiki/dataset/split.wiki').render()
 
     @expose_for(Level.logger)
-    @web.method.post
-    def add_record(self, dataset, time, value, id=None, sample=None, comment=None):
+    def add_record(self, dataset, time=None, value=None, sample=None, comment=None):
         """
         Adds a single record to a dataset, great for connected fieldwork
         :param dataset: Dataset id
@@ -691,9 +690,46 @@ class DatasetPage:
             ds: db.Timeseries = session.get(db.Dataset, int(dataset))
             if not has_access(ds, Level.editor):
                 raise web.HTTPError(403, 'Not allowed')
-            time = web.parsedate(time)
-            ds.addrecord(id, value, time, comment, sample, out_of_timescope_ok=True)
-        raise web.redirect(str(dataset) + '/#add-record', success='record added')
+            if cherrypy.request.method == 'GET':
+                
+                if refferer := cherrypy.request.headers.get('Referer'):
+                    cherrypy.session[f'add-record-referer-{dataset}'] = refferer
+                return web.render(
+                    'dataset/add-record.html', ds_act=ds, 
+                    time=time, value=value, sample=sample, comment=comment
+                    ).render()
+            elif cherrypy.request.method == 'POST':
+                try:
+                    time = web.parsedate(time)
+                    value = web.conv(float, value)
+                    comment = web.conv(str, comment)
+                    sample = web.conv(str, sample)
+                    ds.addrecord(None, value, time, comment, sample, out_of_timescope_ok=True)
+                except ValueError as e:
+                    return web.render(
+                        'dataset/add-record.html', ds_act=ds, 
+                        error=str(e), 
+                        time=time, value=value, sample=sample, comment=comment
+                    ).render()
+        if refferer := cherrypy.session.get(f'add-record-referer-{dataset}'):
+            del cherrypy.session[f'add-record-referer-{dataset}']
+            raise web.redirect(refferer, success=f'record added to ds:{dataset}')
+        else:
+            raise web.redirect(conf.url('dataset', dataset), success=f'record added to ds:{dataset}')
+    
+    @expose_for(Level.editor)
+    @web.method.post
+    def fix_timespan(self, datasetid):
+        """
+        Fixes the timespan of a timeseries dataset by setting it to the time of the first and last record
+        """
+        with db.session_scope() as session:
+            ds: db.Timeseries = session.get(db.Dataset, int(datasetid))
+            if not has_access(ds, Level.editor):
+                raise web.HTTPError(403, 'Not allowed')
+            ds.adjusttimespan(hard=True)
+            success = 'Timespan fixed to ' + web.formatdate(ds.start) + ' - ' + web.formatdate(ds.end)
+        raise web.redirect(conf.url('dataset', datasetid), success=success)
 
 
 

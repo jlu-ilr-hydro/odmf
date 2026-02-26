@@ -241,35 +241,49 @@ class Timeseries(Dataset):
         session.add(result)
         return result
 
-    def adjusttimespan(self):
+    def adjusttimespan(self, hard=False):
         """
         Adjusts the start and end properties to match the timespan of the records
+
+        hard: If True, the timespan is adjusted to the timespan of the records, even if it is smaller than the current timespan. If False, only adjust the timespan if it is larger than the current timespan (default=False)
         """
         Q = self.session().query
-        self.start = min(Q(sql.func.min(Record.time)).filter_by(_dataset=self.id).scalar(), self.start)
-        self.end = max(Q(sql.func.max(Record.time)).filter_by(_dataset=self.id).scalar(), self.end)
+        n, s, e = Q(sql.func.count(Record.time), sql.func.min(Record.time), sql.func.max(Record.time)).filter_by(_dataset=self.id).first()
+        if n == 0:
+            return
+        if hard:
+            self.start = s
+            self.end = e
+        else:
+            self.start = min(s, self.start)
+            self.end = max(e, self.end)
 
     def size(self):
         return self.records.count()
 
-    def iterrecords(self, witherrors=False, start=None, end=None):
+    def iterrecords(self, witherrors=False, start=None, end=None, limit: typing.Optional[int] = None, descending=False):
         session = self.session()
         records = session.query(Record).filter(
-            Record._dataset == self.id).order_by(Record.time)
+            Record._dataset == self.id)
+        if descending:
+            records = records.order_by(Record.time.desc())
+        else:
+            records = records.order_by(Record.time)
         if start:
             records = records.filter(Record.time >= start)
         if end:
             records = records.filter(Record.time <= end)
-        records = records.order_by(Record.time)
         if not witherrors:
             records = records.filter(~Record.is_error)
+        if limit is not None:
+            records = records.limit(limit)
         for r in records:
             yield MemRecord(id=r.id, dataset=r.dataset,
                             time=r.time, value=r.calibrated,
                             sample=r.sample, comment=r.comment,
                             rawvalue=r.value, is_error=r.is_error)
 
-    def asseries(self, start: typing.Optional[datetime] = None, end: typing.Optional[datetime] = None, with_errors=False)->pd.Series:
+    def asseries(self, start: typing.Optional[datetime] = None, end: typing.Optional[datetime] = None, with_errors=False, limit: typing.Optional[int] = None, descending=False)->pd.Series:
         """
         Returns a pandas series of the calibrated non-error
         :param start: A start time for the series
@@ -277,12 +291,18 @@ class Timeseries(Dataset):
         """
         query = self.session().query
         records = query(Record.time, Record.value).filter_by(_dataset=self.id)
+        if descending:
+            records = records.order_by(Record.time.desc())
+        else:
+            records = records.order_by(Record.time)
         if not with_errors:
             records = records.filter(~Record.is_error)
         if start:
             records = records.filter(Record.time >= start)
         if end:
             records = records.filter(Record.time <= end)
+        if limit is not None:
+            records = records.limit(limit)
 
         # Load data from database into dataframe and get the value-Series
         values = pd.read_sql(records.statement, self.session().bind, index_col='time')['value']
@@ -291,8 +311,6 @@ class Timeseries(Dataset):
         if values.empty:
             return pd.Series([], index=pd.to_datetime([]), dtype=float)
 
-        # Sort by time ascending
-        values.sort_index(inplace=True)
         # Do calibration
         values *= self.calibration_slope
         values += self.calibration_offset

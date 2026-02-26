@@ -2,36 +2,179 @@
 
 <py:extends href="layout.html" xmlns:py="">
     <py:block name="scripts">
-        <!-- insert additional scripts -->
+        <script>
+             //<![CDATA[
+            function updateLinks() {
+                const normalLink = document.getElementById('normal-link');
+                const prefilledLink = document.getElementById('prefilled-link');
+                const baseUrl = window.location.origin + window.location.pathname;
+                normalLink.href = baseUrl;
+                normalLink.textContent = baseUrl
+            
+                const time = encodeURIComponent(document.getElementById('add-record-time').value);
+                const value = encodeURIComponent(document.getElementById('add-record-value').value);
+                const sample = encodeURIComponent(document.getElementById('add-record-sample').value);
+                const comment = encodeURIComponent(document.getElementById('add-record-comment').value);
+
+                prefilledLink.href = baseUrl + '?time=' + time + '&value=' + value + '&sample=' + sample + '&comment=' + comment;
+                prefilledLink.textContent = prefilledLink.href; 
+
+            }
+
+            $(()=>{
+                updateLinks();
+                $('input, textarea').on('input', updateLinks);
+                $('.to-clipboard').click(function(e){
+                    e.preventDefault();
+                    const url = $(this).attr('href');
+                    navigator.clipboard.writeText(url).then(()=>{
+                        $(this).tooltip('hide')
+                            .attr('data-bs-original-title', 'copied!')
+                            .tooltip('show');
+                        setTimeout(() => {
+                            $(this).tooltip('hide')
+                                .attr('data-bs-original-title', 'Copy link to clipboard');
+                        }, 1000);
+                    });
+                });
+
+            })
+            //]]>
+        </script>
     </py:block>
     <py:block name="style">
         <!-- insert additional styles -->
     </py:block>
     <py:block name="sidebar">
         <!-- insert sidebar content -->
+        <div class="nav d-flex justify-content-center border p-1 mb-2">
+            <div class="nav-item me-2">
+                <div class="btn-group" role="group">
+                    <a href="../${ds_act.id - 1}" class="btn btn-secondary me-1" py:attrs="disabled(ds_act.id == 1)"
+                        data-bs-toggle="tooltip" title="dataset:${ds_act.id - 1}">
+                        <i class="fas fa-caret-left" />
+                    </a>
+                    <a href="../" class="btn btn-primary me-1" type="button" data-bs-toggle="tooltip" title="site list">
+                        ...
+                    </a>
+                    <a href="../new#edit" class="btn btn-success me-1" data-bs-toggle="tooltip" title="New dataset"><i
+                            class="fas fa-plus" /></a>
+                    <a href="../${ds_act.id + 1}" class="btn btn-secondary" data-bs-toggle="tooltip"
+                        title="dataset:${ds_act.id + 1}"><i class="fas fa-caret-right" /></a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <div class="input-group">
+                    <button class="btn btn-secondary" id="gotods-btn">
+                        <i class="fas fa-rocket" />
+                    </button>
+                    <input class="form-control" type="text" id="goto" tabindex="1" placeholder="goto" size="10"
+                        title="Go directly to a dataset by entering the id" data-bs-toggle="tooltip" />
+                </div>
+
+            </div>
+        </div>
+
     </py:block>
     <py:block name="content">
         <!-- insert main content -->
-        <form id="add-record-form" action="${conf.root_url}/dataset/add-record" method="post">
-            <input type="hidden" name="dataset" value="${ds_act.id}" id="id-input" />
-            <div class="container w-100">
-                <div class="form-group">
-                    <label for="add-record-value">value in ${ds_act.valuetype.unit if ds_act.valuetype else '?'}</label>
-                    <input id="add-record-value" type="number" name="value" class="form-control" step="any"/>
+        <div class="container mt-2">
+            <div id="title-area" class="bg-dark text-white row border rounded shadow mx-1" py:if="ds_act"
+                py:with="n=ds_act.size()">
+                <div class="col-sm row">
+                    <h2 class="display-3 col-sm"><i class="fas fa-chart-line me-2" />
+                        <span id="dsid" py:content="ds_act.id" />
+                    </h2>
+                    <div class="col-sm">
+                        <div class="badge bg-info text-bg-info "
+                            py:content="ds_act.get_access_level(users.current).name" />
+                        <div class="" py:content="ds_act.project" />
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="add-record-time">time</label>
-                    <input id="add-record-time" type="datetime-local" name="time" class="form-control datetime-local-now"/>
-                </div>
-                <div class="form-group">
-                    <label for="add-record-comment">comment</label>
-                    <input id="add-record-comment" type="text" name="comment"  class="form-control"/>
-                </div>
-                <button type="submit" class="btn btn-success"><i class="fas fa-check"/> add</button>
 
+                <div class="col-sm my-auto">
+                    <h3>
+                        <span py:content="formatdate(ds_act.start)" /> -
+                        <span py:content="formatdate(ds_act.end)" />
+                    </h3>
+                    <h3 py:content="ds_act.name" />
+                </div>
+                <div class="lead col-sm my-auto">
+                    <a class="d-block text-white text-right"
+                        href="${f'{conf.root_url}/valuetype/{ds_act.valuetype.id}' if ds_act.valuetype else '#edit'}"
+                        py:content="f'{ds_act.valuetype.name} [{ds_act.valuetype.unit}]' if ds_act.valuetype else '?'" />
+                    <a class="d-block text-white text-right"
+                        href="${f'{conf.root_url}/site/{ds_act.site.id}' if ds_act.site else '#edit'}"
+                        py:content="ds_act.site" />
+                    <a class="d-block text-white text-right"
+                        href="${f'{conf.root_url}/user/{ds_act.measured_by.username}' if ds_act.measured_by else '#edit'}"
+                        py:content="ds_act.measured_by" />
+                </div>
             </div>
 
-        </form>
+            <div class="p-2 border rounded row mt-4 mx-1">
+                <form id="add-record-form" action="" method="post">
+                    <div class="container w-100">
+                        <div class="form-group">
+                            <label for="add-record-value">
+                                value in ${ds_act.valuetype.unit if ds_act.valuetype else '?'}
+                            </label>
+                            <input id="add-record-value" type="number" name="value" class="form-control" step="any" value="${value or ''}"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-record-time">time</label>
+                            <input id="add-record-time" type="datetime-local" name="time" value="${time}"
+                                class="form-control datetime-local-now" />
+                        </div>
+                        <div class="form-group">
+                            <label for="add-record-sample">sample name</label>
+                            <input id="add-record-sample" type="text" name="sample" class="form-control" value="${sample or ''}" />
+                        </div>
+                        <div class="form-group">
+                            <label for="add-record-comment">comment</label>
+                            <textarea id="add-record-comment" type="text" name="comment" class="form-control" >${comment or ''}</textarea>
+                        </div>
+                        <div class="mt-2">
+                            <button type="submit" class="btn btn-success" title="submit measurement" data-bs-toggle="tooltip"><i class="fas fa-check" /> add</button>
+                            <a href="${conf.url('dataset', ds_act.id)}" class="btn btn-secondary" title="open dataset" data-bs-toggle="tooltip">
+                                <i class="fas fa-clipboard" /> ds:${ds_act.id}
+                            </a>
+                            <a href="${conf.url('help', 'import', 'direct')}" class="btn btn-outline-primary" title="show help for direct input" data-bs-toggle="tooltip">
+                                <i class="fas fa-circle-question"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
 
+            <div class="p-2 border rounded row mt-2 mx-1">
+                <a href="#history-table" class="h3 d-flex link" data-bs-toggle="collapse"><i class="fas fa-clock me-2" />History <i class="fas fa-chevron-down ms-auto"></i></a>
+                <table class="table collapse" id="history-table">
+                    <tr>
+                        <th>time</th>
+                        <th>value</th>
+                        <th>sample</th>
+                        <th>comment</th>
+                        <th>Status</th>
+                    </tr>
+                    <tr py:for="record in ds_act.iterrecords(witherrors=True, limit=10, descending=True)" class="${'table-danger' if record.is_error else ''}">
+                        <td py:content="formatdate(record.time)" />
+                        <td py:content="record.value" />
+                        <td py:content="record.sample" />
+                        <td py:content="record.comment" />
+                        <td py:content="'error' if record.is_error else 'ok'" />
+                    </tr>
+                </table>
+
+            </div>
+            <div class="p-2 border rounded row mt-2 mx-1">
+                <h3><i class="fas fa-copy" /> Copy links</h3>
+                <div class="list-group">
+
+                    <a href="" class="list-group-item list-group-item-action to-clipboard" id="normal-link" title="Copy link to clipboard"></a>
+                    <a href="" class="list-group-item list-group-item-action to-clipboard" id="prefilled-link" title="Copy link with prefilled entries to clipboard"></a>
+                </div>
+            </div>
+        </div>
     </py:block>
 </py:extends>

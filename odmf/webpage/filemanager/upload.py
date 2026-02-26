@@ -93,8 +93,7 @@ def check_access(mode: fa.Mode, dir: Path, no_raise=False):
         return True
 
 
-@web.show_in_nav_for(0, 'file')
-
+@web.show_in_nav_for(0, 'folder-open', title='file manager')
 class DownloadPage(object):
     """The file management system. Used to upload, import and find files"""
 
