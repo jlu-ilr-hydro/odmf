@@ -34,18 +34,32 @@ class TopicPage:
         else:
             with db.session_scope() as session:
                 topic = session.get(Topic, topicid)
-                if not topic:
-                    topic = Topic(id=topicid, _owner=web.user(), name=topicid)
-                    session.add(topic)
-                    session.flush()
-                elif not self.can_edit(topic):
-                    error = 'Only the owner and users with elevated privileges can edit this topic.'
-                    raise web.redirect(conf.url('mail', topicid), error=error)
-
-                topic.name = kwargs.get('name', topic.name)
-                topic.description = kwargs.get('description', topic.description)
-
-        raise web.redirect(conf.url(self.url, topicid), error=error, success=msg)
+                if kwargs.get('delete') == 'delete':
+                    if not topic:
+                        raise web.redirect(conf.url('topic'), error=f'Topic {topicid} not found')
+                    if not self.can_edit(topic):
+                        raise web.redirect(conf.url('topic'), error=f'Topic {topicid} is not yours')
+                    msg = f'{topicid} is deleted'
+                    kwargs['redirect'] = 'topic'
+                    session.delete(topic)
+                else:
+                    if not topic:
+                        topic = Topic(id=topicid, _owner=web.user(), name=topicid)
+                        session.add(topic)
+                        session.flush()
+                        msg = f'{topic.id} is created'
+                    elif not self.can_edit(topic):
+                        error = 'Only the owner and users with elevated privileges can edit this topic.'
+                        raise web.redirect(conf.url('mail', topicid), error=error)
+                    topic.name = kwargs.get('name', topic.name)
+                    topic.description = kwargs.get('description', topic.description)
+                    if kwargs.get('save') == 'own' and Level.my() >= Level.admin:
+                        topic._owner = web.user()
+        
+        redirect = kwargs.get('redirect', self.url + '/' + topicid)
+        if redirect.endswith('?new_topic='):
+            redirect += topicid
+        raise web.redirect(conf.url(redirect), error=error, success=msg)
 
     def index_get(self, topicid):
         can_edit_id = False
@@ -72,6 +86,7 @@ class TopicPage:
                 topics=session.scalars(my_topics),
                 messages=session.scalars(messages).all()
             ).render()
+
 
     def index_list(self):
         with db.session_scope() as session:

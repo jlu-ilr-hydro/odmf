@@ -94,7 +94,7 @@
                             <div class="form-group row">
                                 <button  id="edit-save" name="save" value="save"
                                          py:if="can_edit"
-                                         class="btn btn-secondary me-1"
+                                         class="btn btn-success me-1 col-sm-2"
                                          type="submit"
                                          title="Saves the changes to the database"
                                          data-bs-toggle="tooltip"
@@ -106,12 +106,20 @@
                                 <button  id="edit-saveandown" name="save" value="own"
                                          py:if="Level.my() >= Level.admin"
                                          type="submit"
-                                         class="btn btn-secondary me-1"
+                                         class="btn btn-primary me-1 col-sm-2"
                                          title="Saves the changes and makes you the owner of the topic"
                                          data-bs-toggle="tooltip"
                                          py:attrs="prop(disabled=not can_edit)"
                                 >
-                                    become owner
+                                <i class="fas fa-user-plus me-1"/> become owner
+                                </button>
+                                <button id="edit-delete" name="delete" 
+                                         type="submit" value="delete"
+                                         class="btn btn-danger col-sm-2"
+                                         title="Deletes the topic and all messages related to it"
+                                         data-bs-toggle="tooltip"
+                                         py:attrs="prop(disabled=not can_edit)">
+                                        <i class="fas fa-trash me-1"/> delete topic
                                 </button>
 
                             </div>

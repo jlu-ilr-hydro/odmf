@@ -131,30 +131,6 @@
                             <div>${flex_get(job.log, 'time') or 'due'}</div>
                         </div>
                     </div>
-                    <div class="row mb-1">
-                        <h5 class="col-lg-2">Comments: <span class="badge bg-primary pill">${len(job.comments)}</span></h5>
-                        <div class="col-lg border rounded">
-                            <div class="m-1 rounded bg-light"  py:for="comment in job.comments">
-                                <div class="small bg-secondary text-light rounded p-1 w-100" >${formatdatetime(comment.date)}: <i class="fas fa-user"></i> ${comment.user}</div>
-                                <div>${markdown(comment.text)}</div>
-
-                            </div>
-                            <form method="post" action="comment">
-                                <div class="m-1 p-1 rounded bg-light row">
-                                    <div class="col-lg-1">
-                                        <label for="comment-text"><i class="fas fa-plus"/></label>
-                                    </div>
-                                    <div class="col-lg-10">
-                                        <textarea name="text" id="comment-text" class="form-control" placeholder="add comment here" rows="1"/>
-                                    </div>
-                                    <div class="col-lg-1">
-                                        <button class="btn btn-primary" type="submit"><i class="fas fa-paper-plane"/></button>
-                                    </div>
-
-                                </div>
-                            </form>
-                        </div>
-                    </div>
                 </div>
 
                 <form method="post" action=".">
@@ -240,6 +216,34 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="accordion-item" id="job-comment-accordion">
+                            <h4 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#comment-div" aria-expanded="true" aria-controls="comment-div">
+                                    <i class="fas fa-comments me-2"></i> comments <span class="badge bg-primary pill ms-4">${len(job.comments)}</span>
+                                </button>
+                            </h4>
+                            <div class="accordion-collapse collapse" id="comment-div">
+                                <div class="mt-2 m-1 rounded bg-light"  py:for="comment in job.comments">
+                                    <div class="small bg-secondary text-light rounded p-1 w-100" >${formatdatetime(comment.date)}: <i class="fas fa-user"></i> ${comment.user}</div>
+                                    <div>${markdown(comment.text)}</div>
+
+                                </div>
+                                <form method="post" action="comment">
+                                    <div class="m-1 p-1 rounded bg-light row">
+                                        <div class="col-lg-1">
+                                            <label for="comment-text"><i class="fas fa-plus"/></label>
+                                        </div>
+                                        <div class="col-lg-10">
+                                            <textarea name="text" id="comment-text" class="form-control" placeholder="add comment here" rows="1"/>
+                                        </div>
+                                        <div class="col-lg-1">
+                                            <button class="btn btn-primary" type="submit"><i class="fas fa-paper-plane"/></button>
+                                        </div>
+
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                         <div class="accordion-item" id="job-log-accordion">
                             <h4 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#logs-div" aria-expanded="true" aria-controls="edit-div">
@@ -301,7 +305,12 @@
                                             </div>
 
                                         </div>
-                                        <label for="edit-msgtopics" class="col-form-label col-sm-3">topics:</label>
+                                        <label for="edit-msgtopics" class="col-form-label col-sm-3">
+                                            topics:
+                                            <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="modal" title="Add topic" data-bs-target="#topic-modal" >
+                                                 <i class="fas fa-plus"/>
+                                            </button>
+                                        </label>
                                         <div class="col-sm" data-bs-toggle="tooltip" title="send message to topics when job is due or done">
                                             <select name="topics[]" id="edit-msgtopics" class="form-control select2" multiple="multiple">
                                                 <optgroup label="Your subscribed topics">
@@ -407,7 +416,42 @@
                 </div>
             </div>
         </div>
+        <div class="modal" id="topic-modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="${conf.url('topic', 'new/')}">
+                        <input type="hidden" name="redirect" value="${'job/' + str(job.id or 'new') + '/?new_topic='}"/>
+                        <div class="modal-header">
+                            <h5 class="modal-title">Create new topic</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group row">
+                                <label for="topic-id" class="col-form-label col-sm-3">ID:</label>
+                                <div class="col-sm">
+                                    <input type="text" id="topic-id" name="id" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="topic-name" class="col-form-label col-sm-3">Name:</label>
+                                <div class="col-sm">
+                                    <input type="text" id="topic-name" name="name" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="topic-description" class="col-form-label col-sm-3">Description:</label>
+                                <div class="col-sm">
+                                    <textarea id="topic-description" name="description" class="form-control" rows="3" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Create topic</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </py:block>
-
+    
 </py:extends>
-

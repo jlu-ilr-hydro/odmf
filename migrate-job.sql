@@ -22,9 +22,9 @@ ALTER TABLE person
 /* Update dataset #257 and #191*/
 ALTER TABLE dataset
     ADD COLUMN license VARCHAR NULL,
-    ADD COLUMN doi VARCHAR NULL;
+    ADD COLUMN doi VARCHAR NULL,
     DROP COLUMN uses_dst;
 
-ALTER TABLE alarm
+ALTER TABLE datasetalarm
     ADD COLUMN name VARCHAR NULL,
     ADD COLUMN message VARCHAR NULL;
