@@ -7,7 +7,7 @@
 
 [cherrypy](https://github.com/cherrypy/cherrypy) and [postgres](https://www.postgresql.org/).
 
-[![License][license-image]][license-link]
+[![License][license-image]][license-link] [![Zenodo doi](https://zenodo.org/badge/DOI/10.5281/zenodo.18832302.svg)](https://doi.org/10.5281/zenodo.18832302)
 
 [license-image]: https://img.shields.io/badge/license-MIT-blue.png
 [license-link]: http://opensource.org/licenses/MIT
