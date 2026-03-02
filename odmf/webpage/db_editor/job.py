@@ -90,14 +90,15 @@ class JobPage:
 
 
     @expose_for(Level.logger)
-    def index_get(self, jobid, error=None, success=None, copy=None):
+    def index_get(self, jobid, **kwargs):
         """Shows a single job, called by self.index"""
         with db.session_scope() as session:
             if jobid == 'new':
                 author = session.get(db.Person, web.user())
                 job = db.Job(id=db.newid(db.Job, session),
                              name='name of new job', author=author, _author=author.username)
-                oldjob = session.query(db.Job).get(copy)
+                
+                oldjob = session.query(db.Job).get(kwargs.get('copy'))
                 if oldjob:
                     job.log = oldjob.log
                     job.description = oldjob.description
@@ -114,10 +115,20 @@ class JobPage:
                 job = session.get(db.Job, web.conv(int, jobid))
                 if not job:
                     raise web.redirect(conf.url('job'), error=f'Job {jobid} not found')
+            
+            if new_topic:= kwargs.get('new_topic'):
+                if not job.mailer:
+                    job.mailer = {}
+                if 'topics' not in job.mailer or job.mailer['topics'] is None:
+                    job.mailer['topics'] = []
+                if new_topic not in job.mailer['topics']:
+                    job.mailer['topics'].append(new_topic)
+                    session.add(job)
+                    session.flush()
 
             return web.render(
-                'job.html', job=job, can_edit=self.can_edit(job),
-                error=error, success=success, db=db,
+                'job.html', jobid=jobid, job=job, can_edit=self.can_edit(job),
+                error=kwargs.get('error'), success=kwargs.get('success'), db=db,
                 me=session.get(db.Person, web.user()),
                 username=users.current, now=datetime.now(),
                 persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname).all(),
@@ -153,7 +164,7 @@ class JobPage:
     def index(self, jobid=None, error=None, success=None, **kwargs):
         if cherrypy.request.method == 'GET':
             if jobid:
-                return self.index_get(jobid, error, success, copy=kwargs.get('copy'))
+                return self.index_get(jobid, **kwargs)
             else:
                 return self.list_jobs()
         elif cherrypy.request.method == 'POST':
