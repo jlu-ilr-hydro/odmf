@@ -146,12 +146,14 @@ class JSONErrorHandler(ErrorHandler):
     def status_default(self, status=None, message=None, version=None, traceback=None):
         from . import json_out
         req = cherrypy.request
+        error_msg = traceback.strip().split('\n')[-1] if traceback else ''
         if is_member(Level.admin):
             return json_out(
                 status=status,
                 message=message,
                 version=version,
                 request=req.request_line,
+                error=error_msg,
                 traceback=traceback
             )
         else:
@@ -159,7 +161,8 @@ class JSONErrorHandler(ErrorHandler):
                 status=status,
                 message=message,
                 version=version,
-                request=req.request_line
+                request=req.request_line,
+                error=error_msg
             )
 
 
