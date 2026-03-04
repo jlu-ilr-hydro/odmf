@@ -3,7 +3,7 @@
 **Import** in ODMF means to add records to [timeseries datasets](../datasets). As your data source varies, ODMF provides several methods for importing data.
 Most import methods need alerady existing datasets. Datasets are created with the "new dataset" button in the dataset list or imported from a table.
 
-## Import methods overview
+## Methods overview
 
 - help:import/direct : Enter values directly in a dataset from the web site. For single manual measurements
 - help:import/log : Import values and logs from a templated Excel file, with extensive error checking. Ideal to import offline notes from Excel
@@ -15,11 +15,11 @@ Most import methods need alerady existing datasets. Datasets are created with th
 
 ## For manual measurements
 
-### Single records with online access
+### Using direct input
 
 If you need to write down a single record (or very few) and you have online access, use **direct input**. Goto the [!fa-clipboard -dataset page](/dataset) and navigate to the dataset, you want to add the record. Click on add record and add your value. For tricks to make this convinient see: help:import/direct
 
-### A few records from offline notes
+### Using log-import Excel template
 
 If you have a field computer but no online access, note your records in an excel sheet with a special structure, to use help:import/log  into **existing datasets**. Note that the **log-import** allows also the import of log messages and provides extensive sanity checks.
 
