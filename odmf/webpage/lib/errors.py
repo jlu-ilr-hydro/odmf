@@ -153,7 +153,7 @@ class JSONErrorHandler(ErrorHandler):
                 message=message,
                 version=version,
                 request=req.request_line,
-                error=error_msg,
+                text=error_msg,
                 traceback=traceback
             )
         else:
@@ -162,7 +162,7 @@ class JSONErrorHandler(ErrorHandler):
                 message=message,
                 version=version,
                 request=req.request_line,
-                error=error_msg
+                text=error_msg
             )
 
 
