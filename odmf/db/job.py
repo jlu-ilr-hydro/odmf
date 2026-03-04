@@ -2,15 +2,20 @@ import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from datetime import datetime, timedelta
 from functools import total_ordering
+
+from sqlalchemy.orm import Mapped, relationship
+from sqlalchemy.testing.schema import mapped_column
 from sqlalchemy_json import NestedMutableJson
 from typing import Optional, List
+from uuid import UUID, uuid4
 
 from ..config import conf
-from .base import Base, newid, flex_get
+from .base import Base, newid, flex_get, primarykey
 from .site import Log, Site
 from .person import Person
 from .message import Message, Topic
 from ..tools.migrate_db import new_column
+from dateutil.parser import parse as parsedate
 
 from logging import getLogger
 logger = getLogger(__name__)
@@ -49,6 +54,8 @@ class Job(Base):
     # Contains data to create logs on done
     log: orm.Mapped[NestedMutableJson] = sql.Column(NestedMutableJson)
     mailer: orm.Mapped[NestedMutableJson] = sql.Column(NestedMutableJson)
+    comments: Mapped[List['JobComment']] = relationship(back_populates='job', cascade='all, delete-orphan', order_by='JobComment.date')
+
     def __str__(self):
         return "%s: %s %s" % (self.responsible, self.name, ' (Done)' if self.done else '')
 
@@ -86,7 +93,16 @@ class Job(Base):
     def log_to_sites(self, by=None, time=None):
         session = self.session()
         logsites = flex_get(self.log, 'sites', default=[])
-        msg = flex_get(self.log, 'message', default=self.name)
+        msg = flex_get(self.log, 'message') or self.name + '\n\n' + self.description
+        logtime = flex_get(self.log, 'time', default='due')
+        if logtime == 'done' and self.donedate:
+            time = self.donedate
+        elif logtime == 'due' and self.due:
+            time = self.due
+        elif time:=parsedate(logtime, False):
+            pass
+        else:
+            time = datetime.now()
         logcount = 0
         if logsites:
             sites = session.scalars(sql.select(Site).where(Site.id.in_(logsites)))
@@ -95,7 +111,7 @@ class Job(Base):
                     Log(
                         id=newid(Log, session),
                         _user=by or self.responsible.username,
-                        time=time or datetime.now(),
+                        time=time,
                         message=msg,
                         site=site,
                         type=self.type
@@ -202,4 +218,28 @@ class Job(Base):
 
     def end(self):
         return self.due + timedelta(days=self.duration or 0)
+
+    def add_comment(self,user:str|Person, text: str, date=None):
+        if not date:
+            date = datetime.now()
+        if type(user) is Person:
+            user = user.username
+        comment = JobComment(text=text, date=date, _user=user)
+        self.comments.append(comment)
+
+
+class JobComment(Base):
+    """
+    Users should be able to comment on jobs, to give additional input or ask questions. Site admins and job authors
+    might delete comments. A comment can produce a message to author, responsible person and topic subscribers
+    """
+    __tablename__ = 'jobcomment'
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    _job: Mapped[int] = mapped_column('job', sql.ForeignKey('job.id'))
+    job: Mapped['Job'] = relationship(back_populates='comments')
+    _user: Mapped[int] = mapped_column('user', sql.ForeignKey('person.username'))
+    user: Mapped[Person] = relationship()
+    date: Mapped[datetime]
+    text: Mapped[Optional[str]]
+
 

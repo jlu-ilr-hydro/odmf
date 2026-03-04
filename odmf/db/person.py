@@ -4,6 +4,7 @@ import sqlalchemy as sql
 import sqlalchemy.orm as orm
 from functools import total_ordering
 import typing as t
+from datetime import datetime
 
 from .base import Base
 
@@ -18,17 +19,12 @@ class Person(Base):
     email = sql.Column(sql.String)
     firstname = sql.Column(sql.String)
     surname = sql.Column(sql.String)
-    _supervisor = sql.Column('supervisor', sql.String,
-                             sql.ForeignKey('person.username'))
-    supervisor = orm.relationship('Person', remote_side=[username])
-    telephone = sql.Column(sql.String)
     comment = sql.Column(sql.String)
-    can_supervise = sql.Column(sql.Boolean, default=False)
-    mobile = sql.Column(sql.String)
-    car_available = sql.Column(sql.Integer, default=0)
     password = sql.Column(sql.VARCHAR)
     access_level = sql.Column(sql.INTEGER, nullable=False, default=0)
     active = sql.Column(sql.Boolean, default=True, nullable=False)
+    orcid: orm.Mapped[t.Optional[str]]
+    last_login: orm.Mapped[t.Optional[datetime]]
 
     topics: orm.Mapped[t.List['Topic']] = orm.relationship(secondary='subscribes', back_populates='subscribers')
 
@@ -40,12 +36,12 @@ class Person(Base):
                     email=self.email,
                     firstname=self.firstname,
                     surname=self.surname,
-                    supervisor=str(self.supervisor),
-                    telephone=self.telephone,
-                    mobile=self.mobile,
                     comment=self.comment,
-                    car_available=self.car_available,
                     label="%s %s" % (self.firstname, self.surname),
+                    active=self.active,
+                    access_level=self.access_level,
+                    orcid=self.orcid,
+                    last_login=self.last_login
                     )
 
     def __lt__(self, other):

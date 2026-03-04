@@ -222,7 +222,7 @@ class DatasetPage:
             title=f'ds{active.id}',
             # A couple of prepared queries to fill select elements
             valuetypes=session.query(db.ValueType).order_by(db.ValueType.name),
-            persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname),
+            persons=session.query(db.Person).order_by(db.Person.access_level.desc(), db.Person.surname),
             sites=session.query(db.Site).order_by(db.Site.id),
             quality=session.query(db.Quality).order_by(db.Quality.id),
             datasources=session.query(db.Datasource),
@@ -382,8 +382,6 @@ class DatasetPage:
 
         Should replace multiple calls to attrjson
         """
-        ds_attributes = ['project', 'valuetype', 'measured_by', 'site', 'source', 'type', 'level',
-                         'uses_dst', 'timezone', 'project', 'quality']
         entities = {
             'level': db.Dataset.level,
             'valuetype' : db.ValueType,
@@ -391,7 +389,6 @@ class DatasetPage:
             'site': db.Site,
             'source': db.Datasource,
             'type': db.Dataset.type,
-            'uses_dst': db.Dataset.uses_dst,
             'timezone': db.Dataset.timezone,
             'project': db.Project,
             'quality': db.Quality

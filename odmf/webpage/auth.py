@@ -9,6 +9,7 @@ http://tools.cherrypy.org/wiki/AuthenticationAndAccessRestrictions
 import os.path as op
 import collections
 import typing
+from datetime import datetime
 
 import cherrypy
 from ..config import conf
@@ -209,11 +210,15 @@ class Users(collections.UserDict):
         self.default = self.data.get(name, self.default)
 
     def login(self, username, password):
+        from .. import db
         self.load()
         error = self.check(username, password)
         if error:
             return error
         else:
+            with db.session_scope() as session:
+                me = session.get(db.Person, username)
+                me.last_login = datetime.now()
             cherrypy.session.regenerate()
             cherrypy.session[conf.session_key] = cherrypy.request.login = username
             return

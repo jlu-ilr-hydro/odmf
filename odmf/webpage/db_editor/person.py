@@ -76,8 +76,8 @@ class PersonPage:
                 p_act.email = kwargs.get('email')
                 p_act.firstname = kwargs.get('firstname')
                 p_act.surname = kwargs.get('surname')
-                p_act.telephone = kwargs.get('telephone')
                 p_act.comment = kwargs.get('comment')
+                p_act.orcid = kwargs.get('orcid')
                 if kwargs.get('status') == 'on' or is_self(username):
                     p_act.active = True
                 else:
@@ -146,9 +146,9 @@ class PersonPage:
     def json(self, supervisors=False):
         with db.session_scope() as session:
             persons = session.query(db.Person).order_by(
-                db.sql.desc(db.Person.can_supervise), db.Person.surname)
+                db.sql.desc(db.Person.access_level), db.Person.surname)
             if supervisors:
-                persons = persons.filter(db.Person.can_supervise == True)
+                persons = persons.filter(db.Person.access_level >= Level.supervisor)
             return web.json_out(persons.all())
 
     @expose_for()

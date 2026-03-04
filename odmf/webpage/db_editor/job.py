@@ -60,10 +60,11 @@ class JobPage:
                 job.mailer = None
 
             logsites = web.to_list(kwargs.get('sites[]'))
-            if any((logsites, kwargs.get('logmsg'))):
+            if any((logsites, kwargs.get('logmsg'), kwargs.get('logtime'))):
                 job.log = {
                     'sites': [web.conv(int, sid) for sid in logsites] or None,
-                    'message' : kwargs.get('logmsg')
+                    'message' : kwargs.get('logmsg'),
+                    'time': kwargs.get('logtime')
                 }
             else:
                 job.log = None
@@ -127,11 +128,11 @@ class JobPage:
                     session.flush()
 
             return web.render(
-                'job.html', jobid=jobid, job=job, can_edit=self.can_edit(job),
-                error=kwargs.get('error'), success=kwargs.get('success'), db=db,
+                'job.html', job=job, can_edit=self.can_edit(job),
+                db=db,
                 me=session.get(db.Person, web.user()),
                 username=users.current, now=datetime.now(),
-                persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname).all(),
+                persons=session.query(db.Person).order_by(db.Person.surname).all(),
                 jobtypes=session.query(db.Job.type).order_by(db.Job.type).distinct().all(),
                 my_jobs=session.query(db.Job).filter(db.Job._responsible == web.user(), ~db.Job.done).order_by(db.Job.due).all(),
                 my_jobs_author=session.query(db.Job).filter(db.Job._author == web.user(), ~db.Job.done).order_by(db.Job.due).all(),
@@ -161,7 +162,7 @@ class JobPage:
 
 
     @expose_for(Level.logger)
-    def index(self, jobid=None, error=None, success=None, **kwargs):
+    def index(self, jobid=None, **kwargs):
         if cherrypy.request.method == 'GET':
             if jobid:
                 return self.index_get(jobid, **kwargs)
@@ -169,9 +170,8 @@ class JobPage:
                 return self.list_jobs()
         elif cherrypy.request.method == 'POST':
             return self.index_post(jobid, **kwargs)
-
-    @expose_for(Level.logger)
-    @web.method.post
+        else:
+            raise web.HTTPError(405, message='Method not allowed')
 
     @expose_for(Level.logger)
     @web.method.post
@@ -181,6 +181,19 @@ class JobPage:
             if time:
                 time = web.parsedate(time)
             return job.make_done(users.current.name, time)
+
+    @expose_for(Level.logger)
+    @web.method.post
+    def comment(self, jobid, text: str):
+        if len(text)>10:
+            with db.session_scope() as session:
+                job = session.get(db.Job, int(jobid))
+                comment = db.job.JobComment(job=job, _user=web.user(), text=text, date=datetime.now())
+                session.add(comment)
+            raise web.redirect(conf.url('job', jobid), success=f'Comment added')
+        else:
+            raise web.redirect(conf.url('job', jobid), error=f'Comment to short')
+
 
 
     @expose_for(Level.logger)
