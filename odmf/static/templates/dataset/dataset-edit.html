@@ -870,9 +870,12 @@
                                     <input type="hidden" id="alarm-id" name="id" value=""
                                         class="form-control disabled" />
                                     <div class="custom-control custom-switch">
-                                        <input type="checkbox" class="custom-control-input" id="alarm-active"
-                                            name="active" />
+                                        <input type="checkbox" class="custom-control-input" id="alarm-active" name="active" checked="checked" value="True"/>
                                         <label class="custom-control-label" for="alarm-active">Activate alarm</label>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="alarm-name">Name</label>
+                                        <input type="text" id="alarm-name" name="name" class="form-control" />
                                     </div>
                                     <div class="form-group">
                                         <label for="alarm-aggregation">Aggregation</label>
@@ -922,6 +925,10 @@
                                             <option py:for="topic in topics" value="${topic.id}"
                                                 py:content="topic.name" />
                                         </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="alarm-message">Message to send:</label>
+                                        <textarea id="alarm-message" name="message" class="form-control"></textarea>
                                     </div>
                                     <div class="form-group mt-1">
                                         <button class="btn btn-success me-1" type="submit" title="save alarm"

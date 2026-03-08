@@ -9,6 +9,7 @@ from email.headerregistry import Address
 import yaml
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -54,29 +55,35 @@ class Mailer:
         self.server = None
 
     def start(self):
-        self.server =  smtplib.SMTP(self.config['server'], self.config.get('port', 587))
-        self.server.starttls()
-        self.server.login(self.config['login'], self.config['password'])
+        if 'server' in self.config:
+            self.server =  smtplib.SMTP(self.config['server'], self.config.get('port', 587))
+            self.server.starttls()
+            self.server.login(self.config['login'], self.config['password'])
+        else:
+            self.server = None
         return self
 
     def __enter__(self):
         return self.start()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.server.quit()
+        if self.server:
+            self.server.quit()
         self.server = None
 
     def send(self, subject, body, receivers):
-        if not self.server:
-            raise EmailError("No server started, use as: with Mailer('email.yml') as mailer: mailer.send_mail(subject, body, *receivers)")
-        msg = EmailMessage()
-        msg.set_content(body)
-        msg['Subject'] = subject
-        msg['From'] = Address(self.config.get('name', 'odmf: no reply'),
-                              addr_spec=self.config.get('email', self.config['login']))
-        msg['To'] = ','.join(receivers)
-        logging.debug('Sending email to %s', ', '.join(receivers))
+        if self.server:
+            msg = EmailMessage()
+            msg.set_content(body)
+            msg['Subject'] = subject
+            msg['From'] = Address(self.config.get('name', 'odmf: no reply'),
+                                addr_spec=self.config.get('email', self.config['login']))
+            msg['To'] = ','.join(receivers)
+            logging.debug('Sending email to %s', ', '.join(receivers))
 
-        self.server.send_message(msg)
-        logger.info('Email sent to %s', ', '.join(receivers))
+            self.server.send_message(msg)
+            logger.info('Email sent to %s', ', '.join(receivers))
+        else:
+            logger.warning('Email not sent, no server configured. Subject: %s, Receivers: %s', subject, ', '.join(receivers))
+            logger.warning('Email content:\n%s', body)
 

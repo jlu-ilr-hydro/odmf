@@ -276,21 +276,23 @@ class DatasetPage:
                 else:
                     success = 'Alarm changed: '
 
-                alarm.active = web.conv(bool, kwargs.get('active'))
+                alarm.name = kwargs.get('name')
+                alarm.message = kwargs.get('message')
+                alarm.active = 'active' in kwargs
                 alarm.aggregation_function = web.conv(str, kwargs.get('aggregation_function'))
                 try:
                     alarm.aggregation_time = pd.to_timedelta(kwargs.get('aggregation_time')).total_seconds() / 86400
                 except (ValueError, AttributeError):
                     raise web.redirect(conf.url('dataset', datasetid, '#alarms'), error=str(kwargs.get('aggregation_time')) + ' is no timespan value')
-                if kwargs.get('threshold_value'):
-                    if kwargs.get('threshold_type') == 'above':
-                        alarm.threshold_above = web.conv(float, kwargs.get('threshold_value'))
+                if th_v:=kwargs.get('threshold_value'):
+                    if th_t:=kwargs.get('threshold_type') == 'above':
+                        alarm.threshold_above = web.conv(float, th_v)
                     else:
-                        alarm.threshold_below = web.conv(float, kwargs.get('threshold_value'))
+                        alarm.threshold_below = web.conv(float, th_v)
 
-                topic = session.get(db.message.Topic, kwargs.get('topic'))
-                if topic:
+                if topic:= session.get(db.message.Topic, kwargs.get('topic')):
                     alarm.topic = topic
+
                 session.flush()
                 if any(v is None for v in [alarm.aggregation_function, alarm.aggregation_time, alarm.topic, alarm.active, alarm.dataset]):
                     raise web.redirect(conf.url('dataset', datasetid, '#alarms'), error='Alarm is missing values')

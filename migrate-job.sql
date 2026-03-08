@@ -15,16 +15,15 @@ ALTER TABLE person
     DROP COLUMN telephone,
     DROP COLUMN can_supervise,
     DROP COLUMN mobile,
-    DROP COLUMN car_available,
-    ADD COLUMN orcid VARCHAR NULL,
-    ADD COLUMN last_login TIMESTAMP NULL;
+    DROP COLUMN car_available;
+    ALTER TABLE person    ADD COLUMN orcid VARCHAR NULL;
+    ALTER TABLE person ADD COLUMN last_login TIMESTAMP NULL;
 
 /* Update dataset #257 and #191*/
 ALTER TABLE dataset
-    ADD COLUMN license VARCHAR NULL,
-    ADD COLUMN doi VARCHAR NULL,
+ALTER TABLE dataset    ADD COLUMN license VARCHAR NULL;
+ALTER TABLE dataset ADD COLUMN doi VARCHAR NULL;
     DROP COLUMN uses_dst;
 
-ALTER TABLE datasetalarm
-    ADD COLUMN name VARCHAR NULL,
-    ADD COLUMN message VARCHAR NULL;
+ALTER TABLE datasetalarm    ADD COLUMN name VARCHAR NULL;
+ALTER TABLE datasetalarm    ADD COLUMN message VARCHAR NULL;
