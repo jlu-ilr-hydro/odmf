@@ -160,6 +160,20 @@
                             <td><i class="fas ${type.get(ds_act.type, 'fa-question')} me-2" />: ${ds_act.type}</td>
                         </tr>
                         <tr>
+                            <td class="bold">Pulished as:</td>
+                            <td py:with="license = licenses.get(ds_act.license)">
+                                <div class="alert alert-warning" py:if="not ds_act.license and Level.admin > ds_act.get_access_level(users.current)">
+                                    <i class="fas fa-section me-1"/> This dataset is not published. Please ask the owner for permission to use it.
+                                </div>
+                                <div class="alert alert-info" py:if="not ds_act.license and Level.admin == ds_act.get_access_level(users.current) ">
+                                    <i class="fas fa-section me-1"/> This dataset is not published. You can publish the contents on a research data repository and add the license and doi here to make it available for others.                                </div>
+                                <a py:if="license" href="${license['url']}" class="me-2 btn">
+                                    <img src="${license['svg']}" title="${license['title']}"/>
+                                </a>
+                                <a py:if="ds_act.doi" href="https://doi.org/${ds_act.doi}" class="btn btn-sm btn-light">DOI:${ds_act.doi}</a>
+                            </td>
+                        </tr>
+                        <tr>
                             <td class="bold">Name:</td>
                             <td>${ds_act.name}</td>
                         </tr>
@@ -366,6 +380,28 @@
                                     </select>
                                 </div>
 
+                            </div>
+                            <div id="edit-publication" class="form-row" py:if="ds_act.get_access_level(users.current) >= Level.admin">
+                                <div class=" col-lg">
+                                    <label for="license"><i class="fas fa-section me-1"/>License:</label>
+                                    <select id="license" name="license" class="form-control select2 border-secondary">
+                                        <option value="" py:attrs="markoption(ds_act.license not in licenses)">Not published, ask for permission</option>
+                                        <option py:for="license in licenses.values()"
+                                            py:attrs="markoption(license['id'] == ds_act.license)" py:content="license['title']"
+                                            value="${license['id']}" />
+                                    </select>
+                                </div>
+                                <div class=" col-lg">
+                                    <label for="doi"><i class="fas fa-quote-left me-1"></i>DOI: (the https://doi.org part can be ommitted)</label>
+                                    <input type="text" class="form-control" id="doi" name="doi" placeholder="10.1000/182"
+                                        value="${ds_act.doi}" />
+                                </div>
+                            </div>
+                            <div class="form-row" py:if="not ds_act.get_access_level(users.current) >= Level.admin">
+                                <div class="form-group col-lg">
+                                    <label for="publication-info">No publication rights</label>
+                                    <div class="alert alert-secondary">Only the dataset owner and dataset admins are allowed to set the publication status.</div>
+                                </div>
                             </div>
                             <div id="edit-valid-dates" class="form-row" py:if="ds_act.is_timeseries()">
                                 <div class="form-group col-lg">

@@ -3,6 +3,7 @@ Created on 18.07.2012
 
 @author: philkraf
 '''
+import json
 from base64 import b64encode
 from .. import lib as web
 from ... import db
@@ -29,6 +30,11 @@ def get_ds(session, datasetid):
 
 def has_access(ds: db.Dataset, level:Level=Level.guest):
     return ds.get_access_level(users.current) >= max(ds.access, level)
+
+def load_licenses():
+    with (Path(__file__).parent.parent.parent / 'static' / 'media' / 'js' / 'licenses.json').open() as f:
+         licenses = json.load(f)
+         return {l['id']: l for l in licenses}
 
 @cherrypy.popargs('datasetid')
 @web.show_in_nav_for(1, icon='clipboard')
@@ -92,6 +98,10 @@ class DatasetPage:
             if ds.get_access_level(users.current) >= Level.admin:
                 project = session.get(db.Project, kwargs.get('project'))
                 ds.project = project
+                ds.access = web.conv(int, kwargs.get('access'), 1)
+                ds.doi = kwargs.get('doi', ds.doi)
+                ds.license = kwargs.get('license', ds.license)            
+
 
             ds.timezone = kwargs.get('timezone')
 
@@ -107,7 +117,7 @@ class DatasetPage:
                     float, kwargs.get('calibration_offset'), 0.0)
                 ds.calibration_slope = web.conv(
                     float, kwargs.get('calibration_slope'), 1.0)
-                ds.access = web.conv(int, kwargs.get('access'), 1)
+                
             # Transformation only arguments
             if ds.is_transformed():
                 ds.expression = kwargs.get('expression')
@@ -208,7 +218,7 @@ class DatasetPage:
             web.session.error = error
         if message:
             web.session.success = message
-
+        
         def access(level: Level=Level.guest):
             return has_access(active, level)
         # Render the resulting page
@@ -230,6 +240,7 @@ class DatasetPage:
             same_time_ds=self.parallel_datasets(session, active),
             alarms=session.query(db.timeseries.DatasetAlarm).filter_by(dsid=active.id),
             topics=session.query(db.message.Topic).order_by(db.message.Topic.name),
+            licenses=load_licenses()
         ).render()
 
     @staticmethod

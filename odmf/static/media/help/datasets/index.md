@@ -52,7 +52,7 @@ The access level is used to prevent users of the database to see your data, if t
 do not have enough privileges to see the data: 0: public dataset, 1: only known users and project members 
 (enter the project id of your project in the project field), 2: only users with editing privileges, 
 3: only employees and data managers, 4: only administrators.
-ODMF is not a repository - data in the database is not licenced to be used in any publication. 
+ODMF is not a repository - data in the database is not licensed to be used in any publication. 
 You must always contact the data owner prior to usage in a publication. It is best practice to publish data 
 in a repository like [zenodo.org](https://zenodo.org) and let your colleagues cite that data with a doi.
 
