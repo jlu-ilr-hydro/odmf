@@ -123,7 +123,7 @@ class Job(Base):
             return []
 
 
-    def as_message(self, by=None, time=None) -> Message:
+    def as_message(self, by=None, time=None, content=None) -> Message:
         """Creates a message from this job"""
 
         by = by or self.author
@@ -132,7 +132,9 @@ class Job(Base):
 
         subject = f'ODMF-{conf.root_url}: {self.name}'
         topics = flex_get(self.mailer, 'topics', default=[])
-        if self.done:
+        if content:
+            content = content
+        elif self.done:
             content = (
                 f'Job {self.name} is finished at {self.donedate} by {by}\n'
             )

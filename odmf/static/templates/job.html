@@ -216,34 +216,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-item" id="job-comment-accordion">
-                            <h4 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#comment-div" aria-expanded="true" aria-controls="comment-div">
-                                    <i class="fas fa-comments me-2"></i> comments <span class="badge bg-primary pill ms-4">${len(job.comments)}</span>
-                                </button>
-                            </h4>
-                            <div class="accordion-collapse collapse" id="comment-div">
-                                <div class="mt-2 m-1 rounded bg-light"  py:for="comment in job.comments">
-                                    <div class="small bg-secondary text-light rounded p-1 w-100" >${formatdatetime(comment.date)}: <i class="fas fa-user"></i> ${comment.user}</div>
-                                    <div>${markdown(comment.text)}</div>
-
-                                </div>
-                                <form method="post" action="comment">
-                                    <div class="m-1 p-1 rounded bg-light row">
-                                        <div class="col-lg-1">
-                                            <label for="comment-text"><i class="fas fa-plus"/></label>
-                                        </div>
-                                        <div class="col-lg-10">
-                                            <textarea name="text" id="comment-text" class="form-control" placeholder="add comment here" rows="1"/>
-                                        </div>
-                                        <div class="col-lg-1">
-                                            <button class="btn btn-primary" type="submit"><i class="fas fa-paper-plane"/></button>
-                                        </div>
-
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
                         <div class="accordion-item" id="job-log-accordion">
                             <h4 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#logs-div" aria-expanded="true" aria-controls="edit-div">
@@ -335,6 +307,9 @@
                                                 <option value="done" title="send to topics message when done"
                                                         py:attrs="markoption('done' in flex_get(job.mailer, 'when', default=[]))"
                                                 >done</option>
+                                                <option value="comment" title="send to topics message when a new comment is posted to the job"
+                                                        py:attrs="markoption('comment' in flex_get(job.mailer, 'when', default=[]))"
+                                                >on comment</option>
                                                 <option py:for="d in [0, 1, 3, 7, 14, 28]" value="${d}"
                                                         py:attrs="markoption(d in flex_get(job.mailer, 'when', default=[]))"
                                                         title="${d} day before due">${d} days</option>
@@ -354,7 +329,6 @@
                                      type="submit"
                                      title="Saves the changes to the database"
                                      data-bs-toggle="tooltip"
-                                     py:attrs="prop(disabled=not can_edit)"
                             >
                                 <i class="fas fa-save me-1" />
                                 save
@@ -365,7 +339,6 @@
                                      class="btn btn-secondary me-1"
                                      title="Saves the changes to the author and makes you to the author of the job"
                                      data-bs-toggle="tooltip"
-                                     py:attrs="prop(disabled=not can_edit)"
                             >
                                 become author
                             </button>
@@ -375,7 +348,6 @@
                                      class="btn btn-warning me-1"
                                      data-bs-toggle="tooltip"
                                      title="Save the changes and sends a mail to everyone who subscribed to the topics of this job"
-                                     py:attrs="prop(disabled=not can_edit)"
                             >
                                 <i class="fas fa-paper-plane"/> save &amp; update
                             </button>
@@ -385,7 +357,6 @@
                                      class="btn btn-success me-1"
                                      title="Saves changes and marks job as done"
                                      data-bs-toggle="tooltip"
-                                     py:attrs="prop(disabled=not can_edit)"
                             >
                                 <i class="fas fa-check" /> done
                             </button>
@@ -398,6 +369,36 @@
                         </div>
                     </div>
                 </form>
+                <div class="accordion mt-2">
+                    <div class="accordion-item" id="job-comment-accordion">
+                        <h4 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#comment-div" aria-expanded="true" aria-controls="comment-div">
+                                <i class="fas fa-comments me-2"></i> comments <span class="badge bg-primary pill ms-4">${len(job.comments)}</span>
+                            </button>
+                        </h4>
+                        <div class="accordion-collapse collapse" id="comment-div">
+                            <div class="mt-2 m-1 rounded bg-light"  py:for="comment in job.comments">
+                                <div class="small bg-secondary text-light rounded p-1 w-100" >${formatdatetime(comment.date)}: <i class="fas fa-user"></i> ${comment.user}</div>
+                                <div>${markdown(comment.text)}</div>
+
+                            </div>
+                            <form method="post" action="comment">
+                                <div class="m-1 p-1 rounded bg-light row">
+                                    <div class="col-lg-1">
+                                        <label for="comment-text"><i class="fas fa-plus"/></label>
+                                    </div>
+                                    <div class="col-lg-10">
+                                        <textarea name="text" id="comment-text" class="form-control" placeholder="add comment here" rows="1"/>
+                                    </div>
+                                    <div class="col-lg-1">
+                                        <button class="btn btn-primary" type="submit"><i class="fas fa-paper-plane"/></button>
+                                    </div>
+
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </py:block>

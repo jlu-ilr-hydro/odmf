@@ -190,7 +190,12 @@ class JobPage:
                 job = session.get(db.Job, int(jobid))
                 comment = db.job.JobComment(job=job, _user=web.user(), text=text, date=datetime.now())
                 session.add(comment)
-            raise web.redirect(conf.url('job', jobid), success=f'Comment added')
+                if job.mailer and 'comment' in job.mailer.get('when', []):
+                    cherrypy.session['new-message'] = job.as_message(web.user(), content='New comment added: ' + text).__jdict__()
+                    redirect = conf.url('message')
+                else:                    
+                    redirect = conf.url('job', jobid)
+            raise web.redirect(redirect, success=f'Comment added')
         else:
             raise web.redirect(conf.url('job', jobid), error=f'Comment to short')
 
