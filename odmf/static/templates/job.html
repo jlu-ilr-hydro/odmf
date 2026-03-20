@@ -111,6 +111,8 @@
                             </div>
                             <div class="small">log-message:</div>
                             <div>${job.log.get('message') or job.name}</div>
+                            <div class="small">log-time:</div>
+                            <div>${flex_get(job.log, 'time') or 'due'}</div>
                         </div>
                     </div>
                 </div>
@@ -186,7 +188,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-item">
+                        <div class="accordion-item" id="job-log-accordion">
                             <h4 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#logs-div" aria-expanded="true" aria-controls="edit-div">
                                     <i class="fas fa-tags me-2"></i> create logs
@@ -224,21 +226,28 @@
                                             </div>
 
                                         </div>
-                                        <label for="edit-msgtopics" class="col-form-label col-sm-4">topics:</label>
-                                        <select name="topics[]" id="edit-msgtopics" class="col-sm-8 form-control select2" multiple="multiple">
-                                            <optgroup label="Your subscribed topics">
-                                                <option py:for="topic in topics" value="${topic.id}"
-                                                        py:attrs="markoption(topic.id in flex_get(job.mailer, 'topics', default=[]))"
-                                                        py:if="me in topic.subscribers"
-                                                        title="${topic}">${topic.id}</option>
-                                            </optgroup>
-                                            <optgroup label="Other topics">
-                                                <option py:for="topic in topics" value="${topic.id}"
-                                                        py:attrs="markoption(topic.id in flex_get(job.mailer, 'topics', default=[]))"
-                                                        py:if="me not in topic.subscribers" class=""
-                                                        title="${topic}">${topic.id}</option>
-                                            </optgroup>
-                                        </select>
+                                        <label for="edit-msgtopics" class="col-form-label col-sm-3">
+                                            topics:
+                                            <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="modal" title="Add topic" data-bs-target="#topic-modal" >
+                                                 <i class="fas fa-plus"/>
+                                            </button>
+                                        </label>
+                                        <div class="col-sm" data-bs-toggle="tooltip" title="send message to topics when job is due or done">
+                                            <select name="topics[]" id="edit-msgtopics" class="form-control select2" multiple="multiple">
+                                                <optgroup label="Your subscribed topics">
+                                                    <option py:for="topic in topics" value="${topic.id}"
+                                                            py:attrs="markoption(topic.id in flex_get(job.mailer, 'topics', default=[]))"
+                                                            py:if="me in topic.subscribers"
+                                                            title="${topic}">${topic.id}</option>
+                                                </optgroup>
+                                                <optgroup label="Other topics">
+                                                    <option py:for="topic in topics" value="${topic.id}"
+                                                            py:attrs="markoption(topic.id in flex_get(job.mailer, 'topics', default=[]))"
+                                                            py:if="me not in topic.subscribers" class=""
+                                                            title="${topic}">${topic.id}</option>
+                                                </optgroup>
+                                            </select>
+                                        </div>
                                     </div>
                                     <div class="form-group row" data-bs-toggle="tooltip" title="send message to topics when">
                                         <label for="edit-msgdates" class="col-form-label col-sm-4" >when:</label>
@@ -311,6 +320,57 @@
             </div>
         </div>
     </py:block>
-
+    <py:block name="extrahtml">
+        <div class="modal" id="logtime-other-modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Select log date</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="datetime-local" id="logtime-other-input" class="form-control"/>
+                        <button class="btn btn-primary mt-2" id="logtime-other-submit" data-bs-dismiss="modal">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal" id="topic-modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="${conf.url('topic', 'new/')}">
+                        <input type="hidden" name="redirect" value="${'job/' + str(jobid) + '/?new_topic='}"/>
+                        <div class="modal-header">
+                            <h5 class="modal-title">Create new topic</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group row">
+                                <label for="topic-id" class="col-form-label col-sm-3">ID:</label>
+                                <div class="col-sm">
+                                    <input type="text" id="topic-id" name="id" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="topic-name" class="col-form-label col-sm-3">Name:</label>
+                                <div class="col-sm">
+                                    <input type="text" id="topic-name" name="name" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="topic-description" class="col-form-label col-sm-3">Description:</label>
+                                <div class="col-sm">
+                                    <textarea id="topic-description" name="description" class="form-control" rows="3" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Create topic</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </py:block>
+    
 </py:extends>
-
