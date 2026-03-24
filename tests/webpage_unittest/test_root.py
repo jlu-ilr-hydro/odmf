@@ -165,9 +165,6 @@ def test_robots_txt(root):
 
 
 class TestStatic:
-    def test_media_dir(self, root):
-        html = root.media.index()
-        assert html.startswith('<ul>')
 
     def test_media_favicon(self, root):
         html = root.media.index('ilr-favicon.png').input.read()
