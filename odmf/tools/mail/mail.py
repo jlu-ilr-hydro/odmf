@@ -54,21 +54,23 @@ class Mailer:
         self.server = None
 
     def start(self):
-        self.server =  smtplib.SMTP(self.config['server'], self.config.get('port', 587))
-        self.server.starttls()
-        self.server.login(self.config['login'], self.config['password'])
+        if 'server' not in self.config or 'login' not in self.config or 'password' not in self.config:
+            return self
+        else:
+            self.server =  smtplib.SMTP(self.config['server'], self.config.get('port', 587))
+            self.server.starttls()
+            self.server.login(self.config['login'], self.config['password'])
         return self
 
     def __enter__(self):
         return self.start()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.server.quit()
+        if self.server:
+            self.server.quit()
         self.server = None
 
     def send(self, subject, body, receivers):
-        if not self.server:
-            raise EmailError("No server started, use as: with Mailer('email.yml') as mailer: mailer.send_mail(subject, body, *receivers)")
         msg = EmailMessage()
         msg.set_content(body)
         msg['Subject'] = subject
@@ -76,7 +78,7 @@ class Mailer:
                               addr_spec=self.config.get('email', self.config['login']))
         msg['To'] = ','.join(receivers)
         logging.debug('Sending email to %s', ', '.join(receivers))
-
-        self.server.send_message(msg)
+        if self.server:
+            self.server.send_message(msg)
         logger.info('Email sent to %s', ', '.join(receivers))
 
