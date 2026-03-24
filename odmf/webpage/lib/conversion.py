@@ -37,7 +37,7 @@ def as_json(*args, **kwargs) -> str:
         raise ValueError('You can\'t create a json representation from mixing positional and key word arguments')
     else:
         return json.dumps(list(args), indent=4, default=jsonhandler)
-
+    
 
 def formatdate(t=None, fmt='%d.%m.%Y'):
     if not t:

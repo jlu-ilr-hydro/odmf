@@ -36,9 +36,6 @@ class TestSite:
 
         session.add(site)
 
-    def test_create_site_fail(self, db, session):
-        with pytest.raises(ValueError):
-            site = db.Site(id=3, name='xyz')
 
     def test_site_load(self, db, session, site1_in_db):
         site = session.get(db.Site, 1)

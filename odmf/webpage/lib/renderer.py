@@ -102,6 +102,10 @@ class Resource:
     @property
     def level(self):
         return self.get_attr('level')
+    
+    @property
+    def title(self):
+        return self.get_attr('title') or self.name.capitalize()
 
     def is_nav(self, for_level: int):
         return self.is_exposed() and self.has_attr('show_in_nav') and self.obj.show_in_nav <= for_level
@@ -198,7 +202,8 @@ class Renderer(object):
             [str(Path(p).absolute() / 'templates')
              for p in conf.static
              if (Path(p) / 'templates').exists()
-             ]
+             ],
+             reload=conf.sandbox
         )
         self.root = None
 

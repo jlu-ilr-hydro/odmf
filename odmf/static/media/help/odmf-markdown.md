@@ -53,3 +53,39 @@ Formatting
 
  [1]: http://de.wikipedia.org/wiki/Markdown
  [2]: http://daringfireball.net/projects/markdown/syntax
+
+
+Notes and warnings
+-----------------------
+
+Special blocks can be inserted using !!! marking (see: https://python-markdown.github.io/extensions/admonition/).
+
+### Example note:
+
+
+    !!! note "Note-Title"
+        Note text, bla, bla, bla
+    
+        another line
+    
+
+renders as:
+
+!!! note "Note-Title"
+    Note text, bla, bla, bla
+    
+    another line
+
+
+### Example warning:
+
+    !!! warning "Warning-Title"
+        Warning, be careful
+    
+        best if you don't do it
+
+!!! warning "Warning-Title"
+    Warning, be careful
+    
+    best if you don't do it
+

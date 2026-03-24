@@ -6,8 +6,12 @@
 venv*
 **/.pytest_cache/**
 .idea
+.coverage
+.vscode
 *.log
 instances
 dist
 build
 /*instance*/
+node_modules
+bower_components

@@ -1,104 +1,17 @@
-import io
 import typing
 
-from charset_normalizer import detect
 import pandas as pd
 
 
-from ...tools import Path
-from .. import lib as web
+from ....tools import Path
+from ... import lib as web
 import re
-from ...config import conf
+from ....config import conf
 from . import fileactions as fa
-from ..markdown import MarkDown
-from ..auth import Level
-
+from ...markdown import MarkDown
+from .basehandler import BaseFileHandler, load_text_file, load_text_stream, table_to_html, error_msg
 
 markdown = MarkDown()
-
-
-def load_text_file(path: Path) -> str:
-    with open(path.absolute, 'rb') as f:
-        # read max 1 MB text
-        data = f.read(1024 ** 2)
-        for enc in 'utf-8', 'latin1', 'windows-1252', None:
-            try:
-                return data.decode(enc)
-            except UnicodeDecodeError:
-                continue
-        else:
-            detection = detect(data[:10000])
-            if not detection['encoding']:
-                raise ValueError(f'{path} is a binary file')
-            return data.decode(detection['encoding'])
-
-
-def load_text_stream(path: Path) -> io.StringIO:
-    return io.StringIO(load_text_file(path))
-
-
-def table_to_html(df: pd.DataFrame, index: bool=True, header=True):
-    if header == True:
-        header = f'<div class="alert alert-secondary">{len(df)} lines</div>'
-    elif header == False:
-        header = ''
-    classes = ['table table-hover']
-    if len(df) > 1000:
-        table = df.iloc[:1000].to_html(classes=classes, border=0)
-        return header + table + f'<div>... skipping lines 1000 - {len(df)}</div>'
-    else:
-        return header + df.to_html(classes=classes, border=0, index=index)
-
-def error_msg(msg: str):
-    return '<div class="alert alert-danger">' + msg + '</div>'
-
-
-
-class BaseFileHandler:
-    """
-    The base class for file handling. Filehandlers are used by the file manager to display files
-
-    icon: Font-Awesome icon to describe the file type
-    actions: Sequence of FileAction objects - actions that can be performed on the file page
-    """
-    icon = 'file'
-    actions: typing.Sequence[fa.FileAction] = ()
-    def __init__(self, pattern: str = ''):
-        self.pattern = re.compile(pattern, re.IGNORECASE)
-
-    def __getitem__(self, action):
-        return {a.name: a for a in self.actions}[action]
-
-    def matches(self, path: Path):
-        """
-        Checks if a path matches the file pattern
-        """
-        return bool(self.pattern.search(path.absolute))
-
-    def to_html(self, path) -> str:
-        """
-        Converts a string to a html text
-        Overwrite for different handles
-        """
-        raise NotImplementedError
-
-    def __call__(self, path: Path):
-        return self.to_html(path)
-
-    def get_action_buttons(self, path: Path):
-        for action in self.actions:
-            print(action)
-            action.check(path)
-        return '\n'.join(action.html(path) for action in self.actions if action.check(path))
-
-    def post_action(self, actionname: str, path: str, userlevel: Level):
-        for action in self.actions:
-            if action.name == actionname:
-                if userlevel >= action.access_level:
-                    return action.post(path)
-                else:
-                    raise ValueError('Invalid privileges')
-
 
 
 class TextFileHandler(BaseFileHandler):
@@ -110,7 +23,7 @@ class TextFileHandler(BaseFileHandler):
     def render(self, source) -> str:
         return '\n<pre>\n' + source + '\n</pre>\n'
 
-    def to_html(self, path) -> str:
+    def to_html(self, path, **kwargs) -> str:
         """
         Converts a string to a html text by creating surrounding pre tags.
         Overwrite for different handles
@@ -138,7 +51,7 @@ class ConfFileHandler(TextFileHandler):
 class SummaryFileHandler(TextFileHandler):
     icon = 'history'
     def render(self, source):
-        from ...plot.summary_table import summary
+        from ....plot.summary_table import summary
         import yaml
         try:
             summary_content = yaml.safe_load(source)
@@ -157,7 +70,7 @@ class PlotFileHandler(BaseFileHandler):
     def render(self, source) -> str:
         return '\n<pre>\n' + source + '\n</pre>\n'
 
-    def to_html(self, path) -> str:
+    def to_html(self, path, **kwargs) -> str:
         """
         redirects to plot using the plot file
         """
@@ -169,22 +82,12 @@ class MarkDownFileHandler(TextFileHandler):
         return markdown(source)
 
 
-class ExcelFileHandler(BaseFileHandler):
-
-    icon = 'file-excel'
-    actions = fa.ConfImportAction(), fa.LogImportAction(), fa.LabImportAction()
-    def to_html(self, path: Path) -> str:
-
-        with open(path.absolute, 'rb') as f:
-            df = pd.read_excel(f)
-            return table_to_html(df)
-
 
 class CsvFileHandler(BaseFileHandler):
 
     icon = 'file-csv'
-    actions = fa.ConfImportAction(),
-    def to_html(self, path: Path) -> str:
+    actions = fa.ConfImportAction(), fa.RecordImportAction(),
+    def to_html(self, path: Path, **kwargs) -> str:
 
         text_io = load_text_stream(path)
         try:
@@ -198,7 +101,8 @@ class CsvFileHandler(BaseFileHandler):
 class ParquetFileHandler(BaseFileHandler):
 
     icon = 'table'
-    def to_html(self, path) -> str:
+    actions = fa.RecordImportAction(),
+    def to_html(self, path, **kwargs) -> str:
 
         with open(path.absolute, 'rb') as f:
             df = pd.read_parquet(f)
@@ -209,7 +113,7 @@ class ImageFileHandler(BaseFileHandler):
 
     icon = 'file-image'
 
-    def to_html(self, path: Path) -> str:
+    def to_html(self, path: Path, **kwargs) -> str:
         return f'''
         <img class="handler-generated" src="{path.raw_url}" style="max-width: 100%"/>
         '''
@@ -218,7 +122,7 @@ class ImageFileHandler(BaseFileHandler):
 class PdfFileHandler(BaseFileHandler):
 
     icon = 'file-pdf'
-    def to_html(self, path: Path) -> str:
+    def to_html(self, path: Path, **kwargs) -> str:
         return f'''
         <object id="pdf-iframe" data="{path.raw_url}" type="application/pdf" >
             <a href="{path.raw_url}" class="btn btn-primary">Download</a>
@@ -230,7 +134,7 @@ class DocxFileHandler(BaseFileHandler):
 
     icon = 'file-word'
 
-    def to_html(self, path: Path):
+    def to_html(self, path: Path, **kwargs):
         try:
             import mammoth as m
             with path.as_path().open('rb') as f:
@@ -244,7 +148,7 @@ class ZipFileHandler(BaseFileHandler):
     icon = 'file-archive'
     actions = fa.UnzipAction(),
 
-    def to_html(self, path: Path) -> str:
+    def to_html(self, path: Path, **kwargs) -> str:
         try:
             import zipfile
             z = zipfile.ZipFile(path.absolute)
@@ -254,7 +158,7 @@ class ZipFileHandler(BaseFileHandler):
         except Exception as e:
             raise web.HTTPError(500, f'Cannot open zipfile: {path}')
 
-
+from .excelhandler import ExcelFileHandler
 class MultiHandler(BaseFileHandler):
     handlers = [
         MarkDownFileHandler(r'\.(md|wiki)$'),
@@ -282,6 +186,6 @@ class MultiHandler(BaseFileHandler):
                     pass
         return None
 
-    def to_html(self, path: Path) -> str:
+    def to_html(self, path: Path, **kwargs) -> str:
         if handler := self[path]:
-            return handler.to_html(path)
+            return handler.to_html(path, **kwargs)

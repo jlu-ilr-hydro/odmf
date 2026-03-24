@@ -94,13 +94,8 @@
                     <div id="errorlist" class="accordion-collapse collapse" data-bs-parent="#accordion">
                         <div class="accordion-body">
                             <div py:for="err in errors" class="row" >
-                                <div class="col">Sample: ${err['sample']}</div>
+                                <div class="col" py:for="k in err" py:if="k != 'error'">${k}: ${err[k]}</div>
                                 <div class="col alert alert-danger">${err['error']}</div>
-                                <div class="col">
-                                    <a href="${conf.url('valuetype', err['valuetype'])}">
-                                        Valuetype: ${err['valuetype']}
-                                    </a>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -118,10 +113,14 @@
                     <div id="datasetlist" class="accordion-collapse collapse" data-bs-parent="#accordion">
                         <div class="accordion-body">
                             <div class="list-group">
-                                <div class="list-group-item d-flex justify-content-between align-items-center" py:for="ds, rcount in datasets">
-                                    <div>${ds}</div>
-                                    <div class="badge bg-primary">${rcount}</div>
-                                </div>
+                                <a class="list-group-item list-group-item-action" 
+                                   py:for="ds, rcount in datasets"
+                                   href="${conf.url('dataset', ds.id)}">
+                                   <div class="d-flex justify-content-between align-items-center">
+                                        <div class="badge bg-primary">${rcount} records</div>
+                                        <div>into ${ds}</div>
+                                   </div>
+                                </a>
                             </div>
                         </div>
                     </div>

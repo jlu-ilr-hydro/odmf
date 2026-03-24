@@ -24,10 +24,6 @@ body {
 }
 
 .sidebar {
-    position: fixed;
-    top: 3rem;
-    bottom: 0;
-    left: 0;
     z-index: 100; /* Behind the navbar */
     padding: 0;
     box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
@@ -47,6 +43,21 @@ body {
   font-weight: 500;
   color: #333;
 }
+.toggle-btn {
+    background: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+.collapsed .toggle-btn {
+    transform: rotate(180deg);
+}
+
 
 .flexbox {
     display: flex;
@@ -86,4 +97,33 @@ blockquote p {
 
 textarea {
   font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+}
+
+.admonition {
+    padding: 1em;
+    margin: 1em 0;
+    border-left: 5px solid #888;
+}
+
+.admonition.light {
+    background-color: #f8f9fa;
+    border-left-color: #6c757d;
+}
+.admonition.warning {
+    background-color: #fff3cd;
+    border-left-color: #ffc108;
+}
+.admonition.note {
+    background-color: #d1ecf1;
+    border-left-color: #17a2b8;
+}
+
+.admonition.error {
+    background-color: #ffb4ba;
+    border-left-color: #dc3545;
+    color: rgb(88, 0, 0);
+}
+.admonition-title {
+    font-weight: bold;
+    font-size: larger;
 }

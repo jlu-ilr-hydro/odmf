@@ -49,6 +49,7 @@ class Root(object):
 
     media = static.StaticServer('media', listdir=True)
     datafiles = static.StaticServer(conf.datafiles, listdir=True)
+    node_modules = static.StaticServer('node_modules', listdir=True)
 
     @expose_for()
     @web.method.get

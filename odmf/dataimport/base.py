@@ -596,7 +596,7 @@ def savetoimports(filename, user, datasets=None):
 
 def checkimport(filename: Path):
     """
-    Checks if
+    Checks if a file was already imported by checking the .import.hist file
     """
     logger.debug("checkimport:", filename)
     d = filename.parent()

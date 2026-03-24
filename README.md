@@ -7,14 +7,16 @@
 
 [cherrypy](https://github.com/cherrypy/cherrypy) and [postgres](https://www.postgresql.org/).
 
-[![License][license-image]][license-link]
+[![License][license-image]][license-link] [![Zenodo doi](https://zenodo.org/badge/DOI/10.5281/zenodo.18832302.svg)](https://doi.org/10.5281/zenodo.18832302)
 
 [license-image]: https://img.shields.io/badge/license-MIT-blue.png
 [license-link]: http://opensource.org/licenses/MIT
 
 
-The concept was presented as a poster at the EGU GA 2017 (Vienna) by Kraft et al 
-[![DOI](https://img.shields.io/badge/doi-10.13140%2FRG.2.2.32891.54563-blue)](https://doi.org/10.13140/RG.2.2.32891.54563)
+The concept was presented as a poster at the FAIRagro User Summit 2026 by Kraft et al 
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18832404.svg)](https://doi.org/10.5281/zenodo.18832404)
+
 
 # What is ODMF?
 

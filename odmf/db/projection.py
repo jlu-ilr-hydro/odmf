@@ -62,7 +62,7 @@ _ellipsoid = [
 #             double &UTMNorthing, double &UTMEasting, char* UTMZone)
 
 
-def LLtoUTM(ReferenceEllipsoid, Lat, Long):
+def LLtoUTM(ReferenceEllipsoid, Lat, Long) -> (int, float, float):
     """
     converts lat/long to UTM coords.  Equations from USGS Bulletin 1532
     East Longitudes are positive, West longitudes are negative. 

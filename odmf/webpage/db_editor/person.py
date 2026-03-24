@@ -63,10 +63,12 @@ class PersonPage:
         me =users.current
         error = ''
         msg = ''
-        if is_self(username) or users.current.is_admin_of(users.get(username)) or (me.access_level >= Level.supervisor and is_new_user):
+        if is_self(username) or users.current.is_admin_of(users.get(username)) or (me.level >= Level.supervisor and is_new_user):
             with db.session_scope() as session:
                 p_act = session.get(db.Person, username)
                 if not p_act and is_new_user:
+                    if not username:
+                        error += 'No username provided.'
                     p_act = db.Person(username=username, active=False, access_level=0)
                     session.add(p_act)
                     session.flush()

@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <py:extends href="layout.html" xmlns:py="">
     <py:block name="scripts">
-        <script type="text/javascript" src="${conf.root_url}/media/js/site-filter.js"/>
+        <script type="text/javascript" src="${conf.root_url}/media/js/site-filter.js" />
         <script type="text/javascript" src="${conf.root_url}/media/js/map.js"></script>
         <script py:if="allow_google_maps" type="text/javascript" async="async" defer="defer"
-                src="${conf.google_maps_api('initMap')}">
-        </script>
+            src="${conf.google_maps_api('initMap')}">
+            </script>
         <script>
-            $(() =>{
+            $(() => {
+                if ('${site}') {
+                    let canvas = $('#map_canvas')
+                    canvas.data('site', '${site}')
+                    canvas.data('zoom', 'site');
+                }
                 $('[data-bs-toggle="tooltip"]').tooltip()
                 // Do not put anything map related here but in initMap in map.js
                 // The map is created async and takes a bit of time
@@ -18,37 +23,44 @@
         <style>
             .mapCanvasShort {
 
-            height: calc(100vh - 4.7em);
-            width: 100%;
-            margin: 0px;
-            padding: 0px;
+                height: calc(100vh - 4.7em);
+                width: 100%;
+                margin: 0px;
+                padding: 0px;
             }
         </style>
     </py:block>
     <py:block name="sidebar">
         <div class="container-fluid">
-            <h3>Current location</h3>
+            <h5>Current location</h5>
             <div class="alert alert-dark">
                 <span id="coordinates">Not in map</span>
             </div>
             <div class="container flexbox">
-                <div class="custom-control custom-switch col-sm" title="Use double click to create a new site" data-bs-toggle="tooltip">
-                    <input type="checkbox" id="createsite" class="custom-control-input"/>
+                <div class="custom-control custom-switch col-sm" title="Use double click to create a new site"
+                    data-bs-toggle="tooltip">
+                    <input type="checkbox" id="createsite" class="custom-control-input" />
                     <label class="custom-control-label" for="createsite">new site</label>
                 </div>
-                <button title="Show all sites" data-bs-toggle="tooltip" class="btn btn-outline-dark col-sm" id="zoom-home">
+                <button title="Show all sites" data-bs-toggle="tooltip" class="btn btn-outline-dark btn-sm ms-auto" id="zoom-home">
                     <i class="fas fa-home" />
                 </button>
+                <button class="btn btn-outline-dark btn-small ms-auto zoom-marker" title="Zoom to site"
+                    data-bs-toggle="tooltip">
+                    <i class="fas fa-magnifying-glass" />
+                </button>
+
             </div>
 
         </div>
-        <div class="mt-3" id="filter-collapse">
-            <a href="#filter" id="filter-toggle" class="btn btn-secondary flexbox h1 dropdown-toggle"
-               data-bs-toggle="collapse">
-                <span><i class="fas fa-filter me-2"/>Filter</span><span class="ms-auto badge rounded-pill bg-primary" id="site-count">0</span>
+        <div class="mt-3 mx-1 card" id="filter-collapse">
+            <a href="#filter" id="filter-toggle" class="btn btn-secondary card-title flexbox h1 dropdown-toggle"
+                data-bs-toggle="collapse">
+                <span><i class="fas fa-filter me-2" />Filter</span><span class="ms-auto badge rounded-pill bg-primary"
+                    id="site-count">0</span>
             </a>
-            <div id="filter" class="collapse card card-body" >
-                <py:include href="site/site-filter.html"/>
+            <div id="filter" class="collapse card card-body">
+                <py:include href="site/site-filter.html" />
             </div>
 
         </div>
@@ -70,7 +82,8 @@
                     <h1 display="4">Google Maps disabled</h1>
                 </div>
                 <div class="card-body">
-                    <p class="lead">To use Google Maps you need to confirm the terms of service of Google LLC including their data privacy policies</p>
+                    <p class="lead">To use Google Maps you need to confirm the terms of service of Google LLC including
+                        their data privacy policies</p>
                     <ul>
                         <li>
                             <a href="https://cloud.google.com/maps-platform/terms">Terms of services of Google:</a>
@@ -87,8 +100,10 @@
                             Allow Google Maps
                         </div>
                         <div>
-                            <button type="submit" class="btn btn-success" name="allow" value="on"><i class="fas fa-thumbs-up"/></button>
-                            <button type="submit" class="btn btn-danger" name="allow" value=""><i class="fas fa-thumbs-down"/></button>
+                            <button type="submit" class="btn btn-success" name="allow" value="on"><i
+                                    class="fas fa-thumbs-up" /></button>
+                            <button type="submit" class="btn btn-danger" name="allow" value=""><i
+                                    class="fas fa-thumbs-down" /></button>
                         </div>
                     </form>
                 </div>

@@ -6,6 +6,7 @@ Created on 15.02.2012
 @author: philkraf
 '''
 
+from odmf.db.dataset import FileDataset
 from .. import lib as web
 import datetime
 import os
@@ -22,7 +23,7 @@ from ... import db
 from ...config import conf
 
 from .dbimport import DbImportPage
-from . import filehandlers as fh
+from .filehandlers import filehandlers as fh
 from . import file_auth as fa
 
 
@@ -55,12 +56,12 @@ class DownloadPageError(cherrypy.HTTPError):
 
         text = web.render(
             'download.html',
-            error=error, success='', modes=modes, Mode=fa.Mode,
-            files=[],
+            error=error, success='', modes=modes, Mode=fa.Mode, dataset=None,
+            files=[], rule=self.get_named_rules(self.path), owner=fa.get_owner(self.path),
             directories=[],
             curdir=self.path,
             content='',
-            max_size=conf.upload_max_size
+            max_size=conf.upload_max_size, kwargs=kwargs
         ).render()
 
         return text.encode('utf-8')
@@ -92,8 +93,7 @@ def check_access(mode: fa.Mode, dir: Path, no_raise=False):
         return True
 
 
-@web.show_in_nav_for(0, 'file')
-
+@web.show_in_nav_for(0, 'folder-open', title='file manager')
 class DownloadPage(object):
     """The file management system. Used to upload, import and find files"""
 
@@ -107,10 +107,11 @@ class DownloadPage(object):
     filehandler = fh.MultiHandler()
 
 
-    def render_file(self, path, error=None):
+    def render_file(self, path, error=None, **kwargs):
         content = ''
+        error = error or ''
         try:
-            content = self.filehandler(path)
+            content = self.filehandler(path, **kwargs)
         except ValueError as e:
             content = f'<div class="alert bg-warning"><h3>{e}</h3></div>'
 
@@ -155,10 +156,38 @@ class DownloadPage(object):
                 zf.write(f.absolute, f.relative_name(path))
         buffer.seek(0)
         return buffer
+    
+    def get_named_rules(self, path: Path):
+        rule = fa.AccessRule.find_rule(path)
+        with db.session_scope() as session:
+            project_names = dict((i, n) for i, n in session.execute(db.sql.select(db.Project.id, db.Project.name)))
+        return {
+            'read': fa.Mode(rule.read),
+            'write': fa.Mode(rule.write),
+            'projects': rule.projects,
+            'project_names': project_names,
+        }
+    
+    def get_dataset(self, path: Path):
+        from ...db import Dataset
+        with db.session_scope() as session:
+            dataset = session.query(Dataset).filter_by(filename=str(path)).first()
+            if dataset:
+                return {
+                    'id': dataset.id,
+                    'name': dataset.name,
+                    'site': f'site:{dataset._site}',
+                    'owner': f'user:{dataset._measured_by}',
+                    'start': str(dataset.start),
+                    'end': str(dataset.end),
+                    'level': dataset.level,
+                }
+            else:
+                return None
 
     @expose_for()
     @web.method.get
-    def index(self, uri='.', error='', msg='', serve=False, _=None):
+    def index(self, uri='.', error='', msg='', serve=False, _=None, **kwargs):
         path = Path(uri)
         modes = fa.check_children(path, users.current)
         error = error or cherrypy.session.get('error')
@@ -188,29 +217,19 @@ class DownloadPage(object):
                 return serve_fileobj(self.zip_folder(path), content_type='application/zip', disposition='attachment', name=path.basename + '.zip')
 
         elif path.isfile():
-            content, error = self.render_file(path, error)
+            content, error = self.render_file(path, error, **kwargs)
 
-        rule = fa.AccessRule.find_rule(path)
-        with db.session_scope() as session:
-            project_names = dict((i, n) for i, n in session.execute(db.sql.select(db.Project.id, db.Project.name)))
-        named_rule = {
-            'read': fa.Mode(rule.read),
-            'write': fa.Mode(rule.write),
-            'projects': rule.projects,
-            'project_names': project_names,
-
-        }
 
         return web.render(
             'download.html',
-            error=error, success=msg,
+            error=error, success=msg, dataset=self.get_dataset(path),
             modes=modes, Mode=fa.Mode, owner=fa.get_owner(path),
-            content=content, rule=named_rule,
+            content=content, rule=self.get_named_rules(path),
             files=sorted(files),
             directories=sorted(directories),
             handler=self.filehandler,
             curdir=path, import_history=self.get_import_history(path),
-            max_size=conf.upload_max_size
+            max_size=conf.upload_max_size, kwargs=kwargs
         ).render()
 
 
@@ -265,7 +284,7 @@ class DownloadPage(object):
         path = Path(dir)
         check_access(fa.Mode.write, path)
         s = s.replace('\r', '')
-        open((path / '.readme.md').absolute, 'w').write(s)
+        open((path / '.readme.md').absolute, 'w', encoding='utf-8').write(s)
         return web.markdown(s)
 
     @expose_for(Level.logger)
@@ -275,7 +294,7 @@ class DownloadPage(object):
         io = StringIO()
         for indexfile in ['.readme.md', 'README.md', 'index.html']:
             if (index:=Path(dir, indexfile)).exists():
-                text = open(index.absolute).read()
+                text = open(index.absolute, encoding='utf-8').read()
                 io.write(text)
 
         return web.markdown(io.getvalue())
@@ -332,9 +351,9 @@ class DownloadPage(object):
 
         return web.render(
             'download.html',
-            error='', success=msg,
+            error='', success=msg, dataset=None,
             modes=modes, Mode=fa.Mode, owner=fa.get_owner(path),
-            content=None,
+            content=None, rule=self.get_named_rules(path),
             files=[p for p, msg in path_list],
             directories=[],
             handler=self.filehandler,

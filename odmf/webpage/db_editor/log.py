@@ -130,13 +130,13 @@ class LogPage:
             raise web.redirect(conf.url('log', logid), success=success)
     
     @staticmethod
-    def make_new(session, siteid=None, type=None, message=None, **kwargs):
+    def make_new(session, site=None, type=None, message=None, **kwargs):
         log = db.Log(time=datetime.today())
         user = web.user()
         if user:
             log.user = session.get(db.Person, user)
-        if siteid:
-            log.site = session.get(db.Site, int(siteid))
+        if site:
+            log.site = session.get(db.Site, int(site))
         if type:
             log.type = type
         if message:

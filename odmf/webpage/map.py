@@ -44,5 +44,9 @@ class MapPage(object):
         if not siteid:
             return('<div class="error">Site %s not found</div>' % siteid)
         with db.session_scope() as session:
-            site = session.get(db.Site, int(siteid))
-            return web.render('site/sitedescription.html', site=site).render()
+            if id:=web.conv(int, siteid):
+                site = session.get(db.Site, id)
+                return web.render('site/sitedescription.html', site=site).render()
+            else:
+                return ('<div class="alert alert-info">No site selected</div>')
+            

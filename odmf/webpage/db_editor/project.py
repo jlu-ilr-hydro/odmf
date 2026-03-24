@@ -7,7 +7,7 @@ from ... import db
 from ...config import conf
 
 @cherrypy.popargs('project_id')
-@web.show_in_nav_for(1, 'people-roof')
+@web.show_in_nav_for(1, 'people-line')
 class ProjectPage:
 
     @expose_for()
