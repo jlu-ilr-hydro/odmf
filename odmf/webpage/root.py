@@ -130,7 +130,7 @@ class Root(object):
 
         elif logout:
             users.logout()
-            return web.render('login.html', error=error, frompage=frompage).render()
+            return web.render('login.html', error=error, frompage=frompage, admins=[]).render()
 
         elif username and password:
             # Try the login
