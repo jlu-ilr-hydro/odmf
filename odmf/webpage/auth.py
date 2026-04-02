@@ -218,9 +218,11 @@ class Users(collections.UserDict):
         else:
             with db.session_scope() as session:
                 me = session.get(db.Person, username)
+                first_login = me.last_login is None
                 me.last_login = datetime.now()
             cherrypy.session.regenerate()
             cherrypy.session[conf.session_key] = cherrypy.request.login = username
+            cherrypy.session['first_login'] = first_login
             return
 
     def logout(self):

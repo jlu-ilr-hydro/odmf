@@ -4,7 +4,7 @@ from .. import prefix
 from . import lib as web
 from .lib.errors import errorhandler
 from .auth import users, Level, expose_for, HTTPAuthError
-
+from pathlib import Path
 from .. import db
 from ..config import conf
 from datetime import datetime, timedelta
@@ -60,14 +60,19 @@ class Root(object):
         if web.user():
             with db.session_scope() as session:
                 user = session.get(db.Person, web.user())
-                if user and user.jobs.filter(~db.Job.done, db.Job.due - datetime.now() < timedelta(days=7)).count():
+                if user and cherrypy.session.get('first_login', False):
+                    return self.login()
+                elif user and user.jobs.filter(db.Job.done == False, db.Job.due - datetime.now() < timedelta(days=7)).count():
                     raise web.redirect(conf.url('/job'))
-        return self.map.index()
+                else:
+                    return self.map.index()
+        else:
+            return self.login()
 
     @expose_for(Level.supervisor)
     def bulkimport(self,undo=None, table=None, file=None):
         """
-        GET returns the list of formaer imports for undo. Use undo-Attribute (undo-filename) to show details of an undo
+        GET returns the list of former imports for undo. Use undo-Attribute (undo-filename) to show details of an undo
         POST with undo-Attribute (undo-filename): Perform undo-action
         POST with table and file attribute: table is a tablename (site, datasets, log) and file is a file upload object
             that contains the tabular data as excel, parquet etc
@@ -125,12 +130,15 @@ class Root(object):
 
         if cherrypy.request.method != 'POST':
             with db.session_scope() as session:
+                first_login = users.current in (None, users.default) or cherrypy.session.get('first_login', False)
                 admins = session.scalars(db.sql.select(db.Person).where(db.Person.access_level>=4, db.Person.active==True))
-                return web.render('login.html', error=error, frompage=frompage, admins=admins).render()
+                me = session.get(db.Person, web.user()) if web.user() else None
+
+                return web.render('login.html', error=error, frompage=frompage, admins=admins, first_login=first_login, me=me).render()
 
         elif logout:
             users.logout()
-            return web.render('login.html', error=error, frompage=frompage).render()
+            raise web.redirect(conf.url('/login'), success='Logged out successfully')
 
         elif username and password:
             # Try the login
@@ -142,7 +150,7 @@ class Root(object):
                 raise web.redirect(frompage)
         else:
             # Username or password not given, let the user retry
-            return web.render('login.html', error=error, frompage=frompage, admins=[]).render()
+            raise web.redirect(conf.url('/login'), error='Please provide username and password', frompage=frompage)
 
 
     @expose_for(Level.admin)

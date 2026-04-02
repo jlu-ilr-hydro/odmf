@@ -5,6 +5,21 @@
     </py:block>
     <py:block name="content">
         <div class="container mt-1">
+            <div py:if="first_login" class="rounded border mb-4">
+                <h1 class="display-4 bg-dark text-white rounded p-2">Welcome to ODMF</h1>
+                <p class="lead m-2">Please read the data usage policy before proceeding. With prodeeding, you agree to the terms and conditions.</p>
+                <div class="m-2">
+                    <a href="${conf.url('help', 'data-usage')}" class="btn btn-primary" title="Data usage policy"
+                        data-bs-toggle="tooltip" data-bs-placement="bottom">
+                        <i class="fas fa-user-shield"></i> Data usage policy
+                    </a>
+                </div>
+                <div class="container m-2">
+                    The database contains raw and unpublished data,
+                    any usage beyond pure curiosity, especially the publication of data and derived products is not
+                    allowed without prior permission. For any questions, please write to the site admins (see below)
+                </div>
+            </div>
             <div class="card">
                 <h1 class="card-title bg-secondary text-light p-2">${users.current}</h1>
                 <div class="card-body">
@@ -21,9 +36,14 @@
                             <input type="password" name="password" id="password" class="form-control" />
                             <label for="password">Password:</label>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group mt-2">
                             <input type="submit" value="Log in" class="btn btn-primary" />
                             <input type="submit" value="Log out" name="logout" class="btn btn-secondary" />
+                            <a href="${conf.url('help', 'data-usage')}" class="btn btn-light" title="Data usage policy"
+                                data-bs-toggle="tooltip" data-bs-placement="bottom">
+                                <i class="fas fa-user-shield"></i> Data usage policy
+                            </a>
+
                         </div>
                     </form>
 
@@ -50,19 +70,22 @@
                         research facilities of the Justus-Liebig University Giessen. <br />
 
                     </div>
-                    <h2 class="my-4">
-                        Data usage
-                    </h2>
-                    <div>
-                        The database contains raw and unpublished data,
-                        any usage beyond pure curiosity, especially the publication of data and derived products is not
-                        allowed without prior permission. For any questions, please write to the site admins
-                    </div>
-                    <div class="mt-4">
-                        <a href="${conf.url('help', 'data-usage')}" class="btn btn-dark" title="Data usage policy"
-                            data-bs-toggle="tooltip" data-bs-placement="bottom">
-                            <i class="fas fa-user-shield"></i> Data usage policy
-                        </a>
+                    <div py:if="not first_login">
+                        <h2 class="my-4">
+                            Data usage
+                        </h2>
+                        <div>
+                            The database contains raw and unpublished data,
+                            any usage beyond pure curiosity, especially the publication of data and derived products is not
+                            allowed without prior permission. For any questions, please write to the site admins
+                        </div>
+                        <div class="mt-4">
+                            <a href="${conf.url('help', 'data-usage')}" class="btn btn-primary" title="Data usage policy"
+                                data-bs-toggle="tooltip" data-bs-placement="bottom">
+                                <i class="fas fa-user-shield"></i> Data usage policy
+                            </a>
+                        </div>
+
                     </div>
                     <div py:if="admins">
                         <h2 class="my-4">
