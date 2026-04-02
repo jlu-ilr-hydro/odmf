@@ -55,12 +55,12 @@ class Mailer:
         self.server = None
 
     def start(self):
-        if 'server' in self.config:
+        if 'server' not in self.config or 'login' not in self.config or 'password' not in self.config:
+            return self
+        else:
             self.server =  smtplib.SMTP(self.config['server'], self.config.get('port', 587))
             self.server.starttls()
             self.server.login(self.config['login'], self.config['password'])
-        else:
-            self.server = None
         return self
 
     def __enter__(self):
@@ -72,18 +72,14 @@ class Mailer:
         self.server = None
 
     def send(self, subject, body, receivers):
+        msg = EmailMessage()
+        msg.set_content(body)
+        msg['Subject'] = subject
+        msg['From'] = Address(self.config.get('name', 'odmf: no reply'),
+                              addr_spec=self.config.get('email', self.config['login']))
+        msg['To'] = ','.join(receivers)
+        logging.debug('Sending email to %s', ', '.join(receivers))
         if self.server:
-            msg = EmailMessage()
-            msg.set_content(body)
-            msg['Subject'] = subject
-            msg['From'] = Address(self.config.get('name', 'odmf: no reply'),
-                                addr_spec=self.config.get('email', self.config['login']))
-            msg['To'] = ','.join(receivers)
-            logging.debug('Sending email to %s', ', '.join(receivers))
-
             self.server.send_message(msg)
-            logger.info('Email sent to %s', ', '.join(receivers))
-        else:
-            logger.warning('Email not sent, no server configured. Subject: %s, Receivers: %s', subject, ', '.join(receivers))
-            logger.warning('Email content:\n%s', body)
+        logger.info('Email sent to %s', ', '.join(receivers))
 

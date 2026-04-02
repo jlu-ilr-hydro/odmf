@@ -13,8 +13,10 @@
 [license-link]: http://opensource.org/licenses/MIT
 
 
-The concept was presented as a poster at the EGU GA 2017 (Vienna) by Kraft et al 
-[![DOI](https://img.shields.io/badge/doi-10.13140%2FRG.2.2.32891.54563-blue)](https://doi.org/10.13140/RG.2.2.32891.54563)
+The concept was presented as a poster at the FAIRagro User Summit 2026 by Kraft et al 
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18832404.svg)](https://doi.org/10.5281/zenodo.18832404)
+
 
 # What is ODMF?
 
