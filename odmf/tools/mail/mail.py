@@ -76,7 +76,7 @@ class Mailer:
         msg.set_content(body)
         msg['Subject'] = subject
         msg['From'] = Address(self.config.get('name', 'odmf: no reply'),
-                              addr_spec=self.config.get('email', self.config['login']))
+                              addr_spec=self.config.get('email') or self.config.get('login'))
         msg['To'] = ','.join(receivers)
         logging.debug('Sending email to %s', ', '.join(receivers))
         if self.server:
