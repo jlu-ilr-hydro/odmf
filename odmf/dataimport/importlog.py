@@ -11,12 +11,6 @@ import datetime
 class LogImportError(RuntimeError):
     pass
 
-class LogImportStructError(LogImportError):
-    @classmethod
-    def join(cls, subproblems):
-        return cls('import of log-data not possible: ' + ', '.join(f' - {str(sp)}' for sp in subproblems))
-
-
 class LogImportRowError(LogImportError):
     """
     Error with additional information of the row in the log file
@@ -29,6 +23,16 @@ class LogImportRowError(LogImportError):
         self.text = msg
         self.is_valuetype_error = is_valuetype_error
 
+class LogImportRowWarning(LogImportRowError):
+    """
+    A soft warning that does not block import, but informs the user.
+    """
+    pass
+
+class LogImportStructError(LogImportError):
+    @classmethod
+    def join(cls, subproblems):
+        return cls('import of log-data not possible: ' + ', '.join(f' - {str(sp)}' for sp in subproblems))
 
 
 
@@ -108,21 +112,30 @@ class LogbookImport:
     def __call__(self, commit=False):
         logs = []
         has_error = False
+        
+        df = self.dataframe
+        df['__key__'] = list(zip(df['dataset'], pd.to_datetime(df['time'])))
+        duplicate_mask = df.duplicated('__key__', keep=False)
+        duplicate_rows = set(df[duplicate_mask].index)       
+
         with db.session_scope() as session:
             with session.no_autoflush:
                 for row, data in self.dataframe.iterrows():
                     try:
-                        log = dict(row=row + 1,
-                                   error=False,
-                                   log=self.importrow(session, row + 1, data, commit)
-                                   )
+                        if row in duplicate_rows:
+                            raise LogImportRowWarning(
+                                row,
+                                f'Duplicate record in import file for dataset {data["dataset"]} at {pd.Timestamp(data["time"])}'
+                            )                     
+                        msg = self.importrow(session, row + 1, data, commit)
+                        log = dict(row=row + 1, status='success', log=msg)
+                    except LogImportRowWarning as w:
+                        log = dict(row=row + 1, status='warning', log=w.text)
                     except LogImportRowError as e:
                         has_error = True
-                        log = dict(row=row + 1,
-                                   error=True,
-                                   log=e.text)
+                        log = dict(row=row + 1, status='danger', log=e.text)
                     logs.append(log)
-            if commit:
+            if commit and not has_error:
                 session.commit()
             else:
                 session.rollback()
@@ -187,7 +200,7 @@ class LogbookImport:
         value = data.value
         # Check for duplicate
         if self.recordexists(ds, time):
-            raise LogImportRowError(row, f'{ds} has already a record at {time}')
+            raise LogImportRowWarning(row, f'{ds} has already a record at {time}')
         # Check if the value is in range
         if not ds.valuetype.inrange(value):
             raise LogImportRowError(row, f'{value:0.5g}{ds.valuetype.unit} is not accepted for {ds.valuetype}')
@@ -215,23 +228,19 @@ class LogbookImport:
             raise LogImportRowError(row, 'No message to log')
 
         if self.logexists(session, data.site, time):
-            raise LogImportRowError(
+            raise LogImportRowWarning(
                 row, f'Log for {time} at {site} exists already')
 
         else:
-            logid = db.newid(db.Log, session)
-            log = db.Log(
-                id=logid,
-                user=user,
-                time=time,
-                message=data.get('message'),
-                type=data.get('logtype'),
-                site=site
-            )
+            log = db.Log(user=user,
+                         time=time,
+                         message=data.get('message'),
+                         type=data.get('logtype'),
+                         site=site)
 
         return log, f'Log: {log}'
 
-    def importrow(self, session: db.orm.Session, row, data, commit=False):
+    def importrow(self, session: db.Session, row, data, commit=False):
         """
         Imports a row from the log-excelfile, either as record to a dataset
         or as a log entry. The decision is made on the basis of the data given.

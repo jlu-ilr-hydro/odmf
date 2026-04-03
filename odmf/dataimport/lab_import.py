@@ -129,10 +129,7 @@ def check_columns(table: pd.DataFrame, labcolumns: dict):
     missing = [
         col for col in labcolumns if col not in table.columns
     ]
-    if missing:
-        raise ValueError(f"Missing columns: {missing}")
-    else:
-        return labcolumns
+    return labcolumns, missing
 
 def get_type_column(coltype:str, labcolumns: dict):
     """Finds the column of a specific type in the lab columns"""
@@ -232,7 +229,9 @@ def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typin
         read = getattr(pd, labconf.get('driver', 'read_excel'))
         df: pd.DataFrame = read(filename.absolute, **labconf.get('driver-options', {}))
         df = df[labconf['columns'].keys()]
-        labcolumns = check_columns(df, labconf.get('columns', {}))
+        if not 'sample' in df.columns:
+            df['sample'] = ''
+        labcolumns, missing_columns = check_columns(df, labconf.get('columns', {}))
         rename_column_by_type(df, labcolumns, 'time', 'dataset', 'site', 'level')
 
     except Exception as e:
@@ -244,7 +243,7 @@ def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typin
         df.rename(columns={samplecolumn: 'sample'}, inplace=True)
 
     df_melt = melt_table(df, labcolumns)
-    datasets, errors = find_datasets(df_melt)
+    datasets, missing_datasets = find_datasets(df_melt)
     df_melt['dataset'] = datasets
     df_melt = df_melt.dropna()
     df_melt = clean_df_melt(df_melt)
@@ -264,7 +263,8 @@ def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typin
         int(i) : (df_agg.dataset == i).sum()
         for i in df_agg.dataset
     }
-    return datasets, info, errors, labconf
+    return datasets, info, missing_columns + missing_datasets, labconf
+
 
 
 if __name__ == '__main__':
