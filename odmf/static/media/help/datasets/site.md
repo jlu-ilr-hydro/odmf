@@ -6,7 +6,7 @@ that is unique in the ODMF instance. Before you can create a dataset, its locati
 
 ## Creating sites one by one
 
-A new site is either created with the "new Site" button at ~/site/ or at the map by with the checkbox "new site". If "new site" is enabled on the map, a doule click on the map creates a new site at that location, with the "new site" button you need to fill out the location by hand. Choose a name and an icon for the site. You can save additional icons in your app directory in media/mapicons. The Mapicons are .png files with 32x32 pixels resolution. A description (comment) helps the users what to expect on that site.
+A new site is either created with the "new Site" button at ~/site/ or at the map by with the checkbox "new site". If "new site" is enabled on the map, a doule click on the map creates a new site at that location, with the "new site" button you need to fill out the location by hand. Choose a name and an icon for the site. You can save additional icons in your app directory in media/mapicons. The Mapicons are .png files with 24x24 pixels resolution. A description (comment) helps the users what to expect on that site.
 
 ### Adding geometry
 
