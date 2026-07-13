@@ -52,7 +52,6 @@ import pandas as pd
 
 # send the dataframe to ODMF, see https://github.com/jlu-ilr-hydro/odmfclient for more information
 with login('https://path/to/odmf', 'user', 'password') as api:
-    api.dataset.add_records_parquet(df)
-
+    api.dataset.addrecords_parquet(df)
 ~~~~~~~~~~~~~~~~~~~~~~
 
