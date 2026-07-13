@@ -2,10 +2,6 @@
  Migrate Job
  */
 
-ALTER TABLE job ADD COLUMN log JSON;
-ALTER TABLE job ADD COLUMN duration INT;
-ALTER TABLE job ADD COLUMN mailer JSON;
-
 /* Add delete cascade to site_geometry */
 alter table site_geometry drop constraint site_geometry_id_fkey, add constraint site_geometry_id_fkey foreign key (id) references site(id) on delete cascade;
 
@@ -15,8 +11,7 @@ alter table site_geometry drop constraint site_geometry_id_fkey, add constraint 
 
 /* Update dataset #257 and #191*/
 ALTER TABLE dataset    ADD COLUMN license VARCHAR NULL;
-ALTER TABLE dataset ADD COLUMN doi VARCHAR NULL;
-    
+ALTER TABLE dataset ADD COLUMN doi VARCHAR NULL;   
 ALTER TABLE dataset ALTER COLUMN uses_dst DROP NOT NULL;
 ALTER TABLE datasetalarm    ADD COLUMN name VARCHAR NULL;
 ALTER TABLE datasetalarm    ADD COLUMN message VARCHAR NULL;
