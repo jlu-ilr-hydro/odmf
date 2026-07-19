@@ -51,6 +51,7 @@ def count(session, stmt: sql.Select):
     return session.scalar(sql.select(sql.func.count()).select_from(stmt.subquery()))
 
 engine, Session = get_session_class()
+Session.count = count
 
 @contextmanager
 def session_scope() -> orm.Session:
