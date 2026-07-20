@@ -2,6 +2,8 @@ import tables
 import pandas as pd
 from odmf import db
 from sqlalchemy.types import JSON
+from sqlalchemy.sql.selectable import Select
+
 import time
 from typing import Optional
 
@@ -11,6 +13,8 @@ def now(ago=None):
     else:
         ago = pd.to_timedelta(ago)
         return pd.to_datetime('now') - ago
+
+
     
 def load_sql(session, t: str, limit: int = None, records_since = None):
     query = session.query(db.Base.metadata.tables[t])
@@ -33,6 +37,30 @@ def get_select( t: str, limit: int = None, records_since = None):
     if limit is not None:
         query = query.limit(limit)
     return query
+
+def to_pandas(source, session, format='csv'):
+    """
+    Compiles the select statement source for session 
+    (SQL-injection possible, never use untrusted text parameters in source)
+    and uses postgresql's COPY TO for fast reading of content either in CSV or parquet.
+    For some reason, CSV is faster. Simple non-ORM statements work better,
+    eg. prefer `select(db.Record.__table__).filter(...)` before `select(db.Record).filter(...)`
+    """
+    import io
+    formats = dict(
+        csv='WITH CSV HEADER',
+        parquet="WITH (format 'parquet')"
+    )
+    con = session.connection().connection
+    compiled = source.compile(dialect=session.bind.dialect, compile_kwargs={'literal_binds': True})
+    cursor = con.cursor()
+    query = cursor.mogrify(compiled.string, compiled.params).decode()
+    copy = 'COPY ({}) TO STDOUT {}'.format(query, formats[format])
+    store = io.BytesIO()
+    cursor.copy_expert(copy, store)
+    store.seek(0)
+    df = getattr(pd, f'read_{format}')(store)
+    return df
 
 
 
