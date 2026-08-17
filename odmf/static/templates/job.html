@@ -20,7 +20,11 @@
                     label.html(time.toLocaleString());
                     radio.val(time.toISOString());
                 }
-                
+                $('#edit-logsites').select2({
+                    theme: 'bootstrap-5',
+                    placeholder: "Select sites for log creation",
+                    closeOnSelect: false,
+                });
                 set_logtime_other(new Date(${flex_get(job.mailer, 'logtime', default='')}));
                 $('#logtime-other-modal').on('shown.bs.modal', () => {
                     $('#logtime-other-input').val(new Date().toISOString().slice(0, 16));
