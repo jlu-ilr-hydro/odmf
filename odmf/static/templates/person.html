@@ -3,6 +3,30 @@
 <py:extends href="layout.html" xmlns:py="">
     <py:block name="scripts">
         <script>
+        // <![CDATA[
+            fill_from_display_name = display_name => {
+                if (display_name) {
+                    const match = display_name.match(/^\s*([^<]+)\s*<([^>]+)>\s*$/)
+                    if (match) {
+                        if (match[1].indexOf(',') > -1 ) {
+                            let name = match[1].split(',')
+                            $('#surname').val(name[0].trim())
+                            $('#firstname').val(name[1].trim())
+                        } else if (match[1].indexOf(' ') > -1) {
+                            let name = match[1].split(' ')
+                            $('#surname').val(name[1].trim())
+                            $('#firstname').val(name[0].trim())
+                        } else {
+                            $('#surname').val(match[1].trim())
+                            $('#firstname').val('')
+                        }   
+                        $('#email').val(match[2].trim())
+                        return match[2].match(/^(.*)@/)[1].trim().toLowerCase()
+                    } else {
+                        return display_name.trim().toLowerCase()
+                    }
+                }
+            }
             $(document).ready(function(){
                 $("#listSearch").on("keyup", function() {
                     var value = $(this).val().toLowerCase();
@@ -14,21 +38,29 @@
                     $('#level-btn').html('as ' + $(event.currentTarget).data('label'))
                 })
                 $('#level-guest').prop('checked', true)
+                $('#username').on('change', function() {
+                    const username = $(this).val()
+                    $(this).val(fill_from_display_name(username) || username)
+                })
             });
+        // ]]>
         </script>
+
     </py:block>
     <py:block name="style">
         <!-- insert additional styles -->
     </py:block>
     <py:block name="sidebar">
         <div class="container">
-            <a class="btn btn-secondary w-100 mb-1"
-               href="${conf.root_url}/user/new"
-               py:if="is_member('supervisor')">
-                <i class="fas fa-user-plus me-3" />
-                new user...
-
-            </a>
+            <div class="container">
+                <a class="btn btn-secondary w-100 mb-1"
+                    href="${conf.root_url}/user/new"
+                    py:if="is_member('supervisor')">
+                        <i class="fas fa-user-plus me-3" />
+                        new user...
+                    </a>
+            
+            </div>
             <hr/>
             <div class="input-group mb-1">
                 <div class="input-group-prepend">
@@ -69,6 +101,8 @@
                                py:attrs="prop(readonly=act_user!='new')"
                                class="form-control"
                                value="${U.username}" required="required"
+                               data-bs-toggle="tooltip" data-bs-placement="top" 
+                               title="username cannot be changed after creation, if you paste a display name in the form 'Lastname, Firstname &lt;email@domain&gt;' the username will be set to 'email'"
                         />
                     </div>
                     <label for="email" class="col-lg-2 col-form-label">email</label>
