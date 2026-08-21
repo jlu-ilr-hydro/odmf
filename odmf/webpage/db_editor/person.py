@@ -5,10 +5,18 @@ from ..auth import users, expose_for, hashpw, is_self, Level
 from ...tools import Path as OPath
 from ... import db
 
+def may_change_password(username):
+    return (
+        users.current.is_member(Level.admin) 
+        or is_self(username) 
+        or (users.current.level >= Level.supervisor and username == 'new')
+    )
+
 
 @web.show_in_nav_for(1, 'user')
 @cherrypy.popargs('username')
 class PersonPage:
+
 
     @staticmethod
     def index_get(username):
@@ -54,6 +62,8 @@ class PersonPage:
                 topics=session.scalars(topics),
                 is_self=is_self,
                 has_home=has_home,
+                may_change_password=may_change_password(act_user),
+
             ).render()
 
     @staticmethod
@@ -84,7 +94,7 @@ class PersonPage:
                     p_act.active = False
 
                 # Simple Validation
-                if kwargs.get('password') and (users.current.is_member(Level.admin) or is_self(username)):
+                if kwargs.get('password') and kwargs.get('password_verify') and may_change_password(act_user):
                     pw = kwargs['password']
                     pw2 = kwargs.get('password_verify')
                     if len(pw) < 8:
@@ -108,7 +118,7 @@ class PersonPage:
                     ).all()
 
                 if error:
-                    raise web.redirect(conf.url('person', username), error=error)
+                    raise web.redirect(conf.url('user', username), error=error)
                 msg = f'{username} saved'
                 users.load()
         else:
