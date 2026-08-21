@@ -37,10 +37,11 @@ class HTTPAuthError(cherrypy.HTTPError):
                 f'Either log in with more privileges or ask the administrators for elevated privileges.'
         try:
             with db.session_scope() as session:
+                me = session.get(db.Person, web.user()) if web.user() else None
                 admins = session.scalars(db.sql.select(db.Person).where(db.Person.access_level >= 4, db.Person.active == True))
-                return render('login.html', admins=admins, error=error, frompage='').render().encode('utf-8')
+                return render('login.html', admins=admins, error=error, frompage='', first_login=False, me=me).render().encode('utf-8')
         except:
-            return render('login.html', admins=[], error=error, frompage='').render().encode('utf-8')
+            return render('login.html', admins=[], error=error, frompage='', first_login=False, me=None).render().encode('utf-8')
 
 
 def check_auth(*args, **kwargs):
