@@ -22,7 +22,7 @@ class Mailer:
 
     The email-config file must be in the same directory as the config.yml and named email.yml
 
-    Example:
+    Example with login and tls:
     ~~~~~~~~~~~~~~~~~~~~
     server: smtp.gmail.com
     port: 587
@@ -31,6 +31,15 @@ class Mailer:
     email: <EMAIL>
     name: odmf: no reply
     ~~~~~~~~~~~~~~~~~~~
+
+    Example without login and tls
+    ~~~~~~~~~~~~~~~~~~~~~
+    server: mta.example.com
+    port: 25
+    email: <EMAIL>
+    name: odmf: no reply
+    tls: false
+    ~~~~~~~~~~~~~~~~~~~~~
 
     Usage:
 
@@ -55,12 +64,14 @@ class Mailer:
         self.server = None
 
     def start(self):
-        if 'server' not in self.config or 'login' not in self.config or 'password' not in self.config:
+        if 'server' not in self.config:
             return self
         else:
             self.server =  smtplib.SMTP(self.config['server'], self.config.get('port', 587))
-            self.server.starttls()
-            self.server.login(self.config['login'], self.config['password'])
+            if self.config.get('tls', True):
+                self.server.starttls()
+            if self.config.get('login'):
+                self.server.login(self.config['login'], self.config['password'])
         return self
 
     def __enter__(self):
