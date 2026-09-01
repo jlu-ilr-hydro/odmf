@@ -9,7 +9,7 @@ def may_change_password(username):
     return (
         users.current.is_member(Level.admin) 
         or is_self(username) 
-        or (users.current.level >= Level.supervisor and username == 'new')
+        or (users.current.is_member(Level.supervisor) and username == 'new')
     )
 
 
@@ -94,13 +94,14 @@ class PersonPage:
                     p_act.active = False
 
                 # Simple Validation
-                if kwargs.get('password') and kwargs.get('password_verify') and may_change_password(act_user):
+                if kwargs.get('password') and kwargs.get('password_verify') and may_change_password(username):
                     pw = kwargs['password']
                     pw2 = kwargs.get('password_verify')
                     if len(pw) < 8:
                         error = 'Password needs to be at least 8 characters long'
                     elif pw == pw2:
                         p_act.password = hashpw(pw)
+                        msg +='password changed, '
                     else:
                         error = 'Passwords not equal'
 
@@ -119,7 +120,7 @@ class PersonPage:
 
                 if error:
                     raise web.redirect(conf.url('user', username), error=error)
-                msg = f'{username} saved'
+                msg += f'{username} saved'
                 users.load()
         else:
             error = f'As a {users.current.Level.name} user, you may only change your own values'

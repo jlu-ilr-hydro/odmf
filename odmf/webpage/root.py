@@ -150,7 +150,7 @@ class Root(object):
                 raise web.redirect(frompage)
         else:
             # Username or password not given, let the user retry
-            raise web.redirect(conf.url('/login'), error='Please provide username and password', frompage=frompage)
+            raise web.redirect(conf.url('login'), error='Please provide username and password', frompage=frompage)
 
 
     @expose_for(Level.admin)
