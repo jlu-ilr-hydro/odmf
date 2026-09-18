@@ -51,7 +51,8 @@ class AJAXError(_HTTPError):
 
 def to_html(error=None, success=None, info=None, text=None):
     cherrypy.response.headers['Content-Type'] = 'text/html'
-    return render('empty.html', title='Error', error=error, success=success, info=info, content=text).render()
+    md = markdown(text) if text else ''
+    return render('empty.html', title='Error', error=error, success=success, info=info, content=md).render()
 
 
 class HTTPError(_HTTPError):

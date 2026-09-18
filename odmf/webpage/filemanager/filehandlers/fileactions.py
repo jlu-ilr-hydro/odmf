@@ -5,6 +5,29 @@ import pandas as pd
 from ....tools import Path
 from ....config import conf
 
+def _check_table_file(path: Path, **kwargs):
+    """
+    Checks if the file is a table file (csv, xlsx, parquet) and if it has the required columns for a record import
+    :param path:
+    :param kwargs:
+    :return:
+    """
+    try:
+        if re.match(r'.*\.parquet$', path.name, re.IGNORECASE):
+            import pyarrow.dataset as ds
+            df = ds.dataset(path.absolute).scanner().head(1).to_pandas()
+        elif re.match(r'.*\.xls.?$', path.name, re.IGNORECASE):
+            df = pd.read_excel(path.absolute, nrows=1, sheet_name=kwargs.get('sheet',0))
+        elif re.match(r'.*\.csv$', path.name, re.IGNORECASE):
+            df = pd.read_csv(path.absolute, nrows=1, sep=None, engine='python')
+        if len(df):
+            return True
+        else:
+            return False
+            
+    except Exception as e:
+        return False
+
 
 class FileAction:
     """
@@ -146,19 +169,20 @@ class RecordImportAction(FileAction):
         return conf.url('/download/to_db/record', filename=path.name, **kwargs)
 
     def check(self, path: Path, **kwargs):
-        try:
-            if re.match(r'.*\.parquet$', path.name, re.IGNORECASE):
-                import pyarrow.dataset as ds
-                df = ds.dataset(path.absolute).scanner().head(1).to_pandas()
-            elif re.match(r'.*\.xls.?$', path.name, re.IGNORECASE):
-                df = pd.read_excel(path.absolute, nrows=1, sheet_name=kwargs.get('sheet',0))
-            elif re.match(r'.*\.csv$', path.name, re.IGNORECASE):
-                df = pd.read_csv(path.absolute, nrows=1, sep=None, engine='python')
-            if len(df):
-                columns = [c.lower() for c in df.columns]
-                return all(c in columns for c in 'time|dataset|value'.split('|'))
-            else:
-                return False
-                
-        except Exception as e:
-            return False
+        return _check_table_file(path, **kwargs)
+    
+class TableProfileAction(FileAction):
+    """
+    A file action for files that can be described as a table. Checks if the file has a .recordimport description file
+    """
+
+    name ='profile-table'
+    icon = 'magnifying-glass-chart'
+    title = ''
+    tooltip = 'Profile table content'
+
+    def check(self, path: Path, **kwargs):
+        return _check_table_file(path, **kwargs)
+
+    def href(self, path: Path, **kwargs):
+        return conf.url('/download/profile_table', path=path.name, **kwargs)

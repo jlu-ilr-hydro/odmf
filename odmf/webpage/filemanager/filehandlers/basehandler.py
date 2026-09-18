@@ -32,12 +32,18 @@ def load_text_stream(path: Path) -> io.StringIO:
     return io.StringIO(load_text_file(path))
 
 
-def table_to_html(df: pd.DataFrame, index: bool=True, header=True):
-    if header == True:
+def table_to_html(df: pd.DataFrame, index: bool=True, header=True, **kwargs) -> str:
+    """
+    Returns a html table from a pandas dataframe. If the dataframe has more than 1000 lines, only the first 1000 lines are shown and a message is added that the rest is skipped.
+    """
+    
+    if header:
         header = f'<div class="badge text-bg-secondary mb-2">{len(df)} lines</div>'
     elif header == False:
         header = ''
+
     classes = ['table table-hover table-group-divider table-sm']
+
     if len(df) > 1000:
         table = df.iloc[:1000].to_html(classes=classes, border=0)
         return header + table + f'<div>... skipping lines 1000 - {len(df)}</div>'

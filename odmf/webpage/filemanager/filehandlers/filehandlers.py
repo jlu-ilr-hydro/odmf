@@ -86,7 +86,7 @@ class MarkDownFileHandler(TextFileHandler):
 class CsvFileHandler(BaseFileHandler):
 
     icon = 'file-csv'
-    actions = fa.ConfImportAction(), fa.RecordImportAction(),
+    actions = fa.ConfImportAction(), fa.RecordImportAction(), fa.TableProfileAction()
     def to_html(self, path: Path, **kwargs) -> str:
 
         text_io = load_text_stream(path)
@@ -101,7 +101,7 @@ class CsvFileHandler(BaseFileHandler):
 class ParquetFileHandler(BaseFileHandler):
 
     icon = 'table'
-    actions = fa.RecordImportAction(),
+    actions = fa.RecordImportAction(), fa.TableProfileAction(),
     def to_html(self, path, **kwargs) -> str:
 
         with open(path.absolute, 'rb') as f:

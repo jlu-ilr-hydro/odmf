@@ -13,6 +13,7 @@ import os
 import shutil
 from traceback import format_exc as traceback
 from io import StringIO, BytesIO
+import re
 import cherrypy
 from cherrypy.lib.static import serve_file, serve_fileobj
 from urllib.parse import urlencode
@@ -590,4 +591,39 @@ class DownloadPage(object):
         else:
             msg = {'error': f'{action} on {path} not available'}
         return f'{newpath.href}?{urlencode(msg)}'
+
+    @expose_for()
+    @web.method.get
+    def profile_table(self, path):
+        """
+        Returns a data profile page for the given file tabular file. The file can be a CSV, Excel or Parquet file. The profile is generated using the data_profiling package.
+        """
+        import data_profiling as dp
+        from lxml import html
+        import pandas as pd
+        
+        def _load_table_file(path: Path, **kwargs) -> pd.DataFrame:
+            if re.match(r'.*\.parquet$', path.name, re.IGNORECASE):
+                df = pd.read_parquet(path.absolute, **kwargs)
+            elif re.match(r'.*\.xls.?$', path.name, re.IGNORECASE):
+                df = pd.read_excel(path.absolute, sheet_name=kwargs.get('sheet',0))
+            elif re.match(r'.*\.csv$', path.name, re.IGNORECASE):
+                df = pd.read_csv(path.absolute, sep=None, engine='python')
+            return df
+
+        path = Path(path)
+        check_access(fa.Mode.read, path)
+
+        df = _load_table_file(path)
+        title = f'Data profile for {path}'
+        profile = dp.ProfileReport(df, minimal=False, progress_bar=False, title=title)
+        profile.config.html.minify_html = False
+        profile.config.html.use_local_assets = False
+        profile.config.html.navbar_show = False
+        doc = html.fromstring(profile.to_html())
+        body = doc.find('body')
+        style = doc.find('head').find('style')
+        def estr(el):
+            return str(html.tostring(el, encoding='unicode', method='html'))
+        return web.render('empty.html', title=title, error='', success='', content=estr(style) +  estr(body)).render()
 
