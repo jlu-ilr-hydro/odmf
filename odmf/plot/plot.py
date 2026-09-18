@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import pandas as pd
-from .. import db
+import pytz
+from .. import config, db
 
 class NoDataError(ValueError):
     ...
@@ -79,6 +80,15 @@ class Line:
         from ..webpage.auth import users
         me = users.current
         start, end = self.subplot.plot.get_time_span()
+        timezone = pytz.timezone(config.conf.datetime_default_timezone)
+
+        def localize(time):
+            if time.tzinfo is not None and time.utcoffset() is not None:
+                time = time.astimezone(timezone)
+            return time.replace(tzinfo=None)
+
+        start = localize(start)
+        end = localize(end)
         datasets = session.query(db.Dataset).filter(
             db.Dataset._valuetype == self.valuetypeid,
             db.Dataset._site == self.siteid,
@@ -89,6 +99,7 @@ class Line:
             datasets = datasets.filter(db.Dataset._source == self.instrumentid)
         if self.level is not None:
             datasets = datasets.filter(db.Dataset.level == self.level)
+
         return [
             ds for ds in datasets.order_by(db.Dataset.start)
             if ds.get_access_level(me) >= ds.access

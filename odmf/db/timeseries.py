@@ -261,8 +261,22 @@ class Timeseries(Dataset):
     def size(self):
         return self.records.count()
 
+    def _query_time(self, time):
+        """Convert an aware time to the naive local time stored in the database."""
+        if time is not None and time.utcoffset() is not None:
+            return time.astimezone(self.tzinfo).replace(tzinfo=None)
+        return time
+
+    def _localize_time(self, time):
+        """Interpret a stored naive time in the dataset timezone."""
+        if time.tzinfo is None or time.utcoffset() is None:
+            return self.localizetime(time)
+        return time.astimezone(self.tzinfo)
+
     def iterrecords(self, witherrors=False, start=None, end=None, limit: typing.Optional[int] = None, descending=False):
         session = self.session()
+        start = self._query_time(start)
+        end = self._query_time(end)
         records = session.query(Record).filter(
             Record._dataset == self.id)
         if descending:
@@ -279,7 +293,7 @@ class Timeseries(Dataset):
             records = records.limit(limit)
         for r in records:
             yield MemRecord(id=r.id, dataset=r.dataset,
-                            time=r.time, value=r.calibrated,
+                            time=self._localize_time(r.time), value=r.calibrated,
                             sample=r.sample, comment=r.comment,
                             rawvalue=r.value, is_error=r.is_error)
 
@@ -290,6 +304,8 @@ class Timeseries(Dataset):
         :param end: An end time for the series
         """
         query = self.session().query
+        start = self._query_time(start)
+        end = self._query_time(end)
         records = query(Record.time, Record.value).filter_by(_dataset=self.id)
         if descending:
             records = records.order_by(Record.time.desc())
@@ -309,7 +325,9 @@ class Timeseries(Dataset):
 
         # If no data is present, ensure the right dtype for the empty series
         if values.empty:
-            return pd.Series([], index=pd.to_datetime([]), dtype=float)
+            return pd.Series([], index=pd.DatetimeIndex([], tz=self.tzinfo), dtype=float)
+
+        values.index = values.index.tz_localize(self.tzinfo)
 
         # Do calibration
         values *= self.calibration_slope
