@@ -10,7 +10,7 @@ from . import fileactions as fa
 class ExcelFileHandler(TableFileHandler):
 
     icon = 'file-excel'
-    actions = fa.ConfImportAction(), fa.LogImportAction(), fa.LabImportAction(), fa.RecordImportAction(), fa.TableProfileAction(),
+
     def to_html(self, path: Path, **kwargs) -> str:
         with pd.ExcelFile(path.absolute) as xls:
             buttons = []

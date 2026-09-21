@@ -15,7 +15,7 @@ from ...auth import Level
 
 class TableFileHandler(BaseFileHandler):
     icon = 'table'
-    actions = fa.ConfImportAction(), fa.LogImportAction(), fa.LabImportAction(), fa.RecordImportAction(), fa.TableProfileAction(),
+    actions = fa.ConfImportAction(), fa.LogImportAction(), fa.LabImportAction(), fa.RecordImportAction()
 
     def __init__(self, pattern: str):
         super().__init__(pattern)
