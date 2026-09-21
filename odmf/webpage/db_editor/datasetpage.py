@@ -21,7 +21,7 @@ import cherrypy
 import pandas as pd
 
 
-def get_ds(session, datasetid):
+def get_ds(session, datasetid) -> db.Dataset:
     """
     Gets a dataset from an id
     """
@@ -310,6 +310,19 @@ class DatasetPage:
                 success += str(alarm)
         raise web.redirect(conf.url('dataset', datasetid, '#alarms'), success=success)
 
+    @expose_for()
+    def fg_data_profiling(self, datasetid):
+        """
+        Returns a html page with statistical profiling of the actual dataset using fg-data-profiling
+        """
+        with db.session_scope() as session:
+            ds = get_ds(session, datasetid)
+            if not has_access(ds, Level.logger):
+                raise web.redirect(conf.url('dataset', datasetid), error='Sorry, but you do not have the privileges to create a data profile')
+            if not hasattr(ds, 'asseries'):
+                raise web.redirect(conf.url('dataset', datasetid), error='This dataset has no timeseries')
+            df = ds.asseries().to_frame()
+            return web.fg_data_profiling(df, str(ds), explorative=True, tsmode=True)
 
     @expose_for()
     @web.method.get

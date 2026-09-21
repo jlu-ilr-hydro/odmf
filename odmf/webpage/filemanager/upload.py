@@ -600,8 +600,6 @@ class DownloadPage(object):
 
         This function should return in the future only the profile page to be embedded in the download page with ajax (or better ajah) with $.load() or similar. For now it returns a full page with the profile.
         """
-        import data_profiling as dp
-        from lxml import html
         import pandas as pd
         
         def _load_table_file(path: Path, **kwargs) -> pd.DataFrame:
@@ -618,16 +616,5 @@ class DownloadPage(object):
 
         df = _load_table_file(path)
         title = f'Data profile for {path}'
-        profile = dp.ProfileReport(df, minimal=False, progress_bar=False, title=title)
-        profile.config.html.minify_html = False
-        profile.config.html.use_local_assets = False
-        profile.config.html.navbar_show = False
-        profile.config.progress_bar = False
-
-        doc = html.fromstring(profile.to_html())
-        body = doc.find('body')
-        style = doc.find('head').find('style')
-        def estr(el):
-            return str(html.tostring(el, encoding='unicode', method='html'))
-        return web.literal(estr(style) +  estr(body))
+        return web.fg_data_profiling(df, title)
 

@@ -222,3 +222,30 @@ class Renderer(object):
 
 
 render = Renderer()
+
+
+def fg_data_profiling(df, title=None, explorative=False, tsmode=False):
+    """
+    Returns the html rendered data profile for a dataframe using
+    
+    fg-data-profiling
+
+    df: A pandas dataframe
+    title: the title
+    """
+
+    import data_profiling as dp
+    from lxml import html
+    
+    profile = dp.ProfileReport(df, minimal=False, title=title)
+    profile.config.html.minify_html = False
+    profile.config.html.use_local_assets = False
+    profile.config.html.navbar_show = False
+    profile.config.progress_bar = False
+
+    doc = html.fromstring(profile.to_html())
+    body = doc.find('body')
+    style = doc.find('head').find('style')
+    def estr(el):
+        return str(html.tostring(el, encoding='unicode', method='html'))
+    return literal(estr(style) +  estr(body))

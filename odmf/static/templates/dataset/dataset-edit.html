@@ -3,6 +3,18 @@
 <py:extends href="layout.html" xmlns:py="">
     <py:block name="scripts">
         <script type="text/javascript" src="${conf.root_url}/media/js/dataset-edit.js"></script>
+        <script>
+            $(function() {
+                $('#profile-create').on('click', event => {
+                    let tgt = $(event.target)
+                    tgt.parent().toggleClass("wait")
+                    let div = $('#plot-div')
+                    div.html("Loading profile from ${conf.url('dataset', 'fg-data-profiling', ds_act.id)}")
+                    div.load("${conf.url('dataset', 'fg-data-profiling', ds_act.id)}")
+                })
+            })
+        </script>
+
     </py:block>
     <py:block name="style">
         <!-- insert additional styles -->
@@ -63,7 +75,7 @@
                 </a>
                 <a id="plot-tab" class="nav-link flexbox border-top" data-bs-toggle="pill"
                     py:if="access(Level.guest) and ds_act.is_defined() and not ds_act.is_filedataset()"
-                    href="#plot">plot
+                    href="#plot">plot &amp; profile
                 </a>
                 <a id="records-tab" class="nav-link flexbox border-top" data-bs-toggle="pill"
                     py:if="access(Level.editor) and ds_act.is_timeseries()" href="#records">
@@ -654,22 +666,18 @@
                             </div>
 
                         </div>
-                        <div class="row">
-                            <button class="btn btn-primary col-sm-3" onclick="plotds(${ds_act.id});">
+                        <div>
+                            <button class="btn btn-primary me-2" onclick="plotds(${ds_act.id});">
                                 <i class="fas fa-chart-line me-1" />plot
                             </button>
-                            <div class="col-sm-3">
-                                <div class="custom-control custom-switch">
-                                    <input type="checkbox" class="custom-control-input" id="interactive" />
-                                    <label class="custom-control-label" for="interactive">Make interactive plot</label>
-                                </div>
-                            </div>
+                            <button class="btn btn-secondary me-2" id="profile-create">
+                                <i class="fas fa-magnifying-glass-chart me-1"/> profile
+                            </button>
 
                         </div>
 
                     </div>
                     <div id="plot-div">
-                        <img id="plotimg" alt="" src="" />
                     </div>
 
                 </div>
