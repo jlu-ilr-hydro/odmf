@@ -597,6 +597,8 @@ class DownloadPage(object):
     def profile_table(self, path):
         """
         Returns a data profile page for the given file tabular file. The file can be a CSV, Excel or Parquet file. The profile is generated using the data_profiling package.
+
+        This function should return in the future only the profile page to be embedded in the download page with ajax (or better ajah) with $.load() or similar. For now it returns a full page with the profile.
         """
         import data_profiling as dp
         from lxml import html
@@ -620,10 +622,12 @@ class DownloadPage(object):
         profile.config.html.minify_html = False
         profile.config.html.use_local_assets = False
         profile.config.html.navbar_show = False
+        profile.config.progress_bar = False
+
         doc = html.fromstring(profile.to_html())
         body = doc.find('body')
         style = doc.find('head').find('style')
         def estr(el):
             return str(html.tostring(el, encoding='unicode', method='html'))
-        return web.render('empty.html', title=title, error='', success='', content=estr(style) +  estr(body)).render()
+        return web.literal(estr(style) +  estr(body))
 

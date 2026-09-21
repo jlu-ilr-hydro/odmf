@@ -63,7 +63,7 @@ class Button:
     @classmethod
     def render_buttons(cls, buttons: typing.List['Button']):
         from ... import lib as web
-        return web.render('button_group.html', buttons=buttons).render()
+        return web.render('filemanager/button_group.html', buttons=buttons).render()
 
 class BaseFileHandler:
     """

@@ -1,4 +1,5 @@
-from .basehandler import BaseFileHandler, table_to_html, Button
+from .basehandler import Button
+from .tablehandler import TableFileHandler
 import pandas as pd
 from ....tools import Path
 from ....config import conf
@@ -6,7 +7,7 @@ from . import fileactions as fa
 
 
 
-class ExcelFileHandler(BaseFileHandler):
+class ExcelFileHandler(TableFileHandler):
 
     icon = 'file-excel'
     actions = fa.ConfImportAction(), fa.LogImportAction(), fa.LabImportAction(), fa.RecordImportAction(), fa.TableProfileAction(),
@@ -14,7 +15,7 @@ class ExcelFileHandler(BaseFileHandler):
         with pd.ExcelFile(path.absolute) as xls:
             buttons = []
             try:
-                active_sheet = kwargs.get('sheet', xls.sheet_names[0])
+                active_sheet = kwargs.pop('sheet', xls.sheet_names[0])
             except IndexError:
                 raise ValueError('Excel file is broken - if you can open the file with Excel, please save it again and try to upload the new file')
 
@@ -23,6 +24,7 @@ class ExcelFileHandler(BaseFileHandler):
                 buttons.append(Button(href=href, label=str(sheet_name), icon='table', title=f'View sheet {sheet_name}', active=(sheet_name == active_sheet)))
             
             buttons_html = Button.render_buttons(buttons)
-            df = pd.read_excel(xls, sheet_name=active_sheet or xls.sheet_names[0])
-            return buttons_html + table_to_html(df)
+            table_html = super().to_html(path, sheet=active_sheet)
+
+            return buttons_html + table_html
 

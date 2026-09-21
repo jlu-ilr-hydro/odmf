@@ -10,6 +10,7 @@ from ....config import conf
 from . import fileactions as fa
 from ...markdown import MarkDown
 from .basehandler import BaseFileHandler, load_text_file, load_text_stream, table_to_html, error_msg
+from .tablehandler import TableFileHandler
 
 markdown = MarkDown()
 
@@ -83,30 +84,12 @@ class MarkDownFileHandler(TextFileHandler):
 
 
 
-class CsvFileHandler(BaseFileHandler):
-
+class CsvFileHandler(TableFileHandler):
     icon = 'file-csv'
-    actions = fa.ConfImportAction(), fa.RecordImportAction(), fa.TableProfileAction()
-    def to_html(self, path: Path, **kwargs) -> str:
-
-        text_io = load_text_stream(path)
-        try:
-            df = pd.read_csv(text_io, sep=None, engine='python')
-            return table_to_html(df)
-        except Exception as e:
-
-            return '\n<pre>\n' + text_io.getvalue() + '\n</pre>\n'
 
 
-class ParquetFileHandler(BaseFileHandler):
-
+class ParquetFileHandler(TableFileHandler):
     icon = 'table'
-    actions = fa.RecordImportAction(), fa.TableProfileAction(),
-    def to_html(self, path, **kwargs) -> str:
-
-        with open(path.absolute, 'rb') as f:
-            df = pd.read_parquet(f)
-            return table_to_html(df)
 
 
 class ImageFileHandler(BaseFileHandler):

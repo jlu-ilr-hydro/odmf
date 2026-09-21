@@ -129,7 +129,10 @@ class LogImportAction(FileAction):
         return conf.url('/download/to_db/log', filename=path.name, **kwargs)
 
     def check(self, path: Path, **kwargs):
-        df = pd.read_excel(path.absolute, sheet_name=kwargs.get('sheet',0), nrows=1)
+        try:
+            df = pd.read_excel(path.absolute, sheet_name=kwargs.get('sheet',0), nrows=1)
+        except:
+            return False
         columns = [c.lower() for c in df.columns]
         return all(c in columns for c in 'time|site|dataset|value|logtype|message'.split('|'))
 
@@ -171,18 +174,3 @@ class RecordImportAction(FileAction):
     def check(self, path: Path, **kwargs):
         return _check_table_file(path, **kwargs)
     
-class TableProfileAction(FileAction):
-    """
-    A file action for files that can be described as a table. Checks if the file has a .recordimport description file
-    """
-
-    name ='profile-table'
-    icon = 'magnifying-glass-chart'
-    title = ''
-    tooltip = 'Profile table content'
-
-    def check(self, path: Path, **kwargs):
-        return _check_table_file(path, **kwargs)
-
-    def href(self, path: Path, **kwargs):
-        return conf.url('/download/profile_table', path=path.name, **kwargs)
