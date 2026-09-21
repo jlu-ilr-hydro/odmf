@@ -177,7 +177,7 @@ class Plot {
 		return this
 	}
 	render(do_apply = true) {
-		$('#plot').html('Loading image...');
+		$('#plot').html(' Loading image...').addClass('display-1').addClass('semitransparent');
 		let startTime = Date.now()
 		$.ajax({
 			method: 'POST',
@@ -190,7 +190,7 @@ class Plot {
 			.done((result) => {
 				$('#plot').html(result);
 				$('#plot-reload-button').addClass('d-none')
-				$('#plot').removeClass('semitransparent')
+				$('#plot').removeClass('semitransparent').removeClass('display-1')
 				set_error('')
 				let renderTime = Date.now() - startTime
 				$('#rendertime').html(renderTime.toString() + ' ms')
@@ -205,6 +205,28 @@ class Plot {
 			return this
 		}
 
+	}
+	profile() {
+		let startTime = Date.now()
+		$('#plot').html(' Loading profile...').addClass('display-1').addClass('semitransparent');
+		$.ajax({
+			method: 'POST',
+			url: odmf_ref('/plot/fg-data-profiling'),
+			contentType: 'application/json',
+			processData: false,
+			data: JSON.stringify(this, null, 4),
+			dataType: 'html'
+		})
+			.done((result) => {
+				$('#plot').html(result).removeClass('semitransparent').removeClass('display-1')
+				$('#plot-reload-button').addClass('d-none')
+				$('.dropdown-toggle').dropdown();
+				set_error('')
+				let renderTime = Date.now() - startTime
+				$('#rendertime').html(renderTime.toString() + ' ms')
+			})
+			.fail(seterror);
+		return this;
 	}
 
 	addsubplot() {
@@ -559,6 +581,9 @@ $(() => {
 		})
 			.done(() => { window.plot.apply() })
 			.fail(seterror)
+	})
+	$('#profile-create').on('click', () => {
+		window.plot.profile()
 	})
 
 

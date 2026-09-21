@@ -278,6 +278,26 @@ class PlotPage(object):
 
     @expose_for(plotgroup)
     @web.method.post
+    @web.json_in()
+    def fg_data_profiling(self):
+        from ..tools.exportdatasets import merge_series
+        plot_data = web.cherrypy.request.json
+        plot = Plot(**plot_data)
+        start, end = plot.get_time_span()
+        lines = [line for lines in plot.subplots for line in lines]
+        series = [line.load(start, end) for line in lines]
+        # Convert timeindex to int if possible
+        try:
+            dataframe = merge_series(
+                series, 'union', pd.Timedelta('60s')
+            )
+            return web.fg_data_profiling(dataframe, plot.name, explorative=True, tsmode=True)
+        except Exception as e:
+            raise web.redirect(conf.url('/plot'), error=str(e))
+
+
+    @expose_for(plotgroup)
+    @web.method.post
     def image(self, format, plot):
         web.mime.set(format)
         plot_dict = web.json.loads(plot)

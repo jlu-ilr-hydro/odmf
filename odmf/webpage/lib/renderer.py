@@ -244,8 +244,12 @@ def fg_data_profiling(df, title=None, explorative=False, tsmode=False):
     profile.config.progress_bar = False
 
     doc = html.fromstring(profile.to_html())
+    scripts_with_src = doc.xpath("//script[@src]")
     body = doc.find('body')
     style = doc.find('head').find('style')
+    # Gefundene Elemente aus dem DOM entfernen
+    for script in scripts_with_src:
+        script.getparent().remove(script)
     def estr(el):
         return str(html.tostring(el, encoding='unicode', method='html'))
     return literal(estr(style) +  estr(body))
