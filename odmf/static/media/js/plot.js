@@ -4,6 +4,7 @@
  * TODO: Move line dialog to extra template and fill on server side
  */
 
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 function seterror(jqhxr, textStatus, errorThrown) {
 	set_error(jqhxr.responseText)
@@ -152,6 +153,7 @@ class Plot {
 			this.height = saved_plot.height || 640
 			this.width = saved_plot.width || 480
 			this.subplots = saved_plot.subplots || []
+			this.timezone = saved_plot.timezone || timeZone
 
 		} else {
 			this.name = 'Unnamed plot'
@@ -164,6 +166,7 @@ class Plot {
 			this.height = 640
 			this.width = 480
 			this.subplots = []
+			this.timezone = timeZone
 
 		}
 	}
@@ -246,6 +249,7 @@ class Plot {
 		}
 		$('#prop-columns').val(plot.columns).attr('max', Math.max(1, plot.subplots.length))
 		$('#prop-aggregate').val(plot.aggregate || '')
+		$('#prop-timezone').val(plot.timezone || timeZone)
 		$('#prop-legend').prop('checked', plot.legend)
 		$('#prop-description').val(plot.description)
 
@@ -596,8 +600,10 @@ $(() => {
 		plot.start = gettime('start')
 		plot.end = gettime('end')
 		plot.apply()
-
-
+	})
+	$('#prop-timezone').on('change', () => {
+		plot.timezone = $('#prop-timezone').val()
+		plot.apply()
 	})
 	$('#prop-aggregate').on('change', () => {
 		plot.aggregate = $('#prop-aggregate').val()
