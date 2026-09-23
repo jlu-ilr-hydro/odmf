@@ -84,7 +84,7 @@ class Line:
         from ..webpage.auth import users
         me = users.current
         start, end = self.plot.get_time_span()
-        timezone = self.plot.timezone
+        timezone = pytz.timezone(self.plot.timezone)
         def localize(time):
             if time.tzinfo is not None and time.utcoffset() is not None:
                 time = time.astimezone(timezone)

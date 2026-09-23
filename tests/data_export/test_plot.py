@@ -48,7 +48,7 @@ def test_plot_load_uses_dataset_timezone_with_naive_plot_bounds(timeseries, reco
     assert data.iloc[0] == record.value
 
 
-def test_plotly_figure_accepts_aware_bounds_and_preserves_local_time(timeseries, record):
+def test_plot_accepts_aware_bounds_and_converts_series_to_plot_timezone(timeseries, record):
     timezone = pytz.timezone('Europe/Berlin')
     prepare_timeseries(timeseries, record)
     plot = make_plot(
@@ -56,8 +56,13 @@ def test_plotly_figure_accepts_aware_bounds_and_preserves_local_time(timeseries,
         pytz.UTC.localize(datetime.datetime(2021, 5, 10, 2)),
     )
 
+    line = plot.subplots[0].lines[0]
+    data = line.load(*plot.get_time_span())
     figure = _make_figure(plot)
 
+    assert data.index.tz.zone == 'Europe/Berlin'
+    assert data.index[0] == timezone.localize(datetime.datetime(2021, 5, 10))
+    assert data.iloc[0] == record.value
     assert len(figure.data) == 1
     assert figure.data[0].y.tolist() == [record.value]
     assert pd.Timestamp(figure.data[0].x[0]) == timezone.localize(

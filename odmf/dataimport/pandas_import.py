@@ -160,6 +160,8 @@ def _make_time_column_as_datetime(df: pd.DataFrame, fmt=None):
         """
         Converts a column to_datetime and raises a LogImportStructError on failure
         """
+        if pd.api.types.is_string_dtype(c.dtype):
+            c = c.str.strip()
         # First try the given format, second try with a "free" format. Needed eg. for a two column format
         for timeformat in [fmt, 'mixed']:
             try:
