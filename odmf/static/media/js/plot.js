@@ -249,7 +249,7 @@ class Plot {
 		}
 		$('#prop-columns').val(plot.columns).attr('max', Math.max(1, plot.subplots.length))
 		$('#prop-aggregate').val(plot.aggregate || '')
-		$('#prop-timezone').val(plot.timezone || timeZone)
+		$('#prop-timezone').val(plot.timezone || timeZone).trigger('change.select2')
 		$('#prop-legend').prop('checked', plot.legend)
 		$('#prop-description').val(plot.description)
 

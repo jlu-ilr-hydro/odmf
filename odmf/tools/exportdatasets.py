@@ -204,7 +204,12 @@ def export_dataframe(stream, data: pd.DataFrame, fileformat: str, index_label=No
     def nl(data):
         return data.replace(to_replace=[r"\\t|\\n|\\r", "\t|\n|\r"], value=[" ", " "], regex=True)
     if fileformat == 'xlsx':
-        data.to_excel(stream, engine='openpyxl', index=bool(index_label), index_label=index_label)
+        excel_data = data.copy()
+        if isinstance(excel_data.index, pd.DatetimeIndex) and excel_data.index.tz is not None:
+            excel_data.index = excel_data.index.tz_localize(None)
+        for column in excel_data.select_dtypes(include=['datetimetz']).columns:
+            excel_data[column] = excel_data[column].dt.tz_localize(None)
+        excel_data.to_excel(stream, engine='openpyxl', index=bool(index_label), index_label=index_label)
     elif fileformat == 'csv':
         stream.write(nl(data).to_csv(index=bool(index_label), index_label=index_label).encode('utf-8'))
     elif fileformat == 'tsv':
