@@ -5,10 +5,18 @@ from ..auth import users, expose_for, hashpw, is_self, Level
 from ...tools import Path as OPath
 from ... import db
 
+def may_change_password(username):
+    return (
+        users.current.is_member(Level.admin) 
+        or is_self(username) 
+        or (users.current.is_member(Level.supervisor) and username == 'new')
+    )
+
 
 @web.show_in_nav_for(1, 'user')
 @cherrypy.popargs('username')
 class PersonPage:
+
 
     @staticmethod
     def index_get(username):
@@ -54,6 +62,8 @@ class PersonPage:
                 topics=session.scalars(topics),
                 is_self=is_self,
                 has_home=has_home,
+                may_change_password=may_change_password(act_user),
+
             ).render()
 
     @staticmethod
@@ -76,21 +86,22 @@ class PersonPage:
                 p_act.email = kwargs.get('email')
                 p_act.firstname = kwargs.get('firstname')
                 p_act.surname = kwargs.get('surname')
-                p_act.telephone = kwargs.get('telephone')
                 p_act.comment = kwargs.get('comment')
+                p_act.orcid = kwargs.get('orcid')
                 if kwargs.get('status') == 'on' or is_self(username):
                     p_act.active = True
                 else:
                     p_act.active = False
 
                 # Simple Validation
-                if kwargs.get('password') and (users.current.is_member(Level.admin) or is_self(username)):
+                if kwargs.get('password') and kwargs.get('password_verify') and may_change_password(username):
                     pw = kwargs['password']
                     pw2 = kwargs.get('password_verify')
                     if len(pw) < 8:
                         error = 'Password needs to be at least 8 characters long'
                     elif pw == pw2:
                         p_act.password = hashpw(pw)
+                        msg +='password changed, '
                     else:
                         error = 'Passwords not equal'
 
@@ -108,8 +119,8 @@ class PersonPage:
                     ).all()
 
                 if error:
-                    raise web.redirect(conf.url('person', username), error=error)
-                msg = f'{username} saved'
+                    raise web.redirect(conf.url('user', username), error=error)
+                msg += f'{username} saved'
                 users.load()
         else:
             error = f'As a {users.current.Level.name} user, you may only change your own values'
@@ -146,9 +157,9 @@ class PersonPage:
     def json(self, supervisors=False):
         with db.session_scope() as session:
             persons = session.query(db.Person).order_by(
-                db.sql.desc(db.Person.can_supervise), db.Person.surname)
+                db.sql.desc(db.Person.access_level), db.Person.surname)
             if supervisors:
-                persons = persons.filter(db.Person.can_supervise == True)
+                persons = persons.filter(db.Person.access_level >= Level.supervisor)
             return web.json_out(persons.all())
 
     @expose_for()

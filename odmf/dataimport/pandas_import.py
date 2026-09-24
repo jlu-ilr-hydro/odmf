@@ -257,11 +257,10 @@ def load_dataframe(
     Loads a pandas dataframe from a data file (csv or xls[x]) using an import description
     """
 
-
+    # Make sure filepath is a Path object
     if type(filepath) is not Path:
         filepath = Path(filepath)
-
-
+    # Check file extension to decide how to load the data
     if re.match(r'.*\.xls[xmb]?$', filepath.name):
         df = _load_excel(idescr, filepath)
         if df.empty:
@@ -270,9 +269,13 @@ def load_dataframe(
                 f'(eg. logger software), open in excel and save as a new .xlsx - file')
     else:
         df = _load_csv(idescr, filepath)
+    
+    # Convert the time column to datetime and adjust it with the date column if necessary
     _make_time_column_as_datetime(df, idescr.dateformat)
 
+    # Convert the value columns to numeric and apply the difference and factor operations, if needed
     for col in idescr.columns:
+        df[col.name] = pd.to_numeric(df[col.name], errors='coerce')
         # Apply the difference operation
         if col.difference:
             df[col.name] = df[col.name].diff()
@@ -280,7 +283,7 @@ def load_dataframe(
             df[col.name] *= col.factor
         except TypeError:
             ...
-
+    
     return df
 
 

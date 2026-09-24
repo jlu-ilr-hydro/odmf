@@ -49,8 +49,7 @@ def person(db, session):
     with temp_in_database(
         db.Person(
             username=randomstring(10), email='This is an email', firstname='first',
-            surname='last', telephone='this is a phone number', comment='this is a comment',
-            can_supervise= False, mobile='this is a mobile number', car_available=0, access_level=2
+            surname='last', comment='this is a comment', access_level=2, orcid='0000-0000-0000-0000',
         ),
         session) as person:
         yield person

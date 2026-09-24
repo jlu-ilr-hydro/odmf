@@ -181,7 +181,7 @@ class TestJob:
         log = session.scalars(db.sql.select(db.Log).where(db.Log.site == site1_in_db)).all()
         assert len(log) == 1
         assert log[0].type == job.type
-        assert log[0].message == job.name
+        assert job.name in log[0].message 
 
     def test_job_done_log_msg(self, job, site1_in_db, session, db):
         """

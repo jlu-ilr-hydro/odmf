@@ -18,6 +18,7 @@ numba>=0.50.0
 openpyxl>=3.0.7
 asteval>=0.9.25
 pyarrow
+tables
 # database
 pytz
 

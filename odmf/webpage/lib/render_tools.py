@@ -99,3 +99,9 @@ def class_if(condition, class_name, else_class=''):
 def dnone_if(condition):
     return class_if(condition, 'd-none')
 
+def firstline(text):
+    if text:
+        return str(text).split('\n', 1)[0]
+    else:
+        return ''
+

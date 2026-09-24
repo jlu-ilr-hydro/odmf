@@ -9,6 +9,7 @@ http://tools.cherrypy.org/wiki/AuthenticationAndAccessRestrictions
 import os.path as op
 import collections
 import typing
+from datetime import datetime
 
 import cherrypy
 from ..config import conf
@@ -36,10 +37,11 @@ class HTTPAuthError(cherrypy.HTTPError):
                 f'Either log in with more privileges or ask the administrators for elevated privileges.'
         try:
             with db.session_scope() as session:
+                me = session.get(db.Person, web.user()) if web.user() else None
                 admins = session.scalars(db.sql.select(db.Person).where(db.Person.access_level >= 4, db.Person.active == True))
-                return render('login.html', admins=admins, error=error, frompage='').render().encode('utf-8')
+                return render('login.html', admins=admins, error=error, frompage='', first_login=False, me=me).render().encode('utf-8')
         except:
-            return render('login.html', admins=[], error=error, frompage='').render().encode('utf-8')
+            return render('login.html', admins=[], error=error, frompage='', first_login=False, me=None).render().encode('utf-8')
 
 
 def check_auth(*args, **kwargs):
@@ -209,13 +211,19 @@ class Users(collections.UserDict):
         self.default = self.data.get(name, self.default)
 
     def login(self, username, password):
+        from .. import db
         self.load()
         error = self.check(username, password)
         if error:
             return error
         else:
+            with db.session_scope() as session:
+                me = session.get(db.Person, username)
+                first_login = me.last_login is None
+                me.last_login = datetime.now()
             cherrypy.session.regenerate()
             cherrypy.session[conf.session_key] = cherrypy.request.login = username
+            cherrypy.session['first_login'] = first_login
             return
 
     def logout(self):
