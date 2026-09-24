@@ -912,8 +912,11 @@
                                             </select>
                                             <input type="number" step="any" name="threshold_value"
                                                 class="form-control" />
-                                            <div class="input-group-append"><span
-                                                    class="input-group-text">${ds_act.valuetype and ds_act.valuetype.unit}</span></div>
+                                            <div class="input-group-append">
+                                                <span class="input-group-text">
+                                                    <span id="alarm-unit" py:content="ds_act.valuetype and ds_act.valuetype.unit"/>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -932,18 +935,13 @@
                                             name="delete" value="delete" type="submit">
                                             <i class="fas fa-trash" />
                                         </button>
-
                                     </div>
-
                                 </form>
-
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
-
         </div>
     </py:block>
 
