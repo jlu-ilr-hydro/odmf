@@ -60,7 +60,7 @@ def test_plot_accepts_aware_bounds_and_converts_series_to_plot_timezone(timeseri
     data = line.load(*plot.get_time_span())
     figure = _make_figure(plot)
 
-    assert data.index.tz.zone == 'Europe/Berlin'
+    assert str(data.index.tz) == 'Europe/Berlin'
     assert data.index[0] == timezone.localize(datetime.datetime(2021, 5, 10))
     assert data.iloc[0] == record.value
     assert len(figure.data) == 1
