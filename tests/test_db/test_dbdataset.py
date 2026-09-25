@@ -206,6 +206,23 @@ class TestTimeseriesThousandRecords:
 
 class TestTimeseries:
 
+    @pytest.mark.parametrize('aware', [False, True])
+    def test_addrecord_accepts_naive_and_aware_times(self, timeseries, aware):
+        timeseries.timezone = 'Europe/Berlin'
+        incoming_time = datetime.datetime(2020, 2, 20, 7, 15)
+        if aware:
+            incoming_time = pytz.UTC.localize(incoming_time)
+
+        record = timeseries.addrecord(
+            value=2.5, time=incoming_time, out_of_timescope_ok=True
+        )
+
+        expected_time = (
+            incoming_time.astimezone(timeseries.tzinfo).replace(tzinfo=None)
+            if aware else incoming_time
+        )
+        assert record.time == expected_time
+
     def test_timeseries_empty(self, timeseries):
         assert timeseries
         assert timeseries.records.count() == 0

@@ -218,6 +218,8 @@ class Timeseries(Dataset):
 
         if time is None:
             time = datetime.now()
+        else:
+            time = self.naivetime(time)
         Id = Id or self.maxrecordid() + 1
 
         if (not self.valuetype.inrange(value)):
