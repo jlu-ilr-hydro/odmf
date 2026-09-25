@@ -11,7 +11,7 @@
                 normalLink.href = baseUrl;
                 normalLink.textContent = baseUrl
             
-                const time = encodeURIComponent(document.getElementById('add-record-time').value);
+                const time = encodeURIComponent(document.getElementById('add-record-time-local').value);
                 const value = encodeURIComponent(document.getElementById('add-record-value').value);
                 const sample = encodeURIComponent(document.getElementById('add-record-sample').value);
                 const comment = encodeURIComponent(document.getElementById('add-record-comment').value);
@@ -21,9 +21,28 @@
 
             }
 
+            function browserTimestamp(value) {
+                const localValue = value.length === 16 ? value + ':00' : value;
+                const localDate = new Date(localValue);
+                if (Number.isNaN(localDate.getTime())) {
+                    return value;
+                }
+
+                const offset = -localDate.getTimezoneOffset();
+                const sign = offset >= 0 ? '+' : '-';
+                const absoluteOffset = Math.abs(offset);
+                const hours = String(Math.floor(absoluteOffset / 60)).padStart(2, '0');
+                const minutes = String(absoluteOffset % 60).padStart(2, '0');
+                return localValue + sign + hours + ':' + minutes;
+            }
+
             $(()=>{
                 updateLinks();
                 $('input, textarea').on('input', updateLinks);
+                $('#add-record-form').on('submit', function() {
+                    const localTime = document.getElementById('add-record-time-local').value;
+                    document.getElementById('add-record-time').value = browserTimestamp(localTime);
+                });
                 $('.to-clipboard').click(function(e){
                     e.preventDefault();
                     const url = $(this).attr('href');
@@ -123,8 +142,9 @@
                         </div>
                         <div class="form-group">
                             <label for="add-record-time">time</label>
-                            <input id="add-record-time" type="datetime-local" name="time" value="${time}"
+                            <input id="add-record-time-local" type="datetime-local"
                                 class="form-control datetime-local-now" />
+                            <input id="add-record-time" type="hidden" name="time" />
                         </div>
                         <div class="form-group">
                             <label for="add-record-sample">sample name</label>

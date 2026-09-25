@@ -79,16 +79,25 @@ class TestDatasetAPI:
         with db.session_scope() as session:
             assert db.Dataset.get(session, 2).id == 2
 
-    def test_addrecord(self, apilogin, timeseries):
+    @pytest.mark.parametrize('incoming_timezone', [None, 'UTC'])
+    def test_addrecord(self, incoming_timezone, apilogin, timeseries):
+        import datetime
+        timeseries.timezone = 'Europe/Berlin'
+        incoming_time = datetime.datetime(2020, 2, 20, 7, 15)
+        if incoming_timezone is not None:
+            incoming_time = incoming_time.replace(tzinfo=datetime.timezone.utc)
+        expected_time = incoming_time.astimezone(timeseries.tzinfo).replace(tzinfo=None) \
+            if incoming_timezone is not None else incoming_time
         apilogin.login(username='odmf.admin', password='test')
         res = apilogin.dataset.addrecord(
             dsid='ds1',
             value='2.5',
-            time='2020-02-20 07:15:00',
+            time=incoming_time.isoformat(),
         )
         assert res.decode() == '1'
         rec = timeseries.records.first()
         assert rec.value == 2.5
+        assert rec.time == expected_time
 
     def test_statistics(self, apilogin, timeseries, thousand_records):
         res = response_to_json(apilogin.dataset.statistics('ds1'))
@@ -98,14 +107,21 @@ class TestDatasetAPI:
         assert res['n'] == 1000
 
     @pytest.mark.parametrize('with_id', [True, False])
-    def test_addrecords_parquet(self, with_id, apilogin, timeseries):
+    @pytest.mark.parametrize('incoming_timezone', [None, 'UTC'])
+    def test_addrecords_parquet(self, with_id, incoming_timezone, apilogin, timeseries):
         import pandas as pd
+        timeseries.timezone = 'Europe/Berlin'
         df = pd.DataFrame(index=pd.RangeIndex(1, 1001, 1))
         df['dataset'] = 1
         if with_id:
             df['id'] = df.index
         df['value'] = (df.index - 500) * 0.01
-        df['time'] = pd.date_range('2022-01-01 12:00:00', '2023-01-03 23:00', freq='h')[:1000]
+        df['time'] = pd.date_range(
+            '2022-01-01 12:00:00', periods=1000, freq='h', tz=incoming_timezone
+        )
+        expected_times = df['time']
+        if incoming_timezone is not None:
+            expected_times = expected_times.dt.tz_convert(timeseries.timezone).dt.tz_localize(None)
         df.reset_index(inplace=True)
         stream = io.BytesIO()
         df.to_parquet(stream)
@@ -122,19 +138,32 @@ class TestDatasetAPI:
 
         # Check database
         assert timeseries.records.count() == 1000
+        assert timeseries.records.filter_by(id=1).one().time == expected_times.iloc[0].to_pydatetime()
+        assert timeseries.records.filter_by(id=1000).one().time == expected_times.iloc[-1].to_pydatetime()
 
-    def test_addrecords_json_withid(self, apilogin, timeseries):
+    @pytest.mark.parametrize('incoming_timezone', [None, 'UTC'])
+    def test_addrecords_json_withid(self, incoming_timezone, apilogin, timeseries):
         import datetime, io
+        timeseries.timezone = 'Europe/Berlin'
         start = datetime.datetime(2022,1,1,12)
+        incoming_zone = datetime.timezone.utc if incoming_timezone is not None else None
         records = [
             dict(
                 recid=n,
                 value=(n-500) * 0.01,
-                time=(start + datetime.timedelta(days=n)).isoformat(),
+                time=(start + datetime.timedelta(days=n)).replace(tzinfo=incoming_zone).isoformat(),
                 dataset=1
             )
             for n in range(1000)
         ]
+        expected_times = [start + datetime.timedelta(days=n) for n in range(1000)]
+        if incoming_timezone is not None:
+            expected_times = [
+                time.replace(tzinfo=datetime.timezone.utc).astimezone(
+                    timeseries.tzinfo
+                ).replace(tzinfo=None)
+                for time in expected_times
+            ]
         buffer = io.BytesIO()
         buffer.write(json.dumps(records).encode('utf-8'))
         buffer.seek(0)
@@ -149,6 +178,8 @@ class TestDatasetAPI:
         assert res['datasets'] == [1]
         # Check database
         assert timeseries.records.count() == 1000
+        assert timeseries.records.filter_by(id=0).one().time == expected_times[0]
+        assert timeseries.records.filter_by(id=999).one().time == expected_times[-1]
 
     def test_end_times(self, apilogin, timeseries):
         res = response_to_json(apilogin.dataset.end_times(datasets='1'))

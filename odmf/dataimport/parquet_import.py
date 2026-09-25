@@ -98,6 +98,11 @@ def addrecords_dataframe(df: pd.DataFrame):
             raise ValueError(f'{users.current} may not append to datasets {error_ds}')
 
         for ds in datasets:
+            ds_rows = df.dataset == ds.id
+            df.loc[ds_rows, 'time'] = [
+                ds.naivetime(time)
+                for time in df.loc[ds_rows, 'time']
+            ]
             _adjust_id(df, ds)
             _adjust_time(df, ds)
 

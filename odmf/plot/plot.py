@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import pandas as pd
-from .. import db
+import pytz
+from .. import config, db
 
 class NoDataError(ValueError):
     ...
@@ -53,6 +54,10 @@ class Line:
         if not (linestyle or marker):
             raise NoDataError('Lines need either a linestyle or a marker for the creation')
 
+    @property
+    def plot(self):
+        return self.subplot.plot
+
     def generate_name(self):
         """
         Generates a name for the line from its meta data
@@ -78,7 +83,15 @@ class Line:
         """
         from ..webpage.auth import users
         me = users.current
-        start, end = self.subplot.plot.get_time_span()
+        start, end = self.plot.get_time_span()
+        timezone = pytz.timezone(self.plot.timezone)
+        def localize(time):
+            if time.tzinfo is not None and time.utcoffset() is not None:
+                time = time.astimezone(timezone)
+            return time.replace(tzinfo=None)
+
+        start = localize(start)
+        end = localize(end)
         datasets = session.query(db.Dataset).filter(
             db.Dataset._valuetype == self.valuetypeid,
             db.Dataset._site == self.siteid,
@@ -89,6 +102,7 @@ class Line:
             datasets = datasets.filter(db.Dataset._source == self.instrumentid)
         if self.level is not None:
             datasets = datasets.filter(db.Dataset.level == self.level)
+
         return [
             ds for ds in datasets.order_by(db.Dataset.start)
             if ds.get_access_level(me) >= ds.access
@@ -106,6 +120,8 @@ class Line:
             if datasets:
                 group = db.DatasetGroup([ds.id for ds in datasets], start, end)
                 series = group.asseries(session, self.name)
+                # Convert the dataset series timezone to the plot's timezone
+                series.index = series.index.tz_convert(self.plot.timezone)
             else:
                 series = pd.Series([])
 
@@ -220,7 +236,13 @@ class Plot:
     Represents a full plot (matplotlib figure)
     """
 
-    def __init__(self, height=None, width=None, columns=None, start=None, end=None, name=None, path=None, aggregate=None, description=None, **kwargs):
+    def __init__(
+            self, 
+            height=None, width=None, columns=None, 
+            start=None, end=None, name=None, path=None, 
+            aggregate=None, description=None, timezone=None,
+            **kwargs
+        ):
         """
         @param size: A tuple (width,height), the size of the plot in inches (with 100dpi)
         @param columns: number of subplot columns
@@ -243,9 +265,9 @@ class Plot:
         self.name = name or ''
         self.path = path or ''
         self.aggregate = aggregate or ''
+        self.timezone = timezone or (config.conf.datetime_default_timezone)
         self.description = description or ''
         self.legend = kwargs.get('legend', True)
-
         self.columns = columns or 1
         self.subplots = []
         self.subplots = [
@@ -259,13 +281,14 @@ class Plot:
         """
         Returns the time span for the plot
         """
+        now = datetime.now(pytz.timezone(self.timezone))
         if isinstance(self.start, int):
-            end = datetime.today()
+            end = now
             start = end + timedelta(days=self.start)
             return start, end
         else:
-            return (self.start or datetime.today() - timedelta(days=90),
-                    self.end or datetime.today())
+            return (self.start or now - timedelta(days=90),
+                    self.end or now)
 
 
     def lines(self):

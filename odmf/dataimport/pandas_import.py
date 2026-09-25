@@ -5,6 +5,7 @@ from .. import db
 import pandas as pd
 import re
 import datetime
+import pytz
 from ..config import conf
 from odmf.tools import Path
 from logging import getLogger
@@ -43,6 +44,8 @@ class ColumnDataset:
             try:
                 self.dataset: db.Timeseries = session.get(db.Dataset, int(col.append))
                 assert self.dataset.type == 'timeseries'
+                start = _dataset_local_times(pd.Series([start]), idescr.timezone, self.dataset).iloc[0]
+                end = _dataset_local_times(pd.Series([end]), idescr.timezone, self.dataset).iloc[0]
                 self.dataset.start = min(start, self.dataset.start)
                 self.dataset.end = max(end, self.dataset.end)
                 self.record_count = self.dataset.maxrecordid()
@@ -76,7 +79,8 @@ class ColumnDataset:
 
         # Remove all values, where one of the columns is outside its minvalue / maxvalue range
         values_ok = check_column_values(self.column, df)
-        col_df = pd.DataFrame(df.time[values_ok])
+        times = _dataset_local_times(df.time[values_ok], self.idescr.timezone, self.dataset)
+        col_df = pd.DataFrame(times)
         col_df['dataset'] = self.id
         col_df['id'] = df[values_ok].index + self.record_count + 1
         col_df['value'] = df[self.column.name][values_ok]
@@ -156,6 +160,8 @@ def _make_time_column_as_datetime(df: pd.DataFrame, fmt=None):
         """
         Converts a column to_datetime and raises a LogImportStructError on failure
         """
+        if pd.api.types.is_string_dtype(c.dtype):
+            c = c.str.strip()
         # First try the given format, second try with a "free" format. Needed eg. for a two column format
         for timeformat in [fmt, 'mixed']:
             try:
@@ -185,6 +191,19 @@ def _make_time_column_as_datetime(df: pd.DataFrame, fmt=None):
         df['time'] = convert_time_column(df['date'])
 
     del df['date']
+
+
+def _naive_local_times(times: pd.Series, timezone: str) -> pd.Series:
+    tzinfo = pytz.FixedOffset(int(timezone.split('/')[1])) if timezone.startswith('Fixed/') else pytz.timezone(timezone)
+    if times.dt.tz is not None:
+        return times.dt.tz_convert(tzinfo).dt.tz_localize(None)
+    return times
+
+
+def _dataset_local_times(times: pd.Series, source_timezone: str, dataset: db.Dataset) -> pd.Series:
+    source_tzinfo = pytz.FixedOffset(int(source_timezone.split('/')[1])) if source_timezone.startswith('Fixed/') else pytz.timezone(source_timezone)
+    localized = times.map(lambda time: source_tzinfo.localize(time))
+    return localized.map(dataset.naivetime)
 
 
 def check_column_values(col: ImportColumn, df: pd.DataFrame):
@@ -272,6 +291,7 @@ def load_dataframe(
     
     # Convert the time column to datetime and adjust it with the date column if necessary
     _make_time_column_as_datetime(df, idescr.dateformat)
+    df['time'] = _naive_local_times(df['time'], idescr.timezone or conf.datetime_default_timezone)
 
     # Convert the value columns to numeric and apply the difference and factor operations, if needed
     for col in idescr.columns:

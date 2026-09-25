@@ -485,7 +485,13 @@ class ImportDescription(object):
         if timezone:
             # Search in pytz's "set" cause of the set is faster than the
             # list
-            if timezone not in common_timezones_set:
+            fixed_timezone = timezone.startswith('Fixed/')
+            if fixed_timezone:
+                try:
+                    int(timezone.split('/')[1])
+                except (IndexError, ValueError):
+                    fixed_timezone = False
+            if timezone not in common_timezones_set and not fixed_timezone:
                 raise ValueError('Error in import description: \'%s\' is no'
                                  ' valid timezone' % timezone)
 
