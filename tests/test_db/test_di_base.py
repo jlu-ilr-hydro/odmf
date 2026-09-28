@@ -50,3 +50,14 @@ def test_from_file_validation(db):
     with pytest.raises(IOError) as e_info:
         base.ImportDescription.from_file(path=path, pattern=pattern)
         assert str(e_info.value) == 'Could not find .conf file for file description'
+
+
+def test_fixed_timezone_is_accepted(db):
+    from odmf.dataimport import base
+
+    config = configparser.ConfigParser()
+    config['import'] = {'instrument': '0', 'timezone': 'Fixed/60'}
+
+    descriptor = base.ImportDescription.from_config(config)
+
+    assert descriptor.timezone == 'Fixed/60'

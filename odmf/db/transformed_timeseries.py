@@ -56,22 +56,18 @@ class TransformedTimeseries(Dataset):
         return pd.Series(result, index=x.index, name=str(self))
 
     def iterrecords(self, witherrors=False, start=None, end=None):
-        session = self.session()
-        srcrecords = session.query(Record).filter(
-            Record._dataset.in_(self.sourceids())).order_by(Record.time)
-        if start:
-            srcrecords = srcrecords.filter(Record.time >= start)
-        if end:
-            srcrecords = srcrecords.filter(Record.time <= end)
-        if not witherrors:
-            srcrecords = srcrecords.filter(~Record.is_error)
-        i = 0
-        for r in srcrecords:
-            i += 1
-            yield MemRecord(id=i, dataset=r.dataset, time=r.time,
-                            value=self.transform(r.calibrated),
-                            sample=r.sample, comment=r.comment,
-                            is_error=r.is_error)
+        records = [
+            record
+            for source in self.sources
+            for record in source.iterrecords(witherrors, start, end)
+        ]
+        records.sort(key=lambda record: record.time)
+        for i, record in enumerate(records, start=1):
+            value = self.transform(pd.Series([record.value])).iloc[0]
+            yield MemRecord(id=i, dataset=record.dataset, time=record.time,
+                            value=value, sample=record.sample,
+                            comment=record.comment, rawvalue=record.rawvalue,
+                            is_error=record.is_error)
 
     def suitablesources(self):
         session = self.session()

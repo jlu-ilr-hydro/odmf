@@ -201,6 +201,12 @@ class Dataset(Base):
     def localizetime(self, time):
         return self.tzinfo.localize(time)
 
+    def naivetime(self, time):
+        """Return a timestamp in dataset local time without timezone information."""
+        if time.tzinfo is not None and time.utcoffset() is not None:
+            return time.astimezone(self.tzinfo).replace(tzinfo=None)
+        return time
+
     def copy(self, id: int):
         """Creates a new dataset without records with the same meta data as this dataset.
         Give a new (unused) id
