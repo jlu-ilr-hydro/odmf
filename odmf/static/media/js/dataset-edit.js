@@ -62,7 +62,7 @@ function plotds(id) {
         marker: $('#markerpicker').val(),
         line: $('#linepicker').val(),
         color: $('#colorpicker').val(),
-        interactive: $('#interactive').is(':checked')
+        interactive: false
     }, function(html) {
         $('#plot-div').html(html);
     }).fail(jqhxr => {

@@ -10,6 +10,7 @@
         <script type="text/javascript" src="${conf.root_url}/media/js/plot.js" />
         <script type="text/javascript" py:if="error">
             $(() => {
+
                 $('#error').html('${markdown(error)}')
                 $('#error-row').removeClass('d-none')
             })
@@ -57,14 +58,12 @@
     <py:block name="sidebar">
         <div class="container-fluid ">
             <div class="dropdown mb-2">
-                <a class=" w-100 flexbox" href="#" role="button" id="file-menu-link" data-bs-toggle="dropdown"
+                <button class="d-flex w-100 dropdown-toggle btn btn-secondary" href="#" role="button" id="file-menu-link" data-bs-toggle="dropdown"
                     aria-haspopup="true" aria-expanded="false" title="file-menu">
-                    <h4 id="plot-name" class="me-auto">name...</h4>
-                    <div class="ms-auto btn btn-primary"><i class="fas fa-bars" /></div>
-                </a>
-
-
-                <div class="dropdown-menu" aria-labelledby="file-menu-link">
+                    <i class="fas fa-bars me-auto"/>
+                    <span id="plot-name" class="me-auto">name...</span>
+                </button>
+                <div class="dropdown-menu" aria-labelledby="plot-name" aria-controlled-by="file-menu-link">
                     <button class="dropdown-item dropdown-item-action do-reload" role="button">
                         <i class="fas fa-sync-alt" /> redraw plot
                     </button>
@@ -95,6 +94,9 @@
                     <a class="dropdown-item" id="export-toggle" data-bs-toggle="modal" data-bs-target="#export-dialog"
                         role="button" aria-controls="export-dialog">
                         <i class="fas fa-file-export" /> export data...
+                    </a>
+                    <a class="dropdown-item" id="profile-create" role="button" >
+                        <i class="fas fa-magnifying-glass-chart" /> profile data...
                     </a>
                     <a class="dropdown-item" id="json-toggle" data-bs-toggle="modal" data-bs-target="#json-dialog"
                         role="button" aria-controls="json-dialog">

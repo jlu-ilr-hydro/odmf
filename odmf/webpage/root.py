@@ -175,8 +175,9 @@ class Root(object):
         """
         Returns a fully rendered page with navigation including the rendered markdown content
         """
+        md = web.markdown(content)
         return web.render('empty.html', title=title,
-                         error='', success='', content=content).render()
+                         error='', success='', content=md).render()
 
     @expose_for()
     @web.mime.plain

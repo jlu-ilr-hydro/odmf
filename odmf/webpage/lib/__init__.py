@@ -10,7 +10,7 @@ __all__ = [
 import cherrypy
 from urllib.parse import urlencode
 
-from .renderer import render, Resource, literal, escape
+from .renderer import render, Resource, literal, escape, fg_data_profiling
 from .render_tools import markdown, user
 
 from .conversion import *

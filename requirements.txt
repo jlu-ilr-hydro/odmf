@@ -10,8 +10,11 @@ kajiki
 markdown
 matplotlib
 
+# Data quality checker
+fg-data-profiling
+
 # scientific python
-pandas
+pandas<3.0
 scipy
 xlrd==2.0.1
 numba>=0.50.0
@@ -19,9 +22,9 @@ openpyxl>=3.0.7
 asteval>=0.9.25
 pyarrow
 tables
+
 # database
 pytz
-
 sqlalchemy>=2.0.0
 sqlalchemy-json
 bcrypt
@@ -37,16 +40,14 @@ mammoth   # converts docx files to html
 
 # Interactive
 ipython>=8.0.1
-
 requests
+
 # Tests
 pytest
 coverage
 
-# woftester only
 lxml
 coloredlogs
-
 geopandas
-
 nodejs-bin
+
