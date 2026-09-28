@@ -84,7 +84,7 @@ def addrecords_dataframe(df: pd.DataFrame):
         # Check datasets
         ds_ids = _check_datasets(df, session)
 
-        datasets = session.query(db.Dataset).filter(db.Dataset.id.in_(ds_ids)).order_by(db.Dataset.id)
+        datasets = session.query(db.Dataset).filter(db.Dataset.id.in_(ds_ids)).order_by(db.Dataset.id).all()
 
         # Alter id and timeranges
         error_ds = [
@@ -97,13 +97,17 @@ def addrecords_dataframe(df: pd.DataFrame):
             error_ds = ', '.join(f'ds{ds}' for ds in error_ds)
             raise ValueError(f'{users.current} may not append to datasets {error_ds}')
 
+        normalized_times = pd.Series(index=df.index, dtype='datetime64[ns]')
         for ds in datasets:
             ds_rows = df.dataset == ds.id
-            df.loc[ds_rows, 'time'] = [
-                ds.naivetime(time)
-                for time in df.loc[ds_rows, 'time']
-            ]
+            ds_times = df.loc[ds_rows, 'time']
+            if isinstance(ds_times.dtype, pd.DatetimeTZDtype):
+                ds_times = ds_times.dt.tz_convert(ds.tzinfo).dt.tz_localize(None)
+            normalized_times.loc[ds_rows] = ds_times
             _adjust_id(df, ds)
+
+        df['time'] = normalized_times
+        for ds in datasets:
             _adjust_time(df, ds)
 
         # commit to db
