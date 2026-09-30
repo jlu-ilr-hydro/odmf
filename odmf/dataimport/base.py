@@ -414,8 +414,12 @@ class ImportDescription(object):
         config.set(section, 'nodata', self.nodata)
         if self.worksheet:
             config.set(section, 'worksheet', self.worksheet)
+        if self.samplecolumn is not None:
+            config.set(section, 'samplecolumn', self.samplecolumn)
         if self.sample_mapping:
             config.set(section, 'sample_mapping', self.sample_mapping)
+        if self.encoding:
+            config.set(section, 'encoding', self.encoding)
         if self.fileextension:
             config.set(section, 'fileextension', self.fileextension)
         if self.total_columns:

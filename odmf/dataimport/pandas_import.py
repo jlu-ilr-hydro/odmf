@@ -104,7 +104,7 @@ def columndatasets_from_description(
         inst = session.get(db.Datasource, idescr.instrument)
         user = session.get(db.Person, user)
         site = session.get(db.Site, siteid)
-        project = session.get(db.Project, idescr.project)
+        project = session.get(db.Project, idescr.project) if idescr.project else None
         # Get "raw" as data quality, to use as a default value
         raw = session.get(db.Quality, 0)
         # Get all the relevant valuetypes (vt) from db as a dict for fast look up
@@ -320,7 +320,6 @@ def get_dataframe_for_ds_column(session, column: ImportColumn, data: pd.DataFram
 
     Creates a dataframe in the layout of the record table and adjusts all start / end dates of the fitting datasets
 
-    ------------- Untested -----------------
     """
 
     assert column.ds_column, "no ds_column available"
@@ -329,40 +328,97 @@ def get_dataframe_for_ds_column(session, column: ImportColumn, data: pd.DataFram
 
     newids = {}
 
-    def get_newid_range(ds: db.Timeseries):
-        start = ds.maxrecordid() + 1
-        end = start + (ds_ids == ds.id).sum()
-        return range(start, end)
-
-    for dsid in ds_ids.unique():
-        # type(dsid) --> np.int64
-        dsid = int(dsid)
-        # int conversion is necessary to prevent
-        # (psycopg2.ProgrammingError) can't adapt type 'numpy.int64'
-        ds = session.get(db.Dataset, dsid)
-        if ds:
-            # Filter data for the current ds
-            ds_data = data[ds_ids == dsid]
-            newids[dsid] = get_newid_range(ds)
-
-            ds.start = min(ds.start, ds_data.date.min().to_pydatetime())
-            ds.end = max(ds.end, ds_data.date.max().to_pydatetime())
-        else:
-            missing_ds.append(dsid)
+    unique_ids = [int(dsid) for dsid in ds_ids.unique()]
+    datasets_with_max_ids = session.query(
+        db.Timeseries, db.sql.func.max(db.Record.id)
+    ).outerjoin(
+        db.Record, db.Record._dataset == db.Timeseries.id
+    ).filter(
+        db.Timeseries.id.in_(unique_ids)
+    ).group_by(db.Timeseries.id).all()
+    datasets = [dataset for dataset, _ in datasets_with_max_ids]
+    missing_ds = list(set(unique_ids) - {ds.id for ds in datasets})
 
     if missing_ds:
         raise DataImportError(f'{column.name} misses the following datasets {missing_ds!s}.')
 
+    for ds, max_record_id in datasets_with_max_ids:
+        # Filter data for the current ds
+        ds_data = data[ds_ids == ds.id]
+        start_id = int(max_record_id or 0) + 1
+        newids[ds.id] = range(start_id, start_id + int((ds_ids == ds.id).sum()))
+
+        ds.start = min(ds.start, ds_data.time.min().to_pydatetime())
+        ds.end = max(ds.end, ds_data.time.max().to_pydatetime())
+
     col_df = pd.DataFrame(data.time)
 
     col_df['dataset'] = data['dataset for ' + column.name]
-    col_df['id'] = data.index
+    first_record_ids = pd.Series(
+        {dataset_id: id_range.start for dataset_id, id_range in newids.items()},
+        name='first_record_id',
+    )
+    col_df = col_df.join(first_record_ids, on='dataset')
+    col_df['id'] = col_df['first_record_id'] + col_df.groupby('dataset').cumcount()
+    col_df.drop(columns='first_record_id', inplace=True)
     col_df['value'] = data[column.name]
 
     if 'sample' in data.columns:
         col_df['sample'] = data['sample']
     col_df['is_error'] = False
     return col_df[~pd.isna(col_df['value'])]
+
+
+def validate_ds_column_targets(
+        session: db.Session, idescr: ImportDescription, data: pd.DataFrame
+):
+    """Validate all per-row dataset targets with one database query."""
+    targets_by_column = {}
+    all_targets = set()
+
+    for column in idescr.columns:
+        if not column.ds_column:
+            continue
+
+        target_column = f'dataset for {column.name}'
+        if target_column not in data.columns:
+            raise DataImportError(f'{column.name} is missing {target_column!r}.')
+
+        targets = set()
+        for target in data[target_column].dropna().unique():
+            try:
+                numeric_target = float(target)
+                if not numeric_target.is_integer():
+                    raise ValueError
+                targets.add(int(numeric_target))
+            except (TypeError, ValueError, OverflowError):
+                raise DataImportError(
+                    f'{column.name} has invalid dataset id {target!r}.'
+                ) from None
+
+        targets_by_column[column.name] = targets
+        all_targets.update(targets)
+
+    if not all_targets:
+        return
+
+    existing_targets = {
+        dataset_id
+        for dataset_id, in session.query(db.Timeseries.id).filter(
+            db.Timeseries.id.in_(all_targets)
+        ).all()
+    }
+    missing = {
+        name: sorted(targets - existing_targets)
+        for name, targets in targets_by_column.items()
+        if targets - existing_targets
+    }
+    if missing:
+        details = '; '.join(
+            f'{name} misses the following datasets {dataset_ids!r}'
+            for name, dataset_ids in missing.items()
+        )
+        raise DataImportError(details + '.')
 
 
 def _get_recordframe(session: db.Session, idescr: ImportDescription,
@@ -391,6 +447,8 @@ def submit(session: db.Session, idescr: ImportDescription, filepath: Path, user:
 
     if len(df) == 0:
         raise DataImportError(f'No records to import from {filepath} with {idescr.filename}.')
+
+    validate_ds_column_targets(session, idescr, df)
 
     # Load all datasets for appending and create new datasets
     datasets = columndatasets_from_description(

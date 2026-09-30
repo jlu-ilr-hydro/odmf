@@ -12,12 +12,12 @@
         </div>
     </py:block>
     <py:block name="content">
-	<!--
-		filename: the filename to import
-		logs : the list of dictionaries as returned from importlog
-		error: some error messages
-		cancommit: If True, a commit is possible
-	-->
+        <!--
+            filename: the filename to import
+            logs : the list of dictionaries as returned from importlog
+            error: some error messages
+            cancommit: If True, a commit is possible
+        -->
         <div class="container">
             <h3 class="mt-4">${filename}</h3>
             <div class="alert alert-warning" py:if="not cancommit">
@@ -39,18 +39,23 @@
             </form>
             <div class="error" py:content="error" />
 
-            <table class="table">
-                <tr>
-                    <th>Row</th>
-                    <th>Error?</th>
-                    <th>Action</th>
-                </tr>
-                <tr py:for="log in logs" class="small${' bg-danger text-white' if log['error'] else ''}">
-                    <td py:content="log['row']" />
-                    <td py:content="'yes' if log['error'] else 'no'" />
-                    <td>${log['log']}</td>
-                </tr>
-            </table>
+            <ul class="list-group">
+                <li class="list-group-item " py:for="log in logs">
+                    <div class="row">
+                        <div class="me-4 p-2 bg-secondary text-white text-center align-middle rounded col-1 fw-bold">
+                            ${log['row']}
+                        </div>
+                        <div class="me-4 border rounded bg-${log['status']}-subtle text-${log['status']} p-2 col-2">
+                            ${log['status']}
+                        </div>
+                        <div class="col">
+                            ${markdown(log['log'])}
+                        </div>
+
+                    </div>
+
+                </li>
+            </ul>
         </div>
     </py:block>
 
