@@ -74,7 +74,7 @@ class LogbookImport:
     Imports from a defined xls file messages to the logbook and append values to datasets
 
     Structure of the table (case insensitve):
-    [Date] | Time | Site | Dataset | Value  | Message | [LogType] | [Sample]
+    [Date] | Time | Site | [Dataset] | Value  | Message | [LogType] | [Sample]
     """
 
     def __init__(self, filename, user, sheetname=0):
@@ -82,10 +82,13 @@ class LogbookImport:
         self.dataframe = df = pd.read_excel(filename, sheetname)
         # Convert all column captions to lower case
         self.dataframe.columns = [c.lower() for c in self.dataframe.columns]
-        # Check if all columns are present
-        if not all(c in df.columns for c in "time|site|dataset|value|logtype|message".split('|')):
+        required_columns = ('time', 'site', 'value', 'message')
+        if not all(c in df.columns for c in required_columns):
             raise LogImportStructError('The log excel sheet misses some of the follwing columns: '
-                               'time|site|dataset|value|logtype|message')
+                               'time|site|value|message')
+        for column in ('dataset', 'logtype'):
+            if column not in df.columns:
+                df[column] = pd.NA
         errors = []
         try:
             make_time_column_as_datetime(df)
@@ -265,6 +268,8 @@ class LogbookImport:
         elif pd.notna(data.message):
             # No dataset but Message is given -> import as log
             result, msg = self.row_to_log(session, row, data)
+        else:
+            raise LogImportRowWarning(row, 'Row contains neither a dataset value nor a message; ignored')
 
         if result and commit:
             session.add(result)
