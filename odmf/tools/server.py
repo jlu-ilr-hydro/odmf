@@ -14,6 +14,12 @@ server_config = {
     'tools.encode.on': True,
     'tools.encode.decode': True,
     'server.socket_host': '0.0.0.0',
+    # https://stackoverflow.com/a/26299440
+    'server.thread_pool' : 30,
+    # remove any limit on the request body size; cherrypy's default is 100MB
+    'server.max_request_body_size' : 0,
+    # increase server socket timeout to 60s; cherrypy's defult is 10s
+    'server.socket_timeout' : 60,
     'log.access_file': prefix + '/access.log',
     'log.error_file': prefix + '/error.log',
 }

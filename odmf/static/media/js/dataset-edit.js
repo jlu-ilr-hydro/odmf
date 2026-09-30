@@ -277,6 +277,9 @@ $(function() {
 
         })
     })
+    $('#alarm-aggregation_function').on('change', event => {
+         $('#alarm-unit').toggleClass('invisible', $('#alarm-aggregation_function').val() == 'count') 
+    })
 
 
 });

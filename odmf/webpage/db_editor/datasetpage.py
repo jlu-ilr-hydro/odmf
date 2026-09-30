@@ -3,6 +3,7 @@ Created on 18.07.2012
 
 @author: philkraf
 '''
+import json
 from base64 import b64encode
 from .. import lib as web
 from ... import db
@@ -29,6 +30,11 @@ def get_ds(session, datasetid):
 
 def has_access(ds: db.Dataset, level:Level=Level.guest):
     return ds.get_access_level(users.current) >= max(ds.access, level)
+
+def load_licenses():
+    with (Path(__file__).parent.parent.parent / 'static' / 'media' / 'js' / 'licenses.json').open() as f:
+         licenses = json.load(f)
+         return {l['id']: l for l in licenses}
 
 @cherrypy.popargs('datasetid')
 @web.show_in_nav_for(1, icon='clipboard')
@@ -92,6 +98,10 @@ class DatasetPage:
             if ds.get_access_level(users.current) >= Level.admin:
                 project = session.get(db.Project, kwargs.get('project'))
                 ds.project = project
+                ds.access = web.conv(int, kwargs.get('access'), 1)
+                ds.doi = kwargs.get('doi', ds.doi)
+                ds.license = kwargs.get('license', ds.license)            
+
 
             ds.timezone = kwargs.get('timezone')
 
@@ -107,7 +117,7 @@ class DatasetPage:
                     float, kwargs.get('calibration_offset'), 0.0)
                 ds.calibration_slope = web.conv(
                     float, kwargs.get('calibration_slope'), 1.0)
-                ds.access = web.conv(int, kwargs.get('access'), 1)
+                
             # Transformation only arguments
             if ds.is_transformed():
                 ds.expression = kwargs.get('expression')
@@ -208,7 +218,7 @@ class DatasetPage:
             web.session.error = error
         if message:
             web.session.success = message
-
+        
         def access(level: Level=Level.guest):
             return has_access(active, level)
         # Render the resulting page
@@ -222,7 +232,7 @@ class DatasetPage:
             title=f'ds{active.id}',
             # A couple of prepared queries to fill select elements
             valuetypes=session.query(db.ValueType).order_by(db.ValueType.name),
-            persons=session.query(db.Person).order_by(db.Person.can_supervise.desc(), db.Person.surname),
+            persons=session.query(db.Person).order_by(db.Person.access_level.desc(), db.Person.surname),
             sites=session.query(db.Site).order_by(db.Site.id),
             quality=session.query(db.Quality).order_by(db.Quality.id),
             datasources=session.query(db.Datasource),
@@ -230,6 +240,7 @@ class DatasetPage:
             same_time_ds=self.parallel_datasets(session, active),
             alarms=session.query(db.timeseries.DatasetAlarm).filter_by(dsid=active.id),
             topics=session.query(db.message.Topic).order_by(db.message.Topic.name),
+            licenses=load_licenses()
         ).render()
 
     @staticmethod
@@ -276,21 +287,23 @@ class DatasetPage:
                 else:
                     success = 'Alarm changed: '
 
-                alarm.active = web.conv(bool, kwargs.get('active'))
+                alarm.name = kwargs.get('name')
+                alarm.message = kwargs.get('message')
+                alarm.active = 'active' in kwargs
                 alarm.aggregation_function = web.conv(str, kwargs.get('aggregation_function'))
                 try:
                     alarm.aggregation_time = pd.to_timedelta(kwargs.get('aggregation_time')).total_seconds() / 86400
                 except (ValueError, AttributeError):
                     raise web.redirect(conf.url('dataset', datasetid, '#alarms'), error=str(kwargs.get('aggregation_time')) + ' is no timespan value')
-                if kwargs.get('threshold_value'):
-                    if kwargs.get('threshold_type') == 'above':
-                        alarm.threshold_above = web.conv(float, kwargs.get('threshold_value'))
+                if th_v:=kwargs.get('threshold_value'):
+                    if th_t:=kwargs.get('threshold_type') == 'above':
+                        alarm.threshold_above = web.conv(float, th_v)
                     else:
-                        alarm.threshold_below = web.conv(float, kwargs.get('threshold_value'))
+                        alarm.threshold_below = web.conv(float, th_v)
 
-                topic = session.get(db.message.Topic, kwargs.get('topic'))
-                if topic:
+                if topic:= session.get(db.message.Topic, kwargs.get('topic')):
                     alarm.topic = topic
+
                 session.flush()
                 if any(v is None for v in [alarm.aggregation_function, alarm.aggregation_time, alarm.topic, alarm.active, alarm.dataset]):
                     raise web.redirect(conf.url('dataset', datasetid, '#alarms'), error='Alarm is missing values')
@@ -382,8 +395,6 @@ class DatasetPage:
 
         Should replace multiple calls to attrjson
         """
-        ds_attributes = ['project', 'valuetype', 'measured_by', 'site', 'source', 'type', 'level',
-                         'uses_dst', 'timezone', 'project', 'quality']
         entities = {
             'level': db.Dataset.level,
             'valuetype' : db.ValueType,
@@ -391,7 +402,6 @@ class DatasetPage:
             'site': db.Site,
             'source': db.Datasource,
             'type': db.Dataset.type,
-            'uses_dst': db.Dataset.uses_dst,
             'timezone': db.Dataset.timezone,
             'project': db.Project,
             'quality': db.Quality

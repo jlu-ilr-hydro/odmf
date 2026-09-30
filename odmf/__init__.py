@@ -1,2 +1,2 @@
-__version__ = '2026.3.20.fix_import'
+__version__ = '2026.7.19.fix_import'
 prefix = '.'

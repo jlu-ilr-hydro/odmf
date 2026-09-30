@@ -354,6 +354,8 @@ class DatasetAlarm(Base):
     id: orm.Mapped[int] = sql.Column(sql.Integer, primary_key=True)
     dsid: orm.Mapped[int] = sql.Column(sql.ForeignKey('dataset.id'))
     dataset: orm.Mapped[Dataset] = orm.relationship('Dataset')
+    name: orm.Mapped[str] = sql.Column(sql.String, nullable=True)
+    message: orm.Mapped[str] = sql.Column(sql.String, nullable=True)
     active: orm.Mapped[bool] = sql.Column(sql.Boolean, default=True)
     aggregation_time: orm.Mapped[float] = sql.Column(sql.Float, default=1.0)
     aggregation_function: orm.Mapped[str] = sql.Column(sql.String, default='count')
@@ -365,21 +367,26 @@ class DatasetAlarm(Base):
     use_now: orm.Mapped[bool] = sql.Column(sql.Boolean, default=True)
 
     def msg_source(self):
-        return f'ds:{self.dsid}'
+        return f'{self.to_string(False)}'
 
-    def to_string(self, value=None):
+    def to_string(self, value=None, include_topic=True):
         agg_time = timedelta(days=self.aggregation_time)
-        msg = f'{self.aggregation_function}(ds:{self.dsid} last {agg_time}h)'
+        if self.name:
+            msg = self.name
+        else:
+            msg = f'{self.aggregation_function}(ds:{self.dsid} last {agg_time}h)'
         if value is not None:
             msg += f' = {value:0.4g} {self.dataset.valuetype.unit}'
         if self.threshold_below is not None:
             msg += f'< {self.threshold_below} {self.dataset.valuetype.unit}'
         if self.threshold_above is not None:
             msg += f'> {self.threshold_above} {self.dataset.valuetype.unit}'
-        return msg + ' ==> ' + str(self.topic)
+        if include_topic and self.topic:
+            msg += f' ==> {self.topic}'
+        return msg
 
     def __str__(self):
-        return self.to_string()
+        return self.to_string(include_topic=False)
 
     def check(self) -> typing.Optional[str]:
         """
@@ -395,14 +402,14 @@ class DatasetAlarm(Base):
             now = self.dataset.end
         start = now - timedelta(days=self.aggregation_time)
         value = float(self.dataset.asseries(start, now).agg(self.aggregation_function))
-        msg = f'{self.aggregation_function}(ds:{self.dsid} last {self.aggregation_time:0.3g} days)'
+        msg = f'{self.name}\n\n{self.aggregation_function}(ds:{self.dsid} last {self.aggregation_time:0.3g} days)'
 
         if value is None:
             return None
         elif self.threshold_below is not None and value < self.threshold_below:
-            return msg + f'< {self.threshold_below} {self.dataset.valuetype.unit}'
+            return msg + f'< {self.threshold_below} {self.dataset.valuetype.unit}\n{self.message}'
         elif self.threshold_above is not None and value > self.threshold_above:
-            return msg + f'> {self.threshold_above} {self.dataset.valuetype.unit}'
+            return msg + f'> {self.threshold_above} {self.dataset.valuetype.unit}\n{self.message}'
         else:
             return None
 
@@ -411,6 +418,8 @@ class DatasetAlarm(Base):
             id=self.id,
             dataset=self.dsid,
             active=self.active,
+            name=self.name,
+            message=self.message,
             aggregation_time=str(pd.Timedelta(days=self.aggregation_time)),
             aggregation_function=self.aggregation_function,
             threshold_below=self.threshold_below,

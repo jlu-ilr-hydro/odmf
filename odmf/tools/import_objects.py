@@ -103,7 +103,7 @@ def read_df_from_stream(filename: str, stream: typing.BinaryIO, lower_case_colum
     else:
         raise ObjectImportError(f'{filename} is not a supported file type')
     if lower_case_columns:
-        df.columns = [c.lower() for c in df.columns] 
+        df.columns = [c.lower() for c in df.columns]
     return df
 
 

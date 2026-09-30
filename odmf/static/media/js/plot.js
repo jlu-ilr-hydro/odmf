@@ -367,6 +367,7 @@ function line_to_dialog(line) {
 	let ln = dlg.data('lineno')
 	let repl = dlg.data('replace')
 	$('#newline-subplot').html(`${sp} line ${ln} - ${repl}`);
+	$('#nl-name').val(line.name)
 	$('#nl-value').val(line.valuetype)
 	$('#nl-site').val(line.site)
 	$('#nl-instrument').val(line.instrument)

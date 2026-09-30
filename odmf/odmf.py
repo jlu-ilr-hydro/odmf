@@ -43,7 +43,6 @@ def start(workdir, autoreload: bool, browser: bool):
 
 
 @cli.command()
-@click.argument('workdir', default='.')
 @click.argument('db_url')
 @click.option('--port', default=8080, type=int, envvar='ODMF_PORT',
               help='Port to run the standalone server')
@@ -51,6 +50,7 @@ def start(workdir, autoreload: bool, browser: bool):
               help='URL of the root')
 @click.option('--default_timezone', default='Europe/Berlin', envvar='ODMF_DEFAULT_TIMEZONE',
               help='Default timezone for all dates')
+@click.argument('workdir', default='.')
 def configure(workdir, db_url, port, root_url, default_timezone):
     """
     Creates a new configuraton file (./config.yml) using the given database url and a port to run the server on
@@ -122,7 +122,6 @@ def db_test(workdir):
 
 
 @cli.command()
-@click.argument('workdir', default='.')
 @click.argument('workdir', default='.')
 def db_tables(workdir):
     """
