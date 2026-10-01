@@ -236,8 +236,18 @@ def fg_data_profiling(df, title=None, explorative=False, tsmode=False):
 
     import data_profiling as dp
     from lxml import html
-    
-    profile = dp.ProfileReport(df, minimal=False, title=title)
+    if len(df.columns) > 1:
+        profile = dp.ProfileReport(
+            df, minimal=False, title=title, 
+            tsmode=tsmode, explorative=explorative
+        )
+    else:
+        profile = dp.ProfileReport(
+            df, minimal=False, title=title, 
+            tsmode=tsmode, explorative=explorative, 
+            interactions=None, correlations=None
+        )
+
     profile.config.html.minify_html = False
     profile.config.html.use_local_assets = False
     profile.config.html.navbar_show = False
