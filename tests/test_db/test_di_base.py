@@ -2,9 +2,8 @@ import pytest
 import configparser
 from types import SimpleNamespace
 
-from .. import conf
 from . import db, session
-from .db_fixtures import project, person, datasource1_in_db
+from .db_fixtures import project, datasource1_in_db
 # Create a config file for the Odyssey Logger
 @pytest.fixture()
 def di_conf_file(tmp_path):

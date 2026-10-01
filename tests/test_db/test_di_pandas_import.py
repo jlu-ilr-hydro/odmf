@@ -1,16 +1,16 @@
 import pytest
 import datetime
-import pytz
+import pandas as pd
 import numpy as np
 import pandas as pd
 from sqlalchemy import event
-
 from ..test_db import db, session, conf
 from .test_di_base import di_conf_file
 from .db_fixtures import project, person, site1_in_db, datasource1_in_db
 from odmf import db as orm
 from odmf.dataimport import base, pandas_import as pi
 from odmf.tools import Path as OdfPath
+from types import SimpleNamespace
 
 
 def make_import_description(valuetype, *, factor=1.0, difference=None,
