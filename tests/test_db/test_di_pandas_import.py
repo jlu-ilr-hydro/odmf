@@ -1,4 +1,7 @@
 import pytest
+import datetime
+import pandas as pd
+import pytz
 from ..test_db import db, session, conf
 from .test_di_base import di_conf_file
 from .db_fixtures import project, person
@@ -56,6 +59,17 @@ def test_load_dataframe_column_problem(csv_file_for_import, db, project, person)
     idescr.total_columns = 6
     df = pi.load_dataframe(idescr=idescr, filepath=csv_file_for_import)
     assert not df.empty
+
+
+def test_aware_times_are_converted_to_dataset_local_wall_time():
+    from odmf.dataimport.pandas_import import _naive_local_times
+
+    times = pd.Series(pd.to_datetime(['2021-05-10T12:00:00+00:00']))
+
+    result = _naive_local_times(times, 'Europe/Berlin')
+
+    assert result.iloc[0] == datetime.datetime(2021, 5, 10, 14)
+    assert result.dt.tz is None
     
 
 
