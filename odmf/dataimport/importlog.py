@@ -183,7 +183,7 @@ class LogbookImport:
         # load and check dataset
         ds = self.get_dataset(session, row, data)
         id = ds.maxrecordid() + 1
-        time = data.time.to_pydatetime()
+        time = ds.naivetime(data.time.to_pydatetime())
         value = data.value
         # Check for duplicate
         if self.recordexists(ds, time):

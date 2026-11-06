@@ -310,6 +310,7 @@ class DatasetAPI(BaseAPI):
 
                 if not ds:
                     return 'Timeseries ds:{} does not exist'.format(dsid)
+                time = ds.naivetime(time)
                 new_rec = ds.addrecord(Id=recid, time=time, value=value, comment=comment, sample=sample)
                 return str(new_rec.id).encode('utf-8')
             except Exception as e:
@@ -412,6 +413,8 @@ class DatasetAPI(BaseAPI):
                 # get value, time, sample, comment and recid
                 value = web.conv(float, rec.get('value'))
                 time = web.parsedate(rec.get('time'), False)
+                if time is not None:
+                    time = dataset.naivetime(time)
                 if value is None:
                     warnings.append(f'{rec} has no valid value')
                 if time is None:

@@ -15,7 +15,7 @@ from traceback import format_exc as traceback
 from logging import getLogger
 
 from datetime import datetime, timedelta
-
+import pytz
 import json
 from ..tools import Path as OPath
 from ..config import conf
@@ -199,7 +199,13 @@ class PlotPage(object):
                 error = '\n'.join(f'{i:3} | {l}' for i, l in enumerate(j.split('\n'))) + f'\n\n {e}'
                 plot = None
 
-        return web.render('plot.html', plot=plot, autoreload=autoreload, error=error.replace("'", r"\'")).render()
+        return web.render(
+            'plot.html', 
+            plot=plot, 
+            autoreload=autoreload, 
+            timezones=pytz.common_timezones + ['Fixed/60'],
+            error=error.replace("'", r"\'")
+        ).render()
 
     @expose_for(plotgroup)
     @web.method.get

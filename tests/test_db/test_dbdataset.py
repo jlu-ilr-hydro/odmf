@@ -3,6 +3,7 @@ import datetime
 import numpy as np
 import pandas as pd
 import pytest
+import pytz
 import sqlalchemy.orm
 import sqlalchemy.exc
 from contextlib import contextmanager
@@ -205,6 +206,23 @@ class TestTimeseriesThousandRecords:
 
 class TestTimeseries:
 
+    @pytest.mark.parametrize('aware', [False, True])
+    def test_addrecord_accepts_naive_and_aware_times(self, timeseries, aware):
+        timeseries.timezone = 'Europe/Berlin'
+        incoming_time = datetime.datetime(2020, 2, 20, 7, 15)
+        if aware:
+            incoming_time = pytz.UTC.localize(incoming_time)
+
+        record = timeseries.addrecord(
+            value=2.5, time=incoming_time, out_of_timescope_ok=True
+        )
+
+        expected_time = (
+            incoming_time.astimezone(timeseries.tzinfo).replace(tzinfo=None)
+            if aware else incoming_time
+        )
+        assert record.time == expected_time
+
     def test_timeseries_empty(self, timeseries):
         assert timeseries
         assert timeseries.records.count() == 0
@@ -224,6 +242,49 @@ class TestTimeseries:
         assert isinstance(d, dict)
         assert 'id' in d
         assert timeseries.records.count() == 1
+
+    def test_timeseries_timezone_is_applied_to_results(self, timeseries, record):
+        timeseries.timezone = 'Europe/Berlin'
+
+        series = timeseries.asseries()
+        records = list(timeseries.iterrecords())
+
+        expected = pytz.timezone('Europe/Berlin').localize(record.time)
+        assert series.index[0] == expected
+        assert series.index.tz.zone == 'Europe/Berlin'
+        assert records[0].time == expected
+
+    def test_timeseries_timezone_is_applied_to_aware_bounds(self, timeseries, record):
+        timeseries.timezone = 'Europe/Berlin'
+        start = pytz.UTC.localize(datetime.datetime(2021, 5, 9, 22))
+        end = pytz.UTC.localize(datetime.datetime(2021, 5, 10, 0))
+
+        assert len(timeseries.asseries(start, end)) == 1
+        assert len(list(timeseries.iterrecords(start=start, end=end))) == 1
+
+    def test_empty_timeseries_has_timezone_aware_index(self, timeseries):
+        timeseries.timezone = 'Europe/Berlin'
+
+        series = timeseries.asseries()
+
+        assert series.index.tz.zone == 'Europe/Berlin'
+
+    def test_transformed_iterrecords_handles_aware_bounds(self, db, session, timeseries, record):
+        timeseries.timezone = 'Europe/Berlin'
+        transformed = db.TransformedTimeseries(
+            id=2, name='transformed', start=timeseries.start, end=timeseries.end,
+            site=timeseries.site, valuetype=timeseries.valuetype,
+            measured_by=timeseries.measured_by, quality=timeseries.quality,
+            source=timeseries.source, expression='x * 2', timezone='Europe/Berlin',
+            sources=[timeseries]
+        )
+        with temp_in_database(transformed, session):
+            start = pytz.UTC.localize(datetime.datetime(2021, 5, 9, 22))
+            records = list(transformed.iterrecords(start=start, end=start + datetime.timedelta(hours=2)))
+
+        assert len(records) == 1
+        assert records[0].time == pytz.timezone('Europe/Berlin').localize(record.time)
+        assert records[0].value == record.value * 2
 
 
 class TestRemovedataset:

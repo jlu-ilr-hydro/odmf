@@ -169,16 +169,21 @@
                             <option value="Y">yearly</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="small" for="prop-timezone"><i class="fas fa-clock"/> timezone:</label>
+                        <select id="prop-timezone" class="props form-control select2">
+                            <option py:for="tz in timezones" value="${tz}">${tz}</option>
+                        </select>
+                    </div>
 
                     <div class="">
                         <label class="small" for="prop-columns"><i class="fas fa-border-all" /> subplot columns</label>
                         <input id="prop-columns" class="props form-control" type="number" value="" max="" min="1" />
                     </div>
                     <div>
-                        <label class="small" for="prop-legend"></label>
-                        <div class="custom-control custom-switch">
-                            <input type="checkbox" class="custom-control-input props" id="prop-legend" />
-                            <label class="custom-control-label flexbox small" for="prop-legend">show legend</label>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input props" id="prop-legend" />
+                            <label class="form-check-label small" for="prop-legend">show legend</label>
                         </div>
 
                     </div>
