@@ -20,6 +20,7 @@ import json
 from ..tools import Path as OPath
 from ..config import conf
 from ..plot import Plot, NoDataError
+from ..plot.plot import _naive_plot_bound
 from .markdown import MarkDown
 from .. import db
 from . import lib as web
@@ -320,6 +321,8 @@ class PlotPage(object):
             level = web.conv(float, level)
             instrument = web.conv(int, instrument)
             start, end = to_datetime(start, end)
+            start = _naive_plot_bound(start)
+            end = _naive_plot_bound(end)
             me = users.current
             datasets = session.query(db.Dataset).filter(
                 db.Dataset._valuetype == valuetype,

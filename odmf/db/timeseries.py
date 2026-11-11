@@ -329,7 +329,7 @@ class Timeseries(Dataset):
         if values.empty:
             return pd.Series([], index=pd.DatetimeIndex([], tz=self.tzinfo), dtype=float)
 
-        values.index = values.index.tz_localize(self.tzinfo)
+        values.index = values.index.tz_localize(self.tzinfo, ambiguous=False)
 
         # Do calibration
         values *= self.calibration_slope
