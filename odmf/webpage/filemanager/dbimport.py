@@ -76,12 +76,15 @@ class DbImportPage:
         error = di.checkimport(path)
 
         # The content of the file
-        rawcontent = open(path.absolute, 'rb').read(1024).decode('utf-8', 'ignore')
+        with open(path.absolute, 'rb') as file:
+            rawcontent = file.read(1024).decode('utf-8', 'ignore')
         stats, startdate, enddate, table = {}, None, None, ''
         plots = {}
         try:
             config = di.ImportDescription.from_file(path.absolute)
             df = pi.load_dataframe(config, path)
+            with db.session_scope() as session:
+                pi.validate_ds_column_targets(session, config, df)
             stats, startdate, enddate = pi.get_statistics(config, df)
             plots = plot_series(config, df)
             table = df.to_html(

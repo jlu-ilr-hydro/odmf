@@ -64,7 +64,7 @@ def find_dataset(session: db.Session, time=None, site=None, level=None, valuetyp
         if ds := session.get(db.Dataset, dataset):
             return ds
         else:
-            raise LabImportError(f"Dataset {dataset} not found")
+            raise ValueError(f"Dataset {dataset} not found")
     else:
         def type_or_none(cls, x):
             if x is None:
@@ -126,13 +126,15 @@ def check_columns(table: pd.DataFrame, labcolumns: dict):
     """
     Checks that the columns in the table match the columns in the labcolumns dictionary. Raises on error
     """
+    available = {
+        col: description
+        for col, description in labcolumns.items()
+        if col in table.columns
+    }
     missing = [
         col for col in labcolumns if col not in table.columns
     ]
-    if missing:
-        raise ValueError(f"Missing columns: {missing}")
-    else:
-        return labcolumns
+    return available, missing
 
 def get_type_column(coltype:str, labcolumns: dict):
     """Finds the column of a specific type in the lab columns"""
@@ -164,13 +166,34 @@ def apply_sample_column(table: pd.DataFrame, labcolumns: dict, samplecolumn: str
     all information gathered from the sample name as new columns dataset, site, level, instrument
     if they do not exist already as explicit columns
 
-    Returns None
+    Returns errors for sample rows that could not be parsed.
     """
-    sample_df = parse_sample(table[samplecolumn], labcolumns[samplecolumn])
+    sample_config = labcolumns[samplecolumn]
+    sampler = SampleParser(sample_config)
+    parsed = []
+    valid_indices = []
+    invalid_indices = []
+    errors = []
+    for index, sample in table[samplecolumn].items():
+        try:
+            sample_values = sampler(sample)
+            if not any(value is not None for value in sample_values.values()):
+                raise ValueError(
+                    f"Sample name does not match pattern: {sample_config['pattern']}"
+                )
+            parsed.append(sample_values)
+            valid_indices.append(index)
+        except (TypeError, ValueError) as error:
+            invalid_indices.append(index)
+            errors.append({'row': index, 'sample': sample, 'error': str(error)})
+
+    table.drop(index=invalid_indices, inplace=True)
+    sample_df = pd.DataFrame(parsed, index=valid_indices).dropna(axis=1, how='all')
     for col in sample_df.columns:
         if col not in table.columns:
             table[col] = sample_df[col]
-    return table.rename(columns={samplecolumn: 'sample'}, inplace=True)
+    table.rename(columns={samplecolumn: 'sample'}, inplace=True)
+    return errors
 
 
 def melt_table(table: pd.DataFrame, labcolumns: dict):
@@ -215,15 +238,8 @@ def clean_df_melt(df_melt: pd.DataFrame):
     return df_melt_clean
 
 
-def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typing.Sequence[dict]):
-    """
-    Steps to do
-    + aggregate by dataset and time (`df.groupby(by=['dataset', 'time']).mean()`)
-    What happens if one dataset exist, but not the second?
-    + result table has record schema (dataset, id, time, value, is_error) -> import
-    :return:
-    """
-
+def prepare_labimport(filename: Path):
+    """Load and prepare the lab file up to the melt step."""
     conffile = filename.glob_up('*.labimport')
     with conffile.open() as f:
         labconf = yaml.safe_load(f)
@@ -231,20 +247,31 @@ def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typin
     try:
         read = getattr(pd, labconf.get('driver', 'read_excel'))
         df: pd.DataFrame = read(filename.absolute, **labconf.get('driver-options', {}))
-        df = df[labconf['columns'].keys()]
-        labcolumns = check_columns(df, labconf.get('columns', {}))
+        df = df[[col for col in labconf['columns'] if col in df.columns]]
+        labcolumns, missing_columns = check_columns(df, labconf.get('columns', {}))
+        if not 'sample' in df.columns:
+            df['sample'] = ''
+        for col, column_conf in labcolumns.items():
+            if column_conf['type'] == 'value':
+                df[col] *= column_conf.get('factor', 1.0)
         rename_column_by_type(df, labcolumns, 'time', 'dataset', 'site', 'level')
 
     except Exception as e:
         raise LabImportError(filename, str(e))
 
+    sample_errors = []
     if samplecolumn := get_type_column('sample', labcolumns):
-        apply_sample_column(df, labcolumns, samplecolumn)
+        sample_errors = apply_sample_column(df, labcolumns, samplecolumn)
     elif samplecolumn:= get_type_column('samplename', labcolumns):
         df.rename(columns={samplecolumn: 'sample'}, inplace=True)
 
+    return df, labcolumns, missing_columns, sample_errors, labconf
+
+
+def process_labimport(df, labcolumns, missing_columns, sample_errors, labconf, dryrun=True):
+    """Melt prepared data, resolve datasets, and optionally write records."""
     df_melt = melt_table(df, labcolumns)
-    datasets, errors = find_datasets(df_melt)
+    datasets, missing_datasets = find_datasets(df_melt)
     df_melt['dataset'] = datasets
     df_melt = df_melt.dropna()
     df_melt = clean_df_melt(df_melt)
@@ -264,7 +291,22 @@ def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typin
         int(i) : (df_agg.dataset == i).sum()
         for i in df_agg.dataset
     }
-    return datasets, info, errors, labconf
+    return datasets, info, missing_columns + missing_datasets + sample_errors, labconf
+
+
+def labimport(filename: Path, dryrun=True) -> (typing.Sequence[int], dict, typing.Sequence[dict]):
+    """
+    Steps to do
+    + aggregate by dataset and time (`df.groupby(by=['dataset', 'time']).mean()`)
+    What happens if one dataset exist, but not the second?
+    + result table has record schema (dataset, id, time, value, is_error) -> import
+    :return:
+    """
+    df, labcolumns, missing_columns, sample_errors, labconf = prepare_labimport(filename)
+    return process_labimport(
+        df, labcolumns, missing_columns, sample_errors, labconf, dryrun=dryrun
+    )
+
 
 
 if __name__ == '__main__':
