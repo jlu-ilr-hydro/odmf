@@ -20,6 +20,13 @@ def asdict(obj):
         return obj
 
 
+def _naive_plot_bound(time):
+    if time.tzinfo is not None and time.utcoffset() is not None:
+        timezone = pytz.timezone(config.conf.datetime_default_timezone)
+        time = time.astimezone(timezone)
+    return time.replace(tzinfo=None)
+
+
 class Line:
     """
     Represents a single line of a subplot
@@ -84,14 +91,8 @@ class Line:
         from ..webpage.auth import users
         me = users.current
         start, end = self.plot.get_time_span()
-        timezone = pytz.timezone(self.plot.timezone)
-        def localize(time):
-            if time.tzinfo is not None and time.utcoffset() is not None:
-                time = time.astimezone(timezone)
-            return time.replace(tzinfo=None)
-
-        start = localize(start)
-        end = localize(end)
+        start = _naive_plot_bound(start)
+        end = _naive_plot_bound(end)
         datasets = session.query(db.Dataset).filter(
             db.Dataset._valuetype == self.valuetypeid,
             db.Dataset._site == self.siteid,
@@ -199,6 +200,8 @@ class Subplot:
 
     def get_logs(self):
         start, end = self.plot.get_time_span()
+        start = _naive_plot_bound(start)
+        end = _naive_plot_bound(end)
         with db.session_scope() as session:
             # Get logbook entries for logsite during the plot-time
             logs = session.query(db.Log).filter_by(_site=self.logsite).filter(

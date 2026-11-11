@@ -68,3 +68,25 @@ def test_plot_accepts_aware_bounds_and_converts_series_to_plot_timezone(timeseri
     assert pd.Timestamp(figure.data[0].x[0]) == timezone.localize(
         datetime.datetime(2021, 5, 10)
     )
+
+
+def test_plot_extracts_series_across_autumn_time_shift(timeseries, record):
+    timezone = pytz.timezone('Europe/Berlin')
+    prepare_timeseries(timeseries, record)
+    record.time = datetime.datetime(2021, 10, 31, 2, 30)
+    timeseries.start = datetime.datetime(2021, 10, 30)
+    timeseries.end = datetime.datetime(2021, 11, 1)
+    timeseries.session().commit()
+    plot = make_plot(
+        pytz.UTC.localize(datetime.datetime(2021, 10, 31, 1)),
+        pytz.UTC.localize(datetime.datetime(2021, 10, 31, 2)),
+    )
+
+    line = plot.subplots[0].lines[0]
+    data = line.load(*plot.get_time_span())
+    figure = _make_figure(plot)
+    expected = timezone.localize(record.time, is_dst=False)
+
+    assert data.index[0] == expected
+    assert data.iloc[0] == record.value
+    assert pd.Timestamp(figure.data[0].x[0]) == expected

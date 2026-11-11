@@ -6,6 +6,7 @@
         // <![CDATA[
             fill_from_display_name = display_name => {
                 if (display_name) {
+                    // match "Lastname, Firstname <email@domain>" or "Firstname Lastname <email@domain>"
                     const match = display_name.match(/^\s*([^<]+)\s*<([^>]+)>\s*$/)
                     if (match) {
                         if (match[1].indexOf(',') > -1 ) {
@@ -23,7 +24,7 @@
                         $('#email').val(match[2].trim())
                         return match[2].match(/^(.*)@/)[1].trim().toLowerCase()
                     } else {
-                        return display_name.trim().toLowerCase()
+                        return display_name.trim()
                     }
                 }
             }
@@ -270,4 +271,3 @@
     </py:block>
 
 </py:extends>
-

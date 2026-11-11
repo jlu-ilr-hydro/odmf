@@ -171,7 +171,7 @@ def thousand_records(tmp_path, db, session, timeseries):
     df = pd.DataFrame(dict(
         id=range(1, n + 1),
         dataset=timeseries.id,
-        time=pd.date_range('2022-01-01', periods=n, freq='h'),
+        time=pd.date_range('2021-10-30', periods=n, freq='h'),
         value=np.arange(value_start, value_step * n + value_start, value_step),
         is_error=False,
     ))
@@ -196,6 +196,10 @@ class TestTimeseriesThousandRecords:
         ts_df = timeseries.asseries()
         assert ts_df.mean() == thousand_records.value.mean()
         assert len(ts_df) == 1000
+        expected_index = pd.DatetimeIndex(thousand_records.time).tz_localize(
+            timeseries.tzinfo, ambiguous=False
+        )
+        assert ts_df.index.equals(expected_index)
 
     def test_timeseries_statistics(self, timeseries, thousand_records):
         mean, std, n = timeseries.statistics()
@@ -254,13 +258,47 @@ class TestTimeseries:
         assert series.index.tz.zone == 'Europe/Berlin'
         assert records[0].time == expected
 
-    def test_timeseries_timezone_is_applied_to_aware_bounds(self, timeseries, record):
+    @pytest.mark.parametrize(
+        'record_time,start,end',
+        [
+            (
+                datetime.datetime(2021, 5, 10),
+                pytz.UTC.localize(datetime.datetime(2021, 5, 9, 22)),
+                pytz.UTC.localize(datetime.datetime(2021, 5, 10, 0)),
+            ),
+            (
+                datetime.datetime(2021, 10, 31, 2, 30),
+                pytz.UTC.localize(datetime.datetime(2021, 10, 31, 1)),
+                pytz.UTC.localize(datetime.datetime(2021, 10, 31, 2)),
+            ),
+        ],
+    )
+    def test_timeseries_timezone_is_applied_to_aware_bounds(
+            self, timeseries, record, record_time, start, end):
         timeseries.timezone = 'Europe/Berlin'
-        start = pytz.UTC.localize(datetime.datetime(2021, 5, 9, 22))
-        end = pytz.UTC.localize(datetime.datetime(2021, 5, 10, 0))
+        record.time = record_time
+        timeseries.session().commit()
 
-        assert len(timeseries.asseries(start, end)) == 1
-        assert len(list(timeseries.iterrecords(start=start, end=end))) == 1
+        series = timeseries.asseries(start, end)
+        records = list(timeseries.iterrecords(start=start, end=end))
+        expected = pytz.timezone('Europe/Berlin').localize(record_time, is_dst=False)
+
+        assert len(series) == 1
+        assert series.index[0] == expected
+        assert len(records) == 1
+        assert records[0].time == expected
+
+    def test_timeseries_resolves_ambiguous_time_as_standard_time(self, timeseries, record):
+        timeseries.timezone = 'Europe/Berlin'
+        record.time = datetime.datetime(2021, 10, 31, 2, 30)
+        timeseries.session().commit()
+
+        series = timeseries.asseries()
+        records = list(timeseries.iterrecords())
+        expected = pytz.timezone('Europe/Berlin').localize(record.time, is_dst=False)
+
+        assert series.index[0] == expected
+        assert records[0].time == expected
 
     def test_empty_timeseries_has_timezone_aware_index(self, timeseries):
         timeseries.timezone = 'Europe/Berlin'
@@ -269,8 +307,26 @@ class TestTimeseries:
 
         assert series.index.tz.zone == 'Europe/Berlin'
 
-    def test_transformed_iterrecords_handles_aware_bounds(self, db, session, timeseries, record):
+    @pytest.mark.parametrize(
+        'record_time,start,end',
+        [
+            (
+                datetime.datetime(2021, 5, 10),
+                pytz.UTC.localize(datetime.datetime(2021, 5, 9, 22)),
+                pytz.UTC.localize(datetime.datetime(2021, 5, 10, 0)),
+            ),
+            (
+                datetime.datetime(2021, 10, 31, 2, 30),
+                pytz.UTC.localize(datetime.datetime(2021, 10, 31, 1)),
+                pytz.UTC.localize(datetime.datetime(2021, 10, 31, 2)),
+            ),
+        ],
+    )
+    def test_transformed_iterrecords_handles_aware_bounds(
+            self, db, session, timeseries, record, record_time, start, end):
         timeseries.timezone = 'Europe/Berlin'
+        record.time = record_time
+        session.commit()
         transformed = db.TransformedTimeseries(
             id=2, name='transformed', start=timeseries.start, end=timeseries.end,
             site=timeseries.site, valuetype=timeseries.valuetype,
@@ -279,12 +335,22 @@ class TestTimeseries:
             sources=[timeseries]
         )
         with temp_in_database(transformed, session):
-            start = pytz.UTC.localize(datetime.datetime(2021, 5, 9, 22))
-            records = list(transformed.iterrecords(start=start, end=start + datetime.timedelta(hours=2)))
+            records = list(transformed.iterrecords(start=start, end=end))
 
         assert len(records) == 1
-        assert records[0].time == pytz.timezone('Europe/Berlin').localize(record.time)
+        assert records[0].time == pytz.timezone('Europe/Berlin').localize(record_time, is_dst=False)
         assert records[0].value == record.value * 2
+
+    def test_plot_bound_uses_configured_timezone(self, conf):
+        from odmf.plot.plot import _naive_plot_bound
+
+        aware_time = pytz.UTC.localize(datetime.datetime(2021, 5, 9, 22))
+        expected = aware_time.astimezone(
+            pytz.timezone(conf.datetime_default_timezone)
+        ).replace(tzinfo=None)
+
+        assert _naive_plot_bound(aware_time) == expected
+        assert _naive_plot_bound(expected) == expected
 
 
 class TestRemovedataset:
